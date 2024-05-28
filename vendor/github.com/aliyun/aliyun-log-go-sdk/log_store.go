@@ -13,11 +13,27 @@ import (
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/gogo/protobuf/proto"
+	"github.com/klauspost/compress/zstd"
 	"github.com/pierrec/lz4"
 )
 
 // this file is deprecated and no maintenance
 // see client_logstore.go
+
+var (
+	zstdReader = newZstdReader()
+	zstdWriter = newZstdWriter()
+)
+
+func newZstdReader() *zstd.Decoder {
+	r, _ := zstd.NewReader(nil)
+	return r
+}
+
+func newZstdWriter() *zstd.Encoder {
+	w, _ := zstd.NewWriter(nil, zstd.WithEncoderLevel(zstd.SpeedDefault))
+	return w
+}
 
 // LogStore defines LogStore struct
 type LogStore struct {
@@ -40,6 +56,7 @@ type LogStore struct {
 	putLogCompressType int
 	EncryptConf        *EncryptConf `json:"encrypt_conf,omitempty"`
 	ProductType        string       `json:"productType,omitempty"`
+	useMetricStoreURL  bool
 }
 
 // Shard defines shard struct
@@ -167,7 +184,14 @@ func (s *LogStore) PutRawLog(rawLogData []byte) (err error) {
 			"Content-Type":       "application/x-protobuf",
 		}
 		outLen = n
-		break
+	case Compress_ZSTD:
+		out = zstdWriter.EncodeAll(rawLogData, nil)
+		h = map[string]string{
+			"x-log-compresstype": "zstd",
+			"x-log-bodyrawsize":  strconv.Itoa(len(rawLogData)),
+			"Content-Type":       "application/x-protobuf",
+		}
+		outLen = len(out)
 	case Compress_None:
 		// no compress
 		out = rawLogData
@@ -185,6 +209,76 @@ func (s *LogStore) PutRawLog(rawLogData []byte) (err error) {
 	}
 	defer r.Body.Close()
 	body, _ := ioutil.ReadAll(r.Body)
+	if r.StatusCode != http.StatusOK {
+		err := new(Error)
+		if jErr := json.Unmarshal(body, err); jErr != nil {
+			return NewBadResponseError(string(body), r.Header, r.StatusCode)
+		}
+		return err
+	}
+	return nil
+}
+
+func (s *LogStore) PostRawLogs(body []byte, hashKey *string) (err error) {
+	if len(body) == 0 {
+		// empty log group or empty hashkey
+		return nil
+	}
+
+	if hashKey == nil || *hashKey == "" {
+		// empty hash call PutLogs
+		return s.PutRawLog(body)
+	}
+
+	var out []byte
+	var h map[string]string
+	var outLen int
+	switch s.putLogCompressType {
+	case Compress_LZ4:
+		// Compresse body with lz4
+		out = make([]byte, lz4.CompressBlockBound(len(body)))
+		var hashTable [1 << 16]int
+		n, err := lz4.CompressBlock(body, out, hashTable[:])
+		if err != nil {
+			return NewClientError(err)
+		}
+		// copy incompressible data as lz4 format
+		if n == 0 {
+			n, _ = copyIncompressible(body, out)
+		}
+
+		h = map[string]string{
+			"x-log-compresstype": "lz4",
+			"x-log-bodyrawsize":  strconv.Itoa(len(body)),
+			"Content-Type":       "application/x-protobuf",
+		}
+		outLen = n
+	case Compress_ZSTD:
+		// Compress body with zstd
+		out = zstdWriter.EncodeAll(body, nil)
+		h = map[string]string{
+			"x-log-compresstype": "zstd",
+			"x-log-bodyrawsize":  strconv.Itoa(len(body)),
+			"Content-Type":       "application/x-protobuf",
+		}
+		outLen = len(out)
+	case Compress_None:
+		// no compress
+		out = body
+		h = map[string]string{
+			"x-log-bodyrawsize": strconv.Itoa(len(body)),
+			"Content-Type":      "application/x-protobuf",
+		}
+		outLen = len(out)
+	}
+
+	uri := fmt.Sprintf("/logstores/%v/shards/route?key=%v", s.Name, *hashKey)
+	r, err := request(s.project, "POST", uri, h, out[:outLen])
+	if err != nil {
+		return NewClientError(err)
+	}
+	defer r.Body.Close()
+	body, _ = ioutil.ReadAll(r.Body)
 	if r.StatusCode != http.StatusOK {
 		err := new(Error)
 		if jErr := json.Unmarshal(body, err); jErr != nil {
@@ -231,7 +325,15 @@ func (s *LogStore) PutLogs(lg *LogGroup) (err error) {
 			"Content-Type":       "application/x-protobuf",
 		}
 		outLen = n
-		break
+	case Compress_ZSTD:
+		// Compress body with zstd
+		out = zstdWriter.EncodeAll(body, nil)
+		h = map[string]string{
+			"x-log-compresstype": "zstd",
+			"x-log-bodyrawsize":  strconv.Itoa(len(body)),
+			"Content-Type":       "application/x-protobuf",
+		}
+		outLen = len(out)
 	case Compress_None:
 		// no compress
 		out = body
@@ -241,8 +343,12 @@ func (s *LogStore) PutLogs(lg *LogGroup) (err error) {
 		}
 		outLen = len(out)
 	}
-
-	uri := fmt.Sprintf("/logstores/%v", s.Name)
+	var uri string
+	if s.useMetricStoreURL {
+		uri = fmt.Sprintf("/prometheus/%s/%s/api/v1/write", s.project.Name, s.Name)
+	} else {
+		uri = fmt.Sprintf("/logstores/%v", s.Name)
+	}
 	r, err := request(s.project, "POST", uri, h, out[:outLen])
 	if err != nil {
 		return NewClientError(err)
@@ -267,7 +373,7 @@ func (s *LogStore) PostLogStoreLogs(lg *LogGroup, hashKey *string) (err error) {
 		return nil
 	}
 
-	if hashKey == nil || *hashKey == "" {
+	if hashKey == nil || *hashKey == "" || s.useMetricStoreURL {
 		// empty hash call PutLogs
 		return s.PutLogs(lg)
 	}
@@ -300,7 +406,15 @@ func (s *LogStore) PostLogStoreLogs(lg *LogGroup, hashKey *string) (err error) {
 			"Content-Type":       "application/x-protobuf",
 		}
 		outLen = n
-		break
+	case Compress_ZSTD:
+		// Compress body with zstd
+		out = zstdWriter.EncodeAll(body, nil)
+		h = map[string]string{
+			"x-log-compresstype": "zstd",
+			"x-log-bodyrawsize":  strconv.Itoa(len(body)),
+			"Content-Type":       "application/x-protobuf",
+		}
+		outLen = len(out)
 	case Compress_None:
 		// no compress
 		out = body
@@ -375,36 +489,53 @@ func (s *LogStore) GetCursor(shardID int, from string) (cursor string, err error
 	return cursor, nil
 }
 
+func (s *LogStore) GetLogsBytes(shardID int, cursor, endCursor string,
+	logGroupMaxCount int) (out []byte, nextCursor string, err error) {
+	plr := &PullLogRequest{
+		ShardID:          shardID,
+		Cursor:           cursor,
+		EndCursor:        endCursor,
+		LogGroupMaxCount: logGroupMaxCount,
+	}
+	return s.GetLogsBytesV2(plr)
+}
+
+// Deprecated: use GetLogsBytesWithQuery instead
+func (s *LogStore) GetLogsBytesV2(plr *PullLogRequest) ([]byte, string, error) {
+	out, plm, err := s.GetLogsBytesWithQuery(plr)
+	return out, plm.NextCursor, err
+}
+
 // GetLogsBytes gets logs binary data from shard specified by shardId according cursor and endCursor.
 // The logGroupMaxCount is the max number of logGroup could be returned.
 // The nextCursor is the next curosr can be used to read logs at next time.
-func (s *LogStore) GetLogsBytes(shardID int, cursor, endCursor string,
-	logGroupMaxCount int) (out []byte, nextCursor string, err error) {
+func (s *LogStore) GetLogsBytesWithQuery(plr *PullLogRequest) (out []byte, pullLogMeta *PullLogMeta, err error) {
 	h := map[string]string{
 		"x-log-bodyrawsize": "0",
 		"Accept":            "application/x-protobuf",
-		"Accept-Encoding":   "lz4",
 	}
-
-	uri := ""
-	if endCursor == "" {
-		uri = fmt.Sprintf("/logstores/%v/shards/%v?type=logs&cursor=%v&count=%v",
-			s.Name, shardID, cursor, logGroupMaxCount)
+	if plr.CompressType < 0 || Compress_LZ4 >= Compress_Max {
+		return nil, nil, fmt.Errorf("unsupported compress type: %d", plr.CompressType)
+	}
+	if plr.CompressType == Compress_ZSTD {
+		h["Accept-Encoding"] = "zstd"
 	} else {
-		uri = fmt.Sprintf("/logstores/%v/shards/%v?type=logs&cursor=%v&end_cursor=%v&count=%v",
-			s.Name, shardID, cursor, endCursor, logGroupMaxCount)
+		h["Accept-Encoding"] = "lz4"
 	}
+	urlVal := plr.ToURLParams()
+	uri := fmt.Sprintf("/logstores/%v/shards/%v?%s", s.Name, plr.ShardID, urlVal.Encode())
 
 	r, err := request(s.project, "GET", uri, h, nil)
 	if err != nil {
-		return nil, "", err
+		return
 	}
 	defer r.Body.Close()
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return nil, "", err
+		return
 	}
-
+	pullLogMeta = &PullLogMeta{}
+	pullLogMeta.Netflow = len(buf)
 	if r.StatusCode != http.StatusOK {
 		errMsg := &Error{}
 		err = json.Unmarshal(buf, errMsg)
@@ -424,8 +555,13 @@ func (s *LogStore) GetLogsBytes(shardID int, cursor, endCursor string,
 		err = fmt.Errorf("can't find 'x-log-compresstype' header")
 		return
 	}
-	if v[0] != "lz4" {
-		err = fmt.Errorf("unexpected compress type:%v", v[0])
+	var compressType = Compress_None
+	if v[0] == "lz4" {
+		compressType = Compress_LZ4
+	} else if v[0] == "zstd" {
+		compressType = Compress_ZSTD
+	} else {
+		err = fmt.Errorf("unexpected compress type:%v", compressType)
 		return
 	}
 
@@ -434,25 +570,58 @@ func (s *LogStore) GetLogsBytes(shardID int, cursor, endCursor string,
 		err = fmt.Errorf("can't find 'x-log-cursor' header")
 		return
 	}
-	nextCursor = v[0]
-
-	v, ok = r.Header["X-Log-Bodyrawsize"]
-	if !ok || len(v) == 0 {
-		err = fmt.Errorf("can't find 'x-log-bodyrawsize' header")
+	pullLogMeta.NextCursor = v[0]
+	pullLogMeta.RawSize, err = ParseHeaderInt(r, "X-Log-Bodyrawsize")
+	if err != nil {
 		return
 	}
-	bodyRawSize, err := strconv.Atoi(v[0])
-	if err != nil {
-		return nil, "", err
-	}
-
-	out = make([]byte, bodyRawSize)
-	if bodyRawSize != 0 {
-		len := 0
-		if len, err = lz4.UncompressBlock(buf, out); err != nil || len != bodyRawSize {
-			return
+	if pullLogMeta.RawSize > 0 {
+		out = make([]byte, pullLogMeta.RawSize)
+		switch compressType {
+		case Compress_LZ4:
+			uncompressedSize := 0
+			if uncompressedSize, err = lz4.UncompressBlock(buf, out); err != nil {
+				return
+			}
+			if uncompressedSize != pullLogMeta.RawSize {
+				return nil, nil, fmt.Errorf("uncompressed size %d does not match 'x-log-bodyrawsize' %d", uncompressedSize, pullLogMeta.RawSize)
+			}
+		case Compress_ZSTD:
+			out, err = zstdReader.DecodeAll(buf, out[:0])
+			if err != nil {
+				return nil, nil, err
+			}
+			if len(out) != pullLogMeta.RawSize {
+				return nil, nil, fmt.Errorf("uncompressed size %d does not match 'x-log-bodyrawsize' %d", len(out), pullLogMeta.RawSize)
+			}
+		default:
+			return nil, nil, fmt.Errorf("unexpected compress type: %d", compressType)
 		}
 	}
+	// todo: add query meta
+	// If query is not nil, extract more headers
+	// if plr.Query != "" {
+	// 	pullLogMeta.RawSizeBeforeQuery, err = ParseHeaderInt(r, "X-Log-Rawdatasize")
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// 	pullLogMeta.DataCountBeforeQuery, err = ParseHeaderInt(r, "X-Log-Rawdatacount")
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// 	pullLogMeta.Lines, err = ParseHeaderInt(r, "X-Log-Resultlines")
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// 	pullLogMeta.LinesBeforeQuery, err = ParseHeaderInt(r, "X-Log-Rawdatalines")
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// 	pullLogMeta.FailedLines, err = ParseHeaderInt(r, "X-Log-Failedlines")
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// }
 	return
 }
 
@@ -474,18 +643,33 @@ func LogsBytesDecode(data []byte) (gl *LogGroupList, err error) {
 // @note if you want to pull logs continuous, set endCursor = ""
 func (s *LogStore) PullLogs(shardID int, cursor, endCursor string,
 	logGroupMaxCount int) (gl *LogGroupList, nextCursor string, err error) {
+	plr := &PullLogRequest{
+		ShardID:          shardID,
+		Cursor:           cursor,
+		EndCursor:        endCursor,
+		LogGroupMaxCount: logGroupMaxCount,
+	}
+	return s.PullLogsV2(plr)
+}
 
-	out, nextCursor, err := s.GetLogsBytes(shardID, cursor, endCursor, logGroupMaxCount)
+// Deprecated: use PullLogsWithQuery instead
+func (s *LogStore) PullLogsV2(plr *PullLogRequest) (*LogGroupList, string, error) {
+	gl, plm, err := s.PullLogsWithQuery(plr)
+	return gl, plm.NextCursor, err
+}
+
+func (s *LogStore) PullLogsWithQuery(plr *PullLogRequest) (gl *LogGroupList, plm *PullLogMeta, err error) {
+	out, plm, err := s.GetLogsBytesWithQuery(plr)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
 
 	gl, err = LogsBytesDecode(out)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	}
 
-	return gl, nextCursor, nil
+	return
 }
 
 // GetHistograms query logs with [from, to) time range
@@ -537,56 +721,6 @@ func (s *LogStore) GetHistograms(topic string, from int64, to int64, queryExp st
 	return &getHistogramsResponse, nil
 }
 
-// getLogs query logs with [from, to) time range
-func (s *LogStore) getLogs(req *GetLogRequest) (*http.Response, []byte, *GetLogsResponse, error) {
-
-	h := map[string]string{
-		"x-log-bodyrawsize": "0",
-		"Accept":            "application/json",
-	}
-
-	urlVal := req.ToURLParams()
-
-	uri := fmt.Sprintf("/logstores/%s?%s", s.Name, urlVal.Encode())
-	r, err := request(s.project, "GET", uri, h, nil)
-	if err != nil {
-		return nil, nil, nil, NewClientError(err)
-	}
-	defer r.Body.Close()
-
-	body, _ := ioutil.ReadAll(r.Body)
-	if r.StatusCode != http.StatusOK {
-		err := new(Error)
-		if jErr := json.Unmarshal(body, err); jErr != nil {
-			return nil, nil, nil, NewBadResponseError(string(body), r.Header, r.StatusCode)
-		}
-		return nil, nil, nil, err
-	}
-
-	count, err := strconv.ParseInt(r.Header.Get(GetLogsCountHeader), 10, 32)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	var contents string
-	if _, ok := r.Header[GetLogsQueryInfo]; ok {
-		if len(r.Header[GetLogsQueryInfo]) > 0 {
-			contents = r.Header[GetLogsQueryInfo][0]
-		}
-	}
-	hasSQL := false
-	if r.Header.Get(HasSQLHeader) == "true" {
-		hasSQL = true
-	}
-
-	return r, body, &GetLogsResponse{
-		Progress: r.Header[ProgressHeader][0],
-		Count:    count,
-		Contents: contents,
-		HasSQL:   hasSQL,
-		Header:   r.Header,
-	}, nil
-}
-
 // GetLogLines query logs with [from, to) time range
 func (s *LogStore) GetLogLines(topic string, from int64, to int64, queryExp string,
 	maxLineNum int64, offset int64, reverse bool) (*GetLogLinesResponse, error) {
@@ -602,23 +736,44 @@ func (s *LogStore) GetLogLines(topic string, from int64, to int64, queryExp stri
 	return s.GetLogLinesV2(&req)
 }
 
+// GetLogLinesByNano query logs with [fromInNS, toInNs) nano time range
+func (s *LogStore) GetLogLinesByNano(topic string, fromInNS int64, toInNs int64, queryExp string,
+	maxLineNum int64, offset int64, reverse bool) (*GetLogLinesResponse, error) {
+
+	var req GetLogRequest
+	req.Topic = topic
+	req.From = fromInNS / 1e9
+	req.To = toInNs / 1e9
+	req.FromNsPart = int32(fromInNS % 1e9)
+	req.ToNsPart = int32(toInNs % 1e9)
+	req.Query = queryExp
+	req.Lines = maxLineNum
+	req.Offset = offset
+	req.Reverse = reverse
+	return s.GetLogLinesV2(&req)
+}
+
 // GetLogLinesV2 query logs with [from, to) time range
 func (s *LogStore) GetLogLinesV2(req *GetLogRequest) (*GetLogLinesResponse, error) {
-	rsp, b, logRsp, err := s.getLogs(req)
+	v3Rsp, httpRsp, err := s.getLogsV3Internal(req)
 	if err != nil {
 		return nil, err
 	}
+
+	// ensured no error
+	data, _ := json.Marshal(&v3Rsp.Logs)
 	var logs []json.RawMessage
-	err = json.Unmarshal(b, &logs)
+	_ = json.Unmarshal(data, &logs)
+
+	v2Rsp, err := toLogRespV2(v3Rsp, httpRsp.Header)
 	if err != nil {
-		return nil, NewBadResponseError(string(b), rsp.Header, rsp.StatusCode)
+		return nil, err
 	}
 
 	lineRsp := GetLogLinesResponse{
-		GetLogsResponse: *logRsp,
+		GetLogsResponse: *v2Rsp,
 		Lines:           logs,
 	}
-
 	return &lineRsp, nil
 }
 
@@ -629,6 +784,21 @@ func (s *LogStore) GetLogs(topic string, from int64, to int64, queryExp string,
 	req.Topic = topic
 	req.From = from
 	req.To = to
+	req.Query = queryExp
+	req.Lines = maxLineNum
+	req.Offset = offset
+	req.Reverse = reverse
+	return s.GetLogsV2(&req)
+}
+
+func (s *LogStore) GetLogsByNano(topic string, fromInNS int64, toInNs int64, queryExp string,
+	maxLineNum int64, offset int64, reverse bool) (*GetLogsResponse, error) {
+	var req GetLogRequest
+	req.Topic = topic
+	req.From = fromInNS / 1e9
+	req.To = toInNs / 1e9
+	req.FromNsPart = int32(fromInNS % 1e9)
+	req.ToNsPart = int32(toInNs % 1e9)
 	req.Query = queryExp
 	req.Lines = maxLineNum
 	req.Offset = offset
@@ -690,6 +860,21 @@ func (s *LogStore) GetLogsToCompletedV2(req *GetLogRequest) (*GetLogsResponse, e
 	return res, err
 }
 
+// GetLogsToCompletedV3 query logs with [from, to) time range to completed
+func (s *LogStore) GetLogsToCompletedV3(req *GetLogRequest) (*GetLogsV3Response, error) {
+	var res *GetLogsV3Response
+	var err error
+	f := func() (bool, error) {
+		res, err = s.GetLogsV3(req)
+		if err == nil {
+			return res.IsComplete(), nil
+		}
+		return false, err
+	}
+	s.getToCompleted(f)
+	return res, err
+}
+
 // GetHistogramsToCompleted query logs with [from, to) time range to completed
 func (s *LogStore) GetHistogramsToCompleted(topic string, from int64, to int64, queryExp string) (*GetHistogramsResponse, error) {
 	var res *GetHistogramsResponse
@@ -707,16 +892,101 @@ func (s *LogStore) GetHistogramsToCompleted(topic string, from int64, to int64, 
 
 // GetLogsV2 query logs with [from, to) time range
 func (s *LogStore) GetLogsV2(req *GetLogRequest) (*GetLogsResponse, error) {
-	rsp, b, logRsp, err := s.getLogs(req)
-	if err == nil && len(b) != 0 {
-		logs := []map[string]string{}
-		err = json.Unmarshal(b, &logs)
-		if err != nil {
-			return nil, NewBadResponseError(string(b), rsp.Header, rsp.StatusCode)
-		}
-		logRsp.Logs = logs
+	resp, httpRsp, err := s.getLogsV3Internal(req)
+	if err != nil {
+		return nil, err
 	}
-	return logRsp, err
+	return toLogRespV2(resp, httpRsp.Header)
+}
+
+func toLogRespV2(v3Resp *GetLogsV3Response, respHeader http.Header) (*GetLogsResponse, error) {
+	queryInfo, err := v3Resp.Meta.constructQueryInfo()
+	if err != nil {
+		return nil, fmt.Errorf("fail to construct x-log-query-info: %w", err)
+	}
+	convertToLogRespV2Header(v3Resp, respHeader, queryInfo)
+	return &GetLogsResponse{
+		Logs:     v3Resp.Logs,
+		Progress: v3Resp.Meta.Progress,
+		Count:    v3Resp.Meta.Count,
+		HasSQL:   v3Resp.Meta.HasSQL,
+		Contents: queryInfo,
+		Header:   respHeader,
+	}, nil
+}
+
+func convertToLogRespV2Header(v3Resp *GetLogsV3Response, header http.Header, queryInfo string) {
+	header.Add(GetLogsCountHeader, strconv.FormatInt(v3Resp.Meta.Count, 10))
+	header.Add(ProcessedRows, strconv.FormatInt(v3Resp.Meta.ProcessedRows, 10))
+	header.Add(ProgressHeader, v3Resp.Meta.Progress)
+	header.Add(ProcessedBytes, strconv.FormatInt(v3Resp.Meta.ProcessedBytes, 10))
+	header.Add(ElapsedMillisecond, strconv.FormatInt(v3Resp.Meta.ElapsedMillisecond, 10))
+	header.Add(HasSQLHeader, strconv.FormatBool(v3Resp.Meta.HasSQL))
+	header.Add(TelemetryType, v3Resp.Meta.TelemetryType)
+	header.Add(WhereQuery, v3Resp.Meta.WhereQuery)
+	header.Add(AggQuery, v3Resp.Meta.AggQuery)
+	header.Add(CpuSec, strconv.FormatFloat(v3Resp.Meta.CpuSec, 'E', -1, 64))
+	header.Add(CpuCores, strconv.FormatFloat(v3Resp.Meta.CpuCores, 'E', -1, 64))
+	header.Add(PowerSql, strconv.FormatBool(v3Resp.Meta.PowerSql))
+	header.Add(InsertedSql, v3Resp.Meta.InsertedSql)
+	header.Add(GetLogsQueryInfo, queryInfo)
+}
+
+// GetLogsV3 query logs with [from, to) time range
+func (s *LogStore) GetLogsV3(req *GetLogRequest) (*GetLogsV3Response, error) {
+	result, _, err := s.getLogsV3Internal(req)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *LogStore) getLogsV3Internal(req *GetLogRequest) (*GetLogsV3Response, *http.Response, error) {
+	reqBody, err := json.Marshal(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	h := map[string]string{
+		"x-log-bodyrawsize": fmt.Sprintf("%v", len(reqBody)),
+		"Content-Type":      "application/json",
+		"Accept-Encoding":   "lz4",
+	}
+	uri := fmt.Sprintf("/logstores/%s/logs", s.Name)
+	r, err := request(s.project, "POST", uri, h, reqBody)
+	if err != nil {
+		return nil, nil, NewClientError(err)
+	}
+	defer r.Body.Close()
+
+	respBody, _ := ioutil.ReadAll(r.Body)
+	if r.StatusCode != http.StatusOK {
+		err := new(Error)
+		if jErr := json.Unmarshal(respBody, err); jErr != nil {
+			return nil, nil, NewBadResponseError(string(respBody), r.Header, r.StatusCode)
+		}
+		return nil, nil, err
+	}
+	if _, ok := r.Header[BodyRawSize]; ok {
+		if len(r.Header[BodyRawSize]) > 0 {
+			bodyRawSize, err := strconv.ParseInt(r.Header[BodyRawSize][0], 10, 64)
+			if err != nil {
+				return nil, nil, NewBadResponseError(string(respBody), r.Header, r.StatusCode)
+			}
+			out := make([]byte, bodyRawSize)
+			if bodyRawSize != 0 {
+				len, err := lz4.UncompressBlock(respBody, out)
+				if err != nil || int64(len) != bodyRawSize {
+					return nil, nil, NewBadResponseError(string(respBody), r.Header, r.StatusCode)
+				}
+			}
+			respBody = out
+		}
+	}
+	var result GetLogsV3Response
+	if err = json.Unmarshal(respBody, &result); err != nil {
+		return nil, nil, NewBadResponseError(string(respBody), r.Header, r.StatusCode)
+	}
+	return &result, r, nil
 }
 
 // GetContextLogs ...
@@ -913,4 +1183,54 @@ func (s *LogStore) CheckIndexExist() (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (s *LogStore) GetMeteringMode() (*GetMeteringModeResponse, error) {
+	h := map[string]string{
+		"x-log-bodyrawsize": "0",
+		"Content-Type":      "application/json",
+	}
+	uri := fmt.Sprintf("/logstores/%s/meteringmode", s.Name)
+	r, err := request(s.project, "GET", uri, h, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, NewBadResponseError("", r.Header, r.StatusCode)
+	}
+	res := GetMeteringModeResponse{}
+	err = json.Unmarshal(data, &res)
+	if err != nil {
+		return nil, NewBadResponseError(string(data), r.Header, r.StatusCode)
+
+	}
+	return &res, nil
+
+}
+
+func (s *LogStore) UpdateMeteringMode(meteringMode string) error {
+
+	body := map[string]string{
+		"meteringMode": meteringMode,
+	}
+	uri := fmt.Sprintf("/logstores/%s/meteringmode", s.Name)
+	requestBody, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("cant marshal body:%w", err)
+	}
+
+	h := map[string]string{
+		"Content-Type":      "application/json",
+		"x-log-bodyrawsize": strconv.Itoa(len(requestBody)),
+	}
+
+	r, err := request(s.project, "PUT", uri, h, requestBody)
+
+	if err != nil {
+		r.Body.Close()
+		return err
+	}
+	return nil
 }

@@ -8,8 +8,11 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/aliyun/aliyun-log-go-sdk/util"
 )
 
 // GlobalForceUsingHTTP if GlobalForceUsingHTTP is true, then all request will use HTTP(ignore LogProject's UsingHTTP flag)
@@ -28,6 +31,7 @@ var MaxCompletedRetryLatency = 5 * time.Minute
 const (
 	Compress_LZ4  = iota // 0
 	Compress_None        // 1
+	Compress_ZSTD        // 2
 	Compress_Max         // max compress type(just for filter invalid compress type)
 )
 
@@ -39,6 +43,7 @@ const DefaultLogUserAgent = "golang-sdk-v0.1.0"
 type AuthVersionType string
 
 const (
+	AuthV0 AuthVersionType = "v0"
 	// AuthV1 v1
 	AuthV1 AuthVersionType = "v1"
 	// AuthV4 v4
@@ -96,9 +101,9 @@ func IsTokenError(err error) bool {
 // Client ...
 type Client struct {
 	Endpoint        string // IP or hostname of SLS endpoint
-	AccessKeyID     string
-	AccessKeySecret string
-	SecurityToken   string
+	AccessKeyID     string // Deprecated: use credentialsProvider instead
+	AccessKeySecret string // Deprecated: use credentialsProvider instead
+	SecurityToken   string // Deprecated: use credentialsProvider instead
 	UserAgent       string // default defaultLogUserAgent
 	RequestTimeOut  time.Duration
 	RetryTimeOut    time.Duration
@@ -106,7 +111,13 @@ type Client struct {
 	Region          string
 	AuthVersion     AuthVersionType //  v1 or v4 signature,default is v1
 
-	accessKeyLock sync.RWMutex
+	accessKeyLock       sync.RWMutex
+	credentialsProvider CredentialsProvider
+	// User defined common headers.
+	// When conflict with sdk pre-defined headers, the value will
+	// be ignored
+	CommonHeaders map[string]string
+	InnerHeaders  map[string]string
 }
 
 func convert(c *Client, projName string) *LogProject {
@@ -116,11 +127,19 @@ func convert(c *Client, projName string) *LogProject {
 }
 
 func convertLocked(c *Client, projName string) *LogProject {
-	p, _ := NewLogProject(projName, c.Endpoint, c.AccessKeyID, c.AccessKeySecret)
+	var p *LogProject
+	if c.credentialsProvider != nil {
+		p, _ = NewLogProjectV2(projName, c.Endpoint, c.credentialsProvider)
+	} else { // back compatible
+		p, _ = NewLogProject(projName, c.Endpoint, c.AccessKeyID, c.AccessKeySecret)
+	}
+
 	p.SecurityToken = c.SecurityToken
 	p.UserAgent = c.UserAgent
 	p.AuthVersion = c.AuthVersion
 	p.Region = c.Region
+	p.CommonHeaders = c.CommonHeaders
+	p.InnerHeaders = c.InnerHeaders
 	if c.HTTPClient != nil {
 		p.httpClient = c.HTTPClient
 	}
@@ -134,6 +153,12 @@ func convertLocked(c *Client, projName string) *LogProject {
 	return p
 }
 
+// Set credentialsProvider for client and returns the same client.
+func (c *Client) WithCredentialsProvider(provider CredentialsProvider) *Client {
+	c.credentialsProvider = provider
+	return c
+}
+
 // SetUserAgent set a custom userAgent
 func (c *Client) SetUserAgent(userAgent string) {
 	c.UserAgent = userAgent
@@ -142,6 +167,11 @@ func (c *Client) SetUserAgent(userAgent string) {
 // SetHTTPClient set a custom http client, all request will send to sls by this client
 func (c *Client) SetHTTPClient(client *http.Client) {
 	c.HTTPClient = client
+}
+
+// SetRetryTimeout set retry timeout
+func (c *Client) SetRetryTimeout(timeout time.Duration) {
+	c.RetryTimeOut = timeout
 }
 
 // SetAuthVersion set signature version that the client used
@@ -164,18 +194,26 @@ func (c *Client) ResetAccessKeyToken(accessKeyID, accessKeySecret, securityToken
 	c.AccessKeyID = accessKeyID
 	c.AccessKeySecret = accessKeySecret
 	c.SecurityToken = securityToken
+	c.credentialsProvider = NewStaticCredentialsProvider(accessKeyID, accessKeySecret, securityToken)
 	c.accessKeyLock.Unlock()
 }
 
 // CreateProject create a new loghub project.
 func (c *Client) CreateProject(name, description string) (*LogProject, error) {
+	return c.CreateProjectV2(name, description, "")
+}
+
+// CreateProjectV2 create a new loghub project, with dataRedundancyType option.
+func (c *Client) CreateProjectV2(name, description, dataRedundancyType string) (*LogProject, error) {
 	type Body struct {
-		ProjectName string `json:"projectName"`
-		Description string `json:"description"`
+		ProjectName        string `json:"projectName"`
+		Description        string `json:"description"`
+		DataRedundancyType string `json:"dataRedundancyType,omitempty"`
 	}
 	body, err := json.Marshal(Body{
-		ProjectName: name,
-		Description: description,
+		ProjectName:        name,
+		Description:        description,
+		DataRedundancyType: dataRedundancyType,
 	})
 	if err != nil {
 		return nil, err
@@ -365,4 +403,12 @@ func (c *Client) DeleteProject(name string) error {
 // Close the client
 func (c *Client) Close() error {
 	return nil
+}
+
+func (c *Client) setSignV4IfInAcdr(endpoint string) {
+	region, err := util.ParseRegion(endpoint)
+	if err == nil && strings.Contains(region, "-acdr-ut-") {
+		c.AuthVersion = AuthV4
+		c.Region = region
+	}
 }

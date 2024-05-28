@@ -17,12 +17,25 @@ import (
 
 // timeout configs
 var (
-	defaultRequestTimeout = 60 * time.Second
-	defaultRetryTimeout   = 90 * time.Second
-	defaultHttpClient     = &http.Client{
-		Timeout: defaultRequestTimeout,
-	}
+	defaultRequestTimeout  = 60 * time.Second
+	defaultRetryTimeout    = 90 * time.Second
+	defaultHttpClient      = newDefaultHTTPClient(defaultRequestTimeout)
+	defaultHTTPIdleTimeout = time.Second * 55
 )
+
+func newDefaultTransport() *http.Transport {
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.IdleConnTimeout = defaultHTTPIdleTimeout
+	return t
+}
+
+// returns a new http client instance with default config
+func newDefaultHTTPClient(requestTimeout time.Duration) *http.Client {
+	return &http.Client{
+		Transport: newDefaultTransport(),
+		Timeout:   requestTimeout,
+	}
+}
 
 func retryReadErrorCheck(ctx context.Context, err error) (bool, error) {
 	if err == nil {
@@ -153,9 +166,23 @@ func realRequest(ctx context.Context, project *LogProject, method, uri string, h
 		headers[HTTPHeaderUserAgent] = DefaultLogUserAgent
 	}
 
+	stsToken := project.SecurityToken
+	accessKeyID := project.AccessKeyID
+	accessKeySecret := project.AccessKeySecret
+
+	if project.credentialProvider != nil {
+		c, err := project.credentialProvider.GetCredentials()
+		if err != nil {
+			return nil, NewClientError(fmt.Errorf("fail to get credentials: %w", err))
+		}
+		stsToken = c.SecurityToken
+		accessKeyID = c.AccessKeyID
+		accessKeySecret = c.AccessKeySecret
+	}
+
 	// Access with token
-	if project.SecurityToken != "" {
-		headers[HTTPHeaderAcsSecurityToken] = project.SecurityToken
+	if stsToken != "" {
+		headers[HTTPHeaderAcsSecurityToken] = stsToken
 	}
 
 	if body != nil {
@@ -164,17 +191,25 @@ func realRequest(ctx context.Context, project *LogProject, method, uri string, h
 		}
 	}
 
+	for k, v := range project.InnerHeaders {
+		headers[k] = v
+	}
 	var signer Signer
 	if project.AuthVersion == AuthV4 {
 		headers[HTTPHeaderLogDate] = dateTimeISO8601()
-		signer = NewSignerV4(project.AccessKeyID, project.AccessKeySecret, project.Region)
+		signer = NewSignerV4(accessKeyID, accessKeySecret, project.Region)
+	} else if project.AuthVersion == AuthV0 {
+		signer = NewSignerV0()
 	} else {
 		headers[HTTPHeaderDate] = nowRFC1123()
-		signer = NewSignerV1(project.AccessKeyID, project.AccessKeySecret)
+		signer = NewSignerV1(accessKeyID, accessKeySecret)
 	}
 	if err := signer.Sign(method, uri, headers, body); err != nil {
 		return nil, err
 	}
+
+	addHeadersAfterSign(project.CommonHeaders, headers)
+
 	// Initialize http request
 	reader := bytes.NewReader(body)
 

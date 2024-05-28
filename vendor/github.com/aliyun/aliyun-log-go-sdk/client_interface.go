@@ -3,22 +3,62 @@ package sls
 import (
 	"net/http"
 	"time"
+
+	"github.com/aliyun/aliyun-log-go-sdk/util"
 )
 
-// CreateNormalInterface create a normal client
+// CreateNormalInterface create a normal client.
+//
+// Deprecated: use CreateNormalInterfaceV2 instead.
+// If you keep using long-lived AccessKeyID and AccessKeySecret,
+// use the example code below.
+//
+//	  provider := NewStaticCredentailsProvider(accessKeyID, accessKeySecret, securityToken)
+//		client := CreateNormalInterfaceV2(endpoint, provider)
 func CreateNormalInterface(endpoint, accessKeyID, accessKeySecret, securityToken string) ClientInterface {
-	return &Client{
+	client := &Client{
 		Endpoint:        endpoint,
 		AccessKeyID:     accessKeyID,
 		AccessKeySecret: accessKeySecret,
 		SecurityToken:   securityToken,
+
+		credentialsProvider: NewStaticCredentialsProvider(
+			accessKeyID,
+			accessKeySecret,
+			securityToken,
+		),
 	}
+	client.setSignV4IfInAcdr(endpoint)
+	return client
 }
 
-type UpdateTokenFunction func() (accessKeyID, accessKeySecret, securityToken string, expireTime time.Time, err error)
+// CreateNormalInterfaceV2 create a normal client, with a CredentialsProvider.
+//
+// It is highly recommended to use a CredentialsProvider that provides dynamic
+// expirable credentials for security.
+//
+// See [credentials_provider.go] for more details.
+func CreateNormalInterfaceV2(endpoint string, credentialsProvider CredentialsProvider) ClientInterface {
+	client := &Client{
+		Endpoint:            endpoint,
+		credentialsProvider: credentialsProvider,
+	}
+	client.setSignV4IfInAcdr(endpoint)
+	return client
+}
 
-// CreateTokenAutoUpdateClient crate a TokenAutoUpdateClient
+type UpdateTokenFunction = util.UpdateTokenFunction
+
+// CreateTokenAutoUpdateClient create a TokenAutoUpdateClient,
 // this client will auto fetch security token and retry when operation is `Unauthorized`
+//
+// Deprecated: Use CreateNormalInterfaceV2 and UpdateFuncProviderAdapter instead.
+//
+// Example:
+//
+//		provider := NewUpdateFuncProviderAdapter(updateStsTokenFunc)
+//	  client := CreateNormalInterfaceV2(endpoint, provider)
+//
 // @note TokenAutoUpdateClient will destroy when shutdown channel is closed
 func CreateTokenAutoUpdateClient(endpoint string, tokenUpdateFunc UpdateTokenFunction, shutdown <-chan struct{}) (client ClientInterface, err error) {
 	accessKeyID, accessKeySecret, securityToken, expireTime, err := tokenUpdateFunc()
@@ -45,6 +85,8 @@ type ClientInterface interface {
 	SetUserAgent(userAgent string)
 	// SetHTTPClient set a custom http client, all request will send to sls by this client
 	SetHTTPClient(client *http.Client)
+	// SetRetryTimeout set retry timeout, client will retry util retry timeout
+	SetRetryTimeout(timeout time.Duration)
 	// #################### Client Operations #####################
 	// ResetAccessKeyToken reset client's access key token
 	ResetAccessKeyToken(accessKeyID, accessKeySecret, securityToken string)
@@ -58,6 +100,8 @@ type ClientInterface interface {
 	// #################### Project Operations #####################
 	// CreateProject create a new loghub project.
 	CreateProject(name, description string) (*LogProject, error)
+	// CreateProject create a new loghub project, with dataRedundancyType option.
+	CreateProjectV2(name, description, dataRedundancyType string) (*LogProject, error)
 	GetProject(name string) (*LogProject, error)
 	// UpdateProject create a new loghub project.
 	UpdateProject(name, description string) (*LogProject, error)
@@ -97,6 +141,12 @@ type ClientInterface interface {
 	UpdateLogStoreV2(project string, logstore *LogStore) error
 	// CheckLogstoreExist check logstore exist or not
 	CheckLogstoreExist(project string, logstore string) (bool, error)
+	// GetLogStoreMeteringMode get the metering mode of logstore, eg. ChargeByFunction / ChargeByDataIngest
+	GetLogStoreMeteringMode(project string, logstore string) (*GetMeteringModeResponse, error)
+	// GetLogStoreMeteringMode update the metering mode of logstore, eg. ChargeByFunction / ChargeByDataIngest
+	//
+	// Warning: this method may affect your billings, for more details ref: https://www.aliyun.com/price/detail/sls
+	UpdateLogStoreMeteringMode(project string, logstore string, meteringMode string) error
 
 	// #################### MetricStore Operations #####################
 	// CreateMetricStore creates a new metric store in SLS.
@@ -108,12 +158,25 @@ type ClientInterface interface {
 	// GetMetricStore return a metric store.
 	GetMetricStore(project, name string) (*LogStore, error)
 
+	// #################### EventStore Operations #####################
+	// CreateEventStore creates a new event store in SLS.
+	CreateEventStore(project string, eventStore *LogStore) error
+	// UpdateEventStore updates a event store.
+	UpdateEventStore(project string, eventStore *LogStore) error
+	// DeleteEventStore deletes a event store.
+	DeleteEventStore(project, name string) error
+	// GetEventStore return a event store.
+	GetEventStore(project, name string) (*LogStore, error)
+	// ListEventStore returns all eventStore names of project p.
+	ListEventStore(project string, offset, size int) ([]string, error)
+
 	// #################### Logtail Operations #####################
 	// ListMachineGroup returns machine group name list and the total number of machine groups.
 	// The offset starts from 0 and the size is the max number of machine groups could be returned.
 	ListMachineGroup(project string, offset, size int) (m []string, total int, err error)
 	// ListMachines list all machines in machineGroupName
 	ListMachines(project, machineGroupName string) (ms []*Machine, total int, err error)
+	ListMachinesV2(project, machineGroupName string, offset, size int) (ms []*Machine, total int, err error)
 	// CheckMachineGroupExist check machine group exist or not
 	CheckMachineGroupExist(project string, machineGroup string) (bool, error)
 	// GetMachineGroup retruns machine group according by machine group name.
@@ -182,12 +245,16 @@ type ClientInterface interface {
 	MergeShards(project, logstore string, shardID int) (shards []*Shard, err error)
 
 	// #################### Log Operations #####################
+	PutLogsWithMetricStoreURL(project, logstore string, lg *LogGroup) (err error)
 	// PutLogs put logs into logstore.
 	// The callers should transform user logs into LogGroup.
 	PutLogs(project, logstore string, lg *LogGroup) (err error)
 	// PostLogStoreLogs put logs into Shard logstore by hashKey.
 	// The callers should transform user logs into LogGroup.
 	PostLogStoreLogs(project, logstore string, lg *LogGroup, hashKey *string) (err error)
+	PostLogStoreLogsV2(project, logstore string, req *PostLogStoreLogsRequest) (err error)
+	// PostRawLogWithCompressType put logs into logstore with specific compress type and hashKey.
+	PostRawLogWithCompressType(project, logstore string, rawLogData []byte, compressType int, hashKey *string) (err error)
 	// PutLogsWithCompressType put logs into logstore with specific compress type.
 	// The callers should transform user logs into LogGroup.
 	PutLogsWithCompressType(project, logstore string, lg *LogGroup, compressType int) (err error)
@@ -205,12 +272,18 @@ type ClientInterface interface {
 	// The nextCursor is the next curosr can be used to read logs at next time.
 	GetLogsBytes(project, logstore string, shardID int, cursor, endCursor string,
 		logGroupMaxCount int) (out []byte, nextCursor string, err error)
+	// Deprecated: Use GetLogsBytesWithQuery instead.
+	GetLogsBytesV2(plr *PullLogRequest) (out []byte, nextCursor string, err error)
+	GetLogsBytesWithQuery(plr *PullLogRequest) (out []byte, plm *PullLogMeta, err error)
 	// PullLogs gets logs from shard specified by shardId according cursor and endCursor.
 	// The logGroupMaxCount is the max number of logGroup could be returned.
 	// The nextCursor is the next cursor can be used to read logs at next time.
 	// @note if you want to pull logs continuous, set endCursor = ""
 	PullLogs(project, logstore string, shardID int, cursor, endCursor string,
 		logGroupMaxCount int) (gl *LogGroupList, nextCursor string, err error)
+	// Deprecated: Use PullLogsWithQuery instead.
+	PullLogsV2(plr *PullLogRequest) (gl *LogGroupList, nextCursor string, err error)
+	PullLogsWithQuery(plr *PullLogRequest) (gl *LogGroupList, plm *PullLogMeta, err error)
 	// GetHistograms query logs with [from, to) time range
 	GetHistograms(project, logstore string, topic string, from int64, to int64, queryExp string) (*GetHistogramsResponse, error)
 	// GetLogs query logs with [from, to) time range
@@ -218,9 +291,15 @@ type ClientInterface interface {
 		maxLineNum int64, offset int64, reverse bool) (*GetLogsResponse, error)
 	GetLogLines(project, logstore string, topic string, from int64, to int64, queryExp string,
 		maxLineNum int64, offset int64, reverse bool) (*GetLogLinesResponse, error)
+	// GetLogsByNano query logs with [fromInNs, toInNs) nano time range
+	GetLogsByNano(project, logstore string, topic string, fromInNs int64, toInNs int64, queryExp string,
+		maxLineNum int64, offset int64, reverse bool) (*GetLogsResponse, error)
+	GetLogLinesByNano(project, logstore string, topic string, fromInNs int64, toInNs int64, queryExp string,
+		maxLineNum int64, offset int64, reverse bool) (*GetLogLinesResponse, error)
 
 	GetLogsV2(project, logstore string, req *GetLogRequest) (*GetLogsResponse, error)
 	GetLogLinesV2(project, logstore string, req *GetLogRequest) (*GetLogLinesResponse, error)
+	GetLogsV3(project, logstore string, req *GetLogRequest) (*GetLogsV3Response, error)
 
 	// GetHistogramsToCompleted query logs with [from, to) time range to completed
 	GetHistogramsToCompleted(project, logstore string, topic string, from int64, to int64, queryExp string) (*GetHistogramsResponse, error)
@@ -228,6 +307,8 @@ type ClientInterface interface {
 	GetLogsToCompleted(project, logstore string, topic string, from int64, to int64, queryExp string, maxLineNum int64, offset int64, reverse bool) (*GetLogsResponse, error)
 	// GetLogsToCompletedV2 query logs with [from, to) time range to completed
 	GetLogsToCompletedV2(project, logstore string, req *GetLogRequest) (*GetLogsResponse, error)
+	// GetLogsToCompletedV3 query logs with [from, to) time range to completed
+	GetLogsToCompletedV3(project, logstore string, req *GetLogRequest) (*GetLogsV3Response, error)
 
 	// #################### Index Operations #####################
 	// CreateIndex ...
@@ -297,6 +378,19 @@ type ClientInterface interface {
 		resourceType string,
 		resourceIDs []string,
 		tags []ResourceFilterTag,
+		nextToken string) (respTags []*ResourceTagResponse, respNextToken string, err error)
+	// TagResourcesSystemTags tag specific resource
+	TagResourcesSystemTags(project string, tags *ResourceSystemTags) error
+	// UnTagResourcesSystemTags untag specific resource
+	UnTagResourcesSystemTags(project string, tags *ResourceUnSystemTags) error
+	// ListSystemTagResources list system tag resources
+	ListSystemTagResources(project string,
+		resourceType string,
+		resourceIDs []string,
+		tags []ResourceFilterTag,
+		tagOwnerUid string,
+		category string,
+		scope string,
 		nextToken string) (respTags []*ResourceTagResponse, respNextToken string, err error)
 	CreateScheduledSQL(project string, scheduledsql *ScheduledSQL) error
 	DeleteScheduledSQL(project string, name string) error

@@ -3,19 +3,19 @@ module github.com/aliyun/terraform-provider-alicloud
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/agiledragon/gomonkey/v2 v2.3.1
-	github.com/alibabacloud-go/cs-20151215/v5 v5.0.7
+	github.com/alibabacloud-go/cs-20151215/v5 v5.1.1
 	github.com/alibabacloud-go/tea v1.2.2
 	github.com/alibabacloud-go/tea-roa v1.3.4
 	github.com/alibabacloud-go/tea-rpc v1.2.0
 	github.com/alibabacloud-go/tea-utils v1.4.5
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.590
 	github.com/aliyun/aliyun-datahub-sdk-go v0.1.5
-	github.com/aliyun/aliyun-log-go-sdk v0.1.44-0.20230310032108-e8f9ed9bb3c5
+	github.com/aliyun/aliyun-log-go-sdk v0.1.75
 	github.com/aliyun/aliyun-mns-go-sdk v0.0.0-20210305050620-d1b5875bda58
-	github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
+	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/aliyun/aliyun-tablestore-go-sdk v1.7.6
 	github.com/aliyun/credentials-go v1.3.2
-	github.com/aliyun/fc-go-sdk v0.0.0-20220622030011-bc7ded2a9050
+	github.com/aliyun/fc-go-sdk v0.0.0-20230313060359-3a1b2ede1e1e
 	github.com/deckarep/golang-set v1.8.0
 	github.com/denverdino/aliyungo v0.0.0-20220929054937-e3c8bf5ad947
 	github.com/google/uuid v1.6.0
@@ -39,8 +39,8 @@ require (
 require (
 	github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.9
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.0.6
-	github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.6
-	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7
+	github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.7
+	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.12
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.5
 	github.com/blues/jsonata-go v1.5.4
@@ -58,7 +58,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/PaesslerAG/gval v1.0.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.6 // indirect
+	github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.7 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-oss-util v0.0.1 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-sls-util v0.0.1 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.4 // indirect
@@ -130,7 +130,7 @@ require (
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/keybase/go-crypto v0.0.0-20190416182011-b785b22cc757 // indirect
-	github.com/klauspost/compress v1.17.7 // indirect
+	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/cli v1.1.2 // indirect

@@ -234,6 +234,8 @@ github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRF
 github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
 github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.6 h1:b0SCK7Y4WUllc8podpyYA7LE665irOzxcr+KLHRHSII=
 github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.6/go.mod h1:H0RPHXHP/ICfEQrKzQcCqXI15jcV4zaDPCOAmh3U9O8=
+github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.7 h1:RDatRb9RG39HjkevgzTeiVoDDaamoB+12GHNairp3Ag=
+github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.7/go.mod h1:H0RPHXHP/ICfEQrKzQcCqXI15jcV4zaDPCOAmh3U9O8=
 github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.9 h1:d/DXjRPVFXhvTbSLJmQgfwVvG+Jl1sVHrCtuHPcJqIE=
 github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.9/go.mod h1:+DYYeSuinZ/5Wg/DlGMb7StpBA0UbkuwChoWHREmROc=
 github.com/alibabacloud-go/alibabacloud-gateway-oss-util v0.0.1 h1:ITbZ2+XpjzgqbwatVbO2M/sOVvpc1Q6lGc1fAXOOqVM=
@@ -246,6 +248,8 @@ github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.4 h1:iC9YFYKDGEy3n/FtqJ
 github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.4/go.mod h1:sCavSAvdzOjul4cEqeVtvlSaSScfNsTQ+46HwlTL1hc=
 github.com/alibabacloud-go/cs-20151215/v5 v5.0.7 h1:/r4tz3KX49O05wmP8FhGI3PxB03nhP7vrAydMeUonNA=
 github.com/alibabacloud-go/cs-20151215/v5 v5.0.7/go.mod h1:ccchqPCNE/R37EnwlnBxfVEax5MLDPq0qyOp1WIgNuc=
+github.com/alibabacloud-go/cs-20151215/v5 v5.1.1 h1:hs2h3/20A2RoO41MXf5jD6qjldgyne33rwQWq4LGgKI=
+github.com/alibabacloud-go/cs-20151215/v5 v5.1.1/go.mod h1:GjkGEmR+jg+2dG5P37F6H2kf8kD6nUhJGXEB45ItLJk=
 github.com/alibabacloud-go/darabonba-array v0.1.0 h1:vR8s7b1fWAQIjEjWnuF0JiKsCvclSRTfDzZHTYqfufY=
 github.com/alibabacloud-go/darabonba-array v0.1.0/go.mod h1:BLKxr0brnggqOJPqT09DFJ8g3fsDshapUD3C3aOEFaI=
 github.com/alibabacloud-go/darabonba-encode-util v0.0.2 h1:1uJGrbsGEVqWcWxrS9MyC2NG0Ax+GpOM5gtupki31XE=
@@ -253,8 +257,11 @@ github.com/alibabacloud-go/darabonba-encode-util v0.0.2/go.mod h1:JiW9higWHYXm7F
 github.com/alibabacloud-go/darabonba-map v0.0.2 h1:qvPnGB4+dJbJIxOOfawxzF3hzMnIpjmafa0qOTp6udc=
 github.com/alibabacloud-go/darabonba-map v0.0.2/go.mod h1:28AJaX8FOE/ym8OUFWga+MtEzBunJwQGceGQlvaPGPc=
 github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.2/go.mod h1:5JHVmnHvGzR2wNdgaW1zDLQG8kOC4Uec8ubkMogW7OQ=
+github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.5/go.mod h1:kUe8JqFmoVU7lfBauaDD5taFaW7mBI+xVsyHutYtabg=
 github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.6 h1:y1K+zKhpWcxso8zqI03CcYuwgyZPFwQdwAQOXAeuOVM=
 github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.6/go.mod h1:CzQnh+94WDnJOnKZH5YRyouL+OOcdBnXY5VWAf0McgI=
+github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.7 h1:20vl9plHhHuy9A72oAZSAB4ooov+yY9xfu+cCNcrLh8=
+github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.7/go.mod h1:CzQnh+94WDnJOnKZH5YRyouL+OOcdBnXY5VWAf0McgI=
 github.com/alibabacloud-go/darabonba-signature-util v0.0.7 h1:UzCnKvsjPFzApvODDNEYqBHMFt1w98wC7FOo0InLyxg=
 github.com/alibabacloud-go/darabonba-signature-util v0.0.7/go.mod h1:oUzCYV2fcCH797xKdL6BDH8ADIHlzrtKVjeRtunBNTQ=
 github.com/alibabacloud-go/darabonba-string v1.0.2 h1:E714wms5ibdzCqGeYJ9JCFywE5nDyvIXIIQbZVFkkqo=
@@ -266,6 +273,8 @@ github.com/alibabacloud-go/endpoint-util v1.1.0 h1:r/4D3VSw888XGaeNpP994zDUaxdgT
 github.com/alibabacloud-go/endpoint-util v1.1.0/go.mod h1:O5FuCALmCKs2Ff7JFJMudHs0I5EBgecXXxZRyswlEjE=
 github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7 h1:u5y1jiju/oMlFIvyI/xp0M23UUpc6bhtgyQorKFE5ZA=
 github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7/go.mod h1:yd0pDhezz8VYCkzHbLQeJvfyBlQn16JeuS38gS5QveI=
+github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.12 h1:A3D8Mp6qf8DfR6Dt5MpS8aDVaWfS4N85T5CvGUvgrjM=
+github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.12/go.mod h1:F5c0E5UB3k8v6neTtw3FBcJ1YCNFzVoL1JPRHTe33u4=
 github.com/alibabacloud-go/openapi-util v0.0.11/go.mod h1:sQuElr4ywwFRlCCberQwKRFhRzIyG4QTP/P4y1CJ6Ws=
 github.com/alibabacloud-go/openapi-util v0.1.0 h1:0z75cIULkDrdEhkLWgi9tnLe+KhAFE/r5Pb3312/eAY=
 github.com/alibabacloud-go/openapi-util v0.1.0/go.mod h1:sQuElr4ywwFRlCCberQwKRFhRzIyG4QTP/P4y1CJ6Ws=
@@ -310,10 +319,14 @@ github.com/aliyun/aliyun-datahub-sdk-go v0.1.5 h1:c2TFcJ5PjkqkHr2use7Av2wHB8jVgo
 github.com/aliyun/aliyun-datahub-sdk-go v0.1.5/go.mod h1:GwtZxKUD+aLBrtlkEcyPNAx+jRkBioEC7EKOlQ26lTc=
 github.com/aliyun/aliyun-log-go-sdk v0.1.44-0.20230310032108-e8f9ed9bb3c5 h1:KXlj6+xD3s1zGR/GnLmGTmIQXjV7aaVQ6MmIa4Z9jrw=
 github.com/aliyun/aliyun-log-go-sdk v0.1.44-0.20230310032108-e8f9ed9bb3c5/go.mod h1:1QQ59pEJiVVXqKgbHcU6FWIgxT5RKBt+CT8AiQ2bEts=
+github.com/aliyun/aliyun-log-go-sdk v0.1.75 h1:asM0c8NViqoCx6ULqaldE4YnyRq42rU1eqP6/ditzSg=
+github.com/aliyun/aliyun-log-go-sdk v0.1.75/go.mod h1:dcQd3FhFu8UI1H48L+YW49ATTWgzGqWz/S/7Bm07gpY=
 github.com/aliyun/aliyun-mns-go-sdk v0.0.0-20210305050620-d1b5875bda58 h1:hX1oYyN7d0y7GHwli6trhovosNAKo9f60uC3FPHMjoQ=
 github.com/aliyun/aliyun-mns-go-sdk v0.0.0-20210305050620-d1b5875bda58/go.mod h1:eD/mEH7SwtLSwI9p8fP9VTH2cYM3wFSY1WNaxEdLIFU=
 github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible h1:Sg/2xHwDrioHpxTN6WMiwbXTpUEinBpHsN7mG21Rc2k=
 github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible/go.mod h1:T/Aws4fEfogEE9v+HPhhw+CntffsBHJ8nXQCwKr0/g8=
+github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible h1:8psS8a+wKfiLt1iVDX79F7Y6wUM49Lcha2FMXt4UM8g=
+github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible/go.mod h1:T/Aws4fEfogEE9v+HPhhw+CntffsBHJ8nXQCwKr0/g8=
 github.com/aliyun/aliyun-tablestore-go-sdk v1.7.6 h1:DL+OCsGoOTI9gB9Y2TNi0yYZYUfG2nQ21bKz0GYX0O0=
 github.com/aliyun/aliyun-tablestore-go-sdk v1.7.6/go.mod h1:mZCxM44kLKLY5ci+0j6bJb0DG8PNQ5Mn40Y0bbYOhpE=
 github.com/aliyun/credentials-go v1.1.2/go.mod h1:ozcZaMR5kLM7pwtCMEpVmQ242suV6qTJya2bDq4X1Tw=
@@ -324,6 +337,8 @@ github.com/aliyun/credentials-go v1.3.2 h1:L4WppI9rctC8PdlMgyTkF8bBsy9pyKQEzBD1b
 github.com/aliyun/credentials-go v1.3.2/go.mod h1:tlpz4uys4Rn7Ik4/piGRrTbXy2uLKvePgQJJduE+Y5c=
 github.com/aliyun/fc-go-sdk v0.0.0-20220622030011-bc7ded2a9050 h1:E4jdnYzB1G/DiTVHychdLOnak4w/TlKd4ZHM8wZDs58=
 github.com/aliyun/fc-go-sdk v0.0.0-20220622030011-bc7ded2a9050/go.mod h1:rYnxfOnoHRZ2QGKREUOESel1hmRe0frzF2RLpcDVtTU=
+github.com/aliyun/fc-go-sdk v0.0.0-20230313060359-3a1b2ede1e1e h1:EVB90w7XnQcxQZzoPsg30cJikfnMmpfBtZhF9RMtWAY=
+github.com/aliyun/fc-go-sdk v0.0.0-20230313060359-3a1b2ede1e1e/go.mod h1:rYnxfOnoHRZ2QGKREUOESel1hmRe0frzF2RLpcDVtTU=
 github.com/andybalholm/brotli v1.0.1/go.mod h1:loMXtMfwqflxFJPmdbJO0a3KNoPuLBgiu3qAvBg8x/Y=
 github.com/andybalholm/brotli v1.1.0 h1:eLKJA0d02Lf0mVpIDgYnqXcUn0GqVmEFny3VuID1U3M=
 github.com/andybalholm/brotli v1.1.0/go.mod h1:sms7XGricyQI9K10gOSf56VKKWS4oLer58Q+mhRPtnY=
@@ -758,6 +773,8 @@ github.com/klauspost/compress v1.11.8/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYs
 github.com/klauspost/compress v1.15.11/go.mod h1:QPwzmACJjUTFsnSHH934V6woptycfrDDJnH7hvFVbGM=
 github.com/klauspost/compress v1.17.7 h1:ehO88t2UGzQK66LMdE8tibEd1ErmzZjNEqWkjLAKQQg=
 github.com/klauspost/compress v1.17.7/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
+github.com/klauspost/compress v1.17.8 h1:YcnTYrq7MikUT7k0Yb5eceMmALQPYBW/Xltxn0NAMnU=
+github.com/klauspost/compress v1.17.8/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=

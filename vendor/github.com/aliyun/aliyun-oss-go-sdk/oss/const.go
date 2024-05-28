@@ -81,7 +81,7 @@ const (
 	StorageDeepColdArchive StorageClassType = "DeepColdArchive"
 )
 
-// RedundancyType bucket data Redundancy type
+//RedundancyType bucket data Redundancy type
 type DataRedundancyType string
 
 const (
@@ -92,7 +92,7 @@ const (
 	RedundancyZRS DataRedundancyType = "ZRS"
 )
 
-// ObjecthashFuncType
+//ObjecthashFuncType
 type ObjecthashFuncType string
 
 const (
@@ -111,7 +111,7 @@ const (
 	BucketOwner PayerType = "BucketOwner"
 )
 
-// RestoreMode the restore mode for coldArchive object
+//RestoreMode the restore mode for coldArchive object
 type RestoreMode string
 
 const (
@@ -227,6 +227,9 @@ const (
 	HTTPParamAccessKeyIDV2       = "x-oss-access-key-id"
 	HTTPParamSignatureV2         = "x-oss-signature"
 	HTTPParamAdditionalHeadersV2 = "x-oss-additional-headers"
+	HTTPParamCredential          = "x-oss-credential"
+	HTTPParamDate                = "x-oss-date"
+	HTTPParamOssSecurityToken    = "x-oss-security-token"
 )
 
 // Other constants
@@ -245,7 +248,7 @@ const (
 
 	DefaultContentSha256 = "UNSIGNED-PAYLOAD" // for v4 signature
 
-	Version = "v2.2.9" // Go SDK version
+	Version = "v3.0.2" // Go SDK version
 )
 
 // FrameType

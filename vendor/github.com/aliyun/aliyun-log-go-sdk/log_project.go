@@ -27,29 +27,47 @@ var (
 // this file is deprecated and no maintenance
 // see client_project.go
 
+// DataRedundancyType
+const (
+	PROJECT_DATA_REDUNDANCY_TYPE_UNKNOWN = "Unknown"
+	PROJECT_DATA_REDUNDANCY_TYPE_LRS     = "LRS"
+	PROJECT_DATA_REDUNDANCY_TYPE_ZRS     = "ZRS"
+)
+
 // LogProject defines log project
 type LogProject struct {
-	Name           string `json:"projectName"`    // Project name
-	Description    string `json:"description"`    // Project description
-	Status         string `json:"status"`         // Normal
-	Owner          string `json:"owner"`          // empty
-	Region         string `json:"region"`         // region id, eg cn-shanghai
-	CreateTime     string `json:"createTime"`     // unix time seconds, eg 1524539357
-	LastModifyTime string `json:"lastModifyTime"` // unix time seconds, eg 1524539357
+	Name               string `json:"projectName"`                  // Project name
+	Description        string `json:"description"`                  // Project description
+	Status             string `json:"status"`                       // Normal
+	Owner              string `json:"owner"`                        // empty
+	Region             string `json:"region"`                       // region id, eg cn-shanghai
+	CreateTime         string `json:"createTime"`                   // unix time seconds, eg 1524539357
+	LastModifyTime     string `json:"lastModifyTime"`               // unix time seconds, eg 1524539357
+	DataRedundancyType string `json:"dataRedundancyType,omitempty"` // data redundancy type, valid values: ['LRS', 'ZRS']
 
-	Endpoint        string // IP or hostname of SLS endpoint
-	AccessKeyID     string
-	AccessKeySecret string
-	SecurityToken   string
-	UsingHTTP       bool   // default https
-	UserAgent       string // default defaultLogUserAgent
-	AuthVersion     AuthVersionType
-	baseURL         string
-	retryTimeout    time.Duration
-	httpClient      *http.Client
+	Endpoint           string // IP or hostname of SLS endpoint
+	AccessKeyID        string // Deprecated: use CredentialsProvider instead
+	AccessKeySecret    string // Deprecated: use CredentialsProvider instead
+	SecurityToken      string // Deprecated: use CredentialsProvider instead
+	UsingHTTP          bool   // default https
+	UserAgent          string // default defaultLogUserAgent
+	AuthVersion        AuthVersionType
+	baseURL            string
+	retryTimeout       time.Duration
+	httpClient         *http.Client
+	credentialProvider CredentialsProvider
+
+	// User defined common headers.
+	//
+	// When conflict with sdk pre-defined headers, the value will
+	// be ignored
+	CommonHeaders map[string]string
+	InnerHeaders  map[string]string
 }
 
 // NewLogProject creates a new SLS project.
+//
+// Deprecated: use NewLogProjectV2 instead.
 func NewLogProject(name, endpoint, accessKeyID, accessKeySecret string) (p *LogProject, err error) {
 	p = &LogProject{
 		Name:            name,
@@ -63,6 +81,25 @@ func NewLogProject(name, endpoint, accessKeyID, accessKeySecret string) (p *LogP
 	return p, nil
 }
 
+// NewLogProjectV2 creates a new SLS project, with a CredentialsProvider.
+func NewLogProjectV2(name, endpoint string, provider CredentialsProvider) (p *LogProject, err error) {
+	p = &LogProject{
+		Name:               name,
+		Endpoint:           endpoint,
+		httpClient:         defaultHttpClient,
+		retryTimeout:       defaultRetryTimeout,
+		credentialProvider: provider,
+	}
+	p.parseEndpoint()
+	return p, nil
+}
+
+// With credentials provider
+func (p *LogProject) WithCredentialsProvider(provider CredentialsProvider) *LogProject {
+	p.credentialProvider = provider
+	return p
+}
+
 // WithToken add token parameter
 func (p *LogProject) WithToken(token string) (*LogProject, error) {
 	p.SecurityToken = token
@@ -72,9 +109,7 @@ func (p *LogProject) WithToken(token string) (*LogProject, error) {
 // WithRequestTimeout with custom timeout for a request
 func (p *LogProject) WithRequestTimeout(timeout time.Duration) *LogProject {
 	if p.httpClient == defaultHttpClient || p.httpClient == nil {
-		p.httpClient = &http.Client{
-			Timeout: timeout,
-		}
+		p.httpClient = newDefaultHTTPClient(timeout)
 	} else {
 		p.httpClient.Timeout = timeout
 	}
@@ -1114,22 +1149,19 @@ func (p *LogProject) parseEndpoint() {
 		// use direct ip proxy
 		url, _ := url.Parse(fmt.Sprintf("%s%s", scheme, host))
 		if p.httpClient == nil || p.httpClient == defaultHttpClient {
-			p.httpClient = &http.Client{
-				Transport: &http.Transport{
-					Proxy: http.ProxyURL(url),
-				},
-				Timeout: defaultRequestTimeout,
-			}
-		} else {
-			p.httpClient.Transport = &http.Transport{
-				Proxy: http.ProxyURL(url),
-			}
+			p.httpClient = newDefaultHTTPClient(defaultRequestTimeout)
 		}
-
+		setHTTPProxy(p.httpClient, url)
 	}
 	if len(p.Name) == 0 {
 		p.baseURL = fmt.Sprintf("%s%s", scheme, host)
 	} else {
 		p.baseURL = fmt.Sprintf("%s%s.%s", scheme, p.Name, host)
 	}
+}
+
+func setHTTPProxy(client *http.Client, proxy *url.URL) {
+	t := newDefaultTransport()
+	t.Proxy = http.ProxyURL(proxy)
+	client.Transport = t
 }

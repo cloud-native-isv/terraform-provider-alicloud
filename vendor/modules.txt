@@ -42,7 +42,7 @@ github.com/agext/levenshtein
 ## explicit; go 1.14
 github.com/agiledragon/gomonkey/v2
 github.com/agiledragon/gomonkey/v2/creflect
-# github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.6
+# github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.7
 ## explicit; go 1.14
 github.com/alibabacloud-go/alibabacloud-gateway-fc-util/client
 # github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.9
@@ -60,7 +60,7 @@ github.com/alibabacloud-go/alibabacloud-gateway-sls-util/client
 # github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.4
 ## explicit; go 1.14
 github.com/alibabacloud-go/alibabacloud-gateway-spi/client
-# github.com/alibabacloud-go/cs-20151215/v5 v5.0.7
+# github.com/alibabacloud-go/cs-20151215/v5 v5.1.1
 ## explicit; go 1.15
 github.com/alibabacloud-go/cs-20151215/v5/client
 # github.com/alibabacloud-go/darabonba-array v0.1.0
@@ -72,7 +72,7 @@ github.com/alibabacloud-go/darabonba-encode-util/client
 # github.com/alibabacloud-go/darabonba-map v0.0.2
 ## explicit; go 1.14
 github.com/alibabacloud-go/darabonba-map/client
-# github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.6
+# github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.7
 ## explicit; go 1.14
 github.com/alibabacloud-go/darabonba-openapi/v2/client
 # github.com/alibabacloud-go/darabonba-signature-util v0.0.7
@@ -87,7 +87,7 @@ github.com/alibabacloud-go/debug/debug
 # github.com/alibabacloud-go/endpoint-util v1.1.0
 ## explicit
 github.com/alibabacloud-go/endpoint-util/service
-# github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7
+# github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.12
 ## explicit; go 1.15
 github.com/alibabacloud-go/fc-open-20210406/v2/client
 # github.com/alibabacloud-go/openapi-util v0.1.0
@@ -180,13 +180,14 @@ github.com/aliyun/alibaba-cloud-sdk-go/services/yundun_dbaudit
 github.com/aliyun/aliyun-datahub-sdk-go/datahub
 github.com/aliyun/aliyun-datahub-sdk-go/datahub/pbmodel
 github.com/aliyun/aliyun-datahub-sdk-go/datahub/util
-# github.com/aliyun/aliyun-log-go-sdk v0.1.44-0.20230310032108-e8f9ed9bb3c5
-## explicit; go 1.13
+# github.com/aliyun/aliyun-log-go-sdk v0.1.75
+## explicit; go 1.19
 github.com/aliyun/aliyun-log-go-sdk
+github.com/aliyun/aliyun-log-go-sdk/util
 # github.com/aliyun/aliyun-mns-go-sdk v0.0.0-20210305050620-d1b5875bda58
 ## explicit
 github.com/aliyun/aliyun-mns-go-sdk
-# github.com/aliyun/aliyun-oss-go-sdk v2.2.9+incompatible
+# github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 ## explicit
 github.com/aliyun/aliyun-oss-go-sdk/oss
 # github.com/aliyun/aliyun-tablestore-go-sdk v1.7.6
@@ -206,7 +207,7 @@ github.com/aliyun/credentials-go/credentials
 github.com/aliyun/credentials-go/credentials/request
 github.com/aliyun/credentials-go/credentials/response
 github.com/aliyun/credentials-go/credentials/utils
-# github.com/aliyun/fc-go-sdk v0.0.0-20220622030011-bc7ded2a9050
+# github.com/aliyun/fc-go-sdk v0.0.0-20230313060359-3a1b2ede1e1e
 ## explicit; go 1.16
 github.com/aliyun/fc-go-sdk
 # github.com/andybalholm/brotli v1.1.0
@@ -590,7 +591,7 @@ github.com/keybase/go-crypto/openpgp/errors
 github.com/keybase/go-crypto/openpgp/packet
 github.com/keybase/go-crypto/openpgp/s2k
 github.com/keybase/go-crypto/rsa
-# github.com/klauspost/compress v1.17.7
+# github.com/klauspost/compress v1.17.8
 ## explicit; go 1.20
 github.com/klauspost/compress
 github.com/klauspost/compress/flate

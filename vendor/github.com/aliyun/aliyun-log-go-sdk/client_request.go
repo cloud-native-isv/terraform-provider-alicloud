@@ -57,6 +57,16 @@ func (c *Client) request(project, method, uri string, headers map[string]string,
 	authVersion := c.AuthVersion
 	c.accessKeyLock.RUnlock()
 
+	if c.credentialsProvider != nil {
+		res, err := c.credentialsProvider.GetCredentials()
+		if err != nil {
+			return nil, fmt.Errorf("fail to fetch credentials: %w", err)
+		}
+		accessKeyID = res.AccessKeyID
+		accessKeySecret = res.AccessKeySecret
+		stsToken = res.SecurityToken
+	}
+
 	// Access with token
 	if stsToken != "" {
 		headers[HTTPHeaderAcsSecurityToken] = stsToken
@@ -67,10 +77,15 @@ func (c *Client) request(project, method, uri string, headers map[string]string,
 			return nil, fmt.Errorf("Can't find 'Content-Type' header")
 		}
 	}
+	for k, v := range c.InnerHeaders {
+		headers[k] = v
+	}
 	var signer Signer
 	if authVersion == AuthV4 {
 		headers[HTTPHeaderLogDate] = dateTimeISO8601()
 		signer = NewSignerV4(accessKeyID, accessKeySecret, region)
+	} else if authVersion == AuthV0 {
+		signer = NewSignerV0()
 	} else {
 		headers[HTTPHeaderDate] = nowRFC1123()
 		signer = NewSignerV1(accessKeyID, accessKeySecret)
@@ -79,6 +94,7 @@ func (c *Client) request(project, method, uri string, headers map[string]string,
 		return nil, err
 	}
 
+	addHeadersAfterSign(c.CommonHeaders, headers)
 	// Initialize http request
 	reader := bytes.NewReader(body)
 	var urlStr string
