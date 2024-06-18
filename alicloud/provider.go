@@ -2406,7 +2406,7 @@ func assumeRoleSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
-		MaxItems: 1,
+		MaxItems: 3,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"role_arn": {
