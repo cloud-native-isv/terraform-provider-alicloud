@@ -40,6 +40,7 @@ func SetClientProperty(client *Client, propertyName string, propertyValue interf
 func SetEndpointDataToClient(client *Client) {
 	SetClientProperty(client, "EndpointMap", GetEndpointMap())
 	SetClientProperty(client, "EndpointType", GetEndpointType())
+	SetClientProperty(client, "Network", "vpc")
 }
 
 // NewClient creates a sdk client with environment variables
