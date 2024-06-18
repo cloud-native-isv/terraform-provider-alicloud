@@ -647,3 +647,45 @@ func TestAccAlicloudProviderDatahub(t *testing.T) {
 		},
 	})
 }
+
+func testAccCheckAssumeRoleChainResourceDestroy(s *terraform.State) error {
+	return nil
+}
+
+func testAccAssumeRoleChainResourceConfig() string {
+	return fmt.Sprintf(`
+	provider "alicloud" {
+		region = var.region
+	
+		assume_role {
+			role_arn = "acs:ram::1142866157425731:role/roletoassumeadbpgslr"
+		}
+		assume_role {
+			role_arn        = "acs:ram::1242424451954755:role/aliyunserviceroleforadbpg"
+			role_type       = "service"
+			assume_role_for = "1242424451954755"
+		}
+	}
+`)
+}
+
+func testAccCheckExampleResourceExists() resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		return nil
+	}
+}
+
+func TestAccAssumeRoleChain_basic(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAssumeRoleChainResourceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAssumeRoleChainResourceConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckExampleResourceExists(),
+				),
+			},
+		},
+	})
+}

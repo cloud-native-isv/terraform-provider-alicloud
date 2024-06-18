@@ -1868,6 +1868,8 @@ func providerConfigure(d *schema.ResourceData, p *schema.Provider) (interface{},
 			}
 			*config.AssumeRoleChain = append(*config.AssumeRoleChain, configItem)
 		}
+	} else {
+		log.Printf("[INFO] no assume_role configuration set")
 	}
 
 	if v, ok := d.GetOk("assume_role_with_oidc"); ok && len(v.([]interface{})) == 1 {
