@@ -351,9 +351,10 @@ func (c *Config) setAuthByAssumeRoleChain() (err error) {
 
 	for _, assumeRoleItem := range *c.AssumeRoleChain {
 		if assumeRoleItem.RamRoleType == "user" {
-			request := &stsInternal.AssumeRoleRequest{
-				RoleArn:         assumeRoleItem.RamRoleArn,
-				RoleSessionName: assumeRoleItem.RamRoleSessionName,
+			request := stsInternal.CreateAssumeRoleRequest()
+			request.RoleArn = assumeRoleItem.RamRoleArn
+			if assumeRoleItem.RamRoleSessionName != "" {
+				request.RoleSessionName = assumeRoleItem.RamRoleSessionName
 			}
 			if c.RamRolePolicy != "" {
 				request.Policy = assumeRoleItem.RamRolePolicy
@@ -380,9 +381,10 @@ func (c *Config) setAuthByAssumeRoleChain() (err error) {
 				}
 			}
 		} else if assumeRoleItem.RamRoleType == "service" {
-			request := &stsInternal.AssumeRoleWithServiceIdentityRequest{
-				RoleArn:         assumeRoleItem.RamRoleArn,
-				RoleSessionName: assumeRoleItem.RamRoleSessionName,
+			request := stsInternal.CreateAssumeRoleWithServiceIdentityRequest()
+			request.RoleArn = assumeRoleItem.RamRoleArn
+			if assumeRoleItem.RamRoleSessionName != "" {
+				request.RoleSessionName = assumeRoleItem.RamRoleSessionName
 			}
 			if assumeRoleItem.RamRolePolicy != "" {
 				request.Policy = assumeRoleItem.RamRolePolicy
@@ -398,6 +400,7 @@ func (c *Config) setAuthByAssumeRoleChain() (err error) {
 			if err != nil {
 				return fmt.Errorf("AssumeRoleWithServiceIdentity failed by Role Arn [%v]. Error: %v", assumeRoleItem.RamRoleArn, err)
 			} else {
+				log.Printf("[INFO] AssumeRoleWithServiceIdentity success by Role Arn [%v]", assumeRoleItem.RamRoleArn)
 				AccessKey = response.Credentials.AccessKeyId
 				SecretKey = response.Credentials.AccessKeySecret
 				SecurityToken = response.Credentials.SecurityToken
