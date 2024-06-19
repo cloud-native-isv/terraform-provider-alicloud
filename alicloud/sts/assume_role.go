@@ -96,6 +96,7 @@ func CreateAssumeRoleRequest() (request *AssumeRoleRequest) {
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Sts", "2015-04-01", "AssumeRole", "sts", "openAPI")
+	request.Scheme = "HTTPS"
 	return
 }
 
