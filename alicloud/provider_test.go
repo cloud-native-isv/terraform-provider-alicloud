@@ -656,15 +656,6 @@ func testAccAssumeRoleChainResourceConfig() string {
 	return fmt.Sprintf(`
 	provider "alicloud" {
 		region = var.region
-	
-		assume_role {
-			role_arn = "acs:ram::1142866157425731:role/roletoassumeadbpgslr"
-		}
-		assume_role {
-			role_arn        = "acs:ram::1242424451954755:role/aliyunserviceroleforadbpg"
-			role_type       = "service"
-			assume_role_for = "1242424451954755"
-		}
 	}
 `)
 }

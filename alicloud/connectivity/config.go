@@ -367,6 +367,7 @@ func (c *Config) setAuthByAssumeRoleChain() (err error) {
 			if err != nil {
 				return fmt.Errorf("AssumeRole failed by Role Arn [%v]. Error: %v", assumeRoleItem.RamRoleArn, err)
 			} else {
+				log.Printf("[INFO] AssumeRole success by Role Arn [%v]", assumeRoleItem.RamRoleArn)
 				AccessKey = response.Credentials.AccessKeyId
 				SecretKey = response.Credentials.AccessKeySecret
 				SecurityToken = response.Credentials.SecurityToken
