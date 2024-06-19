@@ -97,6 +97,7 @@ func CreateAssumeRoleWithServiceIdentityRequest() (request *AssumeRoleWithServic
 		RpcRequest: &requests.RpcRequest{},
 	}
 	request.InitWithApiInfo("Sts", "2015-04-01", "AssumeRoleWithServiceIdentity", "sts", "openAPI")
+	request.Scheme = "HTTPS"
 	return
 }
 

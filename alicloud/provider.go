@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -1796,6 +1797,17 @@ func providerConfigure(d *schema.ResourceData, p *schema.Provider) (interface{},
 	}
 
 	assumeRoleList := d.Get("assume_role").(*schema.Set).List()
+	sort.Slice(assumeRoleList, func(i, j int) bool {
+		iMap, ok1 := assumeRoleList[i].(map[string]interface{})
+		jMap, ok2 := assumeRoleList[j].(map[string]interface{})
+		if !ok1 || !ok2 {
+			return false
+		}
+		iOrder := iMap["order"].(int)
+		jOrder := jMap["order"].(int)
+
+		return iOrder < jOrder
+	})
 	if len(assumeRoleList) == 1 {
 		assumeRole := assumeRoleList[0].(map[string]interface{})
 		if assumeRole["role_arn"].(string) != "" {
@@ -2451,6 +2463,11 @@ func assumeRoleSchema() *schema.Schema {
 					Type:        schema.TypeString,
 					Optional:    true,
 					Description: "assuem role for",
+				},
+				"order": {
+					Type:        schema.TypeInt,
+					Optional:    true,
+					Description: "assuem role order",
 				},
 			},
 		},
