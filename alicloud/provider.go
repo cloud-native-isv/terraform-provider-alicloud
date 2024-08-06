@@ -165,6 +165,7 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			"alicloud_governance_baselines":   dataSourceAliCloudGovernanceBaselines(),
 			"alicloud_vpn_gateway_zones":      dataSourceAliCloudVPNGatewayZones(),
 			"alicloud_account":                dataSourceAlicloudAccount(),
 			"alicloud_caller_identity":        dataSourceAlicloudCallerIdentity(),
@@ -864,6 +865,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_cms_site_monitors":                                dataSourceAliCloudCloudMonitorServiceSiteMonitors(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			"alicloud_governance_account":                                   resourceAliCloudGovernanceAccount(),
 			"alicloud_fcv3_custom_domain":                                   resourceAliCloudFcv3CustomDomain(),
 			"alicloud_fcv3_function":                                        resourceAliCloudFcv3Function(),
 			"alicloud_aligreen_oss_stock_task":                              resourceAliCloudAligreenOssStockTask(),
@@ -873,6 +875,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_aligreen_callback":                                    resourceAliCloudAligreenCallback(),
 			"alicloud_aligreen_audit_callback":                              resourceAliCloudAligreenAuditCallback(),
 			"alicloud_cloud_firewall_vpc_cen_tr_firewall":                   resourceAliCloudCloudFirewallVpcCenTrFirewall(),
+			"alicloud_governance_baseline":                                  resourceAliCloudGovernanceBaseline(),
 			"alicloud_gpdb_streaming_data_source":                           resourceAliCloudGpdbStreamingDataSource(),
 			"alicloud_gpdb_streaming_data_service":                          resourceAliCloudGpdbStreamingDataService(),
 			"alicloud_gpdb_external_data_service":                           resourceAliCloudGpdbExternalDataService(),
