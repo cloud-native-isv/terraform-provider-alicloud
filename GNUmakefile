@@ -95,8 +95,9 @@ linuxcopy:
 
 linux:
 	GOOS=linux GOARCH=amd64 go build -o bin/terraform-provider-alicloud
+
+package:
 	tar czvf bin/terraform-provider-alicloud_linux-amd64.tgz bin/terraform-provider-alicloud
-	rm -rf bin/terraform-provider-alicloud
 
 alpha:
 	GOOS=linux GOARCH=amd64 go build -o bin/$(RELEASE_ALPHA_NAME)

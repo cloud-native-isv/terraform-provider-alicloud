@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -1864,6 +1865,17 @@ func providerConfigure(d *schema.ResourceData, p *schema.Provider) (interface{},
 	}
 
 	assumeRoleList := d.Get("assume_role").(*schema.Set).List()
+	sort.Slice(assumeRoleList, func(i, j int) bool {
+		iMap, ok1 := assumeRoleList[i].(map[string]interface{})
+		jMap, ok2 := assumeRoleList[j].(map[string]interface{})
+		if !ok1 || !ok2 {
+			return false
+		}
+		iOrder := iMap["order"].(int)
+		jOrder := jMap["order"].(int)
+
+		return iOrder < jOrder
+	})
 	if len(assumeRoleList) == 1 {
 		assumeRole := assumeRoleList[0].(map[string]interface{})
 		if assumeRole["role_arn"].(string) != "" {
@@ -1894,6 +1906,92 @@ func providerConfigure(d *schema.ResourceData, p *schema.Provider) (interface{},
 
 		log.Printf("[INFO] assume_role configuration set: (RamRoleArn: %q, RamRoleSessionName: %q, RamRolePolicy: %q, RamRoleSessionExpiration: %d, RamRoleExternalId: %s)",
 			config.RamRoleArn, config.RamRoleSessionName, config.RamRolePolicy, config.RamRoleSessionExpiration, config.RamRoleExternalId)
+	} else if len(assumeRoleList) > 1 {
+		log.Printf("[INFO] multiple assume_role provide, which mean we have a assume role chain")
+		config.AssumeRoleChain = &([]connectivity.AssumeRoleChainItem{})
+		for _, assumeRoleMap := range assumeRoleList {
+			assumeRole := assumeRoleMap.(map[string]interface{})
+			configItem := connectivity.AssumeRoleChainItem{}
+
+			if assumeRole["role_arn"].(string) != "" {
+				configItem.RamRoleArn = assumeRole["role_arn"].(string)
+			}
+			if assumeRole["session_name"].(string) != "" {
+				configItem.RamRoleSessionName = assumeRole["session_name"].(string)
+			}
+			if configItem.RamRoleSessionName == "" {
+				configItem.RamRoleSessionName = "terraform"
+			}
+			configItem.RamRolePolicy = assumeRole["policy"].(string)
+			if assumeRole["session_expiration"].(int) == 0 {
+				if v := os.Getenv("ALICLOUD_ASSUME_ROLE_SESSION_EXPIRATION"); v != "" {
+					if expiredSeconds, err := strconv.Atoi(v); err == nil {
+						configItem.RamRoleSessionExpiration = expiredSeconds
+					}
+				}
+				if configItem.RamRoleSessionExpiration == 0 {
+					configItem.RamRoleSessionExpiration = 3600
+				}
+			} else {
+				configItem.RamRoleSessionExpiration = assumeRole["session_expiration"].(int)
+			}
+			if v := assumeRole["external_id"].(string); v != "" {
+				configItem.RamRoleExternalId = v
+			}
+			if v := assumeRole["role_type"].(string); v != "" {
+				configItem.RamRoleType = v
+			} else {
+				configItem.RamRoleType = "user"
+			}
+			if v := assumeRole["assume_role_for"].(string); v != "" {
+				configItem.RamRoleAssumeRoleFor = v
+			}
+			*config.AssumeRoleChain = append(*config.AssumeRoleChain, configItem)
+		}
+	} else if len(assumeRoleList) > 1 {
+		log.Printf("[INFO] multiple assume_role provide, which mean we have a assume role chain")
+		config.AssumeRoleChain = &([]connectivity.AssumeRoleChainItem{})
+		for _, assumeRoleMap := range assumeRoleList {
+			assumeRole := assumeRoleMap.(map[string]interface{})
+			configItem := connectivity.AssumeRoleChainItem{}
+
+			if assumeRole["role_arn"].(string) != "" {
+				configItem.RamRoleArn = assumeRole["role_arn"].(string)
+			}
+			if assumeRole["session_name"].(string) != "" {
+				configItem.RamRoleSessionName = assumeRole["session_name"].(string)
+			}
+			if configItem.RamRoleSessionName == "" {
+				configItem.RamRoleSessionName = "terraform"
+			}
+			configItem.RamRolePolicy = assumeRole["policy"].(string)
+			if assumeRole["session_expiration"].(int) == 0 {
+				if v := os.Getenv("ALICLOUD_ASSUME_ROLE_SESSION_EXPIRATION"); v != "" {
+					if expiredSeconds, err := strconv.Atoi(v); err == nil {
+						configItem.RamRoleSessionExpiration = expiredSeconds
+					}
+				}
+				if configItem.RamRoleSessionExpiration == 0 {
+					configItem.RamRoleSessionExpiration = 3600
+				}
+			} else {
+				configItem.RamRoleSessionExpiration = assumeRole["session_expiration"].(int)
+			}
+			if v := assumeRole["external_id"].(string); v != "" {
+				configItem.RamRoleExternalId = v
+			}
+			if v := assumeRole["role_type"].(string); v != "" {
+				configItem.RamRoleType = v
+			} else {
+				configItem.RamRoleType = "user"
+			}
+			if v := assumeRole["assume_role_for"].(string); v != "" {
+				configItem.RamRoleAssumeRoleFor = v
+			}
+			*config.AssumeRoleChain = append(*config.AssumeRoleChain, configItem)
+		}
+	} else {
+		log.Printf("[INFO] no assume_role configuration set")
 	}
 
 	if v, ok := d.GetOk("assume_role_with_oidc"); ok && len(v.([]interface{})) == 1 {
@@ -2435,7 +2533,7 @@ func assumeRoleSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
-		MaxItems: 1,
+		MaxItems: 3,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"role_arn": {
@@ -2465,6 +2563,24 @@ func assumeRoleSchema() *schema.Schema {
 					Type:        schema.TypeString,
 					Optional:    true,
 					Description: descriptions["external_id"],
+				},
+				"role_type": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "assuem role type, support 'user' or 'service'",
+					DefaultFunc: func() (interface{}, error) {
+						return "user", nil
+					},
+				},
+				"assume_role_for": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "assuem role for",
+				},
+				"order": {
+					Type:        schema.TypeInt,
+					Optional:    true,
+					Description: "assuem role order",
 				},
 			},
 		},

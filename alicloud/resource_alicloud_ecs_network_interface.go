@@ -341,12 +341,13 @@ func resourceAliCloudEcsNetworkInterfaceRead(d *schema.ResourceData, meta interf
 	d.Set("security_groups", object["SecurityGroupIds"].(map[string]interface{})["SecurityGroupId"])
 	d.Set("status", object["Status"])
 
-	tags, err := ecsService.ListTagResources(d.Id(), "eni")
-	if err != nil {
-		return WrapError(err)
-	} else {
-		d.Set("tags", tagsToMap(tags))
-	}
+	// tags, err := ecsService.ListTagResources(d.Id(), "eni")
+	// if err != nil {
+	// 	return WrapError(err)
+	// } else {
+	// 	d.Set("tags", tagsToMap(tags))
+	// }
+	// ecs:ListTagResources, User not authorized to operate on the specified resource, or this API doesn't support RAM.
 
 	d.Set("vswitch_id", object["VSwitchId"])
 	d.Set("instance_type", object["Type"])

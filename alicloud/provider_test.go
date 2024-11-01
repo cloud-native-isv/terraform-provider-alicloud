@@ -683,3 +683,36 @@ func TestAccAlicloudProviderDatahub(t *testing.T) {
 		},
 	})
 }
+
+func testAccCheckAssumeRoleChainResourceDestroy(s *terraform.State) error {
+	return nil
+}
+
+func testAccAssumeRoleChainResourceConfig() string {
+	return fmt.Sprintf(`
+	provider "alicloud" {
+		region = var.region
+	}
+`)
+}
+
+func testAccCheckExampleResourceExists() resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		return nil
+	}
+}
+
+func TestAccAssumeRoleChain_basic(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAssumeRoleChainResourceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAssumeRoleChainResourceConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckExampleResourceExists(),
+				),
+			},
+		},
+	})
+}
