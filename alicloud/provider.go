@@ -1950,6 +1950,48 @@ func providerConfigure(d *schema.ResourceData, p *schema.Provider) (interface{},
 		}
 	} else {
 		log.Printf("[INFO] no assume_role configuration set")
+	} else if len(assumeRoleList) > 1 {
+		log.Printf("[INFO] multiple assume_role provide, which mean we have a assume role chain")
+		config.AssumeRoleChain = &([]connectivity.AssumeRoleChainItem{})
+		for _, assumeRoleMap := range assumeRoleList {
+			assumeRole := assumeRoleMap.(map[string]interface{})
+			configItem := connectivity.AssumeRoleChainItem{}
+
+			if assumeRole["role_arn"].(string) != "" {
+				configItem.RamRoleArn = assumeRole["role_arn"].(string)
+			}
+			if assumeRole["session_name"].(string) != "" {
+				configItem.RamRoleSessionName = assumeRole["session_name"].(string)
+			}
+			if configItem.RamRoleSessionName == "" {
+				configItem.RamRoleSessionName = "terraform"
+			}
+			configItem.RamRolePolicy = assumeRole["policy"].(string)
+			if assumeRole["session_expiration"].(int) == 0 {
+				if v := os.Getenv("ALICLOUD_ASSUME_ROLE_SESSION_EXPIRATION"); v != "" {
+					if expiredSeconds, err := strconv.Atoi(v); err == nil {
+						configItem.RamRoleSessionExpiration = expiredSeconds
+					}
+				}
+				if configItem.RamRoleSessionExpiration == 0 {
+					configItem.RamRoleSessionExpiration = 3600
+				}
+			} else {
+				configItem.RamRoleSessionExpiration = assumeRole["session_expiration"].(int)
+			}
+			if v := assumeRole["external_id"].(string); v != "" {
+				configItem.RamRoleExternalId = v
+			}
+			if v := assumeRole["role_type"].(string); v != "" {
+				configItem.RamRoleType = v
+			} else {
+				configItem.RamRoleType = "user"
+			}
+			if v := assumeRole["assume_role_for"].(string); v != "" {
+				configItem.RamRoleAssumeRoleFor = v
+			}
+			*config.AssumeRoleChain = append(*config.AssumeRoleChain, configItem)
+		}
 	}
 
 	if v, ok := d.GetOk("assume_role_with_oidc"); ok && len(v.([]interface{})) == 1 {
@@ -2539,7 +2581,7 @@ func assumeRoleSchema() *schema.Schema {
 					Type:        schema.TypeInt,
 					Optional:    true,
 					Description: "assuem role order",
-				},
+				}
 			},
 		},
 	}

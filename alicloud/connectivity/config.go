@@ -387,6 +387,92 @@ func (c *Config) setAuthByAssumeRoleChain() (err error) {
 	return nil
 }
 
+func (c *Config) setAuthByAssumeRoleChain() (err error) {
+	if c.AccessKey == "" || c.AssumeRoleChain == nil {
+		return
+	}
+
+	var stsClient *stsInternal.Client
+	stsClient, err = stsInternal.NewClientWithProvider(c.RegionId)
+	if err != nil {
+		return fmt.Errorf("refreshing credential failed when building sts client. Error: %v", err)
+	}
+
+	var AccessKey string
+	var SecretKey string
+	var SecurityToken string
+
+	for _, assumeRoleItem := range *c.AssumeRoleChain {
+		if assumeRoleItem.RamRoleType == "user" {
+			request := &stsInternal.AssumeRoleRequest{
+				RoleArn:         assumeRoleItem.RamRoleArn,
+				RoleSessionName: assumeRoleItem.RamRoleSessionName,
+			}
+			if c.RamRolePolicy != "" {
+				request.Policy = assumeRoleItem.RamRolePolicy
+			}
+			if c.RamRoleSessionExpiration != 0 {
+				request.DurationSeconds = requests.NewInteger(assumeRoleItem.RamRoleSessionExpiration)
+			}
+
+			response, err := stsClient.AssumeRole(request)
+			if err != nil {
+				return fmt.Errorf("AssumeRole failed by Role Arn [%v]. Error: %v", assumeRoleItem.RamRoleArn, err)
+			} else {
+				AccessKey = response.Credentials.AccessKeyId
+				SecretKey = response.Credentials.AccessKeySecret
+				SecurityToken = response.Credentials.SecurityToken
+				stsClient, err = stsInternal.NewClientWithStsToken(
+					c.RegionId,
+					response.Credentials.AccessKeyId,
+					response.Credentials.AccessKeySecret,
+					response.Credentials.SecurityToken,
+				)
+				if err != nil {
+					return fmt.Errorf("create new client failed. Error: %v", err)
+				}
+			}
+		} else if assumeRoleItem.RamRoleType == "service" {
+			request := &stsInternal.AssumeRoleWithServiceIdentityRequest{
+				RoleArn:         assumeRoleItem.RamRoleArn,
+				RoleSessionName: assumeRoleItem.RamRoleSessionName,
+			}
+			if assumeRoleItem.RamRolePolicy != "" {
+				request.Policy = assumeRoleItem.RamRolePolicy
+			}
+			if assumeRoleItem.RamRoleAssumeRoleFor != "" {
+				request.AssumeRoleFor = assumeRoleItem.RamRoleAssumeRoleFor
+			}
+			if assumeRoleItem.RamRoleSessionExpiration != 0 {
+				request.DurationSeconds = requests.NewInteger(assumeRoleItem.RamRoleSessionExpiration)
+			}
+
+			response, err := stsClient.AssumeRoleWithServiceIdentity(request)
+			if err != nil {
+				return fmt.Errorf("AssumeRoleWithServiceIdentity failed by Role Arn [%v]. Error: %v", assumeRoleItem.RamRoleArn, err)
+			} else {
+				AccessKey = response.Credentials.AccessKeyId
+				SecretKey = response.Credentials.AccessKeySecret
+				SecurityToken = response.Credentials.SecurityToken
+				stsClient, err = stsInternal.NewClientWithStsToken(
+					c.RegionId,
+					response.Credentials.AccessKeyId,
+					response.Credentials.AccessKeySecret,
+					response.Credentials.SecurityToken,
+				)
+				if err != nil {
+					return fmt.Errorf("create new client failed. Error: %v", err)
+				}
+			}
+		} else {
+			return fmt.Errorf("unsupport role type: %v", assumeRoleItem.RamRoleType)
+		}
+	}
+
+	c.AccessKey, c.SecretKey, c.SecurityToken = AccessKey, SecretKey, SecurityToken
+	return nil
+}
+
 // setAuthCredentialByEcsRoleName aims to access meta to get sts credential
 // Actually, the job should be done by sdk, but currently not all resources and products support alibaba-cloud-sdk-go,
 // and their go sdk does support ecs role name.
