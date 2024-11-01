@@ -18,7 +18,6 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/auth/credentials"
 	credential "github.com/aliyun/credentials-go/credentials"
 	stsInternal "github.com/aliyun/terraform-provider-alicloud/alicloud/sts"
-	"github.com/jmespath/go-jmespath"
 )
 
 var securityCredURL = "http://100.100.100.200/latest/meta-data/ram/security-credentials/"
@@ -294,96 +293,6 @@ func (c *Config) setAuthByAssumeRole() (err error) {
 		return fmt.Errorf("refresh Ram Role Arn credential failed. Error: %v", err)
 	}
 	c.AccessKey, c.SecretKey, c.SecurityToken = *credential.AccessKeyId, *credential.AccessKeySecret, *credential.SecurityToken
-	return nil
-}
-
-func (c *Config) setAuthByAssumeRoleChain() (err error) {
-	if c.AccessKey == "" || c.AssumeRoleChain == nil {
-		return
-	}
-
-	var stsClient *stsInternal.Client
-	stsClient, err = stsInternal.NewClientWithProvider(c.RegionId)
-	if err != nil {
-		return fmt.Errorf("refreshing credential failed when building sts client. Error: %v", err)
-	}
-
-	var AccessKey string
-	var SecretKey string
-	var SecurityToken string
-
-	for _, assumeRoleItem := range *c.AssumeRoleChain {
-		if assumeRoleItem.RamRoleType == "user" {
-			request := stsInternal.CreateAssumeRoleRequest()
-			request.RoleArn = assumeRoleItem.RamRoleArn
-			if assumeRoleItem.RamRoleSessionName != "" {
-				request.RoleSessionName = assumeRoleItem.RamRoleSessionName
-			}
-			if c.RamRolePolicy != "" {
-				request.Policy = assumeRoleItem.RamRolePolicy
-			}
-			if c.RamRoleSessionExpiration != 0 {
-				request.DurationSeconds = requests.NewInteger(assumeRoleItem.RamRoleSessionExpiration)
-			}
-
-			response, err := stsClient.AssumeRole(request)
-			if err != nil {
-				return fmt.Errorf("AssumeRole failed by Role Arn [%v]. Error: %v", assumeRoleItem.RamRoleArn, err)
-			} else {
-				log.Printf("[INFO] AssumeRole success by Role Arn [%v]", assumeRoleItem.RamRoleArn)
-				AccessKey = response.Credentials.AccessKeyId
-				SecretKey = response.Credentials.AccessKeySecret
-				SecurityToken = response.Credentials.SecurityToken
-				stsClient, err = stsInternal.NewClientWithStsToken(
-					c.RegionId,
-					response.Credentials.AccessKeyId,
-					response.Credentials.AccessKeySecret,
-					response.Credentials.SecurityToken,
-				)
-				if err != nil {
-					return fmt.Errorf("create new client failed. Error: %v", err)
-				}
-			}
-		} else if assumeRoleItem.RamRoleType == "service" {
-			request := stsInternal.CreateAssumeRoleWithServiceIdentityRequest()
-			request.RoleArn = assumeRoleItem.RamRoleArn
-			if assumeRoleItem.RamRoleSessionName != "" {
-				request.RoleSessionName = assumeRoleItem.RamRoleSessionName
-			}
-			if assumeRoleItem.RamRolePolicy != "" {
-				request.Policy = assumeRoleItem.RamRolePolicy
-			}
-			if assumeRoleItem.RamRoleAssumeRoleFor != "" {
-				request.AssumeRoleFor = assumeRoleItem.RamRoleAssumeRoleFor
-			}
-			if assumeRoleItem.RamRoleSessionExpiration != 0 {
-				request.DurationSeconds = requests.NewInteger(assumeRoleItem.RamRoleSessionExpiration)
-			}
-
-			response, err := stsClient.AssumeRoleWithServiceIdentity(request)
-			if err != nil {
-				return fmt.Errorf("AssumeRoleWithServiceIdentity failed by Role Arn [%v]. Error: %v", assumeRoleItem.RamRoleArn, err)
-			} else {
-				log.Printf("[INFO] AssumeRoleWithServiceIdentity success by Role Arn [%v]", assumeRoleItem.RamRoleArn)
-				AccessKey = response.Credentials.AccessKeyId
-				SecretKey = response.Credentials.AccessKeySecret
-				SecurityToken = response.Credentials.SecurityToken
-				stsClient, err = stsInternal.NewClientWithStsToken(
-					c.RegionId,
-					response.Credentials.AccessKeyId,
-					response.Credentials.AccessKeySecret,
-					response.Credentials.SecurityToken,
-				)
-				if err != nil {
-					return fmt.Errorf("create new client failed. Error: %v", err)
-				}
-			}
-		} else {
-			return fmt.Errorf("unsupport role type: %v", assumeRoleItem.RamRoleType)
-		}
-	}
-
-	c.AccessKey, c.SecretKey, c.SecurityToken = AccessKey, SecretKey, SecurityToken
 	return nil
 }
 

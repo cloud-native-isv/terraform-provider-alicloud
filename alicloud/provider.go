@@ -1948,8 +1948,6 @@ func providerConfigure(d *schema.ResourceData, p *schema.Provider) (interface{},
 			}
 			*config.AssumeRoleChain = append(*config.AssumeRoleChain, configItem)
 		}
-	} else {
-		log.Printf("[INFO] no assume_role configuration set")
 	} else if len(assumeRoleList) > 1 {
 		log.Printf("[INFO] multiple assume_role provide, which mean we have a assume role chain")
 		config.AssumeRoleChain = &([]connectivity.AssumeRoleChainItem{})
@@ -1992,6 +1990,8 @@ func providerConfigure(d *schema.ResourceData, p *schema.Provider) (interface{},
 			}
 			*config.AssumeRoleChain = append(*config.AssumeRoleChain, configItem)
 		}
+	} else {
+		log.Printf("[INFO] no assume_role configuration set")
 	}
 
 	if v, ok := d.GetOk("assume_role_with_oidc"); ok && len(v.([]interface{})) == 1 {
@@ -2581,7 +2581,7 @@ func assumeRoleSchema() *schema.Schema {
 					Type:        schema.TypeInt,
 					Optional:    true,
 					Description: "assuem role order",
-				}
+				},
 			},
 		},
 	}
