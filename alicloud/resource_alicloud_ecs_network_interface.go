@@ -347,7 +347,7 @@ func resourceAliCloudEcsNetworkInterfaceRead(d *schema.ResourceData, meta interf
 	// } else {
 	// 	d.Set("tags", tagsToMap(tags))
 	// }
-  // ecs:ListTagResources, User not authorized to operate on the specified resource, or this API doesn't support RAM.
+	// ecs:ListTagResources, User not authorized to operate on the specified resource, or this API doesn't support RAM.
 
 	d.Set("vswitch_id", object["VSwitchId"])
 	d.Set("instance_type", object["Type"])
