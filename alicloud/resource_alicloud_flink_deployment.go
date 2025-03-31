@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
+	ververica "github.com/alibabacloud-go/ververica-20220718/client"
 )
 
 func resourceAliCloudFlinkDeployment() *schema.Resource {

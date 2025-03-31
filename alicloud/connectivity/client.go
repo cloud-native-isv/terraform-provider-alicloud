@@ -153,6 +153,7 @@ type AliyunClient struct {
 	cmsConn                      *cms.Client
 	r_kvstoreConn                *r_kvstore.Client
 	maxcomputeConn               *maxcompute.Client
+	
 }
 
 type ApiVersion string
