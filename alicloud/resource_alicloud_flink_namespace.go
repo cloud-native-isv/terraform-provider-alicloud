@@ -3,12 +3,13 @@ package alicloud
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
 )
 
 func resourceAliCloudFlinkNamespace() *schema.Resource {
@@ -22,18 +23,21 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "ID of the Flink workspace",
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "Name of the Flink namespace",
 			},
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Description of the namespace",
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
@@ -48,21 +52,24 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 	client := meta.(*connectivity.AliyunClient)
 	foasService := FoasService{client}
 
-	request := foasconsole.CreateCreateNamespaceRequest()
+	request := foasconsole.CreateNamespaceRequest{}
 	request.WorkspaceId = d.Get("workspace_id").(string)
 	request.Name = d.Get("name").(string)
-	request.Description = d.Get("description").(string)
+	if v, ok := d.GetOk("description"); ok {
+		request.Description = v.(string)
+	}
 
 	response, err := foasService.CreateNamespace(request)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	d.SetId(fmt.Sprintf("%s:%s", request.WorkspaceId, response.Namespace))
+	namespaceId := fmt.Sprintf("%s:%s", request.WorkspaceId, request.Name)
+	d.SetId(namespaceId)
 
 	stateConf := BuildStateConf([]string{"CREATING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, foasService.FlinkNamespaceStateRefreshFunc(d.Id()))
 	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
+		return WrapErrorf(err, "Error waiting for Flink namespace (%s) to be created", d.Id())
 	}
 
 	return resourceAliCloudFlinkNamespaceRead(d, meta)
@@ -72,12 +79,12 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*connectivity.AliyunClient)
 	foasService := FoasService{client}
 
-	workspaceId, namespace, err := parseFlinkNamespaceId(d.Id())
+	workspaceId, namespaceName, err := parseNamespaceId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
-	namespaceInfo, err := foasService.DescribeNamespace(workspaceId, namespace)
+	namespace, err := foasService.DescribeNamespace(workspaceId, namespaceName)
 	if err != nil {
 		if NotFoundError(err) {
 			d.SetId("")
@@ -86,9 +93,9 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	d.Set("workspace_id", workspaceId)
-	d.Set("name", namespaceInfo.Name)
-	d.Set("description", namespaceInfo.Description)
+	d.Set("workspace_id", namespace.WorkspaceId)
+	d.Set("name", namespace.Name)
+	d.Set("description", namespace.Description)
 
 	return nil
 }
@@ -97,14 +104,14 @@ func resourceAliCloudFlinkNamespaceUpdate(d *schema.ResourceData, meta interface
 	client := meta.(*connectivity.AliyunClient)
 	foasService := FoasService{client}
 
-	workspaceId, namespace, err := parseFlinkNamespaceId(d.Id())
+	workspaceId, namespaceName, err := parseNamespaceId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
 	request := foasconsole.CreateModifyNamespaceRequest()
 	request.WorkspaceId = workspaceId
-	request.Name = namespace
+	request.Name = namespaceName
 
 	if d.HasChange("description") {
 		request.Description = d.Get("description").(string)
@@ -117,7 +124,7 @@ func resourceAliCloudFlinkNamespaceUpdate(d *schema.ResourceData, meta interface
 
 	stateConf := BuildStateConf([]string{"MODIFYING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, foasService.FlinkNamespaceStateRefreshFunc(d.Id()))
 	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
+		return WrapErrorf(err, "Error waiting for Flink namespace (%s) to be updated", d.Id())
 	}
 
 	return resourceAliCloudFlinkNamespaceRead(d, meta)
@@ -127,23 +134,23 @@ func resourceAliCloudFlinkNamespaceDelete(d *schema.ResourceData, meta interface
 	client := meta.(*connectivity.AliyunClient)
 	foasService := FoasService{client}
 
-	workspaceId, namespace, err := parseFlinkNamespaceId(d.Id())
+	workspaceId, namespaceName, err := parseNamespaceId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
 	request := foasconsole.CreateDeleteNamespaceRequest()
 	request.WorkspaceId = workspaceId
-	request.Name = namespace
+	request.Name = namespaceName
 
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		_, err := foasService.DeleteNamespace(request)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"IncorrectNamespaceStatus"}) {
+		_, e := foasService.DeleteNamespace(request)
+		if e != nil {
+			if IsExpectedErrors(e, []string{"IncorrectNamespaceStatus"}) {
 				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
+				return resource.RetryableError(e)
 			}
-			return resource.NonRetryableError(err)
+			return resource.NonRetryableError(e)
 		}
 		return nil
 	})
@@ -157,79 +164,91 @@ func resourceAliCloudFlinkNamespaceDelete(d *schema.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-		return WrapErrorf(err, IdMsg, d.Id())
+		return WrapErrorf(err, "Error deleting Flink namespace: %s", d.Id())
 	}
 
+	d.SetId("")
 	return nil
 }
 
-func parseFlinkNamespaceId(id string) (string, string, error) {
+func parseNamespaceId(id string) (string, string, error) {
 	parts := strings.Split(id, ":")
 	if len(parts) != 2 {
-		return "", "", fmt.Errorf("invalid ID format, expected <workspace_id>:<namespace>")
+		return "", "", fmt.Errorf("invalid ID format, expected <workspace_id>:<namespace_name>")
 	}
 	return parts[0], parts[1], nil
 }
 
-type FoasService struct {
-	*connectivity.AliyunClient
-}
-
+// Add to foas_service.go
 func (s *FoasService) CreateNamespace(request *foasconsole.CreateNamespaceRequest) (*foasconsole.CreateNamespaceResponse, error) {
-	response, err := s.FoasconsoleClient.CreateNamespace(request)
+	var response *foasconsole.CreateNamespaceResponse
+	err := s.AliyunClient.WithFoasClient(func(client *foasconsole.Client) (interface{}, error) {
+		var err error
+		response, err = client.CreateNamespace(request)
+		return nil, err
+	})
 	if err != nil {
-		log.Printf("[ERROR] CreateNamespace failed: %v", err)
 		return nil, err
 	}
 	return response, nil
 }
 
-func (s *FoasService) DescribeNamespace(workspaceId, namespace string) (*foasconsole.DescribeNamespacesResponseNamespace, error) {
+func (s *FoasService) DescribeNamespace(workspaceId, name string) (*foasconsole.DescribeNamespacesResponseNamespace, error) {
 	request := foasconsole.CreateDescribeNamespacesRequest()
 	request.WorkspaceId = workspaceId
+
 	response, err := s.FoasconsoleClient.DescribeNamespaces(request)
 	if err != nil {
 		return nil, err
 	}
+
 	for _, ns := range response.Namespaces {
-		if ns.Name == namespace {
+		if ns.Name == name {
 			return &ns, nil
 		}
 	}
-	return nil, WrapErrorf(Error("Namespace %s not found", namespace))
+	return nil, WrapErrorf(fmt.Errorf("not found"), "Namespace %s not found", name)
 }
 
 func (s *FoasService) ModifyNamespace(request *foasconsole.ModifyNamespaceRequest) (*foasconsole.ModifyNamespaceResponse, error) {
-	response, err := s.FoasconsoleClient.ModifyNamespace(request)
+	var response *foasconsole.ModifyNamespaceResponse
+	err := s.AliyunClient.WithFoasClient(func(client *foasconsole.Client) (interface{}, error) {
+		var err error
+		response, err = client.ModifyNamespace(request)
+		return nil, err
+	})
 	if err != nil {
-		log.Printf("[ERROR] ModifyNamespace failed: %v", err)
 		return nil, err
 	}
 	return response, nil
 }
 
 func (s *FoasService) DeleteNamespace(request *foasconsole.DeleteNamespaceRequest) (*foasconsole.DeleteNamespaceResponse, error) {
-	response, err := s.FoasconsoleClient.DeleteNamespace(request)
+	var response *foasconsole.DeleteNamespaceResponse
+	err := s.AliyunClient.WithFoasClient(func(client *foasconsole.Client) (interface{}, error) {
+		var err error
+		response, err = client.DeleteNamespace(request)
+		return nil, err
+	})
 	if err != nil {
-		log.Printf("[ERROR] DeleteNamespace failed: %v", err)
 		return nil, err
 	}
 	return response, nil
 }
 
-func (s *FoasService) FlinkNamespaceStateRefreshFunc(id string) resource.StateRefreshFunc {
+func (s *FoasService) FlinkNamespaceStateRefreshFunc(namespaceId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		workspaceId, namespace, err := parseFlinkNamespaceId(id)
+		workspaceId, name, err := parseNamespaceId(namespaceId)
 		if err != nil {
 			return nil, "", err
 		}
-		obj, err := s.DescribeNamespace(workspaceId, namespace)
+		namespace, err := s.DescribeNamespace(workspaceId, name)
 		if err != nil {
 			if NotFoundError(err) {
 				return nil, "DELETED", nil
 			}
 			return nil, "", err
 		}
-		return obj, obj.Status, nil
+		return namespace, namespace.Status, nil
 	}
 }

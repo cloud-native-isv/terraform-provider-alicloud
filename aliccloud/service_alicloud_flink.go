@@ -5,14 +5,44 @@ import (
 	"github.com/alibabacloud-go/ververica-20220718/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-		ververica "github.com/alibabacloud-go/ververica-20220718/client"
 )
 
 type FoasService struct {
 	*connectivity.AliyunClient
 }
 
-// Namespace management
+// FoasService Instance related functions
+func (s *FoasService) CreateInstance(request *foasconsole.CreateInstanceRequest) (*foasconsole.CreateInstanceResponse, error) {
+	var response *foasconsole.CreateInstanceResponse
+	err := s.WithFoasClient(func(client *foasconsole.Client) (interface{}, error) {
+		var err error
+		response, err = client.CreateInstance(request)
+		return response, err
+	})
+	return response, WrapError(err)
+}
+
+func (s *FoasService) DescribeInstance(instanceId string) (*foasconsole.DescribeInstancesResponseInstance, error) {
+	var result *foasconsole.DescribeInstancesResponseInstance
+	err := s.WithFoasClient(func(client *foasconsole.Client) (interface{}, error) {
+		request := foasconsole.CreateDescribeInstancesRequest()
+		request.InstanceId = instanceId
+		response, err := client.DescribeInstances(request)
+		if err != nil {
+			return nil, err
+		}
+		for _, inst := range response.Instances {
+			if inst.InstanceId == instanceId {
+				result = &inst
+				return result, nil
+			}
+		}
+		return nil, WrapErrorf(Error("instance %s not found", instanceId))
+	})
+	return result, WrapError(err)
+}
+
+// FoasService Namespace related functions
 func (s *FoasService) CreateNamespace(request *foasconsole.CreateNamespaceRequest) (*foasconsole.CreateNamespaceResponse, error) {
 	var response *foasconsole.CreateNamespaceResponse
 	err := s.WithFoasClient(func(client *foasconsole.Client) (interface{}, error) {
@@ -44,65 +74,7 @@ func (s *FoasService) DescribeNamespace(workspaceId string, namespaceId string) 
 	return result, WrapError(err)
 }
 
-// Instance management
-func (s *FoasService) CreateInstance(request *foasconsole.CreateInstanceRequest) (*foasconsole.CreateInstanceResponse, error) {
-	var response *foasconsole.CreateInstanceResponse
-	err := s.WithFoasClient(func(client *foasconsole.Client) (interface{}, error) {
-		var err error
-		response, err = client.CreateInstance(request)
-		return response, err
-	})
-	return response, WrapError(err)
-}
-
-func (s *FoasService) DescribeInstance(instanceId string) (*foasconsole.DescribeInstancesResponseInstance, error) {
-	var result *foasconsole.DescribeInstancesResponseInstance
-	err := s.WithFoasClient(func(client *foasconsole.Client) (interface{}, error) {
-		request := foasconsole.CreateDescribeInstancesRequest()
-		request.InstanceId = instanceId
-		response, err := client.DescribeInstances(request)
-		if err != nil {
-			return nil, err
-		}
-		for _, inst := range response.Instances {
-			if inst.InstanceId == instanceId {
-				result = &inst
-				return result, nil
-			}
-		}
-		return nil, WrapErrorf(Error("instance %s not found", instanceId))
-	})
-	return result, WrapError(err)
-}
-
-// State refresh functions
-func (s *FoasService) FlinkDeploymentStateRefreshFunc(id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		parts, err := ParseResourceId(id, 3)
-		if err != nil {
-			return nil, "", WrapError(err)
-		}
-		request := foasconsole.CreateGetDeploymentRequest()
-		request.WorkspaceId = parts[0]
-		request.Namespace = parts[1]
-		request.DeploymentId = parts[2]
-
-		raw, err := s.GetDeployment(request)
-		if err != nil {
-			if NotFoundError(err) {
-				return nil, "", nil
-			}
-			return nil, "", WrapError(err)
-		}
-		return raw.Deployment, raw.Deployment.Status, nil
-	}
-}
-
-type VervericaService struct {
-	*connectivity.AliyunClient
-}
-
-// Job management moved from FoasService to VervericaService
+// VervericaService deployment related functions
 func (s *VervericaService) DeployJob(request *ververica.DeployJobRequest) (*ververica.DeployJobResponse, error) {
 	var response *ververica.DeployJobResponse
 	err := s.WithVervericaClient(func(client *ververica.Client) (interface{}, error) {
@@ -143,7 +115,7 @@ func (s *VervericaService) DeleteDeployment(request *ververica.DeleteDeploymentR
 	return response, WrapError(err)
 }
 
-// Session cluster management remains in VervericaService
+// VervericaService other functions
 func (s *VervericaService) CreateSessionCluster(request *client.CreateSessionClusterRequest) (*client.CreateSessionClusterResponse, error) {
 	var response *client.CreateSessionClusterResponse
 	err := s.WithVervericaClient(func(client *client.Client) (interface{}, error) {
@@ -162,4 +134,20 @@ func (s *VervericaService) DeleteSessionCluster(request *client.DeleteSessionClu
 		return response, err
 	})
 	return response, WrapError(err)
+}
+
+func (s *VervericaService) DescribeNamespaces(namespace *string) ([]*client.GetDatabasesResponseDatabase, error) {
+	request := client.CreateGetDatabasesRequest()
+	request.Namespace = namespace
+
+	var response *client.GetDatabasesResponse
+	err := s.AliyunClient.WithVervericaClient(func(client *client.Client) (interface{}, error) {
+		var err error
+		response, err = client.GetDatabases(request)
+		return nil, err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return response.Databases, nil
 }
