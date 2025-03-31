@@ -8,7 +8,7 @@ import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	foasconsole "github.com/alibabacloud-go/foasconsoleClient-20211028/client"
+	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
 )
 
 func resourceAliCloudFlinkNamespace() *schema.Resource {
