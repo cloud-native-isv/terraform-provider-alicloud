@@ -245,7 +245,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	if response.Success == nil || !*response.Success {
+	if response.Body.Success == nil || !*response.Body.Success {
 		return WrapErrorf(Error("CreateInstance failed: %s", response.Message))
 	}
 
@@ -272,10 +272,17 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
+	// 完善所有字段的读取
 	d.Set("name", instance.Name)
 	d.Set("description", instance.Description)
 	d.Set("vpc_id", instance.VpcId)
 	d.Set("vswitch_ids", instance.VSwitchIds)
+	d.Set("cpu", instance.ResourceSpec.Cpu)
+	d.Set("memory", instance.ResourceSpec.MemoryGB)
+	d.Set("charge_type", instance.ChargeType)
+	d.Set("tags", instance.Tags)
+	d.Set("ha", instance.Ha)
+	d.Set("region", instance.Region)
 
 	return nil
 }
@@ -287,18 +294,41 @@ func resourceAliCloudFlinkWorkspaceUpdate(d *schema.ResourceData, meta interface
 	request := foasconsole.CreateModifyInstanceRequest()
 	request.InstanceId = d.Id()
 
+	// 添加更多属性变更检测
 	if d.HasChange("description") {
-		request.Description = d.Get("description").(string)
+		request.Description = tea.String(d.Get("description").(string))
+	}
+	if d.HasChange("cpu") {
+		request.ResourceSpec = &foasconsole.ModifyInstanceRequestResourceSpec{
+			Cpu: tea.Int32(int32(d.Get("cpu").(int))),
+		}
+	}
+	if d.HasChange("memory") {
+		request.ResourceSpec = &foasconsole.ModifyInstanceRequestResourceSpec{
+			MemoryGB: tea.Int32(int32(d.Get("memory").(int))),
+		}
+	}
+	if d.HasChange("tags") {
+		tags := d.Get("tags").(map[string]interface{})
+		request.Tag = make([]*foasconsole.ModifyInstanceRequestTag, 0, len(tags))
+		for k, v := range tags {
+			request.Tag = append(request.Tag, &foasconsole.ModifyInstanceRequestTag{
+				Key:   tea.String(k),
+				Value: tea.String(v.(string)),
+			})
+		}
 	}
 
+	// 执行更新请求
 	_, err := foasService.ModifyInstance(request)
 	if err != nil {
 		return WrapError(err)
 	}
 
+	// 添加状态等待
 	stateConf := BuildStateConf([]string{"MODIFYING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, foasService.FlinkWorkspaceStateRefreshFunc(d.Id()))
 	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
+		return WrapErrorf(err, "Error waiting for Flink workspace (%s) to be updated", d.Id())
 	}
 
 	return resourceAliCloudFlinkWorkspaceRead(d, meta)
@@ -308,17 +338,18 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 	client := meta.(*connectivity.AliyunClient)
 	foasService := FoasService{client}
 
-	request := foasconsole.CreateDeleteInstanceRequest()
-	request.InstanceId = d.Id()
+	request := &foasconsole.DeleteInstanceRequest{
+		InstanceId: tea.String(d.Id()),
+	}
 
 	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		_, err := foasService.DeleteInstance(request)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"IncorrectInstanceStatus"}) {
+		_, e := foasService.DeleteInstance(request)
+		if e != nil {
+			if IsExpectedErrors(e, []string{"IncorrectInstanceStatus"}) {
 				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
+				return resource.RetryableError(e)
 			}
-			return resource.NonRetryableError(err)
+			return resource.NonRetryableError(e)
 		}
 		return nil
 	})
@@ -326,73 +357,16 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
+	// 添加删除后的状态检查
 	stateConf := BuildStateConf([]string{"DELETING"}, []string{}, d.Timeout(schema.TimeoutDelete), 10*time.Second, foasService.FlinkWorkspaceStateRefreshFunc(d.Id()))
 	if _, err := stateConf.WaitForState(); err != nil {
 		if IsExpectedErrors(err, []string{"InvalidInstance.NotFound"}) {
 			d.SetId("")
 			return nil
 		}
-		return WrapErrorf(err, IdMsg, d.Id())
+		return WrapErrorf(err, "Error deleting Flink workspace: %s", d.Id())
 	}
 
+	d.SetId("")
 	return nil
-}
-
-type FoasService struct {
-	*connectivity.AliyunClient
-}
-
-func (s *FoasService) CreateInstance(request *foasconsole.CreateInstanceRequest) (*foasconsole.CreateInstanceResponse, error) {
-	response, err := s.FoasconsoleClient.CreateInstance(request)
-	if err != nil {
-		log.Printf("[ERROR] CreateInstance failed: %v", err)
-		return nil, err
-	}
-	return response, nil
-}
-
-func (s *FoasService) DescribeInstance(instanceId string) (*foasconsole.DescribeInstancesResponseInstance, error) {
-	request := foasconsole.CreateDescribeInstancesRequest()
-	request.InstanceId = instanceId
-	response, err := s.FoasconsoleClient.DescribeInstances(request)
-	if err != nil {
-		return nil, err
-	}
-	for _, inst := range response.Instances {
-		if inst.InstanceId == instanceId {
-			return &inst, nil
-		}
-	}
-	return nil, WrapErrorf(Error("Instance %s not found", instanceId))
-}
-
-func (s *FoasService) ModifyInstance(request *foasconsole.ModifyInstanceRequest) (*foasconsole.ModifyInstanceResponse, error) {
-	response, err := s.FoasconsoleClient.ModifyInstance(request)
-	if err != nil {
-		log.Printf("[ERROR] ModifyInstance failed: %v", err)
-		return nil, err
-	}
-	return response, nil
-}
-
-func (s *FoasService) DeleteInstance(request *foasconsole.DeleteInstanceRequest) (*foasconsole.DeleteInstanceResponse, error) {
-	response, err := s.FoasconsoleClient.DeleteInstance(request)
-	if err != nil {
-		log.Printf("[ERROR] DeleteInstance failed: %v", err)
-		return nil, err
-	}
-	return response, nil
-}
-
-func (s *FoasService) FlinkWorkspaceStateRefreshFunc(instanceId string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		obj, err := s.DescribeInstance(instanceId)
-		if err != nil {
-			if NotFoundError(err) {
-				return nil, "DELETED", nil
-			}
-			return nil, "", err
-		}
-		return obj, obj.Status, nil
-	}
 }
