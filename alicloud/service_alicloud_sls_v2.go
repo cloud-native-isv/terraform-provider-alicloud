@@ -6,13 +6,34 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
+	sls "github.com/alibabacloud-go/sls-20201230/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 type SlsServiceV2 struct {
-	client *connectivity.AliyunClient
+	client    *connectivity.AliyunClient
+	slsClient *sls.Client // 添加SLS客户端字段
+}
+
+// NewSlsServiceV2 creates a new SlsServiceV2 instance with initialized clients
+func NewSlsServiceV2(client *connectivity.AliyunClient) (*SlsServiceV2, error) {
+	accessKey, secretKey, securityToken := client.GetRefreshCredential()
+	config := &openapi.Config{
+		AccessKeyId:     accessKey,
+		AccessKeySecret: secretKey,
+		RegionId:        client.RegionId,
+		SecurityToken:   securityToken,
+	}
+	slsClient, err := sls.NewClient(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create SLS client: %w", err)
+	}
+	return &SlsServiceV2{
+		client:    client,
+		slsClient: slsClient,
+	}, nil
 }
 
 // DescribeSlsProject <<< Encapsulated get interface for Sls Project.
@@ -672,3 +693,93 @@ func (s *SlsServiceV2) SlsEtlStateRefreshFunc(id string, field string, failState
 }
 
 // DescribeSlsEtl >>> Encapsulated.
+
+// CreateSlsLogging <<< Added new logging management functions.
+func (s *SlsServiceV2) CreateSlsLogging(project string, loggingDetails []map[string]interface{}) (response map[string]interface{}, err error) {
+	wait := incrementalWait(3*time.Second, 5*time.Second)
+	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+		resp, e := s.slsClient.CreateLogging(project, loggingDetails) // 使用新客户端方法
+		if e != nil {
+			if NeedRetry(e) {
+				wait()
+				return resource.RetryableError(e)
+			}
+			return resource.NonRetryableError(e)
+		}
+		response = resp // 直接获取响应结果
+		addDebug("CreateLogging", response, loggingDetails)
+		return nil
+	})
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, project, "CreateLogging", AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+func (s *SlsServiceV2) UpdateSlsLogging(project string, loggingDetails []map[string]interface{}) (response map[string]interface{}, err error) {
+	wait := incrementalWait(3*time.Second, 5*time.Second)
+	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+		resp, e := s.slsClient.UpdateLogging(project, loggingDetails) // 使用新客户端方法
+		if e != nil {
+			if NeedRetry(e) {
+				wait()
+				return resource.RetryableError(e)
+			}
+			return resource.NonRetryableError(e)
+		}
+		response = resp
+		addDebug("UpdateLogging", response, loggingDetails)
+		return nil
+	})
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, project, "UpdateLogging", AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+func (s *SlsServiceV2) DeleteSlsLogging(project string) (response map[string]interface{}, err error) {
+	wait := incrementalWait(3*time.Second, 5*time.Second)
+	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+		resp, e := s.slsClient.DeleteLogging(project) // 使用新客户端方法
+		if e != nil {
+			if NeedRetry(e) {
+				wait()
+				return resource.RetryableError(e)
+			}
+			return resource.NonRetryableError(e)
+		}
+		response = resp
+		addDebug("DeleteLogging", response, project)
+		return nil
+	})
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, project, "DeleteLogging", AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// CreateSlsLogging >>> Added new logging management functions.
+
+// DescribeSlsLogging <<< Encapsulated get interface for Sls Logging.
+func (s *SlsServiceV2) GetSlsLogging(project string) (response map[string]interface{}, err error) {
+	wait := incrementalWait(3*time.Second, 5*time.Second)
+	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+		resp, e := s.slsClient.GetLogging(project) // 使用新客户端方法
+		if e != nil {
+			if NeedRetry(e) {
+				wait()
+				return resource.RetryableError(e)
+			}
+			return resource.NonRetryableError(e)
+		}
+		response = resp
+		addDebug("GetLogging", response, project)
+		return nil
+	})
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, project, "GetLogging", AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// DescribeSlsLogging >>> Encapsulated.
