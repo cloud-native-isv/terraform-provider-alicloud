@@ -39,7 +39,10 @@ func resourceAliCloudFlinkMember() *schema.Resource {
 
 func resourceAliCloudFlinkMemberCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	flinkService := FlinkService{ververicaClient: meta.(*connectivity.AliyunClient).ververicaClient}
+	flinkService, err := NewFlinkService(client) // 通过NewFlinkService获取完整初始化的实例
+	if err != nil {
+		return WrapError(err)
+	}
 
 	request := &ververica.CreateMemberRequest{
 		MemberId:   d.Get("member_id").(string),
@@ -47,7 +50,8 @@ func resourceAliCloudFlinkMemberCreate(d *schema.ResourceData, meta interface{})
 		Role:       d.Get("role").(string),
 	}
 
-	response, err := flinkService.ververicaClient.CreateMember(request)
+	// 修改: 调用FlinkService的CreateMember方法
+	response, err := flinkService.CreateMember(request)
 	if err != nil {
 		return WrapError(err)
 	}

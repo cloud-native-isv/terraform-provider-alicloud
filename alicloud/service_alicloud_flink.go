@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
 	ververica "github.com/alibabacloud-go/ververica-20220718/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -14,12 +15,11 @@ type FlinkService struct {
 }
 
 func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
-	accessKey, secretKey, securityToken := client.GetRefreshCredential()
 	config := &openapi.Config{
-		AccessKeyId:     accessKey,
-		AccessKeySecret: secretKey,
-		RegionId:        client.RegionId,
-		SecurityToken:   securityToken,
+		AccessKeyId:     &client.AccessKey,
+		AccessKeySecret: &client.SecretKey,
+		RegionId:        &client.RegionId,
+		SecurityToken:   &client.SecurityToken,
 	}
 	foasconsoleClient, err := foasconsole.NewClient(config)
 	if err != nil {
@@ -58,11 +58,6 @@ func (s *FlinkService) DescribeInstances(request *foasconsole.DescribeInstancesR
 	return response, WrapError(err)
 }
 
-func (s *FlinkService) UpdateInstance(request *foasconsole.UpdateInstanceRequest) (*foasconsole.UpdateInstanceResponse, error) {
-	response, err := s.foasconsoleClient.UpdateInstance(request)
-	return response, WrapError(err)
-}
-
 // Namespace management functions added
 func (s *FlinkService) CreateNamespace(request *foasconsole.CreateNamespaceRequest) (*foasconsole.CreateNamespaceResponse, error) {
 	response, err := s.foasconsoleClient.CreateNamespace(request)
@@ -76,11 +71,6 @@ func (s *FlinkService) DeleteNamespace(request *foasconsole.DeleteNamespaceReque
 
 func (s *FlinkService) DescribeNamespaces(request *foasconsole.DescribeNamespacesRequest) (*foasconsole.DescribeNamespacesResponse, error) {
 	response, err := s.foasconsoleClient.DescribeNamespaces(request)
-	return response, WrapError(err)
-}
-
-func (s *FlinkService) UpdateNamespace(request *foasconsole.UpdateNamespaceRequest) (*foasconsole.UpdateNamespaceResponse, error) {
-	response, err := s.foasconsoleClient.UpdateNamespace(request)
 	return response, WrapError(err)
 }
 
@@ -107,64 +97,22 @@ func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string) resource.State
 	}
 }
 
-// Job management moved from FlinkService to FlinkService
-func (s *FlinkService) DeployJob(request *ververica.DeployJobRequest) (*ververica.DeployJobResponse, error) {
-	var response *ververica.DeployJobResponse
-	err := s.WithVervericaClient(func(client *ververica.Client) (interface{}, error) {
-		var err error
-		response, err = client.DeployJob(request)
-		return response, err
-	})
-	return response, WrapError(err)
+// 新增方法: CreateMember
+func (s *FlinkService) CreateMember(request *ververica.CreateMemberRequest) (*ververica.CreateMemberResponse, error) {
+    return s.ververicaClient.CreateMember(request)
 }
 
-func (s *FlinkService) GetDeployment(request *ververica.GetDeploymentRequest) (*ververica.GetDeploymentResponse, error) {
-	var response *ververica.GetDeploymentResponse
-	err := s.WithVervericaClient(func(client *ververica.Client) (interface{}, error) {
-		var err error
-		response, err = client.GetDeployment(request)
-		return response, err
-	})
-	return response, WrapError(err)
+// 新增方法: DescribeMember
+func (s *FlinkService) DescribeMember(request *ververica.DescribeMemberRequest) (*ververica.DescribeMemberResponse, error) {
+    return s.ververicaClient.DescribeMember(request)
 }
 
-func (s *FlinkService) UpdateDeployment(request *ververica.UpdateDeploymentRequest) (*ververica.UpdateDeploymentResponse, error) {
-	var response *ververica.UpdateDeploymentResponse
-	err := s.WithVervericaClient(func(client *ververica.Client) (interface{}, error) {
-		var err error
-		response, err = client.UpdateDeployment(request)
-		return response, err
-	})
-	return response, WrapError(err)
+// 新增方法: UpdateMember
+func (s *FlinkService) UpdateMember(request *ververica.UpdateMemberRequest) (*ververica.UpdateMemberResponse, error) {
+    return s.ververicaClient.UpdateMember(request)
 }
 
-func (s *FlinkService) DeleteDeployment(request *ververica.DeleteDeploymentRequest) (*ververica.DeleteDeploymentResponse, error) {
-	var response *ververica.DeleteDeploymentResponse
-	err := s.WithVervericaClient(func(client *ververica.Client) (interface{}, error) {
-		var err error
-		response, err = client.DeleteDeployment(request)
-		return response, err
-	})
-	return response, WrapError(err)
-}
-
-// FlinkService other functions
-func (s *FlinkService) CreateSessionCluster(request *client.CreateSessionClusterRequest) (*client.CreateSessionClusterResponse, error) {
-	var response *client.CreateSessionClusterResponse
-	err := s.WithVervericaClient(func(client *client.Client) (interface{}, error) {
-		var err error
-		response, err = client.CreateSessionCluster(request)
-		return response, err
-	})
-	return response, WrapError(err)
-}
-
-func (s *FlinkService) DeleteSessionCluster(request *client.DeleteSessionClusterRequest) (*client.DeleteSessionClusterResponse, error) {
-	var response *client.DeleteSessionClusterResponse
-	err := s.WithVervericaClient(func(client *client.Client) (interface{}, error) {
-		var err error
-		response, err = client.DeleteSessionCluster(request)
-		return response, err
-	})
-	return response, WrapError(err)
+// 新增方法: DeleteMember
+func (s *FlinkService) DeleteMember(request *ververica.DeleteMemberRequest) (*ververica.DeleteMemberResponse, error) {
+    return s.ververicaClient.DeleteMember(request)
 }

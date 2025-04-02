@@ -51,29 +51,16 @@ func dataSourceAliCloudFlinkZonesRead(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return WrapError(err)
 	}
-
-	var zoneIds []string
-	var zones []map[string]interface{}
-	for _, zone := range response.Body.Zones {
-		zoneIds = append(zoneIds, zone.ZoneId)
-		zones = append(zones, map[string]interface{}{
-			"id": zone.ZoneId,
-		})
+	
+	var zones []string
+	if *response.Body.Success && response.Body.ZoneIds != nil { // 使用ZoneIds字段
+		for _, zonePtr := range response.Body.ZoneIds {
+			if zonePtr != nil {
+				zones = append(zones, *zonePtr)
+			}
+		}
 	}
-
-	sort.Strings(zoneIds)
-
-	d.SetId(dataResourceIdHash(zoneIds))
-	if err := d.Set("zones", zones); err != nil {
-		return WrapError(err)
-	}
-	if err := d.Set("ids", zoneIds); err != nil {
-		return WrapError(err)
-	}
-
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), zones)
-	}
-
+	d.Set("zones", zones)
+	d.SetId(dataResourceIdHash(zones))
 	return nil
 }
