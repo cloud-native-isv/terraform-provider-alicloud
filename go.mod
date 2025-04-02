@@ -3,8 +3,16 @@ module github.com/aliyun/terraform-provider-alicloud
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/agiledragon/gomonkey/v2 v2.3.1
+<<<<<<< HEAD
 	github.com/alibabacloud-go/cs-20151215/v5 v5.9.1
 	github.com/alibabacloud-go/tea v1.2.2
+||||||| parent of c188fec34 (update resource code)
+	github.com/alibabacloud-go/cs-20151215/v5 v5.8.12
+	github.com/alibabacloud-go/tea v1.2.2
+=======
+	github.com/alibabacloud-go/cs-20151215/v5 v5.8.12
+	github.com/alibabacloud-go/tea v1.3.6
+>>>>>>> c188fec34 (update resource code)
 	github.com/alibabacloud-go/tea-roa v1.3.4
 	github.com/alibabacloud-go/tea-rpc v1.2.0
 	github.com/alibabacloud-go/tea-utils v1.4.5
@@ -27,7 +35,13 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.10.0
 	github.com/waigani/diffparser v0.0.0-20190828052634-7391f219313d
+<<<<<<< HEAD
 	golang.org/x/net v0.25.0
+||||||| parent of c188fec34 (update resource code)
+	golang.org/x/net v0.23.0
+=======
+	golang.org/x/net v0.26.0
+>>>>>>> c188fec34 (update resource code)
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.21.0-rc.0
 	k8s.io/apimachinery v0.21.0-rc.0
@@ -38,12 +52,18 @@ require (
 require (
 	github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.18
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.0.6
+<<<<<<< HEAD
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.11
+||||||| parent of c188fec34 (update resource code)
+	github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.10
+=======
+	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.6
+>>>>>>> c188fec34 (update resource code)
 	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7
 	github.com/alibabacloud-go/foasconsole-20211028 v1.0.5
 	github.com/alibabacloud-go/sls-20201230 v1.5.1
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
-	github.com/alibabacloud-go/tea-utils/v2 v2.0.6
+	github.com/alibabacloud-go/tea-utils/v2 v2.0.7
 	github.com/alibabacloud-go/ververica-20220718 v1.7.0
 	github.com/blues/jsonata-go v1.5.4
 	github.com/samber/lo v1.49.1
@@ -176,14 +196,40 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
+<<<<<<< HEAD
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
+||||||| parent of c188fec34 (update resource code)
+	golang.org/x/crypto v0.21.0 // indirect
+	golang.org/x/mod v0.16.0 // indirect
+=======
+	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/mod v0.17.0 // indirect
+>>>>>>> c188fec34 (update resource code)
 	golang.org/x/oauth2 v0.18.0 // indirect
+<<<<<<< HEAD
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/term v0.20.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
+||||||| parent of c188fec34 (update resource code)
+	golang.org/x/sync v0.6.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/term v0.18.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
+=======
+	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/term v0.21.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
+>>>>>>> c188fec34 (update resource code)
 	golang.org/x/time v0.5.0 // indirect
+<<<<<<< HEAD
+||||||| parent of c188fec34 (update resource code)
+	golang.org/x/tools v0.19.0 // indirect
+=======
+	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
+>>>>>>> c188fec34 (update resource code)
 	google.golang.org/api v0.171.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240325203815-454cdb8f5daa // indirect
