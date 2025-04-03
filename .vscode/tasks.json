@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build terraform-provider-alicloud Provider",
+      "type": "shell",
+      "command": "go",
+      "args": [
+        "build",
+        "-o",
+        "bin/terraform-provider-alicloud"
+      ],
+      "options": {
+        "env": {
+          "GOOS": "linux",
+          "GOARCH": "amd64"
+        }
+      },
+      "problemMatcher": []
+    }
+  ]
+}
