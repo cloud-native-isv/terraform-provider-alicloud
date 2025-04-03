@@ -277,7 +277,10 @@ func resourceAliCloudSlsOssExportSinkCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(fmt.Sprintf("%v:%v", *hostMap["project"], request["name"]))
 
-	slsServiceV2 := SlsServiceV2{client}
+	slsServiceV2, err := NewSlsServiceV2(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_oss_export_sink", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+	}
 	stateConf := BuildStateConf([]string{}, []string{"RUNNING"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsServiceV2.SlsOssExportSinkStateRefreshFunc(d.Id(), "status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -288,7 +291,10 @@ func resourceAliCloudSlsOssExportSinkCreate(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudSlsOssExportSinkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2 := SlsServiceV2{client}
+	slsServiceV2, err := NewSlsServiceV2(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_oss_export_sink", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+	}
 
 	objectRaw, err := slsServiceV2.DescribeSlsOssExportSink(d.Id())
 	if err != nil {
@@ -496,7 +502,10 @@ func resourceAliCloudSlsOssExportSinkUpdate(d *schema.ResourceData, meta interfa
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		slsServiceV2 := SlsServiceV2{client}
+		slsServiceV2, err := NewSlsServiceV2(client)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_oss_export_sink", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+		}
 		stateConf := BuildStateConf([]string{}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, slsServiceV2.SlsOssExportSinkStateRefreshFunc(d.Id(), "status", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
