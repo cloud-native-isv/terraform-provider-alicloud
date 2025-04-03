@@ -283,7 +283,8 @@ func resourceAliCloudSlsProjectUpdate(d *schema.ResourceData, meta interface{}) 
 	// 处理 service_logging 配置变更
 	if d.HasChange("service_logging") {
 		newConfig := d.Get("service_logging").([]interface{})
-		oldConfig := d.GetChange("service_logging").([]interface{})[0].([]interface{})
+		old, _ := d.GetChange("service_logging")
+		oldConfig := old.([]interface{})
 
 		// 转换配置格式
 		newLoggingDetails := make([]map[string]interface{}, 0)
