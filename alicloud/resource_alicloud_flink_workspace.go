@@ -1,7 +1,6 @@
 package alicloud
 
 import (
-	"log"
 	"time"
 
 	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
@@ -15,7 +14,6 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudFlinkWorkspaceCreate,
 		Read:   resourceAliCloudFlinkWorkspaceRead,
-		Update: resourceAliCloudFlinkWorkspaceUpdate,
 		Delete: resourceAliCloudFlinkWorkspaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -172,7 +170,6 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 	}
@@ -180,7 +177,10 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 
 func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	foasService := FoasService{client}
+	flinkService, err := NewFlinkService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	request := foasconsole.CreateInstanceRequest{}
 
@@ -240,18 +240,18 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	request.ChargeType = tea.String(d.Get("charge_type").(string))
 	request.Region = tea.String(d.Get("region").(string))
 
-	response, err := foasService.CreateInstance(&request)
+	response, err := flinkService.CreateInstance(&request)
 	if err != nil {
 		return WrapError(err)
 	}
 
 	if response.Body.Success == nil || !*response.Body.Success {
-		return WrapErrorf(Error("CreateInstance failed: %s", response.Message))
+		return WrapErrorf(err, "CreateInstance failed with response: %v", response)
 	}
 
 	d.SetId(*response.Body.OrderInfo.InstanceId)
 
-	stateConf := BuildStateConf([]string{"CREATING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, foasService.FlinkWorkspaceStateRefreshFunc(d.Id()))
+	stateConf := BuildStateConf([]string{"CREATING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, flinkService.FlinkWorkspaceStateRefreshFunc(d.Id()))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -261,9 +261,18 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 
 func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	foasService := FoasService{client}
+	flinkService, err := NewFlinkService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	instance, err := foasService.DescribeInstance(d.Id())
+	// Create a describe request for the instance
+	request := &foasconsole.DescribeInstancesRequest{}
+	request.InstanceId = tea.String(d.Id())
+	request.Region = tea.String(d.Get("region").(string))
+	
+	// Call the API to get the instance
+	response, err := flinkService.DescribeInstances(request)
 	if err != nil {
 		if NotFoundError(err) {
 			d.SetId("")
@@ -272,78 +281,61 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	// 完善所有字段的读取
-	d.Set("name", instance.Name)
-	d.Set("description", instance.Description)
-	d.Set("vpc_id", instance.VpcId)
-	d.Set("vswitch_ids", instance.VSwitchIds)
-	d.Set("cpu", instance.ResourceSpec.Cpu)
-	d.Set("memory", instance.ResourceSpec.MemoryGB)
+	// Check if the instance was found
+	if response == nil || response.Body == nil || len(response.Body.Instances) == 0 {
+		d.SetId("")
+		return nil
+	}
+
+	// Get the first instance (should be the only one since we're querying by ID)
+	instance := response.Body.Instances[0]
+
+	// Set attributes from the instance
+	d.Set("name", instance.InstanceName)
+	if instance.ResourceSpec != nil {
+		d.Set("cpu", instance.ResourceSpec.Cpu)
+		d.Set("memory", instance.ResourceSpec.MemoryGB)
+	}
 	d.Set("charge_type", instance.ChargeType)
-	d.Set("tags", instance.Tags)
+	d.Set("vpc_id", instance.VpcId)
+	d.Set("zone_id", instance.ZoneId)
+	
+	// Set VSwitchIds
+	if instance.VSwitchIds != nil {
+		d.Set("vswitch_ids", instance.VSwitchIds)
+	}
+	
+	// Set tags
+	if instance.Tags != nil {
+		tags := make(map[string]string)
+		for _, tag := range instance.Tags {
+			if tag.Key != nil && tag.Value != nil {
+				tags[*tag.Key] = *tag.Value
+			}
+		}
+		d.Set("tags", tags)
+	}
+	
+	// Set other attributes
 	d.Set("ha", instance.Ha)
 	d.Set("region", instance.Region)
-
+	
 	return nil
-}
-
-func resourceAliCloudFlinkWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	foasService := FoasService{client}
-
-	request := foasconsole.CreateModifyInstanceRequest()
-	request.InstanceId = d.Id()
-
-	// 添加更多属性变更检测
-	if d.HasChange("description") {
-		request.Description = tea.String(d.Get("description").(string))
-	}
-	if d.HasChange("cpu") {
-		request.ResourceSpec = &foasconsole.ModifyInstanceRequestResourceSpec{
-			Cpu: tea.Int32(int32(d.Get("cpu").(int))),
-		}
-	}
-	if d.HasChange("memory") {
-		request.ResourceSpec = &foasconsole.ModifyInstanceRequestResourceSpec{
-			MemoryGB: tea.Int32(int32(d.Get("memory").(int))),
-		}
-	}
-	if d.HasChange("tags") {
-		tags := d.Get("tags").(map[string]interface{})
-		request.Tag = make([]*foasconsole.ModifyInstanceRequestTag, 0, len(tags))
-		for k, v := range tags {
-			request.Tag = append(request.Tag, &foasconsole.ModifyInstanceRequestTag{
-				Key:   tea.String(k),
-				Value: tea.String(v.(string)),
-			})
-		}
-	}
-
-	// 执行更新请求
-	_, err := foasService.ModifyInstance(request)
-	if err != nil {
-		return WrapError(err)
-	}
-
-	// 添加状态等待
-	stateConf := BuildStateConf([]string{"MODIFYING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, foasService.FlinkWorkspaceStateRefreshFunc(d.Id()))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, "Error waiting for Flink workspace (%s) to be updated", d.Id())
-	}
-
-	return resourceAliCloudFlinkWorkspaceRead(d, meta)
 }
 
 func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	foasService := FoasService{client}
+	flinkService, err := NewFlinkService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	request := &foasconsole.DeleteInstanceRequest{
 		InstanceId: tea.String(d.Id()),
 	}
 
-	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		_, e := foasService.DeleteInstance(request)
+	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		_, e := flinkService.DeleteInstance(request)
 		if e != nil {
 			if IsExpectedErrors(e, []string{"IncorrectInstanceStatus"}) {
 				time.Sleep(5 * time.Second)
@@ -358,7 +350,7 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 	}
 
 	// 添加删除后的状态检查
-	stateConf := BuildStateConf([]string{"DELETING"}, []string{}, d.Timeout(schema.TimeoutDelete), 10*time.Second, foasService.FlinkWorkspaceStateRefreshFunc(d.Id()))
+	stateConf := BuildStateConf([]string{"DELETING"}, []string{}, d.Timeout(schema.TimeoutDelete), 10*time.Second, flinkService.FlinkWorkspaceStateRefreshFunc(d.Id()))
 	if _, err := stateConf.WaitForState(); err != nil {
 		if IsExpectedErrors(err, []string{"InvalidInstance.NotFound"}) {
 			d.SetId("")
@@ -369,4 +361,29 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 
 	d.SetId("")
 	return nil
+}
+
+func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		request := &foasconsole.DescribeInstancesRequest{}
+		request.InstanceId = tea.String(id)
+		
+		response, err := s.DescribeInstances(request)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+		
+		// Check if the instance was found
+		if response == nil || response.Body == nil || len(response.Body.Instances) == 0 {
+			return nil, "", nil
+		}
+		
+		// Get the first instance (should be the only one since we're querying by ID)
+		instance := response.Body.Instances[0]
+		// Use ClusterStatus instead of Status which doesn't exist
+		return instance, *instance.ClusterStatus, nil
+	}
 }

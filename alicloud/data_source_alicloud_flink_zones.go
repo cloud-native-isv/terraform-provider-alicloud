@@ -1,9 +1,6 @@
 package alicloud
 
 import (
-	"fmt"
-	"sort"
-
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"

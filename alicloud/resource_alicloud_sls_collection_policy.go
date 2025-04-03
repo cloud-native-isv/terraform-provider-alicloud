@@ -262,7 +262,10 @@ func resourceAliCloudSlsCollectionPolicyCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(fmt.Sprint(request["policyName"]))
 
-	slsServiceV2 := SlsServiceV2{client}
+	slsServiceV2, err := NewSlsServiceV2(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_collection_policy", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+	}
 	stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsServiceV2.SlsCollectionPolicyStateRefreshFunc(d.Id(), "#policyName", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -273,7 +276,10 @@ func resourceAliCloudSlsCollectionPolicyCreate(d *schema.ResourceData, meta inte
 
 func resourceAliCloudSlsCollectionPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2 := SlsServiceV2{client}
+	slsServiceV2, err := NewSlsServiceV2(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_collection_policy", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+	}
 
 	objectRaw, err := slsServiceV2.DescribeSlsCollectionPolicy(d.Id())
 	if err != nil {
@@ -396,13 +402,17 @@ func resourceAliCloudSlsCollectionPolicyRead(d *schema.ResourceData, meta interf
 
 func resourceAliCloudSlsCollectionPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	slsServiceV2, err := NewSlsServiceV2(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_collection_policy", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+	}
+
 	var request map[string]interface{}
 	var response map[string]interface{}
 	var query map[string]*string
 	var body map[string]interface{}
 	update := false
 	action := fmt.Sprintf("/collectionpolicy")
-	var err error
 	request = make(map[string]interface{})
 	query = make(map[string]*string)
 	body = make(map[string]interface{})
@@ -529,7 +539,6 @@ func resourceAliCloudSlsCollectionPolicyUpdate(d *schema.ResourceData, meta inte
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		slsServiceV2 := SlsServiceV2{client}
 		stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, slsServiceV2.SlsCollectionPolicyStateRefreshFunc(d.Id(), "#policyName", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
@@ -542,13 +551,17 @@ func resourceAliCloudSlsCollectionPolicyUpdate(d *schema.ResourceData, meta inte
 func resourceAliCloudSlsCollectionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
+	slsServiceV2, err := NewSlsServiceV2(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_collection_policy", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+	}
+
 	policyName := d.Id()
 	action := fmt.Sprintf("/collectionpolicy/%s", policyName)
 	var request map[string]interface{}
 	var response map[string]interface{}
 	query := make(map[string]*string)
 	hostMap := make(map[string]*string)
-	var err error
 	request = make(map[string]interface{})
 	request["policyName"] = d.Id()
 
@@ -581,7 +594,6 @@ func resourceAliCloudSlsCollectionPolicyDelete(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	slsServiceV2 := SlsServiceV2{client}
 	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, slsServiceV2.SlsCollectionPolicyStateRefreshFunc(d.Id(), "policyName", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())

@@ -354,7 +354,10 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 
 func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2 := SlsServiceV2{client}
+	slsServiceV2, err := NewSlsServiceV2(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+	}
 
 	objectRaw, err := slsServiceV2.DescribeSlsLogStore(d.Id())
 	if err != nil {
@@ -654,7 +657,10 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 	hostMap = make(map[string]*string)
 	hostMap["project"] = StringPointer(parts[0])
 
-	slsServiceV2 := SlsServiceV2{client}
+	slsServiceV2, err := NewSlsServiceV2(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+	}
 	objectRaw, _ := slsServiceV2.DescribeGetLogStoreMeteringMode(d.Id())
 	if d.HasChange("metering_mode") && objectRaw["meteringMode"] != d.Get("metering_mode") {
 		update = true

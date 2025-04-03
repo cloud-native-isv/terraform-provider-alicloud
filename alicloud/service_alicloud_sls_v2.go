@@ -7,6 +7,7 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	sls "github.com/alibabacloud-go/sls-20201230/client"
+	openapi "github.com/alibabacloud-go/darabonba-openapi/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -19,12 +20,11 @@ type SlsServiceV2 struct {
 
 // NewSlsServiceV2 creates a new SlsServiceV2 instance with initialized clients
 func NewSlsServiceV2(client *connectivity.AliyunClient) (*SlsServiceV2, error) {
-	accessKey, secretKey, securityToken := client.GetRefreshCredential()
 	config := &openapi.Config{
-		AccessKeyId:     accessKey,
-		AccessKeySecret: secretKey,
-		RegionId:        client.RegionId,
-		SecurityToken:   securityToken,
+		AccessKeyId:     &client.AccessKey,
+		AccessKeySecret: &client.SecretKey,
+		RegionId:        &client.RegionId,
+		SecurityToken:   &client.SecurityToken,
 	}
 	slsClient, err := sls.NewClient(config)
 	if err != nil {
@@ -696,18 +696,43 @@ func (s *SlsServiceV2) SlsEtlStateRefreshFunc(id string, field string, failState
 
 // CreateSlsLogging <<< Added new logging management functions.
 func (s *SlsServiceV2) CreateSlsLogging(project string, loggingDetails []map[string]interface{}) (response map[string]interface{}, err error) {
+	client := s.client
+	var request map[string]interface{}
+	action := fmt.Sprintf("/logging")
+	request = make(map[string]interface{})
+	hostMap := make(map[string]*string)
+	hostMap["project"] = StringPointer(project)
+	
+	// Convert input maps to LoggingLoggingDetails
+	slsLoggingDetails := make([]*sls.LoggingLoggingDetails, 0, len(loggingDetails))
+	for _, detail := range loggingDetails {
+		slsDetail := &sls.LoggingLoggingDetails{}
+		if logstore, ok := detail["logstore"].(string); ok {
+			slsDetail.SetLogstore(logstore)
+		}
+		if typeName, ok := detail["type"].(string); ok {
+			slsDetail.SetType(typeName)
+		}
+		slsLoggingDetails = append(slsLoggingDetails, slsDetail)
+	}
+	
+	// Create the request body
+	body := map[string]interface{}{
+		"loggingProject": project,
+		"loggingDetails": slsLoggingDetails,
+	}
+	
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		resp, e := s.slsClient.CreateLogging(project, loggingDetails) // 使用新客户端方法
-		if e != nil {
-			if NeedRetry(e) {
+		response, err = client.Do("Sls", roaParam("POST", "2020-12-30", "CreateLogging", action), nil, body, nil, hostMap, false)
+		if err != nil {
+			if NeedRetry(err) {
 				wait()
-				return resource.RetryableError(e)
+				return resource.RetryableError(err)
 			}
-			return resource.NonRetryableError(e)
+			return resource.NonRetryableError(err)
 		}
-		response = resp // 直接获取响应结果
-		addDebug("CreateLogging", response, loggingDetails)
+		addDebug(action, response, request)
 		return nil
 	})
 	if err != nil {
@@ -717,18 +742,43 @@ func (s *SlsServiceV2) CreateSlsLogging(project string, loggingDetails []map[str
 }
 
 func (s *SlsServiceV2) UpdateSlsLogging(project string, loggingDetails []map[string]interface{}) (response map[string]interface{}, err error) {
+	client := s.client
+	var request map[string]interface{}
+	action := fmt.Sprintf("/logging")
+	request = make(map[string]interface{})
+	hostMap := make(map[string]*string)
+	hostMap["project"] = StringPointer(project)
+	
+	// Convert input maps to LoggingLoggingDetails
+	slsLoggingDetails := make([]*sls.LoggingLoggingDetails, 0, len(loggingDetails))
+	for _, detail := range loggingDetails {
+		slsDetail := &sls.LoggingLoggingDetails{}
+		if logstore, ok := detail["logstore"].(string); ok {
+			slsDetail.SetLogstore(logstore)
+		}
+		if typeName, ok := detail["type"].(string); ok {
+			slsDetail.SetType(typeName)
+		}
+		slsLoggingDetails = append(slsLoggingDetails, slsDetail)
+	}
+	
+	// Create the request body
+	body := map[string]interface{}{
+		"loggingProject": project,
+		"loggingDetails": slsLoggingDetails,
+	}
+	
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		resp, e := s.slsClient.UpdateLogging(project, loggingDetails) // 使用新客户端方法
-		if e != nil {
-			if NeedRetry(e) {
+		response, err = client.Do("Sls", roaParam("PUT", "2020-12-30", "UpdateLogging", action), nil, body, nil, hostMap, false)
+		if err != nil {
+			if NeedRetry(err) {
 				wait()
-				return resource.RetryableError(e)
+				return resource.RetryableError(err)
 			}
-			return resource.NonRetryableError(e)
+			return resource.NonRetryableError(err)
 		}
-		response = resp
-		addDebug("UpdateLogging", response, loggingDetails)
+		addDebug(action, response, request)
 		return nil
 	})
 	if err != nil {
@@ -738,18 +788,24 @@ func (s *SlsServiceV2) UpdateSlsLogging(project string, loggingDetails []map[str
 }
 
 func (s *SlsServiceV2) DeleteSlsLogging(project string) (response map[string]interface{}, err error) {
+	client := s.client
+	var request map[string]interface{}
+	action := fmt.Sprintf("/logging")
+	request = make(map[string]interface{})
+	hostMap := make(map[string]*string)
+	hostMap["project"] = StringPointer(project)
+	
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		resp, e := s.slsClient.DeleteLogging(project) // 使用新客户端方法
-		if e != nil {
-			if NeedRetry(e) {
+		response, err = client.Do("Sls", roaParam("DELETE", "2020-12-30", "DeleteLogging", action), nil, nil, nil, hostMap, false)
+		if err != nil {
+			if NeedRetry(err) {
 				wait()
-				return resource.RetryableError(e)
+				return resource.RetryableError(err)
 			}
-			return resource.NonRetryableError(e)
+			return resource.NonRetryableError(err)
 		}
-		response = resp
-		addDebug("DeleteLogging", response, project)
+		addDebug(action, response, request)
 		return nil
 	})
 	if err != nil {
@@ -762,18 +818,23 @@ func (s *SlsServiceV2) DeleteSlsLogging(project string) (response map[string]int
 
 // DescribeSlsLogging <<< Encapsulated get interface for Sls Logging.
 func (s *SlsServiceV2) GetSlsLogging(project string) (response map[string]interface{}, err error) {
+	client := s.client
+	action := fmt.Sprintf("/logging")
+	request := make(map[string]interface{})
+	hostMap := make(map[string]*string)
+	hostMap["project"] = StringPointer(project)
+	
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		resp, e := s.slsClient.GetLogging(project) // 使用新客户端方法
-		if e != nil {
-			if NeedRetry(e) {
+		response, err = client.Do("Sls", roaParam("GET", "2020-12-30", "GetLogging", action), nil, nil, nil, hostMap, true)
+		if err != nil {
+			if NeedRetry(err) {
 				wait()
-				return resource.RetryableError(e)
+				return resource.RetryableError(err)
 			}
-			return resource.NonRetryableError(e)
+			return resource.NonRetryableError(err)
 		}
-		response = resp
-		addDebug("GetLogging", response, project)
+		addDebug("GetLogging", response, request)
 		return nil
 	})
 	if err != nil {
