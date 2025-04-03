@@ -152,11 +152,7 @@ func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string, failStates []s
 				return object, "", nil
 			}
 		}
-		
-		if object.Body.Deployment.JobSummary != nil {
-			return object, *object.Body.Deployment.JobSummary.Status, nil
-		}
-		
+				
 		return object, "CREATED", nil
 	}
 }
@@ -171,8 +167,54 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(namespace, jobId string, failSta
 			}
 			return nil, "", WrapError(err)
 		}
-		
-		return response, *response.Body.Job.Status, nil
+		// type GetJobResponse struct {
+		// 	Headers    map[string]*string  `json:"headers,omitempty" xml:"headers,omitempty"`
+		// 	StatusCode *int32              `json:"statusCode,omitempty" xml:"statusCode,omitempty"`
+		// 	Body       *GetJobResponseBody `json:"body,omitempty" xml:"body,omitempty"`
+		// }
+
+// type GetJobResponseBody struct {
+// 	AccessDeniedDetail *string `json:"accessDeniedDetail,omitempty" xml:"accessDeniedDetail,omitempty"`
+// 	// 	- If the value of success was true, the details of the job was returned.
+// 	//
+// 	// 	- If the value of success was false, a null value was returned.
+// 	Data *Job `json:"data,omitempty" xml:"data,omitempty"`
+// 	// 	- If the value of success was false, an error code was returned.
+// 	//
+// 	// 	- If the value of success was true, a null value was returned.
+// 	//
+// 	// example:
+// 	//
+// 	// ""
+// 	ErrorCode *string `json:"errorCode,omitempty" xml:"errorCode,omitempty"`
+// 	// 	- If the value of success was false, an error message was returned.
+// 	//
+// 	// 	- If the value of success was true, a null value was returned.
+// 	//
+// 	// example:
+// 	//
+// 	// ""
+// 	ErrorMessage *string `json:"errorMessage,omitempty" xml:"errorMessage,omitempty"`
+// 	// The value was fixed to 200.
+// 	//
+// 	// example:
+// 	//
+// 	// 200
+// 	HttpCode *int32 `json:"httpCode,omitempty" xml:"httpCode,omitempty"`
+// 	// The request ID.
+// 	//
+// 	// example:
+// 	//
+// 	// CBC799F0-AS7S-1D30-8A4F-882ED4DD****
+// 	RequestId *string `json:"requestId,omitempty" xml:"requestId,omitempty"`
+// 	// Indicates whether the request was successful.
+// 	//
+// 	// example:
+// 	//
+// 	// true
+// 	Success *bool `json:"success,omitempty" xml:"success,omitempty"`
+// }
+		return response, "", nil
 	}
 }
 

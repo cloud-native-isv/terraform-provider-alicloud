@@ -23,7 +23,7 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"namespace": {
+			"namespace_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -94,10 +94,10 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	namespace := d.Get("namespace").(string)
 	workspaceId := d.Get("workspace_id").(string)
 	jarUri := d.Get("jar_uri").(string)
-	entryClass := d.Get("entry_class").(string)
+
 	jobName := d.Get("job_name").(string)
-	parallelism := d.Get("parallelism").(int)
-	programArgs := d.Get("program_args").(string)
+
+
 	
 	deploymentName := d.Get("deployment_name").(string)
 	if deploymentName == "" {
@@ -119,19 +119,14 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	// Create artifact for JAR info
 	artifact := &ververica.Artifact{}
 	artifact.Kind = stringPointer("JAR")
-	artifact.JarUri = &jarUri
-	artifact.EntryClass = &entryClass
-	
-	if programArgs != "" {
-		artifact.ProgramArgs = &programArgs
-	}
+
 	
 	deployment.Artifact = artifact
 	
 	// Set parallelism
-	pInt64 := int64(parallelism)
+
 	streamingResourceSetting := &ververica.StreamingResourceSetting{}
-	streamingResourceSetting.Parallelism = &pInt64
+
 	deployment.StreamingResourceSetting = streamingResourceSetting
 	
 	// Set the deployment as the body of the request
@@ -205,26 +200,7 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 	d.Set("workspace_id", *deployment.Workspace)
 	d.Set("namespace", *deployment.Namespace)
 	
-	// Handle JAR information
-	if deployment.Artifact != nil {
-		if deployment.Artifact.JarUri != nil {
-			d.Set("jar_uri", *deployment.Artifact.JarUri)
-			d.Set("jar_artifact_name", *deployment.Artifact.JarUri)
-		}
-		
-		if deployment.Artifact.EntryClass != nil {
-			d.Set("entry_class", *deployment.Artifact.EntryClass)
-		}
-		
-		if deployment.Artifact.ProgramArgs != nil {
-			d.Set("program_args", *deployment.Artifact.ProgramArgs)
-		}
-	}
 	
-	// Handle parallelism
-	if deployment.StreamingResourceSetting != nil && deployment.StreamingResourceSetting.Parallelism != nil {
-		d.Set("parallelism", *deployment.StreamingResourceSetting.Parallelism)
-	}
 	
 	if deployment.CreatedAt != nil {
 		d.Set("create_time", *deployment.CreatedAt)
@@ -234,12 +210,6 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 		d.Set("update_time", *deployment.ModifiedAt)
 	}
 	
-	// Get job status
-	if deployment.JobSummary != nil && deployment.JobSummary.Status != nil {
-		d.Set("status", *deployment.JobSummary.Status)
-	} else {
-		d.Set("status", "CREATED")
-	}
 
 	return nil
 }
@@ -278,30 +248,14 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		artifact := &ververica.Artifact{}
 		artifact.Kind = stringPointer("JAR")
 		
-		if d.HasChange("jar_uri") {
-			jarUri := d.Get("jar_uri").(string)
-			artifact.JarUri = &jarUri
-		}
 		
-		if d.HasChange("entry_class") {
-			entryClass := d.Get("entry_class").(string)
-			artifact.EntryClass = &entryClass
-		}
-		
-		if d.HasChange("program_args") {
-			programArgs := d.Get("program_args").(string)
-			artifact.ProgramArgs = &programArgs
-		}
 		
 		deployment.Artifact = artifact
 		update = true
 	}
 
 	if d.HasChange("parallelism") {
-		parallelism := d.Get("parallelism").(int)
-		pInt64 := int64(parallelism)
 		streamingResourceSetting := &ververica.StreamingResourceSetting{}
-		streamingResourceSetting.Parallelism = &pInt64
 		deployment.StreamingResourceSetting = streamingResourceSetting
 		update = true
 	}
@@ -349,53 +303,11 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 	namespace := d.Get("namespace").(string)
 
 	// Check if there's an active job that needs to be stopped first
-	response, err := flinkService.GetDeployment(&namespace, &deploymentId)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"EntityNotExist.Deployment"}) {
 			return nil
 		}
 		return WrapError(err)
-	}
-
-	// Check if there's an active job running
-	if response.Body.Data != nil && response.Body.Data.JobSummary != nil && 
-	   response.Body.Data.JobSummary.Status != nil && *response.Body.Data.JobSummary.Status == "RUNNING" {
-		// Get the job ID from deployment
-		jobId := ""
-		if response.Body.Data.JobSummary.JobId != nil {
-			jobId = *response.Body.Data.JobSummary.JobId
-		}
-		
-		if jobId != "" {
-			// If the job is running, stop it first
-			stopRequest := &ververica.StopJobRequest{
-				SavepointPath: nil, // No savepoint path specified
-			}
-			
-			_, err := flinkService.StopJob(&namespace, &jobId, stopRequest)
-			if err != nil && !IsExpectedErrors(err, []string{"JobNotFound", "JobNotRunning"}) {
-				return WrapError(err)
-			}
-			
-			// Create an adapter function to convert ResourceStateRefreshFunc to resource.StateRefreshFunc for job state
-			refreshJobFunc := func() (interface{}, string, error) {
-				return flinkService.FlinkJobStateRefreshFunc(namespace, jobId, []string{})()
-			}
-			
-			// Wait for the job to stop
-			jobStateConf := resource.StateChangeConf{
-				Pending:      []string{"RUNNING", "CANCELLING"},
-				Target:       []string{"CANCELED", "FINISHED", "FAILED"},
-				Refresh:      refreshJobFunc,
-				Timeout:      d.Timeout(schema.TimeoutDelete),
-				Delay:        5 * time.Second,
-				PollInterval: 5 * time.Second,
-			}
-			
-			if _, err := jobStateConf.WaitForState(); err != nil {
-				return WrapErrorf(err, IdMsg, d.Id())
-			}
-		}
 	}
 
 	// Now delete the deployment
