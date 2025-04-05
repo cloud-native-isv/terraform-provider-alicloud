@@ -331,6 +331,8 @@ github.com/alibabacloud-go/ververica-20220718 v1.7.0 h1:0sh0zCJNNRGr5eLTpjwMbFup
 github.com/alibabacloud-go/ververica-20220718 v1.7.0/go.mod h1:/AQeAupBbBvU48Z/9UkxEGmH4Tf9tsNjBYCwam2xgjI=
 github.com/aliyun/alibaba-cloud-sdk-go v1.62.590 h1:Cvekl0SVm0+gHPBdhdA3XA/ZghLOThyof4GaPLz7c1I=
 github.com/aliyun/alibaba-cloud-sdk-go v1.62.590/go.mod h1:CJJYa1ZMxjlN/NbXEwmejEnBkhi0DV+Yb3B2lxf+74o=
+github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.2.1 h1:sOhpJdR/+lbQniznp3cYSfwQlXbVkT0ccuiZScBrI6Y=
+github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.2.1/go.mod h1:FTzydeQVmR24FI0D6XWUOMKckjXehM/jgMn1xC+DA9M=
 github.com/aliyun/aliyun-datahub-sdk-go v0.1.5 h1:c2TFcJ5PjkqkHr2use7Av2wHB8jVgoKxX1gmLDsysR4=
 github.com/aliyun/aliyun-datahub-sdk-go v0.1.5/go.mod h1:GwtZxKUD+aLBrtlkEcyPNAx+jRkBioEC7EKOlQ26lTc=
 github.com/aliyun/aliyun-log-go-sdk v0.1.44-0.20230310032108-e8f9ed9bb3c5 h1:KXlj6+xD3s1zGR/GnLmGTmIQXjV7aaVQ6MmIa4Z9jrw=

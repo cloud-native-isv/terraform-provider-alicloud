@@ -126,7 +126,7 @@ func resourceAliCloudOssBucketRefererCreate(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudOssBucketRefererRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketReferer(d.Id())
 	if err != nil {

@@ -85,7 +85,7 @@ func resourceAliCloudOssBucketTransferAccelerationCreate(d *schema.ResourceData,
 
 func resourceAliCloudOssBucketTransferAccelerationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketTransferAcceleration(d.Id())
 	if err != nil {

@@ -152,7 +152,7 @@ func resourceAliCloudOssBucketCorsCreate(d *schema.ResourceData, meta interface{
 
 func resourceAliCloudOssBucketCorsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketCors(d.Id())
 	if err != nil {
