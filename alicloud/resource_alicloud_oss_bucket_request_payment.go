@@ -87,7 +87,7 @@ func resourceAliCloudOssBucketRequestPaymentCreate(d *schema.ResourceData, meta 
 
 func resourceAliCloudOssBucketRequestPaymentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketRequestPayment(d.Id())
 	if err != nil {

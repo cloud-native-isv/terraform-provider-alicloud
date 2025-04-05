@@ -80,8 +80,7 @@ func resourceAliCloudOssBucketAccessMonitorCreate(d *schema.ResourceData, meta i
 	}
 
 	d.SetId(fmt.Sprint(*hostMap["bucket"]))
-
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 	stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("status"))}, d.Timeout(schema.TimeoutCreate), 5*time.Second, ossServiceV2.OssBucketAccessMonitorStateRefreshFunc(d.Id(), "Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -92,7 +91,7 @@ func resourceAliCloudOssBucketAccessMonitorCreate(d *schema.ResourceData, meta i
 
 func resourceAliCloudOssBucketAccessMonitorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketAccessMonitor(d.Id())
 	if err != nil {
@@ -158,7 +157,7 @@ func resourceAliCloudOssBucketAccessMonitorUpdate(d *schema.ResourceData, meta i
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		ossServiceV2 := OssServiceV2{client}
+		ossServiceV2 := NewOssServiceV2(client)
 		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("status"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, ossServiceV2.OssBucketAccessMonitorStateRefreshFunc(d.Id(), "Status", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())

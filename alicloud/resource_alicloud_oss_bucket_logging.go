@@ -8,212 +8,214 @@ import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAliCloudOssBucketLogging() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudOssBucketLoggingCreate,
-		Read:   resourceAliCloudOssBucketLoggingRead,
-		Update: resourceAliCloudOssBucketLoggingUpdate,
-		Delete: resourceAliCloudOssBucketLoggingDelete,
+		Create: resourceAlicloudOssBucketLoggingCreate,
+		Read:   resourceAlicloudOssBucketLoggingRead,
+		Update: resourceAlicloudOssBucketLoggingUpdate,
+		Delete: resourceAlicloudOssBucketLoggingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(5 * time.Minute),
-		},
 		Schema: map[string]*schema.Schema{
 			"bucket": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringLenBetween(3, 63),
 			},
 			"target_bucket": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringLenBetween(3, 63),
 			},
 			"target_prefix": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "",
+			},
+			"user_defined_headers": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Set: schema.HashString,
+			},
+			"user_defined_parameters": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Set: schema.HashString,
 			},
 		},
 	}
 }
 
-func resourceAliCloudOssBucketLoggingCreate(d *schema.ResourceData, meta interface{}) error {
-
+func resourceAlicloudOssBucketLoggingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	ossService := NewOssServiceV2(client)
+	bucket := d.Get("bucket").(string)
+	targetBucket := d.Get("target_bucket").(string)
+	targetPrefix := d.Get("target_prefix").(string)
 
-	action := fmt.Sprintf("/?logging")
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	body := make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	var err error
-	request = make(map[string]interface{})
-	hostMap["bucket"] = StringPointer(d.Get("bucket").(string))
-
-	objectDataLocalMap := make(map[string]interface{})
-
-	loggingEnabled := make(map[string]interface{})
-	if v, ok := d.GetOk("target_prefix"); ok {
-		loggingEnabled["TargetPrefix"] = v
+	// Enable bucket logging
+	if err := ossService.PutBucketLogging(bucket, targetBucket, targetPrefix); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_oss_bucket_logging", "PutBucketLogging", AliyunOssGoSdk)
 	}
-	loggingEnabled["TargetBucket"] = d.Get("target_bucket")
-	objectDataLocalMap["LoggingEnabled"] = loggingEnabled
 
-	request["BucketLoggingStatus"] = objectDataLocalMap
-	body = request
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.Do("Oss", xmlParam("PUT", "2019-05-17", "PutBucketLogging", action), query, body, nil, hostMap, false)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
+	// Set user defined log fields if provided
+	if v, ok := d.GetOk("user_defined_headers"); ok || v != nil {
+		userDefinedHeaders := expandStringList(v.(*schema.Set).List())
+		userDefinedParams := []string{}
+		if p, ok := d.GetOk("user_defined_parameters"); ok || p != nil {
+			userDefinedParams = expandStringList(p.(*schema.Set).List())
 		}
-		return nil
-	})
-	addDebug(action, response, request)
 
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_oss_bucket_logging", action, AlibabaCloudSdkGoERROR)
+		if err := ossService.PutUserDefinedLogFields(bucket, userDefinedHeaders, userDefinedParams); err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_oss_bucket_logging", "PutUserDefinedLogFields", AliyunOssGoSdk)
+		}
 	}
 
-	d.SetId(fmt.Sprint(*hostMap["bucket"]))
+	d.SetId(bucket)
 
-	ossServiceV2 := OssServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("target_bucket"))}, d.Timeout(schema.TimeoutCreate), 5*time.Second, ossServiceV2.OssBucketLoggingStateRefreshFunc(d.Id(), "TargetBucket", []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
-
-	return resourceAliCloudOssBucketLoggingRead(d, meta)
+	return resourceAlicloudOssBucketLoggingRead(d, meta)
 }
 
-func resourceAliCloudOssBucketLoggingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAlicloudOssBucketLoggingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossService := NewOssServiceV2(client)
+	bucket := d.Id()
 
-	objectRaw, err := ossServiceV2.DescribeOssBucketLogging(d.Id())
+	// Get bucket logging configuration
+	loggingResult, err := ossService.GetBucketLoggingV2(bucket)
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_oss_bucket_logging DescribeOssBucketLogging Failed!!! %s", err)
+		log.Printf("[WARN] Failed to get bucket logging configuration: %#v", err)
+		if IsExpectedErrors(err, []string{"NoSuchBucket", "NoSuchLoggingConfiguration"}) {
 			d.SetId("")
 			return nil
 		}
-		return WrapError(err)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetBucketLoggingV2", AliyunOssGoSdk)
 	}
 
-	if objectRaw["TargetBucket"] != nil {
-		d.Set("target_bucket", objectRaw["TargetBucket"])
-	}
-	if objectRaw["TargetPrefix"] != nil {
-		d.Set("target_prefix", objectRaw["TargetPrefix"])
+	d.Set("bucket", bucket)
+	
+	// If logging is enabled, set the target bucket and prefix
+	if loggingResult.BucketLoggingStatus != nil && loggingResult.BucketLoggingStatus.LoggingEnabled != nil {
+		if loggingResult.BucketLoggingStatus.LoggingEnabled.TargetBucket != nil {
+			d.Set("target_bucket", *loggingResult.BucketLoggingStatus.LoggingEnabled.TargetBucket)
+		}
+		if loggingResult.BucketLoggingStatus.LoggingEnabled.TargetPrefix != nil {
+			d.Set("target_prefix", *loggingResult.BucketLoggingStatus.LoggingEnabled.TargetPrefix)
+		}
+	} else {
+		// If logging is disabled, consider this resource as removed
+		d.SetId("")
+		return nil
 	}
 
-	d.Set("bucket", d.Id())
+	// Get user defined log fields if they exist
+	userDefinedFields, err := ossService.GetUserDefinedLogFieldsV2(bucket)
+	if err != nil && !IsExpectedErrors(err, []string{"NoSuchUserDefinedLogFieldsConfig"}) {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetUserDefinedLogFieldsV2", AliyunOssGoSdk)
+	}
+
+	// Set user defined headers and parameters if they exist
+	if err == nil && userDefinedFields.UserDefinedLogFieldsConfiguration != nil {
+		if userDefinedFields.UserDefinedLogFieldsConfiguration.HeaderSet != nil {
+			d.Set("user_defined_headers", userDefinedFields.UserDefinedLogFieldsConfiguration.HeaderSet.Headers)
+		}
+		if userDefinedFields.UserDefinedLogFieldsConfiguration.ParamSet != nil {
+			d.Set("user_defined_parameters", userDefinedFields.UserDefinedLogFieldsConfiguration.ParamSet.Parameters)
+		}
+	}
 
 	return nil
 }
 
-func resourceAliCloudOssBucketLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAlicloudOssBucketLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]*string
-	var body map[string]interface{}
-	update := false
+	ossService := NewOssServiceV2(client)
+	bucket := d.Id()
 
-	action := fmt.Sprintf("/?logging")
-	var err error
-	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	body = make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	hostMap["bucket"] = StringPointer(d.Id())
+	d.Partial(true)
 
-	objectDataLocalMap := make(map[string]interface{})
-	loggingEnabled := make(map[string]interface{})
-	if d.HasChange("target_bucket") {
-		update = true
+	// Update bucket logging if target_bucket or target_prefix changed
+	if d.HasChanges("target_bucket", "target_prefix") {
+		targetBucket := d.Get("target_bucket").(string)
+		targetPrefix := d.Get("target_prefix").(string)
+
+		if err := ossService.PutBucketLogging(bucket, targetBucket, targetPrefix); err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_oss_bucket_logging", "PutBucketLogging", AliyunOssGoSdk)
+		}
 	}
-	loggingEnabled["TargetBucket"] = d.Get("target_bucket")
 
-	if d.HasChange("target_prefix") {
-		update = true
-	}
-	if v, ok := d.GetOk("target_prefix"); ok {
-		loggingEnabled["TargetPrefix"] = v
-	}
-	objectDataLocalMap["LoggingEnabled"] = loggingEnabled
+	// Update user defined log fields if they changed
+	if d.HasChanges("user_defined_headers", "user_defined_parameters") {
+		userDefinedHeaders := []string{}
+		if v, ok := d.GetOk("user_defined_headers"); ok {
+			userDefinedHeaders = expandStringList(v.(*schema.Set).List())
+		}
 
-	request["BucketLoggingStatus"] = objectDataLocalMap
-	body = request
-	if update {
-		wait := incrementalWait(3*time.Second, 5*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.Do("Oss", xmlParam("PUT", "2019-05-17", "PutBucketLogging", action), query, body, nil, hostMap, false)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
+		userDefinedParams := []string{}
+		if v, ok := d.GetOk("user_defined_parameters"); ok {
+			userDefinedParams = expandStringList(v.(*schema.Set).List())
+		}
+
+		// If both headers and parameters are empty, delete the configuration
+		if len(userDefinedHeaders) == 0 && len(userDefinedParams) == 0 {
+			if err := ossService.DeleteUserDefinedLogFields(bucket); err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, "alicloud_oss_bucket_logging", "DeleteUserDefinedLogFields", AliyunOssGoSdk)
 			}
-			return nil
-		})
-		addDebug(action, response, request)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-		}
-		ossServiceV2 := OssServiceV2{client}
-		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("target_bucket"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, ossServiceV2.OssBucketLoggingStateRefreshFunc(d.Id(), "TargetBucket", []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
+		} else {
+			// Otherwise, update the configuration
+			if err := ossService.PutUserDefinedLogFields(bucket, userDefinedHeaders, userDefinedParams); err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, "alicloud_oss_bucket_logging", "PutUserDefinedLogFields", AliyunOssGoSdk)
+			}
 		}
 	}
 
-	return resourceAliCloudOssBucketLoggingRead(d, meta)
+	d.Partial(false)
+	return resourceAlicloudOssBucketLoggingRead(d, meta)
 }
 
-func resourceAliCloudOssBucketLoggingDelete(d *schema.ResourceData, meta interface{}) error {
-
+func resourceAlicloudOssBucketLoggingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	action := fmt.Sprintf("/?logging")
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	hostMap := make(map[string]*string)
-	var err error
-	request = make(map[string]interface{})
-	hostMap["bucket"] = StringPointer(d.Id())
+	ossService := NewOssServiceV2(client)
+	bucket := d.Id()
 
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.Do("Oss", xmlParam("DELETE", "2019-05-17", "DeleteBucketLogging", action), query, nil, nil, hostMap, false)
+	// First, remove user defined log fields if they exist
+	if _, ok := d.GetOk("user_defined_headers"); ok {
+		if err := ossService.DeleteUserDefinedLogFields(bucket); err != nil && !IsExpectedErrors(err, []string{"NoSuchUserDefinedLogFieldsConfig"}) {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteUserDefinedLogFields", AliyunOssGoSdk)
+		}
+	}
+
+	// Then, disable bucket logging
+	if err := ossService.DeleteBucketLogging(bucket); err != nil {
+		if !IsExpectedErrors(err, []string{"NoSuchBucket"}) {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteBucketLogging", AliyunOssGoSdk)
+		}
+	}
+
+	// Wait for the logging to be disabled
+	return resource.Retry(3*time.Minute, func() *resource.RetryError {
+		logging, err := ossService.GetBucketLoggingV2(bucket)
 		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
+			if IsExpectedErrors(err, []string{"NoSuchBucket", "NoSuchLoggingConfiguration"}) {
+				return nil
 			}
 			return resource.NonRetryableError(err)
 		}
+
+		if logging.BucketLoggingStatus != nil && logging.BucketLoggingStatus.LoggingEnabled != nil {
+			return resource.RetryableError(fmt.Errorf("waiting for bucket %s logging to be deleted", bucket))
+		}
 		return nil
 	})
-	addDebug(action, response, request)
-
-	if err != nil {
-		if NotFoundError(err) {
-			return nil
-		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
 }

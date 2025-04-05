@@ -101,7 +101,7 @@ func resourceAliCloudOssBucketWormCreate(d *schema.ResourceData, meta interface{
 
 func resourceAliCloudOssBucketWormRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketWorm(d.Id())
 	if err != nil {
@@ -141,7 +141,7 @@ func resourceAliCloudOssBucketWormUpdate(d *schema.ResourceData, meta interface{
 	update := false
 
 	if d.HasChange("status") {
-		ossServiceV2 := OssServiceV2{client}
+		ossServiceV2 := NewOssServiceV2(client)
 		object, err := ossServiceV2.DescribeOssBucketWorm(d.Id())
 		if err != nil {
 			return WrapError(err)
@@ -219,7 +219,7 @@ func resourceAliCloudOssBucketWormUpdate(d *schema.ResourceData, meta interface{
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		ossServiceV2 := OssServiceV2{client}
+		ossServiceV2 := NewOssServiceV2(client)
 		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("retention_period_in_days"))}, d.Timeout(schema.TimeoutUpdate), 0, ossServiceV2.OssBucketWormStateRefreshFunc(d.Id(), "RetentionPeriodInDays", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())

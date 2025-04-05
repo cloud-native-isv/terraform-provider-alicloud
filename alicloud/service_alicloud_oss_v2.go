@@ -9,12 +9,22 @@ import (
 	"github.com/tidwall/sjson"
 
 	"github.com/PaesslerAG/jsonpath"
+	"github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 type OssServiceV2 struct {
 	client *connectivity.AliyunClient
+	v2Client *oss.Client
+}
+
+func NewOssServiceV2(client *connectivity.AliyunClient) *OssServiceV2 {
+	v2Client := oss.NewClient(client.RegionId, client.AccessKey, client.SecretKey)
+	return &OssServiceV2{
+		client:   client,
+		v2Client: v2Client,
+	}
 }
 
 // DescribeOssBucketAcl <<< Encapsulated get interface for Oss BucketAcl.
@@ -1740,3 +1750,142 @@ func (s *OssServiceV2) OssBucketStyleStateRefreshFunc(id string, field string, f
 }
 
 // DescribeOssBucketStyle >>> Encapsulated.
+
+// PutBucketLogging enables logging for a bucket with the specified configurations
+func (s *OssServiceV2) PutBucketLogging(bucketName, targetBucket, targetPrefix string) error {
+	client := s.client
+	ossClient, err := client.NewOssV2Client()
+	if (err != nil) {
+		return WrapError(err)
+	}
+	
+	request := &oss.PutBucketLoggingRequest{
+		Bucket: StringPointer(bucketName),
+		BucketLoggingStatus: &oss.BucketLoggingStatus{
+			LoggingEnabled: &oss.LoggingEnabled{
+				TargetBucket: StringPointer(targetBucket),
+				TargetPrefix: StringPointer(targetPrefix),
+			},
+		},
+	}
+	
+	_, err = ossClient.PutBucketLogging(client.Context(), request)
+	if (err != nil) {
+		return WrapError(err)
+	}
+	
+	return nil
+}
+
+// DeleteBucketLogging disables the logging feature for a bucket
+func (s *OssServiceV2) DeleteBucketLogging(bucketName string) error {
+	client := s.client
+	ossClient, err := client.NewOssV2Client()
+	if (err != nil) {
+		return WrapError(err)
+	}
+	
+	request := &oss.DeleteBucketLoggingRequest{
+		Bucket: StringPointer(bucketName),
+	}
+	
+	_, err = ossClient.DeleteBucketLogging(client.Context(), request)
+	if (err != nil) {
+		return WrapError(err)
+	}
+	
+	return nil
+}
+
+// PutUserDefinedLogFields sets custom logging fields for a bucket
+func (s *OssServiceV2) PutUserDefinedLogFields(bucketName string, headerSet []string, paramSet []string) error {
+	client := s.client
+	ossClient, err := client.NewOssV2Client()
+	if (err != nil) {
+		return WrapError(err)
+	}
+	
+	request := &oss.PutUserDefinedLogFieldsConfigRequest{
+		Bucket: StringPointer(bucketName),
+		UserDefinedLogFieldsConfiguration: &oss.UserDefinedLogFieldsConfiguration{},
+	}
+	
+	if len(headerSet) > 0 {
+		request.UserDefinedLogFieldsConfiguration.HeaderSet = &oss.LoggingHeaderSet{
+			Headers: headerSet,
+		}
+	}
+	
+	if len(paramSet) > 0 {
+		request.UserDefinedLogFieldsConfiguration.ParamSet = &oss.LoggingParamSet{
+			Parameters: paramSet,
+		}
+	}
+	
+	_, err = ossClient.PutUserDefinedLogFieldsConfig(client.Context(), request)
+	if (err != nil) {
+		return WrapError(err)
+	}
+	
+	return nil
+}
+
+// DeleteUserDefinedLogFields deletes custom logging fields for a bucket
+func (s *OssServiceV2) DeleteUserDefinedLogFields(bucketName string) error {
+	client := s.client
+	ossClient, err := client.NewOssV2Client()
+	if (err != nil) {
+		return WrapError(err)
+	}
+	
+	request := &oss.DeleteUserDefinedLogFieldsConfigRequest{
+		Bucket: StringPointer(bucketName),
+	}
+	
+	_, err = ossClient.DeleteUserDefinedLogFieldsConfig(client.Context(), request)
+	if (err != nil) {
+		return WrapError(err)
+	}
+	
+	return nil
+}
+
+// GetBucketLoggingV2 gets the logging configuration using the OSS V2 SDK
+func (s *OssServiceV2) GetBucketLoggingV2(bucketName string) (*oss.GetBucketLoggingResult, error) {
+	client := s.client
+	ossClient, err := client.NewOssV2Client()
+	if (err != nil) {
+		return nil, WrapError(err)
+	}
+	
+	request := &oss.GetBucketLoggingRequest{
+		Bucket: StringPointer(bucketName),
+	}
+	
+	result, err := ossClient.GetBucketLogging(client.Context(), request)
+	if (err != nil) {
+		return nil, WrapError(err)
+	}
+	
+	return result, nil
+}
+
+// GetUserDefinedLogFieldsV2 gets the custom logging fields using the OSS V2 SDK
+func (s *OssServiceV2) GetUserDefinedLogFieldsV2(bucketName string) (*oss.GetUserDefinedLogFieldsConfigResult, error) {
+	client := s.client
+	ossClient, err := client.NewOssV2Client()
+	if (err != nil) {
+		return nil, WrapError(err)
+	}
+	
+	request := &oss.GetUserDefinedLogFieldsConfigRequest{
+		Bucket: StringPointer(bucketName),
+	}
+	
+	result, err := ossClient.GetUserDefinedLogFieldsConfig(client.Context(), request)
+	if (err != nil) {
+		return nil, WrapError(err)
+	}
+	
+	return result, nil
+}
