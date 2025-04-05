@@ -66,14 +66,7 @@ func resourceAliCloudSlsProject() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: StringMatch(regexp.MustCompile("^[0-9a-zA-Z_-]+$"), "The name of the log project. It is the only in one Alicloud account. The project name is globally unique in Alibaba Cloud and cannot be modified after it is created. The naming rules are as follows:- The project name must be globally unique. - The name can contain only lowercase letters, digits, and hyphens (-). - It must start and end with a lowercase letter or number. - The value contains 3 to 63 characters."),
 			},
-			"service_logging": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Description: "Configuration for SLS logging service.",
-				Elem: &schema.Schema{
-					Type: schema.TypeMap,
-				},
-			},
+			// Removed service_logging field as it's now managed by alicloud_log_project_logging resource
 		},
 	}
 }
@@ -163,23 +156,6 @@ func resourceAliCloudSlsProjectRead(d *schema.ResourceData, meta interface{}) er
 	if policy != "" && policy != "{}" {
 		d.Set("policy", policy)
 	}
-
-	loggingResp, err := slsServiceV2.GetSlsLogging(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-	
-	// Convert []interface{} to []map[string]interface{} properly to avoid panic
-	rawLoggingDetails, ok := loggingResp["loggingDetails"].([]interface{})
-	serviceLogging := make([]interface{}, 0)
-	if ok {
-		for _, item := range rawLoggingDetails {
-			if detail, ok := item.(map[string]interface{}); ok {
-				serviceLogging = append(serviceLogging, detail)
-			}
-		}
-	}
-	d.Set("service_logging", serviceLogging)
 
 	d.Set("name", d.Get("project_name"))
 	return nil
@@ -282,46 +258,6 @@ func resourceAliCloudSlsProjectUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 		addDebug("UpdateProjectPolicy", raw, requestInfo, request)
 		d.SetPartial("policy")
-	}
-
-	// 处理 service_logging 配置变更
-	if d.HasChange("service_logging") {
-		newConfig := d.Get("service_logging").([]interface{})
-		old, _ := d.GetChange("service_logging")
-		oldConfig := old.([]interface{})
-
-		// 转换配置格式
-		newLoggingDetails := make([]map[string]interface{}, 0)
-		for _, item := range newConfig {
-			if m, ok := item.(map[string]interface{}); ok {
-				newLoggingDetails = append(newLoggingDetails, m)
-			}
-		}
-		oldLoggingDetails := make([]map[string]interface{}, 0)
-		for _, item := range oldConfig {
-			if m, ok := item.(map[string]interface{}); ok {
-				oldLoggingDetails = append(oldLoggingDetails, m)
-			}
-		}
-
-		if len(newLoggingDetails) > 0 {
-			if len(oldLoggingDetails) == 0 {
-				// 创建新配置
-				_, err = slsServiceV2.CreateSlsLogging(d.Id(), newLoggingDetails)
-			} else {
-				// 更新现有配置
-				_, err = slsServiceV2.UpdateSlsLogging(d.Id(), newLoggingDetails)
-			}
-		} else {
-			// 删除现有配置（如果旧配置存在）
-			if len(oldLoggingDetails) > 0 {
-				_, err = slsServiceV2.DeleteSlsLogging(d.Id())
-			}
-		}
-
-		if err != nil {
-			return WrapErrorf(err, "Failed to manage SLS logging for project %s", d.Id())
-		}
 	}
 
 	d.Partial(false)

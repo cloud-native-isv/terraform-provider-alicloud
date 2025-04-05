@@ -4,7 +4,9 @@ import (
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
 	ververica "github.com/alibabacloud-go/ververica-20220718/client"
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // ResourceStateRefreshFunc is a function type used for resource state refresh operations
@@ -38,13 +40,13 @@ func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
 	}, nil
 }
 
-// Added DescribeSupportedZones method
+// DescribeSupportedZones retrieves zones that support Flink instances
 func (s *FlinkService) DescribeSupportedZones(request *foasconsole.DescribeSupportedZonesRequest) (*foasconsole.DescribeSupportedZonesResponse, error) {
 	response, err := s.foasconsoleClient.DescribeSupportedZones(request)
 	return response, WrapError(err)
 }
 
-// Instance management functions added
+// Instance management functions 
 func (s *FlinkService) CreateInstance(request *foasconsole.CreateInstanceRequest) (*foasconsole.CreateInstanceResponse, error) {
 	response, err := s.foasconsoleClient.CreateInstance(request)
 	return response, WrapError(err)
@@ -60,7 +62,36 @@ func (s *FlinkService) DescribeInstances(request *foasconsole.DescribeInstancesR
 	return response, WrapError(err)
 }
 
-// Namespace management functions added
+// FlinkInstanceStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a Flink instance
+func (s *FlinkService) FlinkInstanceStateRefreshFunc(id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		request := &foasconsole.DescribeInstancesRequest{}
+		request.InstanceId = &id
+		
+		response, err := s.DescribeInstances(request)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+		
+		// Check if the instance was found
+		if response == nil || response.Body == nil || len(response.Body.Instances) == 0 {
+			return nil, "", nil
+		}
+		
+		// Get the first instance (should be the only one since we're querying by ID)
+		instance := response.Body.Instances[0]
+		if instance.ClusterStatus == nil {
+			return instance, "", nil
+		}
+		
+		return instance, *instance.ClusterStatus, nil
+	}
+}
+
+// Namespace management functions
 func (s *FlinkService) CreateNamespace(request *foasconsole.CreateNamespaceRequest) (*foasconsole.CreateNamespaceResponse, error) {
 	response, err := s.foasconsoleClient.CreateNamespace(request)
 	return response, WrapError(err)
@@ -76,29 +107,28 @@ func (s *FlinkService) DescribeNamespaces(request *foasconsole.DescribeNamespace
 	return response, WrapError(err)
 }
 
-// 新增方法: CreateMember
+// Member management functions
 func (s *FlinkService) CreateMember(namespace *string, request *ververica.CreateMemberRequest) (*ververica.CreateMemberResponse, error) {
     response, err := s.ververicaClient.CreateMember(namespace, request)
     return response, WrapError(err)
 }
 
-// 新增方法: DescribeMember
 func (s *FlinkService) GetMember(namespace *string, member *string) (*ververica.GetMemberResponse, error) {
-    return s.ververicaClient.GetMember( namespace, member)
+    response, err := s.ververicaClient.GetMember(namespace, member)
+    return response, WrapError(err)
 }
 
-// 新增方法: UpdateMember
 func (s *FlinkService) UpdateMember(namespace *string, request *ververica.UpdateMemberRequest) (*ververica.UpdateMemberResponse, error) {
     response, err := s.ververicaClient.UpdateMember(namespace, request)
     return response, WrapError(err)
 }
 
-// 新增方法: DeleteMember
 func (s *FlinkService) DeleteMember(namespace *string, member *string) (*ververica.DeleteMemberResponse, error) {
-    return s.ververicaClient.DeleteMember(namespace, member)
+    response, err := s.ververicaClient.DeleteMember(namespace, member)
+    return response, WrapError(err)
 }
 
-// Deployment management functions added
+// Deployment management functions
 func (s *FlinkService) CreateDeployment(namespace *string, request *ververica.CreateDeploymentRequest) (*ververica.CreateDeploymentResponse, error) {
     response, err := s.ververicaClient.CreateDeployment(namespace, request)
     return response, WrapError(err)
@@ -124,7 +154,7 @@ func (s *FlinkService) ListDeployments(namespace *string, request *ververica.Lis
     return response, WrapError(err)
 }
 
-// Job management for deployments
+// Job management functions
 func (s *FlinkService) StartJobWithParams(namespace *string, request *ververica.StartJobWithParamsRequest) (*ververica.StartJobWithParamsResponse, error) {
     response, err := s.ververicaClient.StartJobWithParams(namespace, request)
     return response, WrapError(err)
@@ -132,6 +162,11 @@ func (s *FlinkService) StartJobWithParams(namespace *string, request *ververica.
 
 func (s *FlinkService) StopJob(namespace *string, jobId *string, request *ververica.StopJobRequest) (*ververica.StopJobResponse, error) {
     response, err := s.ververicaClient.StopJob(namespace, jobId, request)
+    return response, WrapError(err)
+}
+
+func (s *FlinkService) GetJob(namespace *string, jobId *string) (*ververica.GetJobResponse, error) {
+    response, err := s.ververicaClient.GetJob(namespace, jobId)
     return response, WrapError(err)
 }
 
@@ -160,60 +195,19 @@ func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string, failStates []s
 // FlinkJobStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a Flink job
 func (s *FlinkService) FlinkJobStateRefreshFunc(namespace, jobId string, failStates []string) ResourceStateRefreshFunc {
 	return func() (interface{}, string, error) {
-		response, err := s.ververicaClient.GetJob(&namespace, &jobId)
+		response, err := s.GetJob(&namespace, &jobId)
 		if err != nil {
 			if IsExpectedErrors(err, []string{"JobNotFound"}) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
 		}
-		// type GetJobResponse struct {
-		// 	Headers    map[string]*string  `json:"headers,omitempty" xml:"headers,omitempty"`
-		// 	StatusCode *int32              `json:"statusCode,omitempty" xml:"statusCode,omitempty"`
-		// 	Body       *GetJobResponseBody `json:"body,omitempty" xml:"body,omitempty"`
-		// }
-
-// type GetJobResponseBody struct {
-// 	AccessDeniedDetail *string `json:"accessDeniedDetail,omitempty" xml:"accessDeniedDetail,omitempty"`
-// 	// 	- If the value of success was true, the details of the job was returned.
-// 	//
-// 	// 	- If the value of success was false, a null value was returned.
-// 	Data *Job `json:"data,omitempty" xml:"data,omitempty"`
-// 	// 	- If the value of success was false, an error code was returned.
-// 	//
-// 	// 	- If the value of success was true, a null value was returned.
-// 	//
-// 	// example:
-// 	//
-// 	// ""
-// 	ErrorCode *string `json:"errorCode,omitempty" xml:"errorCode,omitempty"`
-// 	// 	- If the value of success was false, an error message was returned.
-// 	//
-// 	// 	- If the value of success was true, a null value was returned.
-// 	//
-// 	// example:
-// 	//
-// 	// ""
-// 	ErrorMessage *string `json:"errorMessage,omitempty" xml:"errorMessage,omitempty"`
-// 	// The value was fixed to 200.
-// 	//
-// 	// example:
-// 	//
-// 	// 200
-// 	HttpCode *int32 `json:"httpCode,omitempty" xml:"httpCode,omitempty"`
-// 	// The request ID.
-// 	//
-// 	// example:
-// 	//
-// 	// CBC799F0-AS7S-1D30-8A4F-882ED4DD****
-// 	RequestId *string `json:"requestId,omitempty" xml:"requestId,omitempty"`
-// 	// Indicates whether the request was successful.
-// 	//
-// 	// example:
-// 	//
-// 	// true
-// 	Success *bool `json:"success,omitempty" xml:"success,omitempty"`
-// }
+		
+		if response != nil && response.Body != nil && response.Body.Data != nil && response.Body.Data.Status != nil {
+			// Convert status pointer to string value
+			return response, tea.StringValue(response.Body.Data.Status), nil
+		}
+		
 		return response, "", nil
 	}
 }

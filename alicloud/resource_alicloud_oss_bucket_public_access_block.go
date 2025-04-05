@@ -85,7 +85,7 @@ func resourceAliCloudOssBucketPublicAccessBlockCreate(d *schema.ResourceData, me
 
 func resourceAliCloudOssBucketPublicAccessBlockRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketPublicAccessBlock(d.Id())
 	if err != nil {

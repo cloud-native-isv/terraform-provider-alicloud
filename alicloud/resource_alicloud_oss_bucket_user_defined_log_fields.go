@@ -108,7 +108,7 @@ func resourceAliCloudOssBucketUserDefinedLogFieldsCreate(d *schema.ResourceData,
 
 func resourceAliCloudOssBucketUserDefinedLogFieldsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketUserDefinedLogFields(d.Id())
 	if err != nil {

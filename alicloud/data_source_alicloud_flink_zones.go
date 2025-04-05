@@ -11,26 +11,15 @@ func dataSourceAlicloudFlinkZones() *schema.Resource {
 		Read: dataSourceAliCloudFlinkZonesRead,
 
 		Schema: map[string]*schema.Schema{
-			"output_file": {
+				"architecture_type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Description: "The architecture type of Flink instances.",
 			},
-			"ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"zones": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
+			"region": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Description: "The region to query available zones from, e.g. cn-beijing.",
 			},
 		},
 	}
@@ -44,20 +33,50 @@ func dataSourceAliCloudFlinkZonesRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	request := &foasconsole.DescribeSupportedZonesRequest{}
+	
+	// Set request parameters from schema if provided
+	if v, ok := d.GetOk("architecture_type"); ok {
+		architectureType := v.(string)
+		request.ArchitectureType = &architectureType
+	}
+	
+	if v, ok := d.GetOk("region"); ok {
+		region := v.(string)
+		request.Region = &region
+	}
+	
 	response, err := flinkService.DescribeSupportedZones(request)
 	if err != nil {
 		return WrapError(err)
 	}
 	
-	var zones []string
-	if *response.Body.Success && response.Body.ZoneIds != nil { // 使用ZoneIds字段
+	var ids []string
+	var zoneList []map[string]interface{}
+	
+	if response.Body.Success != nil && *response.Body.Success && response.Body.ZoneIds != nil {
 		for _, zonePtr := range response.Body.ZoneIds {
 			if zonePtr != nil {
-				zones = append(zones, *zonePtr)
+				ids = append(ids, *zonePtr)
+				
+				zone := map[string]interface{}{
+					"id": *zonePtr,
+				}
+				zoneList = append(zoneList, zone)
 			}
 		}
 	}
-	d.Set("zones", zones)
-	d.SetId(dataResourceIdHash(zones))
+	
+	d.SetId(dataResourceIdHash(ids))
+	if err := d.Set("ids", ids); err != nil {
+		return WrapError(err)
+	}
+	if err := d.Set("zones", zoneList); err != nil {
+		return WrapError(err)
+	}
+	
+	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
+		writeToFile(output.(string), zoneList)
+	}
+	
 	return nil
 }

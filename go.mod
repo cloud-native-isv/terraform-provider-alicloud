@@ -38,6 +38,7 @@ require (
 require (
 	github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.18
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.0.6
+	github.com/alibabacloud-go/darabonba-openapi v0.1.18
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.6
 	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7
 	github.com/alibabacloud-go/foasconsole-20211028 v1.0.5
@@ -45,6 +46,7 @@ require (
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.7
 	github.com/alibabacloud-go/ververica-20220718 v1.7.0
+	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.2.1
 	github.com/blues/jsonata-go v1.5.4
 	github.com/tidwall/sjson v1.2.5
 )
@@ -67,7 +69,6 @@ require (
 	github.com/alibabacloud-go/darabonba-array v0.1.0 // indirect
 	github.com/alibabacloud-go/darabonba-encode-util v0.0.2 // indirect
 	github.com/alibabacloud-go/darabonba-map v0.0.2 // indirect
-	github.com/alibabacloud-go/darabonba-openapi v0.1.18 // indirect
 	github.com/alibabacloud-go/darabonba-signature-util v0.0.7 // indirect
 	github.com/alibabacloud-go/darabonba-string v1.0.2 // indirect
 	github.com/alibabacloud-go/debug v1.0.1 // indirect

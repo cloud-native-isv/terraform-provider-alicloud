@@ -828,7 +828,7 @@ func resourceAliCloudOssBucketWebsiteCreate(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudOssBucketWebsiteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketWebsite(d.Id())
 	if err != nil {

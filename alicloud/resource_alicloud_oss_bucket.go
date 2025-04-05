@@ -1022,7 +1022,7 @@ func resourceAlicloudOssBucketUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("logging") {
-		if err := resourceAlicloudOssBucketLoggingUpdate(client, d); err != nil {
+		if err := resourceAlicloudOssBucketLoggingUpdateV1(client, d); err != nil {
 			return WrapError(err)
 		}
 		d.SetPartial("logging")
@@ -1217,7 +1217,7 @@ func resourceAlicloudOssBucketWebsiteUpdate(client *connectivity.AliyunClient, d
 	return nil
 }
 
-func resourceAlicloudOssBucketLoggingUpdate(client *connectivity.AliyunClient, d *schema.ResourceData) error {
+func resourceAlicloudOssBucketLoggingUpdateV1(client *connectivity.AliyunClient, d *schema.ResourceData) error {
 	logging := d.Get("logging").([]interface{})
 	var requestInfo *oss.Client
 	if logging == nil || len(logging) == 0 {

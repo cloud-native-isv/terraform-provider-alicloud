@@ -84,7 +84,7 @@ func resourceAliCloudOssBucketPolicyCreate(d *schema.ResourceData, meta interfac
 
 func resourceAliCloudOssBucketPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketPolicy(d.Id())
 	if err != nil {

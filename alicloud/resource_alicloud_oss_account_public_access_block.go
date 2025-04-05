@@ -75,7 +75,7 @@ func resourceAliCloudOssAccountPublicAccessBlockCreate(d *schema.ResourceData, m
 	accountId, err := client.AccountId()
 	d.SetId(fmt.Sprint(accountId))
 
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 	stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("block_public_access"))}, d.Timeout(schema.TimeoutCreate), 5*time.Second, ossServiceV2.OssAccountPublicAccessBlockStateRefreshFunc(d.Id(), "BlockPublicAccess", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -86,7 +86,7 @@ func resourceAliCloudOssAccountPublicAccessBlockCreate(d *schema.ResourceData, m
 
 func resourceAliCloudOssAccountPublicAccessBlockRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := OssServiceV2{client}
+	ossServiceV2 := NewOssServiceV2(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssAccountPublicAccessBlock(d.Id())
 	if err != nil {
@@ -143,7 +143,7 @@ func resourceAliCloudOssAccountPublicAccessBlockUpdate(d *schema.ResourceData, m
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		ossServiceV2 := OssServiceV2{client}
+		ossServiceV2 := NewOssServiceV2(client)
 		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("block_public_access"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, ossServiceV2.OssAccountPublicAccessBlockStateRefreshFunc(d.Id(), "BlockPublicAccess", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
