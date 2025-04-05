@@ -531,4 +531,89 @@ func TestAccAliCloudSlsProject_basic4209_twin(t *testing.T) {
 	})
 }
 
+// Test Sls Project with service_logging.
+func TestAccAliCloudSlsProject_service_logging(t *testing.T) {
+	var v map[string]interface{}
+	resourceId := "alicloud_log_project.default"
+	ra := resourceAttrInit(resourceId, AlicloudSlsProjectMap4209)
+	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
+		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+	}, "DescribeSlsProject")
+	rac := resourceAttrCheckInit(rc, ra)
+	testAccCheck := rac.resourceAttrMapUpdateSet()
+	rand := acctest.RandIntRange(10000, 99999)
+	name := fmt.Sprintf("tf-testacc%sslsproject%d", defaultRegionToTest, rand)
+	testAccConfig := resourceTestAccConfigFunc(resourceId, name, AlicloudSlsProjectBasicDependence4209)
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+		},
+		IDRefreshName: resourceId,
+		Providers:     testAccProviders,
+		CheckDestroy:  rac.checkResourceDestroy(),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccConfig(map[string]interface{}{
+					"project_name": name,
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheck(map[string]string{
+						"project_name": name,
+					}),
+				),
+			},
+			{
+				Config: testAccConfig(map[string]interface{}{
+					"service_logging": []map[string]interface{}{
+						{
+							"type":     "operation_log",
+							"logstore": "internal-operation_log",
+						},
+					},
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheck(map[string]string{
+						"service_logging.#": "1",
+					}),
+				),
+			},
+			{
+				Config: testAccConfig(map[string]interface{}{
+					"service_logging": []map[string]interface{}{
+						{
+							"type":     "operation_log",
+							"logstore": "updated-operation_log",
+						},
+						{
+							"type":     "consumer_group",
+							"logstore": "internal-consumer_group",
+						},
+					},
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheck(map[string]string{
+						"service_logging.#": "2",
+					}),
+				),
+			},
+			{
+				Config: testAccConfig(map[string]interface{}{
+					"service_logging": REMOVEKEY,
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheck(map[string]string{
+						"service_logging.#": "0",
+					}),
+				),
+			},
+			{
+				ResourceName:            resourceId,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{},
+			},
+		},
+	})
+}
+
 // Test Sls Project. <<< Resource test cases, automatically generated.

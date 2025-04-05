@@ -79,9 +79,7 @@ func resourceAliCloudSlsProject() *schema.Resource {
 }
 
 func resourceAliCloudSlsProjectCreate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
-
 	action := fmt.Sprintf("/")
 	var request map[string]interface{}
 	var response map[string]interface{}
@@ -170,10 +168,16 @@ func resourceAliCloudSlsProjectRead(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return WrapError(err)
 	}
-	loggingDetails := loggingResp["loggingDetails"].([]map[string]interface{})
+	
+	// Convert []interface{} to []map[string]interface{} properly to avoid panic
+	rawLoggingDetails, ok := loggingResp["loggingDetails"].([]interface{})
 	serviceLogging := make([]interface{}, 0)
-	for _, detail := range loggingDetails {
-		serviceLogging = append(serviceLogging, detail)
+	if ok {
+		for _, item := range rawLoggingDetails {
+			if detail, ok := item.(map[string]interface{}); ok {
+				serviceLogging = append(serviceLogging, detail)
+			}
+		}
 	}
 	d.Set("service_logging", serviceLogging)
 
