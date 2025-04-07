@@ -25,15 +25,17 @@ func resourceAlicloudLogProjectLogging() *schema.Resource {
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			"project": {
+			"project_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 				Description: "The project name to which the logging configurations belong.",
 			},
 			"logging_details": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
+				Optional: false,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
