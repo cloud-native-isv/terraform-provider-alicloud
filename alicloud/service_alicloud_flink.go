@@ -205,7 +205,7 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(namespace, jobId string, failSta
 		
 		if response != nil && response.Body != nil && response.Body.Data != nil && response.Body.Data.Status != nil {
 			// Convert status pointer to string value
-			return response, tea.StringValue(response.Body.Data.Status), nil
+			return response, tea.StringValue(response.Body.Data.Status.CurrentJobStatus), nil
 		}
 		
 		return response, "", nil
