@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
-	sls "github.com/alibabacloud-go/sls-20201230/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/client"
+	sls "github.com/alibabacloud-go/sls-20201230/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -618,8 +618,6 @@ func (s *SlsServiceV2) SlsOssExportSinkStateRefreshFunc(id string, field string,
 	}
 }
 
-// DescribeSlsOssExportSink >>> Encapsulated.
-
 // DescribeSlsEtl <<< Encapsulated get interface for Sls Etl.
 
 func (s *SlsServiceV2) DescribeSlsEtl(id string) (object map[string]interface{}, err error) {
@@ -694,153 +692,62 @@ func (s *SlsServiceV2) SlsEtlStateRefreshFunc(id string, field string, failState
 
 // DescribeSlsEtl >>> Encapsulated.
 
-// CreateSlsLogging <<< Added new logging management functions.
-func (s *SlsServiceV2) CreateSlsLogging(project string, loggingDetails []map[string]interface{}) (response map[string]interface{}, err error) {
-	client := s.client
-	var request map[string]interface{}
-	action := fmt.Sprintf("/logging")
-	request = make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	hostMap["project"] = StringPointer(project)
-	
-	// Convert input maps to LoggingLoggingDetails
-	slsLoggingDetails := make([]*sls.LoggingLoggingDetails, 0, len(loggingDetails))
-	for _, detail := range loggingDetails {
-		slsDetail := &sls.LoggingLoggingDetails{}
-		if logstore, ok := detail["logstore"].(string); ok {
-			slsDetail.SetLogstore(logstore)
+func (s *SlsServiceV2) CreateSlsLogging(projectName string, logging *sls.Logging) error {
+	createLoggingDetails := make([]*sls.CreateLoggingRequestLoggingDetails, 0, len(logging.LoggingDetails))
+
+	for _, detail := range logging.LoggingDetails {
+		createDetail := &sls.CreateLoggingRequestLoggingDetails{
+			Type:     detail.Type,
+			Logstore: detail.Logstore,
 		}
-		if typeName, ok := detail["type"].(string); ok {
-			slsDetail.SetType(typeName)
-		}
-		slsLoggingDetails = append(slsLoggingDetails, slsDetail)
+		createLoggingDetails = append(createLoggingDetails, createDetail)
 	}
-	
-	// Create the request body
-	body := map[string]interface{}{
-		"loggingProject": project,
-		"loggingDetails": slsLoggingDetails,
+
+	createLoggingRequest := &sls.CreateLoggingRequest{
+		LoggingProject: logging.LoggingProject,
+		LoggingDetails: createLoggingDetails,
 	}
-	
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		response, err = client.Do("Sls", roaParam("POST", "2020-12-30", "CreateLogging", action), nil, body, nil, hostMap, false)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, project, "CreateLogging", AlibabaCloudSdkGoERROR)
+	resp, err := s.slsClient.CreateLogging(&projectName, createLoggingRequest)
+	if err != nil || *resp.StatusCode != 200 {
+		return WrapErrorf(err, DefaultErrorMsg, projectName, "CreateLogging", AlibabaCloudSdkGoERROR)
 	}
-	return response, nil
+	return nil
 }
 
-func (s *SlsServiceV2) UpdateSlsLogging(project string, loggingDetails []map[string]interface{}) (response map[string]interface{}, err error) {
-	client := s.client
-	var request map[string]interface{}
-	action := fmt.Sprintf("/logging")
-	request = make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	hostMap["project"] = StringPointer(project)
-	
-	// Convert input maps to LoggingLoggingDetails
-	slsLoggingDetails := make([]*sls.LoggingLoggingDetails, 0, len(loggingDetails))
-	for _, detail := range loggingDetails {
-		slsDetail := &sls.LoggingLoggingDetails{}
-		if logstore, ok := detail["logstore"].(string); ok {
-			slsDetail.SetLogstore(logstore)
+func (s *SlsServiceV2) UpdateSlsLogging(projectName string, logging *sls.Logging) error {
+	updateLoggingDetails := make([]*sls.UpdateLoggingRequestLoggingDetails, 0, len(logging.LoggingDetails))
+	for _, detail := range logging.LoggingDetails {
+		updateDetail := &sls.UpdateLoggingRequestLoggingDetails{
+			Type:     detail.Type,
+			Logstore: detail.Logstore,
 		}
-		if typeName, ok := detail["type"].(string); ok {
-			slsDetail.SetType(typeName)
-		}
-		slsLoggingDetails = append(slsLoggingDetails, slsDetail)
+		updateLoggingDetails = append(updateLoggingDetails, updateDetail)
 	}
-	
-	// Create the request body
-	body := map[string]interface{}{
-		"loggingProject": project,
-		"loggingDetails": slsLoggingDetails,
+
+	updateLoggingRequest := &sls.UpdateLoggingRequest{
+		LoggingProject: logging.LoggingProject,
+		LoggingDetails: updateLoggingDetails,
 	}
-	
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		response, err = client.Do("Sls", roaParam("PUT", "2020-12-30", "UpdateLogging", action), nil, body, nil, hostMap, false)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, project, "UpdateLogging", AlibabaCloudSdkGoERROR)
+	resp, err := s.slsClient.UpdateLogging(&projectName, updateLoggingRequest)
+	if err != nil || *resp.StatusCode != 200 {
+		return WrapErrorf(err, DefaultErrorMsg, projectName, "UpdateLogging", AlibabaCloudSdkGoERROR)
 	}
-	return response, nil
+	return nil
 }
 
-func (s *SlsServiceV2) DeleteSlsLogging(project string) (response map[string]interface{}, err error) {
-	client := s.client
-	var request map[string]interface{}
-	action := fmt.Sprintf("/logging")
-	request = make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	hostMap["project"] = StringPointer(project)
-	
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		response, err = client.Do("Sls", roaParam("DELETE", "2020-12-30", "DeleteLogging", action), nil, nil, nil, hostMap, false)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, project, "DeleteLogging", AlibabaCloudSdkGoERROR)
+func (s *SlsServiceV2) DeleteSlsLogging(projectName string) error {
+	resp, err := s.slsClient.DeleteLogging(&projectName)
+	if err != nil || *resp.StatusCode != 200 {
+		return WrapErrorf(err, DefaultErrorMsg, projectName, "DeleteLogging", AlibabaCloudSdkGoERROR)
 	}
-	return response, nil
+	return nil
 }
 
-// CreateSlsLogging >>> Added new logging management functions.
-
-// DescribeSlsLogging <<< Encapsulated get interface for Sls Logging.
-func (s *SlsServiceV2) GetSlsLogging(project string) (response map[string]interface{}, err error) {
-	client := s.client
-	action := fmt.Sprintf("/logging")
-	request := make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	hostMap["project"] = StringPointer(project)
-	
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		response, err = client.Do("Sls", roaParam("GET", "2020-12-30", "GetLogging", action), nil, nil, nil, hostMap, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug("GetLogging", response, request)
-		return nil
-	})
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, project, "GetLogging", AlibabaCloudSdkGoERROR)
+func (s *SlsServiceV2) GetSlsLogging(projectName string) (logging *sls.Logging, err error) {
+	resp, err := s.slsClient.GetLogging(&projectName)
+	if err != nil || *resp.StatusCode != 200 {
+		return nil, WrapErrorf(err, DefaultErrorMsg, projectName, "DeleteLogging", AlibabaCloudSdkGoERROR)
 	}
-	return response, nil
-}
 
-// DescribeSlsLogging >>> Encapsulated.
+	return resp.Body, nil
+}
