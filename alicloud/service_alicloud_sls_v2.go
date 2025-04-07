@@ -707,8 +707,8 @@ func (s *SlsServiceV2) CreateSlsLogging(projectName string, logging *sls.Logging
 		LoggingProject: logging.LoggingProject,
 		LoggingDetails: createLoggingDetails,
 	}
-	resp, err := s.slsClient.CreateLogging(&projectName, createLoggingRequest)
-	if err != nil || *resp.StatusCode != 200 {
+	_, err := s.slsClient.CreateLogging(&projectName, createLoggingRequest)
+	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "CreateLogging", AlibabaCloudSdkGoERROR)
 	}
 	return nil
@@ -728,16 +728,16 @@ func (s *SlsServiceV2) UpdateSlsLogging(projectName string, logging *sls.Logging
 		LoggingProject: logging.LoggingProject,
 		LoggingDetails: updateLoggingDetails,
 	}
-	resp, err := s.slsClient.UpdateLogging(&projectName, updateLoggingRequest)
-	if err != nil || *resp.StatusCode != 200 {
+	_, err := s.slsClient.UpdateLogging(&projectName, updateLoggingRequest)
+	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "UpdateLogging", AlibabaCloudSdkGoERROR)
 	}
 	return nil
 }
 
 func (s *SlsServiceV2) DeleteSlsLogging(projectName string) error {
-	resp, err := s.slsClient.DeleteLogging(&projectName)
-	if err != nil || *resp.StatusCode != 200 {
+	_, err := s.slsClient.DeleteLogging(&projectName)
+	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "DeleteLogging", AlibabaCloudSdkGoERROR)
 	}
 	return nil
@@ -745,7 +745,7 @@ func (s *SlsServiceV2) DeleteSlsLogging(projectName string) error {
 
 func (s *SlsServiceV2) GetSlsLogging(projectName string) (logging *sls.Logging, err error) {
 	resp, err := s.slsClient.GetLogging(&projectName)
-	if err != nil || *resp.StatusCode != 200 {
+	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, projectName, "DeleteLogging", AlibabaCloudSdkGoERROR)
 	}
 

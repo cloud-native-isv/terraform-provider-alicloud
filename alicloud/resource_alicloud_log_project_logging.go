@@ -39,7 +39,7 @@ func resourceAlicloudLogProjectLogging() *schema.Resource {
 				Description: "The project to store the service logs.",
 			},
 			"logging_details": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				Optional: false,
 				MinItems: 1,
