@@ -73,7 +73,8 @@ func resourceAlicloudLogProjectLoggingCreate(d *schema.ResourceData, meta interf
 	projectName := d.Get("project_name").(string)
 	logging := createLoggingFromSchema(d)
 
-	err = slsServiceV2.CreateSlsLogging(projectName, logging)
+	// err = slsServiceV2.CreateSlsLogging(projectName, logging)
+	err = slsServiceV2.UpdateSlsLogging(projectName, logging)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_project_logging", "CreateSlsLogging", AlibabaCloudSdkGoERROR)
 	}
@@ -128,9 +129,8 @@ func resourceAlicloudLogProjectLoggingUpdate(d *schema.ResourceData, meta interf
 	projectName := d.Id()
 
 	if d.HasChange("logging_details") {
-		loggingDetails := createLoggingFromSchema(d)
-
-		err := slsServiceV2.UpdateSlsLogging(projectName, loggingDetails)
+		logging := createLoggingFromSchema(d)
+		err := slsServiceV2.UpdateSlsLogging(projectName, logging)
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateSlsLogging", AlibabaCloudSdkGoERROR)
 		}
