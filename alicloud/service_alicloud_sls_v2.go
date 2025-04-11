@@ -746,7 +746,7 @@ func (s *SlsServiceV2) DeleteSlsLogging(projectName string) error {
 func (s *SlsServiceV2) GetSlsLogging(projectName string) (logging *sls.Logging, err error) {
 	resp, err := s.slsClient.GetLogging(&projectName)
 	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, projectName, "DeleteLogging", AlibabaCloudSdkGoERROR)
+		return nil, WrapErrorf(err, DefaultErrorMsg, projectName, "GetLogging", AlibabaCloudSdkGoERROR)
 	}
 
 	return resp.Body, nil
