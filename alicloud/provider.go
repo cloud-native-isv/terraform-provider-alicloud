@@ -899,6 +899,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_cloud_monitor_service_hybrid_double_writes":       dataSourceAliCloudCloudMonitorServiceHybridDoubleWrites(),
 			"alicloud_cms_site_monitors":                                dataSourceAliCloudCloudMonitorServiceSiteMonitors(),
 			"alicloud_vpc_ipam_ipams":                                   dataSourceAliCloudVpcIpamIpams(),
+			"alicloud_flink_zones":                                      dataSourceAlicloudFlinkZones(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"alicloud_message_service_service":                              resourceAliCloudMessageServiceService(),
