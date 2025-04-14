@@ -224,3 +224,73 @@ func (s *FlinkService) DescribeFlinkDeployment(id string) (*ververica.GetDeploym
 	
 	return s.GetDeployment(&namespace, &deploymentId)
 }
+
+func (s *FlinkService) CreateVariable(request map[string]interface{}) (map[string]interface{}, error) {
+	namespace := request["flink_instance_id"].(string)
+	req := &ververica.CreateVariableRequest{
+		Name:        tea.String(request["name"].(string)),
+		Value:       tea.String(request["value"].(string)),
+		Description: tea.String(request["description"].(string)),
+	}
+	resp, err := s.ververicaClient.CreateVariable(tea.String(namespace), req)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return resp.ToMap(), nil
+}
+
+func (s *FlinkService) DescribeVariable(variableId string) (map[string]interface{}, error) {
+	parts := strings.Split(variableId, "/")
+	if len(parts) != 2 {
+		return nil, WrapError(errors.New("invalid variable ID format"))
+	}
+	namespace, varId := parts[0], parts[1]
+	resp, err := s.ververicaClient.DescribeVariable(tea.String(namespace), tea.String(varId))
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return resp.ToMap(), nil
+}
+
+func (s *FlinkService) UpdateVariable(request map[string]interface{}) (map[string]interface{}, error) {
+	variableId := request["id"].(string)
+	parts := strings.Split(variableId, "/")
+	if len(parts) != 2 {
+		return nil, WrapError(errors.New("invalid variable ID format"))
+	}
+	namespace, varId := parts[0], parts[1]
+	req := &ververica.UpdateVariableRequest{
+		Value:       tea.String(request["value"].(string)),
+		Description: tea.String(request["description"].(string)),
+	}
+	resp, err := s.ververicaClient.UpdateVariable(tea.String(namespace), tea.String(varId), req)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return resp.ToMap(), nil
+}
+
+func (s *FlinkService) DeleteVariable(variableId string) error {
+	parts := strings.Split(variableId, "/")
+	if len(parts) != 2 {
+		return WrapError(errors.New("invalid variable ID format"))
+	}
+	namespace, varId := parts[0], parts[1]
+	_, err := s.ververicaClient.DeleteVariable(tea.String(namespace), tea.String(varId))
+	return WrapError(err)
+}
+
+// 新增ListVariables方法
+func (s *FlinkService) ListVariables(namespace string, opts map[string]interface{}) ([]map[string]interface{}, error) {
+	request := &ververica.ListVariablesRequest{}
+	// 根据opts填充分页参数等
+	resp, err := s.ververicaClient.ListVariables(tea.String(namespace), request)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	vars := make([]map[string]interface{}, 0)
+	for _, v := range resp.Body.Variables {
+		vars = append(vars, v.ToMap())
+	}
+	return vars, nil
+}
