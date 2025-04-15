@@ -16,7 +16,8 @@ func TestAccAliCloudOssBucketAccessMonitor_basic6451(t *testing.T) {
 	resourceId := "alicloud_oss_bucket_access_monitor.default"
 	ra := resourceAttrInit(resourceId, AlicloudOssBucketAccessMonitorMap6451)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &OssServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		client := testAccProvider.Meta().(*connectivity.AliyunClient)
+		return NewOssServiceV2(client)
 	}, "DescribeOssBucketAccessMonitor")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -97,7 +98,8 @@ func TestAccAliCloudOssBucketAccessMonitor_basic6451_twin(t *testing.T) {
 	resourceId := "alicloud_oss_bucket_access_monitor.default"
 	ra := resourceAttrInit(resourceId, AlicloudOssBucketAccessMonitorMap6451)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &OssServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		client := testAccProvider.Meta().(*connectivity.AliyunClient)
+		return NewOssServiceV2(client)
 	}, "DescribeOssBucketAccessMonitor")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -139,7 +141,8 @@ func TestAccAliCloudOssBucketAccessMonitor_basic6451_raw(t *testing.T) {
 	resourceId := "alicloud_oss_bucket_access_monitor.default"
 	ra := resourceAttrInit(resourceId, AlicloudOssBucketAccessMonitorMap6451)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &OssServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		client := testAccProvider.Meta().(*connectivity.AliyunClient)
+		return NewOssServiceV2(client)
 	}, "DescribeOssBucketAccessMonitor")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()

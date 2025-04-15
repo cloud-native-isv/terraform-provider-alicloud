@@ -1941,6 +1941,11 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_event_bridge_api_destination":                          resourceAliCloudEventBridgeApiDestination(),
 			"alicloud_cloud_monitor_service_monitoring_agent_process":        resourceAliCloudCloudMonitorServiceMonitoringAgentProcess(),
 			"alicloud_cloud_monitor_service_group_monitoring_agent_process":  resourceAliCloudCloudMonitorServiceGroupMonitoringAgentProcess(),
+			"alicloud_flink_workspace":                                       resourceAliCloudFlinkWorkspace(),
+			"alicloud_flink_namespace":                                       resourceAliCloudFlinkNamespace(),
+			"alicloud_flink_deployment":                                      resourceAliCloudFlinkDeployment(),
+			"alicloud_flink_member":                                          resourceAliCloudFlinkMember(),
+			"alicloud_flink_variable":                                        resourceAliCloudFlinkVariable(),
 		},
 	}
 	provider.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
