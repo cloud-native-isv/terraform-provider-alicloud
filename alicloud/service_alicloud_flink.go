@@ -65,12 +65,58 @@ func (s *FlinkService) DescribeInstances(request *foasconsole.DescribeInstancesR
 	return response, WrapError(err)
 }
 
-// FlinkWorkspaceStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a Flink instance
-func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		request := &foasconsole.DescribeInstancesRequest{}
-		request.InstanceId = &id
+func (s *FlinkService) ListInstances(region string) ([]*foasconsole.DescribeInstancesResponseBodyInstances, error) {
+	pageIndex := int32(1)
+	pageSize := int32(50)
+	var instances []*foasconsole.DescribeInstancesResponseBodyInstances
 
+	for {
+		request := &foasconsole.DescribeInstancesRequest{
+			Region:    tea.String(region),
+			PageIndex: tea.Int32(pageIndex),
+			PageSize:  tea.Int32(pageSize),
+		}
+
+		response, err := s.DescribeInstances(request)
+		if err != nil {
+			return nil, err
+		}
+
+		instances = append(instances, response.Body.Instances...)
+
+		if *response.Body.PageIndex >= *response.Body.TotalPage {
+			break
+		}
+		pageIndex++
+	}
+
+	return instances, nil
+}
+
+func (s *FlinkService) GetInstance(region, instanceId string) (*foasconsole.DescribeInstancesResponseBodyInstances, error) {
+	request := &foasconsole.DescribeInstancesRequest{
+		Region:     tea.String(region),
+		InstanceId: tea.String(instanceId),
+	}
+
+	response, err := s.DescribeInstances(request)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(response.Body.Instances) == 0 {
+		return nil, fmt.Errorf("instance %s not found", instanceId)
+	}
+
+	return response.Body.Instances[0], nil
+}
+
+func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(region, id string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		request := &foasconsole.DescribeInstancesRequest{
+			Region:     tea.String(region),
+			InstanceId: tea.String(id),
+		}
 		response, err := s.DescribeInstances(request)
 		if err != nil {
 			if NotFoundError(err) {

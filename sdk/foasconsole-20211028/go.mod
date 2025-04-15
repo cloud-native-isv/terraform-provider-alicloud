@@ -1,0 +1,1 @@
+module github.com/alibabacloud-go/foasconsole-20211028

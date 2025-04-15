@@ -21,11 +21,6 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
-			"region": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
 			"workspace": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -71,7 +66,7 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	region := d.Get("region").(string)
+	region := client.RegionId
 	workspace := d.Get("workspace").(string)
 	name := d.Get("name").(string)
 	ha := d.Get("ha").(bool)
@@ -106,7 +101,7 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 	}
 	id := d.Id()
 	workspace, namespace := splitNamespaceID(id)
-	region := d.Get("region").(string)
+	region := client.RegionId
 
 	spec, derr := flinkService.GetNamespace(tea.String(region), tea.String(workspace), tea.String(namespace))
 	if derr != nil {
@@ -134,7 +129,7 @@ func resourceAliCloudFlinkNamespaceDelete(d *schema.ResourceData, meta interface
 
 	id := d.Id()
 	workspace, namespace := splitNamespaceID(id)
-	region := d.Get("region").(string)
+	region := client.RegionId
 
 	request := &foasconsole.DeleteNamespaceRequest{
 		InstanceId: tea.String(workspace),
