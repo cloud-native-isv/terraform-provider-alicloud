@@ -1,6 +1,8 @@
 package alicloud
 
 import (
+	"fmt"
+
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
@@ -92,7 +94,6 @@ func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(id string) resource.StateR
 	}
 }
 
-// Namespace management functions
 func (s *FlinkService) CreateNamespace(request *foasconsole.CreateNamespaceRequest) (*foasconsole.CreateNamespaceResponse, error) {
 	response, err := s.foasconsoleClient.CreateNamespace(request)
 	return response, WrapError(err)
@@ -103,12 +104,43 @@ func (s *FlinkService) DeleteNamespace(request *foasconsole.DeleteNamespaceReque
 	return response, WrapError(err)
 }
 
-func (s *FlinkService) DescribeNamespaces(request *foasconsole.DescribeNamespacesRequest) (*foasconsole.DescribeNamespacesResponse, error) {
-	response, err := s.foasconsoleClient.DescribeNamespaces(request)
-	return response, WrapError(err)
+func (s *FlinkService) ListNamespaces(region *string, workspace *string) (map[string]*foasconsole.DescribeNamespacesResponseBodyNamespacesResourceSpec, error) {
+	pageIndex := int32(1)
+	pageSize := int32(50)
+	namespaceMap := make(map[string]*foasconsole.DescribeNamespacesResponseBodyNamespacesResourceSpec)
+	for {
+		request := &foasconsole.DescribeNamespacesRequest{
+			PageIndex:  tea.Int32(pageIndex),
+			PageSize:   tea.Int32(pageSize),
+			Region:     region,
+			InstanceId: workspace,
+		}
+		response, err := s.foasconsoleClient.DescribeNamespaces(request)
+		if err != nil {
+			return nil, WrapError(err)
+		}
+		for _, namespace := range response.Body.Namespaces {
+			namespaceMap[*namespace.Namespace] = namespace.ResourceSpec
+		}
+		if *response.Body.PageIndex >= *response.Body.TotalPage {
+			break
+		}
+	}
+	return namespaceMap, nil
 }
 
-// Member management functions
+func (s *FlinkService) GetNamespace(region *string, workspace *string, namespace *string) (*foasconsole.DescribeNamespacesResponseBodyNamespacesResourceSpec, error) {
+	namespaceMap, err := s.ListNamespaces(region, workspace)
+	if err != nil {
+		return nil, err
+	}
+	namespaceSpec, ok := namespaceMap[*namespace]
+	if !ok {
+		return nil, fmt.Errorf("namespace %s not found", *namespace)
+	}
+	return namespaceSpec, nil
+}
+
 func (s *FlinkService) CreateMember(namespace *string, request *ververica.CreateMemberRequest) (*ververica.CreateMemberResponse, error) {
 	response, err := s.ververicaClient.CreateMember(namespace, request)
 	return response, WrapError(err)
@@ -276,7 +308,6 @@ func (s *FlinkService) DeleteVariable(workspace, namespace, varName *string) err
 }
 
 func (s *FlinkService) GetVariable(workspace, namespace, varName *string) (*ververica.Variable, error) {
-	var variable *ververica.Variable
 	var pageIndex int32
 	var pageSize int32
 
@@ -287,17 +318,18 @@ func (s *FlinkService) GetVariable(workspace, namespace, varName *string) (*verv
 		if err != nil {
 			return nil, WrapError(err)
 		}
+		if resp.Body.Data == nil || len(resp.Body.Data) == 0 {
+			return nil, fmt.Errorf("variable not found")
+		}
+
 		variableList := resp.Body.Data
-		for _, _variable := range variableList {
-			if *_variable.Name == *varName {
-				variable = _variable
-				break
+		for _, variable := range variableList {
+			if *variable.Name == *varName {
+				return variable, nil
 			}
 		}
 		pageIndex += 1
 	}
-
-	return variable, nil
 }
 
 func (s *FlinkService) ListVariables(workspace, namespace *string, PageIndex int32, PageSize int32) (*ververica.ListVariablesResponse, error) {

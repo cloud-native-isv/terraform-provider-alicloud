@@ -15,6 +15,7 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudFlinkWorkspaceCreate,
 		Read:   resourceAliCloudFlinkWorkspaceRead,
+		Update:   resourceAliCloudFlinkWorkspaceUpdate,
 		Delete: resourceAliCloudFlinkWorkspaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -173,7 +174,7 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				Required:    true,
 				Description: "The region of the instance.",
 			},
-			"resource_spec": {
+			"resource": {
 				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
@@ -402,6 +403,10 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
+	return resourceAliCloudFlinkWorkspaceRead(d, meta)
+}
+
+func resourceAliCloudFlinkWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAliCloudFlinkWorkspaceRead(d, meta)
 }
 
