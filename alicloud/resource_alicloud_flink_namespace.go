@@ -2,13 +2,12 @@ package alicloud
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -22,6 +21,11 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
+			"region": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 			"workspace": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -34,15 +38,22 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 				ForceNew:    true,
 				Description: "Name of the Flink namespace",
 			},
-			"description": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Description of the namespace",
+			"ha": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
-			"ha":{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: " ",
+			"cpu": {
+				Type:        schema.TypeInt,
+				Required:    true,
+				ForceNew:    true,
+				Description: "CPU number",
+			},
+			"memory": {
+				Type:        schema.TypeInt,
+				Required:    true,
+				ForceNew:    true,
+				Description: "memory size in GB",
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
@@ -60,66 +71,30 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
+	region := d.Get("region").(string)
 	workspace := d.Get("workspace").(string)
 	name := d.Get("name").(string)
-	description := d.Get("description").(string)
-	ha := d.Get("ha").(string)
+	ha := d.Get("ha").(bool)
+	cpu := d.Get("cpu").(int32)
+	memory := d.Get("memory").(int32)
 
-			// type CreateNamespaceRequest struct {
-		// 	// if can be null:
-		// 	// true
-		// 	Ha *bool `json:"Ha,omitempty" xml:"Ha,omitempty"`
-		// 	// This parameter is required.
-		// 	//
-		// 	// example:
-		// 	//
-		// 	// f-cn-wwo36qj4g06
-		// 	InstanceId *string `json:"InstanceId,omitempty" xml:"InstanceId,omitempty"`
-		// 	// This parameter is required.
-		// 	//
-		// 	// example:
-		// 	//
-		// 	// di-593440390152545
-		// 	Namespace *string `json:"Namespace,omitempty" xml:"Namespace,omitempty"`
-		// 	// This parameter is required.
-		// 	//
-		// 	// example:
-		// 	//
-		// 	// cn-shenzhen
-		// 	Region       *string                             `json:"Region,omitempty" xml:"Region,omitempty"`
-		// 	ResourceSpec *CreateNamespaceRequestResourceSpec `json:"ResourceSpec,omitempty" xml:"ResourceSpec,omitempty" type:"Struct"`
-		// }
-	// Create request and set parameters directly according to API structure
 	request := &foasconsole.CreateNamespaceRequest{
-		Ha = 
-	}
-	request.InstanceId = &workspaceId
-	request.Namespace = &name
-	
-	// Add description if provided
-	if description != "" {
-		// Note: Description field does not exist directly on the request
-		// Need to add it as part of ResourceSpec if needed
+		Region:     tea.String(region),
+		InstanceId: tea.String(workspace),
+		Namespace:  tea.String(name),
+		Ha:         tea.Bool(ha),
+		ResourceSpec: &foasconsole.CreateNamespaceRequestResourceSpec{
+			Cpu:      tea.Int32(cpu),
+			MemoryGB: tea.Int32(memory),
+		},
 	}
 
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		_, err := flinkService.CreateNamespace(request)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"OperationConflict", "ThrottlingException"}) {
-				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
+	_, err = flinkService.CreateNamespace(request)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_namespace", "CreateNamespace", AlibabaCloudSdkGoERROR)
 	}
-	
-	// Set ID using format workspaceId/name
-	d.SetId(fmt.Sprintf("%s/%s", workspaceId, name))
-	
+
+	d.SetId(joinNamespaceID(workspace, name))
 	return resourceAliCloudFlinkNamespaceRead(d, meta)
 }
 
@@ -129,52 +104,17 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return WrapError(err)
 	}
+	id := d.Id()
+	workspace, namespace := splitNamespaceID(id)
+	region := d.Get("region").(string)
 
-	parts := strings.Split(d.Id(), "/")
-	if len(parts) != 2 {
-		return WrapError(fmt.Errorf("invalid resource id: %s", d.Id()))
-	}
-	workspaceId, name := parts[0], parts[1]
-
-	// Create request and set parameters directly based on API structure
-	request := &foasconsole.DescribeNamespacesRequest{}
-	request.InstanceId = &workspaceId
-
-	var namespaceFound bool = false
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		raw, err := flinkService.DescribeNamespaces(request)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"ThrottlingException"}) {
-				time.Sleep(time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		
-		// Check if the response has namespaces
-		if raw != nil && raw.Body != nil && raw.Body.Namespaces != nil {
-			// Iterate through namespaces to find the one matching the name
-			for _, ns := range raw.Body.Namespaces {
-				if ns.Namespace != nil && *ns.Namespace == name {
-					d.Set("workspace_id", workspaceId)
-					d.Set("name", *ns.Namespace)
-					// Description is not directly available in the API response
-					namespaceFound = true
-					break
-				}
-			}
-		}
-		return nil
-	})
-	if err != nil {
+	spec, derr := flinkService.GetNamespace(tea.String(region), tea.String(workspace), tea.String(namespace))
+	if derr != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_namespace", "DescribeNamespaces", AlibabaCloudSdkGoERROR)
 	}
 
-	if !namespaceFound {
-		d.SetId("")
-		log.Printf("[WARN] Flink Namespace (%s) not found, removing from state", d.Id())
-		return nil
-	}
+	d.Set("cpu", spec.Cpu)
+	d.Set("memory", spec.MemoryGB)
 
 	return nil
 }
@@ -192,31 +132,31 @@ func resourceAliCloudFlinkNamespaceDelete(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	parts := strings.Split(d.Id(), "/")
-	if len(parts) != 2 {
-		return WrapError(fmt.Errorf("invalid resource id: %s", d.Id()))
+	id := d.Id()
+	workspace, namespace := splitNamespaceID(id)
+	region := d.Get("region").(string)
+
+	request := &foasconsole.DeleteNamespaceRequest{
+		InstanceId: tea.String(workspace),
+		Namespace: tea.String(namespace),
+		Region: tea.String(region),
 	}
-	workspaceId, name := parts[0], parts[1]
-	
-	request := &foasconsole.DeleteNamespaceRequest{}
-	request.InstanceId = &workspaceId
-	request.Namespace = &name
-	
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		_, err := flinkService.DeleteNamespace(request)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"OperationConflict", "ThrottlingException"}) {
-				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	
+	_, err = flinkService.DeleteNamespace(request)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteNamespace", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_namespace", "DeleteNamespace", AlibabaCloudSdkGoERROR)
 	}
-	
-	return WrapError(nil)
+
+	return nil
+}
+
+func splitNamespaceID(id string) (string, string) {
+	parts := strings.SplitN(id, "/", 2)
+	if len(parts) != 2 {
+		panic(fmt.Errorf("invalid ID format: %s, should be <workspace>/<namespace>", id))
+	}
+	return parts[0], parts[1]
+}
+
+func joinNamespaceID(workspace, namespace string) string {
+	return fmt.Sprintf("%s/%s", workspace, namespace)
 }
