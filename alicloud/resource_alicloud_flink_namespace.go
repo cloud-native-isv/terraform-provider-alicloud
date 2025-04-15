@@ -22,7 +22,7 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
-			"workspace_id": {
+			"workspace": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -38,6 +38,11 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Description of the namespace",
+			},
+			"ha":{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: " ",
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
@@ -55,12 +60,39 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	workspaceId := d.Get("workspace_id").(string)
+	workspace := d.Get("workspace").(string)
 	name := d.Get("name").(string)
 	description := d.Get("description").(string)
+	ha := d.Get("ha").(string)
 
+			// type CreateNamespaceRequest struct {
+		// 	// if can be null:
+		// 	// true
+		// 	Ha *bool `json:"Ha,omitempty" xml:"Ha,omitempty"`
+		// 	// This parameter is required.
+		// 	//
+		// 	// example:
+		// 	//
+		// 	// f-cn-wwo36qj4g06
+		// 	InstanceId *string `json:"InstanceId,omitempty" xml:"InstanceId,omitempty"`
+		// 	// This parameter is required.
+		// 	//
+		// 	// example:
+		// 	//
+		// 	// di-593440390152545
+		// 	Namespace *string `json:"Namespace,omitempty" xml:"Namespace,omitempty"`
+		// 	// This parameter is required.
+		// 	//
+		// 	// example:
+		// 	//
+		// 	// cn-shenzhen
+		// 	Region       *string                             `json:"Region,omitempty" xml:"Region,omitempty"`
+		// 	ResourceSpec *CreateNamespaceRequestResourceSpec `json:"ResourceSpec,omitempty" xml:"ResourceSpec,omitempty" type:"Struct"`
+		// }
 	// Create request and set parameters directly according to API structure
-	request := &foasconsole.CreateNamespaceRequest{}
+	request := &foasconsole.CreateNamespaceRequest{
+		Ha = 
+	}
 	request.InstanceId = &workspaceId
 	request.Namespace = &name
 	

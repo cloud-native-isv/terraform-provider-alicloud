@@ -3,8 +3,9 @@ package alicloud
 import (
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
-	ververica "github.com/alibabacloud-go/ververica-20220718/client"
+	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/tea"
+	ververica "github.com/alibabacloud-go/ververica-20220718/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -46,7 +47,7 @@ func (s *FlinkService) DescribeSupportedZones(request *foasconsole.DescribeSuppo
 	return response, WrapError(err)
 }
 
-// Instance management functions 
+// Instance management functions
 func (s *FlinkService) CreateInstance(request *foasconsole.CreateInstanceRequest) (*foasconsole.CreateInstanceResponse, error) {
 	response, err := s.foasconsoleClient.CreateInstance(request)
 	return response, WrapError(err)
@@ -62,12 +63,12 @@ func (s *FlinkService) DescribeInstances(request *foasconsole.DescribeInstancesR
 	return response, WrapError(err)
 }
 
-// FlinkInstanceStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a Flink instance
-func (s *FlinkService) FlinkInstanceStateRefreshFunc(id string) resource.StateRefreshFunc {
+// FlinkWorkspaceStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a Flink instance
+func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		request := &foasconsole.DescribeInstancesRequest{}
 		request.InstanceId = &id
-		
+
 		response, err := s.DescribeInstances(request)
 		if err != nil {
 			if NotFoundError(err) {
@@ -75,18 +76,18 @@ func (s *FlinkService) FlinkInstanceStateRefreshFunc(id string) resource.StateRe
 			}
 			return nil, "", WrapError(err)
 		}
-		
+
 		// Check if the instance was found
 		if response == nil || response.Body == nil || len(response.Body.Instances) == 0 {
 			return nil, "", nil
 		}
-		
+
 		// Get the first instance (should be the only one since we're querying by ID)
 		instance := response.Body.Instances[0]
 		if instance.ClusterStatus == nil {
 			return instance, "", nil
 		}
-		
+
 		return instance, *instance.ClusterStatus, nil
 	}
 }
@@ -109,65 +110,65 @@ func (s *FlinkService) DescribeNamespaces(request *foasconsole.DescribeNamespace
 
 // Member management functions
 func (s *FlinkService) CreateMember(namespace *string, request *ververica.CreateMemberRequest) (*ververica.CreateMemberResponse, error) {
-    response, err := s.ververicaClient.CreateMember(namespace, request)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.CreateMember(namespace, request)
+	return response, WrapError(err)
 }
 
 func (s *FlinkService) GetMember(namespace *string, member *string) (*ververica.GetMemberResponse, error) {
-    response, err := s.ververicaClient.GetMember(namespace, member)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.GetMember(namespace, member)
+	return response, WrapError(err)
 }
 
 func (s *FlinkService) UpdateMember(namespace *string, request *ververica.UpdateMemberRequest) (*ververica.UpdateMemberResponse, error) {
-    response, err := s.ververicaClient.UpdateMember(namespace, request)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.UpdateMember(namespace, request)
+	return response, WrapError(err)
 }
 
 func (s *FlinkService) DeleteMember(namespace *string, member *string) (*ververica.DeleteMemberResponse, error) {
-    response, err := s.ververicaClient.DeleteMember(namespace, member)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.DeleteMember(namespace, member)
+	return response, WrapError(err)
 }
 
 // Deployment management functions
 func (s *FlinkService) CreateDeployment(namespace *string, request *ververica.CreateDeploymentRequest) (*ververica.CreateDeploymentResponse, error) {
-    response, err := s.ververicaClient.CreateDeployment(namespace, request)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.CreateDeployment(namespace, request)
+	return response, WrapError(err)
 }
 
 func (s *FlinkService) GetDeployment(namespace *string, deploymentId *string) (*ververica.GetDeploymentResponse, error) {
-    response, err := s.ververicaClient.GetDeployment(namespace, deploymentId)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.GetDeployment(namespace, deploymentId)
+	return response, WrapError(err)
 }
 
 func (s *FlinkService) UpdateDeployment(namespace *string, deploymentId *string, request *ververica.UpdateDeploymentRequest) (*ververica.UpdateDeploymentResponse, error) {
-    response, err := s.ververicaClient.UpdateDeployment(namespace, deploymentId, request)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.UpdateDeployment(namespace, deploymentId, request)
+	return response, WrapError(err)
 }
 
 func (s *FlinkService) DeleteDeployment(namespace *string, deploymentId *string) (*ververica.DeleteDeploymentResponse, error) {
-    response, err := s.ververicaClient.DeleteDeployment(namespace, deploymentId)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.DeleteDeployment(namespace, deploymentId)
+	return response, WrapError(err)
 }
 
 func (s *FlinkService) ListDeployments(namespace *string, request *ververica.ListDeploymentsRequest) (*ververica.ListDeploymentsResponse, error) {
-    response, err := s.ververicaClient.ListDeployments(namespace, request)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.ListDeployments(namespace, request)
+	return response, WrapError(err)
 }
 
 // Job management functions
 func (s *FlinkService) StartJobWithParams(namespace *string, request *ververica.StartJobWithParamsRequest) (*ververica.StartJobWithParamsResponse, error) {
-    response, err := s.ververicaClient.StartJobWithParams(namespace, request)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.StartJobWithParams(namespace, request)
+	return response, WrapError(err)
 }
 
 func (s *FlinkService) StopJob(namespace *string, jobId *string, request *ververica.StopJobRequest) (*ververica.StopJobResponse, error) {
-    response, err := s.ververicaClient.StopJob(namespace, jobId, request)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.StopJob(namespace, jobId, request)
+	return response, WrapError(err)
 }
 
 func (s *FlinkService) GetJob(namespace *string, jobId *string) (*ververica.GetJobResponse, error) {
-    response, err := s.ververicaClient.GetJob(namespace, jobId)
-    return response, WrapError(err)
+	response, err := s.ververicaClient.GetJob(namespace, jobId)
+	return response, WrapError(err)
 }
 
 // FlinkDeploymentStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a Flink deployment
@@ -181,13 +182,13 @@ func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string, failStates []s
 			}
 			return nil, "", WrapError(err)
 		}
-		
+
 		for _, failState := range failStates {
 			if failState == "EntityNotExist.Deployment" {
 				return object, "", nil
 			}
 		}
-				
+
 		return object, "CREATED", nil
 	}
 }
@@ -202,12 +203,12 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(namespace, jobId string, failSta
 			}
 			return nil, "", WrapError(err)
 		}
-		
+
 		if response != nil && response.Body != nil && response.Body.Data != nil && response.Body.Data.Status != nil {
 			// Convert status pointer to string value
 			return response, tea.StringValue(response.Body.Data.Status.CurrentJobStatus), nil
 		}
-		
+
 		return response, "", nil
 	}
 }
@@ -218,79 +219,101 @@ func (s *FlinkService) DescribeFlinkDeployment(id string) (*ververica.GetDeploym
 	if err != nil {
 		return nil, WrapError(err)
 	}
-	
+
 	namespace := parts[0]
 	deploymentId := parts[1]
-	
+
 	return s.GetDeployment(&namespace, &deploymentId)
 }
 
-func (s *FlinkService) CreateVariable(request map[string]interface{}) (map[string]interface{}, error) {
-	namespace := request["flink_instance_id"].(string)
-	req := &ververica.CreateVariableRequest{
-		Name:        tea.String(request["name"].(string)),
-		Value:       tea.String(request["value"].(string)),
-		Description: tea.String(request["description"].(string)),
-	}
-	resp, err := s.ververicaClient.CreateVariable(tea.String(namespace), req)
+func (s *FlinkService) CreateVariable(workspace, namespace *string, variable *ververica.Variable) (*ververica.Variable, error) {
+	resp, err := s.ververicaClient.CreateVariableWithOptions(
+		namespace,
+		&ververica.CreateVariableRequest{
+			Body: variable,
+		},
+		&ververica.CreateVariableHeaders{
+			Workspace: workspace,
+		},
+		&util.RuntimeOptions{},
+	)
 	if err != nil {
 		return nil, WrapError(err)
 	}
-	return resp.ToMap(), nil
+	return resp.Body.Data, nil
 }
 
-func (s *FlinkService) DescribeVariable(variableId string) (map[string]interface{}, error) {
-	parts := strings.Split(variableId, "/")
-	if len(parts) != 2 {
-		return nil, WrapError(errors.New("invalid variable ID format"))
-	}
-	namespace, varId := parts[0], parts[1]
-	resp, err := s.ververicaClient.DescribeVariable(tea.String(namespace), tea.String(varId))
+func (s *FlinkService) UpdateVariable(workspace, namespace, varName *string, variable *ververica.Variable) (*ververica.Variable, error) {
+	resp, err := s.ververicaClient.UpdateVariableWithOptions(
+		namespace,
+		varName,
+		&ververica.UpdateVariableRequest{
+			Body: variable,
+		},
+		&ververica.UpdateVariableHeaders{
+			Workspace: workspace,
+		},
+		&util.RuntimeOptions{},
+	)
 	if err != nil {
 		return nil, WrapError(err)
 	}
-	return resp.ToMap(), nil
+	return resp.Body.Data, nil
 }
 
-func (s *FlinkService) UpdateVariable(request map[string]interface{}) (map[string]interface{}, error) {
-	variableId := request["id"].(string)
-	parts := strings.Split(variableId, "/")
-	if len(parts) != 2 {
-		return nil, WrapError(errors.New("invalid variable ID format"))
+func (s *FlinkService) DeleteVariable(workspace, namespace, varName *string) error {
+	_, err := s.ververicaClient.DeleteVariableWithOptions(
+		namespace,
+		varName,
+		&ververica.DeleteVariableHeaders{
+			Workspace: workspace,
+		},
+		&util.RuntimeOptions{})
+	if err != nil {
+		return WrapError(err)
 	}
-	namespace, varId := parts[0], parts[1]
-	req := &ververica.UpdateVariableRequest{
-		Value:       tea.String(request["value"].(string)),
-		Description: tea.String(request["description"].(string)),
+	return nil
+}
+
+func (s *FlinkService) GetVariable(workspace, namespace, varName *string) (*ververica.Variable, error) {
+	var variable *ververica.Variable
+	var pageIndex int32
+	var pageSize int32
+
+	pageIndex = 1
+	pageSize = 50
+	for {
+		resp, err := s.ListVariables(workspace, namespace, pageIndex, pageSize)
+		if err != nil {
+			return nil, WrapError(err)
+		}
+		variableList := resp.Body.Data
+		for _, _variable := range variableList {
+			if *_variable.Name == *varName {
+				variable = _variable
+				break
+			}
+		}
+		pageIndex += 1
 	}
-	resp, err := s.ververicaClient.UpdateVariable(tea.String(namespace), tea.String(varId), req)
+
+	return variable, nil
+}
+
+func (s *FlinkService) ListVariables(workspace, namespace *string, PageIndex int32, PageSize int32) (*ververica.ListVariablesResponse, error) {
+	resp, err := s.ververicaClient.ListVariablesWithOptions(
+		namespace,
+		&ververica.ListVariablesRequest{
+			PageIndex: tea.Int32(PageIndex),
+			PageSize:  tea.Int32(PageSize),
+		},
+		&ververica.ListVariablesHeaders{
+			Workspace: workspace,
+		},
+		&util.RuntimeOptions{},
+	)
 	if err != nil {
 		return nil, WrapError(err)
 	}
-	return resp.ToMap(), nil
-}
-
-func (s *FlinkService) DeleteVariable(variableId string) error {
-	parts := strings.Split(variableId, "/")
-	if len(parts) != 2 {
-		return WrapError(errors.New("invalid variable ID format"))
-	}
-	namespace, varId := parts[0], parts[1]
-	_, err := s.ververicaClient.DeleteVariable(tea.String(namespace), tea.String(varId))
-	return WrapError(err)
-}
-
-// 新增ListVariables方法
-func (s *FlinkService) ListVariables(namespace string, opts map[string]interface{}) ([]map[string]interface{}, error) {
-	request := &ververica.ListVariablesRequest{}
-	// 根据opts填充分页参数等
-	resp, err := s.ververicaClient.ListVariables(tea.String(namespace), request)
-	if err != nil {
-		return nil, WrapError(err)
-	}
-	vars := make([]map[string]interface{}, 0)
-	for _, v := range resp.Body.Variables {
-		vars = append(vars, v.ToMap())
-	}
-	return vars, nil
+	return resp, nil
 }
