@@ -8,14 +8,13 @@ import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-		"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAliCloudFlinkWorkspace() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudFlinkWorkspaceCreate,
 		Read:   resourceAliCloudFlinkWorkspaceRead,
-		Update:   resourceAliCloudFlinkWorkspaceUpdate,
 		Delete: resourceAliCloudFlinkWorkspaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -31,6 +30,7 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Description of the Flink instance.",
+				ForceNew:    true,
 			},
 			"resource_group_id": {
 				Type:        schema.TypeString,
@@ -38,17 +38,17 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the resource group.",
 			},
+			"region": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The region of the instance.",
+				ForceNew:    true,
+			},
 			"zone_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "The zone ID where the Flink instance is located.",
-			},
-			"oss_bucket": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "The OSS bucket used for storage by the Flink instance.",
 			},
 			"vpc_id": {
 				Type:        schema.TypeString,
@@ -63,116 +63,139 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				ForceNew:    true,
 				Description: "The IDs of the vSwitches for the Flink instance.",
 			},
-			"cpu": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     10000,
-				Description: "The CPU units (in millicores) allocated to the Flink instance.",
-			},
-			"memory": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     40000,
-				Description: "The memory (in MB) allocated to the Flink instance.",
-			},
-			"instance_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The type of Flink instance.",
-			},
 			"tags": {
 				Type:        schema.TypeMap,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "A mapping of tags to assign to the resource.",
+				ForceNew:    true,
 			},
 			"security_group_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The ID of the security group.",
+				ForceNew:    true,
 			},
 			"architecture_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The architecture type of the Flink instance.",
-				ValidateFunc: validation.StringInSlice([]string{"X86", "ARM"}, true),
+				Type:         schema.TypeString,
+				Optional:     true,
 				Default:      "X86",
+				Description:  "The architecture type of the Flink instance.",
+				ValidateFunc: validation.StringInSlice([]string{"X86", "ARM"}, false),
+				ForceNew:     true,
 			},
 			"auto_renew": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				Default:     true,
 				Description: "Whether the instance automatically renews.",
+				ForceNew:    true,
 			},
 			"charge_type": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The billing method of the instance. Valid values: Subscription, PayAsYouGo.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "POST",
+				Description:  "The billing method of the instance.",
+				ValidateFunc: validation.StringInSlice([]string{"POST", "PRE"}, false),
+				ForceNew:     true,
 			},
 			"duration": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Description: "The subscription duration when charge_type is Subscription.",
+				Default:     1,
+				Description: "The subscription duration.",
+				ForceNew:    true,
+			},
+			"pricing_cycle": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "Month",
+				Description: "The billing cycle for Subscription instances.",
+				ForceNew:    true,
 			},
 			"extra": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Additional configuration for the instance.",
+				ForceNew:    true,
 			},
 			"ha": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Whether to enable high availability mode.",
-			},
-			"ha_resource_spec": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"cpu": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "CPU specifications for HA resources.",
+						"resource": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"cpu": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "CPU specifications for HA resources.",
+									},
+									"memory": {
+										Type:        schema.TypeInt,
+										Required:    true,
+										Description: "Memory specifications for HA resources.",
+									},
+								},
+							},
+							Description: "HA resource specifications.",
 						},
-						"memory": {
-							Type:        schema.TypeInt,
+						"vswitch_ids": {
+							Type:        schema.TypeList,
 							Required:    true,
-							Description: "Memory specifications for HA resources.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Description: "The IDs of the vSwitches for high availability.",
+						},
+						"zone_id": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The zone ID for high availability.",
 						},
 					},
 				},
-				Description: "High availability resource specifications.",
-			},
-			"ha_vswitch_ids": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "The IDs of the vSwitches for high availability.",
-			},
-			"ha_zone_id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The zone ID for high availability.",
+				Description: "High availability configuration.",
+				ForceNew:    true,
 			},
 			"monitor_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The monitoring type of the instance.",
-			},
-			"pricing_cycle": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The billing cycle for Subscription instances. Valid values: Month, Year.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The monitoring type of the instance.",
+				ForceNew:     true,
+				Default:      "ARMS",
+				ValidateFunc: validation.StringInSlice([]string{"ARMS", "TAIHAO"}, true),
 			},
 			"promotion_code": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The promotion code.",
+				ForceNew:    true,
 			},
-			"region": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The region of the instance.",
+			"use_promotion_code": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether to use promotion code.",
+				ForceNew:    true,
+			},
+			"storage": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"oss_bucket": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The OSS bucket name for the Flink instance.",
+						},
+					},
+				},
+				Description: "Storage configuration of oss bucket for the Flink instance.",
+				ForceNew:    true,
 			},
 			"resource": {
 				Type:     schema.TypeList,
@@ -183,46 +206,17 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 						"cpu": {
 							Type:        schema.TypeInt,
 							Required:    true,
-							Description: "CPU specifications.",
+							Description: "CPU units in millicores.",
 						},
 						"memory": {
 							Type:        schema.TypeInt,
 							Required:    true,
-							Description: "Memory specifications in GB.",
+							Description: "Memory in MB.",
 						},
 					},
 				},
 				Description: "Resource specifications for the Flink instance.",
-			},
-			"storage": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"oss": {
-							Type:     schema.TypeList,
-							Required: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"bucket": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "OSS bucket name.",
-									},
-								},
-							},
-							Description: "OSS storage configuration.",
-						},
-					},
-				},
-				Description: "Storage configuration for the Flink instance.",
-			},
-			"use_promotion_code": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "Whether to use promotion code.",
+				ForceNew:    true,
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
@@ -246,26 +240,18 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	request.ResourceGroupId = tea.String(d.Get("resource_group_id").(string))
 	request.VpcId = tea.String(d.Get("vpc_id").(string))
 	request.ZoneId = tea.String(d.Get("zone_id").(string))
+	request.Region = tea.String(d.Get("region").(string))
 
 	// Handle storage configuration
 	storage := d.Get("storage").([]interface{})
 	if len(storage) > 0 {
 		storageMap := storage[0].(map[string]interface{})
-		if oss, ok := storageMap["oss"].([]interface{}); ok && len(oss) > 0 {
-			ossMap := oss[0].(map[string]interface{})
+		if ossBucket, ok := storageMap["oss_bucket"].(string); ok {
 			request.Storage = &foasconsole.CreateInstanceRequestStorage{
 				Oss: &foasconsole.CreateInstanceRequestStorageOss{
-					Bucket: tea.String(ossMap["bucket"].(string)),
+					Bucket: tea.String(ossBucket),
 				},
 			}
-		}
-	} else {
-		// Fallback to the oss_bucket field for backward compatibility
-		ossBucket := d.Get("oss_bucket").(string)
-		request.Storage = &foasconsole.CreateInstanceRequestStorage{
-			Oss: &foasconsole.CreateInstanceRequestStorageOss{
-				Bucket: tea.String(ossBucket),
-			},
 		}
 	}
 
@@ -277,7 +263,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	// Handle nested ResourceSpec
-	resourceSpec := d.Get("resource_spec").([]interface{})
+	resourceSpec := d.Get("resource").([]interface{})
 	if len(resourceSpec) > 0 {
 		resourceSpecMap := resourceSpec[0].(map[string]interface{})
 		request.ResourceSpec = &foasconsole.CreateInstanceRequestResourceSpec{
@@ -287,13 +273,13 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	// Handle boolean fields with proper conversion
-	if v, ok := d.GetOkExists("auto_renew"); ok {
+	if v, ok := d.GetOk("auto_renew"); ok {
 		request.AutoRenew = tea.Bool(v.(bool))
 	}
-	if v, ok := d.GetOkExists("ha"); ok {
+	if v, ok := d.GetOk("ha"); ok {
 		request.Ha = tea.Bool(v.(bool))
 	}
-	if v, ok := d.GetOkExists("use_promotion_code"); ok {
+	if v, ok := d.GetOk("use_promotion_code"); ok {
 		request.UsePromotionCode = tea.Bool(v.(bool))
 	}
 
@@ -326,24 +312,28 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	// Handle HA fields
-	if ha, ok := d.GetOkExists("ha"); ok && ha.(bool) {
-		if v, ok := d.GetOk("ha_zone_id"); ok {
-			request.HaZoneId = tea.String(v.(string))
-		}
+	if ha, ok := d.GetOk("ha"); ok {
+		haConfig := ha.([]interface{})
+		if len(haConfig) > 0 {
+			haMap := haConfig[0].(map[string]interface{})
+			zoneId := haMap["zone_id"].(string)
+			request.HaZoneId = tea.String(zoneId)
+			request.Ha = tea.Bool(true) // 启用HA
 
-		if haVswitchIds, ok := d.GetOk("ha_vswitch_ids"); ok {
-			haVswitchIdsList := haVswitchIds.([]interface{})
-			request.HaVSwitchIds = make([]*string, 0, len(haVswitchIdsList))
-			for _, v := range haVswitchIdsList {
+			// 处理vswitch_ids
+			haVswitchIds := haMap["vswitch_ids"].([]interface{})
+			request.HaVSwitchIds = make([]*string, 0, len(haVswitchIds))
+			for _, v := range haVswitchIds {
 				request.HaVSwitchIds = append(request.HaVSwitchIds, tea.String(v.(string)))
 			}
-		}
 
-		if haResourceSpec, ok := d.GetOk("ha_resource_spec"); ok && len(haResourceSpec.([]interface{})) > 0 {
-			haResourceSpecMap := haResourceSpec.([]interface{})[0].(map[string]interface{})
+			// 处理resource部分
+			haResource := haMap["resource"].([]interface{})[0].(map[string]interface{})
+			cpu := haResource["cpu"].(int)
+			memory := haResource["memory"].(int)
 			request.HaResourceSpec = &foasconsole.CreateInstanceRequestHaResourceSpec{
-				Cpu:      tea.Int32(int32(haResourceSpecMap["cpu"].(int))),
-				MemoryGB: tea.Int32(int32(haResourceSpecMap["memory"].(int))),
+				Cpu:      tea.Int32(int32(cpu)),
+				MemoryGB: tea.Int32(int32(memory)),
 			}
 		}
 	}
@@ -363,7 +353,9 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 
 	// Set required fields
 	request.ChargeType = tea.String(d.Get("charge_type").(string))
-	request.Region = tea.String(d.Get("region").(string))
+
+	region := d.Get("region").(string)
+	request.Region = tea.String(region)
 
 	// Make the create request with retry for transient errors
 	var response *foasconsole.CreateInstanceResponse
@@ -394,7 +386,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	stateConf := resource.StateChangeConf{
 		Pending:    []string{"CREATING"},
 		Target:     []string{"RUNNING"},
-		Refresh:    flinkService.FlinkWorkspaceStateRefreshFunc(d.Id()),
+		Refresh:    flinkService.FlinkWorkspaceStateRefreshFunc(region, d.Id()),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		Delay:      10 * time.Second,
 		MinTimeout: 5 * time.Second,
@@ -403,10 +395,6 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAliCloudFlinkWorkspaceRead(d, meta)
-}
-
-func resourceAliCloudFlinkWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAliCloudFlinkWorkspaceRead(d, meta)
 }
 
@@ -538,7 +526,7 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 	if err != nil {
 		return WrapError(err)
 	}
-
+	region := d.Get("region").(string)
 	request := &foasconsole.DeleteInstanceRequest{
 		InstanceId: tea.String(d.Id()),
 	}
@@ -558,8 +546,14 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteInstance", AlibabaCloudSdkGoERROR)
 	}
 
-	// Add state check after deletion
-	stateConf := BuildStateConf([]string{"DELETING", "RUNNING"}, []string{}, d.Timeout(schema.TimeoutDelete), 10*time.Second, flinkService.FlinkWorkspaceStateRefreshFunc(d.Id()))
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"DELETING", "RUNNING"},
+		Target:     []string{},
+		Refresh:    flinkService.FlinkWorkspaceStateRefreshFunc(region, d.Id()),
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Delay:      10 * time.Second,
+		MinTimeout: 5 * time.Second,
+	}
 	if _, err := stateConf.WaitForState(); err != nil {
 		if IsExpectedErrors(err, []string{"InvalidInstance.NotFound"}) {
 			d.SetId("")

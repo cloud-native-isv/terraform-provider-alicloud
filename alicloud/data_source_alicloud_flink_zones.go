@@ -22,12 +22,6 @@ func dataSourceAlicloudFlinkZones() *schema.Resource {
 				ForceNew:     true,
 				Default:      "X86",
 			},
-			"region": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The region to query available zones from, e.g. cn-beijing.",
-				ForceNew:    true,
-			},
 			"output_file": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -67,11 +61,8 @@ func dataSourceAliCloudFlinkZonesRead(d *schema.ResourceData, meta interface{}) 
 		architectureType := v.(string)
 		request.ArchitectureType = &architectureType
 	}
-
-	if v, ok := d.GetOk("region"); ok {
-		region := v.(string)
-		request.Region = &region
-	}
+	region := client.RegionId
+	request.Region = &region
 
 	response, err := flinkService.DescribeSupportedZones(request)
 	if err != nil {

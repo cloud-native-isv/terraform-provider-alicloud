@@ -254,3 +254,8 @@ require (
 )
 
 go 1.24
+
+replace (
+	github.com/alibabacloud-go/foasconsole-20211028 => ./sdk/foasconsole-20211028
+	github.com/alibabacloud-go/ververica-20220718 => ./sdk/ververica-20220718
+)
