@@ -380,7 +380,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	stateConf := resource.StateChangeConf{
 		Pending:    []string{"CREATING"},
 		Target:     []string{"RUNNING"},
-		Refresh:    flinkService.FlinkWorkspaceStateRefreshFunc(region, d.Id()),
+		Refresh:    flinkService.FlinkWorkspaceStateRefreshFunc(d.Id()),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		Delay:      10 * time.Second,
 		MinTimeout: 5 * time.Second,
@@ -514,7 +514,7 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 	if err != nil {
 		return WrapError(err)
 	}
-	region := client.RegionId
+
 	request := &foasconsole.DeleteInstanceRequest{
 		InstanceId: tea.String(d.Id()),
 	}
@@ -537,7 +537,7 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"DELETING", "RUNNING"},
 		Target:     []string{},
-		Refresh:    flinkService.FlinkWorkspaceStateRefreshFunc(region, d.Id()),
+		Refresh:    flinkService.FlinkWorkspaceStateRefreshFunc(d.Id()),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Delay:      10 * time.Second,
 		MinTimeout: 5 * time.Second,

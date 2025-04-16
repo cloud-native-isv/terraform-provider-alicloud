@@ -43,6 +43,10 @@ func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
 	}, nil
 }
 
+func (s *FlinkService) GetRegionId() string {
+	return s.client.RegionId
+}
+
 // DescribeSupportedZones retrieves zones that support Flink instances
 func (s *FlinkService) DescribeSupportedZones(request *foasconsole.DescribeSupportedZonesRequest) (*foasconsole.DescribeSupportedZonesResponse, error) {
 	response, err := s.foasconsoleClient.DescribeSupportedZones(request)
@@ -65,7 +69,8 @@ func (s *FlinkService) DescribeInstances(request *foasconsole.DescribeInstancesR
 	return response, WrapError(err)
 }
 
-func (s *FlinkService) ListInstances(region string) ([]*foasconsole.DescribeInstancesResponseBodyInstances, error) {
+func (s *FlinkService) ListInstances() ([]*foasconsole.DescribeInstancesResponseBodyInstances, error) {
+	region := s.GetRegionId()
 	pageIndex := int32(1)
 	pageSize := int32(50)
 	var instances []*foasconsole.DescribeInstancesResponseBodyInstances
@@ -93,7 +98,8 @@ func (s *FlinkService) ListInstances(region string) ([]*foasconsole.DescribeInst
 	return instances, nil
 }
 
-func (s *FlinkService) GetInstance(region, instanceId string) (*foasconsole.DescribeInstancesResponseBodyInstances, error) {
+func (s *FlinkService) GetInstance(instanceId string) (*foasconsole.DescribeInstancesResponseBodyInstances, error) {
+	region := s.GetRegionId()
 	request := &foasconsole.DescribeInstancesRequest{
 		Region:     tea.String(region),
 		InstanceId: tea.String(instanceId),
@@ -101,7 +107,7 @@ func (s *FlinkService) GetInstance(region, instanceId string) (*foasconsole.Desc
 
 	response, err := s.DescribeInstances(request)
 	if err != nil {
-		return nil, err
+		return nil, WrapError(err)
 	}
 
 	if len(response.Body.Instances) == 0 {
@@ -111,7 +117,8 @@ func (s *FlinkService) GetInstance(region, instanceId string) (*foasconsole.Desc
 	return response.Body.Instances[0], nil
 }
 
-func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(region, id string) resource.StateRefreshFunc {
+func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(id string) resource.StateRefreshFunc {
+	region := s.GetRegionId()
 	return func() (interface{}, string, error) {
 		request := &foasconsole.DescribeInstancesRequest{
 			Region:     tea.String(region),
@@ -150,41 +157,49 @@ func (s *FlinkService) DeleteNamespace(request *foasconsole.DeleteNamespaceReque
 	return response, WrapError(err)
 }
 
-func (s *FlinkService) ListNamespaces(region *string, workspace *string) (map[string]*foasconsole.DescribeNamespacesResponseBodyNamespacesResourceSpec, error) {
+func (s *FlinkService) ListNamespaces(workspace string) ([]*foasconsole.DescribeNamespacesResponseBodyNamespaces, error) {
+	region := s.GetRegionId()
 	pageIndex := int32(1)
 	pageSize := int32(50)
-	namespaceMap := make(map[string]*foasconsole.DescribeNamespacesResponseBodyNamespacesResourceSpec)
+	var namespaces []*foasconsole.DescribeNamespacesResponseBodyNamespaces
 	for {
 		request := &foasconsole.DescribeNamespacesRequest{
 			PageIndex:  tea.Int32(pageIndex),
 			PageSize:   tea.Int32(pageSize),
-			Region:     region,
-			InstanceId: workspace,
+			Region:     tea.String(region),
+			InstanceId: tea.String(workspace),
 		}
 		response, err := s.foasconsoleClient.DescribeNamespaces(request)
 		if err != nil {
 			return nil, WrapError(err)
 		}
-		for _, namespace := range response.Body.Namespaces {
-			namespaceMap[*namespace.Namespace] = namespace.ResourceSpec
-		}
+
+		namespaces = append(namespaces, response.Body.Namespaces...)
+
 		if *response.Body.PageIndex >= *response.Body.TotalPage {
 			break
 		}
+		pageIndex++
 	}
-	return namespaceMap, nil
+	return namespaces, nil
 }
 
-func (s *FlinkService) GetNamespace(region *string, workspace *string, namespace *string) (*foasconsole.DescribeNamespacesResponseBodyNamespacesResourceSpec, error) {
-	namespaceMap, err := s.ListNamespaces(region, workspace)
+func (s *FlinkService) GetNamespace(workspace string, namespace string) (*foasconsole.DescribeNamespacesResponseBodyNamespaces, error) {
+	region := s.GetRegionId()
+	request := &foasconsole.DescribeNamespacesRequest{
+		Region:     tea.String(region),
+		InstanceId: tea.String(workspace),
+		Namespace:  tea.String(namespace),
+	}
+	response, err := s.foasconsoleClient.DescribeNamespaces(request)
 	if err != nil {
-		return nil, err
+		return nil, WrapError(err)
 	}
-	namespaceSpec, ok := namespaceMap[*namespace]
-	if !ok {
-		return nil, fmt.Errorf("namespace %s not found", *namespace)
+	if len(response.Body.Namespaces) == 0 {
+		return nil, fmt.Errorf("namespace '%s/%s' not found", workspace, namespace)
 	}
-	return namespaceSpec, nil
+
+	return response.Body.Namespaces[0], nil
 }
 
 func (s *FlinkService) CreateMember(namespace *string, request *ververica.CreateMemberRequest) (*ververica.CreateMemberResponse, error) {

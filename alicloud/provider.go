@@ -896,6 +896,8 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_vpc_ipam_ipams":                                   dataSourceAliCloudVpcIpamIpams(),
 			"alicloud_flink_zones":                                      dataSourceAlicloudFlinkZones(),
 			"alicloud_flink_workspaces":                                 dataSourceAlicloudFlinkWorkspaces(),
+			"alicloud_flink_namespaces":                                 dataSourceAlicloudFlinkNamespaces(),
+			"alicloud_flink_deployments":                                dataSourceAlicloudFlinkDeployments(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"alicloud_eflo_experiment_plan_template":                        resourceAliCloudEfloExperimentPlanTemplate(),
