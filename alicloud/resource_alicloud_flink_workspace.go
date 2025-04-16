@@ -38,12 +38,6 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the resource group.",
 			},
-			"region": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The region of the instance.",
-				ForceNew:    true,
-			},
 			"zone_id": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -240,7 +234,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	request.ResourceGroupId = tea.String(d.Get("resource_group_id").(string))
 	request.VpcId = tea.String(d.Get("vpc_id").(string))
 	request.ZoneId = tea.String(d.Get("zone_id").(string))
-	request.Region = tea.String(d.Get("region").(string))
+	request.Region = tea.String(client.RegionId)
 
 	// Handle storage configuration
 	storage := d.Get("storage").([]interface{})
@@ -354,7 +348,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	// Set required fields
 	request.ChargeType = tea.String(d.Get("charge_type").(string))
 
-	region := d.Get("region").(string)
+	region := client.RegionId
 	request.Region = tea.String(region)
 
 	// Make the create request with retry for transient errors
@@ -409,12 +403,7 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 	request := &foasconsole.DescribeInstancesRequest{}
 	request.InstanceId = tea.String(d.Id())
 
-	// Use region if available in state, otherwise use client's region
-	if v, ok := d.GetOk("region"); ok {
-		request.Region = tea.String(v.(string))
-	} else {
-		request.Region = tea.String(client.RegionId)
-	}
+	request.Region = tea.String(client.RegionId)
 
 	// Call the API to get the instance with retry for transient errors
 	var response *foasconsole.DescribeInstancesResponse
@@ -455,7 +444,6 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 	d.Set("zone_id", instance.ZoneId)
 	d.Set("vpc_id", instance.VpcId)
 	d.Set("charge_type", instance.ChargeType)
-	d.Set("region", instance.Region)
 	d.Set("ha", instance.Ha)
 	d.Set("ha_zone_id", instance.HaZoneId)
 
@@ -526,7 +514,7 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 	if err != nil {
 		return WrapError(err)
 	}
-	region := d.Get("region").(string)
+	region := client.RegionId
 	request := &foasconsole.DeleteInstanceRequest{
 		InstanceId: tea.String(d.Id()),
 	}
