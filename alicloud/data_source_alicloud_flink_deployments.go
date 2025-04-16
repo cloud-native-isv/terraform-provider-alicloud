@@ -1,13 +1,13 @@
 package alicloud
 
 import (
-	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 )
 
-func dataSourceAlicloudFlinkWorkspaces() *schema.Resource {
+func dataSourceAlicloudFlinkDeployments() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFlinkWorkspacesRead,
+		Read: dataSourceAlicloudFlinkDeploymentsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -23,7 +23,7 @@ func dataSourceAlicloudFlinkWorkspaces() *schema.Resource {
 				ForceNew: true,
 				Computed: true,
 			},
-			"workspaces": {
+			"deployments": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -48,7 +48,7 @@ func dataSourceAlicloudFlinkWorkspaces() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudFlinkWorkspacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAlicloudFlinkDeploymentsRead(d *schema.ResourceData, meta interface{}) error {
 	// 1. 初始化Flink服务客户端
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
@@ -63,7 +63,7 @@ func dataSourceAlicloudFlinkWorkspacesRead(d *schema.ResourceData, meta interfac
 	}
 
 	// 3. 过滤和映射结果
-	var workspaces []map[string]interface{}
+	var deployments []map[string]interface{}
 	ids := make([]string, 0)
 	names := make([]string, 0)
 	for _, instance := range instances {
@@ -74,10 +74,10 @@ func dataSourceAlicloudFlinkWorkspacesRead(d *schema.ResourceData, meta interfac
 		instanceName := *instance.InstanceName
 		status := *instance.ClusterStatus
 
-		workspaces = append(workspaces, map[string]interface{}{
-			"id":     instanceId,
-			"name":   instanceName,
-			"status": status,
+		deployments = append(deployments, map[string]interface{}{
+			"id":      instanceId,
+			"name":    instanceName,
+			"status":  status,
 			// Add other fields here
 		})
 		ids = append(ids, instanceId)
@@ -85,13 +85,14 @@ func dataSourceAlicloudFlinkWorkspacesRead(d *schema.ResourceData, meta interfac
 	}
 
 	// 4. 设置数据源返回值
+	d.SetId("flink_deployments")
 	if err := d.Set("ids", ids); err != nil {
 		return err
 	}
 	if err := d.Set("names", names); err != nil {
 		return err
 	}
-	if err := d.Set("workspaces", workspaces); err != nil {
+	if err := d.Set("deployments", deployments); err != nil {
 		return err
 	}
 

@@ -101,15 +101,14 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 	}
 	id := d.Id()
 	workspace, namespace := splitNamespaceID(id)
-	region := client.RegionId
 
-	spec, derr := flinkService.GetNamespace(tea.String(region), tea.String(workspace), tea.String(namespace))
+	_namespace, derr := flinkService.GetNamespace(workspace, namespace)
 	if derr != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_namespace", "DescribeNamespaces", AlibabaCloudSdkGoERROR)
 	}
 
-	d.Set("cpu", spec.Cpu)
-	d.Set("memory", spec.MemoryGB)
+	d.Set("cpu", _namespace.ResourceSpec.Cpu)
+	d.Set("memory", _namespace.ResourceSpec.MemoryGB)
 
 	return nil
 }
@@ -133,8 +132,8 @@ func resourceAliCloudFlinkNamespaceDelete(d *schema.ResourceData, meta interface
 
 	request := &foasconsole.DeleteNamespaceRequest{
 		InstanceId: tea.String(workspace),
-		Namespace: tea.String(namespace),
-		Region: tea.String(region),
+		Namespace:  tea.String(namespace),
+		Region:     tea.String(region),
 	}
 	_, err = flinkService.DeleteNamespace(request)
 	if err != nil {
