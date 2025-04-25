@@ -256,6 +256,8 @@ require (
 go 1.24
 
 replace (
+	github.com/alibabacloud-go/alikafka-20190916/v3 => ./sdk/alikafka-20190916
 	github.com/alibabacloud-go/foasconsole-20211028 => ./sdk/foasconsole-20211028
 	github.com/alibabacloud-go/ververica-20220718 => ./sdk/ververica-20220718
+	github.com/alibabacloud-go/ons-20190214/v3 => ./sdk/ons-20190214
 )
