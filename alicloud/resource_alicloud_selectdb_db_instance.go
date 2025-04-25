@@ -86,6 +86,11 @@ func resourceAliCloudSelectDBDbInstance() *schema.Resource {
 				Deprecated:    "Field `upgraded_engine_minor_version` has been deprecated from provider version 1.248.0. New field `engine_minor_version` instead.",
 			},
 			"tags": tagsSchema(),
+			"resource_group_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 			// flag for public network and update
 			"enable_public_network": {
 				Type:     schema.TypeBool,
@@ -95,6 +100,24 @@ func resourceAliCloudSelectDBDbInstance() *schema.Resource {
 				Type:      schema.TypeString,
 				Sensitive: true,
 				Optional:  true,
+			},
+			"upgraded_engine_minor_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"upgraded_engine_minor_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"engine_minor_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "4.0.4",
+			},
+			"maintenance_window": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"desired_security_ip_lists": {
 				Type:     schema.TypeList,

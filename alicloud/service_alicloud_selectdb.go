@@ -633,3 +633,157 @@ func (s *SelectDBService) ModifySelectDBInstanceAdminPass(id string, adminpass s
 
 	return s.RequestProcessForSelectDB(request, action, "GET")
 }
+
+// EnDisableScalingRules enables or disables elastic scaling rules for a SelectDB cluster
+func (s *SelectDBService) EnDisableScalingRules(clusterId string, enable bool) (map[string]interface{}, error) {
+	client, err := s.client.WithSelectDBClient()
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	clusterInfo := strings.Split(clusterId, ":")
+	dbInstanceId := clusterInfo[0]
+	dbClusterId := clusterInfo[1]
+
+	request := map[string]interface{}{
+		"DBInstanceId":       dbInstanceId,
+		"DBClusterId":        dbClusterId,
+		"ScalingRulesEnable": enable,
+	}
+
+	action := "EnDisableScalingRules"
+	request["RegionId"] = s.client.RegionId
+
+	// Request for scaling rules enable/disable
+	response, err := s.RequestProcessForSelectDB(request, action, "POST")
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return response, nil
+}
+
+// DescribeElasticRules retrieves all elastic rules for a SelectDB cluster
+func (s *SelectDBService) DescribeElasticRules(clusterId string) ([]interface{}, error) {
+	client, err := s.client.WithSelectDBClient()
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	clusterInfo := strings.Split(clusterId, ":")
+	dbInstanceId := clusterInfo[0]
+	dbClusterId := clusterInfo[1]
+
+	request := map[string]interface{}{
+		"DBInstanceId": dbInstanceId,
+		"DBClusterId":  dbClusterId,
+	}
+
+	action := "DescribeElasticRules"
+	request["RegionId"] = s.client.RegionId
+
+	// Request to get elastic rules
+	response, err := s.RequestProcessForSelectDB(request, action, "GET")
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	// Extract rules from response
+	if resp, err := jsonpath.Get("$.Data.Rules", response); err != nil || resp == nil {
+		return []interface{}{}, nil
+	} else {
+		return resp.([]interface{}), nil
+	}
+}
+
+// CreateElasticRule creates a new elastic rule for a SelectDB cluster
+func (s *SelectDBService) CreateElasticRule(clusterId string, executionPeriod string, startTime string, clusterClass string) (map[string]interface{}, error) {
+	client, err := s.client.WithSelectDBClient()
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	clusterInfo := strings.Split(clusterId, ":")
+	dbInstanceId := clusterInfo[0]
+	dbClusterId := clusterInfo[1]
+
+	request := map[string]interface{}{
+		"DBInstanceId":         dbInstanceId,
+		"DBClusterId":          dbClusterId,
+		"ExecutionPeriod":      executionPeriod,
+		"ElasticRuleStartTime": startTime,
+		"ClusterClass":         clusterClass,
+	}
+
+	action := "CreateElasticRule"
+	request["RegionId"] = s.client.RegionId
+
+	// Request to create elastic rule
+	response, err := s.RequestProcessForSelectDB(request, action, "POST")
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return response, nil
+}
+
+// ModifyElasticRule modifies an existing elastic rule for a SelectDB cluster
+func (s *SelectDBService) ModifyElasticRule(clusterId string, ruleId int, executionPeriod string, startTime string, clusterClass string) (map[string]interface{}, error) {
+	client, err := s.client.WithSelectDBClient()
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	clusterInfo := strings.Split(clusterId, ":")
+	dbInstanceId := clusterInfo[0]
+	dbClusterId := clusterInfo[1]
+
+	request := map[string]interface{}{
+		"DBInstanceId":         dbInstanceId,
+		"DBClusterId":          dbClusterId,
+		"RuleId":               ruleId,
+		"ExecutionPeriod":      executionPeriod,
+		"ElasticRuleStartTime": startTime,
+		"ClusterClass":         clusterClass,
+	}
+
+	action := "ModifyElasticRule"
+	request["RegionId"] = s.client.RegionId
+
+	// Request to modify elastic rule
+	response, err := s.RequestProcessForSelectDB(request, action, "POST")
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return response, nil
+}
+
+// DeleteElasticRule deletes an elastic rule for a SelectDB cluster by rule ID
+func (s *SelectDBService) DeleteElasticRule(clusterId string, ruleId int) (map[string]interface{}, error) {
+	client, err := s.client.WithSelectDBClient()
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	clusterInfo := strings.Split(clusterId, ":")
+	dbInstanceId := clusterInfo[0]
+	dbClusterId := clusterInfo[1]
+
+	request := map[string]interface{}{
+		"DBInstanceId": dbInstanceId,
+		"DBClusterId":  dbClusterId,
+		"RuleId":       ruleId,
+	}
+
+	action := "DeleteElasticRule"
+	request["RegionId"] = s.client.RegionId
+
+	// Request to delete elastic rule
+	response, err := s.RequestProcessForSelectDB(request, action, "POST")
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return response, nil
+}

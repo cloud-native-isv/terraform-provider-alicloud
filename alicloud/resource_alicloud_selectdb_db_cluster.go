@@ -71,6 +71,36 @@ func resourceAliCloudSelectDBDbCluster() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: StringInSlice([]string{"STOPPING", "STARTING", "RESTART"}, false),
 			},
+			"elastic_rules_enable": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"elastic_rules": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"execution_period": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: StringInSlice([]string{"Day", "Week"}, false),
+						},
+						"elastic_rule_start_time": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"cluster_class": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"rule_id": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			// computed
 			"db_cluster_id": {
@@ -238,6 +268,103 @@ func resourceAliCloudSelectDBDbClusterUpdate(d *schema.ResourceData, meta interf
 		d.SetPartial("db_cluster_description")
 	}
 
+	if !d.IsNewResource() && d.HasChange("elastic_rules_enable") {
+		enable := d.Get("elastic_rules_enable").(bool)
+		_, err := selectDBService.EnDisableScalingRules(d.Id(), enable)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "EnDisableScalingRules", AlibabaCloudSdkGoERROR)
+		}
+		d.SetPartial("elastic_rules_enable")
+	}
+
+	if !d.IsNewResource() && d.HasChange("elastic_rules") {
+		// Get existing rules to identify what needs to be created, modified, or deleted
+		existingRules, err := selectDBService.DescribeElasticRules(d.Id())
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DescribeElasticRules", AlibabaCloudSdkGoERROR)
+		}
+
+		// Map existing rules by their properties for easy lookup
+		existingRulesMap := make(map[string]map[string]interface{})
+		for _, rule := range existingRules {
+			ruleItem := rule.(map[string]interface{})
+			key := fmt.Sprintf("%s:%s:%s",
+				ruleItem["ExecutionPeriod"],
+				ruleItem["ElasticRuleStartTime"],
+				ruleItem["ClusterClass"])
+			existingRulesMap[key] = ruleItem
+		}
+
+		// Process new rules configuration
+		o, n := d.GetChange("elastic_rules")
+		oldRules := o.([]interface{})
+		newRules := n.([]interface{})
+
+		// Track deleted rules by key
+		oldRuleKeys := make(map[string]bool)
+		for _, oldRule := range oldRules {
+			if oldRule == nil {
+				continue
+			}
+			oldRuleMap := oldRule.(map[string]interface{})
+			key := fmt.Sprintf("%s:%s:%s",
+				oldRuleMap["execution_period"],
+				oldRuleMap["elastic_rule_start_time"],
+				oldRuleMap["cluster_class"])
+			oldRuleKeys[key] = true
+		}
+
+		// Process new rules - create or modify
+		for _, newRule := range newRules {
+			if newRule == nil {
+				continue
+			}
+			newRuleMap := newRule.(map[string]interface{})
+			key := fmt.Sprintf("%s:%s:%s",
+				newRuleMap["execution_period"],
+				newRuleMap["elastic_rule_start_time"],
+				newRuleMap["cluster_class"])
+
+			// If rule exists, may need to update
+			if existingRule, exists := existingRulesMap[key]; exists {
+				ruleId := existingRule["RuleId"].(float64)
+				// Check if rule needs modification
+				if newRuleMap["cluster_class"].(string) != existingRule["ClusterClass"].(string) {
+					_, err := selectDBService.ModifyElasticRule(d.Id(), int(ruleId),
+						newRuleMap["execution_period"].(string),
+						newRuleMap["elastic_rule_start_time"].(string),
+						newRuleMap["cluster_class"].(string))
+					if err != nil {
+						return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyElasticRule", AlibabaCloudSdkGoERROR)
+					}
+				}
+				delete(oldRuleKeys, key)
+			} else {
+				// Create new rule
+				_, err := selectDBService.CreateElasticRule(d.Id(),
+					newRuleMap["execution_period"].(string),
+					newRuleMap["elastic_rule_start_time"].(string),
+					newRuleMap["cluster_class"].(string))
+				if err != nil {
+					return WrapErrorf(err, DefaultErrorMsg, d.Id(), "CreateElasticRule", AlibabaCloudSdkGoERROR)
+				}
+			}
+		}
+
+		// Delete rules that no longer exist in the new configuration
+		for key := range oldRuleKeys {
+			if existingRule, exists := existingRulesMap[key]; exists {
+				ruleId := existingRule["RuleId"].(float64)
+				_, err := selectDBService.DeleteElasticRule(d.Id(), int(ruleId))
+				if err != nil {
+					return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteElasticRule", AlibabaCloudSdkGoERROR)
+				}
+			}
+		}
+
+		d.SetPartial("elastic_rules")
+	}
+
 	if !d.IsNewResource() && d.HasChange("desired_status") {
 		_, newStatus := d.GetChange("desired_status")
 		oldStatus := d.Get("status")
@@ -250,7 +377,9 @@ func resourceAliCloudSelectDBDbClusterUpdate(d *schema.ResourceData, meta interf
 			if newStatusFinal == "" {
 				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateSelectDBClusterStatus", AlibabaCloudSdkGoERROR)
 			}
-			stateConf := BuildStateConf([]string{newStatus.(string)}, []string{newStatusFinal}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbClusterStateRefreshFunc(d.Id(), []string{}))
+
+			// Wait for status change to complete
+			stateConf := BuildStateConf([]string{"STATUS_CHANGING", "RESOURCE_PREPARING"}, []string{newStatusFinal}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
 			if _, err := stateConf.WaitForState(); err != nil {
 				return WrapErrorf(err, IdMsg, d.Id())
 			}
@@ -323,6 +452,32 @@ func resourceAliCloudSelectDBDbClusterRead(d *schema.ResourceData, meta interfac
 	d.Set("vpc_id", fmt.Sprint(clusterResp["VpcId"]))
 	d.Set("zone_id", fmt.Sprint(clusterResp["ZoneId"]))
 	d.Set("region_id", fmt.Sprint(clusterResp["RegionId"]))
+
+	// Read elastic rules status
+	if _, exists := clusterResp["ScalingRulesEnable"]; exists {
+		d.Set("elastic_rules_enable", clusterResp["ScalingRulesEnable"].(bool))
+	}
+
+	// Read elastic rules if enabled
+	if d.Get("elastic_rules_enable").(bool) {
+		elasticRules, err := selectDBService.DescribeElasticRules(d.Id())
+		if err != nil {
+			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_db_cluster_elastic_rules", AlibabaCloudSdkGoERROR)
+		}
+
+		rulesMapping := make([]map[string]interface{}, 0)
+		for _, rule := range elasticRules {
+			ruleItem := rule.(map[string]interface{})
+			ruleId := int(ruleItem["RuleId"].(float64))
+			rulesMapping = append(rulesMapping, map[string]interface{}{
+				"execution_period":        ruleItem["ExecutionPeriod"],
+				"elastic_rule_start_time": ruleItem["ElasticRuleStartTime"],
+				"cluster_class":           ruleItem["ClusterClass"],
+				"rule_id":                 ruleId,
+			})
+		}
+		d.Set("elastic_rules", rulesMapping)
+	}
 
 	configChangeArrayList, err := selectDBService.DescribeSelectDBDbClusterConfigChangeLog(d.Id())
 	if err != nil {
