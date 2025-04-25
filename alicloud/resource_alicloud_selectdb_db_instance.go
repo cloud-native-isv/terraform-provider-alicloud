@@ -73,6 +73,11 @@ func resourceAliCloudSelectDBDbInstance() *schema.Resource {
 				Required: true,
 			},
 			"tags": tagsSchema(),
+			"resource_group_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 			// flag for public network and update
 			"enable_public_network": {
 				Type:     schema.TypeBool,
@@ -84,6 +89,16 @@ func resourceAliCloudSelectDBDbInstance() *schema.Resource {
 				Optional:  true,
 			},
 			"upgraded_engine_minor_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"engine_minor_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "4.0.4",
+			},
+			"maintenance_window": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
