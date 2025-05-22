@@ -12,16 +12,32 @@ Supported Versions
 | Terraform version | minimum provider version |maximum provider version
 | ---- | ---- | ----| 
 | >= 0.11.x	| 1.0.0	| latest |
+| >= 0.12.x	| 1.56.0	| latest |
+| >= 1.0.x	| 1.126.0	| latest |
 
 Requirements
 ------------
 
--	[Terraform](https://www.terraform.io/downloads.html) 0.12.x
+-	[Terraform](https://www.terraform.io/downloads.html) 0.12.x or later
 -	[Go](https://golang.org/doc/install) 1.20 (to build the provider plugin)
 -   [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports):
     ```
     go get golang.org/x/tools/cmd/goimports
     ```
+
+Project Structure
+----------------
+
+This project includes the following key directories:
+
+- `alicloud/`: Main provider code including resources and data sources
+- `website/`: Documentation for the provider 
+- `examples/`: Example configurations
+- `sdk/`: Local copies of Alibaba Cloud service SDKs
+  - `foasconsole-20211028/`: FOAS Console SDK
+  - `ververica-20220718/`: Ververica SDK
+
+> **Note:** Unlike the open-source version, this project maintains local copies of some Alibaba Cloud service SDKs in the `sdk` directory rather than relying entirely on external dependencies.
 
 Building The Provider
 ---------------------
@@ -48,7 +64,7 @@ Please see [instructions](https://registry.terraform.io/providers/aliyun/aliclou
 ## Developing the Provider
 ---------------------------
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.11+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.20+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
 
 To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
@@ -59,8 +75,13 @@ $ $GOPATH/bin/terraform-provider-alicloud
 ...
 ```
 
-Running `make dev` or `make devlinux` or `devwin` will only build the specified developing provider which matchs the local system.
-And then, it will unarchive the provider binary and then replace the local provider plugin.
+Running `make help` will show all available make targets with descriptions.
+
+For development builds targeting specific platforms:
+- `make dev`: Build for macOS and install to local Terraform path
+- `make devlinux`: Build for Linux and install to local Terraform path
+- `make devwin`: Build for Windows and install to local Terraform path
+- `make macarm`: Build for Apple Silicon (M1/M2) processors
 
 In order to test the provider, you can simply run `make test`.
 
@@ -74,6 +95,16 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 
 ```sh
 $ make testacc
+```
+
+## Working with Local SDKs
+
+When developing resources that use services with SDKs in the `sdk/` directory, import the SDK from the local path rather than using external dependencies. For example:
+
+```go
+import (
+    "github.com/aliyun/terraform-provider-alicloud/sdk/foasconsole-20211028/client"
+)
 ```
 
 ## Acceptance Testing
@@ -103,3 +134,7 @@ export ALICLOUD_ACCOUNT_SITE=Domestic
 export ALICLOUD_ACCOUNT_SITE=International
 ```
 The setting of account site type can skip some unsupported cases automatically.
+
+## Documentation
+
+When developing new resources or data sources, follow the documentation standards outlined in the [instructions.md](docs/instructions.md) file. All resources must include comprehensive documentation with proper examples and parameter descriptions.
