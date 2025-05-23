@@ -410,3 +410,59 @@ func (s *FlinkService) ListVariables(workspace, namespace *string, PageIndex int
 	}
 	return resp, nil
 }
+
+// Connector management functions
+func (s *FlinkService) ListCustomConnectors(workspace, namespace *string) (*ververica.ListCustomConnectorsResponse, error) {
+	response, err := s.ververicaClient.ListCustomConnectorsWithOptions(
+		namespace,
+		&ververica.ListCustomConnectorsHeaders{
+			Workspace: workspace,
+		},
+		&util.RuntimeOptions{},
+	)
+	return response, WrapError(err)
+}
+
+func (s *FlinkService) RegisterCustomConnector(workspace, namespace *string, request *ververica.RegisterCustomConnectorRequest) (*ververica.RegisterCustomConnectorResponse, error) {
+	response, err := s.ververicaClient.RegisterCustomConnectorWithOptions(
+		namespace,
+		request,
+		&ververica.RegisterCustomConnectorHeaders{
+			Workspace: workspace,
+		},
+		&util.RuntimeOptions{},
+	)
+	return response, WrapError(err)
+}
+
+func (s *FlinkService) DeleteCustomConnector(workspace, namespace *string, connectorName *string) (*ververica.DeleteCustomConnectorResponse, error) {
+	response, err := s.ververicaClient.DeleteCustomConnectorWithOptions(
+		namespace,
+		connectorName,
+		&ververica.DeleteCustomConnectorHeaders{
+			Workspace: workspace,
+		},
+		&util.RuntimeOptions{},
+	)
+	return response, WrapError(err)
+}
+
+func (s *FlinkService) GetConnector(workspace, namespace, connectorName *string) (*ververica.Connector, error) {
+	response, err := s.ListCustomConnectors(workspace, namespace)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	if response == nil || response.Body == nil || response.Body.Data == nil {
+		return nil, WrapErrorf(fmt.Errorf("connector not found"), "connector %s not found", *connectorName)
+	}
+
+	connectors := response.Body.Data
+	for _, connector := range connectors {
+		if connector.Name != nil && *connector.Name == *connectorName {
+			return connector, nil
+		}
+	}
+
+	return nil, WrapErrorf(fmt.Errorf("connector not found"), "connector %s not found", *connectorName)
+}
