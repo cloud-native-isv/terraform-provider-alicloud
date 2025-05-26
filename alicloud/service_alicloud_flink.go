@@ -202,23 +202,51 @@ func (s *FlinkService) GetNamespace(workspace string, namespace string) (*foasco
 	return response.Body.Namespaces[0], nil
 }
 
-func (s *FlinkService) CreateMember(namespace *string, request *ververica.CreateMemberRequest) (*ververica.CreateMemberResponse, error) {
-	response, err := s.ververicaClient.CreateMember(namespace, request)
+func (s *FlinkService) CreateMember(workspace *string, namespace *string, request *ververica.CreateMemberRequest) (*ververica.CreateMemberResponse, error) {
+	response, err := s.ververicaClient.CreateMemberWithOptions(
+		namespace,
+		request,
+		&ververica.CreateMemberHeaders{
+			Workspace: workspace,
+		},
+		&util.RuntimeOptions{},
+	)
 	return response, WrapError(err)
 }
 
-func (s *FlinkService) GetMember(namespace *string, member *string) (*ververica.GetMemberResponse, error) {
-	response, err := s.ververicaClient.GetMember(namespace, member)
+func (s *FlinkService) GetMember(workspace *string, namespace *string, member *string) (*ververica.GetMemberResponse, error) {
+	response, err := s.ververicaClient.GetMemberWithOptions(
+		namespace,
+		member,
+		&ververica.GetMemberHeaders{
+			Workspace: workspace,
+		},
+		&util.RuntimeOptions{},
+	)
 	return response, WrapError(err)
 }
 
-func (s *FlinkService) UpdateMember(namespace *string, request *ververica.UpdateMemberRequest) (*ververica.UpdateMemberResponse, error) {
-	response, err := s.ververicaClient.UpdateMember(namespace, request)
+func (s *FlinkService) UpdateMember(workspace *string, namespace *string, request *ververica.UpdateMemberRequest) (*ververica.UpdateMemberResponse, error) {
+	response, err := s.ververicaClient.UpdateMemberWithOptions(
+		namespace,
+		request,
+		&ververica.UpdateMemberHeaders{
+			Workspace: workspace,
+		},
+		&util.RuntimeOptions{},
+	)
 	return response, WrapError(err)
 }
 
-func (s *FlinkService) DeleteMember(namespace *string, member *string) (*ververica.DeleteMemberResponse, error) {
-	response, err := s.ververicaClient.DeleteMember(namespace, member)
+func (s *FlinkService) DeleteMember(workspace *string, namespace *string, member *string) (*ververica.DeleteMemberResponse, error) {
+	response, err := s.ververicaClient.DeleteMemberWithOptions(
+		namespace,
+		member,
+		&ververica.DeleteMemberHeaders{
+			Workspace: workspace,
+		},
+		&util.RuntimeOptions{},
+	)
 	return response, WrapError(err)
 }
 
