@@ -23,12 +23,12 @@ func resourceAliCloudFlinkConnector() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"workspace": {
+			"workspace_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-			"namespace": {
+			"namespace_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -124,8 +124,8 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace").(string)
-	namespace := d.Get("namespace").(string)
+	workspace := d.Get("workspace_id").(string)
+	namespace := d.Get("namespace_id").(string)
 	name := d.Get("name").(string)
 	connType := d.Get("type").(string)
 
@@ -275,8 +275,8 @@ func resourceAliCloudFlinkConnectorRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	d.Set("workspace", workspace)
-	d.Set("namespace", namespace)
+	d.Set("workspace_id", workspace)
+	d.Set("namespace_id", namespace)
 	d.Set("name", name)
 
 	if connector.Type != nil {

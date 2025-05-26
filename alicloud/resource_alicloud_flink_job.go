@@ -28,7 +28,7 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the Flink workspace.",
 			},
-			"namespace": {
+			"namespace_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -132,7 +132,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 
 	deploymentID := d.Get("deployment_id").(string)
 	workspaceID := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace").(string)
+	namespace := d.Get("namespace_id").(string)
 
 	request := &ververica.StartJobWithParamsRequest{}
 
@@ -226,7 +226,7 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 	job := response.Body.Data
 
 	// Set basic job information
-	d.Set("namespace", namespace)
+	d.Set("namespace_id", namespace)
 	d.Set("deployment_id", deploymentID)
 	d.Set("job_id", jobID)
 
