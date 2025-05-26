@@ -128,10 +128,7 @@ func resourceAliCloudSelectDBDbInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"engine_minor_version": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			// Remove the duplicate engine_minor_version field as it's already defined above
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,

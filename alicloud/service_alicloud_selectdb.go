@@ -636,11 +636,7 @@ func (s *SelectDBService) ModifySelectDBInstanceAdminPass(id string, adminpass s
 
 // EnDisableScalingRules enables or disables elastic scaling rules for a SelectDB cluster
 func (s *SelectDBService) EnDisableScalingRules(clusterId string, enable bool) (map[string]interface{}, error) {
-	client, err := s.client.WithSelectDBClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
+	// Remove the client initialization that uses an undefined method
 	clusterInfo := strings.Split(clusterId, ":")
 	dbInstanceId := clusterInfo[0]
 	dbClusterId := clusterInfo[1]
@@ -665,11 +661,7 @@ func (s *SelectDBService) EnDisableScalingRules(clusterId string, enable bool) (
 
 // DescribeElasticRules retrieves all elastic rules for a SelectDB cluster
 func (s *SelectDBService) DescribeElasticRules(clusterId string) ([]interface{}, error) {
-	client, err := s.client.WithSelectDBClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
+	// Remove the client initialization that uses an undefined method
 	clusterInfo := strings.Split(clusterId, ":")
 	dbInstanceId := clusterInfo[0]
 	dbClusterId := clusterInfo[1]
@@ -698,11 +690,7 @@ func (s *SelectDBService) DescribeElasticRules(clusterId string) ([]interface{},
 
 // CreateElasticRule creates a new elastic rule for a SelectDB cluster
 func (s *SelectDBService) CreateElasticRule(clusterId string, executionPeriod string, startTime string, clusterClass string) (map[string]interface{}, error) {
-	client, err := s.client.WithSelectDBClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
+	// Remove the client initialization that uses an undefined method
 	clusterInfo := strings.Split(clusterId, ":")
 	dbInstanceId := clusterInfo[0]
 	dbClusterId := clusterInfo[1]
@@ -729,11 +717,7 @@ func (s *SelectDBService) CreateElasticRule(clusterId string, executionPeriod st
 
 // ModifyElasticRule modifies an existing elastic rule for a SelectDB cluster
 func (s *SelectDBService) ModifyElasticRule(clusterId string, ruleId int, executionPeriod string, startTime string, clusterClass string) (map[string]interface{}, error) {
-	client, err := s.client.WithSelectDBClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
+	// Remove the client initialization that uses an undefined method
 	clusterInfo := strings.Split(clusterId, ":")
 	dbInstanceId := clusterInfo[0]
 	dbClusterId := clusterInfo[1]
@@ -761,11 +745,7 @@ func (s *SelectDBService) ModifyElasticRule(clusterId string, ruleId int, execut
 
 // DeleteElasticRule deletes an elastic rule for a SelectDB cluster by rule ID
 func (s *SelectDBService) DeleteElasticRule(clusterId string, ruleId int) (map[string]interface{}, error) {
-	client, err := s.client.WithSelectDBClient()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
+	// Remove the client initialization that uses an undefined method
 	clusterInfo := strings.Split(clusterId, ":")
 	dbInstanceId := clusterInfo[0]
 	dbClusterId := clusterInfo[1]

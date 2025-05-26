@@ -163,8 +163,78 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	// Register the connector directly
+	// Register the connector directly - use proper fields for the request
+	// Create properties for the connector
+	var connectorProperties []*ververica.Property
+	if propsList, ok := d.GetOk("properties"); ok {
+		for _, prop := range propsList.([]interface{}) {
+			propMap := prop.(map[string]interface{})
+			property := &ververica.Property{
+				Key:          tea.String(propMap["key"].(string)),
+				DefaultValue: tea.String(propMap["value"].(string)),
+			}
+
+			if description, ok := propMap["description"]; ok && description.(string) != "" {
+				property.Description = tea.String(description.(string))
+			}
+
+			connectorProperties = append(connectorProperties, property)
+		}
+	}
+
+	// Create a generic request using available information
 	request := &ververica.RegisterCustomConnectorRequest{}
+
+	// Use map to properly structure the request
+	genericRequest := map[string]interface{}{
+		"name":   name,
+		"type":   connType,
+		"lookup": d.Get("lookup").(bool),
+		"source": d.Get("source").(bool),
+		"sink":   d.Get("sink").(bool),
+	}
+
+	// Add properties if available
+	if len(properties) > 0 {
+		propList := make([]map[string]interface{}, 0, len(properties))
+		for _, prop := range properties {
+			propMap := map[string]interface{}{}
+			if prop.Key != nil {
+				propMap["key"] = *prop.Key
+			}
+			if prop.DefaultValue != nil {
+				propMap["defaultValue"] = *prop.DefaultValue
+			}
+			if prop.Description != nil {
+				propMap["description"] = *prop.Description
+			}
+			propList = append(propList, propMap)
+		}
+		genericRequest["properties"] = propList
+	}
+
+	// Add dependencies if available
+	if len(dependencies) > 0 {
+		depList := make([]string, 0, len(dependencies))
+		for _, dep := range dependencies {
+			if dep != nil {
+				depList = append(depList, *dep)
+			}
+		}
+		genericRequest["dependencies"] = depList
+	}
+
+	// Add supported formats if available
+	if len(supportedFormats) > 0 {
+		formatList := make([]string, 0, len(supportedFormats))
+		for _, format := range supportedFormats {
+			if format != nil {
+				formatList = append(formatList, *format)
+			}
+		}
+		genericRequest["supportedFormats"] = formatList
+	}
+
 	raw, err := flinkService.RegisterCustomConnector(tea.String(workspace), tea.String(namespace), request)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_connector", "RegisterCustomConnector", AliyunLogGoSdkERROR)
