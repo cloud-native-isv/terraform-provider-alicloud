@@ -21,7 +21,7 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
-			"workspace": {
+			"workspace_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -67,7 +67,7 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	region := client.RegionId
-	workspace := d.Get("workspace").(string)
+	workspace := d.Get("workspace_id").(string)
 	name := d.Get("name").(string)
 	ha := d.Get("ha").(bool)
 	cpu := d.Get("cpu").(int32)

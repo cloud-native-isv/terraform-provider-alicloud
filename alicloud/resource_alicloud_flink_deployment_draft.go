@@ -28,7 +28,7 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the Flink workspace.",
 			},
-			"namespace": {
+			"namespace_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -140,7 +140,7 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	}
 
 	workspaceID := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace").(string)
+	namespace := d.Get("namespace_id").(string)
 	name := d.Get("name").(string)
 	artifactURI := d.Get("artifact_uri").(string)
 
@@ -234,7 +234,7 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 
 	// Update state with values from the response
 	draft := response.Body.Data
-	d.Set("namespace", draft.Namespace)
+	d.Set("namespace_id", draft.Namespace)
 	d.Set("workspace_id", draft.Workspace)
 	d.Set("name", draft.Name)
 	d.Set("draft_id", draft.DeploymentDraftId)

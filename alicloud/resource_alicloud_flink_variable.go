@@ -17,13 +17,13 @@ func resourceAliCloudFlinkVariable() *schema.Resource {
 		Update: resourceAliCloudFlinkVariableUpdate,
 		Delete: resourceAliCloudFlinkVariableDelete,
 		Schema: map[string]*schema.Schema{
-			"workspace": {
+			"workspace_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "ID of the Flink workspace",
 			},
-			"namespace": {
+			"namespace_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -67,8 +67,8 @@ func resourceAliCloudFlinkVariableRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	d.Set("workspace", workspace)
-	d.Set("namespace", namespace)
+	d.Set("workspace_id", workspace)
+	d.Set("namespace_id", namespace)
 	d.Set("name", variable.Name)
 	d.Set("value", variable.Value)
 	d.Set("description", variable.Description)
@@ -83,8 +83,8 @@ func resourceAliCloudFlinkVariableCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	workspace := d.Get("workspace").(string)
-	namespace := d.Get("namespace").(string)
+	workspace := d.Get("workspace_id").(string)
+	namespace := d.Get("namespace_id").(string)
 	name := d.Get("name").(string)
 	value := d.Get("value").(string)
 	description := d.Get("description").(string)

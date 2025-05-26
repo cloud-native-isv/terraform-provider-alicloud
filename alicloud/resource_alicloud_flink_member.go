@@ -15,13 +15,13 @@ func resourceAliCloudFlinkMember() *schema.Resource {
 		Delete: resourceAliCloudFlinkMemberDelete,
 
 		Schema: map[string]*schema.Schema{
-			"workspace": {
+			"workspace_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "The name of the Flink workspace.",
 			},
-			"namespace": {
+			"namespace_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -50,8 +50,8 @@ func resourceAliCloudFlinkMemberCreate(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace").(string)
-	namespace := d.Get("namespace").(string)
+	workspace := d.Get("workspace_id").(string)
+	namespace := d.Get("namespace_id").(string)
 	name := d.Get("name").(string)
 	role := d.Get("role").(string)
 
@@ -85,8 +85,8 @@ func resourceAliCloudFlinkMemberRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Parse the ID to get workspace, namespace and member name
-	workspace := d.Get("workspace").(string)
-	namespace := d.Get("namespace").(string)
+	workspace := d.Get("workspace_id").(string)
+	namespace := d.Get("namespace_id").(string)
 	name := d.Get("name").(string)
 
 	// Use GetMember method that accepts workspace, namespace and member as string pointers
@@ -116,8 +116,8 @@ func resourceAliCloudFlinkMemberUpdate(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace").(string)
-	namespace := d.Get("namespace").(string)
+	workspace := d.Get("workspace_id").(string)
+	namespace := d.Get("namespace_id").(string)
 	name := d.Get("name").(string)
 	role := d.Get("role").(string)
 
@@ -149,8 +149,8 @@ func resourceAliCloudFlinkMemberDelete(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace").(string)
-	namespace := d.Get("namespace").(string)
+	workspace := d.Get("workspace_id").(string)
+	namespace := d.Get("namespace_id").(string)
 	name := d.Get("name").(string)
 
 	// Use DeleteMember method that accepts workspace, namespace and member as string pointers
