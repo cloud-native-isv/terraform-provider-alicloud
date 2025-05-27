@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -350,8 +351,8 @@ func convertListToJsonString(configured []interface{}) string {
 }
 
 func convertJsonStringToStringList(src interface{}) (result []interface{}) {
-	if err, ok := src.([]interface{}); !ok {
-		panic(err)
+	if _, ok := src.([]interface{}); !ok {
+		panic("src is not a []interface{}")
 	}
 	for _, v := range src.([]interface{}) {
 		result = append(result, fmt.Sprint(formatInt(v)))
@@ -838,111 +839,159 @@ func loadFileContent(v string) ([]byte, error) {
 	return fileContent, nil
 }
 
-func debugOn() bool {
-	for _, part := range strings.Split(os.Getenv("DEBUG"), ",") {
-		if strings.TrimSpace(part) == "terraform" {
-			return true
-		}
+// Global logger instance for alicloud provider
+var providerLogger hclog.Logger
+
+func init() {
+	// Initialize the provider logger
+	providerLogger = hclog.New(&hclog.LoggerOptions{
+		Name:   "alicloud",
+		Level:  getLogLevel(),
+		Output: os.Stderr,
+	})
+}
+
+// getLogLevel returns the appropriate log level based on Terraform environment variables
+func getLogLevel() hclog.Level {
+	// Check TF_LOG_PROVIDER first, then TF_LOG
+	logLevel := strings.ToUpper(os.Getenv("TF_LOG_PROVIDER"))
+	if logLevel == "" {
+		logLevel = strings.ToUpper(os.Getenv("TF_LOG"))
 	}
-	return false
+
+	switch logLevel {
+	case "TRACE":
+		return hclog.Trace
+	case "DEBUG":
+		return hclog.Debug
+	case "INFO":
+		return hclog.Info
+	case "WARN":
+		return hclog.Warn
+	case "ERROR":
+		return hclog.Error
+	default:
+		return hclog.Off
+	}
+}
+
+func debugOn() bool {
+	level := getLogLevel()
+	return level == hclog.Debug || level == hclog.Trace
 }
 
 func addDebug(action, content interface{}, requestInfo ...interface{}) {
-	if debugOn() {
-		trace := "[DEBUG TRACE]:\n"
-		for skip := 1; skip < 5; skip++ {
-			_, filepath, line, _ := runtime.Caller(skip)
-			trace += fmt.Sprintf("%s:%d\n", filepath, line)
-		}
-
-		if len(requestInfo) > 0 {
-			var request = struct {
-				Domain     string
-				Version    string
-				UserAgent  string
-				ActionName string
-				Method     string
-				Product    string
-				Region     string
-				AK         string
-			}{}
-			switch requestInfo[0].(type) {
-			case *requests.RpcRequest:
-				tmp := requestInfo[0].(*requests.RpcRequest)
-				request.Domain = tmp.GetDomain()
-				request.Version = tmp.GetVersion()
-				request.ActionName = tmp.GetActionName()
-				request.Method = tmp.GetMethod()
-				request.Product = tmp.GetProduct()
-				request.Region = tmp.GetRegionId()
-			case *requests.RoaRequest:
-				tmp := requestInfo[0].(*requests.RoaRequest)
-				request.Domain = tmp.GetDomain()
-				request.Version = tmp.GetVersion()
-				request.ActionName = tmp.GetActionName()
-				request.Method = tmp.GetMethod()
-				request.Product = tmp.GetProduct()
-				request.Region = tmp.GetRegionId()
-			case *requests.CommonRequest:
-				tmp := requestInfo[0].(*requests.CommonRequest)
-				request.Domain = tmp.GetDomain()
-				request.Version = tmp.GetVersion()
-				request.ActionName = tmp.GetActionName()
-				request.Method = tmp.GetMethod()
-				request.Product = tmp.GetProduct()
-				request.Region = tmp.GetRegionId()
-			case *fc.Client:
-				client := requestInfo[0].(*fc.Client)
-				request.Version = client.Config.APIVersion
-				request.Product = "FC"
-				request.ActionName = fmt.Sprintf("%s", action)
-			case *sls.Client:
-				request.Product = "LOG"
-				request.ActionName = fmt.Sprintf("%s", action)
-			case *tablestore.TableStoreClient:
-				request.Product = "OTS"
-				request.ActionName = fmt.Sprintf("%s", action)
-			case *oss.Client:
-				request.Product = "OSS"
-				request.ActionName = fmt.Sprintf("%s", action)
-			case *datahub.DataHub:
-				request.Product = "DataHub"
-				request.ActionName = fmt.Sprintf("%s", action)
-			case *cs.Client:
-				request.Product = "CS"
-				request.ActionName = fmt.Sprintf("%s", action)
-			}
-
-			requestContent := ""
-			if len(requestInfo) > 1 {
-				switch requestInfo[1].(type) {
-				case *tea.SDKError:
-					requestContent = fmt.Sprintf("%#v", requestInfo[1].(*tea.SDKError).Error())
-				default:
-					requestContent = fmt.Sprintf("%#v", requestInfo[1])
-				}
-			}
-
-			if len(requestInfo) == 1 {
-				if v, ok := requestInfo[0].(map[string]interface{}); ok {
-					if res, err := json.Marshal(&v); err == nil {
-						requestContent = string(res)
-					}
-					if res, err := json.Marshal(&content); err == nil {
-						content = string(res)
-					}
-				}
-			}
-
-			content = fmt.Sprintf("%vDomain:%v, Version:%v, ActionName:%v, Method:%v, Product:%v, Region:%v\n\n"+
-				"*************** %s Request ***************\n%#v\n",
-				content, request.Domain, request.Version, request.ActionName,
-				request.Method, request.Product, request.Region, request.ActionName, requestContent)
-		}
-
-		//fmt.Printf(DefaultDebugMsg, action, content, trace)
-		log.Printf(DefaultDebugMsg, action, content, trace)
+	if !debugOn() {
+		return
 	}
+
+	// Get logger with proper level
+	logger := providerLogger
+	if logger == nil {
+		// Fallback if logger is not initialized
+		logger = hclog.New(&hclog.LoggerOptions{
+			Name:   "alicloud",
+			Level:  getLogLevel(),
+			Output: os.Stderr,
+		})
+	}
+
+	// Generate stack trace
+	trace := "[DEBUG TRACE]:\n"
+	for skip := 1; skip < 5; skip++ {
+		_, filepath, line, _ := runtime.Caller(skip)
+		trace += fmt.Sprintf("%s:%d\n", filepath, line)
+	}
+
+	debugContent := content
+	if len(requestInfo) > 0 {
+		var request = struct {
+			Domain     string
+			Version    string
+			UserAgent  string
+			ActionName string
+			Method     string
+			Product    string
+			Region     string
+			AK         string
+		}{}
+
+		switch requestInfo[0].(type) {
+		case *requests.RpcRequest:
+			tmp := requestInfo[0].(*requests.RpcRequest)
+			request.Domain = tmp.GetDomain()
+			request.Version = tmp.GetVersion()
+			request.ActionName = tmp.GetActionName()
+			request.Method = tmp.GetMethod()
+			request.Product = tmp.GetProduct()
+			request.Region = tmp.GetRegionId()
+		case *requests.RoaRequest:
+			tmp := requestInfo[0].(*requests.RoaRequest)
+			request.Domain = tmp.GetDomain()
+			request.Version = tmp.GetVersion()
+			request.ActionName = tmp.GetActionName()
+			request.Method = tmp.GetMethod()
+			request.Product = tmp.GetProduct()
+			request.Region = tmp.GetRegionId()
+		case *requests.CommonRequest:
+			tmp := requestInfo[0].(*requests.CommonRequest)
+			request.Domain = tmp.GetDomain()
+			request.Version = tmp.GetVersion()
+			request.ActionName = tmp.GetActionName()
+			request.Method = tmp.GetMethod()
+			request.Product = tmp.GetProduct()
+			request.Region = tmp.GetRegionId()
+		case *fc.Client:
+			client := requestInfo[0].(*fc.Client)
+			request.Version = client.Config.APIVersion
+			request.Product = "FC"
+			request.ActionName = fmt.Sprintf("%s", action)
+		case *sls.Client:
+			request.Product = "LOG"
+			request.ActionName = fmt.Sprintf("%s", action)
+		case *tablestore.TableStoreClient:
+			request.Product = "OTS"
+			request.ActionName = fmt.Sprintf("%s", action)
+		case *oss.Client:
+			request.Product = "OSS"
+			request.ActionName = fmt.Sprintf("%s", action)
+		case *datahub.DataHub:
+			request.Product = "DataHub"
+			request.ActionName = fmt.Sprintf("%s", action)
+		case *cs.Client:
+			request.Product = "CS"
+			request.ActionName = fmt.Sprintf("%s", action)
+		}
+
+		requestContent := ""
+		if len(requestInfo) > 1 {
+			switch requestInfo[1].(type) {
+			case *tea.SDKError:
+				requestContent = fmt.Sprintf("%#v", requestInfo[1].(*tea.SDKError).Error())
+			default:
+				requestContent = fmt.Sprintf("%#v", requestInfo[1])
+			}
+		}
+
+		if len(requestInfo) == 1 {
+			if v, ok := requestInfo[0].(map[string]interface{}); ok {
+				if res, err := json.Marshal(&v); err == nil {
+					requestContent = string(res)
+				}
+				if res, err := json.Marshal(&content); err == nil {
+					debugContent = string(res)
+				}
+			}
+		}
+
+		debugContent = fmt.Sprintf("%vDomain:%v, Version:%v, ActionName:%v, Method:%v, Product:%v, Region:%v\n\n"+
+			"*************** %s Request ***************\n%#v\n",
+			debugContent, request.Domain, request.Version, request.ActionName,
+			request.Method, request.Product, request.Region, request.ActionName, requestContent)
+	}
+
+	// Use hclog to output debug information
+	logger.Debug(fmt.Sprintf(DefaultDebugMsg, action, debugContent, trace))
 }
 
 // Return a ComplexError which including extra error message, error occurred file and path
