@@ -2,10 +2,11 @@ package alicloud
 
 import (
 	"time"
+
 	ververica "github.com/alibabacloud-go/ververica-20220718/client"
+	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 )
 
 func resourceAliCloudFlinkDeployment() *schema.Resource {
@@ -91,14 +92,12 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	namespace := d.Get("namespace").(string)
+	namespace := d.Get("namespace_id").(string)
 	workspaceId := d.Get("workspace_id").(string)
 	jarUri := d.Get("jar_uri").(string)
 
 	jobName := d.Get("job_name").(string)
 
-
-	
 	deploymentName := d.Get("deployment_name").(string)
 	if deploymentName == "" {
 		deploymentName = jobName
@@ -106,32 +105,31 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 
 	// Create the deployment request with the correct structure
 	request := &ververica.CreateDeploymentRequest{}
-	
+
 	// Create a Deployment object for the Body field
 	deployment := &ververica.Deployment{}
-	
+
 	// Set deployment name
 	deployment.Name = &deploymentName
-	
+
 	// Set workspace ID
 	deployment.Workspace = &workspaceId
-	
+
 	// Create artifact for JAR info
 	artifact := &ververica.Artifact{}
 	artifact.Kind = stringPointer("JAR")
 
-	
 	deployment.Artifact = artifact
-	
+
 	// Set parallelism
 
 	streamingResourceSetting := &ververica.StreamingResourceSetting{}
 
 	deployment.StreamingResourceSetting = streamingResourceSetting
-	
+
 	// Set the deployment as the body of the request
 	request.Body = deployment
-	
+
 	// Create the deployment
 	response, err := flinkService.CreateDeployment(&namespace, request)
 	if err != nil {
@@ -177,8 +175,8 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 	}
 
 	deploymentId := d.Id()
-	namespace := d.Get("namespace").(string)
-	
+	namespace := d.Get("namespace_id").(string)
+
 	response, err := flinkService.GetDeployment(&namespace, &deploymentId)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"EntityNotExist.Deployment"}) {
@@ -198,18 +196,15 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 	d.Set("deployment_id", *deployment.DeploymentId)
 	d.Set("deployment_name", *deployment.Name)
 	d.Set("workspace_id", *deployment.Workspace)
-	d.Set("namespace", *deployment.Namespace)
-	
-	
-	
+	d.Set("namespace_id", *deployment.Namespace)
+
 	if deployment.CreatedAt != nil {
 		d.Set("create_time", *deployment.CreatedAt)
 	}
-	
+
 	if deployment.ModifiedAt != nil {
 		d.Set("update_time", *deployment.ModifiedAt)
 	}
-	
 
 	return nil
 }
@@ -222,12 +217,12 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	deploymentId := d.Id()
-	namespace := d.Get("namespace").(string)
+	namespace := d.Get("namespace_id").(string)
 	d.Partial(true)
 
 	// Create update request with the correct structure
 	request := &ververica.UpdateDeploymentRequest{}
-	
+
 	// Create a Deployment object for the Body field
 	deployment := &ververica.Deployment{}
 	update := false
@@ -247,9 +242,7 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	if d.HasChange("jar_uri") || d.HasChange("entry_class") || d.HasChange("program_args") {
 		artifact := &ververica.Artifact{}
 		artifact.Kind = stringPointer("JAR")
-		
-		
-		
+
 		deployment.Artifact = artifact
 		update = true
 	}
@@ -263,13 +256,13 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	if update {
 		// Set the deployment as the body of the request
 		request.Body = deployment
-		
+
 		_, err := flinkService.UpdateDeployment(&namespace, &deploymentId, request)
 		if err != nil {
 			return WrapError(err)
 		}
 
-		 // Create an adapter function to convert ResourceStateRefreshFunc to resource.StateRefreshFunc
+		// Create an adapter function to convert ResourceStateRefreshFunc to resource.StateRefreshFunc
 		refreshFunc := func() (interface{}, string, error) {
 			return flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{})()
 		}
@@ -300,7 +293,7 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 	}
 
 	deploymentId := d.Id()
-	namespace := d.Get("namespace").(string)
+	namespace := d.Get("namespace_id").(string)
 
 	// Check if there's an active job that needs to be stopped first
 	if err != nil {
@@ -322,7 +315,7 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 	refreshDeploymentFunc := func() (interface{}, string, error) {
 		return flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"EntityNotExist.Deployment"})()
 	}
-	
+
 	// Wait for the deployment to be deleted
 	deploymentStateConf := resource.StateChangeConf{
 		Pending:      []string{},
@@ -332,7 +325,7 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 		Delay:        5 * time.Second,
 		PollInterval: 5 * time.Second,
 	}
-	
+
 	if _, err := deploymentStateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

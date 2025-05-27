@@ -1,19 +1,24 @@
 package alicloud
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func dataSourceAlicloudFlinkNamespaces() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAlicloudFlinkNamespacesRead,
 		Schema: map[string]*schema.Schema{
-			"workspace": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "ID of the Flink workspace",
+			"workspace_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				Description:  "ID of the Flink workspace",
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"ids": {
 				Type:     schema.TypeList,
@@ -29,6 +34,10 @@ func dataSourceAlicloudFlinkNamespaces() *schema.Resource {
 				ForceNew: true,
 				Computed: true,
 			},
+			"output_file": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"namespaces": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -42,11 +51,26 @@ func dataSourceAlicloudFlinkNamespaces() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"workspace_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						// Add other fields as needed
+						"ha": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"cpu": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"memory": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -55,46 +79,122 @@ func dataSourceAlicloudFlinkNamespaces() *schema.Resource {
 }
 
 func dataSourceAlicloudFlinkNamespacesRead(d *schema.ResourceData, meta interface{}) error {
-	// 1. 初始化Flink服务客户端
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace").(string)
+	workspace := d.Get("workspace_id").(string)
+	idsMap := make(map[string]string)
+	if v, ok := d.GetOk("ids"); ok {
+		for _, vv := range v.([]interface{}) {
+			if vv == nil {
+				continue
+			}
+			idsMap[vv.(string)] = vv.(string)
+		}
+	}
 
-	// 2. 获取所有Flink实例（分页处理）
+	namesMap := make(map[string]string)
+	if v, ok := d.GetOk("names"); ok {
+		for _, vv := range v.([]interface{}) {
+			if vv == nil {
+				continue
+			}
+			namesMap[vv.(string)] = vv.(string)
+		}
+	}
+
+	addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespaces", map[string]interface{}{
+		"workspaceId": workspace,
+		"idsFilter":   idsMap,
+		"namesFilter": namesMap,
+	})
+
+	// Get all namespaces with pagination
 	namespaces, err := flinkService.ListNamespaces(workspace)
 	if err != nil {
+		addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespacesError", err)
+		return WrapError(err)
+	}
+	addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespacesResponse", len(namespaces))
+
+	// Filter and map results
+	var namespaceMaps []map[string]interface{}
+	var filteredIds []string
+	var filteredNames []string
+
+	for _, namespace := range namespaces {
+		if namespace == nil || namespace.Namespace == nil {
+			continue
+		}
+
+		namespaceName := *namespace.Namespace
+		namespaceId := fmt.Sprintf("%s/%s", workspace, namespaceName)
+
+		// Apply filters
+		if len(idsMap) > 0 {
+			if _, ok := idsMap[namespaceId]; !ok {
+				continue
+			}
+		}
+
+		if len(namesMap) > 0 {
+			if _, ok := namesMap[namespaceName]; !ok {
+				continue
+			}
+		}
+
+		namespaceMap := map[string]interface{}{
+			"id":           namespaceId,
+			"name":         namespaceName,
+			"workspace_id": workspace,
+		}
+
+		// Set status if available
+		if namespace.Status != nil {
+			namespaceMap["status"] = *namespace.Status
+		}
+
+		// Set HA if available
+		if namespace.Ha != nil {
+			namespaceMap["ha"] = *namespace.Ha
+		}
+
+		// Set resource specifications if available
+		if namespace.ResourceSpec != nil {
+			if namespace.ResourceSpec.Cpu != nil {
+				namespaceMap["cpu"] = int(*namespace.ResourceSpec.Cpu)
+			}
+			if namespace.ResourceSpec.MemoryGB != nil {
+				namespaceMap["memory"] = int(*namespace.ResourceSpec.MemoryGB)
+			}
+		}
+
+		namespaceMaps = append(namespaceMaps, namespaceMap)
+		filteredIds = append(filteredIds, namespaceId)
+		filteredNames = append(filteredNames, namespaceName)
+	}
+
+	// Set the data source ID (required for Terraform data sources)
+	d.SetId(fmt.Sprintf("%s:%d", workspace, time.Now().Unix()))
+
+	if err := d.Set("ids", filteredIds); err != nil {
+		return WrapError(err)
+	}
+	if err := d.Set("names", filteredNames); err != nil {
+		return WrapError(err)
+	}
+	if err := d.Set("namespaces", namespaceMaps); err != nil {
 		return WrapError(err)
 	}
 
-	// 3. 过滤和映射结果
-	var namespaceMaps []map[string]interface{}
-	ids := make([]string, 0)
-	names := make([]string, 0)
-	for _, namespace := range namespaces {
-		if namespace == nil || namespace.Namespace == nil || namespace.ResourceSpec == nil  {
-			continue
+	// Output to file if specified
+	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
+		if err := writeToFile(output.(string), namespaceMaps); err != nil {
+			return WrapError(err)
 		}
-		namespaceMaps = append(namespaceMaps, map[string]interface{}{
-			"id":     *namespace.Namespace,
-			"name":   *namespace.Namespace,
-			"status": *namespace.Status,
-		})
-		ids = append(ids, *namespace.Namespace)
-		names = append(names, *namespace.Namespace)
-	}
-
-	if err := d.Set("ids", ids); err != nil {
-		return err
-	}
-	if err := d.Set("names", names); err != nil {
-		return err
-	}
-	if err := d.Set("namespaces", namespaceMaps); err != nil {
-		return err
 	}
 
 	return nil

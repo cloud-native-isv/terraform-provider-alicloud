@@ -28,14 +28,17 @@ func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
 		RegionId:        &client.RegionId,
 		SecurityToken:   &client.SecurityToken,
 	}
+
 	foasconsoleClient, err := foasconsole.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
+
 	ververicaClient, err := ververica.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
+
 	return &FlinkService{
 		client:            client,
 		foasconsoleClient: foasconsoleClient,
@@ -49,23 +52,31 @@ func (s *FlinkService) GetRegionId() string {
 
 // DescribeSupportedZones retrieves zones that support Flink instances
 func (s *FlinkService) DescribeSupportedZones(request *foasconsole.DescribeSupportedZonesRequest) (*foasconsole.DescribeSupportedZonesResponse, error) {
+	addDebug("DescribeSupportedZones", request)
 	response, err := s.foasconsoleClient.DescribeSupportedZones(request)
+	addDebug("DescribeSupportedZones", response, err)
 	return response, WrapError(err)
 }
 
 // Instance management functions
 func (s *FlinkService) CreateInstance(request *foasconsole.CreateInstanceRequest) (*foasconsole.CreateInstanceResponse, error) {
+	addDebug("CreateInstance", request)
 	response, err := s.foasconsoleClient.CreateInstance(request)
+	addDebug("CreateInstance", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) DeleteInstance(request *foasconsole.DeleteInstanceRequest) (*foasconsole.DeleteInstanceResponse, error) {
+	addDebug("DeleteInstance", request)
 	response, err := s.foasconsoleClient.DeleteInstance(request)
+	addDebug("DeleteInstance", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) DescribeInstances(request *foasconsole.DescribeInstancesRequest) (*foasconsole.DescribeInstancesResponse, error) {
+	addDebug("DescribeInstances", request)
 	response, err := s.foasconsoleClient.DescribeInstances(request)
+	addDebug("DescribeInstances", response, err)
 	return response, WrapError(err)
 }
 
@@ -148,12 +159,16 @@ func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(id string) resource.StateR
 }
 
 func (s *FlinkService) CreateNamespace(request *foasconsole.CreateNamespaceRequest) (*foasconsole.CreateNamespaceResponse, error) {
+	addDebug("CreateNamespace", request)
 	response, err := s.foasconsoleClient.CreateNamespace(request)
+	addDebug("CreateNamespace", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) DeleteNamespace(request *foasconsole.DeleteNamespaceRequest) (*foasconsole.DeleteNamespaceResponse, error) {
+	addDebug("DeleteNamespace", request)
 	response, err := s.foasconsoleClient.DeleteNamespace(request)
+	addDebug("DeleteNamespace", response, err)
 	return response, WrapError(err)
 }
 
@@ -169,7 +184,9 @@ func (s *FlinkService) ListNamespaces(workspace string) ([]*foasconsole.Describe
 			Region:     tea.String(region),
 			InstanceId: tea.String(workspace),
 		}
+		addDebug("DescribeNamespaces", request)
 		response, err := s.foasconsoleClient.DescribeNamespaces(request)
+		addDebug("DescribeNamespaces", response, err)
 		if err != nil {
 			return nil, WrapError(err)
 		}
@@ -191,7 +208,9 @@ func (s *FlinkService) GetNamespace(workspace string, namespace string) (*foasco
 		InstanceId: tea.String(workspace),
 		Namespace:  tea.String(namespace),
 	}
+	addDebug("DescribeNamespaces", request)
 	response, err := s.foasconsoleClient.DescribeNamespaces(request)
+	addDebug("DescribeNamespaces", response, err)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -203,6 +222,7 @@ func (s *FlinkService) GetNamespace(workspace string, namespace string) (*foasco
 }
 
 func (s *FlinkService) CreateMember(workspace *string, namespace *string, request *ververica.CreateMemberRequest) (*ververica.CreateMemberResponse, error) {
+	addDebug("CreateMember", fmt.Sprintf("workspace=%s, namespace=%s, request=%+v", tea.StringValue(workspace), tea.StringValue(namespace), request))
 	response, err := s.ververicaClient.CreateMemberWithOptions(
 		namespace,
 		request,
@@ -211,10 +231,12 @@ func (s *FlinkService) CreateMember(workspace *string, namespace *string, reques
 		},
 		&util.RuntimeOptions{},
 	)
+	addDebug("CreateMember", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) GetMember(workspace *string, namespace *string, member *string) (*ververica.GetMemberResponse, error) {
+	addDebug("GetMember", fmt.Sprintf("workspace=%s, namespace=%s, member=%s", tea.StringValue(workspace), tea.StringValue(namespace), tea.StringValue(member)))
 	response, err := s.ververicaClient.GetMemberWithOptions(
 		namespace,
 		member,
@@ -223,10 +245,12 @@ func (s *FlinkService) GetMember(workspace *string, namespace *string, member *s
 		},
 		&util.RuntimeOptions{},
 	)
+	addDebug("GetMember", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) UpdateMember(workspace *string, namespace *string, request *ververica.UpdateMemberRequest) (*ververica.UpdateMemberResponse, error) {
+	addDebug("UpdateMember", fmt.Sprintf("workspace=%s, namespace=%s, request=%+v", tea.StringValue(workspace), tea.StringValue(namespace), request))
 	response, err := s.ververicaClient.UpdateMemberWithOptions(
 		namespace,
 		request,
@@ -235,10 +259,12 @@ func (s *FlinkService) UpdateMember(workspace *string, namespace *string, reques
 		},
 		&util.RuntimeOptions{},
 	)
+	addDebug("UpdateMember", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) DeleteMember(workspace *string, namespace *string, member *string) (*ververica.DeleteMemberResponse, error) {
+	addDebug("DeleteMember", fmt.Sprintf("workspace=%s, namespace=%s, member=%s", tea.StringValue(workspace), tea.StringValue(namespace), tea.StringValue(member)))
 	response, err := s.ververicaClient.DeleteMemberWithOptions(
 		namespace,
 		member,
@@ -247,48 +273,65 @@ func (s *FlinkService) DeleteMember(workspace *string, namespace *string, member
 		},
 		&util.RuntimeOptions{},
 	)
+	addDebug("DeleteMember", response, err)
 	return response, WrapError(err)
 }
 
 // Deployment management functions
 func (s *FlinkService) CreateDeployment(namespace *string, request *ververica.CreateDeploymentRequest) (*ververica.CreateDeploymentResponse, error) {
+	addDebug("CreateDeployment", fmt.Sprintf("namespace=%s, request=%+v", tea.StringValue(namespace), request))
 	response, err := s.ververicaClient.CreateDeployment(namespace, request)
+	addDebug("CreateDeployment", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) GetDeployment(namespace *string, deploymentId *string) (*ververica.GetDeploymentResponse, error) {
+	addDebug("GetDeployment", fmt.Sprintf("namespace=%s, deploymentId=%s", tea.StringValue(namespace), tea.StringValue(deploymentId)))
 	response, err := s.ververicaClient.GetDeployment(namespace, deploymentId)
+	addDebug("GetDeployment", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) UpdateDeployment(namespace *string, deploymentId *string, request *ververica.UpdateDeploymentRequest) (*ververica.UpdateDeploymentResponse, error) {
+	addDebug("UpdateDeployment", fmt.Sprintf("namespace=%s, deploymentId=%s, request=%+v", tea.StringValue(namespace), tea.StringValue(deploymentId), request))
 	response, err := s.ververicaClient.UpdateDeployment(namespace, deploymentId, request)
+	addDebug("UpdateDeployment", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) DeleteDeployment(namespace *string, deploymentId *string) (*ververica.DeleteDeploymentResponse, error) {
+	addDebug("DeleteDeployment", fmt.Sprintf("namespace=%s, deploymentId=%s", tea.StringValue(namespace), tea.StringValue(deploymentId)))
 	response, err := s.ververicaClient.DeleteDeployment(namespace, deploymentId)
+	addDebug("DeleteDeployment", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) ListDeployments(namespace *string, request *ververica.ListDeploymentsRequest) (*ververica.ListDeploymentsResponse, error) {
+	addDebug("ListDeployments", fmt.Sprintf("namespace=%s, request=%+v", tea.StringValue(namespace), request))
 	response, err := s.ververicaClient.ListDeployments(namespace, request)
+	addDebug("ListDeployments", response, err)
 	return response, WrapError(err)
 }
 
 // Job management functions
 func (s *FlinkService) StartJobWithParams(namespace *string, request *ververica.StartJobWithParamsRequest) (*ververica.StartJobWithParamsResponse, error) {
+	addDebug("StartJobWithParams", fmt.Sprintf("namespace=%s, request=%+v", tea.StringValue(namespace), request))
 	response, err := s.ververicaClient.StartJobWithParams(namespace, request)
+	addDebug("StartJobWithParams", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) StopJob(namespace *string, jobId *string, request *ververica.StopJobRequest) (*ververica.StopJobResponse, error) {
+	addDebug("StopJob", fmt.Sprintf("namespace=%s, jobId=%s, request=%+v", tea.StringValue(namespace), tea.StringValue(jobId), request))
 	response, err := s.ververicaClient.StopJob(namespace, jobId, request)
+	addDebug("StopJob", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) GetJob(namespace *string, jobId *string) (*ververica.GetJobResponse, error) {
+	addDebug("GetJob", fmt.Sprintf("namespace=%s, jobId=%s", tea.StringValue(namespace), tea.StringValue(jobId)))
 	response, err := s.ververicaClient.GetJob(namespace, jobId)
+	addDebug("GetJob", response, err)
 	return response, WrapError(err)
 }
 
@@ -348,6 +391,7 @@ func (s *FlinkService) DescribeFlinkDeployment(id string) (*ververica.GetDeploym
 }
 
 func (s *FlinkService) CreateVariable(workspace, namespace *string, variable *ververica.Variable) (*ververica.Variable, error) {
+	addDebug("CreateVariable", fmt.Sprintf("workspace=%s, namespace=%s, variable=%+v", tea.StringValue(workspace), tea.StringValue(namespace), variable))
 	resp, err := s.ververicaClient.CreateVariableWithOptions(
 		namespace,
 		&ververica.CreateVariableRequest{
@@ -358,6 +402,7 @@ func (s *FlinkService) CreateVariable(workspace, namespace *string, variable *ve
 		},
 		&util.RuntimeOptions{},
 	)
+	addDebug("CreateVariable", resp, err)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -365,6 +410,7 @@ func (s *FlinkService) CreateVariable(workspace, namespace *string, variable *ve
 }
 
 func (s *FlinkService) UpdateVariable(workspace, namespace, varName *string, variable *ververica.Variable) (*ververica.Variable, error) {
+	addDebug("UpdateVariable", fmt.Sprintf("workspace=%s, namespace=%s, varName=%s, variable=%+v", tea.StringValue(workspace), tea.StringValue(namespace), tea.StringValue(varName), variable))
 	resp, err := s.ververicaClient.UpdateVariableWithOptions(
 		namespace,
 		varName,
@@ -376,6 +422,7 @@ func (s *FlinkService) UpdateVariable(workspace, namespace, varName *string, var
 		},
 		&util.RuntimeOptions{},
 	)
+	addDebug("UpdateVariable", resp, err)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -383,13 +430,15 @@ func (s *FlinkService) UpdateVariable(workspace, namespace, varName *string, var
 }
 
 func (s *FlinkService) DeleteVariable(workspace, namespace, varName *string) error {
-	_, err := s.ververicaClient.DeleteVariableWithOptions(
+	addDebug("DeleteVariable", fmt.Sprintf("workspace=%s, namespace=%s, varName=%s", tea.StringValue(workspace), tea.StringValue(namespace), tea.StringValue(varName)))
+	resp, err := s.ververicaClient.DeleteVariableWithOptions(
 		namespace,
 		varName,
 		&ververica.DeleteVariableHeaders{
 			Workspace: workspace,
 		},
 		&util.RuntimeOptions{})
+	addDebug("DeleteVariable", resp, err)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -422,6 +471,7 @@ func (s *FlinkService) GetVariable(workspace, namespace, varName *string) (*verv
 }
 
 func (s *FlinkService) ListVariables(workspace, namespace *string, PageIndex int32, PageSize int32) (*ververica.ListVariablesResponse, error) {
+	addDebug("ListVariables", fmt.Sprintf("workspace=%s, namespace=%s, PageIndex=%d, PageSize=%d", tea.StringValue(workspace), tea.StringValue(namespace), PageIndex, PageSize))
 	resp, err := s.ververicaClient.ListVariablesWithOptions(
 		namespace,
 		&ververica.ListVariablesRequest{
@@ -433,6 +483,7 @@ func (s *FlinkService) ListVariables(workspace, namespace *string, PageIndex int
 		},
 		&util.RuntimeOptions{},
 	)
+	addDebug("ListVariables", resp, err)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -441,6 +492,7 @@ func (s *FlinkService) ListVariables(workspace, namespace *string, PageIndex int
 
 // Connector management functions
 func (s *FlinkService) ListCustomConnectors(workspace, namespace *string) (*ververica.ListCustomConnectorsResponse, error) {
+	addDebug("ListCustomConnectors", fmt.Sprintf("workspace=%s, namespace=%s", tea.StringValue(workspace), tea.StringValue(namespace)))
 	response, err := s.ververicaClient.ListCustomConnectorsWithOptions(
 		namespace,
 		&ververica.ListCustomConnectorsHeaders{
@@ -448,10 +500,12 @@ func (s *FlinkService) ListCustomConnectors(workspace, namespace *string) (*verv
 		},
 		&util.RuntimeOptions{},
 	)
+	addDebug("ListCustomConnectors", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) RegisterCustomConnector(workspace, namespace *string, request *ververica.RegisterCustomConnectorRequest) (*ververica.RegisterCustomConnectorResponse, error) {
+	addDebug("RegisterCustomConnector", fmt.Sprintf("workspace=%s, namespace=%s, request=%+v", tea.StringValue(workspace), tea.StringValue(namespace), request))
 	response, err := s.ververicaClient.RegisterCustomConnectorWithOptions(
 		namespace,
 		request,
@@ -460,10 +514,12 @@ func (s *FlinkService) RegisterCustomConnector(workspace, namespace *string, req
 		},
 		&util.RuntimeOptions{},
 	)
+	addDebug("RegisterCustomConnector", response, err)
 	return response, WrapError(err)
 }
 
 func (s *FlinkService) DeleteCustomConnector(workspace, namespace *string, connectorName *string) (*ververica.DeleteCustomConnectorResponse, error) {
+	addDebug("DeleteCustomConnector", fmt.Sprintf("workspace=%s, namespace=%s, connectorName=%s", tea.StringValue(workspace), tea.StringValue(namespace), tea.StringValue(connectorName)))
 	response, err := s.ververicaClient.DeleteCustomConnectorWithOptions(
 		namespace,
 		connectorName,
@@ -472,6 +528,7 @@ func (s *FlinkService) DeleteCustomConnector(workspace, namespace *string, conne
 		},
 		&util.RuntimeOptions{},
 	)
+	addDebug("DeleteCustomConnector", response, err)
 	return response, WrapError(err)
 }
 

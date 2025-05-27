@@ -16,11 +16,11 @@ func dataSourceAlicloudFlinkConnectors() *schema.Resource {
 		Read: dataSourceAlicloudFlinkConnectorsRead,
 
 		Schema: map[string]*schema.Schema{
-			"workspace": {
+			"workspace_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"namespace": {
+			"namespace_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -145,8 +145,8 @@ func dataSourceAlicloudFlinkConnectorsRead(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace").(string)
-	namespace := d.Get("namespace").(string)
+	workspace := d.Get("workspace_id").(string)
+	namespace := d.Get("namespace_id").(string)
 
 	request := tea.String(workspace)
 	namespaceStr := tea.String(namespace)
