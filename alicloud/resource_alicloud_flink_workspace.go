@@ -30,7 +30,6 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Description of the Flink instance.",
-				ForceNew:    true,
 			},
 			"resource_group_id": {
 				Type:        schema.TypeString,
@@ -206,6 +205,11 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				ForceNew:    true,
 			},
 			"resource_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The resource ID of the Flink workspace instance.",
+			},
+			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The resource ID of the Flink workspace instance.",

@@ -53,6 +53,7 @@ require (
 
 require (
 	github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.18
+<<<<<<< HEAD
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.0.6
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -62,6 +63,11 @@ require (
 =======
 ||||||| parent of 87f6a6723 (refactor oss bucket config)
 =======
+||||||| parent of 7f6807ac4 (update go mod)
+	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.0.6
+=======
+	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.3.0
+>>>>>>> 7f6807ac4 (update go mod)
 	github.com/alibabacloud-go/darabonba-openapi v0.1.18
 >>>>>>> 87f6a6723 (refactor oss bucket config)
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.6
@@ -95,7 +101,7 @@ require (
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.6 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-oss-util v0.0.7 // indirect
-	github.com/alibabacloud-go/alibabacloud-gateway-sls-util v0.0.1 // indirect
+	github.com/alibabacloud-go/alibabacloud-gateway-sls-util v0.3.0 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.5 // indirect
 	github.com/alibabacloud-go/darabonba-array v0.1.0 // indirect
 	github.com/alibabacloud-go/darabonba-encode-util v0.0.2 // indirect
@@ -103,9 +109,10 @@ require (
 	github.com/alibabacloud-go/darabonba-signature-util v0.0.7 // indirect
 	github.com/alibabacloud-go/darabonba-string v1.0.2 // indirect
 	github.com/alibabacloud-go/debug v1.0.1 // indirect
-	github.com/alibabacloud-go/endpoint-util v1.1.0 // indirect
+	github.com/alibabacloud-go/endpoint-util v1.1.1 // indirect
 	github.com/alibabacloud-go/foasconsole-20211028 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/openapi-util v0.1.1 // indirect
+	github.com/alibabacloud-go/sls-20201230/v6 v6.8.1 // indirect
 	github.com/alibabacloud-go/tea-oss-utils v1.1.0 // indirect
 	github.com/alibabacloud-go/tea-roa-utils v1.1.5 // indirect
 	github.com/alibabacloud-go/tea-rpc-utils v1.1.2 // indirect
@@ -166,7 +173,7 @@ require (
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/keybase/go-crypto v0.0.0-20190416182011-b785b22cc757 // indirect
-	github.com/klauspost/compress v1.17.7 // indirect
+	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/cli v1.1.2 // indirect
