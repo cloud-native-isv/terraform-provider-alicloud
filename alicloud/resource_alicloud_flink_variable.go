@@ -20,13 +20,13 @@ func resourceAliCloudFlinkVariable() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
-				Description: "ID of the Flink workspace",
+				Description: "ID of the Flink workspaceId",
 			},
-			"namespace_id": {
+			"namespace_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
-				Description: "ID of the Flink namespace",
+				Description: "ID of the Flink namespaceName",
 			},
 			"kind": {
 				Type:        schema.TypeString,
@@ -61,14 +61,14 @@ func resourceAliCloudFlinkVariableRead(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	workspace, namespace, varName := splitVariableID(d.Id())
-	variable, err := flinkService.GetVariable(workspace, namespace, varName)
+	workspaceId, namespaceName, varName := splitVariableID(d.Id())
+	variable, err := flinkService.GetVariable(workspaceId, namespaceName, varName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_variable", "GetVariable", AlibabaCloudSdkGoERROR)
 	}
 
-	d.Set("workspace_id", workspace)
-	d.Set("namespace_id", namespace)
+	d.Set("workspace_id", workspaceId)
+	d.Set("namespace_name", namespaceName)
 	d.Set("name", variable.Name)
 	d.Set("value", variable.Value)
 	d.Set("description", variable.Description)
@@ -84,8 +84,8 @@ func resourceAliCloudFlinkVariableCreate(d *schema.ResourceData, meta interface{
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace_id").(string)
+	workspaceId := d.Get("workspace_id").(string)
+	namespaceName := d.Get("namespace_name").(string)
 	name := d.Get("name").(string)
 	value := d.Get("value").(string)
 	description := d.Get("description").(string)
@@ -98,12 +98,12 @@ func resourceAliCloudFlinkVariableCreate(d *schema.ResourceData, meta interface{
 		Kind:        kind,
 	}
 
-	_, err = flinkService.CreateVariable(workspace, namespace, variable)
+	_, err = flinkService.CreateVariable(workspaceId, namespaceName, variable)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_variable", "CreateVariable", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(joinVariableID(workspace, namespace, name))
+	d.SetId(joinVariableID(workspaceId, namespaceName, name))
 	return resourceAliCloudFlinkVariableRead(d, meta)
 }
 
@@ -114,7 +114,7 @@ func resourceAliCloudFlinkVariableUpdate(d *schema.ResourceData, meta interface{
 		return WrapError(err)
 	}
 
-	workspace, namespace, varName := splitVariableID(d.Id())
+	workspaceId, namespaceName, varName := splitVariableID(d.Id())
 	value := d.Get("value").(string)
 	description := d.Get("description").(string)
 	kind := d.Get("kind").(string)
@@ -126,7 +126,7 @@ func resourceAliCloudFlinkVariableUpdate(d *schema.ResourceData, meta interface{
 		Kind:        kind,
 	}
 
-	_, err = flinkService.UpdateVariable(workspace, namespace, variable)
+	_, err = flinkService.UpdateVariable(workspaceId, namespaceName, variable)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_variable", "UpdateVariable", AlibabaCloudSdkGoERROR)
 	}
@@ -141,8 +141,8 @@ func resourceAliCloudFlinkVariableDelete(d *schema.ResourceData, meta interface{
 		return WrapError(err)
 	}
 
-	workspace, namespace, varName := splitVariableID(d.Id())
-	err = flinkService.DeleteVariable(workspace, namespace, varName)
+	workspaceId, namespaceName, varName := splitVariableID(d.Id())
+	err = flinkService.DeleteVariable(workspaceId, namespaceName, varName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_variable", "DeleteVariable", AlibabaCloudSdkGoERROR)
 	}
@@ -153,11 +153,11 @@ func resourceAliCloudFlinkVariableDelete(d *schema.ResourceData, meta interface{
 func splitVariableID(id string) (string, string, string) {
 	parts := strings.SplitN(id, "/", 3)
 	if len(parts) != 3 {
-		panic(fmt.Errorf("invalid ID format: %s, should be <workspace>/<namespace>/<variable name>", id))
+		panic(fmt.Errorf("invalid ID format: %s, should be <workspaceId>/<namespaceName>/<variable name>", id))
 	}
 	return parts[0], parts[1], parts[2]
 }
 
-func joinVariableID(workspace, namespace, varName string) string {
-	return fmt.Sprintf("%s/%s/%s", workspace, namespace, varName)
+func joinVariableID(workspaceId, namespaceName, varName string) string {
+	return fmt.Sprintf("%s/%s/%s", workspaceId, namespaceName, varName)
 }

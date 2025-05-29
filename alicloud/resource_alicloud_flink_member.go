@@ -21,13 +21,13 @@ func resourceAliCloudFlinkMember() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
-				Description: "The name of the Flink workspace.",
+				Description: "The name of the Flink workspaceId.",
 			},
-			"namespace_id": {
+			"namespace_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
-				Description: "The namespace of the Flink member.",
+				Description: "The namespaceName of the Flink member.",
 			},
 			"name": {
 				Type:        schema.TypeString,
@@ -52,8 +52,8 @@ func resourceAliCloudFlinkMemberCreate(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace_id").(string)
+	workspaceId := d.Get("workspace_id").(string)
+	namespaceName := d.Get("namespace_name").(string)
 	name := d.Get("name").(string)
 	role := d.Get("role").(string)
 
@@ -63,13 +63,13 @@ func resourceAliCloudFlinkMemberCreate(d *schema.ResourceData, meta interface{})
 		"role":   role,
 	}
 
-	// Pass workspace, namespace and request to the service method
-	_, err = flinkService.CreateMember(workspace, namespace, memberData)
+	// Pass workspaceId, namespaceName and request to the service method
+	_, err = flinkService.CreateMember(workspaceId, namespaceName, memberData)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	d.SetId(workspace + "/" + namespace + "/" + name)
+	d.SetId(workspaceId + "/" + namespaceName + "/" + name)
 	return resourceAliCloudFlinkMemberRead(d, meta)
 }
 
@@ -80,19 +80,19 @@ func resourceAliCloudFlinkMemberRead(d *schema.ResourceData, meta interface{}) e
 		return WrapError(err)
 	}
 
-	// Parse the ID to get workspace, namespace and member name
-	// ID format: workspace_id/namespace_id/member_name
+	// Parse the ID to get workspaceId, namespaceName and member name
+	// ID format: workspace_id/namespace_name/member_name
 	parts := strings.Split(d.Id(), "/")
 	if len(parts) != 3 {
-		return WrapError(fmt.Errorf("invalid resource id format: %s, expected workspace_id/namespace_id/member_name", d.Id()))
+		return WrapError(fmt.Errorf("invalid resource id format: %s, expected workspace_id/namespace_name/member_name", d.Id()))
 	}
 
-	workspace := parts[0]
-	namespace := parts[1]
+	workspaceId := parts[0]
+	namespaceName := parts[1]
 	name := parts[2]
 
 	// Use GetMember method with parsed values
-	response, err := flinkService.GetMember(workspace, namespace, name)
+	response, err := flinkService.GetMember(workspaceId, namespaceName, name)
 	if err != nil {
 		if NotFoundError(err) {
 			d.SetId("")
@@ -103,8 +103,8 @@ func resourceAliCloudFlinkMemberRead(d *schema.ResourceData, meta interface{}) e
 
 	// Set attributes based on response
 	if response != nil {
-		d.Set("workspace_id", workspace)
-		d.Set("namespace_id", namespace)
+		d.Set("workspace_id", workspaceId)
+		d.Set("namespace_name", namespaceName)
 		d.Set("name", name)
 		d.Set("role", response["role"])
 	}
@@ -119,8 +119,8 @@ func resourceAliCloudFlinkMemberUpdate(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace_id").(string)
+	workspaceId := d.Get("workspace_id").(string)
+	namespaceName := d.Get("namespace_name").(string)
 	name := d.Get("name").(string)
 	role := d.Get("role").(string)
 
@@ -130,8 +130,8 @@ func resourceAliCloudFlinkMemberUpdate(d *schema.ResourceData, meta interface{})
 		"role":   role,
 	}
 
-	// Pass workspace, namespace and map to the service method
-	_, err = flinkService.UpdateMember(workspace, namespace, memberData)
+	// Pass workspaceId, namespaceName and map to the service method
+	_, err = flinkService.UpdateMember(workspaceId, namespaceName, memberData)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -146,11 +146,11 @@ func resourceAliCloudFlinkMemberDelete(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace_id").(string)
+	workspaceId := d.Get("workspace_id").(string)
+	namespaceName := d.Get("namespace_name").(string)
 	name := d.Get("name").(string)
 
 	// Use DeleteMember method with string values instead of pointers
-	err = flinkService.DeleteMember(workspace, namespace, name)
+	err = flinkService.DeleteMember(workspaceId, namespaceName, name)
 	return WrapError(err)
 }

@@ -134,7 +134,7 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 	// Handle FlinkServiceError from cws-lib-go
 	if e, ok := err.(*aliyunAPI.FlinkServiceError); ok {
 		for _, code := range expectCodes {
-			if e.Code == code || strings.Contains(e.Message, code) {
+			if (e.ErrorCode != nil && *e.ErrorCode == code) || (e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) {
 				return true
 			}
 		}

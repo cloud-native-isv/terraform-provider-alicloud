@@ -205,6 +205,11 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				Description: "Resource specifications for the Flink instance.",
 				ForceNew:    true,
 			},
+			"resource_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The resource ID of the Flink workspace instance.",
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -220,8 +225,8 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	// Create workspace workspace using cws-lib-go types
-	workspace := &aliyunAPI.Workspace{
+	// Create workspace request using cws-lib-go types
+	workspaceRequest := &aliyunAPI.Workspace{
 		Name:            d.Get("name").(string),
 		Description:     d.Get("description").(string),
 		ResourceGroupID: d.Get("resource_group_id").(string),
@@ -232,37 +237,37 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 
 	// Handle vswitch_ids
 	if vswitchIds := d.Get("vswitch_ids").([]interface{}); len(vswitchIds) > 0 {
-		workspace.VSwitchIDs = make([]string, len(vswitchIds))
+		workspaceRequest.VSwitchIDs = make([]string, len(vswitchIds))
 		for i, v := range vswitchIds {
-			workspace.VSwitchIDs[i] = v.(string)
+			workspaceRequest.VSwitchIDs[i] = v.(string)
 		}
 	}
 
 	// Initialize Network structure and set VPCID and VSwitchIDs
-	workspace.Network = &aliyunAPI.WorkspaceNetwork{
+	workspaceRequest.Network = &aliyunAPI.WorkspaceNetwork{
 		VPCID:      d.Get("vpc_id").(string),
-		VSwitchIDs: workspace.VSwitchIDs,
+		VSwitchIDs: workspaceRequest.VSwitchIDs,
 	}
 
 	// Handle security_group_id
 	if sgId, ok := d.GetOk("security_group_id"); ok {
-		workspace.Network.SecurityGroupID = sgId.(string)
+		workspaceRequest.Network.SecurityGroupID = sgId.(string)
 	}
 
 	// Handle architecture_type
 	if archType, ok := d.GetOk("architecture_type"); ok {
-		workspace.ArchitectureType = archType.(string)
+		workspaceRequest.ArchitectureType = archType.(string)
 	}
 
 	// Handle charge_type
 	if chargeType, ok := d.GetOk("charge_type"); ok {
-		workspace.ChargeType = chargeType.(string)
+		workspaceRequest.ChargeType = chargeType.(string)
 	}
 
 	// Handle resource configuration
 	if resourceList := d.Get("resource").([]interface{}); len(resourceList) > 0 {
 		resourceMap := resourceList[0].(map[string]interface{})
-		workspace.ResourceSpec = &aliyunAPI.ResourceSpec{
+		workspaceRequest.ResourceSpec = &aliyunAPI.ResourceSpec{
 			Cpu:      float64(resourceMap["cpu"].(int)),
 			MemoryGB: float64(resourceMap["memory"].(int)),
 		}
@@ -271,7 +276,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	// Handle storage configuration
 	if storageList := d.Get("storage").([]interface{}); len(storageList) > 0 {
 		storageMap := storageList[0].(map[string]interface{})
-		workspace.Storage = &aliyunAPI.Storage{
+		workspaceRequest.Storage = &aliyunAPI.Storage{
 			Oss: &aliyunAPI.OssConfig{
 				Bucket: storageMap["oss_bucket"].(string),
 			},
@@ -283,40 +288,40 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		haMap := haList[0].(map[string]interface{})
 
 		// Set high availability flag
-		workspace.HA = &aliyunAPI.HighAvailability{
+		workspaceRequest.HA = &aliyunAPI.HighAvailability{
 			Enabled: true,
 			ZoneID:  haMap["zone_id"].(string),
 		}
 
 		// Handle HA vswitch IDs
 		if haVswitchIds := haMap["vswitch_ids"].([]interface{}); len(haVswitchIds) > 0 {
-			workspace.HA.VSwitchIDs = make([]string, len(haVswitchIds))
+			workspaceRequest.HA.VSwitchIDs = make([]string, len(haVswitchIds))
 			for i, v := range haVswitchIds {
-				workspace.HA.VSwitchIDs[i] = v.(string)
+				workspaceRequest.HA.VSwitchIDs[i] = v.(string)
 			}
 		}
 
 		// Handle HA resource specs
 		if resourceList := haMap["resource"].([]interface{}); len(resourceList) > 0 {
 			resourceMap := resourceList[0].(map[string]interface{})
-			workspace.HA.ResourceSpec = &aliyunAPI.ResourceSpec{
+			workspaceRequest.HA.ResourceSpec = &aliyunAPI.ResourceSpec{
 				Cpu:      float64(resourceMap["cpu"].(int)),
 				MemoryGB: float64(resourceMap["memory"].(int)),
 			}
 		}
 	}
 
-	var response *aliyunAPI.Workspace
+	var workspace *aliyunAPI.Workspace
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		resp, err := flinkService.CreateInstance(workspace)
+		resp, err := flinkService.CreateInstance(workspaceRequest)
 		if err != nil {
-			if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
+			if IsExpectedErrors(err, []string{"903021"}) {
 				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
-		response = resp
+		workspace = resp
 		return nil
 	})
 
@@ -324,11 +329,14 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_workspace", "CreateInstance", AlibabaCloudSdkGoERROR)
 	}
 
-	if response == nil || response.ID == "" {
-		return WrapError(Error("Failed to get instance ID from response"))
+	if workspace == nil || workspace.ID == "" || workspace.ResourceID == "" {
+		return WrapError(Error("Failed to get instance ID from workspace"))
 	}
 
-	d.SetId(response.ID)
+	d.SetId(workspace.ID)
+
+	// Set resource_id after creation
+	d.Set("resource_id", workspace.ResourceID)
 
 	// Wait for the instance to be in running state
 	stateConf := resource.StateChangeConf{
@@ -397,6 +405,9 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("storage", []interface{}{storageConfig})
 	}
 
+	// Set resource_id
+	d.Set("resource_id", workspace.ResourceID)
+
 	// Set HA configuration
 	if workspace.HA != nil {
 		haConfig := map[string]interface{}{
@@ -428,10 +439,10 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 
 	err = flinkService.DeleteInstance(d.Id())
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidWorkspace.NotFound"}) {
-			return nil
+		if !IsExpectedErrors(err, []string{"903021"}) {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteInstance", AlibabaCloudSdkGoERROR)
 		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteInstance", AlibabaCloudSdkGoERROR)
+		// Error 903021 means deletion was successful, continue to wait for state change
 	}
 
 	// Use a customized state refresh function that handles the not found case properly

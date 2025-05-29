@@ -34,7 +34,7 @@ func TestAccAlicloudFlinkConnector_basic(t *testing.T) {
 			{
 				Config: testAccConfig(map[string]interface{}{
 					"workspace_id": "${alicloud_flink_workspace.default.id}",
-					"namespace_id": "${alicloud_flink_namespace.default.name}",
+					"namespace_name": "${alicloud_flink_namespace.default.name}",
 					"name":         name,
 					"type":         "kafka",
 					"properties": []map[string]interface{}{
@@ -64,7 +64,7 @@ func TestAccAlicloudFlinkConnector_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
 						"workspace_id":        CHECKSET,
-						"namespace_id":        CHECKSET,
+						"namespace_name":        CHECKSET,
 						"name":                name,
 						"type":                "kafka",
 						"properties.#":        "2",
@@ -87,7 +87,7 @@ func TestAccAlicloudFlinkConnector_basic(t *testing.T) {
 
 var testAccAlicloudFlinkConnectorBasicMap = map[string]string{
 	"workspace_id":        CHECKSET,
-	"namespace_id":        CHECKSET,
+	"namespace_name":        CHECKSET,
 	"name":                CHECKSET,
 	"type":                CHECKSET,
 	"properties.#":        CHECKSET,
@@ -148,7 +148,7 @@ func (s *FlinkService) DescribeFlinkConnector(id string) (object map[string]inte
 	}
 
 	object["workspace_id"] = workspace
-	object["namespace_id"] = namespace
+	object["namespace_name"] = namespace
 	if conn.Name != nil {
 		object["name"] = *conn.Name
 	}
