@@ -33,7 +33,7 @@ func TestAccAliCloudFlinkDeployment_basic0(t *testing.T) {
 			{
 				Config: testAccConfig(map[string]interface{}{
 					"workspace_id": "${alicloud_flink_workspace.default.id}",
-					"namespace_id": "default",
+					"namespace_name": "default",
 					"job_name":     name,
 					"entry_class":  "com.example.WordCount",
 					"jar_uri":      "oss://example-bucket/wordcount.jar",
@@ -42,7 +42,7 @@ func TestAccAliCloudFlinkDeployment_basic0(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
 						"workspace_id": CHECKSET,
-						"namespace_id": "default",
+						"namespace_name": "default",
 						"job_name":     name,
 						"entry_class":  "com.example.WordCount",
 						"jar_uri":      "oss://example-bucket/wordcount.jar",

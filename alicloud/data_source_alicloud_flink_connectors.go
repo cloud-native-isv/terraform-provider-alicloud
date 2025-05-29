@@ -19,7 +19,7 @@ func dataSourceAlicloudFlinkConnectors() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"namespace_id": {
+			"namespace_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -144,10 +144,10 @@ func dataSourceAlicloudFlinkConnectorsRead(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace_id").(string)
+	workspaceId := d.Get("workspace_id").(string)
+	namespaceName := d.Get("namespace_name").(string)
 
-	response, err := flinkService.ListCustomConnectors(workspace, namespace)
+	response, err := flinkService.ListCustomConnectors(workspaceId, namespaceName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_connectors", "ListCustomConnectors", AliyunLogGoSdkERROR)
 	}
@@ -184,7 +184,7 @@ func dataSourceAlicloudFlinkConnectorsRead(d *schema.ResourceData, meta interfac
 		}
 
 		mapping := map[string]interface{}{
-			"id":   fmt.Sprintf("%s:%s:%s", workspace, namespace, connector.Name),
+			"id":   fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, connector.Name),
 			"name": connector.Name,
 			"type": connector.Type,
 		}
