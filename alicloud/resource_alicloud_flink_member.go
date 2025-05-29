@@ -1,6 +1,9 @@
 package alicloud
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -78,11 +81,17 @@ func resourceAliCloudFlinkMemberRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Parse the ID to get workspace, namespace and member name
-	workspace := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace_id").(string)
-	name := d.Get("name").(string)
+	// ID format: workspace_id/namespace_id/member_name
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 3 {
+		return WrapError(fmt.Errorf("invalid resource id format: %s, expected workspace_id/namespace_id/member_name", d.Id()))
+	}
 
-	// Use GetMember method with string values instead of pointers
+	workspace := parts[0]
+	namespace := parts[1]
+	name := parts[2]
+
+	// Use GetMember method with parsed values
 	response, err := flinkService.GetMember(workspace, namespace, name)
 	if err != nil {
 		if NotFoundError(err) {
@@ -94,7 +103,9 @@ func resourceAliCloudFlinkMemberRead(d *schema.ResourceData, meta interface{}) e
 
 	// Set attributes based on response
 	if response != nil {
-		// The response is now a map[string]interface{}, not a struct with Body field
+		d.Set("workspace_id", workspace)
+		d.Set("namespace_id", namespace)
+		d.Set("name", name)
 		d.Set("role", response["role"])
 	}
 

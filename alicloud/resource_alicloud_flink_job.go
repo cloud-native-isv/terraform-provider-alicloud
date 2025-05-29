@@ -26,7 +26,7 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the Flink workspace.",
 			},
-			"namespace": {
+			"namespace_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -88,7 +88,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 
 	// Get parameters from schema
 	workspaceId := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace").(string)
+	namespaceName := d.Get("namespace_name").(string)
 	deploymentId := d.Get("deployment_id").(string)
 	jobName := d.Get("job_name").(string)
 	allowNonRestoredState := d.Get("allow_non_restored_state").(bool)
@@ -98,7 +98,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 	// Build job request - using the Job struct from cws-lib-go with correct field names
 	request := &aliyunAPI.Job{
 		Workspace:      workspaceId,
-		Namespace:      namespace,
+		Namespace:      namespaceName,
 		DeploymentId:   deploymentId,
 		DeploymentName: jobName,
 	}
@@ -123,13 +123,13 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	// Start job using FlinkService
-	job, err := flinkService.StartJobWithParams(namespace, request)
+	job, err := flinkService.StartJobWithParams(namespaceName, request)
 	if err != nil {
 		return WrapError(err)
 	}
 
 	// Set composite ID: namespace:jobId
-	d.SetId(fmt.Sprintf("%s:%s", namespace, job.JobId))
+	d.SetId(fmt.Sprintf("%s:%s", namespaceName, job.JobId))
 
 	return resourceAliCloudFlinkJobRead(d, meta)
 }
@@ -153,7 +153,7 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 
 	// Set attributes using correct field names from cws-lib-go Job type
 	d.Set("workspace_id", job.Workspace)
-	d.Set("namespace", job.Namespace)
+	d.Set("namespace_name", job.Namespace)
 	d.Set("deployment_id", job.DeploymentId)
 	d.Set("job_name", job.DeploymentName)
 	d.Set("job_id", job.JobId)

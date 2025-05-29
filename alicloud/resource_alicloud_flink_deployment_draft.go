@@ -30,7 +30,7 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
-				Description: "The name of the namespace.",
+				Description: "The ID of the namespace.",
 			},
 			"name": {
 				Type:        schema.TypeString,
@@ -137,15 +137,15 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		return WrapError(err)
 	}
 
-	workspaceID := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace_id").(string)
+	workspaceId := d.Get("workspace_id").(string)
+	namespaceName := d.Get("namespace_id").(string)
 	name := d.Get("name").(string)
 	artifactURI := d.Get("artifact_uri").(string)
 
 	// Create deployment draft using cws-lib-go service
 	request := &aliyunAPI.Deployment{
-		Workspace: workspaceID,
-		Namespace: namespace,
+		Workspace: workspaceId,
+		Namespace: namespaceName,
 		Name:      name,
 	}
 
@@ -158,8 +158,8 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	}
 
 	// Set deployment ID if provided
-	if deploymentID, ok := d.GetOk("deployment_id"); ok {
-		request.ReferencedDeploymentDraftId = deploymentID.(string)
+	if deploymentId, ok := d.GetOk("deployment_id"); ok {
+		request.ReferencedDeploymentDraftId = deploymentId.(string)
 	}
 
 	// Handle resource specifications
@@ -208,9 +208,9 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	}
 
 	// Create the deployment draft
-	response, err := flinkService.CreateDeploymentDraft(namespace, &aliyunAPI.DeploymentDraft{
-		Workspace:                workspaceID,
-		Namespace:                namespace,
+	response, err := flinkService.CreateDeploymentDraft(workspaceId, namespaceName, &aliyunAPI.DeploymentDraft{
+		Workspace:                workspaceId,
+		Namespace:                namespaceName,
 		Name:                     name,
 		Artifact:                 request.Artifact,
 		FlinkConf:                request.FlinkConf,
@@ -225,7 +225,7 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		return WrapError(fmt.Errorf("failed to get deployment draft ID from response"))
 	}
 
-	d.SetId(fmt.Sprintf("%s:%s", namespace, response.DeploymentDraftId))
+	d.SetId(fmt.Sprintf("%s:%s", namespaceName, response.DeploymentDraftId))
 	d.Set("draft_id", response.DeploymentDraftId)
 
 	return resourceAliCloudFlinkDeploymentDraftRead(d, meta)

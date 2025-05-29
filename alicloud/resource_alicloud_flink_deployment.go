@@ -25,7 +25,7 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"namespace_id": {
+			"namespace_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -94,12 +94,12 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	}
 
 	// Create deployment request using cws-lib-go types
-	workspaceID := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace_id").(string)
+	workspaceId := d.Get("workspace_id").(string)
+	namespaceName := d.Get("namespace_name").(string)
 
 	request := &aliyunAPI.Deployment{
-		Workspace: workspaceID,
-		Namespace: namespace,
+		Workspace: workspaceId,
+		Namespace: namespaceName,
 		Name:      d.Get("job_name").(string),
 	}
 
@@ -138,7 +138,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	// Create deployment
 	var response *aliyunAPI.Deployment
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		resp, err := flinkService.CreateDeployment(&namespace, request)
+		resp, err := flinkService.CreateDeployment(&namespaceName, request)
 		if err != nil {
 			if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
 				time.Sleep(5 * time.Second)
@@ -159,7 +159,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	}
 
 	// Set composite ID: namespace:deploymentId
-	d.SetId(namespace + ":" + response.DeploymentId)
+	d.SetId(namespaceName + ":" + response.DeploymentId)
 
 	// Wait for deployment creation to complete
 	stateConf := resource.StateChangeConf{
@@ -195,14 +195,14 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 	}
 
 	// Parse namespace and deployment ID from composite ID
-	namespace, deploymentId, err := parseDeploymentId(d.Id())
+	namespaceName, deploymentId, err := parseDeploymentId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
 	// Set attributes from deployment deployment using correct field names
 	d.Set("workspace_id", deployment.Workspace)
-	d.Set("namespace_id", namespace)
+	d.Set("namespace_name", namespaceName)
 	d.Set("deployment_id", deploymentId)
 	d.Set("job_name", deployment.Name)
 	d.Set("create_time", deployment.CreatedAt)
@@ -345,12 +345,12 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 	}
 
 	// Parse namespace and deployment ID from composite ID
-	namespace, deploymentId, err := parseDeploymentId(d.Id())
+	namespaceName, deploymentId, err := parseDeploymentId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
-	err = flinkService.DeleteDeployment(namespace, deploymentId)
+	err = flinkService.DeleteDeployment(namespaceName, deploymentId)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"InvalidDeployment.NotFound"}) {
 			return nil
