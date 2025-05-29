@@ -1,10 +1,11 @@
 package alicloud
 
 import (
+	"log"
 	"time"
 
-	ververica "github.com/alibabacloud-go/ververica-20220718/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -92,79 +93,88 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
+	// Create deployment request using cws-lib-go types
+	workspaceID := d.Get("workspace_id").(string)
 	namespace := d.Get("namespace_id").(string)
-	workspaceId := d.Get("workspace_id").(string)
-	jarUri := d.Get("jar_uri").(string)
 
-	jobName := d.Get("job_name").(string)
-
-	deploymentName := d.Get("deployment_name").(string)
-	if deploymentName == "" {
-		deploymentName = jobName
+	request := &aliyunAPI.Deployment{
+		Workspace: workspaceID,
+		Namespace: namespace,
+		Name:      d.Get("job_name").(string),
 	}
 
-	// Create the deployment request with the correct structure
-	request := &ververica.CreateDeploymentRequest{}
+	// Handle artifact configuration
+	if jarUri, ok := d.GetOk("jar_uri"); ok {
+		request.Artifact = &aliyunAPI.Artifact{
+			Kind: "JAR",
+			JarArtifact: &aliyunAPI.JarArtifact{
+				JarUri: jarUri.(string),
+			},
+		}
 
-	// Create a Deployment object for the Body field
-	deployment := &ververica.Deployment{}
+		if entryClass, ok := d.GetOk("entry_class"); ok {
+			request.Artifact.JarArtifact.EntryClass = entryClass.(string)
+		}
+	}
 
-	// Set deployment name
-	deployment.Name = &deploymentName
+	// Handle streaming resource setting for parallelism
+	if parallelism, ok := d.GetOk("parallelism"); ok {
+		request.StreamingResourceSetting = &aliyunAPI.StreamingResourceSetting{
+			ResourceSettingMode: "BASIC",
+			BasicResourceSetting: &aliyunAPI.BasicResourceSetting{
+				Parallelism: parallelism.(int),
+			},
+		}
+	}
 
-	// Set workspace ID
-	deployment.Workspace = &workspaceId
+	// Handle Flink configuration
+	if flinkConf := d.Get("flink_conf").(map[string]interface{}); len(flinkConf) > 0 {
+		request.FlinkConf = make(map[string]string)
+		for k, v := range flinkConf {
+			request.FlinkConf[k] = v.(string)
+		}
+	}
 
-	// Create artifact for JAR info
-	artifact := &ververica.Artifact{}
-	artifact.Kind = stringPointer("JAR")
+	// Create deployment
+	var response *aliyunAPI.Deployment
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		resp, err := flinkService.CreateDeployment(&namespace, request)
+		if err != nil {
+			if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		response = resp
+		return nil
+	})
 
-	deployment.Artifact = artifact
-
-	// Set parallelism
-
-	streamingResourceSetting := &ververica.StreamingResourceSetting{}
-
-	deployment.StreamingResourceSetting = streamingResourceSetting
-
-	// Set the deployment as the body of the request
-	request.Body = deployment
-
-	// Create the deployment
-	response, err := flinkService.CreateDeployment(&namespace, request)
 	if err != nil {
-		return WrapError(err)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment", "CreateDeployment", AlibabaCloudSdkGoERROR)
 	}
 
-	// Access fields from the correct response structure
-	d.SetId(*response.Body.Data.DeploymentId)
-	d.Set("deployment_id", *response.Body.Data.DeploymentId)
-	d.Set("jar_artifact_name", jarUri)
-
-	// Create an adapter function to convert ResourceStateRefreshFunc to resource.StateRefreshFunc
-	refreshFunc := func() (interface{}, string, error) {
-		return flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{})()
+	if response == nil || response.DeploymentId == "" {
+		return WrapError(Error("Failed to get deployment ID from response"))
 	}
+
+	// Set composite ID: namespace:deploymentId
+	d.SetId(namespace + ":" + response.DeploymentId)
 
 	// Wait for deployment creation to complete
 	stateConf := resource.StateChangeConf{
-		Pending:      []string{},
-		Target:       []string{"CREATED"},
-		Refresh:      refreshFunc,
-		Timeout:      d.Timeout(schema.TimeoutCreate),
-		Delay:        5 * time.Second,
-		PollInterval: 5 * time.Second,
+		Pending:    []string{"CREATING", "STARTING"},
+		Target:     []string{"CREATED", "RUNNING"},
+		Refresh:    flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"FAILED"}),
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
 	return resourceAliCloudFlinkDeploymentRead(d, meta)
-}
-
-// Helper function to create a string pointer
-func stringPointer(s string) *string {
-	return &s
 }
 
 func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{}) error {
@@ -174,36 +184,53 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 		return WrapError(err)
 	}
 
-	deploymentId := d.Id()
-	namespace := d.Get("namespace_id").(string)
-
-	response, err := flinkService.GetDeployment(&namespace, &deploymentId)
+	deployment, err := flinkService.GetDeployment(d.Id())
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExist.Deployment"}) {
+		if !d.IsNewResource() && NotFoundError(err) {
+			log.Printf("[DEBUG] Resource alicloud_flink_deployment GetDeployment Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
 
-	if response.Body.Data == nil {
-		d.SetId("")
-		return nil
+	// Parse namespace and deployment ID from composite ID
+	namespace, deploymentId, err := parseDeploymentId(d.Id())
+	if err != nil {
+		return WrapError(err)
 	}
 
-	// Access fields from the correct response structure
-	deployment := response.Body.Data
-	d.Set("deployment_id", *deployment.DeploymentId)
-	d.Set("deployment_name", *deployment.Name)
-	d.Set("workspace_id", *deployment.Workspace)
-	d.Set("namespace_id", *deployment.Namespace)
+	// Set attributes from deployment deployment using correct field names
+	d.Set("workspace_id", deployment.Workspace)
+	d.Set("namespace_id", namespace)
+	d.Set("deployment_id", deploymentId)
+	d.Set("job_name", deployment.Name)
+	d.Set("create_time", deployment.CreatedAt)
+	d.Set("update_time", deployment.ModifiedAt)
 
-	if deployment.CreatedAt != nil {
-		d.Set("create_time", *deployment.CreatedAt)
+	// Handle artifact fields
+	if deployment.Artifact != nil && deployment.Artifact.JarArtifact != nil {
+		d.Set("jar_uri", deployment.Artifact.JarArtifact.JarUri)
+		d.Set("entry_class", deployment.Artifact.JarArtifact.EntryClass)
 	}
 
-	if deployment.ModifiedAt != nil {
-		d.Set("update_time", *deployment.ModifiedAt)
+	// Handle parallelism from streaming resource setting
+	if deployment.StreamingResourceSetting != nil &&
+		deployment.StreamingResourceSetting.BasicResourceSetting != nil {
+		d.Set("parallelism", deployment.StreamingResourceSetting.BasicResourceSetting.Parallelism)
+	}
+
+	// Handle job status from job summary
+	if deployment.JobSummary != nil {
+		d.Set("status", deployment.Status())
+	}
+
+	if deployment.FlinkConf != nil {
+		flinkConf := make(map[string]interface{})
+		for k, v := range deployment.FlinkConf {
+			flinkConf[k] = v
+		}
+		d.Set("flink_conf", flinkConf)
 	}
 
 	return nil
@@ -216,72 +243,97 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	deploymentId := d.Id()
-	namespace := d.Get("namespace_id").(string)
-	d.Partial(true)
+	// Get current deployment
+	deployment, err := flinkService.GetDeployment(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
 
-	// Create update request with the correct structure
-	request := &ververica.UpdateDeploymentRequest{}
+	hasChanged := false
 
-	// Create a Deployment object for the Body field
-	deployment := &ververica.Deployment{}
-	update := false
-
-	// Set the deployment ID
-	deployment.DeploymentId = &deploymentId
-
-	if d.HasChange("job_name") || d.HasChange("deployment_name") {
-		deploymentName := d.Get("deployment_name").(string)
-		if deploymentName == "" {
-			deploymentName = d.Get("job_name").(string)
+	// Update deployment properties if changed
+	if d.HasChange("jar_uri") || d.HasChange("entry_class") || d.HasChange("parallelism") || d.HasChange("flink_conf") {
+		if jarUri, ok := d.GetOk("jar_uri"); ok {
+			if deployment.Artifact == nil {
+				deployment.Artifact = &aliyunAPI.Artifact{
+					Kind:        "JAR",
+					JarArtifact: &aliyunAPI.JarArtifact{},
+				}
+			}
+			if deployment.Artifact.JarArtifact == nil {
+				deployment.Artifact.JarArtifact = &aliyunAPI.JarArtifact{}
+			}
+			deployment.Artifact.JarArtifact.JarUri = jarUri.(string)
 		}
-		deployment.Name = &deploymentName
-		update = true
+
+		if entryClass, ok := d.GetOk("entry_class"); ok {
+			if deployment.Artifact == nil {
+				deployment.Artifact = &aliyunAPI.Artifact{
+					Kind:        "JAR",
+					JarArtifact: &aliyunAPI.JarArtifact{},
+				}
+			}
+			if deployment.Artifact.JarArtifact == nil {
+				deployment.Artifact.JarArtifact = &aliyunAPI.JarArtifact{}
+			}
+			deployment.Artifact.JarArtifact.EntryClass = entryClass.(string)
+		}
+
+		if parallelism, ok := d.GetOk("parallelism"); ok {
+			if deployment.StreamingResourceSetting == nil {
+				deployment.StreamingResourceSetting = &aliyunAPI.StreamingResourceSetting{
+					ResourceSettingMode:  "BASIC",
+					BasicResourceSetting: &aliyunAPI.BasicResourceSetting{},
+				}
+			}
+			if deployment.StreamingResourceSetting.BasicResourceSetting == nil {
+				deployment.StreamingResourceSetting.BasicResourceSetting = &aliyunAPI.BasicResourceSetting{}
+			}
+			deployment.StreamingResourceSetting.BasicResourceSetting.Parallelism = parallelism.(int)
+		}
+
+		if flinkConf := d.Get("flink_conf").(map[string]interface{}); len(flinkConf) > 0 {
+			deployment.FlinkConf = make(map[string]string)
+			for k, v := range flinkConf {
+				deployment.FlinkConf[k] = v.(string)
+			}
+		}
+
+		hasChanged = true
 	}
 
-	if d.HasChange("jar_uri") || d.HasChange("entry_class") || d.HasChange("program_args") {
-		artifact := &ververica.Artifact{}
-		artifact.Kind = stringPointer("JAR")
+	if hasChanged {
+		// Update deployment
+		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			_, err := flinkService.UpdateDeployment(deployment)
+			if err != nil {
+				if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
+					time.Sleep(5 * time.Second)
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
 
-		deployment.Artifact = artifact
-		update = true
-	}
-
-	if d.HasChange("parallelism") {
-		streamingResourceSetting := &ververica.StreamingResourceSetting{}
-		deployment.StreamingResourceSetting = streamingResourceSetting
-		update = true
-	}
-
-	if update {
-		// Set the deployment as the body of the request
-		request.Body = deployment
-
-		_, err := flinkService.UpdateDeployment(&namespace, &deploymentId, request)
 		if err != nil {
-			return WrapError(err)
-		}
-
-		// Create an adapter function to convert ResourceStateRefreshFunc to resource.StateRefreshFunc
-		refreshFunc := func() (interface{}, string, error) {
-			return flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{})()
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateDeployment", AlibabaCloudSdkGoERROR)
 		}
 
 		// Wait for update to complete
 		stateConf := resource.StateChangeConf{
-			Pending:      []string{},
-			Target:       []string{"CREATED"},
-			Refresh:      refreshFunc,
-			Timeout:      d.Timeout(schema.TimeoutUpdate),
-			Delay:        5 * time.Second,
-			PollInterval: 5 * time.Second,
+			Pending:    []string{"UPDATING"},
+			Target:     []string{"RUNNING", "CREATED"},
+			Refresh:    flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"FAILED"}),
+			Timeout:    d.Timeout(schema.TimeoutUpdate),
+			Delay:      5 * time.Second,
+			MinTimeout: 3 * time.Second,
 		}
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
 
-	d.Partial(false)
 	return resourceAliCloudFlinkDeploymentRead(d, meta)
 }
 
@@ -292,41 +344,31 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	deploymentId := d.Id()
-	namespace := d.Get("namespace_id").(string)
-
-	// Check if there's an active job that needs to be stopped first
+	// Parse namespace and deployment ID from composite ID
+	namespace, deploymentId, err := parseDeploymentId(d.Id())
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExist.Deployment"}) {
-			return nil
-		}
 		return WrapError(err)
 	}
 
-	// Now delete the deployment
-	_, err = flinkService.DeleteDeployment(&namespace, &deploymentId)
+	err = flinkService.DeleteDeployment(namespace, deploymentId)
 	if err != nil {
-		if !IsExpectedErrors(err, []string{"EntityNotExist.Deployment"}) {
-			return WrapError(err)
+		if IsExpectedErrors(err, []string{"InvalidDeployment.NotFound"}) {
+			return nil
 		}
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDeployment", AlibabaCloudSdkGoERROR)
 	}
 
-	// Create an adapter function to convert ResourceStateRefreshFunc to resource.StateRefreshFunc
-	refreshDeploymentFunc := func() (interface{}, string, error) {
-		return flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"EntityNotExist.Deployment"})()
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"DELETING"},
+		Target:     []string{},
+		Refresh:    flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{}),
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
 
-	// Wait for the deployment to be deleted
-	deploymentStateConf := resource.StateChangeConf{
-		Pending:      []string{},
-		Target:       []string{},
-		Refresh:      refreshDeploymentFunc,
-		Timeout:      d.Timeout(schema.TimeoutDelete),
-		Delay:        5 * time.Second,
-		PollInterval: 5 * time.Second,
-	}
-
-	if _, err := deploymentStateConf.WaitForState(); err != nil {
+	_, err = stateConf.WaitForState()
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 

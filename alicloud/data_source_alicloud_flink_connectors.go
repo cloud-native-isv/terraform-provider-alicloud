@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -148,15 +147,12 @@ func dataSourceAlicloudFlinkConnectorsRead(d *schema.ResourceData, meta interfac
 	workspace := d.Get("workspace_id").(string)
 	namespace := d.Get("namespace_id").(string)
 
-	request := tea.String(workspace)
-	namespaceStr := tea.String(namespace)
-
-	response, err := flinkService.ListCustomConnectors(request, namespaceStr)
+	response, err := flinkService.ListCustomConnectors(workspace, namespace)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_connectors", "ListCustomConnectors", AliyunLogGoSdkERROR)
 	}
 
-	if response == nil || response.Body == nil || response.Body.Data == nil {
+	if response == nil {
 		return WrapErrorf(fmt.Errorf("empty response"), DefaultErrorMsg, "alicloud_flink_connectors", "ListCustomConnectors", AliyunLogGoSdkERROR)
 	}
 
@@ -172,101 +168,38 @@ func dataSourceAlicloudFlinkConnectorsRead(d *schema.ResourceData, meta interfac
 
 	connectorType := d.Get("type").(string)
 
-	for _, connector := range response.Body.Data {
-		if connector.Name == nil {
+	for _, connector := range response {
+		if connector.Name == "" {
 			continue
 		}
 
 		// Apply name_regex filter if set
-		if nameRegexOk && !r.MatchString(*connector.Name) {
+		if nameRegexOk && !r.MatchString(connector.Name) {
 			continue
 		}
 
 		// Apply type filter if set
-		if connectorType != "" && (connector.Type == nil || *connector.Type != connectorType) {
+		if connectorType != "" && connector.Type != connectorType {
 			continue
 		}
 
 		mapping := map[string]interface{}{
-			"id":   fmt.Sprintf("%s:%s:%s", workspace, namespace, *connector.Name),
-			"name": *connector.Name,
+			"id":   fmt.Sprintf("%s:%s:%s", workspace, namespace, connector.Name),
+			"name": connector.Name,
+			"type": connector.Type,
 		}
 
-		if connector.Type != nil {
-			mapping["type"] = *connector.Type
+		if connector.Creator != "" {
+			mapping["creator"] = connector.Creator
 		}
 
-		if connector.Lookup != nil {
-			mapping["lookup"] = *connector.Lookup
-		}
-
-		if connector.Source != nil {
-			mapping["source"] = *connector.Source
-		}
-
-		if connector.Sink != nil {
-			mapping["sink"] = *connector.Sink
-		}
-
-		if connector.Creator != nil {
-			mapping["creator"] = *connector.Creator
-		}
-
-		if connector.CreatorName != nil {
-			mapping["creator_name"] = *connector.CreatorName
-		}
-
-		if connector.Modifier != nil {
-			mapping["modifier"] = *connector.Modifier
-		}
-
-		if connector.ModifierName != nil {
-			mapping["modifier_name"] = *connector.ModifierName
-		}
-
-		// Handle properties
-		if connector.Properties != nil && len(connector.Properties) > 0 {
-			properties := make([]map[string]interface{}, 0, len(connector.Properties))
-			for _, property := range connector.Properties {
-				prop := make(map[string]interface{})
-
-				if property.Key != nil {
-					prop["key"] = *property.Key
-				}
-
-				if property.DefaultValue != nil {
-					prop["value"] = *property.DefaultValue
-				}
-
-				if property.Description != nil {
-					prop["description"] = *property.Description
-				}
-
-				properties = append(properties, prop)
-			}
-			mapping["properties"] = properties
+		if connector.Description != "" {
+			mapping["description"] = connector.Description
 		}
 
 		// Handle dependencies
 		if connector.Dependencies != nil && len(connector.Dependencies) > 0 {
-			dependencies := make([]string, 0, len(connector.Dependencies))
-			for _, dep := range connector.Dependencies {
-				if dep != nil {
-					dependencies = append(dependencies, *dep)
-				}
-			}
-			mapping["dependencies"] = dependencies
-		}
-
-		// Handle supported formats
-		if connector.SupportedFormats != nil && len(connector.SupportedFormats) > 0 {
-			formats := make([]string, 0, len(connector.SupportedFormats))
-			for _, format := range connector.SupportedFormats {
-				if format != nil {
-					formats = append(formats, *format)
-				}
-			}
-			mapping["supported_formats"] = formats
+			mapping["dependencies"] = connector.Dependencies
 		}
 
 		filteredConnectorIds = append(filteredConnectorIds, mapping["id"].(string))

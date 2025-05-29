@@ -1,8 +1,9 @@
 package alicloud
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourceAlicloudFlinkDeployments() *schema.Resource {
@@ -57,7 +58,11 @@ func dataSourceAlicloudFlinkDeploymentsRead(d *schema.ResourceData, meta interfa
 	}
 
 	// 2. 获取所有Flink实例（分页处理）
-	instances, err := flinkService.ListInstances()
+	pagination := &aliyunAPI.PaginationRequest{
+		PageIndex: 1,
+		PageSize:  50,
+	}
+	response, err := flinkService.ListInstances(pagination)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -66,22 +71,22 @@ func dataSourceAlicloudFlinkDeploymentsRead(d *schema.ResourceData, meta interfa
 	var deployments []map[string]interface{}
 	ids := make([]string, 0)
 	names := make([]string, 0)
-	for _, instance := range instances {
-		if instance == nil || instance.InstanceId == nil || instance.InstanceName == nil || instance.ClusterStatus == nil {
-			continue
-		}
-		instanceId := *instance.InstanceId
-		instanceName := *instance.InstanceName
-		status := *instance.ClusterStatus
 
-		deployments = append(deployments, map[string]interface{}{
-			"id":      instanceId,
-			"name":    instanceName,
-			"status":  status,
-			// Add other fields here
-		})
-		ids = append(ids, instanceId)
-		names = append(names, instanceName)
+	if response != nil {
+		for _, instance := range response.Data {
+			instanceId := instance.ID
+			instanceName := instance.Name
+			status := instance.Status
+
+			deployments = append(deployments, map[string]interface{}{
+				"id":     instanceId,
+				"name":   instanceName,
+				"status": status,
+				// Add other fields here
+			})
+			ids = append(ids, instanceId)
+			names = append(names, instanceName)
+		}
 	}
 
 	// 4. 设置数据源返回值

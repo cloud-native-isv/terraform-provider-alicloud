@@ -3,7 +3,6 @@ package alicloud
 import (
 	"sort"
 
-	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -54,17 +53,7 @@ func dataSourceAliCloudFlinkZonesRead(d *schema.ResourceData, meta interface{}) 
 		return WrapError(err)
 	}
 
-	request := &foasconsole.DescribeSupportedZonesRequest{}
-
-	// Set request parameters from schema if provided
-	if v, ok := d.GetOk("architecture_type"); ok {
-		architectureType := v.(string)
-		request.ArchitectureType = &architectureType
-	}
-	region := client.RegionId
-	request.Region = &region
-
-	response, err := flinkService.DescribeSupportedZones(request)
+	response, err := flinkService.DescribeSupportedZones()
 	if err != nil {
 		return WrapError(err)
 	}
@@ -72,12 +61,12 @@ func dataSourceAliCloudFlinkZonesRead(d *schema.ResourceData, meta interface{}) 
 	var ids []string
 	var zoneList []map[string]interface{}
 
-	if response.Body.Success != nil && *response.Body.Success && response.Body.ZoneIds != nil {
-		// 提取并排序可用区ID
+	if response != nil {
+		// Extract zone IDs and sort them
 		var zoneIds []string
-		for _, zonePtr := range response.Body.ZoneIds {
-			if zonePtr != nil {
-				zoneIds = append(zoneIds, *zonePtr)
+		for _, zone := range response {
+			if zone != nil && zone.ZoneID != "" {
+				zoneIds = append(zoneIds, zone.ZoneID)
 			}
 		}
 		sort.Strings(zoneIds)

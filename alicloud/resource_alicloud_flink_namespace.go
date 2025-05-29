@@ -5,9 +5,8 @@ import (
 	"strings"
 	"time"
 
-	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -66,25 +65,23 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	region := client.RegionId
 	workspace := d.Get("workspace_id").(string)
 	name := d.Get("name").(string)
 	ha := d.Get("ha").(bool)
-	cpu := d.Get("cpu").(int32)
-	memory := d.Get("memory").(int32)
+	cpu := d.Get("cpu").(int)
+	memory := d.Get("memory").(int)
 
-	request := &foasconsole.CreateNamespaceRequest{
-		Region:     tea.String(region),
-		InstanceId: tea.String(workspace),
-		Namespace:  tea.String(name),
-		Ha:         tea.Bool(ha),
-		ResourceSpec: &foasconsole.CreateNamespaceRequestResourceSpec{
-			Cpu:      tea.Int32(cpu),
-			MemoryGB: tea.Int32(memory),
+	// Create namespace using aliyunAPI.Namespace directly
+	namespace := &aliyunAPI.Namespace{
+		Name: name,
+		Ha:   ha,
+		ResourceSpec: &aliyunAPI.ResourceSpec{
+			Cpu:      float64(cpu),
+			MemoryGB: float64(memory),
 		},
 	}
 
-	_, err = flinkService.CreateNamespace(request)
+	_, err = flinkService.CreateNamespace(workspace, namespace)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_namespace", "CreateNamespace", AlibabaCloudSdkGoERROR)
 	}
@@ -128,14 +125,9 @@ func resourceAliCloudFlinkNamespaceDelete(d *schema.ResourceData, meta interface
 
 	id := d.Id()
 	workspace, namespace := splitNamespaceID(id)
-	region := client.RegionId
 
-	request := &foasconsole.DeleteNamespaceRequest{
-		InstanceId: tea.String(workspace),
-		Namespace:  tea.String(namespace),
-		Region:     tea.String(region),
-	}
-	_, err = flinkService.DeleteNamespace(request)
+	// Use the refactored DeleteNamespace method with simplified parameters
+	err = flinkService.DeleteNamespace(workspace, namespace)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_namespace", "DeleteNamespace", AlibabaCloudSdkGoERROR)
 	}

@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	util "github.com/alibabacloud-go/tea-utils/v2/service"
-	"github.com/alibabacloud-go/tea/tea"
-	ververica "github.com/alibabacloud-go/ververica-20220718/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -144,53 +142,91 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	artifactURI := d.Get("artifact_uri").(string)
 
-	// Create draft request
-	request := &ververica.CreateDeploymentDraftRequest{}
-
-	// Build draft object
-	draft := &ververica.DeploymentDraft{}
-	draft.Name = tea.String(name)
-	draft.Namespace = tea.String(namespace)
-	draft.Workspace = tea.String(workspaceID)
+	// Create deployment draft using cws-lib-go service
+	request := &aliyunAPI.Deployment{
+		Workspace: workspaceID,
+		Namespace: namespace,
+		Name:      name,
+	}
 
 	// Set artifact
-	artifact := &ververica.Artifact{}
-	artifact.Kind = tea.String("JAR")
-
-	// Create and set JAR artifact
-	jarArtifact := &ververica.JarArtifact{}
-	jarArtifact.JarUri = tea.String(artifactURI)
-	artifact.JarArtifact = jarArtifact
-
-	draft.Artifact = artifact
+	request.Artifact = &aliyunAPI.Artifact{
+		Kind: "JAR",
+		JarArtifact: &aliyunAPI.JarArtifact{
+			JarUri: artifactURI,
+		},
+	}
 
 	// Set deployment ID if provided
 	if deploymentID, ok := d.GetOk("deployment_id"); ok {
-		draft.ReferencedDeploymentId = tea.String(deploymentID.(string))
+		request.ReferencedDeploymentDraftId = deploymentID.(string)
 	}
 
-	// Set the draft as the body of the request
-	request.Body = draft
+	// Handle resource specifications
+	if jmSpecs, ok := d.GetOk("job_manager_resource_spec"); ok {
+		jmSpecList := jmSpecs.([]interface{})
+		if len(jmSpecList) > 0 {
+			jmSpec := jmSpecList[0].(map[string]interface{})
+			if request.StreamingResourceSetting == nil {
+				request.StreamingResourceSetting = &aliyunAPI.StreamingResourceSetting{
+					ResourceSettingMode:  "BASIC",
+					BasicResourceSetting: &aliyunAPI.BasicResourceSetting{},
+				}
+			}
+			if request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec == nil {
+				request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunAPI.ResourceSettingSpec{}
+			}
+			request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.CPU = jmSpec["cpu"].(float64)
+			request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.Memory = jmSpec["memory"].(string)
+		}
+	}
 
-	// Create the deployment draft with workspace header
-	response, err := flinkService.ververicaClient.CreateDeploymentDraftWithOptions(
-		tea.String(namespace),
-		request,
-		&ververica.CreateDeploymentDraftHeaders{
-			Workspace: tea.String(workspaceID),
-		},
-		&util.RuntimeOptions{},
-	)
+	if tmSpecs, ok := d.GetOk("task_manager_resource_spec"); ok {
+		tmSpecList := tmSpecs.([]interface{})
+		if len(tmSpecList) > 0 {
+			tmSpec := tmSpecList[0].(map[string]interface{})
+			if request.StreamingResourceSetting == nil {
+				request.StreamingResourceSetting = &aliyunAPI.StreamingResourceSetting{
+					ResourceSettingMode:  "BASIC",
+					BasicResourceSetting: &aliyunAPI.BasicResourceSetting{},
+				}
+			}
+			if request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec == nil {
+				request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunAPI.ResourceSettingSpec{}
+			}
+			request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.CPU = tmSpec["cpu"].(float64)
+			request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.Memory = tmSpec["memory"].(string)
+		}
+	}
+
+	// Handle Flink configuration
+	if flinkConf, ok := d.GetOk("flink_configuration"); ok {
+		request.FlinkConf = make(map[string]string)
+		for k, v := range flinkConf.(map[string]interface{}) {
+			request.FlinkConf[k] = v.(string)
+		}
+	}
+
+	// Create the deployment draft
+	response, err := flinkService.CreateDeploymentDraft(namespace, &aliyunAPI.DeploymentDraft{
+		Workspace:                workspaceID,
+		Namespace:                namespace,
+		Name:                     name,
+		Artifact:                 request.Artifact,
+		FlinkConf:                request.FlinkConf,
+		StreamingResourceSetting: request.StreamingResourceSetting,
+		ReferencedDeploymentId:   request.ReferencedDeploymentDraftId,
+	})
 	if err != nil {
 		return WrapError(err)
 	}
 
-	if response == nil || response.Body == nil || response.Body.Data == nil || response.Body.Data.DeploymentDraftId == nil {
+	if response == nil || response.DeploymentDraftId == "" {
 		return WrapError(fmt.Errorf("failed to get deployment draft ID from response"))
 	}
 
-	d.SetId(fmt.Sprintf("%s:%s", namespace, *response.Body.Data.DeploymentDraftId))
-	d.Set("draft_id", *response.Body.Data.DeploymentDraftId)
+	d.SetId(fmt.Sprintf("%s:%s", namespace, response.DeploymentDraftId))
+	d.Set("draft_id", response.DeploymentDraftId)
 
 	return resourceAliCloudFlinkDeploymentDraftRead(d, meta)
 }
@@ -211,14 +247,8 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 	draftID := parts[1]
 	workspaceID := d.Get("workspace_id").(string)
 
-	response, err := flinkService.ververicaClient.GetDeploymentDraftWithOptions(
-		tea.String(namespace),
-		tea.String(draftID),
-		&ververica.GetDeploymentDraftHeaders{
-			Workspace: tea.String(workspaceID),
-		},
-		&util.RuntimeOptions{},
-	)
+	// Use FlinkService method instead of directly accessing VervericaClient
+	deploymentDraft, err := flinkService.GetDeploymentDraft(workspaceID, namespace, draftID)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"DraftNotFound"}) {
 			d.SetId("")
@@ -227,46 +257,39 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 		return WrapError(err)
 	}
 
-	if response == nil || response.Body == nil || response.Body.Data == nil {
+	if deploymentDraft == nil {
 		d.SetId("")
 		return nil
 	}
 
 	// Update state with values from the response
-	draft := response.Body.Data
-	d.Set("namespace_id", draft.Namespace)
-	d.Set("workspace_id", draft.Workspace)
-	d.Set("name", draft.Name)
-	d.Set("draft_id", draft.DeploymentDraftId)
+	d.Set("namespace_id", deploymentDraft.Namespace)
+	d.Set("workspace_id", deploymentDraft.Workspace)
+	d.Set("name", deploymentDraft.Name)
+	d.Set("draft_id", deploymentDraft.DeploymentDraftId)
 
-	// The Status field may not exist in the new SDK
-	// We'll leave this out for now
-
-	if draft.ReferencedDeploymentId != nil {
-		d.Set("deployment_id", *draft.ReferencedDeploymentId)
+	if deploymentDraft.ReferencedDeploymentId != "" {
+		d.Set("deployment_id", deploymentDraft.ReferencedDeploymentId)
 	}
 
-	if draft.CreatedAt != nil {
+	if deploymentDraft.CreatedAt > 0 {
 		// Convert from int64 to string if needed
-		createdAtStr := fmt.Sprintf("%d", *draft.CreatedAt)
+		createdAtStr := fmt.Sprintf("%d", deploymentDraft.CreatedAt)
 		d.Set("create_time", createdAtStr)
 	}
 
-	if draft.ModifiedAt != nil {
+	if deploymentDraft.ModifiedAt > 0 {
 		// Convert from int64 to string if needed
-		modifiedAtStr := fmt.Sprintf("%d", *draft.ModifiedAt)
+		modifiedAtStr := fmt.Sprintf("%d", deploymentDraft.ModifiedAt)
 		d.Set("update_time", modifiedAtStr)
 	}
 
 	// Set artifact URI
-	if draft.Artifact != nil {
-		if draft.Artifact.JarArtifact != nil && draft.Artifact.JarArtifact.JarUri != nil {
-			d.Set("artifact_uri", *draft.Artifact.JarArtifact.JarUri)
+	if deploymentDraft.Artifact != nil {
+		if deploymentDraft.Artifact.JarArtifact != nil {
+			d.Set("artifact_uri", deploymentDraft.Artifact.JarArtifact.JarUri)
 		}
 	}
-
-	// In the updated SDK, these fields may have been moved or restructured
-	// We'll need to adapt the code accordingly
 
 	return nil
 }
@@ -287,63 +310,96 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	draftID := parts[1]
 	workspaceID := d.Get("workspace_id").(string)
 
-	// Create update request
-	request := &ververica.UpdateDeploymentDraftRequest{}
-
-	// Build draft object
-	draft := &ververica.DeploymentDraft{}
-	draft.DeploymentDraftId = tea.String(draftID)
-	draft.Namespace = tea.String(namespace)
-	draft.Workspace = tea.String(workspaceID)
+	// Use service methods instead of directly accessing Ververica client
+	// First, get the current deployment draft
+	deploymentDraft, err := flinkService.GetDeploymentDraft(workspaceID, namespace, draftID)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	// Only update fields that have changed
 	update := false
 
 	if d.HasChange("name") {
-		draft.Name = tea.String(d.Get("name").(string))
+		deploymentDraft.Name = d.Get("name").(string)
 		update = true
 	}
 
 	if d.HasChange("deployment_id") {
 		if deploymentID, ok := d.GetOk("deployment_id"); ok {
-			draft.ReferencedDeploymentId = tea.String(deploymentID.(string))
+			deploymentDraft.ReferencedDeploymentId = deploymentID.(string)
 		} else {
-			draft.ReferencedDeploymentId = nil
+			deploymentDraft.ReferencedDeploymentId = ""
 		}
 		update = true
 	}
 
 	if d.HasChange("artifact_uri") {
-		artifact := &ververica.Artifact{}
-		artifact.Kind = tea.String("JAR")
+		if deploymentDraft.Artifact == nil {
+			deploymentDraft.Artifact = &aliyunAPI.Artifact{
+				Kind:        "JAR",
+				JarArtifact: &aliyunAPI.JarArtifact{},
+			}
+		}
 
-		// Create and set JAR artifact
-		jarArtifact := &ververica.JarArtifact{}
-		jarArtifact.JarUri = tea.String(d.Get("artifact_uri").(string))
-		artifact.JarArtifact = jarArtifact
+		if deploymentDraft.Artifact.JarArtifact == nil {
+			deploymentDraft.Artifact.JarArtifact = &aliyunAPI.JarArtifact{}
+		}
 
-		draft.Artifact = artifact
+		deploymentDraft.Artifact.JarArtifact.JarUri = d.Get("artifact_uri").(string)
 		update = true
 	}
 
-	// Note: The following fields may no longer exist in the updated SDK
-	// or might have been restructured. We'll remove them for now and you can
-	// reimplement them based on the updated SDK structure if needed.
+	// Handle Flink configuration if changed
+	if d.HasChange("flink_configuration") {
+		flinkConf := d.Get("flink_configuration").(map[string]interface{})
+		deploymentDraft.FlinkConf = make(map[string]string)
+		for k, v := range flinkConf {
+			deploymentDraft.FlinkConf[k] = v.(string)
+		}
+		update = true
+	}
+
+	// Handle resource specifications if changed
+	if d.HasChange("job_manager_resource_spec") || d.HasChange("task_manager_resource_spec") {
+		if deploymentDraft.StreamingResourceSetting == nil {
+			deploymentDraft.StreamingResourceSetting = &aliyunAPI.StreamingResourceSetting{
+				ResourceSettingMode:  "BASIC",
+				BasicResourceSetting: &aliyunAPI.BasicResourceSetting{},
+			}
+		}
+
+		// Job Manager resource spec
+		if d.HasChange("job_manager_resource_spec") {
+			jmSpecs := d.Get("job_manager_resource_spec").([]interface{})
+			if len(jmSpecs) > 0 {
+				jmSpec := jmSpecs[0].(map[string]interface{})
+				if deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec == nil {
+					deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunAPI.ResourceSettingSpec{}
+				}
+				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.CPU = jmSpec["cpu"].(float64)
+				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.Memory = jmSpec["memory"].(string)
+			}
+		}
+
+		// Task Manager resource spec
+		if d.HasChange("task_manager_resource_spec") {
+			tmSpecs := d.Get("task_manager_resource_spec").([]interface{})
+			if len(tmSpecs) > 0 {
+				tmSpec := tmSpecs[0].(map[string]interface{})
+				if deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec == nil {
+					deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunAPI.ResourceSettingSpec{}
+				}
+				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.CPU = tmSpec["cpu"].(float64)
+				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.Memory = tmSpec["memory"].(string)
+			}
+		}
+		update = true
+	}
 
 	if update {
-		// Set the draft as the body of the request
-		request.Body = draft
-
-		// Update the deployment draft
-		_, err := flinkService.ververicaClient.UpdateDeploymentDraftWithOptions(
-			tea.String(namespace),
-			tea.String(draftID),
-			request,
-			&ververica.UpdateDeploymentDraftHeaders{
-				Workspace: tea.String(workspaceID),
-			},
-			&util.RuntimeOptions{},
-		)
+		// Call the service method to update the deployment draft
+		_, err = flinkService.UpdateDeploymentDraft(workspaceID, namespace, draftID, deploymentDraft)
 		if err != nil {
 			return WrapError(err)
 		}
@@ -372,14 +428,8 @@ func resourceAliCloudFlinkDeploymentDraftDelete(d *schema.ResourceData, meta int
 	workspaceID := d.Get("workspace_id").(string)
 
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		_, err := flinkService.ververicaClient.DeleteDeploymentDraftWithOptions(
-			tea.String(namespace),
-			tea.String(draftID),
-			&ververica.DeleteDeploymentDraftHeaders{
-				Workspace: tea.String(workspaceID),
-			},
-			&util.RuntimeOptions{},
-		)
+		// Use service method instead of directly accessing VervericaClient
+		err := flinkService.DeleteDeploymentDraft(workspaceID, namespace, draftID)
 		if err != nil {
 			if IsExpectedErrors(err, []string{"DraftNotFound"}) {
 				return nil

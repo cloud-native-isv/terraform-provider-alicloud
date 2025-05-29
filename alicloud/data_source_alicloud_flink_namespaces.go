@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -113,24 +114,24 @@ func dataSourceAlicloudFlinkNamespacesRead(d *schema.ResourceData, meta interfac
 	})
 
 	// Get all namespaces with pagination
-	namespaces, err := flinkService.ListNamespaces(workspace)
+	pagination := &aliyunAPI.PaginationRequest{
+		PageIndex: 1,
+		PageSize:  50,
+	}
+	response, err := flinkService.ListNamespaces(workspace, pagination)
 	if err != nil {
 		addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespacesError", err)
 		return WrapError(err)
 	}
-	addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespacesResponse", len(namespaces))
+	addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespacesResponse", len(response.Data))
 
 	// Filter and map results
 	var namespaceMaps []map[string]interface{}
 	var filteredIds []string
 	var filteredNames []string
 
-	for _, namespace := range namespaces {
-		if namespace == nil || namespace.Namespace == nil {
-			continue
-		}
-
-		namespaceName := *namespace.Namespace
+	for _, namespace := range response.Data {
+		namespaceName := namespace.Name
 		namespaceId := fmt.Sprintf("%s/%s", workspace, namespaceName)
 
 		// Apply filters
@@ -150,26 +151,14 @@ func dataSourceAlicloudFlinkNamespacesRead(d *schema.ResourceData, meta interfac
 			"id":           namespaceId,
 			"name":         namespaceName,
 			"workspace_id": workspace,
-		}
-
-		// Set status if available
-		if namespace.Status != nil {
-			namespaceMap["status"] = *namespace.Status
-		}
-
-		// Set HA if available
-		if namespace.Ha != nil {
-			namespaceMap["ha"] = *namespace.Ha
+			"status":       namespace.Status,
+			"ha":           namespace.Ha,
 		}
 
 		// Set resource specifications if available
 		if namespace.ResourceSpec != nil {
-			if namespace.ResourceSpec.Cpu != nil {
-				namespaceMap["cpu"] = int(*namespace.ResourceSpec.Cpu)
-			}
-			if namespace.ResourceSpec.MemoryGB != nil {
-				namespaceMap["memory"] = int(*namespace.ResourceSpec.MemoryGB)
-			}
+			namespaceMap["cpu"] = int(namespace.ResourceSpec.Cpu)
+			namespaceMap["memory"] = int(namespace.ResourceSpec.MemoryGB)
 		}
 
 		namespaceMaps = append(namespaceMaps, namespaceMap)

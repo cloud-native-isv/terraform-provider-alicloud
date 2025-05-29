@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/alibabacloud-go/tea/tea"
-	ververica "github.com/alibabacloud-go/ververica-20220718/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -59,12 +58,13 @@ func resourceAliCloudFlinkVariableRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {
-		return err
+		return WrapError(err)
 	}
+
 	workspace, namespace, varName := splitVariableID(d.Id())
-	variable, err := flinkService.GetVariable(tea.String(workspace), tea.String(namespace), tea.String(varName))
+	variable, err := flinkService.GetVariable(workspace, namespace, varName)
 	if err != nil {
-		return err
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_variable", "GetVariable", AlibabaCloudSdkGoERROR)
 	}
 
 	d.Set("workspace_id", workspace)
@@ -72,6 +72,7 @@ func resourceAliCloudFlinkVariableRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", variable.Name)
 	d.Set("value", variable.Value)
 	d.Set("description", variable.Description)
+	d.Set("kind", variable.Kind)
 
 	return nil
 }
@@ -80,7 +81,7 @@ func resourceAliCloudFlinkVariableCreate(d *schema.ResourceData, meta interface{
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {
-		return err
+		return WrapError(err)
 	}
 
 	workspace := d.Get("workspace_id").(string)
@@ -90,24 +91,27 @@ func resourceAliCloudFlinkVariableCreate(d *schema.ResourceData, meta interface{
 	description := d.Get("description").(string)
 	kind := d.Get("kind").(string)
 
-	_, err = flinkService.CreateVariable(tea.String(workspace), tea.String(namespace), &ververica.Variable{
-		Name:        tea.String(name),
-		Value:       tea.String(value),
-		Description: tea.String(description),
-		Kind:        tea.String(kind),
-	})
-	if err != nil {
-		return err
+	variable := &aliyunAPI.Variable{
+		Name:        name,
+		Value:       value,
+		Description: description,
+		Kind:        kind,
 	}
+
+	_, err = flinkService.CreateVariable(workspace, namespace, variable)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_variable", "CreateVariable", AlibabaCloudSdkGoERROR)
+	}
+
 	d.SetId(joinVariableID(workspace, namespace, name))
-	return nil
+	return resourceAliCloudFlinkVariableRead(d, meta)
 }
 
 func resourceAliCloudFlinkVariableUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {
-		return err
+		return WrapError(err)
 	}
 
 	workspace, namespace, varName := splitVariableID(d.Id())
@@ -115,26 +119,32 @@ func resourceAliCloudFlinkVariableUpdate(d *schema.ResourceData, meta interface{
 	description := d.Get("description").(string)
 	kind := d.Get("kind").(string)
 
-	flinkService.UpdateVariable(tea.String(workspace), tea.String(namespace), tea.String(varName), &ververica.Variable{
-		Name:        tea.String(varName),
-		Value:       tea.String(value),
-		Description: tea.String(description),
-		Kind:        tea.String(kind),
-	})
+	variable := &aliyunAPI.Variable{
+		Name:        varName,
+		Value:       value,
+		Description: description,
+		Kind:        kind,
+	}
 
-	return nil
+	_, err = flinkService.UpdateVariable(workspace, namespace, variable)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_variable", "UpdateVariable", AlibabaCloudSdkGoERROR)
+	}
+
+	return resourceAliCloudFlinkVariableRead(d, meta)
 }
 
 func resourceAliCloudFlinkVariableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {
-		return err
+		return WrapError(err)
 	}
+
 	workspace, namespace, varName := splitVariableID(d.Id())
-	flinkService.DeleteVariable(tea.String(workspace), tea.String(namespace), tea.String(varName))
+	err = flinkService.DeleteVariable(workspace, namespace, varName)
 	if err != nil {
-		return err
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_variable", "DeleteVariable", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil
