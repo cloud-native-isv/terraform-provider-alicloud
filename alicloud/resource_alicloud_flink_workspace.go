@@ -57,13 +57,6 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				ForceNew:    true,
 				Description: "The IDs of the vSwitches for the Flink instance.",
 			},
-			"tags": {
-				Type:        schema.TypeMap,
-				Optional:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "A mapping of tags to assign to the resource.",
-				ForceNew:    true,
-			},
 			"security_group_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -271,7 +264,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		resourceMap := resourceList[0].(map[string]interface{})
 		workspace.ResourceSpec = &aliyunAPI.ResourceSpec{
 			Cpu:      float64(resourceMap["cpu"].(int)),
-			MemoryGB: float64(resourceMap["memory"].(int)) , 
+			MemoryGB: float64(resourceMap["memory"].(int)),
 		}
 	}
 
@@ -308,16 +301,8 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 			resourceMap := resourceList[0].(map[string]interface{})
 			workspace.HA.ResourceSpec = &aliyunAPI.ResourceSpec{
 				Cpu:      float64(resourceMap["cpu"].(int)),
-				MemoryGB: float64(resourceMap["memory"].(int)) , 
+				MemoryGB: float64(resourceMap["memory"].(int)),
 			}
-		}
-	}
-
-	// Handle tags
-	if tags := d.Get("tags").(map[string]interface{}); len(tags) > 0 {
-		workspace.Tags = make(map[string]string)
-		for k, v := range tags {
-			workspace.Tags[k] = v.(string)
 		}
 	}
 
@@ -399,7 +384,7 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 	if workspace.ResourceSpec != nil {
 		resourceConfig := map[string]interface{}{
 			"cpu":    int(workspace.ResourceSpec.Cpu),
-			"memory": int(workspace.ResourceSpec.MemoryGB ), 
+			"memory": int(workspace.ResourceSpec.MemoryGB),
 		}
 		d.Set("resource", []interface{}{resourceConfig})
 	}
@@ -423,17 +408,12 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		if workspace.HA.ResourceSpec != nil {
 			haResourceSpec := map[string]interface{}{
 				"cpu":    int(workspace.HA.ResourceSpec.Cpu),
-				"memory": int(workspace.HA.ResourceSpec.MemoryGB ), 
+				"memory": int(workspace.HA.ResourceSpec.MemoryGB),
 			}
 			haConfig["resource"] = []interface{}{haResourceSpec}
 		}
 
 		d.Set("ha", []interface{}{haConfig})
-	}
-
-	// Set tags
-	if workspace.Tags != nil {
-		d.Set("tags", workspace.Tags)
 	}
 
 	return nil
@@ -454,10 +434,23 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteInstance", AlibabaCloudSdkGoERROR)
 	}
 
+	// Use a customized state refresh function that handles the not found case properly
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"DELETING"},
-		Target:     []string{},
-		Refresh:    flinkService.FlinkWorkspaceStateRefreshFunc(d.Id()),
+		Pending: []string{"DELETING"},
+		Target:  []string{""},
+		Refresh: func() (interface{}, string, error) {
+			// Check if the workspace still exists
+			workspace, err := flinkService.DescribeFlinkWorkspace(d.Id())
+			if err != nil {
+				if NotFoundError(err) {
+					// Resource is gone, which is what we want
+					return nil, "", nil
+				}
+				return nil, "", WrapError(err)
+			}
+			// If we can still get the workspace, it's still being deleted
+			return workspace, workspace.Status, nil
+		},
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,

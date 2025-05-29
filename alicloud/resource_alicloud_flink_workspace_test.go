@@ -147,10 +147,6 @@ func TestAccAliCloudFlinkWorkspace_basic1(t *testing.T) {
 							"memory": "16384",
 						},
 					},
-					"tags": map[string]string{
-						"Created": "TF",
-						"For":     "Test",
-					},
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
@@ -165,9 +161,6 @@ func TestAccAliCloudFlinkWorkspace_basic1(t *testing.T) {
 						"charge_type":       "POST",
 						"storage.#":         "1",
 						"resource.#":        "1",
-						"tags.%":            "2",
-						"tags.Created":      "TF",
-						"tags.For":          "Test",
 					}),
 				),
 			},

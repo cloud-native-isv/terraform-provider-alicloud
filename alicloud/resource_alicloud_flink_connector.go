@@ -27,7 +27,7 @@ func resourceAliCloudFlinkConnector() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"namespace_id": {
+			"namespace_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -123,8 +123,8 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	workspace := d.Get("workspace_id").(string)
-	namespace := d.Get("namespace_id").(string)
+	workspaceId := d.Get("workspace_id").(string)
+	namespaceName := d.Get("namespace_name").(string)
 	name := d.Get("name").(string)
 	connType := d.Get("type").(string)
 
@@ -143,7 +143,7 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 		connector.Dependencies = dependencies
 	}
 
-	raw, err := flinkService.RegisterCustomConnector(workspace, namespace, connector)
+	raw, err := flinkService.RegisterCustomConnector(workspaceId, namespaceName, connector)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_connector", "RegisterCustomConnector", AliyunLogGoSdkERROR)
 	}
@@ -152,7 +152,7 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(fmt.Errorf("empty response"), DefaultErrorMsg, "alicloud_flink_connector", "RegisterCustomConnector", AliyunLogGoSdkERROR)
 	}
 
-	d.SetId(fmt.Sprintf("%s:%s:%s", workspace, namespace, name))
+	d.SetId(fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, name))
 
 	return resourceAliCloudFlinkConnectorRead(d, meta)
 }
@@ -170,11 +170,11 @@ func resourceAliCloudFlinkConnectorRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	workspace := parts[0]
-	namespace := parts[1]
+	workspaceId := parts[0]
+	namespaceName := parts[1]
 	name := parts[2]
 
-	connector, err := flinkService.GetConnector(workspace, namespace, name)
+	connector, err := flinkService.GetConnector(workspaceId, namespaceName, name)
 	if err != nil {
 		if NotFoundError(err) {
 			d.SetId("")
@@ -183,8 +183,8 @@ func resourceAliCloudFlinkConnectorRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	d.Set("workspace_id", workspace)
-	d.Set("namespace_id", namespace)
+	d.Set("workspace_id", workspaceId)
+	d.Set("namespace_name", namespaceName)
 	d.Set("name", name)
 	d.Set("type", connector.Type)
 	d.Set("creator", connector.Creator)
@@ -211,8 +211,8 @@ func resourceAliCloudFlinkConnectorUpdate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	workspace := parts[0]
-	namespace := parts[1]
+	workspaceId := parts[0]
+	namespaceName := parts[1]
 	name := parts[2]
 
 	d.Partial(true)
@@ -225,14 +225,14 @@ func resourceAliCloudFlinkConnectorUpdate(d *schema.ResourceData, meta interface
 
 	if updateConnector {
 		// First delete existing connector
-		err = flinkService.DeleteCustomConnector(workspace, namespace, name)
+		err = flinkService.DeleteCustomConnector(workspaceId, namespaceName, name)
 		if err != nil && !NotFoundError(err) {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteCustomConnector", AliyunLogGoSdkERROR)
 		}
 
 		// Wait for deletion to complete
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			_, err := flinkService.GetConnector(workspace, namespace, name)
+			_, err := flinkService.GetConnector(workspaceId, namespaceName, name)
 			if err != nil {
 				if NotFoundError(err) {
 					return nil
@@ -267,7 +267,7 @@ func resourceAliCloudFlinkConnectorUpdate(d *schema.ResourceData, meta interface
 		}
 
 		// Register the connector again with updated properties
-		_, err := flinkService.RegisterCustomConnector(workspace, namespace, connector)
+		_, err := flinkService.RegisterCustomConnector(workspaceId, namespaceName, connector)
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_connector", "RegisterCustomConnector", AliyunLogGoSdkERROR)
 		}
@@ -290,11 +290,11 @@ func resourceAliCloudFlinkConnectorDelete(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	workspace := parts[0]
-	namespace := parts[1]
+	workspaceId := parts[0]
+	namespaceName := parts[1]
 	name := parts[2]
 
-	err = flinkService.DeleteCustomConnector(workspace, namespace, name)
+	err = flinkService.DeleteCustomConnector(workspaceId, namespaceName, name)
 	if err != nil {
 		if NotFoundError(err) {
 			return nil
@@ -303,7 +303,7 @@ func resourceAliCloudFlinkConnectorDelete(d *schema.ResourceData, meta interface
 	}
 
 	return WrapError(resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		_, err := flinkService.GetConnector(workspace, namespace, name)
+		_, err := flinkService.GetConnector(workspaceId, namespaceName, name)
 		if err != nil {
 			if NotFoundError(err) {
 				return nil
