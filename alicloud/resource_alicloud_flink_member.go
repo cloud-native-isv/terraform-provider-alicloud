@@ -1,7 +1,6 @@
 package alicloud
 
 import (
-	ververica "github.com/alibabacloud-go/ververica-20220718/client"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -55,20 +54,14 @@ func resourceAliCloudFlinkMemberCreate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	role := d.Get("role").(string)
 
-	// Create the CreateMemberRequest with correct fields
-	request := &ververica.CreateMemberRequest{}
-
-	// Create a Member object to set in the Body field
-	memberObj := &ververica.Member{
-		Member: &name,
-		Role:   &role,
+	// Create a request map for the service method
+	memberData := map[string]interface{}{
+		"member": name,
+		"role":   role,
 	}
 
-	// Set the Member object as the request Body
-	request.Body = memberObj
-
 	// Pass workspace, namespace and request to the service method
-	_, err = flinkService.CreateMember(&workspace, &namespace, request)
+	_, err = flinkService.CreateMember(workspace, namespace, memberData)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -89,8 +82,8 @@ func resourceAliCloudFlinkMemberRead(d *schema.ResourceData, meta interface{}) e
 	namespace := d.Get("namespace_id").(string)
 	name := d.Get("name").(string)
 
-	// Use GetMember method that accepts workspace, namespace and member as string pointers
-	response, err := flinkService.GetMember(&workspace, &namespace, &name)
+	// Use GetMember method with string values instead of pointers
+	response, err := flinkService.GetMember(workspace, namespace, name)
 	if err != nil {
 		if NotFoundError(err) {
 			d.SetId("")
@@ -100,10 +93,9 @@ func resourceAliCloudFlinkMemberRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Set attributes based on response
-	if response != nil && response.Body != nil && response.Body.Data != nil {
-		if response.Body.Data.Role != nil {
-			d.Set("role", *response.Body.Data.Role)
-		}
+	if response != nil {
+		// The response is now a map[string]interface{}, not a struct with Body field
+		d.Set("role", response["role"])
 	}
 
 	return nil
@@ -121,20 +113,14 @@ func resourceAliCloudFlinkMemberUpdate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	role := d.Get("role").(string)
 
-	// Create the UpdateMemberRequest with correct parameters
-	request := &ververica.UpdateMemberRequest{}
-
-	// Create a Member object with updated values
-	memberObj := &ververica.Member{
-		Member: &name,
-		Role:   &role,
+	// Create a map with the member data
+	memberData := map[string]interface{}{
+		"member": name,
+		"role":   role,
 	}
 
-	// Set the Member object as the request Body
-	request.Body = memberObj
-
-	// Pass workspace, namespace and request to the service method
-	_, err = flinkService.UpdateMember(&workspace, &namespace, request)
+	// Pass workspace, namespace and map to the service method
+	_, err = flinkService.UpdateMember(workspace, namespace, memberData)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -153,7 +139,7 @@ func resourceAliCloudFlinkMemberDelete(d *schema.ResourceData, meta interface{})
 	namespace := d.Get("namespace_id").(string)
 	name := d.Get("name").(string)
 
-	// Use DeleteMember method that accepts workspace, namespace and member as string pointers
-	_, err = flinkService.DeleteMember(&workspace, &namespace, &name)
+	// Use DeleteMember method with string values instead of pointers
+	err = flinkService.DeleteMember(workspace, namespace, name)
 	return WrapError(err)
 }

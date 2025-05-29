@@ -1,11 +1,11 @@
 package alicloud
 
 import (
+	"log"
 	"time"
 
-	foasconsole "github.com/alibabacloud-go/foasconsole-20211028/client"
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -227,134 +227,103 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	request := foasconsole.CreateInstanceRequest{}
+	// Create workspace workspace using cws-lib-go types
+	workspace := &aliyunAPI.Workspace{
+		Name:            d.Get("name").(string),
+		Description:     d.Get("description").(string),
+		ResourceGroupID: d.Get("resource_group_id").(string),
+		ZoneID:          d.Get("zone_id").(string),
+		VPCID:           d.Get("vpc_id").(string),
+		Region:          client.RegionId,
+	}
 
-	// Populate mandatory fields
-	request.InstanceName = tea.String(d.Get("name").(string))
-	request.ResourceGroupId = tea.String(d.Get("resource_group_id").(string))
-	request.VpcId = tea.String(d.Get("vpc_id").(string))
-	request.ZoneId = tea.String(d.Get("zone_id").(string))
-	request.Region = tea.String(client.RegionId)
+	// Handle vswitch_ids
+	if vswitchIds := d.Get("vswitch_ids").([]interface{}); len(vswitchIds) > 0 {
+		workspace.VSwitchIDs = make([]string, len(vswitchIds))
+		for i, v := range vswitchIds {
+			workspace.VSwitchIDs[i] = v.(string)
+		}
+	}
+
+	// Initialize Network structure and set VPCID and VSwitchIDs
+	workspace.Network = &aliyunAPI.WorkspaceNetwork{
+		VPCID:      d.Get("vpc_id").(string),
+		VSwitchIDs: workspace.VSwitchIDs,
+	}
+
+	// Handle security_group_id
+	if sgId, ok := d.GetOk("security_group_id"); ok {
+		workspace.Network.SecurityGroupID = sgId.(string)
+	}
+
+	// Handle architecture_type
+	if archType, ok := d.GetOk("architecture_type"); ok {
+		workspace.ArchitectureType = archType.(string)
+	}
+
+	// Handle charge_type
+	if chargeType, ok := d.GetOk("charge_type"); ok {
+		workspace.ChargeType = chargeType.(string)
+	}
+
+	// Handle resource configuration
+	if resourceList := d.Get("resource").([]interface{}); len(resourceList) > 0 {
+		resourceMap := resourceList[0].(map[string]interface{})
+		workspace.ResourceSpec = &aliyunAPI.ResourceSpec{
+			Cpu:      float64(resourceMap["cpu"].(int)),
+			MemoryGB: float64(resourceMap["memory"].(int)) , 
+		}
+	}
 
 	// Handle storage configuration
-	storage := d.Get("storage").([]interface{})
-	if len(storage) > 0 {
-		storageMap := storage[0].(map[string]interface{})
-		if ossBucket, ok := storageMap["oss_bucket"].(string); ok {
-			request.Storage = &foasconsole.CreateInstanceRequestStorage{
-				Oss: &foasconsole.CreateInstanceRequestStorageOss{
-					Bucket: tea.String(ossBucket),
-				},
+	if storageList := d.Get("storage").([]interface{}); len(storageList) > 0 {
+		storageMap := storageList[0].(map[string]interface{})
+		workspace.Storage = &aliyunAPI.Storage{
+			Oss: &aliyunAPI.OssConfig{
+				Bucket: storageMap["oss_bucket"].(string),
+			},
+		}
+	}
+
+	// Handle HA configuration
+	if haList := d.Get("ha").([]interface{}); len(haList) > 0 {
+		haMap := haList[0].(map[string]interface{})
+
+		// Set high availability flag
+		workspace.HA = &aliyunAPI.HighAvailability{
+			Enabled: true,
+			ZoneID:  haMap["zone_id"].(string),
+		}
+
+		// Handle HA vswitch IDs
+		if haVswitchIds := haMap["vswitch_ids"].([]interface{}); len(haVswitchIds) > 0 {
+			workspace.HA.VSwitchIDs = make([]string, len(haVswitchIds))
+			for i, v := range haVswitchIds {
+				workspace.HA.VSwitchIDs[i] = v.(string)
+			}
+		}
+
+		// Handle HA resource specs
+		if resourceList := haMap["resource"].([]interface{}); len(resourceList) > 0 {
+			resourceMap := resourceList[0].(map[string]interface{})
+			workspace.HA.ResourceSpec = &aliyunAPI.ResourceSpec{
+				Cpu:      float64(resourceMap["cpu"].(int)),
+				MemoryGB: float64(resourceMap["memory"].(int)) , 
 			}
 		}
 	}
 
-	// Handle vswitch_ids as list
-	vswitchIds := d.Get("vswitch_ids").([]interface{})
-	request.VSwitchIds = make([]*string, 0, len(vswitchIds))
-	for _, v := range vswitchIds {
-		request.VSwitchIds = append(request.VSwitchIds, tea.String(v.(string)))
-	}
-
-	// Handle nested ResourceSpec
-	resourceSpec := d.Get("resource").([]interface{})
-	if len(resourceSpec) > 0 {
-		resourceSpecMap := resourceSpec[0].(map[string]interface{})
-		request.ResourceSpec = &foasconsole.CreateInstanceRequestResourceSpec{
-			Cpu:      tea.Int32(int32(resourceSpecMap["cpu"].(int))),
-			MemoryGB: tea.Int32(int32(resourceSpecMap["memory"].(int))),
-		}
-	}
-
-	// Handle boolean fields with proper conversion
-	if v, ok := d.GetOk("auto_renew"); ok {
-		request.AutoRenew = tea.Bool(v.(bool))
-	}
-	if v, ok := d.GetOk("ha"); ok {
-		request.Ha = tea.Bool(v.(bool))
-	}
-	if v, ok := d.GetOk("use_promotion_code"); ok {
-		request.UsePromotionCode = tea.Bool(v.(bool))
-	}
-
-	// Handle optional fields
-	// Note: Description field is not available in the API but kept in the schema for future compatibility
-	// if v, ok := d.GetOk("description"); ok {
-	//     request.Description = tea.String(v.(string))
-	// }
-	if v, ok := d.GetOk("duration"); ok {
-		request.Duration = tea.Int32(int32(v.(int)))
-	}
-	if v, ok := d.GetOk("promotion_code"); ok {
-		request.PromotionCode = tea.String(v.(string))
-	}
-	// Note: SecurityGroupId field is not available in the API but kept in the schema for future compatibility
-	// if v, ok := d.GetOk("security_group_id"); ok {
-	//     request.SecurityGroupId = tea.String(v.(string))
-	// }
-	if v, ok := d.GetOk("architecture_type"); ok {
-		request.ArchitectureType = tea.String(v.(string))
-	}
-	if v, ok := d.GetOk("monitor_type"); ok {
-		request.MonitorType = tea.String(v.(string))
-	}
-	if v, ok := d.GetOk("pricing_cycle"); ok {
-		request.PricingCycle = tea.String(v.(string))
-	}
-	if v, ok := d.GetOk("extra"); ok {
-		request.Extra = tea.String(v.(string))
-	}
-
-	// Handle HA fields
-	if ha, ok := d.GetOk("ha"); ok {
-		haConfig := ha.([]interface{})
-		if len(haConfig) > 0 {
-			haMap := haConfig[0].(map[string]interface{})
-			zoneId := haMap["zone_id"].(string)
-			request.HaZoneId = tea.String(zoneId)
-			request.Ha = tea.Bool(true) // 启用HA
-
-			// 处理vswitch_ids
-			haVswitchIds := haMap["vswitch_ids"].([]interface{})
-			request.HaVSwitchIds = make([]*string, 0, len(haVswitchIds))
-			for _, v := range haVswitchIds {
-				request.HaVSwitchIds = append(request.HaVSwitchIds, tea.String(v.(string)))
-			}
-
-			// 处理resource部分
-			haResource := haMap["resource"].([]interface{})[0].(map[string]interface{})
-			cpu := haResource["cpu"].(int)
-			memory := haResource["memory"].(int)
-			request.HaResourceSpec = &foasconsole.CreateInstanceRequestHaResourceSpec{
-				Cpu:      tea.Int32(int32(cpu)),
-				MemoryGB: tea.Int32(int32(memory)),
-			}
-		}
-	}
-
-	// Process tags
-	tags := d.Get("tags").(map[string]interface{})
-	if len(tags) > 0 {
-		request.Tag = make([]*foasconsole.CreateInstanceRequestTag, 0, len(tags))
+	// Handle tags
+	if tags := d.Get("tags").(map[string]interface{}); len(tags) > 0 {
+		workspace.Tags = make(map[string]string)
 		for k, v := range tags {
-			tag := &foasconsole.CreateInstanceRequestTag{
-				Key:   tea.String(k),
-				Value: tea.String(v.(string)),
-			}
-			request.Tag = append(request.Tag, tag)
+			workspace.Tags[k] = v.(string)
 		}
 	}
 
-	// Set required fields
-	request.ChargeType = tea.String(d.Get("charge_type").(string))
-
-	region := client.RegionId
-	request.Region = tea.String(region)
-
-	// Make the create request with retry for transient errors
-	var response *foasconsole.CreateInstanceResponse
+	var response *aliyunAPI.Workspace
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		resp, err := flinkService.CreateInstance(&request)
+		resp, err := flinkService.CreateInstance(workspace)
 		if err != nil {
 			if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
 				time.Sleep(5 * time.Second)
@@ -367,14 +336,14 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_instance", "CreateInstance", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_workspace", "CreateInstance", AlibabaCloudSdkGoERROR)
 	}
 
-	if response == nil || response.Body == nil || response.Body.OrderInfo == nil || response.Body.OrderInfo.InstanceId == nil {
+	if response == nil || response.ID == "" {
 		return WrapError(Error("Failed to get instance ID from response"))
 	}
 
-	d.SetId(*response.Body.OrderInfo.InstanceId)
+	d.SetId(response.ID)
 
 	// Wait for the instance to be in running state
 	stateConf := resource.StateChangeConf{
@@ -399,110 +368,72 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	// Create a describe request for the instance
-	request := &foasconsole.DescribeInstancesRequest{}
-	request.InstanceId = tea.String(d.Id())
-
-	request.Region = tea.String(client.RegionId)
-
-	// Call the API to get the instance with retry for transient errors
-	var response *foasconsole.DescribeInstancesResponse
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		resp, err := flinkService.DescribeInstances(request)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"ThrottlingException"}) {
-				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		response = resp
-		return nil
-	})
-
+	workspace, err := flinkService.DescribeFlinkWorkspace(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
+			log.Printf("[DEBUG] Resource alicloud_flink_workspace DescribeFlinkWorkspace Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
 
-	// Check if the instance was found
-	if response == nil || response.Body == nil || len(response.Body.Instances) == 0 {
-		d.SetId("")
-		return nil
+	// Set attributes from workspace workspace
+	d.Set("name", workspace.Name)
+	d.Set("description", workspace.Description)
+	d.Set("resource_group_id", workspace.ResourceGroupID)
+	d.Set("zone_id", workspace.ZoneID)
+	d.Set("vpc_id", workspace.VPCID)
+	d.Set("vswitch_ids", workspace.VSwitchIDs)
+
+	// Handle security group from Network structure
+	if workspace.Network != nil && workspace.Network.SecurityGroupID != "" {
+		d.Set("security_group_id", workspace.Network.SecurityGroupID)
 	}
 
-	// Get the first instance (should be the only one since we're querying by ID)
-	instance := response.Body.Instances[0]
+	d.Set("architecture_type", workspace.ArchitectureType)
+	d.Set("charge_type", workspace.ChargeType)
+	d.Set("status", workspace.Status)
 
-	// Set basic attributes from the instance
-	d.Set("name", instance.InstanceName)
-	// Description is not available in the API response
-	d.Set("resource_group_id", instance.ResourceGroupId)
-	d.Set("zone_id", instance.ZoneId)
-	d.Set("vpc_id", instance.VpcId)
-	d.Set("charge_type", instance.ChargeType)
-	d.Set("ha", instance.Ha)
-	d.Set("ha_zone_id", instance.HaZoneId)
-
-	// Set VSwitchIds
-	if instance.VSwitchIds != nil {
-		d.Set("vswitch_ids", instance.VSwitchIds)
-	}
-
-	// Set HaVSwitchIds
-	if instance.HaVSwitchIds != nil {
-		d.Set("ha_vswitch_ids", instance.HaVSwitchIds)
-	}
-
-	// Set ResourceSpec
-	if instance.ResourceSpec != nil {
-		resourceSpec := []interface{}{
-			map[string]interface{}{
-				"cpu":    instance.ResourceSpec.Cpu,
-				"memory": instance.ResourceSpec.MemoryGB,
-			},
+	// Set resource configuration
+	if workspace.ResourceSpec != nil {
+		resourceConfig := map[string]interface{}{
+			"cpu":    int(workspace.ResourceSpec.Cpu),
+			"memory": int(workspace.ResourceSpec.MemoryGB ), 
 		}
-		d.Set("resource_spec", resourceSpec)
+		d.Set("resource", []interface{}{resourceConfig})
 	}
 
-	// Set HaResourceSpec
-	if instance.HaResourceSpec != nil {
-		haResourceSpec := []interface{}{
-			map[string]interface{}{
-				"cpu":    instance.HaResourceSpec.Cpu,
-				"memory": instance.HaResourceSpec.MemoryGB,
-			},
+	// Set storage configuration
+	if workspace.Storage != nil && workspace.Storage.Oss != nil {
+		storageConfig := map[string]interface{}{
+			"oss_bucket": workspace.Storage.Oss.Bucket,
 		}
-		d.Set("ha_resource_spec", haResourceSpec)
+		d.Set("storage", []interface{}{storageConfig})
 	}
 
-	// Set storage
-	if instance.Storage != nil && instance.Storage.Oss != nil && instance.Storage.Oss.Bucket != nil {
-		storage := []interface{}{
-			map[string]interface{}{
-				"oss": []interface{}{
-					map[string]interface{}{
-						"bucket": *instance.Storage.Oss.Bucket,
-					},
-				},
-			},
+	// Set HA configuration
+	if workspace.HA != nil {
+		haConfig := map[string]interface{}{
+			"zone_id":     workspace.HA.ZoneID,
+			"vswitch_ids": workspace.HA.VSwitchIDs,
 		}
-		d.Set("storage", storage)
-		d.Set("oss_bucket", *instance.Storage.Oss.Bucket)
+
+		// Add resource info
+		if workspace.HA.ResourceSpec != nil {
+			haResourceSpec := map[string]interface{}{
+				"cpu":    int(workspace.HA.ResourceSpec.Cpu),
+				"memory": int(workspace.HA.ResourceSpec.MemoryGB ), 
+			}
+			haConfig["resource"] = []interface{}{haResourceSpec}
+		}
+
+		d.Set("ha", []interface{}{haConfig})
 	}
 
 	// Set tags
-	if instance.Tags != nil {
-		tags := make(map[string]string)
-		for _, tag := range instance.Tags {
-			if tag.Key != nil && tag.Value != nil {
-				tags[*tag.Key] = *tag.Value
-			}
-		}
-		d.Set("tags", tags)
+	if workspace.Tags != nil {
+		d.Set("tags", workspace.Tags)
 	}
 
 	return nil
@@ -515,41 +446,27 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	request := &foasconsole.DeleteInstanceRequest{
-		InstanceId: tea.String(d.Id()),
-	}
-
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		_, e := flinkService.DeleteInstance(request)
-		if e != nil {
-			if IsExpectedErrors(e, []string{"IncorrectInstanceStatus", "ThrottlingException", "OperationConflict"}) {
-				time.Sleep(5 * time.Second)
-				return resource.RetryableError(e)
-			}
-			return resource.NonRetryableError(e)
-		}
-		return nil
-	})
+	err = flinkService.DeleteInstance(d.Id())
 	if err != nil {
+		if IsExpectedErrors(err, []string{"InvalidWorkspace.NotFound"}) {
+			return nil
+		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteInstance", AlibabaCloudSdkGoERROR)
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"DELETING", "RUNNING"},
+		Pending:    []string{"DELETING"},
 		Target:     []string{},
 		Refresh:    flinkService.FlinkWorkspaceStateRefreshFunc(d.Id()),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
-		Delay:      10 * time.Second,
-		MinTimeout: 5 * time.Second,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		if IsExpectedErrors(err, []string{"InvalidInstance.NotFound"}) {
-			d.SetId("")
-			return nil
-		}
-		return WrapErrorf(err, "Error deleting Flink instance: %s", d.Id())
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
 
-	d.SetId("")
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
 	return nil
 }
