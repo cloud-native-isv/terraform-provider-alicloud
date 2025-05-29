@@ -329,14 +329,11 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_workspace", "CreateInstance", AlibabaCloudSdkGoERROR)
 	}
 
-	if workspace == nil || workspace.ID == "" || workspace.ResourceID == "" {
+	if workspace == nil || workspace.ID == "" {
 		return WrapError(Error("Failed to get instance ID from workspace"))
 	}
 
 	d.SetId(workspace.ID)
-
-	// Set resource_id after creation
-	d.Set("resource_id", workspace.ResourceID)
 
 	// Wait for the instance to be in running state
 	stateConf := resource.StateChangeConf{

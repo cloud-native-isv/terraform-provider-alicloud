@@ -99,6 +99,14 @@ func NotFoundError(err error) bool {
 		return false
 	}
 
+	if e, ok := err.(*aliyunAPI.FlinkServiceError); ok {
+		if e.ErrorCode != nil && *e.ErrorCode == "404" {
+			return true
+		}
+
+		return false
+	}
+
 	if e, ok := err.(*tea.SDKError); ok {
 		return tea.IntValue(e.StatusCode) == 404 || regexp.MustCompile(NotFound).MatchString(tea.StringValue(e.Message))
 	}
