@@ -3,9 +3,11 @@ package alicloud
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -98,12 +100,31 @@ func resourceAliCloudFlinkVariableCreate(d *schema.ResourceData, meta interface{
 		Kind:        kind,
 	}
 
-	_, err = flinkService.CreateVariable(workspaceId, namespaceName, variable)
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		_, err := flinkService.CreateVariable(workspaceId, namespaceName, variable)
+		if err != nil {
+			if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_variable", "CreateVariable", AlibabaCloudSdkGoERROR)
 	}
 
 	d.SetId(joinVariableID(workspaceId, namespaceName, name))
+
+	// Use state refresh to wait for the variable to be available using StateRefreshFunc
+	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkVariableStateRefreshFunc(workspaceId, namespaceName, name, []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	// 最后调用Read同步状态
 	return resourceAliCloudFlinkVariableRead(d, meta)
 }
 

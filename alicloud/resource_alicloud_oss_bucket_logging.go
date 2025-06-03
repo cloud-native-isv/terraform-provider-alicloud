@@ -104,7 +104,7 @@ func resourceAlicloudOssBucketLoggingRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("bucket", bucket)
-	
+
 	// If logging is enabled, set the target bucket and prefix
 	if loggingResult.BucketLoggingStatus != nil && loggingResult.BucketLoggingStatus.LoggingEnabled != nil {
 		if loggingResult.BucketLoggingStatus.LoggingEnabled.TargetBucket != nil {

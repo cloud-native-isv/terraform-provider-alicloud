@@ -131,6 +131,13 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 	// Set composite ID: namespace:jobId
 	d.SetId(fmt.Sprintf("%s:%s", namespaceName, job.JobId))
 
+	// Wait for job to start using StateRefreshFunc
+	stateConf := BuildStateConf([]string{"STARTING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	// 最后调用Read同步状态
 	return resourceAliCloudFlinkJobRead(d, meta)
 }
 

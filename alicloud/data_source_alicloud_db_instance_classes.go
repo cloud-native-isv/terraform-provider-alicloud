@@ -7,9 +7,11 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"golang.org/x/net/context"
 )
 
 func dataSourceAlicloudDBInstanceClasses() *schema.Resource {
@@ -148,12 +150,16 @@ func dataSourceAlicloudDBInstanceClasses() *schema.Resource {
 
 func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+
+	// Get common parameters from schema
 	instanceChargeType := d.Get("instance_charge_type").(string)
 	if instanceChargeType == string(PostPaid) {
 		instanceChargeType = string(Postpaid)
 	} else {
 		instanceChargeType = string(Prepaid)
 	}
+
+	// Get conditional parameters
 	zoneId, zoneIdOk := d.GetOk("zone_id")
 	engine, engineOk := d.GetOk("engine")
 	engineVersion, engineVersionOk := d.GetOk("engine_version")
@@ -163,80 +169,94 @@ func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interf
 		dbInstanceStorageType, dbInstanceStorageTypeOk = d.GetOk("storage_type")
 	}
 	category, categoryOk := d.GetOk("category")
-	var err error
 
-	availableZones := make([]map[string]interface{}, 0)
+	// Create context
+	ctx := context.Background()
+
+	// Create RDS API credentials
+	credentials := &aliyunAPI.RDSCredentials{
+		AccessKey:     client.AccessKey,
+		SecretKey:     client.SecretKey,
+		RegionId:      client.RegionId,
+		SecurityToken: client.SecurityToken,
+	}
+
+	// Create RDS API client
+	rdsAPI, err := aliyunAPI.NewRDSAPI(credentials)
+	if err != nil {
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_db_instance_classes", "NewRDSAPI", AlibabaCloudSdkGoERROR)
+	}
+
 	s := make([]map[string]interface{}, 0)
 	ids := make([]string, 0)
-	// if all filters can be got, there is no need to invoking DescribeAvailableZones to get them
+
+	// If all required parameters are provided, call ListDBClasses directly
 	if zoneIdOk && zoneId.(string) != "" &&
 		engineOk && engine.(string) != "" &&
 		engineVersionOk && engineVersion.(string) != "" &&
 		dbInstanceStorageTypeOk && dbInstanceStorageType.(string) != "" &&
 		categoryOk && category.(string) != "" {
 
-		action := "DescribeAvailableClasses"
-		request := map[string]interface{}{
-			"RegionId":              client.RegionId,
-			"SourceIp":              client.SourceIp,
-			"ZoneId":                zoneId,
-			"InstanceChargeType":    instanceChargeType,
-			"Engine":                engine,
-			"EngineVersion":         engineVersion,
-			"DBInstanceStorageType": dbInstanceStorageType,
-			"Category":              category,
+		// Create the request
+		request := &aliyunAPI.ListDBClassesRequest{
+			RegionId:              client.RegionId,
+			ZoneId:                zoneId.(string),
+			InstanceChargeType:    instanceChargeType,
+			Engine:                engine.(string),
+			EngineVersion:         engineVersion.(string),
+			DBInstanceStorageType: dbInstanceStorageType.(string),
+			Category:              category.(string),
 		}
+
+		// Set optional parameters
 		if v, ok := d.GetOk("commodity_code"); ok {
-			request["CommodityCode"] = v.(string)
+			request.CommodityCode = v.(string)
 			if v, ok := d.GetOk("db_instance_id"); ok {
-				request["DBInstanceId"] = v.(string)
+				request.DBInstanceId = v.(string)
 			}
 		}
-		var response map[string]interface{}
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-			response, err = client.RpcPost("Rds", "2014-08-15", action, nil, request, true)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
+
+		// Call the API
+		classes, err := rdsAPI.ListDBClasses(ctx, request)
 		if err != nil {
-			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_db_instance_classes", action, AlibabaCloudSdkGoERROR)
+			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_db_instance_classes", "ListDBClasses", AlibabaCloudSdkGoERROR)
 		}
-		resp, err := jsonpath.Get("$.DBInstanceClasses", response)
-		if err != nil {
-			return WrapErrorf(err, FailedGetAttributeMsg, action, "$.DBInstanceClasses", response)
-		}
+
+		// Process the results
 		zoneIds := make([]map[string]interface{}, 0)
 		zoneIds = append(zoneIds, map[string]interface{}{
 			"id":           zoneId,
 			"sub_zone_ids": splitMultiZoneId(zoneId.(string)),
 		})
-		for _, r := range resp.([]interface{}) {
-			instanceClassItem := r.(map[string]interface{})
-			if dbInstanceClassOk && dbInstanceClass != "" && dbInstanceClass != fmt.Sprint(instanceClassItem["DBInstanceClass"]) {
+
+		for _, class := range classes {
+			if dbInstanceClassOk && dbInstanceClass != "" && dbInstanceClass != class.DBInstanceClass {
 				continue
 			}
+
 			mapping := map[string]interface{}{
-				"instance_class": fmt.Sprint(instanceClassItem["DBInstanceClass"]),
+				"instance_class": class.DBInstanceClass,
 				"zone_ids":       zoneIds,
 				"storage_range": map[string]interface{}{
-					"min":  fmt.Sprint(instanceClassItem["DBInstanceStorageRange"].(map[string]interface{})["MinValue"]),
-					"max":  fmt.Sprint(instanceClassItem["DBInstanceStorageRange"].(map[string]interface{})["MaxValue"]),
-					"step": fmt.Sprint(instanceClassItem["DBInstanceStorageRange"].(map[string]interface{})["Step"]),
+					"min":  fmt.Sprint(class.DBInstanceStorageRange.MinValue),
+					"max":  fmt.Sprint(class.DBInstanceStorageRange.MaxValue),
+					"step": fmt.Sprint(class.DBInstanceStorageRange.Step),
 				},
 			}
+
 			s = append(s, mapping)
-			ids = append(ids, fmt.Sprint(instanceClassItem["DBInstanceClass"]))
+			ids = append(ids, class.DBInstanceClass)
 		}
 	} else {
-		// 1. Invkoing DescribeAvailableZones to get available zones and other filters
+		// We need to first get available zones and then query for classes for each zone
+
+		// 1. First, list available zones
+		multiZone := false
+		if v, ok := d.GetOk("multi_zone"); ok {
+			multiZone = v.(bool)
+		}
+
+		// Get engines to check
 		engines := make([]string, 0)
 		if v, ok := d.GetOk("engine"); ok && v.(string) != "" {
 			engines = append(engines, v.(string))
@@ -244,32 +264,6 @@ func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interf
 			engines = []string{"MySQL", "SQLServer", "PostgreSQL", "PPAS", "MariaDB"}
 		}
 
-		action := "DescribeAvailableZones"
-		request := map[string]interface{}{
-			"RegionId": client.RegionId,
-			"SourceIp": client.SourceIp,
-		}
-		if v, ok := d.GetOk("engine_version"); ok && v.(string) != "" {
-			request["EngineVersion"] = v.(string)
-		}
-		if v, ok := d.GetOk("zone_id"); ok && v.(string) != "" {
-			request["ZoneId"] = v.(string)
-		}
-		if instanceChargeType == string(PostPaid) {
-			request["CommodityCode"] = "bards"
-		} else {
-			request["CommodityCode"] = "rds"
-		}
-		if v, ok := d.GetOk("commodity_code"); ok {
-			request["CommodityCode"] = v.(string)
-			if v, ok := d.GetOk("db_instance_id"); ok {
-				request["DBInstanceName"] = v.(string)
-			}
-		}
-		multiZone := false
-		if v, ok := d.GetOk("multi_zone"); ok {
-			multiZone = v.(bool)
-		}
 		var targetCategory, targetStorageType string
 		if v, ok := d.GetOk("category"); ok && v.(string) != "" {
 			targetCategory = v.(string)
@@ -277,10 +271,37 @@ func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interf
 		if v, ok := d.GetOk("db_instance_storage_type"); ok && v.(string) != "" {
 			targetStorageType = v.(string)
 		}
-		var response map[string]interface{}
+
+		// Get available zones using standard SDK since the wrapper doesn't have this functionality yet
+		availableZones := make([]map[string]interface{}, 0)
 
 		for _, engine := range engines {
-			request["Engine"] = engine
+			action := "DescribeAvailableZones"
+			request := map[string]interface{}{
+				"RegionId": client.RegionId,
+				"SourceIp": client.SourceIp,
+				"Engine":   engine,
+			}
+
+			if v, ok := d.GetOk("engine_version"); ok && v.(string) != "" {
+				request["EngineVersion"] = v.(string)
+			}
+			if v, ok := d.GetOk("zone_id"); ok && v.(string) != "" {
+				request["ZoneId"] = v.(string)
+			}
+			if instanceChargeType == string(PostPaid) {
+				request["CommodityCode"] = "bards"
+			} else {
+				request["CommodityCode"] = "rds"
+			}
+			if v, ok := d.GetOk("commodity_code"); ok {
+				request["CommodityCode"] = v.(string)
+				if v, ok := d.GetOk("db_instance_id"); ok {
+					request["DBInstanceName"] = v.(string)
+				}
+			}
+
+			var response map[string]interface{}
 			wait := incrementalWait(3*time.Second, 3*time.Second)
 			err = resource.Retry(5*time.Minute, func() *resource.RetryError {
 				response, err = client.RpcPost("Rds", "2014-08-15", action, nil, request, true)
@@ -297,6 +318,7 @@ func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interf
 			if err != nil {
 				return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_db_zones", action, AlibabaCloudSdkGoERROR)
 			}
+
 			resp, err := jsonpath.Get("$.AvailableZones", response)
 			if err != nil {
 				return WrapErrorf(err, FailedGetAttributeMsg, action, "$.AvailableZones", response)
@@ -314,6 +336,8 @@ func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interf
 					availableZones = append(availableZones, availableZoneItem)
 					continue
 				}
+
+				// Filter by category and storage type
 				for _, r := range availableZoneItem["SupportedEngines"].([]interface{}) {
 					supportedEngineItem := r.(map[string]interface{})
 					for _, r := range supportedEngineItem["SupportedEngineVersions"].([]interface{}) {
@@ -342,75 +366,74 @@ func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interf
 				continue
 			}
 		}
-		// 2. Iterating the availableZones and invoking DescribeAvailableClasses to get available classes
+
+		// 2. Query available classes for each zone
 		for _, availableZone := range availableZones {
-			action := "DescribeAvailableClasses"
-			request := map[string]interface{}{
-				"RegionId":           client.RegionId,
-				"SourceIp":           client.SourceIp,
-				"ZoneId":             fmt.Sprint(availableZone["ZoneId"]),
-				"InstanceChargeType": instanceChargeType,
-			}
 			zoneIds := make([]map[string]interface{}, 0)
 			zoneIds = append(zoneIds, map[string]interface{}{
 				"id":           fmt.Sprint(availableZone["ZoneId"]),
 				"sub_zone_ids": splitMultiZoneId(fmt.Sprint(availableZone["ZoneId"])),
 			})
+
 			for _, r := range availableZone["SupportedEngines"].([]interface{}) {
 				supportedEngineItem := r.(map[string]interface{})
-				request["Engine"] = fmt.Sprint(supportedEngineItem["Engine"])
+				currentEngine := fmt.Sprint(supportedEngineItem["Engine"])
+
 				for _, r := range supportedEngineItem["SupportedEngineVersions"].([]interface{}) {
 					supportedEngineVersionItem := r.(map[string]interface{})
-					request["EngineVersion"] = fmt.Sprint(supportedEngineVersionItem["Version"])
+					currentEngineVersion := fmt.Sprint(supportedEngineVersionItem["Version"])
+
 					for _, r := range supportedEngineVersionItem["SupportedCategorys"].([]interface{}) {
 						supportedCategoryItem := r.(map[string]interface{})
-						request["Category"] = fmt.Sprint(supportedCategoryItem["Category"])
+						currentCategory := fmt.Sprint(supportedCategoryItem["Category"])
+
 						for _, r := range supportedCategoryItem["SupportedStorageTypes"].([]interface{}) {
 							storageTypeItem := r.(map[string]interface{})
-							request["DBInstanceStorageType"] = fmt.Sprint(storageTypeItem["StorageType"])
+							currentStorageType := fmt.Sprint(storageTypeItem["StorageType"])
+
+							// Create the request
+							request := &aliyunAPI.ListDBClassesRequest{
+								RegionId:              client.RegionId,
+								ZoneId:                fmt.Sprint(availableZone["ZoneId"]),
+								InstanceChargeType:    instanceChargeType,
+								Engine:                currentEngine,
+								EngineVersion:         currentEngineVersion,
+								DBInstanceStorageType: currentStorageType,
+								Category:              currentCategory,
+							}
+
+							// Set optional parameters
 							if v, ok := d.GetOk("commodity_code"); ok {
-								request["CommodityCode"] = v.(string)
+								request.CommodityCode = v.(string)
 								if v, ok := d.GetOk("db_instance_id"); ok {
-									request["DBInstanceId"] = v.(string)
+									request.DBInstanceId = v.(string)
 								}
 							}
-							var response map[string]interface{}
-							wait := incrementalWait(3*time.Second, 3*time.Second)
-							err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-								response, err = client.RpcPost("Rds", "2014-08-15", action, nil, request, true)
-								if err != nil {
-									if NeedRetry(err) {
-										wait()
-										return resource.RetryableError(err)
-									}
-									return resource.NonRetryableError(err)
-								}
-								return nil
-							})
-							addDebug(action, response, request)
+
+							// Call the API
+							classes, err := rdsAPI.ListDBClasses(ctx, request)
 							if err != nil {
-								return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_db_instance_classes", action, AlibabaCloudSdkGoERROR)
+								return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_db_instance_classes", "ListDBClasses", AlibabaCloudSdkGoERROR)
 							}
-							resp, err := jsonpath.Get("$.DBInstanceClasses", response)
-							if err != nil {
-								return WrapErrorf(err, FailedGetAttributeMsg, action, "$.DBInstanceClasses", response)
-							}
-							for _, r := range resp.([]interface{}) {
-								instanceClassItem := r.(map[string]interface{})
-								if dbInstanceClassOk && dbInstanceClass != "" && dbInstanceClass != fmt.Sprint(instanceClassItem["DBInstanceClass"]) {
+
+							// Process the results
+							for _, class := range classes {
+								if dbInstanceClassOk && dbInstanceClass != "" && dbInstanceClass != class.DBInstanceClass {
 									continue
 								}
+
 								mapping := map[string]interface{}{
-									"instance_class": fmt.Sprint(instanceClassItem["DBInstanceClass"]),
+									"instance_class": class.DBInstanceClass,
 									"zone_ids":       zoneIds,
 									"storage_range": map[string]interface{}{
-										"min":  fmt.Sprint(instanceClassItem["DBInstanceStorageRange"].(map[string]interface{})["MinValue"]),
-										"max":  fmt.Sprint(instanceClassItem["DBInstanceStorageRange"].(map[string]interface{})["MaxValue"]),
-										"step": fmt.Sprint(instanceClassItem["DBInstanceStorageRange"].(map[string]interface{})["Step"]),
+										"min":  fmt.Sprint(class.DBInstanceStorageRange.MinValue),
+										"max":  fmt.Sprint(class.DBInstanceStorageRange.MaxValue),
+										"step": fmt.Sprint(class.DBInstanceStorageRange.Step),
 									},
 								}
+
 								s = append(s, mapping)
-								ids = append(ids, fmt.Sprint(instanceClassItem["DBInstanceClass"]))
+								ids = append(ids, class.DBInstanceClass)
 							}
 						}
 					}

@@ -3,6 +3,7 @@ package alicloud
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -38,8 +39,8 @@ func resourceAliCloudFlinkMember() *schema.Resource {
 			"role": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "The role of the member, valid values are: EDITOR, OWNER, VIEWER.",
-				ValidateFunc: validation.StringInSlice([]string{"EDITOR", "OWNER", "VIEWER"}, false),
+				Description:  "The role of the member, valid values are: editor, owner, viewer.",
+				ValidateFunc: validation.StringInSlice([]string{"editor", "owner", "viewer"}, false),
 			},
 		},
 	}
@@ -70,6 +71,14 @@ func resourceAliCloudFlinkMemberCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(workspaceId + "/" + namespaceName + "/" + name)
+
+	// Wait for member creation to complete using StateRefreshFunc
+	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkMemberStateRefreshFunc(workspaceId, namespaceName, name, []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	// 最后调用Read同步状态
 	return resourceAliCloudFlinkMemberRead(d, meta)
 }
 

@@ -32,21 +32,21 @@ func TestAccAliCloudFlinkDeployment_basic0(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfig(map[string]interface{}{
-					"workspace_id": "${alicloud_flink_workspace.default.id}",
+					"workspace_id":   "${alicloud_flink_workspace.default.id}",
 					"namespace_name": "default",
-					"job_name":     name,
-					"entry_class":  "com.example.WordCount",
-					"jar_uri":      "oss://example-bucket/wordcount.jar",
-					"parallelism":  "2",
+					"job_name":       name,
+					"entry_class":    "com.example.WordCount",
+					"jar_uri":        "oss://example-bucket/wordcount.jar",
+					"parallelism":    "2",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
-						"workspace_id": CHECKSET,
+						"workspace_id":   CHECKSET,
 						"namespace_name": "default",
-						"job_name":     name,
-						"entry_class":  "com.example.WordCount",
-						"jar_uri":      "oss://example-bucket/wordcount.jar",
-						"parallelism":  "2",
+						"job_name":       name,
+						"entry_class":    "com.example.WordCount",
+						"jar_uri":        "oss://example-bucket/wordcount.jar",
+						"parallelism":    "2",
 					}),
 				),
 			},

@@ -112,6 +112,7 @@ require (
 	github.com/alibabacloud-go/endpoint-util v1.1.1 // indirect
 	github.com/alibabacloud-go/foasconsole-20211028 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/openapi-util v0.1.1 // indirect
+	github.com/alibabacloud-go/rds-20140815/v5 v5.0.5 // indirect
 	github.com/alibabacloud-go/sls-20201230/v6 v6.8.1 // indirect
 	github.com/alibabacloud-go/tea-oss-utils v1.1.0 // indirect
 	github.com/alibabacloud-go/tea-roa-utils v1.1.5 // indirect

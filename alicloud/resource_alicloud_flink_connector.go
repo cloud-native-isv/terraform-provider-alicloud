@@ -126,34 +126,82 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	name := d.Get("name").(string)
-	connType := d.Get("type").(string)
+	connectorType := d.Get("type").(string)
 
-	// Create connector object for the cws service
 	connector := &aliyunAPI.Connector{
 		Name: name,
-		Type: connType,
+		Type: connectorType,
 	}
 
-	// Handle dependencies if provided
-	if deps, ok := d.GetOk("dependencies"); ok {
-		dependencies := make([]string, 0)
-		for _, dep := range deps.([]interface{}) {
-			dependencies = append(dependencies, dep.(string))
+	// Handle properties
+	if properties, ok := d.GetOk("properties"); ok {
+		propertyList := properties.([]interface{})
+		connector.Properties = make([]*aliyunAPI.Property, len(propertyList))
+		for i, prop := range propertyList {
+			propMap := prop.(map[string]interface{})
+			connector.Properties[i] = &aliyunAPI.Property{
+				Key:         propMap["key"].(string),
+				Description: propMap["description"].(string),
+			}
 		}
-		connector.Dependencies = dependencies
 	}
 
-	raw, err := flinkService.RegisterCustomConnector(workspaceId, namespaceName, connector)
+	// Handle dependencies
+	if dependencies, ok := d.GetOk("dependencies"); ok {
+		depList := dependencies.([]interface{})
+		connector.Dependencies = make([]string, len(depList))
+		for i, dep := range depList {
+			connector.Dependencies[i] = dep.(string)
+		}
+	}
+
+	// Handle supported formats
+	if supportedFormats, ok := d.GetOk("supported_formats"); ok {
+		formatList := supportedFormats.([]interface{})
+		connector.SupportedFormats = make([]string, len(formatList))
+		for i, format := range formatList {
+			connector.SupportedFormats[i] = format.(string)
+		}
+	}
+
+	// Handle flags
+	connector.Lookup = d.Get("lookup").(bool)
+	connector.Source = d.Get("source").(bool)
+	connector.Sink = d.Get("sink").(bool)
+
+	// Register connector
+	var response *aliyunAPI.Connector
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		resp, err := flinkService.RegisterCustomConnector(workspaceId, namespaceName, connector)
+		if err != nil {
+			if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		response = resp
+		return nil
+	})
+
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_connector", "RegisterCustomConnector", AliyunLogGoSdkERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_connector", "RegisterCustomConnector", AlibabaCloudSdkGoERROR)
 	}
 
-	if raw == nil {
-		return WrapErrorf(fmt.Errorf("empty response"), DefaultErrorMsg, "alicloud_flink_connector", "RegisterCustomConnector", AliyunLogGoSdkERROR)
+	if response == nil || response.Name == "" {
+		return WrapError(Error("Failed to get connector name from response"))
 	}
 
-	d.SetId(fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, name))
+	// Set composite ID: workspace:namespace:connector_name
+	d.SetId(workspaceId + ":" + namespaceName + ":" + response.Name)
 
+	// Wait for connector registration to complete using StateRefreshFunc
+	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkConnectorStateRefreshFunc(workspaceId, namespaceName, response.Name, []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	// 最后调用Read同步状态
 	return resourceAliCloudFlinkConnectorRead(d, meta)
 }
 

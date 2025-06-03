@@ -87,6 +87,14 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(joinNamespaceID(workspace, name))
+
+	// Wait for namespace creation to complete using StateRefreshFunc
+	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkNamespaceStateRefreshFunc(workspace, name, []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	// 最后调用Read同步状态
 	return resourceAliCloudFlinkNamespaceRead(d, meta)
 }
 
