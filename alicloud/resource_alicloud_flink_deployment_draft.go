@@ -208,26 +208,46 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	}
 
 	// Create the deployment draft
-	response, err := flinkService.CreateDeploymentDraft(workspaceId, namespaceName, &aliyunAPI.DeploymentDraft{
-		Workspace:                workspaceId,
-		Namespace:                namespaceName,
-		Name:                     name,
-		Artifact:                 request.Artifact,
-		FlinkConf:                request.FlinkConf,
-		StreamingResourceSetting: request.StreamingResourceSetting,
-		ReferencedDeploymentId:   request.ReferencedDeploymentDraftId,
+	var response *aliyunAPI.DeploymentDraft
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		resp, err := flinkService.CreateDeploymentDraft(workspaceId, namespaceName, &aliyunAPI.DeploymentDraft{
+			Workspace:                workspaceId,
+			Namespace:                namespaceName,
+			Name:                     name,
+			Artifact:                 request.Artifact,
+			FlinkConf:                request.FlinkConf,
+			StreamingResourceSetting: request.StreamingResourceSetting,
+			ReferencedDeploymentId:   request.ReferencedDeploymentDraftId,
+		})
+		if err != nil {
+			if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		response = resp
+		return nil
 	})
+
 	if err != nil {
-		return WrapError(err)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment_draft", "CreateDeploymentDraft", AlibabaCloudSdkGoERROR)
 	}
 
 	if response == nil || response.DeploymentDraftId == "" {
-		return WrapError(fmt.Errorf("failed to get deployment draft ID from response"))
+		return WrapError(Error("Failed to get deployment draft ID from response"))
 	}
 
 	d.SetId(fmt.Sprintf("%s:%s", namespaceName, response.DeploymentDraftId))
 	d.Set("draft_id", response.DeploymentDraftId)
 
+	// Wait for deployment draft creation to complete using StateRefreshFunc
+	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceId, namespaceName, response.DeploymentDraftId, []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	// 最后调用Read同步状态
 	return resourceAliCloudFlinkDeploymentDraftRead(d, meta)
 }
 

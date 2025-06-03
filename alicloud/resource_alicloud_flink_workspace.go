@@ -26,11 +26,6 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				ForceNew:    true,
 				Description: "Name of the Flink instance.",
 			},
-			"description": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Description of the Flink instance.",
-			},
 			"resource_group_id": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -209,11 +204,6 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				Computed:    true,
 				Description: "The resource ID of the Flink workspace instance.",
 			},
-			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The resource ID of the Flink workspace instance.",
-			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -232,7 +222,6 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	// Create workspace request using cws-lib-go types
 	workspaceRequest := &aliyunAPI.Workspace{
 		Name:            d.Get("name").(string),
-		Description:     d.Get("description").(string),
 		ResourceGroupID: d.Get("resource_group_id").(string),
 		ZoneID:          d.Get("zone_id").(string),
 		VPCID:           d.Get("vpc_id").(string),
@@ -315,6 +304,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		}
 	}
 
+	// Create the workspace with retry mechanism
 	var workspace *aliyunAPI.Workspace
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		resp, err := flinkService.CreateInstance(workspaceRequest)
@@ -339,7 +329,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(workspace.ID)
 
-	// Wait for the instance to be in running state
+	// Wait for the instance to be in running state using StateRefreshFunc
 	stateConf := resource.StateChangeConf{
 		Pending:    []string{"CREATING"},
 		Target:     []string{"RUNNING"},
@@ -352,6 +342,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
+	// 最后调用Read同步状态
 	return resourceAliCloudFlinkWorkspaceRead(d, meta)
 }
 
@@ -374,7 +365,6 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 
 	// Set attributes from workspace workspace
 	d.Set("name", workspace.Name)
-	d.Set("description", workspace.Description)
 	d.Set("resource_group_id", workspace.ResourceGroupID)
 	d.Set("zone_id", workspace.ZoneID)
 	d.Set("vpc_id", workspace.VPCID)

@@ -495,19 +495,13 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	// Set composite ID: namespace:deploymentId
 	d.SetId(namespaceName + ":" + response.DeploymentId)
 
-	// Wait for deployment creation to complete
-	stateConf := resource.StateChangeConf{
-		Pending:    []string{"CREATING", "STARTING"},
-		Target:     []string{"CREATED", "RUNNING"},
-		Refresh:    flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"FAILED"}),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
-		Delay:      5 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
+	// Wait for deployment creation to complete using StateRefreshFunc
+	stateConf := BuildStateConf([]string{"CREATING", "STARTING"}, []string{"CREATED", "RUNNING"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"FAILED"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
+	// 最后调用Read同步状态
 	return resourceAliCloudFlinkDeploymentRead(d, meta)
 }
 

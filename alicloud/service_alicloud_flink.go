@@ -361,6 +361,29 @@ func (s *FlinkService) DeleteCustomConnector(workspaceId string, namespaceName s
 	return s.aliyunFlinkAPI.DeleteConnector(workspaceId, namespaceName, connectorName)
 }
 
+func (s *FlinkService) FlinkConnectorStateRefreshFunc(workspaceId string, namespaceName string, connectorName string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		connector, err := s.GetConnector(workspaceId, namespaceName, connectorName)
+		if err != nil {
+			if NotFoundError(err) {
+				// Connector not found, still being created or deleted
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		// For connectors, if we can get it successfully, it means it's available
+		for _, failState := range failStates {
+			// Check if connector is in a failed state (if any fail states are defined)
+			if connector.Type == failState {
+				return connector, connector.Type, WrapError(Error(FailedToReachTargetStatus, connector.Type))
+			}
+		}
+
+		return connector, "Available", nil
+	}
+}
+
 // Variable methods
 func (s *FlinkService) GetVariable(workspaceId string, namespaceName string, variableName string) (*aliyunAPI.Variable, error) {
 	// Call the underlying API to get variable
@@ -385,6 +408,106 @@ func (s *FlinkService) DeleteVariable(workspaceId string, namespaceName string, 
 func (s *FlinkService) ListVariables(workspaceId string, namespaceName string, pagination *aliyunAPI.PaginationRequest) (*aliyunAPI.ListResponse[aliyunAPI.Variable], error) {
 	// Call underlying API
 	return s.aliyunFlinkAPI.ListVariables(workspaceId, namespaceName, pagination)
+}
+
+func (s *FlinkService) FlinkVariableStateRefreshFunc(workspaceId string, namespaceName string, variableName string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		variable, err := s.GetVariable(workspaceId, namespaceName, variableName)
+		if err != nil {
+			if NotFoundError(err) {
+				// Variable not found, still being created
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		// For variables, if we can get it successfully, it means it's ready
+		for _, failState := range failStates {
+			// Check if variable is in a failed state (if any fail states are defined)
+			if variable.Kind == failState {
+				return variable, variable.Kind, WrapError(Error(FailedToReachTargetStatus, variable.Kind))
+			}
+		}
+
+		return variable, "Available", nil
+	}
+}
+
+// FlinkDeploymentDraftStateRefreshFunc provides state refresh for deployment drafts
+func (s *FlinkService) FlinkDeploymentDraftStateRefreshFunc(workspaceId string, namespaceName string, draftId string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		draft, err := s.GetDeploymentDraft(workspaceId, namespaceName, draftId)
+		if err != nil {
+			if NotFoundError(err) {
+				// Draft not found, still being created or deleted
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		// For deployment drafts, if we can get it successfully, it means it's available
+		for _, failState := range failStates {
+			// Check if draft is in a failed state (if any fail states are defined)
+			if draft.Status == failState {
+				return draft, draft.Status, WrapError(Error(FailedToReachTargetStatus, draft.Status))
+			}
+		}
+
+		return draft, "Available", nil
+	}
+}
+
+// FlinkMemberStateRefreshFunc provides state refresh for members
+func (s *FlinkService) FlinkMemberStateRefreshFunc(workspaceId string, namespaceName string, memberId string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		member, err := s.GetMember(workspaceId, namespaceName, memberId)
+		if err != nil {
+			if NotFoundError(err) {
+				// Member not found, still being created or deleted
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		// For members, if we can get it successfully, it means it's available
+		for _, failState := range failStates {
+			// Check if member is in a failed state (if any fail states are defined)
+			if role, ok := member["role"].(string); ok && role == failState {
+				return member, role, WrapError(Error(FailedToReachTargetStatus, role))
+			}
+		}
+
+		return member, "Available", nil
+	}
+}
+
+// FlinkNamespaceStateRefreshFunc provides state refresh for namespaces
+func (s *FlinkService) FlinkNamespaceStateRefreshFunc(workspaceId string, namespaceName string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		namespace, err := s.GetNamespace(workspaceId, namespaceName)
+		if err != nil {
+			if NotFoundError(err) {
+				// Namespace not found, still being created or deleted
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		// For namespaces, if we can get it successfully, it means it's available
+		for _, failState := range failStates {
+			// Check if namespace is in a failed state (if any fail states are defined)
+			if namespace.Status == failState {
+				return namespace, namespace.Status, WrapError(Error(FailedToReachTargetStatus, namespace.Status))
+			}
+		}
+
+		return namespace, "Available", nil
+	}
+}
+
+// Engine methods
+func (s *FlinkService) ListEngines(workspaceId string) ([]*aliyunAPI.FlinkEngine, error) {
+	return s.aliyunFlinkAPI.ListEngines(workspaceId)
 }
 
 // Helper functions for parsing IDs
