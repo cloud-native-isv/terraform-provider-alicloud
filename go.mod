@@ -275,6 +275,12 @@ replace github.com/cloud-native-tools/cws-lib-go/lib => ../cws-lib-go/lib
 
 replace github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api => ../cws-lib-go/lib/cloud/aliyun/api
 
-replace github.com/alibabacloud-go/foasconsole-20211028 => ../cws-lib-go/lib/cloud/aliyun/sdk/foasconsole-20211028
-
-replace github.com/alibabacloud-go/ververica-20220718 => ../cws-lib-go/lib/cloud/aliyun/sdk/ververica-20220718
+replace (
+	github.com/alibabacloud-go/alikafka-20190916/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/alikafka-20190916
+	github.com/alibabacloud-go/arms-20190808/v9 => ../cws-lib-go/lib/cloud/aliyun/sdk/arms-20190808
+	github.com/alibabacloud-go/foasconsole-20211028 => ../cws-lib-go/lib/cloud/aliyun/sdk/foasconsole-20211028
+	github.com/alibabacloud-go/ons-20190214/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/ons-20190214
+	github.com/alibabacloud-go/rds-20140815/v12 => ../cws-lib-go/lib/cloud/aliyun/sdk/rds-20140815
+	github.com/alibabacloud-go/sls-20201230/v6 => ../cws-lib-go/lib/cloud/aliyun/sdk/sls-20201230
+	github.com/alibabacloud-go/ververica-20220718 => ../cws-lib-go/lib/cloud/aliyun/sdk/ververica-20220718
+)

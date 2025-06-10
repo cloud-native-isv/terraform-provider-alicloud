@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -127,7 +127,7 @@ func dataSourceAlicloudFlinkWorkspacesRead(d *schema.ResourceData, meta interfac
 	}
 
 	// 2. 获取所有Flink实例（分页处理）
-	pagination := &aliyunAPI.PaginationRequest{
+	pagination := &aliyunFlinkAPI.PaginationRequest{
 		PageIndex: 1,
 		PageSize:  50,
 	}

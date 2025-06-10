@@ -4,7 +4,7 @@ import (
 	"regexp"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -95,7 +95,7 @@ func dataSourceAlicloudFlinkEnginesRead(d *schema.ResourceData, meta interface{}
 		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_flink_engines", "ListEngines", AlibabaCloudSdkGoERROR)
 	}
 
-	var filteredEngines []*aliyunAPI.FlinkEngine
+	var filteredEngines []*aliyunFlinkAPI.FlinkEngine
 	nameRegex, nameRegexOk := d.GetOk("name_regex")
 
 	// Apply name regex filter if specified

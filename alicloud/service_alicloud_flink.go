@@ -5,19 +5,19 @@ import (
 	"strings"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 type FlinkService struct {
 	client         *connectivity.AliyunClient
-	aliyunFlinkAPI *aliyunAPI.FlinkAPI
+	aliyunFlinkAPI *aliyunFlinkAPI.FlinkAPI
 }
 
 // NewFlinkService creates a new FlinkService using cws-lib-go implementation
 func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
 	// Convert AliyunClient credentials to FlinkCredentials
-	credentials := &aliyunAPI.FlinkCredentials{
+	credentials := &aliyunFlinkAPI.FlinkCredentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,
@@ -25,7 +25,7 @@ func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
 	}
 
 	// Create the cws-lib-go FlinkService
-	aliyunFlinkAPI, err := aliyunAPI.NewFlinkAPI(credentials)
+	aliyunFlinkAPI, err := aliyunFlinkAPI.NewFlinkAPI(credentials)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cws-lib-go FlinkService: %w", err)
 	}
@@ -37,11 +37,11 @@ func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
 }
 
 // Workspace methods
-func (s *FlinkService) DescribeFlinkWorkspace(id string) (*aliyunAPI.Workspace, error) {
+func (s *FlinkService) DescribeFlinkWorkspace(id string) (*aliyunFlinkAPI.Workspace, error) {
 	return s.aliyunFlinkAPI.GetWorkspace(id)
 }
 
-func (s *FlinkService) CreateInstance(workspace *aliyunAPI.Workspace) (*aliyunAPI.Workspace, error) {
+func (s *FlinkService) CreateInstance(workspace *aliyunFlinkAPI.Workspace) (*aliyunFlinkAPI.Workspace, error) {
 	return s.aliyunFlinkAPI.CreateWorkspace(workspace)
 }
 
@@ -66,7 +66,7 @@ func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(id string) resource.StateR
 }
 
 // Deployment methods
-func (s *FlinkService) GetDeployment(id string) (*aliyunAPI.Deployment, error) {
+func (s *FlinkService) GetDeployment(id string) (*aliyunFlinkAPI.Deployment, error) {
 	// Parse deployment ID to extract namespace and deployment ID
 	// Format: namespace:deploymentId
 	namespaceName, deploymentId, err := parseDeploymentId(id)
@@ -76,12 +76,12 @@ func (s *FlinkService) GetDeployment(id string) (*aliyunAPI.Deployment, error) {
 	return s.aliyunFlinkAPI.GetDeployment(namespaceName, deploymentId)
 }
 
-func (s *FlinkService) CreateDeployment(namespaceName *string, deployment *aliyunAPI.Deployment) (*aliyunAPI.Deployment, error) {
+func (s *FlinkService) CreateDeployment(namespaceName *string, deployment *aliyunFlinkAPI.Deployment) (*aliyunFlinkAPI.Deployment, error) {
 	deployment.Namespace = *namespaceName
 	return s.aliyunFlinkAPI.CreateDeployment(deployment)
 }
 
-func (s *FlinkService) UpdateDeployment(deployment *aliyunAPI.Deployment) (*aliyunAPI.Deployment, error) {
+func (s *FlinkService) UpdateDeployment(deployment *aliyunFlinkAPI.Deployment) (*aliyunFlinkAPI.Deployment, error) {
 	return s.aliyunFlinkAPI.UpdateDeployment(deployment)
 }
 
@@ -89,7 +89,7 @@ func (s *FlinkService) DeleteDeployment(namespaceName, deploymentId string) erro
 	return s.aliyunFlinkAPI.DeleteDeployment(namespaceName, deploymentId)
 }
 
-func (s *FlinkService) ListDeployments(namespaceName string, pagination *aliyunAPI.PaginationRequest) (*aliyunAPI.ListResponse[aliyunAPI.Deployment], error) {
+func (s *FlinkService) ListDeployments(namespaceName string, pagination *aliyunFlinkAPI.PaginationRequest) (*aliyunFlinkAPI.ListResponse[aliyunFlinkAPI.Deployment], error) {
 	return s.aliyunFlinkAPI.ListDeployments(namespaceName, pagination)
 }
 
@@ -108,7 +108,7 @@ func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string, failStates []s
 }
 
 // Job methods
-func (s *FlinkService) DescribeFlinkJob(id string) (*aliyunAPI.Job, error) {
+func (s *FlinkService) DescribeFlinkJob(id string) (*aliyunFlinkAPI.Job, error) {
 	// Parse job ID to extract namespace and job ID
 	// Format: namespace:jobId
 	namespaceName, jobId, err := parseJobId(id)
@@ -118,12 +118,12 @@ func (s *FlinkService) DescribeFlinkJob(id string) (*aliyunAPI.Job, error) {
 	return s.aliyunFlinkAPI.GetJob(namespaceName, jobId)
 }
 
-func (s *FlinkService) StartJobWithParams(namespaceName string, job *aliyunAPI.Job) (*aliyunAPI.Job, error) {
+func (s *FlinkService) StartJobWithParams(namespaceName string, job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.Job, error) {
 	job.Namespace = namespaceName
 	return s.aliyunFlinkAPI.StartJob(job)
 }
 
-func (s *FlinkService) UpdateJob(job *aliyunAPI.Job) (*aliyunAPI.HotUpdateJobResult, error) {
+func (s *FlinkService) UpdateJob(job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.HotUpdateJobResult, error) {
 	// Parse job ID to extract namespace and job ID
 	namespaceName, jobId, err := parseJobId(job.JobId)
 	if err != nil {
@@ -131,7 +131,7 @@ func (s *FlinkService) UpdateJob(job *aliyunAPI.Job) (*aliyunAPI.HotUpdateJobRes
 	}
 
 	// Create HotUpdateJobParams from job - remove RestartType field if not available
-	params := &aliyunAPI.HotUpdateJobParams{
+	params := &aliyunFlinkAPI.HotUpdateJobParams{
 		// RestartType: job.RestartType, // Commented out if field doesn't exist
 	}
 
@@ -145,12 +145,12 @@ func (s *FlinkService) StopJob(namespaceName, jobId string, withSavepoint bool) 
 	return s.aliyunFlinkAPI.StopJob(namespaceName, jobId, withSavepoint)
 }
 
-func (s *FlinkService) ListJobs(namespaceName string, pagination *aliyunAPI.PaginationRequest) (*aliyunAPI.ListResponse[aliyunAPI.Job], error) {
+func (s *FlinkService) ListJobs(namespaceName string, pagination *aliyunFlinkAPI.PaginationRequest) (*aliyunFlinkAPI.ListResponse[aliyunFlinkAPI.Job], error) {
 	// Add workspace parameter - using empty string as default since it's required by API
 	return s.aliyunFlinkAPI.ListJobs("", namespaceName, "", pagination)
 }
 
-func (s *FlinkService) GetJobMetrics(namespaceName string, jobId string) (*aliyunAPI.JobMetrics, error) {
+func (s *FlinkService) GetJobMetrics(namespaceName string, jobId string) (*aliyunFlinkAPI.JobMetrics, error) {
 	// This method doesn't exist in the API, so we'll create a placeholder implementation
 	// or use an alternative method if available
 	return nil, fmt.Errorf("GetJobMetrics method not implemented in FlinkAPI")
@@ -171,7 +171,7 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(id string, failStates []string) 
 }
 
 // Deployment Draft methods
-func (s *FlinkService) CreateDeploymentDraft(workspaceID string, namespaceName string, draft *aliyunAPI.DeploymentDraft) (*aliyunAPI.DeploymentDraft, error) {
+func (s *FlinkService) CreateDeploymentDraft(workspaceID string, namespaceName string, draft *aliyunFlinkAPI.DeploymentDraft) (*aliyunFlinkAPI.DeploymentDraft, error) {
 	// Call the underlying API with the proper signature
 	result, err := s.aliyunFlinkAPI.CreateDeploymentDraft(namespaceName, workspaceID, draft)
 	if err != nil {
@@ -181,11 +181,11 @@ func (s *FlinkService) CreateDeploymentDraft(workspaceID string, namespaceName s
 	return result, nil
 }
 
-func (s *FlinkService) GetDeploymentDraft(workspaceId string, namespaceName string, draftId string) (*aliyunAPI.DeploymentDraft, error) {
+func (s *FlinkService) GetDeploymentDraft(workspaceId string, namespaceName string, draftId string) (*aliyunFlinkAPI.DeploymentDraft, error) {
 	return s.aliyunFlinkAPI.GetDeploymentDraft(workspaceId, namespaceName, draftId)
 }
 
-func (s *FlinkService) UpdateDeploymentDraft(workspaceId string, namespaceName string, draftId string, draft *aliyunAPI.DeploymentDraft) (*aliyunAPI.DeploymentDraft, error) {
+func (s *FlinkService) UpdateDeploymentDraft(workspaceId string, namespaceName string, draftId string, draft *aliyunFlinkAPI.DeploymentDraft) (*aliyunFlinkAPI.DeploymentDraft, error) {
 	draft.Namespace = namespaceName
 	draft.DeploymentDraftId = draftId
 	return s.aliyunFlinkAPI.UpdateDeploymentDraft(workspaceId, namespaceName, draftId, draft)
@@ -195,7 +195,7 @@ func (s *FlinkService) DeleteDeploymentDraft(workspaceId string, namespaceName s
 	return s.aliyunFlinkAPI.DeleteDeploymentDraft(workspaceId, namespaceName, draftId)
 }
 
-func (s *FlinkService) ListDeploymentDrafts(namespaceName string, pagination *aliyunAPI.PaginationRequest) (*aliyunAPI.ListResponse[aliyunAPI.DeploymentDraft], error) {
+func (s *FlinkService) ListDeploymentDrafts(namespaceName string, pagination *aliyunFlinkAPI.PaginationRequest) (*aliyunFlinkAPI.ListResponse[aliyunFlinkAPI.DeploymentDraft], error) {
 	return s.aliyunFlinkAPI.ListDeploymentDrafts("", namespaceName, pagination)
 }
 
@@ -212,8 +212,8 @@ func (s *FlinkService) CreateMember(workspaceId string, namespaceName string, me
 		return nil, fmt.Errorf("member role is required")
 	}
 
-	// Create a Member using aliyunAPI.Member with proper field mapping
-	apiMember := &aliyunAPI.Member{
+	// Create a Member using aliyunFlinkAPI.Member with proper field mapping
+	apiMember := &aliyunFlinkAPI.Member{
 		Member:        memberName,
 		Role:          role,
 		WorkspaceID:   workspaceId,
@@ -274,8 +274,8 @@ func (s *FlinkService) UpdateMember(workspaceId string, namespaceName string, me
 		return nil, fmt.Errorf("member role is required")
 	}
 
-	// Create a Member using aliyunAPI.Member with proper field mapping
-	apiMember := &aliyunAPI.Member{
+	// Create a Member using aliyunFlinkAPI.Member with proper field mapping
+	apiMember := &aliyunFlinkAPI.Member{
 		Member:        memberName,
 		Role:          role,
 		WorkspaceID:   workspaceId,
@@ -314,46 +314,46 @@ func (s *FlinkService) DeleteMember(workspaceId string, namespaceName string, me
 }
 
 // Namespace methods
-func (s *FlinkService) ListNamespaces(workspaceId string, pagination *aliyunAPI.PaginationRequest) (*aliyunAPI.ListResponse[aliyunAPI.Namespace], error) {
+func (s *FlinkService) ListNamespaces(workspaceId string, pagination *aliyunFlinkAPI.PaginationRequest) (*aliyunFlinkAPI.ListResponse[aliyunFlinkAPI.Namespace], error) {
 	return s.aliyunFlinkAPI.ListNamespaces(workspaceId, pagination)
 }
 
-func (s *FlinkService) CreateNamespace(workspaceId string, namespace *aliyunAPI.Namespace) (*aliyunAPI.Namespace, error) {
+func (s *FlinkService) CreateNamespace(workspaceId string, namespace *aliyunFlinkAPI.Namespace) (*aliyunFlinkAPI.Namespace, error) {
 	// Create namespace using the aliyunFlinkAPI directly
 	result, err := s.aliyunFlinkAPI.CreateNamespace(namespace)
 	return result, err
 }
 
-func (s *FlinkService) GetNamespace(workspaceId, namespaceName string) (*aliyunAPI.Namespace, error) {
+func (s *FlinkService) GetNamespace(workspaceId, namespaceName string) (*aliyunFlinkAPI.Namespace, error) {
 	// Fetch the namespace using the APIan
 	return s.aliyunFlinkAPI.GetNamespace(workspaceId, namespaceName)
 }
 
 func (s *FlinkService) DeleteNamespace(workspaceId string, namespaceName string) error {
-	// Delete the namespace using aliyunAPI
+	// Delete the namespace using aliyunFlinkAPI
 	return s.aliyunFlinkAPI.DeleteNamespace(workspaceId, namespaceName)
 }
 
 // Instance/Workspace methods (aliases for workspace methods)
-func (s *FlinkService) ListInstances(pagination *aliyunAPI.PaginationRequest) (*aliyunAPI.ListResponse[aliyunAPI.Workspace], error) {
+func (s *FlinkService) ListInstances(pagination *aliyunFlinkAPI.PaginationRequest) (*aliyunFlinkAPI.ListResponse[aliyunFlinkAPI.Workspace], error) {
 	return s.aliyunFlinkAPI.ListWorkspaces(pagination)
 }
 
 // Zone methods
-func (s *FlinkService) DescribeSupportedZones() ([]*aliyunAPI.ZoneInfo, error) {
+func (s *FlinkService) DescribeSupportedZones() ([]*aliyunFlinkAPI.ZoneInfo, error) {
 	return s.aliyunFlinkAPI.ListSupportedZones()
 }
 
 // Connector methods
-func (s *FlinkService) ListCustomConnectors(workspaceId string, namespaceName string) ([]*aliyunAPI.Connector, error) {
+func (s *FlinkService) ListCustomConnectors(workspaceId string, namespaceName string) ([]*aliyunFlinkAPI.Connector, error) {
 	return s.aliyunFlinkAPI.ListConnectors(workspaceId, namespaceName)
 }
 
-func (s *FlinkService) RegisterCustomConnector(workspaceId string, namespaceName string, connector *aliyunAPI.Connector) (*aliyunAPI.Connector, error) {
+func (s *FlinkService) RegisterCustomConnector(workspaceId string, namespaceName string, connector *aliyunFlinkAPI.Connector) (*aliyunFlinkAPI.Connector, error) {
 	return s.aliyunFlinkAPI.RegisterConnector(workspaceId, namespaceName, connector)
 }
 
-func (s *FlinkService) GetConnector(workspaceId string, namespaceName string, connectorName string) (*aliyunAPI.Connector, error) {
+func (s *FlinkService) GetConnector(workspaceId string, namespaceName string, connectorName string) (*aliyunFlinkAPI.Connector, error) {
 	return s.aliyunFlinkAPI.GetConnector(workspaceId, namespaceName, connectorName)
 }
 
@@ -385,17 +385,17 @@ func (s *FlinkService) FlinkConnectorStateRefreshFunc(workspaceId string, namesp
 }
 
 // Variable methods
-func (s *FlinkService) GetVariable(workspaceId string, namespaceName string, variableName string) (*aliyunAPI.Variable, error) {
+func (s *FlinkService) GetVariable(workspaceId string, namespaceName string, variableName string) (*aliyunFlinkAPI.Variable, error) {
 	// Call the underlying API to get variable
 	return s.aliyunFlinkAPI.GetVariable(workspaceId, namespaceName, variableName)
 }
 
-func (s *FlinkService) CreateVariable(workspaceId string, namespaceName string, variable *aliyunAPI.Variable) (*aliyunAPI.Variable, error) {
+func (s *FlinkService) CreateVariable(workspaceId string, namespaceName string, variable *aliyunFlinkAPI.Variable) (*aliyunFlinkAPI.Variable, error) {
 	// Call underlying API
 	return s.aliyunFlinkAPI.CreateVariable(workspaceId, namespaceName, variable)
 }
 
-func (s *FlinkService) UpdateVariable(workspaceId string, namespaceName string, variable *aliyunAPI.Variable) (*aliyunAPI.Variable, error) {
+func (s *FlinkService) UpdateVariable(workspaceId string, namespaceName string, variable *aliyunFlinkAPI.Variable) (*aliyunFlinkAPI.Variable, error) {
 	// Call underlying API
 	return s.aliyunFlinkAPI.UpdateVariable(workspaceId, namespaceName, variable)
 }
@@ -405,7 +405,7 @@ func (s *FlinkService) DeleteVariable(workspaceId string, namespaceName string, 
 	return s.aliyunFlinkAPI.DeleteVariable(workspaceId, namespaceName, variableName)
 }
 
-func (s *FlinkService) ListVariables(workspaceId string, namespaceName string, pagination *aliyunAPI.PaginationRequest) (*aliyunAPI.ListResponse[aliyunAPI.Variable], error) {
+func (s *FlinkService) ListVariables(workspaceId string, namespaceName string, pagination *aliyunFlinkAPI.PaginationRequest) (*aliyunFlinkAPI.ListResponse[aliyunFlinkAPI.Variable], error) {
 	// Call underlying API
 	return s.aliyunFlinkAPI.ListVariables(workspaceId, namespaceName, pagination)
 }
@@ -506,7 +506,7 @@ func (s *FlinkService) FlinkNamespaceStateRefreshFunc(workspaceId string, namesp
 }
 
 // Engine methods
-func (s *FlinkService) ListEngines(workspaceId string) ([]*aliyunAPI.FlinkEngine, error) {
+func (s *FlinkService) ListEngines(workspaceId string) ([]*aliyunFlinkAPI.FlinkEngine, error) {
 	return s.aliyunFlinkAPI.ListEngines(workspaceId)
 }
 

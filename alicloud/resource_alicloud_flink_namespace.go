@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -71,11 +71,11 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 	cpu := d.Get("cpu").(int)
 	memory := d.Get("memory").(int)
 
-	// Create namespace using aliyunAPI.Namespace directly
-	namespace := &aliyunAPI.Namespace{
+	// Create namespace using aliyunFlinkAPI.Namespace directly
+	namespace := &aliyunFlinkAPI.Namespace{
 		Name: name,
 		Ha:   ha,
-		ResourceSpec: &aliyunAPI.ResourceSpec{
+		ResourceSpec: &aliyunFlinkAPI.ResourceSpec{
 			Cpu:      float64(cpu),
 			MemoryGB: float64(memory),
 		},
