@@ -17,7 +17,7 @@ import (
 	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/aliyun/fc-go-sdk"
-	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/denverdino/aliyungo/common"
 )
 
@@ -99,7 +99,7 @@ func NotFoundError(err error) bool {
 		return false
 	}
 
-	if e, ok := err.(*aliyunAPI.FlinkServiceError); ok {
+	if e, ok := err.(*aliyunFlinkAPI.FlinkServiceError); ok {
 		if e.ErrorCode != nil && *e.ErrorCode == "404" {
 			return true
 		}
@@ -140,7 +140,7 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 	}
 
 	// Handle FlinkServiceError from cws-lib-go
-	if e, ok := err.(*aliyunAPI.FlinkServiceError); ok {
+	if e, ok := err.(*aliyunFlinkAPI.FlinkServiceError); ok {
 		for _, code := range expectCodes {
 			if (e.ErrorCode != nil && *e.ErrorCode == code) || (e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) {
 				return true

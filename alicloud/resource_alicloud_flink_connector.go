@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -128,7 +128,7 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 	name := d.Get("name").(string)
 	connectorType := d.Get("type").(string)
 
-	connector := &aliyunAPI.Connector{
+	connector := &aliyunFlinkAPI.Connector{
 		Name: name,
 		Type: connectorType,
 	}
@@ -136,10 +136,10 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 	// Handle properties
 	if properties, ok := d.GetOk("properties"); ok {
 		propertyList := properties.([]interface{})
-		connector.Properties = make([]*aliyunAPI.Property, len(propertyList))
+		connector.Properties = make([]*aliyunFlinkAPI.Property, len(propertyList))
 		for i, prop := range propertyList {
 			propMap := prop.(map[string]interface{})
-			connector.Properties[i] = &aliyunAPI.Property{
+			connector.Properties[i] = &aliyunFlinkAPI.Property{
 				Key:         propMap["key"].(string),
 				Description: propMap["description"].(string),
 			}
@@ -170,7 +170,7 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 	connector.Sink = d.Get("sink").(bool)
 
 	// Register connector
-	var response *aliyunAPI.Connector
+	var response *aliyunFlinkAPI.Connector
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		resp, err := flinkService.RegisterCustomConnector(workspaceId, namespaceName, connector)
 		if err != nil {
@@ -300,7 +300,7 @@ func resourceAliCloudFlinkConnectorUpdate(d *schema.ResourceData, meta interface
 		}
 
 		// Create updated connector object
-		connector := &aliyunAPI.Connector{
+		connector := &aliyunFlinkAPI.Connector{
 			Name: name,
 			Type: d.Get("type").(string),
 		}

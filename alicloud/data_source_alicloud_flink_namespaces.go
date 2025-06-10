@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -114,7 +114,7 @@ func dataSourceAlicloudFlinkNamespacesRead(d *schema.ResourceData, meta interfac
 	})
 
 	// Get all namespaces with pagination
-	pagination := &aliyunAPI.PaginationRequest{
+	pagination := &aliyunFlinkAPI.PaginationRequest{
 		PageIndex: 1,
 		PageSize:  50,
 	}

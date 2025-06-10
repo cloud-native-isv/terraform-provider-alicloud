@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -96,7 +96,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 	parallelism := d.Get("parallelism").(int)
 
 	// Build job request - using the Job struct from cws-lib-go with correct field names
-	request := &aliyunAPI.Job{
+	request := &aliyunFlinkAPI.Job{
 		Workspace:      workspaceId,
 		Namespace:      namespaceName,
 		DeploymentId:   deploymentId,
@@ -105,7 +105,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 
 	// Handle restore strategy if savepoint path is provided
 	if savepointPath != "" {
-		request.RestoreStrategy = &aliyunAPI.DeploymentRestoreStrategy{
+		request.RestoreStrategy = &aliyunFlinkAPI.DeploymentRestoreStrategy{
 			Kind:                  "SAVEPOINT",
 			AllowNonRestoredState: allowNonRestoredState,
 			SavepointId:           savepointPath,
@@ -114,9 +114,9 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 
 	// Handle streaming resource setting for parallelism
 	if parallelism > 0 {
-		request.StreamingResourceSetting = &aliyunAPI.StreamingResourceSetting{
+		request.StreamingResourceSetting = &aliyunFlinkAPI.StreamingResourceSetting{
 			ResourceSettingMode: "BASIC",
-			BasicResourceSetting: &aliyunAPI.BasicResourceSetting{
+			BasicResourceSetting: &aliyunFlinkAPI.BasicResourceSetting{
 				Parallelism: parallelism,
 			},
 		}

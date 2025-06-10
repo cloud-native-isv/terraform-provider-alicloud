@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -402,7 +402,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
 
-	request := &aliyunAPI.Deployment{
+	request := &aliyunFlinkAPI.Deployment{
 		Workspace: workspaceId,
 		Namespace: namespaceName,
 		Name:      d.Get("job_name").(string),
@@ -426,7 +426,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		targets := deploymentTargetList.([]interface{})
 		if len(targets) > 0 {
 			targetMap := targets[0].(map[string]interface{})
-			request.DeploymentTarget = &aliyunAPI.DeploymentTarget{
+			request.DeploymentTarget = &aliyunFlinkAPI.DeploymentTarget{
 				Type: targetMap["name"].(string),
 			}
 		}
@@ -470,7 +470,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	}
 
 	// Create deployment
-	var response *aliyunAPI.Deployment
+	var response *aliyunFlinkAPI.Deployment
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		resp, err := flinkService.CreateDeployment(&namespaceName, request)
 		if err != nil {
@@ -645,7 +645,7 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 			targets := deploymentTargetList.([]interface{})
 			if len(targets) > 0 {
 				targetMap := targets[0].(map[string]interface{})
-				deployment.DeploymentTarget = &aliyunAPI.DeploymentTarget{
+				deployment.DeploymentTarget = &aliyunFlinkAPI.DeploymentTarget{
 					Type: targetMap["name"].(string),
 				}
 			}
@@ -783,13 +783,13 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 // Helper functions for schema conversion
 
 // expandArtifact converts schema artifact to API artifact
-func expandArtifact(d *schema.ResourceData) (*aliyunAPI.Artifact, error) {
+func expandArtifact(d *schema.ResourceData) (*aliyunFlinkAPI.Artifact, error) {
 	// Check for new artifact structure first
 	if artifactList, ok := d.GetOk("artifact"); ok {
 		artifacts := artifactList.([]interface{})
 		if len(artifacts) > 0 {
 			artifactMap := artifacts[0].(map[string]interface{})
-			artifact := &aliyunAPI.Artifact{
+			artifact := &aliyunFlinkAPI.Artifact{
 				Kind: artifactMap["kind"].(string),
 			}
 
@@ -797,7 +797,7 @@ func expandArtifact(d *schema.ResourceData) (*aliyunAPI.Artifact, error) {
 			case "JAR":
 				if jarArtifactList, ok := artifactMap["jar_artifact"].([]interface{}); ok && len(jarArtifactList) > 0 {
 					jarMap := jarArtifactList[0].(map[string]interface{})
-					artifact.JarArtifact = &aliyunAPI.JarArtifact{
+					artifact.JarArtifact = &aliyunFlinkAPI.JarArtifact{
 						JarUri:     jarMap["jar_uri"].(string),
 						EntryClass: jarMap["entry_class"].(string),
 						MainArgs:   jarMap["main_args"].(string),
@@ -812,7 +812,7 @@ func expandArtifact(d *schema.ResourceData) (*aliyunAPI.Artifact, error) {
 			case "PYTHON":
 				if pythonArtifactList, ok := artifactMap["python_artifact"].([]interface{}); ok && len(pythonArtifactList) > 0 {
 					pythonMap := pythonArtifactList[0].(map[string]interface{})
-					artifact.PythonArtifact = &aliyunAPI.PythonArtifact{
+					artifact.PythonArtifact = &aliyunFlinkAPI.PythonArtifact{
 						PythonArtifactUri: pythonMap["python_artifact_uri"].(string),
 						EntryModule:       pythonMap["entry_module"].(string),
 						MainArgs:          pythonMap["main_args"].(string),
@@ -839,7 +839,7 @@ func expandArtifact(d *schema.ResourceData) (*aliyunAPI.Artifact, error) {
 			case "SQLSCRIPT":
 				if sqlArtifactList, ok := artifactMap["sql_artifact"].([]interface{}); ok && len(sqlArtifactList) > 0 {
 					sqlMap := sqlArtifactList[0].(map[string]interface{})
-					artifact.SqlArtifact = &aliyunAPI.SqlArtifact{
+					artifact.SqlArtifact = &aliyunFlinkAPI.SqlArtifact{
 						SqlScript: sqlMap["sql_script"].(string),
 					}
 					if deps, ok := sqlMap["additional_dependencies"].([]interface{}); ok {
@@ -856,9 +856,9 @@ func expandArtifact(d *schema.ResourceData) (*aliyunAPI.Artifact, error) {
 
 	// Fallback to legacy artifact configuration for backward compatibility
 	if jarUri, ok := d.GetOk("jar_uri"); ok {
-		artifact := &aliyunAPI.Artifact{
+		artifact := &aliyunFlinkAPI.Artifact{
 			Kind: "JAR",
-			JarArtifact: &aliyunAPI.JarArtifact{
+			JarArtifact: &aliyunFlinkAPI.JarArtifact{
 				JarUri: jarUri.(string),
 			},
 		}
@@ -875,24 +875,24 @@ func expandArtifact(d *schema.ResourceData) (*aliyunAPI.Artifact, error) {
 }
 
 // expandStreamingResourceSetting converts schema streaming resource setting to API format
-func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunAPI.StreamingResourceSetting {
+func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunFlinkAPI.StreamingResourceSetting {
 	if streamingResourceList, ok := d.GetOk("streaming_resource_setting"); ok {
 		settings := streamingResourceList.([]interface{})
 		if len(settings) > 0 {
 			settingMap := settings[0].(map[string]interface{})
-			resourceSetting := &aliyunAPI.StreamingResourceSetting{
+			resourceSetting := &aliyunFlinkAPI.StreamingResourceSetting{
 				ResourceSettingMode: settingMap["resource_setting_mode"].(string),
 			}
 
 			if basicList, ok := settingMap["basic_resource_setting"].([]interface{}); ok && len(basicList) > 0 {
 				basicMap := basicList[0].(map[string]interface{})
-				resourceSetting.BasicResourceSetting = &aliyunAPI.BasicResourceSetting{
+				resourceSetting.BasicResourceSetting = &aliyunFlinkAPI.BasicResourceSetting{
 					Parallelism: basicMap["parallelism"].(int),
 				}
 
 				if jmList, ok := basicMap["jobmanager_resource_setting_spec"].([]interface{}); ok && len(jmList) > 0 {
 					jmMap := jmList[0].(map[string]interface{})
-					resourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunAPI.ResourceSettingSpec{
+					resourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{
 						CPU:    jmMap["cpu"].(float64),
 						Memory: jmMap["memory"].(string),
 					}
@@ -900,7 +900,7 @@ func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunAPI.Streaming
 
 				if tmList, ok := basicMap["taskmanager_resource_setting_spec"].([]interface{}); ok && len(tmList) > 0 {
 					tmMap := tmList[0].(map[string]interface{})
-					resourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunAPI.ResourceSettingSpec{
+					resourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{
 						CPU:    tmMap["cpu"].(float64),
 						Memory: tmMap["memory"].(string),
 					}
@@ -909,13 +909,13 @@ func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunAPI.Streaming
 
 			if expertList, ok := settingMap["expert_resource_setting"].([]interface{}); ok && len(expertList) > 0 {
 				expertMap := expertList[0].(map[string]interface{})
-				resourceSetting.ExpertResourceSetting = &aliyunAPI.ExpertResourceSetting{
+				resourceSetting.ExpertResourceSetting = &aliyunFlinkAPI.ExpertResourceSetting{
 					ResourcePlan: expertMap["resource_plan"].(string),
 				}
 
 				if jmList, ok := expertMap["jobmanager_resource_setting_spec"].([]interface{}); ok && len(jmList) > 0 {
 					jmMap := jmList[0].(map[string]interface{})
-					resourceSetting.ExpertResourceSetting.JobManagerResourceSettingSpec = &aliyunAPI.ResourceSettingSpec{
+					resourceSetting.ExpertResourceSetting.JobManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{
 						CPU:    jmMap["cpu"].(float64),
 						Memory: jmMap["memory"].(string),
 					}
@@ -928,9 +928,9 @@ func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunAPI.Streaming
 
 	// Fallback to simple parallelism setting for backward compatibility
 	if parallelism, ok := d.GetOk("parallelism"); ok {
-		return &aliyunAPI.StreamingResourceSetting{
+		return &aliyunFlinkAPI.StreamingResourceSetting{
 			ResourceSettingMode: "BASIC",
-			BasicResourceSetting: &aliyunAPI.BasicResourceSetting{
+			BasicResourceSetting: &aliyunFlinkAPI.BasicResourceSetting{
 				Parallelism: parallelism.(int),
 			},
 		}
@@ -939,45 +939,9 @@ func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunAPI.Streaming
 	return nil
 }
 
-// expandLogging converts schema logging to API format
-func expandLogging(d *schema.ResourceData) *aliyunAPI.Logging {
-	if loggingList, ok := d.GetOk("logging"); ok {
-		loggings := loggingList.([]interface{})
-		if len(loggings) > 0 {
-			loggingMap := loggings[0].(map[string]interface{})
-			logging := &aliyunAPI.Logging{
-				LoggingProfile:              loggingMap["logging_profile"].(string),
-				Log4j2ConfigurationTemplate: loggingMap["log4j2_configuration_template"].(string),
-			}
-
-			if policyList, ok := loggingMap["log_reserve_policy"].([]interface{}); ok && len(policyList) > 0 {
-				policyMap := policyList[0].(map[string]interface{})
-				logging.LogReservePolicy = &aliyunAPI.LogReservePolicy{
-					ExpirationDays: policyMap["expiration_days"].(int),
-					OpenHistory:    policyMap["open_history"].(bool),
-				}
-			}
-
-			// Handle log4j loggers configuration
-			if loggersList, ok := loggingMap["log4j_loggers"].([]interface{}); ok && len(loggersList) > 0 {
-				logging.Log4jLoggers = make([]*aliyunAPI.Log4jLogger, len(loggersList))
-				for i, loggerItem := range loggersList {
-					loggerMap := loggerItem.(map[string]interface{})
-					logging.Log4jLoggers[i] = &aliyunAPI.Log4jLogger{
-						LoggerName:  loggerMap["logger_name"].(string),
-						LoggerLevel: loggerMap["logger_level"].(string),
-					}
-				}
-			}
-
-			return logging
-		}
-	}
-	return nil
-}
 
 // flattenArtifact converts API artifact to schema format
-func flattenArtifact(artifact *aliyunAPI.Artifact) []interface{} {
+func flattenArtifact(artifact *aliyunFlinkAPI.Artifact) []interface{} {
 	if artifact == nil {
 		return []interface{}{}
 	}
@@ -1033,7 +997,7 @@ func flattenArtifact(artifact *aliyunAPI.Artifact) []interface{} {
 }
 
 // flattenStreamingResourceSetting converts API streaming resource setting to schema format
-func flattenStreamingResourceSetting(setting *aliyunAPI.StreamingResourceSetting) []interface{} {
+func flattenStreamingResourceSetting(setting *aliyunFlinkAPI.StreamingResourceSetting) []interface{} {
 	if setting == nil {
 		return []interface{}{}
 	}
@@ -1083,39 +1047,4 @@ func flattenStreamingResourceSetting(setting *aliyunAPI.StreamingResourceSetting
 	}
 
 	return []interface{}{settingMap}
-}
-
-// flattenLogging converts API logging to schema format
-func flattenLogging(logging *aliyunAPI.Logging) []interface{} {
-	if logging == nil {
-		return []interface{}{}
-	}
-
-	loggingMap := map[string]interface{}{
-		"logging_profile":               logging.LoggingProfile,
-		"log4j2_configuration_template": logging.Log4j2ConfigurationTemplate,
-	}
-
-	if logging.LogReservePolicy != nil {
-		policyMap := map[string]interface{}{
-			"expiration_days": logging.LogReservePolicy.ExpirationDays,
-			"open_history":    logging.LogReservePolicy.OpenHistory,
-		}
-		loggingMap["log_reserve_policy"] = []interface{}{policyMap}
-	}
-
-	// Flatten log4j loggers configuration
-	if logging.Log4jLoggers != nil && len(logging.Log4jLoggers) > 0 {
-		loggersList := make([]interface{}, len(logging.Log4jLoggers))
-		for i, logger := range logging.Log4jLoggers {
-			loggerMap := map[string]interface{}{
-				"logger_name":  logger.LoggerName,
-				"logger_level": logger.LoggerLevel,
-			}
-			loggersList[i] = loggerMap
-		}
-		loggingMap["log4j_loggers"] = loggersList
-	}
-
-	return []interface{}{loggingMap}
 }

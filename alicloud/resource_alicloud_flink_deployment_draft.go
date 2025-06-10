@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -143,16 +143,16 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	artifactURI := d.Get("artifact_uri").(string)
 
 	// Create deployment draft using cws-lib-go service
-	request := &aliyunAPI.Deployment{
+	request := &aliyunFlinkAPI.Deployment{
 		Workspace: workspaceId,
 		Namespace: namespaceName,
 		Name:      name,
 	}
 
 	// Set artifact
-	request.Artifact = &aliyunAPI.Artifact{
+	request.Artifact = &aliyunFlinkAPI.Artifact{
 		Kind: "JAR",
-		JarArtifact: &aliyunAPI.JarArtifact{
+		JarArtifact: &aliyunFlinkAPI.JarArtifact{
 			JarUri: artifactURI,
 		},
 	}
@@ -168,13 +168,13 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		if len(jmSpecList) > 0 {
 			jmSpec := jmSpecList[0].(map[string]interface{})
 			if request.StreamingResourceSetting == nil {
-				request.StreamingResourceSetting = &aliyunAPI.StreamingResourceSetting{
+				request.StreamingResourceSetting = &aliyunFlinkAPI.StreamingResourceSetting{
 					ResourceSettingMode:  "BASIC",
-					BasicResourceSetting: &aliyunAPI.BasicResourceSetting{},
+					BasicResourceSetting: &aliyunFlinkAPI.BasicResourceSetting{},
 				}
 			}
 			if request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec == nil {
-				request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunAPI.ResourceSettingSpec{}
+				request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{}
 			}
 			request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.CPU = jmSpec["cpu"].(float64)
 			request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.Memory = jmSpec["memory"].(string)
@@ -186,13 +186,13 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		if len(tmSpecList) > 0 {
 			tmSpec := tmSpecList[0].(map[string]interface{})
 			if request.StreamingResourceSetting == nil {
-				request.StreamingResourceSetting = &aliyunAPI.StreamingResourceSetting{
+				request.StreamingResourceSetting = &aliyunFlinkAPI.StreamingResourceSetting{
 					ResourceSettingMode:  "BASIC",
-					BasicResourceSetting: &aliyunAPI.BasicResourceSetting{},
+					BasicResourceSetting: &aliyunFlinkAPI.BasicResourceSetting{},
 				}
 			}
 			if request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec == nil {
-				request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunAPI.ResourceSettingSpec{}
+				request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{}
 			}
 			request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.CPU = tmSpec["cpu"].(float64)
 			request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.Memory = tmSpec["memory"].(string)
@@ -208,9 +208,9 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	}
 
 	// Create the deployment draft
-	var response *aliyunAPI.DeploymentDraft
+	var response *aliyunFlinkAPI.DeploymentDraft
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		resp, err := flinkService.CreateDeploymentDraft(workspaceId, namespaceName, &aliyunAPI.DeploymentDraft{
+		resp, err := flinkService.CreateDeploymentDraft(workspaceId, namespaceName, &aliyunFlinkAPI.DeploymentDraft{
 			Workspace:                workspaceId,
 			Namespace:                namespaceName,
 			Name:                     name,
@@ -356,14 +356,14 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 
 	if d.HasChange("artifact_uri") {
 		if deploymentDraft.Artifact == nil {
-			deploymentDraft.Artifact = &aliyunAPI.Artifact{
+			deploymentDraft.Artifact = &aliyunFlinkAPI.Artifact{
 				Kind:        "JAR",
-				JarArtifact: &aliyunAPI.JarArtifact{},
+				JarArtifact: &aliyunFlinkAPI.JarArtifact{},
 			}
 		}
 
 		if deploymentDraft.Artifact.JarArtifact == nil {
-			deploymentDraft.Artifact.JarArtifact = &aliyunAPI.JarArtifact{}
+			deploymentDraft.Artifact.JarArtifact = &aliyunFlinkAPI.JarArtifact{}
 		}
 
 		deploymentDraft.Artifact.JarArtifact.JarUri = d.Get("artifact_uri").(string)
@@ -383,9 +383,9 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	// Handle resource specifications if changed
 	if d.HasChange("job_manager_resource_spec") || d.HasChange("task_manager_resource_spec") {
 		if deploymentDraft.StreamingResourceSetting == nil {
-			deploymentDraft.StreamingResourceSetting = &aliyunAPI.StreamingResourceSetting{
+			deploymentDraft.StreamingResourceSetting = &aliyunFlinkAPI.StreamingResourceSetting{
 				ResourceSettingMode:  "BASIC",
-				BasicResourceSetting: &aliyunAPI.BasicResourceSetting{},
+				BasicResourceSetting: &aliyunFlinkAPI.BasicResourceSetting{},
 			}
 		}
 
@@ -395,7 +395,7 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 			if len(jmSpecs) > 0 {
 				jmSpec := jmSpecs[0].(map[string]interface{})
 				if deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec == nil {
-					deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunAPI.ResourceSettingSpec{}
+					deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{}
 				}
 				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.CPU = jmSpec["cpu"].(float64)
 				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.Memory = jmSpec["memory"].(string)
@@ -408,7 +408,7 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 			if len(tmSpecs) > 0 {
 				tmSpec := tmSpecs[0].(map[string]interface{})
 				if deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec == nil {
-					deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunAPI.ResourceSettingSpec{}
+					deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{}
 				}
 				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.CPU = tmSpec["cpu"].(float64)
 				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.Memory = tmSpec["memory"].(string)

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -220,7 +220,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	// Create workspace request using cws-lib-go types
-	workspaceRequest := &aliyunAPI.Workspace{
+	workspaceRequest := &aliyunFlinkAPI.Workspace{
 		Name:            d.Get("name").(string),
 		ResourceGroupID: d.Get("resource_group_id").(string),
 		ZoneID:          d.Get("zone_id").(string),
@@ -237,7 +237,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	// Initialize Network structure and set VPCID and VSwitchIDs
-	workspaceRequest.Network = &aliyunAPI.WorkspaceNetwork{
+	workspaceRequest.Network = &aliyunFlinkAPI.WorkspaceNetwork{
 		VPCID:      d.Get("vpc_id").(string),
 		VSwitchIDs: workspaceRequest.VSwitchIDs,
 	}
@@ -260,7 +260,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	// Handle resource configuration
 	if resourceList := d.Get("resource").([]interface{}); len(resourceList) > 0 {
 		resourceMap := resourceList[0].(map[string]interface{})
-		workspaceRequest.ResourceSpec = &aliyunAPI.ResourceSpec{
+		workspaceRequest.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{
 			Cpu:      float64(resourceMap["cpu"].(int)),
 			MemoryGB: float64(resourceMap["memory"].(int)),
 		}
@@ -269,8 +269,8 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	// Handle storage configuration
 	if storageList := d.Get("storage").([]interface{}); len(storageList) > 0 {
 		storageMap := storageList[0].(map[string]interface{})
-		workspaceRequest.Storage = &aliyunAPI.Storage{
-			Oss: &aliyunAPI.OssConfig{
+		workspaceRequest.Storage = &aliyunFlinkAPI.Storage{
+			Oss: &aliyunFlinkAPI.OssConfig{
 				Bucket: storageMap["oss_bucket"].(string),
 			},
 		}
@@ -281,7 +281,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		haMap := haList[0].(map[string]interface{})
 
 		// Set high availability flag
-		workspaceRequest.HA = &aliyunAPI.HighAvailability{
+		workspaceRequest.HA = &aliyunFlinkAPI.HighAvailability{
 			Enabled: true,
 			ZoneID:  haMap["zone_id"].(string),
 		}
@@ -297,7 +297,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		// Handle HA resource specs
 		if resourceList := haMap["resource"].([]interface{}); len(resourceList) > 0 {
 			resourceMap := resourceList[0].(map[string]interface{})
-			workspaceRequest.HA.ResourceSpec = &aliyunAPI.ResourceSpec{
+			workspaceRequest.HA.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{
 				Cpu:      float64(resourceMap["cpu"].(int)),
 				MemoryGB: float64(resourceMap["memory"].(int)),
 			}
@@ -305,7 +305,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	// Create the workspace with retry mechanism
-	var workspace *aliyunAPI.Workspace
+	var workspace *aliyunFlinkAPI.Workspace
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		resp, err := flinkService.CreateInstance(workspaceRequest)
 		if err != nil {
