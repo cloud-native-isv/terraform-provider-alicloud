@@ -117,9 +117,9 @@ func resourceAliCloudArmsEnvPodMonitorCreate(d *schema.ResourceData, meta interf
 
 func resourceAliCloudArmsEnvPodMonitorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsServiceV2 := ArmsServiceV2{client}
+	armsService := NewArmsService(client)
 
-	objectRaw, err := armsServiceV2.DescribeArmsEnvPodMonitor(d.Id())
+	objectRaw, err := armsService.DescribeArmsEnvPodMonitor(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_env_pod_monitor DescribeArmsEnvPodMonitor Failed!!! %s", err)

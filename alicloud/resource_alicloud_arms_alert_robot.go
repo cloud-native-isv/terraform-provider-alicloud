@@ -85,7 +85,7 @@ func resourceAlicloudArmsAlertRobotCreate(d *schema.ResourceData, meta interface
 }
 func resourceAlicloudArmsAlertRobotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := ArmsService{client}
+	armsService := NewArmsService(client)
 	object, err := armsService.DescribeArmsAlertRobot(d.Id())
 	if err != nil {
 		if NotFoundError(err) {

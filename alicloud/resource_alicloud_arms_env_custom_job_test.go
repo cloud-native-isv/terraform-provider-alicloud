@@ -16,7 +16,7 @@ func TestAccAliCloudArmsEnvCustomJob_basic4554(t *testing.T) {
 	resourceId := "alicloud_arms_env_custom_job.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvCustomJobMap4554)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvCustomJob")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -211,7 +211,7 @@ func TestAccAliCloudArmsEnvCustomJob_basic4605(t *testing.T) {
 	resourceId := "alicloud_arms_env_custom_job.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvCustomJobMap4605)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvCustomJob")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -353,7 +353,7 @@ func TestAccAliCloudArmsEnvCustomJob_basic4554_twin(t *testing.T) {
 	resourceId := "alicloud_arms_env_custom_job.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvCustomJobMap4554)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvCustomJob")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -400,7 +400,7 @@ func TestAccAliCloudArmsEnvCustomJob_basic4605_twin(t *testing.T) {
 	resourceId := "alicloud_arms_env_custom_job.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvCustomJobMap4605)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvCustomJob")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()

@@ -236,15 +236,12 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	// Initialize Network structure and set VPCID and VSwitchIDs
-	workspaceRequest.Network = &aliyunFlinkAPI.WorkspaceNetwork{
-		VPCID:      d.Get("vpc_id").(string),
-		VSwitchIDs: workspaceRequest.VSwitchIDs,
-	}
-
 	// Handle security_group_id
 	if sgId, ok := d.GetOk("security_group_id"); ok {
-		workspaceRequest.Network.SecurityGroupID = sgId.(string)
+		if workspaceRequest.SecurityGroupInfo == nil {
+			workspaceRequest.SecurityGroupInfo = &aliyunFlinkAPI.SecurityGroupInfo{}
+		}
+		workspaceRequest.SecurityGroupInfo.SecurityGroupID = sgId.(string)
 	}
 
 	// Handle architecture_type
@@ -270,7 +267,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	if storageList := d.Get("storage").([]interface{}); len(storageList) > 0 {
 		storageMap := storageList[0].(map[string]interface{})
 		workspaceRequest.Storage = &aliyunFlinkAPI.Storage{
-			Oss: &aliyunFlinkAPI.OssConfig{
+			Oss: &aliyunFlinkAPI.OSSStorage{
 				Bucket: storageMap["oss_bucket"].(string),
 			},
 		}
@@ -281,23 +278,23 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		haMap := haList[0].(map[string]interface{})
 
 		// Set high availability flag
-		workspaceRequest.HA = &aliyunFlinkAPI.HighAvailability{
+		workspaceRequest.HighAvailability = &aliyunFlinkAPI.HighAvailability{
 			Enabled: true,
 			ZoneID:  haMap["zone_id"].(string),
 		}
 
 		// Handle HA vswitch IDs
 		if haVswitchIds := haMap["vswitch_ids"].([]interface{}); len(haVswitchIds) > 0 {
-			workspaceRequest.HA.VSwitchIDs = make([]string, len(haVswitchIds))
+			workspaceRequest.HighAvailability.VSwitchIDs = make([]string, len(haVswitchIds))
 			for i, v := range haVswitchIds {
-				workspaceRequest.HA.VSwitchIDs[i] = v.(string)
+				workspaceRequest.HighAvailability.VSwitchIDs[i] = v.(string)
 			}
 		}
 
 		// Handle HA resource specs
 		if resourceList := haMap["resource"].([]interface{}); len(resourceList) > 0 {
 			resourceMap := resourceList[0].(map[string]interface{})
-			workspaceRequest.HA.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{
+			workspaceRequest.HighAvailability.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{
 				Cpu:      float64(resourceMap["cpu"].(int)),
 				MemoryGB: float64(resourceMap["memory"].(int)),
 			}
@@ -371,8 +368,8 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 	d.Set("vswitch_ids", workspace.VSwitchIDs)
 
 	// Handle security group from Network structure
-	if workspace.Network != nil && workspace.Network.SecurityGroupID != "" {
-		d.Set("security_group_id", workspace.Network.SecurityGroupID)
+	if workspace.SecurityGroupInfo != nil && workspace.SecurityGroupInfo.SecurityGroupID != "" {
+		d.Set("security_group_id", workspace.SecurityGroupInfo.SecurityGroupID)
 	}
 
 	d.Set("architecture_type", workspace.ArchitectureType)
@@ -400,17 +397,17 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 	d.Set("resource_id", workspace.ResourceID)
 
 	// Set HA configuration
-	if workspace.HA != nil {
+	if workspace.HighAvailability != nil {
 		haConfig := map[string]interface{}{
-			"zone_id":     workspace.HA.ZoneID,
-			"vswitch_ids": workspace.HA.VSwitchIDs,
+			"zone_id":     workspace.HighAvailability.ZoneID,
+			"vswitch_ids": workspace.HighAvailability.VSwitchIDs,
 		}
 
 		// Add resource info
-		if workspace.HA.ResourceSpec != nil {
+		if workspace.HighAvailability.ResourceSpec != nil {
 			haResourceSpec := map[string]interface{}{
-				"cpu":    int(workspace.HA.ResourceSpec.Cpu),
-				"memory": int(workspace.HA.ResourceSpec.MemoryGB),
+				"cpu":    int(workspace.HighAvailability.ResourceSpec.Cpu),
+				"memory": int(workspace.HighAvailability.ResourceSpec.MemoryGB),
 			}
 			haConfig["resource"] = []interface{}{haResourceSpec}
 		}

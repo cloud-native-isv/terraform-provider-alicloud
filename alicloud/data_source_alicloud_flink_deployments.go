@@ -2,7 +2,6 @@ package alicloud
 
 import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -50,55 +49,78 @@ func dataSourceAlicloudFlinkDeployments() *schema.Resource {
 }
 
 func dataSourceAlicloudFlinkDeploymentsRead(d *schema.ResourceData, meta interface{}) error {
-	// 1. 初始化Flink服务客户端
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	// 2. 获取所有Flink实例（分页处理）
-	pagination := &aliyunFlinkAPI.PaginationRequest{
-		PageIndex: 1,
-		PageSize:  50,
-	}
-	response, err := flinkService.ListInstances(pagination)
+	namespaceName := d.Get("namespace").(string)
+
+	deployments, err := flinkService.ListDeployments(namespaceName)
 	if err != nil {
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_flink_deployments", "ListDeployments", AliyunLogGoSdkERROR)
+	}
+
+	var ids []string
+	var objects []map[string]interface{}
+
+	for _, item := range deployments {
+		object := map[string]interface{}{
+			"deployment_id":  item.DeploymentId,
+			"name":           item.Name,
+			"description":    item.Description,
+			"status":         item.Status,
+			"engine_version": item.EngineVersion,
+			"execution_mode": item.ExecutionMode,
+			"create_time":    item.CreateTime,
+			"modified_time":  item.ModifiedTime,
+		}
+
+		// Add artifact information if available
+		if item.Artifact != nil {
+			artifactInfo := map[string]interface{}{
+				"kind": item.Artifact.Kind,
+			}
+
+			// Handle different artifact types
+			switch item.Artifact.Kind {
+			case "JAR":
+				if item.Artifact.JarArtifact != nil {
+					artifactInfo["jar_uri"] = item.Artifact.JarArtifact.JarUri
+					artifactInfo["entry_class"] = item.Artifact.JarArtifact.EntryClass
+					artifactInfo["main_args"] = item.Artifact.JarArtifact.MainArgs
+				}
+			case "PYTHON":
+				if item.Artifact.PythonArtifact != nil {
+					artifactInfo["python_artifact_uri"] = item.Artifact.PythonArtifact.PythonArtifactUri
+					artifactInfo["entry_module"] = item.Artifact.PythonArtifact.EntryModule
+					artifactInfo["main_args"] = item.Artifact.PythonArtifact.MainArgs
+				}
+			case "SQLSCRIPT":
+				if item.Artifact.SqlArtifact != nil {
+					artifactInfo["sql_script"] = item.Artifact.SqlArtifact.SqlScript
+				}
+			}
+
+			object["artifact"] = []map[string]interface{}{artifactInfo}
+		}
+
+		objects = append(objects, object)
+		ids = append(ids, item.DeploymentId)
+	}
+
+	d.SetId(dataResourceIdHash(ids))
+	if err := d.Set("deployments", objects); err != nil {
+		return WrapError(err)
+	}
+	if err := d.Set("ids", ids); err != nil {
 		return WrapError(err)
 	}
 
-	// 3. 过滤和映射结果
-	var deployments []map[string]interface{}
-	ids := make([]string, 0)
-	names := make([]string, 0)
-
-	if response != nil {
-		for _, instance := range response.Data {
-			instanceId := instance.ID
-			instanceName := instance.Name
-			status := instance.Status
-
-			deployments = append(deployments, map[string]interface{}{
-				"id":     instanceId,
-				"name":   instanceName,
-				"status": status,
-				// Add other fields here
-			})
-			ids = append(ids, instanceId)
-			names = append(names, instanceName)
-		}
-	}
-
-	// 4. 设置数据源返回值
-	d.SetId("flink_deployments")
-	if err := d.Set("ids", ids); err != nil {
-		return err
-	}
-	if err := d.Set("names", names); err != nil {
-		return err
-	}
-	if err := d.Set("deployments", deployments); err != nil {
-		return err
+	// output
+	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
+		writeToFile(output.(string), objects)
 	}
 
 	return nil

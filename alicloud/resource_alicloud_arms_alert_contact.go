@@ -101,7 +101,7 @@ func resourceAlicloudArmsAlertContactCreate(d *schema.ResourceData, meta interfa
 }
 func resourceAlicloudArmsAlertContactRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := ArmsService{client}
+	armsService := NewArmsService(client)
 	object, err := armsService.DescribeArmsAlertContact(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -111,11 +111,11 @@ func resourceAlicloudArmsAlertContactRead(d *schema.ResourceData, meta interface
 		}
 		return WrapError(err)
 	}
-	d.Set("alert_contact_name", object["ContactName"])
-	d.Set("ding_robot_webhook_url", object["DingRobot"])
-	d.Set("email", object["Email"])
-	d.Set("phone_num", object["Phone"])
-	d.Set("system_noc", object["SystemNoc"])
+	d.Set("alert_contact_name", object.ContactName)
+	d.Set("ding_robot_webhook_url", object.DingRobot)
+	d.Set("email", object.Email)
+	d.Set("phone_num", object.Phone)
+	d.Set("system_noc", object.SystemNoc)
 	return nil
 }
 func resourceAlicloudArmsAlertContactUpdate(d *schema.ResourceData, meta interface{}) error {

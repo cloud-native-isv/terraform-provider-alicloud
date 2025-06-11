@@ -16,7 +16,7 @@ func TestAccAliCloudArmsEnvServiceMonitor_basic4551(t *testing.T) {
 	resourceId := "alicloud_arms_env_service_monitor.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvServiceMonitorMap4551)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvServiceMonitor")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -178,7 +178,7 @@ func TestAccAliCloudArmsEnvServiceMonitor_basic4551_twin(t *testing.T) {
 	resourceId := "alicloud_arms_env_service_monitor.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvServiceMonitorMap4551)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvServiceMonitor")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()

@@ -427,7 +427,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		if len(targets) > 0 {
 			targetMap := targets[0].(map[string]interface{})
 			request.DeploymentTarget = &aliyunFlinkAPI.DeploymentTarget{
-				Type: targetMap["name"].(string),
+				Name: targetMap["name"].(string),
 			}
 		}
 	}
@@ -458,7 +458,10 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	// Handle logging configuration using helper function
 	logging := expandLogging(d)
 	if logging != nil {
-		request.Logging = logging
+		// Convert Logging to LoggingProfile for deployment
+		request.Logging = &aliyunFlinkAPI.LoggingProfile{
+			Template: logging.LoggingProfile,
+		}
 	}
 
 	// Handle tags
@@ -547,7 +550,7 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 	// Set deployment target
 	if deployment.DeploymentTarget != nil {
 		deploymentTargetMap := map[string]interface{}{
-			"name": deployment.DeploymentTarget.Type,
+			"name": deployment.DeploymentTarget.Name,
 		}
 		d.Set("deployment_target", []interface{}{deploymentTargetMap})
 	}
@@ -587,7 +590,11 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 
 	// Set logging configuration
 	if deployment.Logging != nil {
-		d.Set("logging", flattenLogging(deployment.Logging))
+		// Convert LoggingProfile to Logging for flattening
+		logging := &aliyunFlinkAPI.Logging{
+			LoggingProfile: deployment.Logging.Template,
+		}
+		d.Set("logging", flattenLogging(logging))
 	}
 
 	// Set tags
@@ -597,7 +604,7 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 
 	// Set job status from job summary
 	if deployment.JobSummary != nil {
-		d.Set("status", deployment.Status())
+		d.Set("status", deployment.GetStatus())
 	}
 
 	return nil
@@ -646,7 +653,7 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 			if len(targets) > 0 {
 				targetMap := targets[0].(map[string]interface{})
 				deployment.DeploymentTarget = &aliyunFlinkAPI.DeploymentTarget{
-					Type: targetMap["name"].(string),
+					Name: targetMap["name"].(string),
 				}
 			}
 		}
@@ -690,7 +697,14 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	// Check for changes in logging configuration
 	if d.HasChange("logging") {
 		logging := expandLogging(d)
-		deployment.Logging = logging
+		if logging != nil {
+			// Convert Logging to LoggingProfile for deployment
+			deployment.Logging = &aliyunFlinkAPI.LoggingProfile{
+				Template: logging.LoggingProfile,
+			}
+		} else {
+			deployment.Logging = nil
+		}
 		hasChanged = true
 	}
 
@@ -887,21 +901,21 @@ func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunFlinkAPI.Stre
 			if basicList, ok := settingMap["basic_resource_setting"].([]interface{}); ok && len(basicList) > 0 {
 				basicMap := basicList[0].(map[string]interface{})
 				resourceSetting.BasicResourceSetting = &aliyunFlinkAPI.BasicResourceSetting{
-					Parallelism: basicMap["parallelism"].(int),
+					Parallelism: int64(basicMap["parallelism"].(int)),
 				}
 
 				if jmList, ok := basicMap["jobmanager_resource_setting_spec"].([]interface{}); ok && len(jmList) > 0 {
 					jmMap := jmList[0].(map[string]interface{})
-					resourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{
-						CPU:    jmMap["cpu"].(float64),
+					resourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunFlinkAPI.BasicResourceSettingSpec{
+						Cpu:    jmMap["cpu"].(float64),
 						Memory: jmMap["memory"].(string),
 					}
 				}
 
 				if tmList, ok := basicMap["taskmanager_resource_setting_spec"].([]interface{}); ok && len(tmList) > 0 {
 					tmMap := tmList[0].(map[string]interface{})
-					resourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{
-						CPU:    tmMap["cpu"].(float64),
+					resourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunFlinkAPI.BasicResourceSettingSpec{
+						Cpu:    tmMap["cpu"].(float64),
 						Memory: tmMap["memory"].(string),
 					}
 				}
@@ -915,8 +929,8 @@ func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunFlinkAPI.Stre
 
 				if jmList, ok := expertMap["jobmanager_resource_setting_spec"].([]interface{}); ok && len(jmList) > 0 {
 					jmMap := jmList[0].(map[string]interface{})
-					resourceSetting.ExpertResourceSetting.JobManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{
-						CPU:    jmMap["cpu"].(float64),
+					resourceSetting.ExpertResourceSetting.JobManagerResourceSettingSpec = &aliyunFlinkAPI.BasicResourceSettingSpec{
+						Cpu:    jmMap["cpu"].(float64),
 						Memory: jmMap["memory"].(string),
 					}
 				}
@@ -931,7 +945,7 @@ func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunFlinkAPI.Stre
 		return &aliyunFlinkAPI.StreamingResourceSetting{
 			ResourceSettingMode: "BASIC",
 			BasicResourceSetting: &aliyunFlinkAPI.BasicResourceSetting{
-				Parallelism: parallelism.(int),
+				Parallelism: int64(parallelism.(int)),
 			},
 		}
 	}
@@ -939,6 +953,46 @@ func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunFlinkAPI.Stre
 	return nil
 }
 
+// expandLogging converts schema logging configuration to API format
+func expandLogging(d *schema.ResourceData) *aliyunFlinkAPI.Logging {
+	if loggingList, ok := d.GetOk("logging"); ok {
+		loggings := loggingList.([]interface{})
+		if len(loggings) > 0 {
+			loggingMap := loggings[0].(map[string]interface{})
+			logging := &aliyunFlinkAPI.Logging{}
+
+			if profile, ok := loggingMap["logging_profile"].(string); ok {
+				logging.LoggingProfile = profile
+			}
+
+			if template, ok := loggingMap["log4j2_configuration_template"].(string); ok {
+				logging.Log4j2ConfigurationTemplate = template
+			}
+
+			if loggersList, ok := loggingMap["log4j_loggers"].([]interface{}); ok {
+				logging.Log4jLoggers = make([]aliyunFlinkAPI.Log4jLogger, len(loggersList))
+				for i, loggerItem := range loggersList {
+					loggerMap := loggerItem.(map[string]interface{})
+					logging.Log4jLoggers[i] = aliyunFlinkAPI.Log4jLogger{
+						LoggerName:  loggerMap["logger_name"].(string),
+						LoggerLevel: loggerMap["logger_level"].(string),
+					}
+				}
+			}
+
+			if reservePolicyList, ok := loggingMap["log_reserve_policy"].([]interface{}); ok && len(reservePolicyList) > 0 {
+				policyMap := reservePolicyList[0].(map[string]interface{})
+				logging.LogReservePolicy = &aliyunFlinkAPI.LogReservePolicy{
+					ExpirationDays: policyMap["expiration_days"].(int),
+					OpenHistory:    policyMap["open_history"].(bool),
+				}
+			}
+
+			return logging
+		}
+	}
+	return nil
+}
 
 // flattenArtifact converts API artifact to schema format
 func flattenArtifact(artifact *aliyunFlinkAPI.Artifact) []interface{} {
@@ -1013,7 +1067,7 @@ func flattenStreamingResourceSetting(setting *aliyunFlinkAPI.StreamingResourceSe
 
 		if setting.BasicResourceSetting.JobManagerResourceSettingSpec != nil {
 			jmMap := map[string]interface{}{
-				"cpu":    setting.BasicResourceSetting.JobManagerResourceSettingSpec.CPU,
+				"cpu":    setting.BasicResourceSetting.JobManagerResourceSettingSpec.Cpu,
 				"memory": setting.BasicResourceSetting.JobManagerResourceSettingSpec.Memory,
 			}
 			basicMap["jobmanager_resource_setting_spec"] = []interface{}{jmMap}
@@ -1021,7 +1075,7 @@ func flattenStreamingResourceSetting(setting *aliyunFlinkAPI.StreamingResourceSe
 
 		if setting.BasicResourceSetting.TaskManagerResourceSettingSpec != nil {
 			tmMap := map[string]interface{}{
-				"cpu":    setting.BasicResourceSetting.TaskManagerResourceSettingSpec.CPU,
+				"cpu":    setting.BasicResourceSetting.TaskManagerResourceSettingSpec.Cpu,
 				"memory": setting.BasicResourceSetting.TaskManagerResourceSettingSpec.Memory,
 			}
 			basicMap["taskmanager_resource_setting_spec"] = []interface{}{tmMap}
@@ -1037,7 +1091,7 @@ func flattenStreamingResourceSetting(setting *aliyunFlinkAPI.StreamingResourceSe
 
 		if setting.ExpertResourceSetting.JobManagerResourceSettingSpec != nil {
 			jmMap := map[string]interface{}{
-				"cpu":    setting.ExpertResourceSetting.JobManagerResourceSettingSpec.CPU,
+				"cpu":    setting.ExpertResourceSetting.JobManagerResourceSettingSpec.Cpu,
 				"memory": setting.ExpertResourceSetting.JobManagerResourceSettingSpec.Memory,
 			}
 			expertMap["jobmanager_resource_setting_spec"] = []interface{}{jmMap}
@@ -1047,4 +1101,37 @@ func flattenStreamingResourceSetting(setting *aliyunFlinkAPI.StreamingResourceSe
 	}
 
 	return []interface{}{settingMap}
+}
+
+// flattenLogging converts API logging configuration to schema format
+func flattenLogging(logging *aliyunFlinkAPI.Logging) []interface{} {
+	if logging == nil {
+		return []interface{}{}
+	}
+
+	loggingMap := map[string]interface{}{
+		"logging_profile":               logging.LoggingProfile,
+		"log4j2_configuration_template": logging.Log4j2ConfigurationTemplate,
+	}
+
+	if logging.Log4jLoggers != nil {
+		loggers := make([]interface{}, len(logging.Log4jLoggers))
+		for i, logger := range logging.Log4jLoggers {
+			loggers[i] = map[string]interface{}{
+				"logger_name":  logger.LoggerName,
+				"logger_level": logger.LoggerLevel,
+			}
+		}
+		loggingMap["log4j_loggers"] = loggers
+	}
+
+	if logging.LogReservePolicy != nil {
+		policyMap := map[string]interface{}{
+			"expiration_days": logging.LogReservePolicy.ExpirationDays,
+			"open_history":    logging.LogReservePolicy.OpenHistory,
+		}
+		loggingMap["log_reserve_policy"] = []interface{}{policyMap}
+	}
+
+	return []interface{}{loggingMap}
 }

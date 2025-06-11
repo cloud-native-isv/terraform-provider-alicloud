@@ -113,9 +113,9 @@ func resourceAliCloudArmsPrometheusMonitoringCreate(d *schema.ResourceData, meta
 
 func resourceAliCloudArmsPrometheusMonitoringRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsServiceV2 := ArmsServiceV2{client}
+	armsService := NewArmsService(client)
 
-	objectRaw, err := armsServiceV2.DescribeArmsPrometheusMonitoring(d.Id())
+	objectRaw, err := armsService.DescribeArmsPrometheusMonitoring(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_prometheus_monitoring DescribeArmsPrometheusMonitoring Failed!!! %s", err)

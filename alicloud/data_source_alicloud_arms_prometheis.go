@@ -246,7 +246,7 @@ func dataSourceAliCloudArmsPrometheisRead(d *schema.ResourceData, meta interface
 		}
 
 		id := fmt.Sprint(fmt.Sprint(object["ClusterId"]))
-		armsService := ArmsService{client}
+		armsService := ArmsService{client: client}
 
 		armsPrometheus, err := armsService.DescribeArmsPrometheus(id)
 		if err != nil {

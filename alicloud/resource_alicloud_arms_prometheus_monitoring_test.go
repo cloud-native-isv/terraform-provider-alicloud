@@ -16,7 +16,7 @@ func TestAccAlicloudArmsPrometheusMonitoring_basic3657(t *testing.T) {
 	resourceId := "alicloud_arms_prometheus_monitoring.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsPrometheusMonitoringMap3657)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsPrometheusMonitoring")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -194,7 +194,7 @@ func TestAccAlicloudArmsPrometheusMonitoring_basic3657_twin(t *testing.T) {
 	resourceId := "alicloud_arms_prometheus_monitoring.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsPrometheusMonitoringMap3657)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsPrometheusMonitoring")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()

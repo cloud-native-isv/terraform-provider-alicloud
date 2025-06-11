@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -113,24 +112,20 @@ func dataSourceAlicloudFlinkNamespacesRead(d *schema.ResourceData, meta interfac
 		"namesFilter": namesMap,
 	})
 
-	// Get all namespaces with pagination
-	pagination := &aliyunFlinkAPI.PaginationRequest{
-		PageIndex: 1,
-		PageSize:  50,
-	}
-	response, err := flinkService.ListNamespaces(workspace, pagination)
+	// Get all namespaces directly without pagination
+	namespaces, err := flinkService.ListNamespaces(workspace)
 	if err != nil {
 		addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespacesError", err)
 		return WrapError(err)
 	}
-	addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespacesResponse", len(response.Data))
+	addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespacesResponse", len(namespaces))
 
 	// Filter and map results
 	var namespaceMaps []map[string]interface{}
 	var filteredIds []string
 	var filteredNames []string
 
-	for _, namespace := range response.Data {
+	for _, namespace := range namespaces {
 		namespaceName := namespace.Name
 		namespaceId := fmt.Sprintf("%s/%s", workspace, namespaceName)
 

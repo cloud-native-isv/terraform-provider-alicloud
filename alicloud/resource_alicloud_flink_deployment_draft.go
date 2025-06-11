@@ -143,14 +143,14 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	artifactURI := d.Get("artifact_uri").(string)
 
 	// Create deployment draft using cws-lib-go service
-	request := &aliyunFlinkAPI.Deployment{
+	draft := &aliyunFlinkAPI.DeploymentDraft{
 		Workspace: workspaceId,
 		Namespace: namespaceName,
 		Name:      name,
 	}
 
 	// Set artifact
-	request.Artifact = &aliyunFlinkAPI.Artifact{
+	draft.Artifact = &aliyunFlinkAPI.Artifact{
 		Kind: "JAR",
 		JarArtifact: &aliyunFlinkAPI.JarArtifact{
 			JarUri: artifactURI,
@@ -159,66 +159,24 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 
 	// Set deployment ID if provided
 	if deploymentId, ok := d.GetOk("deployment_id"); ok {
-		request.ReferencedDeploymentDraftId = deploymentId.(string)
-	}
-
-	// Handle resource specifications
-	if jmSpecs, ok := d.GetOk("job_manager_resource_spec"); ok {
-		jmSpecList := jmSpecs.([]interface{})
-		if len(jmSpecList) > 0 {
-			jmSpec := jmSpecList[0].(map[string]interface{})
-			if request.StreamingResourceSetting == nil {
-				request.StreamingResourceSetting = &aliyunFlinkAPI.StreamingResourceSetting{
-					ResourceSettingMode:  "BASIC",
-					BasicResourceSetting: &aliyunFlinkAPI.BasicResourceSetting{},
-				}
-			}
-			if request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec == nil {
-				request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{}
-			}
-			request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.CPU = jmSpec["cpu"].(float64)
-			request.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.Memory = jmSpec["memory"].(string)
-		}
-	}
-
-	if tmSpecs, ok := d.GetOk("task_manager_resource_spec"); ok {
-		tmSpecList := tmSpecs.([]interface{})
-		if len(tmSpecList) > 0 {
-			tmSpec := tmSpecList[0].(map[string]interface{})
-			if request.StreamingResourceSetting == nil {
-				request.StreamingResourceSetting = &aliyunFlinkAPI.StreamingResourceSetting{
-					ResourceSettingMode:  "BASIC",
-					BasicResourceSetting: &aliyunFlinkAPI.BasicResourceSetting{},
-				}
-			}
-			if request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec == nil {
-				request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{}
-			}
-			request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.CPU = tmSpec["cpu"].(float64)
-			request.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.Memory = tmSpec["memory"].(string)
-		}
+		draft.ReferencedDeploymentId = deploymentId.(string)
 	}
 
 	// Handle Flink configuration
 	if flinkConf, ok := d.GetOk("flink_configuration"); ok {
-		request.FlinkConf = make(map[string]string)
+		draft.FlinkConf = make(map[string]string)
 		for k, v := range flinkConf.(map[string]interface{}) {
-			request.FlinkConf[k] = v.(string)
+			draft.FlinkConf[k] = v.(string)
 		}
 	}
+
+	// Note: DeploymentDraft doesn't support resource specifications in the API
+	// Resource specs are handled during deployment, not in draft creation
 
 	// Create the deployment draft
 	var response *aliyunFlinkAPI.DeploymentDraft
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		resp, err := flinkService.CreateDeploymentDraft(workspaceId, namespaceName, &aliyunFlinkAPI.DeploymentDraft{
-			Workspace:                workspaceId,
-			Namespace:                namespaceName,
-			Name:                     name,
-			Artifact:                 request.Artifact,
-			FlinkConf:                request.FlinkConf,
-			StreamingResourceSetting: request.StreamingResourceSetting,
-			ReferencedDeploymentId:   request.ReferencedDeploymentDraftId,
-		})
+		resp, err := flinkService.CreateDeploymentDraft(workspaceId, namespaceName, draft)
 		if err != nil {
 			if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
 				time.Sleep(5 * time.Second)
@@ -381,45 +339,17 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	}
 
 	// Handle resource specifications if changed
+	// Note: DeploymentDraft API doesn't support resource specifications
+	// These are handled during deployment, not in draft
 	if d.HasChange("job_manager_resource_spec") || d.HasChange("task_manager_resource_spec") {
-		if deploymentDraft.StreamingResourceSetting == nil {
-			deploymentDraft.StreamingResourceSetting = &aliyunFlinkAPI.StreamingResourceSetting{
-				ResourceSettingMode:  "BASIC",
-				BasicResourceSetting: &aliyunFlinkAPI.BasicResourceSetting{},
-			}
-		}
-
-		// Job Manager resource spec
-		if d.HasChange("job_manager_resource_spec") {
-			jmSpecs := d.Get("job_manager_resource_spec").([]interface{})
-			if len(jmSpecs) > 0 {
-				jmSpec := jmSpecs[0].(map[string]interface{})
-				if deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec == nil {
-					deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{}
-				}
-				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.CPU = jmSpec["cpu"].(float64)
-				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.JobManagerResourceSettingSpec.Memory = jmSpec["memory"].(string)
-			}
-		}
-
-		// Task Manager resource spec
-		if d.HasChange("task_manager_resource_spec") {
-			tmSpecs := d.Get("task_manager_resource_spec").([]interface{})
-			if len(tmSpecs) > 0 {
-				tmSpec := tmSpecs[0].(map[string]interface{})
-				if deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec == nil {
-					deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec = &aliyunFlinkAPI.ResourceSettingSpec{}
-				}
-				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.CPU = tmSpec["cpu"].(float64)
-				deploymentDraft.StreamingResourceSetting.BasicResourceSetting.TaskManagerResourceSettingSpec.Memory = tmSpec["memory"].(string)
-			}
-		}
+		// Log a warning that resource specs are ignored for drafts
+		// In practice, these would be applied when the draft is deployed
 		update = true
 	}
 
 	if update {
 		// Call the service method to update the deployment draft
-		_, err = flinkService.UpdateDeploymentDraft(workspaceID, namespace, draftID, deploymentDraft)
+		_, err = flinkService.UpdateDeploymentDraft(workspaceID, namespace, deploymentDraft)
 		if err != nil {
 			return WrapError(err)
 		}
