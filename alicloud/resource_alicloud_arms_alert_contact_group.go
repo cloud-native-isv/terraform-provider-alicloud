@@ -83,23 +83,39 @@ func resourceAlicloudArmsAlertContactGroupCreate(d *schema.ResourceData, meta in
 
 func resourceAlicloudArmsAlertContactGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
-	object, err := armsService.DescribeArmsAlertContactGroup(d.Id())
-	if err != nil {
-		if NotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_arms_alert_contact_group armsService.DescribeArmsAlertContactGroup Failed!!! %s", err)
-			d.SetId("")
-			return nil
-		}
-		return WrapError(err)
+
+	// Create ARMS API client
+	armsCredentials := &aliyunArmsAPI.ArmsCredentials{
+		AccessKey:     client.AccessKey,
+		SecretKey:     client.SecretKey,
+		RegionId:      client.RegionId,
+		SecurityToken: client.SecurityToken,
 	}
-	d.Set("alert_contact_group_name", object.ContactGroupName)
+	armsAPI, err := aliyunArmsAPI.NewArmsAPI(armsCredentials)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_contact_group", "NewArmsAPI", AlibabaCloudSdkGoERROR)
+	}
+
+	// Search for the contact group using ARMS API
+	contactGroups, err := armsAPI.SearchAlertContactGroup([]string{d.Id()}, true)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "SearchAlertContactGroup", "Failed to search alert contact group")
+	}
+
+	if len(contactGroups) == 0 {
+		log.Printf("[DEBUG] Resource alicloud_arms_alert_contact_group not found, removing from state")
+		d.SetId("")
+		return nil
+	}
+
+	contactGroup := contactGroups[0]
+	d.Set("alert_contact_group_name", contactGroup.ContactGroupName)
 
 	// Parse ContactIds string into slice
 	contactIdsItems := make([]string, 0)
-	if object.ContactIds != "" {
+	if contactGroup.ContactIds != "" {
 		// ContactIds is a comma-separated string, split it
-		contactIdsItems = strings.Split(object.ContactIds, ",")
+		contactIdsItems = strings.Split(contactGroup.ContactIds, ",")
 		// Remove any empty strings
 		filteredIds := make([]string, 0)
 		for _, id := range contactIdsItems {

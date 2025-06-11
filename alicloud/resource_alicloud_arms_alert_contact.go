@@ -36,7 +36,7 @@ func resourceAlicloudArmsAlertContact() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"system_noc": {
+			"receive_system_notification": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -68,16 +68,16 @@ func resourceAlicloudArmsAlertContactCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 	if v, ok := d.GetOk("phone_num"); ok {
-		request["PhoneNum"] = v
+		request["Phone"] = v
 	} else if v, ok := d.GetOk("ding_robot_webhook_url"); ok && v.(string) == "" {
 		if v, ok := d.GetOk("email"); ok && v.(string) == "" {
 			return WrapError(fmt.Errorf("attribute '%s' is required when '%s' is %v and '%s' is %v ", "phone_num", "ding_robot_webhook_url", d.Get("ding_robot_webhook_url"), "email", d.Get("email")))
 		}
 	}
-	request["RegionId"] = client.RegionId
-	if v, ok := d.GetOkExists("system_noc"); ok {
+	if v, ok := d.GetOkExists("receive_system_notification"); ok {
 		request["SystemNoc"] = v
 	}
+	request["RegionId"] = client.RegionId
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
@@ -99,10 +99,12 @@ func resourceAlicloudArmsAlertContactCreate(d *schema.ResourceData, meta interfa
 
 	return resourceAlicloudArmsAlertContactRead(d, meta)
 }
+
 func resourceAlicloudArmsAlertContactRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	armsService := NewArmsService(client)
-	object, err := armsService.DescribeArmsAlertContact(d.Id())
+	
+	alertContact, err := armsService.DescribeArmsAlertContact(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_contact armsService.DescribeArmsAlertContact Failed!!! %s", err)
@@ -111,13 +113,15 @@ func resourceAlicloudArmsAlertContactRead(d *schema.ResourceData, meta interface
 		}
 		return WrapError(err)
 	}
-	d.Set("alert_contact_name", object.ContactName)
-	d.Set("ding_robot_webhook_url", object.DingRobot)
-	d.Set("email", object.Email)
-	d.Set("phone_num", object.Phone)
-	d.Set("system_noc", object.SystemNoc)
+	d.Set("alert_contact_name", alertContact.ContactName)
+	d.Set("ding_robot_webhook_url", alertContact.Webhook)
+	d.Set("email", alertContact.Email)
+	d.Set("phone_num", alertContact.Phone)
+	d.Set("receive_system_notification", alertContact.SystemNoc)
+
 	return nil
 }
+
 func resourceAlicloudArmsAlertContactUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
@@ -157,16 +161,16 @@ func resourceAlicloudArmsAlertContactUpdate(d *schema.ResourceData, meta interfa
 		update = true
 	}
 	if v, ok := d.GetOk("phone_num"); ok {
-		request["PhoneNum"] = v
+		request["Phone"] = v
 	} else if v, ok := d.GetOk("ding_robot_webhook_url"); ok && v.(string) == "" {
 		if v, ok := d.GetOk("email"); ok && v.(string) == "" {
 			return WrapError(fmt.Errorf("attribute '%s' is required when '%s' is %v and '%s' is %v ", "phone_num", "ding_robot_webhook_url", d.Get("ding_robot_webhook_url"), "email", d.Get("email")))
 		}
 	}
-	if d.HasChange("system_noc") || d.IsNewResource() {
+	if d.HasChange("receive_system_notification") || d.IsNewResource() {
 		update = true
 	}
-	if v, ok := d.GetOkExists("system_noc"); ok {
+	if v, ok := d.GetOkExists("receive_system_notification"); ok {
 		request["SystemNoc"] = v
 	}
 	if update {
@@ -190,6 +194,7 @@ func resourceAlicloudArmsAlertContactUpdate(d *schema.ResourceData, meta interfa
 	}
 	return resourceAlicloudArmsAlertContactRead(d, meta)
 }
+
 func resourceAlicloudArmsAlertContactDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteAlertContact"
