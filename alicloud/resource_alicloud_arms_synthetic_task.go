@@ -1028,9 +1028,9 @@ func resourceAliCloudArmsSyntheticTaskCreate(d *schema.ResourceData, meta interf
 
 func resourceAliCloudArmsSyntheticTaskRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsServiceV2 := ArmsServiceV2{client}
+	armsService := NewArmsService(client)
 
-	objectRaw, err := armsServiceV2.DescribeArmsSyntheticTask(d.Id())
+	objectRaw, err := armsService.DescribeArmsSyntheticTask(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_synthetic_task DescribeArmsSyntheticTask Failed!!! %s", err)
@@ -1836,8 +1836,8 @@ func resourceAliCloudArmsSyntheticTaskUpdate(d *schema.ResourceData, meta interf
 
 	if d.HasChange("status") {
 		client := meta.(*connectivity.AliyunClient)
-		armsServiceV2 := ArmsServiceV2{client}
-		object, err := armsServiceV2.DescribeArmsSyntheticTask(d.Id())
+		armsService := NewArmsService(client)
+		object, err := armsService.DescribeArmsSyntheticTask(d.Id())
 		if err != nil {
 			return WrapError(err)
 		}
@@ -1897,13 +1897,6 @@ func resourceAliCloudArmsSyntheticTaskUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	if d.HasChange("tags") {
-		armsServiceV2 := ArmsServiceV2{client}
-		if err := armsServiceV2.SetResourceTags(d, "SYNTHETICTASK"); err != nil {
-			return WrapError(err)
-		}
-		d.SetPartial("tags")
-	}
 	d.Partial(false)
 	return resourceAliCloudArmsSyntheticTaskRead(d, meta)
 }

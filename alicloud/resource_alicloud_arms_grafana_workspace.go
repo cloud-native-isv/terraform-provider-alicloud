@@ -89,7 +89,6 @@ func resourceAliCloudArmsGrafanaWorkspace() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
 		},
 	}
 }
@@ -115,10 +114,7 @@ func resourceAliCloudArmsGrafanaWorkspaceCreate(d *schema.ResourceData, meta int
 	request["GrafanaVersion"] = d.Get("grafana_version")
 	request["GrafanaWorkspaceEdition"] = d.Get("grafana_workspace_edition")
 	request["GrafanaWorkspaceName"] = d.Get("grafana_workspace_name")
-	if v, ok := d.GetOk("tags"); ok {
-		tagsMap := ConvertTags(v.(map[string]interface{}))
-		request["Tags"] = tagsMap
-	}
+
 
 	if v, ok := d.GetOkExists("auto_renew"); ok {
 		request["AutoRenew"] = v
@@ -162,8 +158,8 @@ func resourceAliCloudArmsGrafanaWorkspaceCreate(d *schema.ResourceData, meta int
 	id, _ := jsonpath.Get("$.Data.grafanaWorkspaceId", response)
 	d.SetId(fmt.Sprint(id))
 
-	armsServiceV2 := ArmsServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, armsServiceV2.ArmsGrafanaWorkspaceStateRefreshFunc(d.Id(), "status", []string{}))
+	armsService := NewArmsService(client)
+	stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, armsService.ArmsGrafanaWorkspaceStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -173,9 +169,9 @@ func resourceAliCloudArmsGrafanaWorkspaceCreate(d *schema.ResourceData, meta int
 
 func resourceAliCloudArmsGrafanaWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsServiceV2 := ArmsServiceV2{client}
+	armsService := NewArmsService(client)
 
-	objectRaw, err := armsServiceV2.DescribeArmsGrafanaWorkspace(d.Id())
+	objectRaw, err := armsService.DescribeArmsGrafanaWorkspace(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_grafana_workspace DescribeArmsGrafanaWorkspace Failed!!! %s", err)
@@ -193,9 +189,6 @@ func resourceAliCloudArmsGrafanaWorkspaceRead(d *schema.ResourceData, meta inter
 	d.Set("region_id", objectRaw["regionId"])
 	d.Set("resource_group_id", objectRaw["resourceGroupId"])
 	d.Set("status", objectRaw["status"])
-
-	tagsMaps := objectRaw["tags"]
-	d.Set("tags", tagsToMap(tagsMaps))
 
 	return nil
 }
@@ -305,12 +298,6 @@ func resourceAliCloudArmsGrafanaWorkspaceUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	if d.HasChange("tags") {
-		armsServiceV2 := ArmsServiceV2{client}
-		if err := armsServiceV2.SetResourceTags(d, "grafanaworkspace"); err != nil {
-			return WrapError(err)
-		}
-	}
 	d.Partial(false)
 	return resourceAliCloudArmsGrafanaWorkspaceRead(d, meta)
 }
@@ -349,8 +336,8 @@ func resourceAliCloudArmsGrafanaWorkspaceDelete(d *schema.ResourceData, meta int
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	armsServiceV2 := ArmsServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{""}, d.Timeout(schema.TimeoutDelete), 10*time.Second, armsServiceV2.ArmsGrafanaWorkspaceStateRefreshFunc(d.Id(), "status", []string{}))
+	armsService := NewArmsService(client)
+	stateConf := BuildStateConf([]string{}, []string{""}, d.Timeout(schema.TimeoutDelete), 10*time.Second, armsService.ArmsGrafanaWorkspaceStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

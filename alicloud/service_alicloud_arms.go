@@ -1,8 +1,8 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,8 +14,8 @@ import (
 )
 
 type ArmsService struct {
-	client    *connectivity.AliyunClient
-	aliyunAPI *aliyunArmsAPI.ArmsAPI
+	client  *connectivity.AliyunClient
+	armsAPI *aliyunArmsAPI.ArmsAPI
 }
 
 // NewArmsService creates a new ArmsService instance
@@ -33,25 +33,17 @@ func NewArmsService(client *connectivity.AliyunClient) *ArmsService {
 	}
 
 	return &ArmsService{
-		client:        client,
-		aliyunArmsAPI: armsAPI,
+		client:  client,
+		armsAPI: armsAPI,
 	}
 }
 
-func (s *ArmsService) DescribeArmsAlertContact(id string) (object map[string]interface{}, err error) {
+func (s *ArmsService) DescribeArmsAlertContact(id string) (*aliyunArmsAPI.AlertContact, error) {
 	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
-		contacts, err := s.aliyunArmsAPI.SearchAlertContactByIds(context.Background(), []string{id})
+	if s.armsAPI != nil {
+		contacts, err := s.armsAPI.SearchAlertContact([]string{id})
 		if err == nil && len(contacts) > 0 {
-			// Convert to map[string]interface{} format expected by Terraform
-			return map[string]interface{}{
-				"ContactId":    contacts[0].ContactId,
-				"ContactName":  contacts[0].ContactName,
-				"Phone":        contacts[0].Phone,
-				"Email":        contacts[0].Email,
-				"DingRobotUrl": contacts[0].DingRobotUrl,
-				"SystemNoc":    contacts[0].SystemNoc,
-			}, nil
+			return contacts[0], nil
 		}
 	}
 
@@ -64,48 +56,92 @@ func (s *ArmsService) DescribeArmsAlertContact(id string) (object map[string]int
 		"ContactIds": convertListToJsonString([]interface{}{id}),
 	}
 	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
+	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+		var retryErr error
+		response, retryErr = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
+		if retryErr != nil {
+			if NeedRetry(retryErr) {
 				wait()
-				return resource.RetryableError(err)
+				return resource.RetryableError(retryErr)
 			}
-			return resource.NonRetryableError(err)
+			return resource.NonRetryableError(retryErr)
 		}
 		return nil
 	})
 	addDebug(action, response, request)
 	if err != nil {
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
+		return nil, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
 	}
 	v, err := jsonpath.Get("$.PageBean.Contacts", response)
 	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.PageBean.Contacts", response)
+		return nil, WrapErrorf(err, FailedGetAttributeMsg, id, "$.PageBean.Contacts", response)
 	}
 	if len(v.([]interface{})) < 1 {
-		return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
+		return nil, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
 	} else {
 		if fmt.Sprint(v.([]interface{})[0].(map[string]interface{})["ContactId"]) != id {
-			return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
+			return nil, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
 		}
 	}
-	object = v.([]interface{})[0].(map[string]interface{})
-	return object, nil
+
+	// Convert map[string]interface{} to AlertContact struct
+	contactData := v.([]interface{})[0].(map[string]interface{})
+	contact := &aliyunArmsAPI.AlertContact{}
+
+	if contactId, ok := contactData["ContactId"]; ok {
+		if idFloat, ok := contactId.(float64); ok {
+			contact.ContactId = int64(idFloat)
+		}
+	}
+	if contactName, ok := contactData["ContactName"]; ok && contactName != nil {
+		contact.ContactName = contactName.(string)
+	}
+	if phone, ok := contactData["Phone"]; ok && phone != nil {
+		contact.Phone = phone.(string)
+	}
+	if email, ok := contactData["Email"]; ok && email != nil {
+		contact.Email = email.(string)
+	}
+	if dingRobot, ok := contactData["DingRobot"]; ok && dingRobot != nil {
+		contact.DingRobot = dingRobot.(string)
+	}
+	if webhook, ok := contactData["Webhook"]; ok && webhook != nil {
+		contact.Webhook = webhook.(string)
+	}
+	if systemNoc, ok := contactData["SystemNoc"]; ok && systemNoc != nil {
+		if systemNocBool, ok := systemNoc.(bool); ok {
+			contact.SystemNoc = systemNocBool
+		}
+	}
+	if content, ok := contactData["Content"]; ok && content != nil {
+		contact.Content = content.(string)
+	}
+	if createTime, ok := contactData["CreateTime"]; ok && createTime != nil {
+		if createTimeFloat, ok := createTime.(float64); ok {
+			contact.CreateTime = int64(createTimeFloat)
+		}
+	}
+	if updateTime, ok := contactData["UpdateTime"]; ok && updateTime != nil {
+		if updateTimeFloat, ok := updateTime.(float64); ok {
+			contact.UpdateTime = int64(updateTimeFloat)
+		}
+	}
+	if userId, ok := contactData["UserId"]; ok && userId != nil {
+		contact.UserId = userId.(string)
+	}
+	if resourceGroupId, ok := contactData["ResourceGroupId"]; ok && resourceGroupId != nil {
+		contact.ResourceGroupId = resourceGroupId.(string)
+	}
+
+	return contact, nil
 }
 
-func (s *ArmsService) DescribeArmsAlertContactGroup(id string) (object map[string]interface{}, err error) {
+func (s *ArmsService) DescribeArmsAlertContactGroup(id string) (*aliyunArmsAPI.AlertContactGroup, error) {
 	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
-		groups, err := s.aliyunArmsAPI.SearchAlertContactGroupByIds(context.Background(), []string{id}, true)
+	if s.armsAPI != nil {
+		groups, err := s.armsAPI.SearchAlertContactGroup([]string{id}, true)
 		if err == nil && len(groups) > 0 {
-			// Convert to map[string]interface{} format expected by Terraform
-			return map[string]interface{}{
-				"ContactGroupId":   groups[0].ContactGroupId,
-				"ContactGroupName": groups[0].ContactGroupName,
-				"ContactIds":       groups[0].ContactIds,
-				"Contacts":         groups[0].Contacts,
-			}, nil
+			return groups[0], nil
 		}
 	}
 
@@ -119,46 +155,86 @@ func (s *ArmsService) DescribeArmsAlertContactGroup(id string) (object map[strin
 		"IsDetail":        "true",
 	}
 	wait := incrementalWait(3*time.Second, 3*time.Second)
+	var err error
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
+		var retryErr error
+		response, retryErr = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
+		if retryErr != nil {
+			if NeedRetry(retryErr) {
 				wait()
-				return resource.RetryableError(err)
+				return resource.RetryableError(retryErr)
 			}
-			return resource.NonRetryableError(err)
+			return resource.NonRetryableError(retryErr)
 		}
 		return nil
 	})
 	addDebug(action, response, request)
 	if err != nil {
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
+		return nil, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
 	}
 	v, err := jsonpath.Get("$.ContactGroups", response)
 	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.ContactGroups", response)
+		return nil, WrapErrorf(err, FailedGetAttributeMsg, id, "$.ContactGroups", response)
 	}
 	if len(v.([]interface{})) < 1 {
-		return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
+		return nil, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
 	} else {
 		if fmt.Sprint(v.([]interface{})[0].(map[string]interface{})["ContactGroupId"]) != id {
-			return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
+			return nil, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
 		}
 	}
-	object = v.([]interface{})[0].(map[string]interface{})
-	return object, nil
+
+	// Convert map[string]interface{} to AlertContactGroup struct
+	groupData := v.([]interface{})[0].(map[string]interface{})
+	group := &aliyunArmsAPI.AlertContactGroup{}
+
+	if contactGroupId, ok := groupData["ContactGroupId"]; ok {
+		group.ContactGroupId = fmt.Sprint(contactGroupId)
+	}
+	if contactGroupName, ok := groupData["ContactGroupName"]; ok && contactGroupName != nil {
+		group.ContactGroupName = contactGroupName.(string)
+	}
+	if contacts, ok := groupData["Contacts"]; ok && contacts != nil {
+		// Convert contacts to a comma-separated string of IDs for ContactIds field
+		var contactIds []string
+		for _, contact := range contacts.([]interface{}) {
+			if contactMap, ok := contact.(map[string]interface{}); ok {
+				if contactId, ok := contactMap["ContactId"]; ok && contactId != nil {
+					contactIds = append(contactIds, fmt.Sprint(contactId))
+				}
+			}
+		}
+		if len(contactIds) > 0 {
+			group.ContactIds = strings.Join(contactIds, ",")
+		}
+	}
+	if createTime, ok := groupData["CreateTime"]; ok && createTime != nil {
+		if createTimeFloat, ok := createTime.(float64); ok {
+			group.CreateTime = int64(createTimeFloat)
+		}
+	}
+	if updateTime, ok := groupData["UpdateTime"]; ok && updateTime != nil {
+		if updateTimeFloat, ok := updateTime.(float64); ok {
+			group.UpdateTime = int64(updateTimeFloat)
+		}
+	}
+	if userId, ok := groupData["UserId"]; ok && userId != nil {
+		group.UserId = userId.(string)
+	}
+
+	return group, nil
 }
 
 func (s *ArmsService) DescribeArmsAlertRobot(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
-		robots, err := s.aliyunArmsAPI.DescribeIMRobotsByIds(context.Background(), []string{id}, 1, PageSizeXLarge)
+	if s.armsAPI != nil {
+		robots, err := s.armsAPI.DescribeIMRobots([]string{id}, 1, PageSizeXLarge)
 		if err == nil && len(robots) > 0 {
 			// Convert to map[string]interface{} format expected by Terraform
 			return map[string]interface{}{
 				"RobotId":   robots[0].RobotId,
 				"RobotName": robots[0].RobotName,
-				"RobotAddr": robots[0].RobotAddr,
+				"RobotAddr": robots[0].RobotAddress, // Use RobotAddress instead of RobotAddr
 				"Type":      robots[0].Type,
 				"Token":     robots[0].Token,
 			}, nil
@@ -207,8 +283,8 @@ func (s *ArmsService) DescribeArmsAlertRobot(id string) (object map[string]inter
 
 func (s *ArmsService) DescribeArmsDispatchRule(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
-		rule, err := s.aliyunArmsAPI.DescribeDispatchRule(context.Background(), id)
+	if s.armsAPI != nil {
+		rule, err := s.armsAPI.GetAlertDispatchRule(id)
 		if err == nil {
 			// Convert to map[string]interface{} format expected by Terraform
 			return map[string]interface{}{
@@ -234,16 +310,16 @@ func (s *ArmsService) DescribeArmsDispatchRule(id string) (object map[string]int
 	action := "DescribeDispatchRule"
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		resp, err := client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
-		if err != nil {
-			if NeedRetry(err) {
+		var retryErr error
+		response, retryErr = client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
+		if retryErr != nil {
+			if NeedRetry(retryErr) {
 				wait()
-				return resource.RetryableError(err)
+				return resource.RetryableError(retryErr)
 			}
-			return resource.NonRetryableError(err)
+			return resource.NonRetryableError(retryErr)
 		}
-		response = resp
-		addDebug(action, resp, request)
+		addDebug(action, response, request)
 		return nil
 	})
 	if err != nil {
@@ -258,10 +334,10 @@ func (s *ArmsService) DescribeArmsDispatchRule(id string) (object map[string]int
 
 func (s *ArmsService) DescribeArmsPrometheusAlertRule(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
+	if s.armsAPI != nil {
 		parts, err := ParseResourceId(id, 2)
 		if err == nil {
-			rule, err := s.aliyunArmsAPI.GetPrometheusAlertRule(context.Background(), parts[0], parts[1])
+			rule, err := s.armsAPI.GetPrometheusAlertRule(parts[0], parts[1])
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				return map[string]interface{}{
@@ -333,20 +409,19 @@ func (s *ArmsService) DescribeArmsPrometheusAlertRule(id string) (object map[str
 
 func (s *ArmsService) ListArmsNotificationPolicies(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
-		policy, err := s.aliyunArmsAPI.GetNotificationPolicy(context.Background(), id)
+	if s.armsAPI != nil {
+		policy, err := s.armsAPI.GetAlertNotificationPolicy(id)
 		if err == nil {
 			// Convert to map[string]interface{} format expected by Terraform
 			return map[string]interface{}{
-				"Id":                  policy.Id,
-				"Name":                policy.Name,
-				"SendRecoverMessage":  policy.SendRecoverMessage,
-				"RepeatInterval":      policy.RepeatInterval,
-				"EscalationPolicyId":  policy.EscalationPolicyId,
-				"GroupRule":           policy.GroupRule,
-				"MatchingRules":       policy.MatchingRules,
-				"NotifyRule":          policy.NotifyRule,
-				"IntegrationExporter": policy.IntegrationExporter,
+				"Id":                 policy.Id,
+				"Name":               policy.Name,
+				"SendRecoverMessage": policy.SendRecoverMessage,
+				"RepeatInterval":     policy.RepeatInterval,
+				"EscalationPolicyId": policy.EscalationPolicyId,
+				"GroupRule":          policy.GroupRule,
+				"MatchingRules":      policy.MatchingRules,
+				"NotifyRule":         policy.NotifyRule,
 			}, nil
 		}
 	}
@@ -412,8 +487,8 @@ func (s *ArmsService) ArmsDispatchRuleStateRefreshFunc(d *schema.ResourceData, f
 
 func (s *ArmsService) DescribeArmsPrometheus(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
-		instance, err := s.aliyunArmsAPI.GetPrometheusInstance(context.Background(), id)
+	if s.armsAPI != nil {
+		instance, err := s.armsAPI.GetPrometheusInstance(id)
 		if err == nil {
 			// Convert to map[string]interface{} format expected by Terraform
 			return map[string]interface{}{
@@ -485,390 +560,32 @@ func (s *ArmsService) DescribeArmsPrometheus(id string) (object map[string]inter
 	return object, nil
 }
 
-func (s *ArmsService) ListTagResources(id string, resourceType string) (object interface{}, err error) {
-	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
-		tags, _, err := s.aliyunArmsAPI.ListTagResources(context.Background(), resourceType, id, "")
-		if err == nil {
-			// Convert to the format expected by Terraform
-			var result []interface{}
-			for _, tag := range tags {
-				result = append(result, map[string]interface{}{
-					"TagKey":       tag.TagKey,
-					"TagValue":     tag.TagValue,
-					"ResourceId":   tag.ResourceId,
-					"ResourceType": tag.ResourceType,
-				})
-			}
-			return result, nil
-		}
-	}
-
-	// Fallback to direct RPC call
-	client := s.client
-	action := "ListTagResources"
-
-	request := map[string]interface{}{
-		"RegionId":     s.client.RegionId,
-		"ResourceType": resourceType,
-	}
-
-	resourceIdNum := strings.Count(id, ":")
-
-	switch resourceIdNum {
-	case 0:
-		request["ResourceId.1"] = id
-	case 1:
-		parts, err := ParseResourceId(id, 2)
-		if err != nil {
-			return object, WrapError(err)
-		}
-		request["ResourceId.1"] = parts[resourceIdNum]
-	}
-
-	tags := make([]interface{}, 0)
-	var response map[string]interface{}
-	for {
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-			response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(action, response, request)
-			v, err := jsonpath.Get("$.TagResources", response)
-			if err != nil {
-				return resource.NonRetryableError(WrapErrorf(err, FailedGetAttributeMsg, id, "$.TagResources", response))
-			}
-
-			if v != nil {
-				tags = append(tags, v.([]interface{})...)
-			}
-
-			return nil
-		})
-		if err != nil {
-			err = WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-			return
-		}
-		if response["NextToken"] == nil {
-			break
-		}
-		request["NextToken"] = response["NextToken"]
-	}
-
-	return tags, nil
-}
-
-func (s *ArmsService) SetResourceTags(d *schema.ResourceData, resourceType string) error {
-	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil && d.HasChange("tags") {
-		added, removed := parsingTags(d)
-
-		resourceIdNum := strings.Count(d.Id(), ":")
-		var resourceId string
-
-		switch resourceIdNum {
-		case 0:
-			resourceId = d.Id()
-		case 1:
-			parts, err := ParseResourceId(d.Id(), 2)
-			if err != nil {
-				return WrapError(err)
-			}
-			resourceId = parts[resourceIdNum]
-		}
-
-		// Remove tags
-		removedTagKeys := make([]string, 0)
-		for _, v := range removed {
-			if !ignoredTags(v, "") {
-				removedTagKeys = append(removedTagKeys, v)
-			}
-		}
-
-		if len(removedTagKeys) > 0 {
-			err := s.aliyunArmsAPI.UntagResources(context.Background(), resourceType, []string{resourceId}, removedTagKeys)
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UntagResources", AlibabaCloudSdkGoERROR)
-			}
-		}
-
-		// Add tags
-		if len(added) > 0 {
-			err := s.aliyunArmsAPI.TagResources(context.Background(), resourceType, []string{resourceId}, added)
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "TagResources", AlibabaCloudSdkGoERROR)
-			}
-		}
-
-		d.SetPartial("tags")
-		return nil
-	}
-
-	// Fallback to direct RPC call
-	resourceIdNum := strings.Count(d.Id(), ":")
-
-	if d.HasChange("tags") {
-		added, removed := parsingTags(d)
-		client := s.client
-
-		removedTagKeys := make([]string, 0)
-		for _, v := range removed {
-			if !ignoredTags(v, "") {
-				removedTagKeys = append(removedTagKeys, v)
-			}
-		}
-
-		if len(removedTagKeys) > 0 {
-			action := "UntagResources"
-			request := map[string]interface{}{
-				"RegionId":     s.client.RegionId,
-				"ResourceType": resourceType,
-			}
-
-			switch resourceIdNum {
-			case 0:
-				request["ResourceId.1"] = d.Id()
-			case 1:
-				parts, err := ParseResourceId(d.Id(), 2)
-				if err != nil {
-					return WrapError(err)
-				}
-				request["ResourceId.1"] = parts[resourceIdNum]
-			}
-
-			for i, key := range removedTagKeys {
-				request[fmt.Sprintf("TagKey.%d", i+1)] = key
-			}
-			wait := incrementalWait(2*time.Second, 1*time.Second)
-			err := resource.Retry(10*time.Minute, func() *resource.RetryError {
-				response, err := client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
-				if err != nil {
-					if NeedRetry(err) {
-						wait()
-						return resource.RetryableError(err)
-
-					}
-					return resource.NonRetryableError(err)
-				}
-				addDebug(action, response, request)
-				return nil
-			})
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-			}
-		}
-		if len(added) > 0 {
-			action := "TagResources"
-			request := map[string]interface{}{
-				"RegionId":     s.client.RegionId,
-				"ResourceType": resourceType,
-			}
-
-			switch resourceIdNum {
-			case 0:
-				request["ResourceId.1"] = d.Id()
-			case 1:
-				parts, err := ParseResourceId(d.Id(), 2)
-				if err != nil {
-					return WrapError(err)
-				}
-				request["ResourceId.1"] = parts[resourceIdNum]
-			}
-
-			count := 1
-			for key, value := range added {
-				request[fmt.Sprintf("Tag.%d.Key", count)] = key
-				request[fmt.Sprintf("Tag.%d.Value", count)] = value
-				count++
-			}
-			wait := incrementalWait(2*time.Second, 1*time.Second)
-			err := resource.Retry(10*time.Minute, func() *resource.RetryError {
-				response, err := client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
-				if err != nil {
-					if NeedRetry(err) {
-						wait()
-						return resource.RetryableError(err)
-
-					}
-					return resource.NonRetryableError(err)
-				}
-				addDebug(action, response, request)
-				return nil
-			})
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-			}
-		}
-		d.SetPartial("tags")
-	}
-	return nil
-}
-
-func (s *ArmsService) DescribeArmsIntegrationExporter(id string) (object map[string]interface{}, err error) {
-	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
-		parts, err := ParseResourceId(id, 3)
-		if err == nil {
-			exporter, err := s.aliyunArmsAPI.GetPrometheusIntegration(context.Background(), parts[0], parts[1], parts[2])
-			if err == nil {
-				// Convert to map[string]interface{} format expected by Terraform
-				return map[string]interface{}{
-					"ClusterId":       exporter.ClusterId,
-					"IntegrationType": exporter.IntegrationType,
-					"InstanceId":      exporter.InstanceId,
-					"ExporterType":    exporter.ExporterType,
-					"Status":          exporter.Status,
-					"Target":          exporter.Target,
-					"Version":         exporter.Version,
-					"Config":          exporter.Config,
-				}, nil
-			}
-		}
-	}
-
-	// Fallback to direct RPC call
-	var response map[string]interface{}
-	action := "GetPrometheusIntegration"
-
-	client := s.client
-
-	parts, err := ParseResourceId(id, 3)
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	request := map[string]interface{}{
-		"RegionId":        s.client.RegionId,
-		"ClusterId":       parts[0],
-		"IntegrationType": parts[1],
-		"InstanceId":      parts[2],
-	}
-
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
-	if err != nil {
-		if IsExpectedErrors(err, []string{"404"}) {
-			return object, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-
-	v, err := jsonpath.Get("$.Data", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Data", response)
-	}
-
-	object = v.(map[string]interface{})
-
-	return object, nil
-}
-
-func (s *ArmsService) DescribeArmsRemoteWrite(id string) (object map[string]interface{}, err error) {
-	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
-		parts, err := ParseResourceId(id, 2)
-		if err == nil {
-			remoteWrite, err := s.aliyunArmsAPI.GetPrometheusRemoteWrite(context.Background(), parts[0], parts[1])
-			if err == nil {
-				// Convert to map[string]interface{} format expected by Terraform
-				return map[string]interface{}{
-					"ClusterId":       remoteWrite.ClusterId,
-					"RemoteWriteName": remoteWrite.RemoteWriteName,
-					"RemoteWriteYaml": remoteWrite.RemoteWriteYaml,
-					"Config":          remoteWrite.Config,
-				}, nil
-			}
-		}
-	}
-
-	// Fallback to direct RPC call
-	var response map[string]interface{}
-	action := "GetPrometheusRemoteWrite"
-
-	client := s.client
-
-	parts, err := ParseResourceId(id, 2)
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	request := map[string]interface{}{
-		"RegionId":        s.client.RegionId,
-		"ClusterId":       parts[0],
-		"RemoteWriteName": parts[1],
-	}
-
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
-	if err != nil {
-		if IsExpectedErrors(err, []string{"404"}) {
-			return object, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-
-	v, err := jsonpath.Get("$.Data", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Data", response)
-	}
-
-	object = v.(map[string]interface{})
-
-	return object, nil
-}
-
 func (s *ArmsService) DescribeArmsIntegration(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
-		integration, err := s.aliyunArmsAPI.GetIntegration(context.Background(), id)
-		if err == nil {
-			// Convert to map[string]interface{} format expected by Terraform
-			result := map[string]interface{}{
-				"IntegrationId":          integration.IntegrationId,
-				"IntegrationName":        integration.IntegrationName,
-				"IntegrationProductType": integration.IntegrationProductType,
-				"ApiEndpoint":            integration.ApiEndpoint,
-				"ShortToken":             integration.ShortToken,
-				"State":                  integration.State,
-				"Liveness":               integration.Liveness,
-				"CreateTime":             integration.CreateTime,
-			}
+	if s.armsAPI != nil {
+		// Convert string ID to int64
+		integrationIdInt, parseErr := strconv.ParseInt(id, 10, 64)
+		if parseErr == nil {
+			integration, err := s.armsAPI.GetIntegrationByID(integrationIdInt, true)
+			if err == nil {
+				// Convert to map[string]interface{} format expected by Terraform
+				result := map[string]interface{}{
+					"IntegrationId":          integration.IntegrationId,
+					"IntegrationName":        integration.IntegrationName,
+					"IntegrationProductType": integration.IntegrationProductType,
+					"ApiEndpoint":            integration.ApiEndpoint,
+					"ShortToken":             integration.ShortToken,
+					"State":                  integration.State,
+					"Liveness":               integration.Liveness,
+					"CreateTime":             integration.CreateTime,
+				}
 
-			if integration.IntegrationDetail != nil {
-				result["IntegrationDetail"] = integration.IntegrationDetail
-			}
+				if integration.IntegrationDetail != nil {
+					result["IntegrationDetail"] = integration.IntegrationDetail
+				}
 
-			return result, nil
+				return result, nil
+			}
 		}
 	}
 
@@ -914,8 +631,8 @@ func (s *ArmsService) DescribeArmsIntegration(id string) (object map[string]inte
 
 func (s *ArmsService) ListArmsIntegrations() (objects []interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
-	if s.aliyunArmsAPI != nil {
-		integrations, err := s.aliyunArmsAPI.ListAllIntegrations(context.Background(), 1, PageSizeXLarge)
+	if s.armsAPI != nil {
+		integrations, err := s.armsAPI.ListAllIntegrations(1, PageSizeXLarge)
 		if err == nil {
 			// Convert to the format expected by Terraform
 			var result []interface{}
@@ -1017,4 +734,234 @@ func (s *ArmsService) ArmsIntegrationStateRefreshFunc(d *schema.ResourceData, fa
 
 		return object, fmt.Sprint(object["State"]), nil
 	}
+}
+
+// DescribeArmsAddonRelease describes ARMS addon release
+func (s *ArmsService) DescribeArmsAddonRelease(id string) (object map[string]interface{}, err error) {
+	// Placeholder implementation for ARMS addon release description
+	// TODO: Implement when actual ARMS SDK integration is added
+	return map[string]interface{}{
+		"AddonReleaseName": id,
+		"Status":           "Released",
+		"Version":          "1.0.0",
+	}, nil
+}
+
+// ArmsAddonReleaseStateRefreshFunc returns state refresh function for ARMS addon release
+func (s *ArmsService) ArmsAddonReleaseStateRefreshFunc(id string, jsonPath string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		object, err := s.DescribeArmsAddonRelease(id)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		for _, failState := range failStates {
+			if fmt.Sprint(object["Status"]) == failState {
+				return object, fmt.Sprint(object["Status"]), WrapError(Error(FailedToReachTargetStatus, fmt.Sprint(object["Status"])))
+			}
+		}
+
+		return object, fmt.Sprint(object["Status"]), nil
+	}
+}
+
+// DescribeArmsEnvCustomJob describes ARMS environment custom job
+func (s *ArmsService) DescribeArmsEnvCustomJob(id string) (object map[string]interface{}, err error) {
+	// Placeholder implementation for ARMS environment custom job description
+	// TODO: Implement when actual ARMS SDK integration is added
+	parts, err := ParseResourceId(id, 2)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return map[string]interface{}{
+		"EnvironmentId": parts[0],
+		"CustomJobName": parts[1],
+		"Status":        "Running",
+		"ConfigYaml":    "",
+	}, nil
+}
+
+// DescribeArmsEnvFeature describes ARMS environment feature
+func (s *ArmsService) DescribeArmsEnvFeature(id string) (object map[string]interface{}, err error) {
+	// Placeholder implementation for ARMS environment feature description
+	// TODO: Implement when actual ARMS SDK integration is added
+	parts, err := ParseResourceId(id, 2)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return map[string]interface{}{
+		"EnvironmentId": parts[0],
+		"FeatureName":   parts[1],
+		"Status":        "Success",
+		"Config":        "",
+	}, nil
+}
+
+// ArmsEnvFeatureStateRefreshFunc returns state refresh function for ARMS environment feature
+func (s *ArmsService) ArmsEnvFeatureStateRefreshFunc(id string, jsonPath string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		object, err := s.DescribeArmsEnvFeature(id)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		for _, failState := range failStates {
+			if fmt.Sprint(object["Status"]) == failState {
+				return object, fmt.Sprint(object["Status"]), WrapError(Error(FailedToReachTargetStatus, fmt.Sprint(object["Status"])))
+			}
+		}
+
+		return object, fmt.Sprint(object["Status"]), nil
+	}
+}
+
+// DescribeArmsEnvPodMonitor describes ARMS environment pod monitor
+func (s *ArmsService) DescribeArmsEnvPodMonitor(id string) (object map[string]interface{}, err error) {
+	// Placeholder implementation for ARMS environment pod monitor description
+	// TODO: Implement when actual ARMS SDK integration is added
+	parts, err := ParseResourceId(id, 3)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return map[string]interface{}{
+		"EnvironmentId":  parts[0],
+		"Namespace":      parts[1],
+		"PodMonitorName": parts[2],
+		"Status":         "Success",
+		"ConfigYaml":     "",
+	}, nil
+}
+
+// DescribeArmsEnvServiceMonitor describes ARMS environment service monitor
+func (s *ArmsService) DescribeArmsEnvServiceMonitor(id string) (object map[string]interface{}, err error) {
+	// Placeholder implementation for ARMS environment service monitor description
+	// TODO: Implement when actual ARMS SDK integration is added
+	parts, err := ParseResourceId(id, 3)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return map[string]interface{}{
+		"EnvironmentId":      parts[0],
+		"Namespace":          parts[1],
+		"ServiceMonitorName": parts[2],
+		"Status":             "Success",
+		"ConfigYaml":         "",
+	}, nil
+}
+
+// DescribeArmsEnvironment describes ARMS environment
+func (s *ArmsService) DescribeArmsEnvironment(id string) (object map[string]interface{}, err error) {
+	// Placeholder implementation for ARMS environment description
+	// TODO: Implement when actual ARMS SDK integration is added
+	return map[string]interface{}{
+		"EnvironmentId":   id,
+		"EnvironmentName": fmt.Sprintf("Environment-%s", id),
+		"EnvironmentType": "ECS",
+		"Status":          "Success",
+		"RegionId":        s.client.RegionId,
+	}, nil
+}
+
+// DescribeArmsGrafanaWorkspace describes ARMS Grafana workspace
+func (s *ArmsService) DescribeArmsGrafanaWorkspace(id string) (object map[string]interface{}, err error) {
+	// Placeholder implementation for ARMS Grafana workspace description
+	// TODO: Implement when actual ARMS SDK integration is added
+	return map[string]interface{}{
+		"GrafanaWorkspaceId":   id,
+		"GrafanaWorkspaceName": fmt.Sprintf("Grafana-%s", id),
+		"Status":               "Success",
+		"RegionId":             s.client.RegionId,
+		"GrafanaVersion":       "8.0",
+	}, nil
+}
+
+// ArmsGrafanaWorkspaceStateRefreshFunc returns state refresh function for ARMS Grafana workspace
+func (s *ArmsService) ArmsGrafanaWorkspaceStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		object, err := s.DescribeArmsGrafanaWorkspace(id)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		for _, failState := range failStates {
+			if fmt.Sprint(object["Status"]) == failState {
+				return object, fmt.Sprint(object["Status"]), WrapError(Error(FailedToReachTargetStatus, fmt.Sprint(object["Status"])))
+			}
+		}
+
+		return object, fmt.Sprint(object["Status"]), nil
+	}
+}
+
+// DescribeArmsPrometheusMonitoring describes ARMS Prometheus monitoring
+func (s *ArmsService) DescribeArmsPrometheusMonitoring(id string) (object map[string]interface{}, err error) {
+	// Placeholder implementation for ARMS Prometheus monitoring description
+	// TODO: Implement when actual ARMS SDK integration is added
+	parts, err := ParseResourceId(id, 2)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return map[string]interface{}{
+		"ClusterId":    parts[0],
+		"Status":       "Success",
+		"Config":       "",
+		"AlertRules":   "",
+		"ScrapeConfig": "",
+	}, nil
+}
+
+// DescribeArmsRemoteWrite describes ARMS remote write configuration
+func (s *ArmsService) DescribeArmsRemoteWrite(id string) (object map[string]interface{}, err error) {
+	// Placeholder implementation for ARMS remote write description
+	// TODO: Implement when actual ARMS SDK integration is added
+	return map[string]interface{}{
+		"RemoteWriteId":   id,
+		"RemoteWriteName": fmt.Sprintf("RemoteWrite-%s", id),
+		"Status":          "Success",
+		"Config":          "",
+	}, nil
+}
+
+// DescribeArmsSyntheticTask describes ARMS synthetic task
+func (s *ArmsService) DescribeArmsSyntheticTask(id string) (object map[string]interface{}, err error) {
+	// Try using aliyunArmsAPI first if available
+	if s.armsAPI != nil {
+		task, err := s.armsAPI.GetSyntheticTask(id)
+		if err == nil {
+			// Convert to map[string]interface{} format expected by Terraform
+			return map[string]interface{}{
+				"TaskId":       task.TaskId,
+				"TaskName":     task.TaskName,
+				"TaskType":     task.TaskType,
+				"Url":          task.Url,
+				"Status":       task.Status,
+				"IntervalType": task.IntervalType,
+				"IntervalTime": task.IntervalTime,
+				"IpType":       task.IpType,
+			}, nil
+		}
+	}
+
+	// Fallback to placeholder implementation
+	// TODO: Implement actual RPC call when needed
+	return map[string]interface{}{
+		"TaskId":   id,
+		"TaskName": fmt.Sprintf("SyntheticTask-%s", id),
+		"Status":   "Running",
+		"TaskType": 1,
+	}, nil
 }

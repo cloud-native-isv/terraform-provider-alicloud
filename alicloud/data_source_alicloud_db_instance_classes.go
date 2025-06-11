@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"golang.org/x/net/context"
 )
 
 func dataSourceAlicloudDBInstanceClasses() *schema.Resource {
@@ -170,11 +169,8 @@ func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interf
 	}
 	category, categoryOk := d.GetOk("category")
 
-	// Create context
-	ctx := context.Background()
-
 	// Create RDS API credentials
-	credentials := &aliyunAPI.RDSCredentials{
+	credentials := &aliyunRdsAPI.RDSCredentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,
@@ -182,7 +178,7 @@ func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interf
 	}
 
 	// Create RDS API client
-	rdsAPI, err := aliyunAPI.NewRDSAPI(credentials)
+	rdsAPI, err := aliyunRdsAPI.NewRDSAPI(credentials)
 	if err != nil {
 		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_db_instance_classes", "NewRDSAPI", AlibabaCloudSdkGoERROR)
 	}
@@ -197,27 +193,31 @@ func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interf
 		dbInstanceStorageTypeOk && dbInstanceStorageType.(string) != "" &&
 		categoryOk && category.(string) != "" {
 
-		// Create the request
-		request := &aliyunAPI.ListDBClassesRequest{
-			RegionId:              client.RegionId,
-			ZoneId:                zoneId.(string),
-			InstanceChargeType:    instanceChargeType,
-			Engine:                engine.(string),
-			EngineVersion:         engineVersion.(string),
-			DBInstanceStorageType: dbInstanceStorageType.(string),
-			Category:              category.(string),
-		}
+		// Set up optional parameters
+		dbInstanceId := ""
+		orderType := ""
+		commodityCode := ""
 
-		// Set optional parameters
 		if v, ok := d.GetOk("commodity_code"); ok {
-			request.CommodityCode = v.(string)
+			commodityCode = v.(string)
 			if v, ok := d.GetOk("db_instance_id"); ok {
-				request.DBInstanceId = v.(string)
+				dbInstanceId = v.(string)
 			}
 		}
 
-		// Call the API
-		classes, err := rdsAPI.ListDBClasses(ctx, request)
+		// Call the API with individual parameters
+		classes, err := rdsAPI.ListDBClasses(
+			client.RegionId,
+			zoneId.(string),
+			engine.(string),
+			engineVersion.(string),
+			dbInstanceStorageType.(string),
+			category.(string),
+			instanceChargeType,
+			dbInstanceId,
+			orderType,
+			commodityCode,
+		)
 		if err != nil {
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_db_instance_classes", "ListDBClasses", AlibabaCloudSdkGoERROR)
 		}
@@ -328,6 +328,8 @@ func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interf
 				availableZoneItem := r.(map[string]interface{})
 
 				zoneId := fmt.Sprint(availableZoneItem["ZoneId"])
+
+				// Skip zones that don't match multi-zone setting
 				if (multiZone && !strings.Contains(zoneId, MULTI_IZ_SYMBOL)) || (!multiZone && strings.Contains(zoneId, MULTI_IZ_SYMBOL)) {
 					continue
 				}
@@ -391,27 +393,31 @@ func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interf
 							storageTypeItem := r.(map[string]interface{})
 							currentStorageType := fmt.Sprint(storageTypeItem["StorageType"])
 
-							// Create the request
-							request := &aliyunAPI.ListDBClassesRequest{
-								RegionId:              client.RegionId,
-								ZoneId:                fmt.Sprint(availableZone["ZoneId"]),
-								InstanceChargeType:    instanceChargeType,
-								Engine:                currentEngine,
-								EngineVersion:         currentEngineVersion,
-								DBInstanceStorageType: currentStorageType,
-								Category:              currentCategory,
-							}
+							// Set up optional parameters
+							dbInstanceId := ""
+							orderType := ""
+							commodityCode := ""
 
-							// Set optional parameters
 							if v, ok := d.GetOk("commodity_code"); ok {
-								request.CommodityCode = v.(string)
+								commodityCode = v.(string)
 								if v, ok := d.GetOk("db_instance_id"); ok {
-									request.DBInstanceId = v.(string)
+									dbInstanceId = v.(string)
 								}
 							}
 
-							// Call the API
-							classes, err := rdsAPI.ListDBClasses(ctx, request)
+							// Call the API with individual parameters
+							classes, err := rdsAPI.ListDBClasses(
+								client.RegionId,
+								fmt.Sprint(availableZone["ZoneId"]),
+								currentEngine,
+								currentEngineVersion,
+								currentStorageType,
+								currentCategory,
+								instanceChargeType,
+								dbInstanceId,
+								orderType,
+								commodityCode,
+							)
 							if err != nil {
 								return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_db_instance_classes", "ListDBClasses", AlibabaCloudSdkGoERROR)
 							}

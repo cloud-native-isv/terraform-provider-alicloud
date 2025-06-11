@@ -16,7 +16,7 @@ func TestAccAliCloudArmsSyntheticTask_basic5711(t *testing.T) {
 	resourceId := "alicloud_arms_synthetic_task.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsSyntheticTaskMap5711)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsSyntheticTask")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -1016,7 +1016,7 @@ func TestAccAliCloudArmsSyntheticTask_basic5711_twin(t *testing.T) {
 	resourceId := "alicloud_arms_synthetic_task.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsSyntheticTaskMap5711)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsSyntheticTask")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()

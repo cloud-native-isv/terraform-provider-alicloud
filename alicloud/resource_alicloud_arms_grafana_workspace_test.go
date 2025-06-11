@@ -14,7 +14,7 @@ func TestAccAliCloudArmsGrafanaWorkspace_basic0(t *testing.T) {
 	resourceId := "alicloud_arms_grafana_workspace.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsGrafanaWorkspaceMap0)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsGrafanaWorkspace")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -206,7 +206,7 @@ func TestAccAliCloudArmsGrafanaWorkspace_basic0_twin(t *testing.T) {
 	resourceId := "alicloud_arms_grafana_workspace.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsGrafanaWorkspaceMap0)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsGrafanaWorkspace")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -263,7 +263,7 @@ func TestAccAliCloudArmsGrafanaWorkspace_basic9473(t *testing.T) {
 	resourceId := "alicloud_arms_grafana_workspace.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsGrafanaWorkspaceMap9473)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsGrafanaWorkspace")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -439,7 +439,7 @@ func TestAccAliCloudArmsGrafanaWorkspace_basic5667(t *testing.T) {
 	resourceId := "alicloud_arms_grafana_workspace.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsGrafanaWorkspaceMap5667)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsGrafanaWorkspace")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -599,7 +599,7 @@ func TestAccAliCloudArmsGrafanaWorkspace_basic5591(t *testing.T) {
 	resourceId := "alicloud_arms_grafana_workspace.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsGrafanaWorkspaceMap5591)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsGrafanaWorkspace")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -751,7 +751,7 @@ func TestAccAliCloudArmsGrafanaWorkspace_basic5241(t *testing.T) {
 	resourceId := "alicloud_arms_grafana_workspace.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsGrafanaWorkspaceMap5241)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsGrafanaWorkspace")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -911,7 +911,7 @@ func TestAccAliCloudArmsGrafanaWorkspace_basic4414(t *testing.T) {
 	resourceId := "alicloud_arms_grafana_workspace.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsGrafanaWorkspaceMap4414)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsGrafanaWorkspace")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -1071,7 +1071,7 @@ func TestAccAliCloudArmsGrafanaWorkspace_basic4029(t *testing.T) {
 	resourceId := "alicloud_arms_grafana_workspace.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsGrafanaWorkspaceMap4029)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsGrafanaWorkspace")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()

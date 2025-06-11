@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -92,10 +91,6 @@ func dataSourceAlicloudFlinkWorkspaces() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"expire_time": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 						"cluster_state": {
 							Type:     schema.TypeMap,
 							Computed: true,
@@ -126,85 +121,56 @@ func dataSourceAlicloudFlinkWorkspacesRead(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	// 2. 获取所有Flink实例（分页处理）
-	pagination := &aliyunFlinkAPI.PaginationRequest{
-		PageIndex: 1,
-		PageSize:  50,
-	}
-	response, err := flinkService.ListInstances(pagination)
+	// 2. 获取所有Flink实例（直接获取，无需分页）
+	workspaces, err := flinkService.ListInstances()
 	if err != nil {
 		return WrapError(err)
 	}
 
 	// 3. 过滤和映射结果
-	var workspaces []map[string]interface{}
+	var workspaceMaps []map[string]interface{}
 	ids := make([]string, 0)
 	names := make([]string, 0)
 
-	if response != nil {
-		for _, instance := range response.Data {
-			workspace := map[string]interface{}{
-				"id":                instance.ID,
-				"name":              instance.Name,
-				"status":            instance.Status,
-				"region":            instance.Region,
-				"architecture_type": instance.ArchitectureType,
-				"ask_cluster_id":    instance.AskClusterID,
-				"charge_type":       instance.ChargeType,
-				"monitor_type":      instance.MonitorType,
-				"order_state":       instance.OrderState,
-				"resource_id":       instance.ResourceID,
-				"resource_group_id": instance.ResourceGroupID,
-				"uid":               instance.UID,
-				"vpc_id":            instance.VPCID,
-				"create_time":       instance.CreateTime,
-				"expire_time":       instance.ExpireTime,
-			}
-
-			// Add VSwitchIDs as a list
-			if instance.VSwitchIDs != nil && len(instance.VSwitchIDs) > 0 {
-				workspace["vswitch_ids"] = instance.VSwitchIDs
-			}
-
-			// Add ClusterState as a map
-			if instance.ClusterState != nil {
-				clusterState := map[string]interface{}{
-					"cluster_id":     instance.ClusterState.ClusterID,
-					"status":         instance.ClusterState.Status,
-					"sub_status":     instance.ClusterState.SubStatus,
-					"url":            instance.ClusterState.URL,
-					"create_timeout": fmt.Sprintf("%t", instance.ClusterState.CreateTimeout),
-					"vpc_cidr":       instance.ClusterState.VpcCidr,
-				}
-				workspace["cluster_state"] = clusterState
-			}
-
-			// Add ResourceSpec as a map
-			if instance.ResourceSpec != nil {
-				resourceSpec := map[string]interface{}{
-					"cpu":       instance.ResourceSpec.Cpu,
-					"memory_gb": instance.ResourceSpec.MemoryGB,
-				}
-				workspace["resource_spec"] = resourceSpec
-			}
-
-			// Add Storage as a map
-			if instance.Storage != nil {
-				storage := map[string]interface{}{
-					"fully_managed": fmt.Sprintf("%t", instance.Storage.FullyManaged),
-				}
-
-				if instance.Storage.Oss != nil {
-					storage["oss_bucket"] = instance.Storage.Oss.Bucket
-				}
-
-				workspace["storage"] = storage
-			}
-
-			workspaces = append(workspaces, workspace)
-			ids = append(ids, instance.ID)
-			names = append(names, instance.Name)
+	for _, instance := range workspaces {
+		workspace := map[string]interface{}{
+			"id":                instance.ID,
+			"name":              instance.Name,
+			"status":            instance.Status,
+			"region":            instance.Region,
+			"architecture_type": instance.ArchitectureType,
+			"ask_cluster_id":    instance.AskClusterID,
+			"charge_type":       instance.ChargeType,
+			"monitor_type":      instance.MonitorType,
+			"order_state":       instance.OrderState,
+			"resource_id":       instance.ResourceID,
+			"resource_group_id": instance.ResourceGroupID,
+			"uid":               instance.UID,
+			"vpc_id":            instance.VPCID,
+			"create_time":       instance.CreateTime,
 		}
+
+		// Add VSwitchIDs as a list
+		if instance.VSwitchIDs != nil && len(instance.VSwitchIDs) > 0 {
+			workspace["vswitch_ids"] = instance.VSwitchIDs
+		}
+
+		// Add Storage as a map
+		if instance.Storage != nil {
+			storage := map[string]interface{}{
+				"fully_managed": fmt.Sprintf("%t", instance.Storage.FullyManaged),
+			}
+
+			if instance.Storage.Oss != nil {
+				storage["oss_bucket"] = instance.Storage.Oss.Bucket
+			}
+
+			workspace["storage"] = storage
+		}
+
+		workspaceMaps = append(workspaceMaps, workspace)
+		ids = append(ids, instance.ID)
+		names = append(names, instance.Name)
 	}
 
 	// 4. 设置数据源返回值
@@ -215,7 +181,7 @@ func dataSourceAlicloudFlinkWorkspacesRead(d *schema.ResourceData, meta interfac
 	if err := d.Set("names", names); err != nil {
 		return err
 	}
-	if err := d.Set("workspaces", workspaces); err != nil {
+	if err := d.Set("workspaces", workspaceMaps); err != nil {
 		return err
 	}
 

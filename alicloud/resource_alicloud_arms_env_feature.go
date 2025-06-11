@@ -95,8 +95,8 @@ func resourceAliCloudArmsEnvFeatureCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprintf("%v:%v", query["EnvironmentId"], query["FeatureName"]))
 
-	armsServiceV2 := ArmsServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{"Success"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, armsServiceV2.ArmsEnvFeatureStateRefreshFunc(d.Id(), "$.Feature.Status", []string{}))
+	armsService := NewArmsService(client)
+	stateConf := BuildStateConf([]string{}, []string{"Success"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, armsService.ArmsEnvFeatureStateRefreshFunc(d.Id(), "$.Feature.Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -106,9 +106,9 @@ func resourceAliCloudArmsEnvFeatureCreate(d *schema.ResourceData, meta interface
 
 func resourceAliCloudArmsEnvFeatureRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsServiceV2 := ArmsServiceV2{client}
+	armsService := NewArmsService(client)
 
-	objectRaw, err := armsServiceV2.DescribeArmsEnvFeature(d.Id())
+	objectRaw, err := armsService.DescribeArmsEnvFeature(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_env_feature DescribeArmsEnvFeature Failed!!! %s", err)
@@ -173,8 +173,8 @@ func resourceAliCloudArmsEnvFeatureUpdate(d *schema.ResourceData, meta interface
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		armsServiceV2 := ArmsServiceV2{client}
-		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("feature_version"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, armsServiceV2.ArmsEnvFeatureStateRefreshFunc(d.Id(), "$.Feature.Version", []string{}))
+		armsService := NewArmsService(client)
+		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("feature_version"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, armsService.ArmsEnvFeatureStateRefreshFunc(d.Id(), "$.Feature.Version", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -216,8 +216,8 @@ func resourceAliCloudArmsEnvFeatureDelete(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	armsServiceV2 := ArmsServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{""}, d.Timeout(schema.TimeoutDelete), 5*time.Second, armsServiceV2.ArmsEnvFeatureStateRefreshFunc(d.Id(), "$.Feature.Status", []string{}))
+	armsService := NewArmsService(client)
+	stateConf := BuildStateConf([]string{}, []string{""}, d.Timeout(schema.TimeoutDelete), 5*time.Second, armsService.ArmsEnvFeatureStateRefreshFunc(d.Id(), "$.Feature.Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

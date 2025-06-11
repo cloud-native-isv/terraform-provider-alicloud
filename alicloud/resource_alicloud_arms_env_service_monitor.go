@@ -116,9 +116,9 @@ func resourceAliCloudArmsEnvServiceMonitorCreate(d *schema.ResourceData, meta in
 
 func resourceAliCloudArmsEnvServiceMonitorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsServiceV2 := ArmsServiceV2{client}
+	armsService := NewArmsService(client)
 
-	objectRaw, err := armsServiceV2.DescribeArmsEnvServiceMonitor(d.Id())
+	objectRaw, err := armsService.DescribeArmsEnvServiceMonitor(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_env_service_monitor DescribeArmsEnvServiceMonitor Failed!!! %s", err)

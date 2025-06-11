@@ -91,9 +91,9 @@ func resourceAliCloudArmsRemoteWriteCreate(d *schema.ResourceData, meta interfac
 
 func resourceAliCloudArmsRemoteWriteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsServiceV2 := ArmsServiceV2{client}
+	armsService := NewArmsService(client)
 
-	objectRaw, err := armsServiceV2.DescribeArmsRemoteWrite(d.Id())
+	objectRaw, err := armsService.DescribeArmsRemoteWrite(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_remote_write DescribeArmsRemoteWrite Failed!!! %s", err)

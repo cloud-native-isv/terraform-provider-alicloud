@@ -16,7 +16,7 @@ func TestAccAliCloudArmsEnvironment_basic4280(t *testing.T) {
 	resourceId := "alicloud_arms_environment.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvironmentMap4280)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvironment")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -186,7 +186,7 @@ func TestAccAliCloudArmsEnvironment_basic4697(t *testing.T) {
 	resourceId := "alicloud_arms_environment.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvironmentMap4697)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvironment")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -381,7 +381,7 @@ func TestAccAliCloudArmsEnvironment_basic4543(t *testing.T) {
 	resourceId := "alicloud_arms_environment.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvironmentMap4543)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvironment")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -538,7 +538,7 @@ func TestAccAliCloudArmsEnvironment_basic4280_twin(t *testing.T) {
 	resourceId := "alicloud_arms_environment.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvironmentMap4280)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvironment")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -594,7 +594,7 @@ func TestAccAliCloudArmsEnvironment_basic4697_twin(t *testing.T) {
 	resourceId := "alicloud_arms_environment.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvironmentMap4697)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvironment")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -649,7 +649,7 @@ func TestAccAliCloudArmsEnvironment_basic4543_twin(t *testing.T) {
 	resourceId := "alicloud_arms_environment.default"
 	ra := resourceAttrInit(resourceId, AlicloudArmsEnvironmentMap4543)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &ArmsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeArmsEnvironment")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
