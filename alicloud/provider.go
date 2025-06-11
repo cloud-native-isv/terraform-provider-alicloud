@@ -904,6 +904,14 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_flink_namespaces":                                 dataSourceAlicloudFlinkNamespaces(),
 			"alicloud_flink_engines":                                    dataSourceAlicloudFlinkEngines(),
 			"alicloud_flink_deployments":                                dataSourceAlicloudFlinkDeployments(),
+			"alicloud_arms_alert_integrations":                          dataSourceAlicloudArmsAlertIntegrations(),
+			"alicloud_arms_alert_field_redefine_rules":                  dataSourceAlicloudArmsAlertFieldRedefineRules(),
+			"alicloud_arms_alert_events":                                dataSourceAlicloudArmsAlertEvents(),
+			"alicloud_arms_alert_rules":                                 dataSourceAlicloudArmsAlertRules(),
+			"alicloud_arms_alert_notification_policies":                 dataSourceAlicloudArmsAlertNotificationPolicies(),
+			"alicloud_arms_alert_silence_policies":                      dataSourceAlicloudArmsAlertSilencePolicies(),
+			"alicloud_arms_alert_contact_schedules":                     dataSourceAlicloudArmsAlertContactSchedules(),
+			"alicloud_arms_alert_activities":                            dataSourceAlicloudArmsAlertActivities(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"alicloud_message_service_service":                              resourceAliCloudMessageServiceService(),
@@ -1945,6 +1953,12 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_flink_job":                                             resourceAliCloudFlinkJob(),
 			"alicloud_flink_member":                                          resourceAliCloudFlinkMember(),
 			"alicloud_flink_variable":                                        resourceAliCloudFlinkVariable(),
+			"alicloud_arms_alert_integration":                                resourceAlicloudArmsAlertIntegration(),
+			"alicloud_arms_alert_field_redefine_rule":                        resourceAlicloudArmsAlertFieldRedefineRule(),
+			"alicloud_arms_alert_rule":                                       resourceAlicloudArmsAlertRule(),
+			"alicloud_arms_alert_notification_policy":                        resourceAlicloudArmsAlertNotificationPolicy(),
+			"alicloud_arms_alert_silence_policy":                             resourceAlicloudArmsAlertSilencePolicy(),
+			"alicloud_arms_alert_contact_schedule":                           resourceAlicloudArmsAlertContactSchedule(),
 		},
 	}
 	provider.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {

@@ -228,7 +228,7 @@ func (s *ArmsService) DescribeArmsAlertContactGroup(id string) (*aliyunArmsAPI.A
 func (s *ArmsService) DescribeArmsAlertRobot(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
-		robots, err := s.armsAPI.DescribeIMRobots([]string{id}, 1, PageSizeXLarge)
+		robots, err := s.armsAPI.ListAlertRobots([]string{id}, 1, PageSizeXLarge)
 		if err == nil && len(robots) > 0 {
 			// Convert to map[string]interface{} format expected by Terraform
 			return map[string]interface{}{
@@ -964,4 +964,85 @@ func (s *ArmsService) DescribeArmsSyntheticTask(id string) (object map[string]in
 		"Status":   "Running",
 		"TaskType": 1,
 	}, nil
+}
+
+// DescribeArmsAlertRule describes ARMS alert rule
+func (s *ArmsService) DescribeArmsAlertRule(id string) (object map[string]interface{}, err error) {
+	// Try using aliyunArmsAPI first if available
+	if s.armsAPI != nil {
+		alertId, parseErr := strconv.ParseInt(id, 10, 64)
+		if parseErr == nil {
+			alertRule, err := s.armsAPI.GetAlertRule(alertId, false, false)
+			if err == nil {
+				// Convert to map[string]interface{} format expected by Terraform
+				return map[string]interface{}{
+					"AlertId":          alertRule.AlertId,
+					"AlertName":        alertRule.AlertName,
+					"Severity":         alertRule.Severity,
+					"State":            alertRule.State,
+					"Describe":         alertRule.Describe,
+					"Owner":            alertRule.Owner,
+					"Handler":          alertRule.Handler,
+					"Solution":         alertRule.Solution,
+					"CreateTime":       alertRule.CreateTime,
+					"DispatchRuleId":   alertRule.DispatchRuleId,
+					"DispatchRuleName": alertRule.DispatchRuleName,
+				}, nil
+			}
+		}
+	}
+
+	// Fallback to direct RPC call
+	var response map[string]interface{}
+	action := "ListAlerts"
+	client := s.client
+
+	request := map[string]interface{}{
+		"Page":     1,
+		"Size":     1,
+		"RegionId": s.client.RegionId,
+	}
+
+	wait := incrementalWait(3*time.Second, 3*time.Second)
+	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
+		if err != nil {
+			if NeedRetry(err) {
+				wait()
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+	addDebug(action, response, request)
+
+	if err != nil {
+		if IsExpectedErrors(err, []string{"404"}) {
+			return object, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
+		}
+		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
+	}
+
+	v, err := jsonpath.Get("$.PageBean.ListAlerts", response)
+	if err != nil {
+		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.PageBean.ListAlerts", response)
+	}
+
+	if len(v.([]interface{})) < 1 {
+		return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
+	}
+
+	// Find the alert with matching ID
+	alertIdInt, _ := strconv.ParseInt(id, 10, 64)
+	for _, alert := range v.([]interface{}) {
+		alertMap := alert.(map[string]interface{})
+		if alertId, ok := alertMap["AlertId"]; ok {
+			if int64(alertId.(float64)) == alertIdInt {
+				return alertMap, nil
+			}
+		}
+	}
+
+	return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
 }
