@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAliCloudArmsPrometheis() *schema.Resource {
+func dataSourceAliCloudArmsPrometheus() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAliCloudArmsPrometheisRead,
+		Read: dataSourceAliCloudArmsPrometheusRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -50,7 +50,7 @@ func dataSourceAliCloudArmsPrometheis() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"prometheis": {
+			"prometheus": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -142,7 +142,7 @@ func dataSourceAliCloudArmsPrometheis() *schema.Resource {
 	}
 }
 
-func dataSourceAliCloudArmsPrometheisRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsPrometheusRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListPrometheusInstanceByTagAndResourceGroupId"
@@ -276,7 +276,7 @@ func dataSourceAliCloudArmsPrometheisRead(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	if err := d.Set("prometheis", s); err != nil {
+	if err := d.Set("prometheus", s); err != nil {
 		return WrapError(err)
 	}
 

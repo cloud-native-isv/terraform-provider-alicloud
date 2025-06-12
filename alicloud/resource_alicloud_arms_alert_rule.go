@@ -136,103 +136,62 @@ func resourceAlicloudArmsAlertRule() *schema.Resource {
 
 func resourceAlicloudArmsAlertRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var response map[string]interface{}
-	action := "CreateOrUpdateAlertRule"
-	request := make(map[string]interface{})
-	conn, err := client.NewArmsClient()
-	if err != nil {
-		return WrapError(err)
-	}
+	armsService := NewArmsService(client)
 
-	// Required fields
-	request["AlertName"] = d.Get("alert_name")
-	request["Level"] = d.Get("severity")
-	request["AlertType"] = "PROMETHEUS_MONITORING_ALERT_RULE"
-	request["RegionId"] = client.RegionId
+	// Prepare rule parameters
+	rule := make(map[string]interface{})
 
-	// Optional fields
-	if v, ok := d.GetOk("description"); ok {
-		request["Message"] = v
-	}
-	if v, ok := d.GetOk("cluster_id"); ok {
-		request["ClusterId"] = v
-	}
+	// Set expression/PromQL
 	if v, ok := d.GetOk("expression"); ok {
-		request["PromQL"] = v
+		rule["expression"] = v
 	}
+
+	// Set duration
 	if v, ok := d.GetOk("duration"); ok {
-		request["Duration"] = v
+		rule["duration"] = v
 	}
+
+	// Set message
 	if v, ok := d.GetOk("message"); ok {
-		request["Message"] = v
+		rule["message"] = v
 	}
+
+	// Set check type
 	if v, ok := d.GetOk("check_type"); ok {
-		request["AlertCheckType"] = v
+		rule["check_type"] = v
 	}
+
+	// Set alert group
 	if v, ok := d.GetOk("alert_group"); ok {
-		request["AlertGroup"] = v
+		rule["alert_group"] = v
 	}
 
-	// Handle labels
+	// Set labels
 	if v, ok := d.GetOk("labels"); ok {
-		labelsMap := v.(map[string]interface{})
-		if len(labelsMap) > 0 {
-			labelsMaps := make([]map[string]interface{}, 0)
-			for key, value := range labelsMap {
-				labelsMaps = append(labelsMaps, map[string]interface{}{
-					"name":  key,
-					"value": fmt.Sprintf("%v", value),
-				})
-			}
-			if labelString, err := convertArrayObjectToJsonString(labelsMaps); err == nil {
-				request["Labels"] = labelString
-			} else {
-				return WrapError(err)
-			}
-		}
+		rule["labels"] = v
 	}
 
-	// Set default values for required fields
-	if _, ok := request["AlertCheckType"]; !ok {
-		request["AlertCheckType"] = "CUSTOM"
-	}
-	if _, ok := request["AlertGroup"]; !ok {
-		request["AlertGroup"] = -1
-	}
-
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-08-08"), StringPointer("AK"), nil, request, &connectivity.RuntimeOptions{})
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
+	// Call service function to create alert rule
+	alertId, err := armsService.CreateArmsAlertRule(
+		d.Get("alert_name").(string),
+		d.Get("severity").(string),
+		d.Get("description").(string),
+		d.Get("integration_type").(string),
+		d.Get("cluster_id").(string),
+		rule,
+	)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_rule", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_rule", "CreateArmsAlertRule", AlibabaCloudSdkGoERROR)
 	}
 
-	if alertRule, ok := response["AlertRule"].(map[string]interface{}); ok {
-		if alertId, ok := alertRule["AlertId"]; ok {
-			d.SetId(fmt.Sprint(alertId))
-		} else {
-			return WrapError(fmt.Errorf("AlertId not found in response"))
-		}
-	} else {
-		return WrapError(fmt.Errorf("AlertRule not found in response"))
-	}
+	d.SetId(fmt.Sprint(alertId))
 
 	return resourceAlicloudArmsAlertRuleRead(d, meta)
 }
 
 func resourceAlicloudArmsAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := ArmsService{client}
+	armsService := NewArmsService(client)
 
 	alertId, err := strconv.ParseInt(d.Id(), 10, 64)
 	if err != nil {
@@ -275,10 +234,7 @@ func resourceAlicloudArmsAlertRuleRead(d *schema.ResourceData, meta interface{})
 
 func resourceAlicloudArmsAlertRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
-	if err != nil {
-		return WrapError(err)
-	}
+	var response map[string]interface{}
 
 	alertId, err := strconv.ParseInt(d.Id(), 10, 64)
 	if err != nil {
@@ -362,7 +318,7 @@ func resourceAlicloudArmsAlertRuleUpdate(d *schema.ResourceData, meta interface{
 		action := "CreateOrUpdateAlertRule"
 		wait := incrementalWait(3*time.Second, 3*time.Second)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-08-08"), StringPointer("AK"), nil, request, &connectivity.RuntimeOptions{})
+			response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
 			if err != nil {
 				if NeedRetry(err) {
 					wait()
@@ -385,10 +341,6 @@ func resourceAlicloudArmsAlertRuleDelete(d *schema.ResourceData, meta interface{
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteAlertRule"
 	var response map[string]interface{}
-	conn, err := client.NewArmsClient()
-	if err != nil {
-		return WrapError(err)
-	}
 
 	alertId, err := strconv.ParseInt(d.Id(), 10, 64)
 	if err != nil {
@@ -401,7 +353,7 @@ func resourceAlicloudArmsAlertRuleDelete(d *schema.ResourceData, meta interface{
 
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = conn.DoRequest(StringPointer(action), nil, StringPointer("POST"), StringPointer("2019-08-08"), StringPointer("AK"), nil, request, &connectivity.RuntimeOptions{})
+		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudArmsDispatchRules() *schema.Resource {
+func dataSourceAlicloudArmsAlertDispatchRules() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAlicloudArmsDispatchRulesRead,
 		Schema: map[string]*schema.Schema{

@@ -129,7 +129,7 @@ func resourceAlicloudArmsAlertSilencePolicyCreate(d *schema.ResourceData, meta i
 
 func resourceAlicloudArmsAlertSilencePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := ArmsService{client}
+	armsService := NewArmsService(client)
 	object, err := armsService.DescribeArmsAlertSilencePolicy(d.Id())
 	if err != nil {
 		if NotFoundError(err) {

@@ -288,12 +288,11 @@ func (s *ArmsService) DescribeArmsDispatchRule(id string) (object map[string]int
 		if err == nil {
 			// Convert to map[string]interface{} format expected by Terraform
 			return map[string]interface{}{
-				"RuleId":                   rule.RuleId,
-				"Name":                     rule.Name,
-				"State":                    rule.State,
-				"GroupRules":               rule.GroupRules,
-				"LabelMatchExpressionGrid": rule.LabelMatchExpressionGrid,
-				"NotifyRules":              rule.NotifyRules,
+				"RuleId":      rule.RuleId,
+				"Name":        rule.Name,
+				"State":       rule.State,
+				"GroupRules":  rule.GroupRules,
+				"NotifyRules": rule.NotifyRules,
 			}, nil
 		}
 	}
@@ -407,7 +406,7 @@ func (s *ArmsService) DescribeArmsPrometheusAlertRule(id string) (object map[str
 	return object, nil
 }
 
-func (s *ArmsService) ListArmsNotificationPolicies(id string) (object map[string]interface{}, err error) {
+func (s *ArmsService) DescribeArmsAlertNotificationPolicy(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
 		policy, err := s.armsAPI.GetAlertNotificationPolicy(id)
@@ -1041,6 +1040,566 @@ func (s *ArmsService) DescribeArmsAlertRule(id string) (object map[string]interf
 			if int64(alertId.(float64)) == alertIdInt {
 				return alertMap, nil
 			}
+		}
+	}
+
+	return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
+}
+
+// CreateArmsAlertRule creates a new ARMS alert rule
+func (s *ArmsService) CreateArmsAlertRule(alertName, severity, description, integrationType, clusterId string, rule map[string]interface{}) (int64, error) {
+	// Try using aliyunArmsAPI first if available
+	if s.armsAPI != nil {
+		alertId, err := s.armsAPI.CreateOrUpdateAlertRule(alertName, severity, description, integrationType, clusterId, rule)
+		if err == nil {
+			return alertId, nil
+		}
+	}
+
+	// Fallback to direct RPC call
+	var response map[string]interface{}
+	action := "CreateOrUpdateAlertRule"
+	client := s.client
+
+	request := map[string]interface{}{
+		"AlertName": alertName,
+		"Level":     severity,
+		"AlertType": "PROMETHEUS_MONITORING_ALERT_RULE",
+		"RegionId":  s.client.RegionId,
+	}
+
+	// Set description if provided
+	if description != "" {
+		request["Message"] = description
+	}
+
+	// Set cluster ID if provided
+	if clusterId != "" {
+		request["ClusterId"] = clusterId
+	}
+
+	// Set PromQL expression and other rule parameters if provided
+	if rule != nil {
+		if promql, ok := rule["promql"].(string); ok && promql != "" {
+			request["PromQL"] = promql
+		} else if expression, ok := rule["expression"].(string); ok && expression != "" {
+			request["PromQL"] = expression
+		}
+
+		// Set duration if provided in rule
+		if duration, ok := rule["duration"].(int); ok && duration > 0 {
+			request["Duration"] = duration
+		} else if durationFloat, ok := rule["duration"].(float64); ok && durationFloat > 0 {
+			request["Duration"] = int(durationFloat)
+		}
+
+		// Set message if provided in rule
+		if message, ok := rule["message"].(string); ok && message != "" {
+			request["Message"] = message
+		}
+
+		// Set alert check type if provided
+		if checkType, ok := rule["check_type"].(string); ok && checkType != "" {
+			request["AlertCheckType"] = checkType
+		} else {
+			request["AlertCheckType"] = "CUSTOM" // Default for custom PromQL
+		}
+
+		// Set alert group if provided
+		if alertGroup, ok := rule["alert_group"].(int); ok {
+			request["AlertGroup"] = alertGroup
+		} else if alertGroupFloat, ok := rule["alert_group"].(float64); ok {
+			request["AlertGroup"] = int(alertGroupFloat)
+		} else {
+			request["AlertGroup"] = -1 // Default for custom PromQL
+		}
+
+		// Set labels if provided in rule
+		if labels, ok := rule["labels"].(map[string]interface{}); ok && len(labels) > 0 {
+			labelsMaps := make([]map[string]interface{}, 0)
+			for key, value := range labels {
+				labelsMaps = append(labelsMaps, map[string]interface{}{
+					"name":  key,
+					"value": fmt.Sprintf("%v", value),
+				})
+			}
+			if labelString, err := convertArrayObjectToJsonString(labelsMaps); err == nil {
+				request["Labels"] = labelString
+			}
+		}
+	}
+
+	// Set default values for required fields if not specified
+	if _, ok := request["AlertCheckType"]; !ok {
+		request["AlertCheckType"] = "CUSTOM"
+	}
+	if _, ok := request["AlertGroup"]; !ok {
+		request["AlertGroup"] = -1
+	}
+
+	wait := incrementalWait(3*time.Second, 3*time.Second)
+	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+		var retryErr error
+		response, retryErr = client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
+		if retryErr != nil {
+			if NeedRetry(retryErr) {
+				wait()
+				return resource.RetryableError(retryErr)
+			}
+			return resource.NonRetryableError(retryErr)
+		}
+		return nil
+	})
+	addDebug(action, response, request)
+	if err != nil {
+		return 0, WrapErrorf(err, DefaultErrorMsg, "CreateArmsAlertRule", action, AlibabaCloudSdkGoERROR)
+	}
+
+	if alertRule, ok := response["AlertRule"].(map[string]interface{}); ok {
+		if alertId, ok := alertRule["AlertId"]; ok {
+			if alertIdFloat, ok := alertId.(float64); ok {
+				return int64(alertIdFloat), nil
+			}
+		}
+	}
+
+	return 0, WrapError(fmt.Errorf("AlertId not found in response"))
+}
+
+// UpdateArmsAlertRule updates an existing ARMS alert rule
+func (s *ArmsService) UpdateArmsAlertRule(alertId int64, alertName, severity, description, integrationType, clusterId string, rule map[string]interface{}) error {
+	// Try using aliyunArmsAPI first if available
+	if s.armsAPI != nil {
+		_, err := s.armsAPI.CreateOrUpdateAlertRule(alertName, severity, description, integrationType, clusterId, rule)
+		if err == nil {
+			return nil
+		}
+	}
+
+	// Fallback to direct RPC call
+	var response map[string]interface{}
+	action := "CreateOrUpdateAlertRule"
+	client := s.client
+
+	request := map[string]interface{}{
+		"AlertId":   alertId,
+		"AlertName": alertName,
+		"Level":     severity,
+		"AlertType": "PROMETHEUS_MONITORING_ALERT_RULE",
+		"RegionId":  s.client.RegionId,
+	}
+
+	// Set description if provided
+	if description != "" {
+		request["Message"] = description
+	}
+
+	// Set cluster ID if provided
+	if clusterId != "" {
+		request["ClusterId"] = clusterId
+	}
+
+	// Set PromQL expression and other rule parameters if provided
+	if rule != nil {
+		if promql, ok := rule["promql"].(string); ok && promql != "" {
+			request["PromQL"] = promql
+		} else if expression, ok := rule["expression"].(string); ok && expression != "" {
+			request["PromQL"] = expression
+		}
+
+		// Set duration if provided in rule
+		if duration, ok := rule["duration"].(int); ok && duration > 0 {
+			request["Duration"] = duration
+		} else if durationFloat, ok := rule["duration"].(float64); ok && durationFloat > 0 {
+			request["Duration"] = int(durationFloat)
+		}
+
+		// Set message if provided in rule
+		if message, ok := rule["message"].(string); ok && message != "" {
+			request["Message"] = message
+		}
+
+		// Set alert check type if provided
+		if checkType, ok := rule["check_type"].(string); ok && checkType != "" {
+			request["AlertCheckType"] = checkType
+		} else {
+			request["AlertCheckType"] = "CUSTOM" // Default for custom PromQL
+		}
+
+		// Set alert group if provided
+		if alertGroup, ok := rule["alert_group"].(int); ok {
+			request["AlertGroup"] = alertGroup
+		} else if alertGroupFloat, ok := rule["alert_group"].(float64); ok {
+			request["AlertGroup"] = int(alertGroupFloat)
+		} else {
+			request["AlertGroup"] = -1 // Default for custom PromQL
+		}
+
+		// Set labels if provided in rule
+		if labels, ok := rule["labels"].(map[string]interface{}); ok && len(labels) > 0 {
+			labelsMaps := make([]map[string]interface{}, 0)
+			for key, value := range labels {
+				labelsMaps = append(labelsMaps, map[string]interface{}{
+					"name":  key,
+					"value": fmt.Sprintf("%v", value),
+				})
+			}
+			if labelString, err := convertArrayObjectToJsonString(labelsMaps); err == nil {
+				request["Labels"] = labelString
+			}
+		}
+	}
+
+	// Set default values for required fields if not specified
+	if _, ok := request["AlertCheckType"]; !ok {
+		request["AlertCheckType"] = "CUSTOM"
+	}
+	if _, ok := request["AlertGroup"]; !ok {
+		request["AlertGroup"] = -1
+	}
+
+	wait := incrementalWait(3*time.Second, 3*time.Second)
+	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+		var retryErr error
+		response, retryErr = client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
+		if retryErr != nil {
+			if NeedRetry(retryErr) {
+				wait()
+				return resource.RetryableError(retryErr)
+			}
+			return resource.NonRetryableError(retryErr)
+		}
+		return nil
+	})
+	addDebug(action, response, request)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "UpdateArmsAlertRule", action, AlibabaCloudSdkGoERROR)
+	}
+
+	return nil
+}
+
+// DescribeArmsAlertContactSchedule describes ARMS alert contact schedule (on-call schedule)
+func (s *ArmsService) DescribeArmsAlertContactSchedule(id string) (*aliyunArmsAPI.AlertContactSchedule, error) {
+	// Parse the ID to get schedule ID and optional time range
+	// Expected format: scheduleId[:startTime:endTime] or just scheduleId
+	parts := strings.Split(id, ":")
+	if len(parts) < 1 {
+		return nil, WrapError(fmt.Errorf("invalid schedule ID format: %s", id))
+	}
+
+	scheduleIdStr := parts[0]
+	scheduleId, err := strconv.ParseInt(scheduleIdStr, 10, 64)
+	if err != nil {
+		return nil, WrapError(fmt.Errorf("invalid schedule ID: %s", scheduleIdStr))
+	}
+
+	var startTime, endTime string
+	if len(parts) >= 3 {
+		startTime = parts[1]
+		endTime = parts[2]
+	}
+
+	// Try using aliyunArmsAPI first if available
+	if s.armsAPI != nil {
+		schedule, err := s.armsAPI.GetAlertContactSchedule(scheduleId, startTime, endTime)
+		if err == nil {
+			return schedule, nil
+		}
+	}
+
+	// Fallback to direct RPC call
+	var response map[string]interface{}
+	client := s.client
+	action := "GetOnCallSchedulesDetail"
+	request := map[string]interface{}{
+		"Id": scheduleId,
+	}
+
+	// Set time range if provided
+	if startTime != "" {
+		request["StartTime"] = startTime
+	}
+	if endTime != "" {
+		request["EndTime"] = endTime
+	}
+
+	wait := incrementalWait(3*time.Second, 3*time.Second)
+	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+		var retryErr error
+		response, retryErr = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
+		if retryErr != nil {
+			if NeedRetry(retryErr) {
+				wait()
+				return resource.RetryableError(retryErr)
+			}
+			return resource.NonRetryableError(retryErr)
+		}
+		return nil
+	})
+	addDebug(action, response, request)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
+	}
+
+	v, err := jsonpath.Get("$.Data", response)
+	if err != nil {
+		return nil, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Data", response)
+	}
+
+	if v == nil {
+		return nil, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
+	}
+
+	// Convert map[string]interface{} to AlertContactSchedule struct
+	scheduleData := v.(map[string]interface{})
+	schedule := &aliyunArmsAPI.AlertContactSchedule{}
+
+	// Set basic fields
+	schedule.ScheduleId = scheduleIdStr
+	if name, ok := scheduleData["Name"]; ok && name != nil {
+		schedule.ScheduleName = name.(string)
+	}
+	if description, ok := scheduleData["Description"]; ok && description != nil {
+		schedule.Description = description.(string)
+	}
+
+	// Set alert robot ID if available
+	if alertRobotId, ok := scheduleData["AlertRobotId"]; ok && alertRobotId != nil {
+		if robotIdFloat, ok := alertRobotId.(float64); ok {
+			schedule.AlertRobotId = int64(robotIdFloat)
+		}
+	}
+
+	// Convert rendered final entries (users on duty)
+	if renderedFinalEntries, ok := scheduleData["RenderedFinnalEntries"]; ok && renderedFinalEntries != nil {
+		for _, entry := range renderedFinalEntries.([]interface{}) {
+			entryMap := entry.(map[string]interface{})
+			finalEntry := aliyunArmsAPI.ScheduleRenderedFinalEntry{}
+
+			if start, ok := entryMap["Start"]; ok && start != nil {
+				finalEntry.Start = start.(string)
+			}
+			if end, ok := entryMap["End"]; ok && end != nil {
+				finalEntry.End = end.(string)
+			}
+
+			// Set contact information if available
+			if simpleContact, ok := entryMap["SimpleContact"]; ok && simpleContact != nil {
+				contactMap := simpleContact.(map[string]interface{})
+				finalEntry.SimpleContact = &aliyunArmsAPI.ScheduleSimpleContact{}
+
+				if id, ok := contactMap["Id"]; ok && id != nil {
+					if idFloat, ok := id.(float64); ok {
+						finalEntry.SimpleContact.Id = int64(idFloat)
+					}
+				}
+				if name, ok := contactMap["Name"]; ok && name != nil {
+					finalEntry.SimpleContact.Name = name.(string)
+				}
+			}
+
+			schedule.RenderedFinalEntries = append(schedule.RenderedFinalEntries, finalEntry)
+		}
+	}
+
+	// Convert rendered layer entries (scheduled users within time ranges)
+	if renderedLayerEntries, ok := scheduleData["RenderedLayerEntries"]; ok && renderedLayerEntries != nil {
+		for _, layerGroup := range renderedLayerEntries.([]interface{}) {
+			var layerEntries []aliyunArmsAPI.ScheduleRenderedLayerEntry
+			for _, entry := range layerGroup.([]interface{}) {
+				entryMap := entry.(map[string]interface{})
+				layerEntry := aliyunArmsAPI.ScheduleRenderedLayerEntry{}
+
+				if start, ok := entryMap["Start"]; ok && start != nil {
+					layerEntry.Start = start.(string)
+				}
+				if end, ok := entryMap["End"]; ok && end != nil {
+					layerEntry.End = end.(string)
+				}
+
+				// Set contact information if available
+				if simpleContact, ok := entryMap["SimpleContact"]; ok && simpleContact != nil {
+					contactMap := simpleContact.(map[string]interface{})
+					layerEntry.SimpleContact = &aliyunArmsAPI.ScheduleSimpleContact{}
+
+					if id, ok := contactMap["Id"]; ok && id != nil {
+						if idFloat, ok := id.(float64); ok {
+							layerEntry.SimpleContact.Id = int64(idFloat)
+						}
+					}
+					if name, ok := contactMap["Name"]; ok && name != nil {
+						layerEntry.SimpleContact.Name = name.(string)
+					}
+				}
+
+				layerEntries = append(layerEntries, layerEntry)
+			}
+			schedule.RenderedLayerEntries = append(schedule.RenderedLayerEntries, layerEntries)
+		}
+	}
+
+	// Convert rendered substitute entries (substitutes within time range)
+	if renderedSubstituteEntries, ok := scheduleData["RenderedSubstitudeEntries"]; ok && renderedSubstituteEntries != nil {
+		for _, entry := range renderedSubstituteEntries.([]interface{}) {
+			entryMap := entry.(map[string]interface{})
+			substituteEntry := aliyunArmsAPI.ScheduleRenderedFinalEntry{}
+
+			if start, ok := entryMap["Start"]; ok && start != nil {
+				substituteEntry.Start = start.(string)
+			}
+			if end, ok := entryMap["End"]; ok && end != nil {
+				substituteEntry.End = end.(string)
+			}
+
+			// Set contact information if available
+			if simpleContact, ok := entryMap["SimpleContact"]; ok && simpleContact != nil {
+				contactMap := simpleContact.(map[string]interface{})
+				substituteEntry.SimpleContact = &aliyunArmsAPI.ScheduleSimpleContact{}
+
+				if id, ok := contactMap["Id"]; ok && id != nil {
+					if idFloat, ok := id.(float64); ok {
+						substituteEntry.SimpleContact.Id = int64(idFloat)
+					}
+				}
+				if name, ok := contactMap["Name"]; ok && name != nil {
+					substituteEntry.SimpleContact.Name = name.(string)
+				}
+			}
+
+			schedule.RenderedSubstituteEntries = append(schedule.RenderedSubstituteEntries, substituteEntry)
+		}
+	}
+
+	// Convert schedule layers (shift configurations)
+	if scheduleLayers, ok := scheduleData["ScheduleLayers"]; ok && scheduleLayers != nil {
+		for _, layer := range scheduleLayers.([]interface{}) {
+			layerMap := layer.(map[string]interface{})
+			scheduleLayer := aliyunArmsAPI.ScheduleLayer{}
+
+			if rotationType, ok := layerMap["RotationType"]; ok && rotationType != nil {
+				scheduleLayer.RotationType = rotationType.(string)
+			}
+			if shiftLength, ok := layerMap["ShiftLength"]; ok && shiftLength != nil {
+				if shiftLengthFloat, ok := shiftLength.(float64); ok {
+					scheduleLayer.ShiftLength = int64(shiftLengthFloat)
+				}
+			}
+			if startTime, ok := layerMap["StartTime"]; ok && startTime != nil {
+				scheduleLayer.StartTime = startTime.(string)
+			}
+
+			// Set contact IDs if available
+			if contactIds, ok := layerMap["ContactIds"]; ok && contactIds != nil {
+				for _, contactId := range contactIds.([]interface{}) {
+					if contactIdFloat, ok := contactId.(float64); ok {
+						scheduleLayer.ContactIds = append(scheduleLayer.ContactIds, int64(contactIdFloat))
+					}
+				}
+			}
+
+			// Convert time restrictions if available
+			if restrictions, ok := layerMap["Restrictions"]; ok && restrictions != nil {
+				for _, restriction := range restrictions.([]interface{}) {
+					restrictionMap := restriction.(map[string]interface{})
+					layerRestriction := aliyunArmsAPI.ScheduleLayerRestriction{}
+
+					if startTime, ok := restrictionMap["StartTime"]; ok && startTime != nil {
+						layerRestriction.StartTime = startTime.(string)
+					}
+					if endTime, ok := restrictionMap["EndTime"]; ok && endTime != nil {
+						layerRestriction.EndTime = endTime.(string)
+					}
+					if restrictionType, ok := restrictionMap["Type"]; ok && restrictionType != nil {
+						layerRestriction.Type = restrictionType.(string)
+					}
+
+					scheduleLayer.Restrictions = append(scheduleLayer.Restrictions, layerRestriction)
+				}
+			}
+
+			schedule.ScheduleLayers = append(schedule.ScheduleLayers, scheduleLayer)
+		}
+	}
+
+	return schedule, nil
+}
+
+// DescribeArmsAlertSilencePolicy describes ARMS alert silence policy
+func (s *ArmsService) DescribeArmsAlertSilencePolicy(id string) (object map[string]interface{}, err error) {
+	// Try using aliyunArmsAPI first if available
+	if s.armsAPI != nil {
+		// Convert string ID to int64
+		silenceIdInt, parseErr := strconv.ParseInt(id, 10, 64)
+		if parseErr == nil {
+			silencePolicy, err := s.armsAPI.GetAlertSilencePolicy(silenceIdInt)
+			if err == nil {
+				// Convert to map[string]interface{} format expected by Terraform
+				return map[string]interface{}{
+					"SilenceId":         silencePolicy.SilenceId,
+					"SilenceName":       silencePolicy.SilenceName,
+					"State":             silencePolicy.State,
+					"EffectiveTimeType": silencePolicy.EffectiveTimeType,
+					"TimePeriod":        silencePolicy.TimePeriod,
+					"TimeSlots":         silencePolicy.TimeSlots,
+					"StartTime":         silencePolicy.StartTime,
+					"EndTime":           silencePolicy.EndTime,
+					"Comment":           silencePolicy.Comment,
+					"MatchingRules":     silencePolicy.MatchingRules,
+					"CreatedBy":         silencePolicy.CreatedBy,
+					"CreateTime":        silencePolicy.CreateTime,
+					"UpdateTime":        silencePolicy.UpdateTime,
+				}, nil
+			}
+		}
+	}
+
+	// Fallback to direct RPC call
+	var response map[string]interface{}
+	action := "ListSilencePolicies"
+	client := s.client
+
+	request := map[string]interface{}{
+		"Page":     1,
+		"Size":     PageSizeXLarge,
+		"RegionId": s.client.RegionId,
+	}
+
+	wait := incrementalWait(3*time.Second, 3*time.Second)
+	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
+		if err != nil {
+			if NeedRetry(err) {
+				wait()
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+	addDebug(action, response, request)
+
+	if err != nil {
+		if IsExpectedErrors(err, []string{"404"}) {
+			return object, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
+		}
+		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
+	}
+
+	v, err := jsonpath.Get("$.PageBean.SilencePolicies", response)
+	if err != nil {
+		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.PageBean.SilencePolicies", response)
+	}
+
+	if len(v.([]interface{})) < 1 {
+		return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
+	}
+
+	// Find the silence policy with matching ID
+	for _, policy := range v.([]interface{}) {
+		policyMap := policy.(map[string]interface{})
+		if fmt.Sprint(policyMap["SilenceId"]) == id {
+			return policyMap, nil
 		}
 	}
 
