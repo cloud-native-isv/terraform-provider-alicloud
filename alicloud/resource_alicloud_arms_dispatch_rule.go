@@ -342,14 +342,15 @@ func resourceAlicloudArmsDispatchRuleRead(d *schema.ResourceData, meta interface
 		}
 		return WrapError(err)
 	}
-	notifyPolicy, err := armsService.ListArmsNotificationPolicies(d.Id())
+	notifyPolicy, err := armsService.DescribeArmsAlertNotificationPolicy(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_arms_dispatch_rule armsService.ListArmsNotificationPolicies Failed!!! %s", err)
-			d.SetId("")
-			return nil
+			log.Printf("[DEBUG] Resource alicloud_arms_dispatch_rule armsService.DescribeArmsAlertNotificationPolicy Failed!!! %s", err)
+			// Set empty notify policy if not found
+			notifyPolicy = make(map[string]interface{})
+		} else {
+			return WrapError(err)
 		}
-		return WrapError(err)
 	}
 
 	if groupRulesList, ok := object["GroupRules"]; ok && groupRulesList != nil {
