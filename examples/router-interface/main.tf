@@ -1,6 +1,7 @@
 // Provider specific configs
 provider "alicloud" {
   region = var.region
+  skip_region_validation = true
 }
 
 // If there is not specifying vpc_id, the module will launch a new vpc

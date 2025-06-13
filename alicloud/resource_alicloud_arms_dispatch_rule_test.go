@@ -23,8 +23,8 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("alicloud_arms_dispatch_rule", &resource.Sweeper{
-		Name: "alicloud_arms_dispatch_rule",
+	resource.AddTestSweepers("alicloud_arms_alert_dispatch_rule", &resource.Sweeper{
+		Name: "alicloud_arms_alert_dispatch_rule",
 		F:    testSweepArmsDispatchRule,
 	})
 }
@@ -116,7 +116,7 @@ func testSweepArmsDispatchRule(region string) error {
 
 func TestAccAliCloudARMSDispatchRule_basic(t *testing.T) {
 	var v map[string]interface{}
-	resourceId := "alicloud_arms_dispatch_rule.default"
+	resourceId := "alicloud_arms_alert_dispatch_rule.default"
 	ra := resourceAttrInit(resourceId, ArmsDispatchRuleMap)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
 		return &ArmsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
@@ -432,7 +432,7 @@ resource "alicloud_arms_alert_contact" "default" {
   email = "${var.name}@aaa.com"
 }
 resource "alicloud_arms_alert_contact_group" "default" {
-  alert_contact_group_name = "${var.name}"
+  contact_group_name = "${var.name}"
   contact_ids = [alicloud_arms_alert_contact.default.id]
 }
 `, name)
@@ -440,8 +440,8 @@ resource "alicloud_arms_alert_contact_group" "default" {
 
 func TestUnitAlicloudARMSDispatchRule(t *testing.T) {
 	p := Provider().(*schema.Provider).ResourcesMap
-	dInit, _ := schema.InternalMap(p["alicloud_arms_dispatch_rule"].Schema).Data(nil, nil)
-	dExisted, _ := schema.InternalMap(p["alicloud_arms_dispatch_rule"].Schema).Data(nil, nil)
+	dInit, _ := schema.InternalMap(p["alicloud_arms_alert_dispatch_rule"].Schema).Data(nil, nil)
+	dExisted, _ := schema.InternalMap(p["alicloud_arms_alert_dispatch_rule"].Schema).Data(nil, nil)
 	dInit.MarkNewResource()
 	attributes := map[string]interface{}{
 		"dispatch_rule_name": "CreateDispatchRuleValue",
@@ -593,7 +593,7 @@ func TestUnitAlicloudARMSDispatchRule(t *testing.T) {
 		}
 	}
 	notFoundResponseMock := func(errorCode string) (map[string]interface{}, error) {
-		return nil, GetNotFoundErrorFromString(GetNotFoundMessage("alicloud_arms_dispatch_rule", errorCode))
+		return nil, GetNotFoundErrorFromString(GetNotFoundMessage("alicloud_arms_alert_dispatch_rule", errorCode))
 	}
 	successResponseMock := func(operationMockResponse map[string]interface{}) (map[string]interface{}, error) {
 		if len(operationMockResponse) > 0 {
@@ -646,7 +646,7 @@ func TestUnitAlicloudARMSDispatchRule(t *testing.T) {
 				assert.NotNil(t, err)
 			default:
 				assert.Nil(t, err)
-				dCompare, _ := schema.InternalMap(p["alicloud_arms_dispatch_rule"].Schema).Data(dInit.State(), nil)
+				dCompare, _ := schema.InternalMap(p["alicloud_arms_alert_dispatch_rule"].Schema).Data(dInit.State(), nil)
 				for key, value := range attributes {
 					dCompare.Set(key, value)
 				}
@@ -727,11 +727,11 @@ func TestUnitAlicloudARMSDispatchRule(t *testing.T) {
 				},
 			},
 		}
-		diff, err := newInstanceDiff("alicloud_arms_dispatch_rule", attributes, attributesDiff, dInit.State())
+		diff, err := newInstanceDiff("alicloud_arms_alert_dispatch_rule", attributes, attributesDiff, dInit.State())
 		if err != nil {
 			t.Error(err)
 		}
-		dExisted, _ = schema.InternalMap(p["alicloud_arms_dispatch_rule"].Schema).Data(dInit.State(), diff)
+		dExisted, _ = schema.InternalMap(p["alicloud_arms_alert_dispatch_rule"].Schema).Data(dInit.State(), diff)
 		ReadMockResponseDiff = map[string]interface{}{
 			// DescribeDispatchRule Response
 			"DispatchRule": map[string]interface{}{
@@ -819,7 +819,7 @@ func TestUnitAlicloudARMSDispatchRule(t *testing.T) {
 				assert.NotNil(t, err)
 			default:
 				assert.Nil(t, err)
-				dCompare, _ := schema.InternalMap(p["alicloud_arms_dispatch_rule"].Schema).Data(dExisted.State(), nil)
+				dCompare, _ := schema.InternalMap(p["alicloud_arms_alert_dispatch_rule"].Schema).Data(dExisted.State(), nil)
 				for key, value := range attributes {
 					dCompare.Set(key, value)
 				}

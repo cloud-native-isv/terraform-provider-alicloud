@@ -27,7 +27,7 @@ resource "alicloud_arms_alert_contact_group" "default" {
   contact_ids              = [alicloud_arms_alert_contact.default.id]
 }
 
-resource "alicloud_arms_dispatch_rule" "default" {
+resource "alicloud_arms_alert_dispatch_rule" "default" {
   dispatch_rule_name = "example_value"
   dispatch_type      = "CREATE_ALERT"
   group_rules {
@@ -64,7 +64,7 @@ resource "alicloud_arms_dispatch_rule" "default" {
 }
 
 data "alicloud_arms_dispatch_rules" "ids" {
-  ids = [alicloud_arms_dispatch_rule.default.id]
+  ids = [alicloud_arms_alert_dispatch_rule.default.id]
 }
 
 output "arms_dispatch_rule_id_1" {

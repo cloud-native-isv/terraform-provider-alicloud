@@ -19,7 +19,7 @@ func TestAccAlicloudARMSAlertContactGroupsDataSource(t *testing.T) {
 
 	nameRegexConf := dataSourceTestAccConfig{
 		existConfig: testAccConfig(map[string]interface{}{
-			"name_regex": "${alicloud_arms_alert_contact_group.default.alert_contact_group_name}",
+			"name_regex": "${alicloud_arms_alert_contact_group.default.contact_group_name}",
 		}),
 		fakeConfig: testAccConfig(map[string]interface{}{
 			"name_regex": "fake_tf-testacc*",
@@ -28,10 +28,10 @@ func TestAccAlicloudARMSAlertContactGroupsDataSource(t *testing.T) {
 
 	nameConf := dataSourceTestAccConfig{
 		existConfig: testAccConfig(map[string]interface{}{
-			"alert_contact_group_name": "${alicloud_arms_alert_contact_group.default.alert_contact_group_name}",
+			"contact_group_name": "${alicloud_arms_alert_contact_group.default.contact_group_name}",
 		}),
 		fakeConfig: testAccConfig(map[string]interface{}{
-			"alert_contact_group_name": "fake_tf-testacc*",
+			"contact_group_name": "fake_tf-testacc*",
 		}),
 	}
 	idsConf := dataSourceTestAccConfig{
@@ -61,16 +61,16 @@ func TestAccAlicloudARMSAlertContactGroupsDataSource(t *testing.T) {
 	}
 	allConf := dataSourceTestAccConfig{
 		existConfig: testAccConfig(map[string]interface{}{
-			"name_regex":               "${alicloud_arms_alert_contact_group.default.alert_contact_group_name}",
-			"alert_contact_group_name": "${alicloud_arms_alert_contact_group.default.alert_contact_group_name}",
-			"ids":                      []string{"${alicloud_arms_alert_contact_group.default.id}"},
-			"contact_id":               "${alicloud_arms_alert_contact.default.id}",
-			"contact_name":             "${alicloud_arms_alert_contact.default.alert_contact_name}",
+			"name_regex":         "${alicloud_arms_alert_contact_group.default.contact_group_name}",
+			"contact_group_name": "${alicloud_arms_alert_contact_group.default.contact_group_name}",
+			"ids":                []string{"${alicloud_arms_alert_contact_group.default.id}"},
+			"contact_id":         "${alicloud_arms_alert_contact.default.id}",
+			"contact_name":       "${alicloud_arms_alert_contact.default.alert_contact_name}",
 		}),
 		// There is an API error when fetching one resource with multi conditions
 		//fakeConfig: testAccConfig(map[string]interface{}{
-		//	"name_regex":               "${alicloud_arms_alert_contact_group.default.alert_contact_group_name}",
-		//	"alert_contact_group_name": "${alicloud_arms_alert_contact_group.default.alert_contact_group_name}-fake",
+		//	"name_regex":               "${alicloud_arms_alert_contact_group.default.contact_group_name}",
+		//	"contact_group_name": "${alicloud_arms_alert_contact_group.default.contact_group_name}-fake",
 		//	"ids":                      []string{"${alicloud_arms_alert_contact_group.default.id}"},
 		//	"contact_id":               "${alicloud_arms_alert_contact.default.id}",
 		//	"contact_name":             "${alicloud_arms_alert_contact.default.alert_contact_name}-fake",
@@ -78,14 +78,14 @@ func TestAccAlicloudARMSAlertContactGroupsDataSource(t *testing.T) {
 	}
 	var existArmsAlertContactGroupsMapFunc = func(rand int) map[string]string {
 		return map[string]string{
-			"ids.#":                             "1",
-			"names.#":                           "1",
-			"groups.#":                          "1",
-			"groups.0.id":                       CHECKSET,
-			"groups.0.alert_contact_group_id":   CHECKSET,
-			"groups.0.alert_contact_group_name": name,
-			"groups.0.contact_ids.#":            "1",
-			"groups.0.create_time":              CHECKSET,
+			"ids.#":                           "1",
+			"names.#":                         "1",
+			"groups.#":                        "1",
+			"groups.0.id":                     CHECKSET,
+			"groups.0.alert_contact_group_id": CHECKSET,
+			"groups.0.contact_group_name":     name,
+			"groups.0.contact_ids.#":          "1",
+			"groups.0.create_time":            CHECKSET,
 		}
 	}
 
@@ -120,7 +120,7 @@ func dataSourceArmsAlertContactGroupsConfigDependence(name string) string {
           email = "${var.name}@aaa.com"
 		}
 		resource "alicloud_arms_alert_contact_group" "default" {
-		  alert_contact_group_name = var.name
+		  contact_group_name = var.name
           contact_ids = [alicloud_arms_alert_contact.default.id]
 		}
 		`, name)

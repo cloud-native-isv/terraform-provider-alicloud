@@ -220,6 +220,8 @@ func (c *Config) Client() (*AliyunClient, error) {
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		log.Printf("[WARN] Region validation is skipped. This may cause unexpected behavior if the region is invalid.")
 	}
 	loadLocalEndpoint = hasLocalEndpoint()
 	if hasLocalEndpoint() {

@@ -971,21 +971,44 @@ func (s *ArmsService) DescribeArmsAlertRule(id string) (object map[string]interf
 	if s.armsAPI != nil {
 		alertId, parseErr := strconv.ParseInt(id, 10, 64)
 		if parseErr == nil {
-			alertRule, err := s.armsAPI.GetAlertRule(alertId, false, false)
+			alertRule, err := s.armsAPI.GetAlertRule(alertId)
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				return map[string]interface{}{
-					"AlertId":          alertRule.AlertId,
-					"AlertName":        alertRule.AlertName,
-					"Severity":         alertRule.Severity,
-					"State":            alertRule.State,
-					"Describe":         alertRule.Describe,
-					"Owner":            alertRule.Owner,
-					"Handler":          alertRule.Handler,
-					"Solution":         alertRule.Solution,
-					"CreateTime":       alertRule.CreateTime,
-					"DispatchRuleId":   alertRule.DispatchRuleId,
-					"DispatchRuleName": alertRule.DispatchRuleName,
+					"AlertId":               alertRule.AlertId,
+					"AlertName":             alertRule.AlertName,
+					"AlertCheckType":        alertRule.AlertCheckType,
+					"AlertGroup":            alertRule.AlertGroup,
+					"AlertStatus":           alertRule.AlertStatus,
+					"AlertType":             alertRule.AlertType,
+					"Level":                 alertRule.Level,
+					"Severity":              alertRule.Level, // Map Level to Severity for backward compatibility
+					"Message":               alertRule.Message,
+					"Duration":              alertRule.Duration,
+					"PromQL":                alertRule.PromQL,
+					"ClusterId":             alertRule.ClusterId,
+					"MetricsType":           alertRule.MetricsType,
+					"NotifyStrategy":        alertRule.NotifyStrategy,
+					"AutoAddNewApplication": alertRule.AutoAddNewApplication,
+					"RegionId":              alertRule.RegionId,
+					"UserId":                alertRule.UserId,
+					"CreatedTime":           alertRule.CreatedTime,
+					"UpdatedTime":           alertRule.UpdatedTime,
+					"CreateTime":            alertRule.CreatedTime, // Map CreatedTime to CreateTime for backward compatibility
+					"Extend":                alertRule.Extend,
+					"Pids":                  alertRule.Pids,
+					"Annotations":           alertRule.Annotations,
+					"Labels":                alertRule.Labels,
+					"Tags":                  alertRule.Tags,
+					"Filters":               alertRule.Filters,
+					"AlertRuleContent":      alertRule.AlertRuleContent,
+					"State":                 alertRule.AlertStatus, // Map AlertStatus to State for consistency
+					"Describe":              alertRule.Message,     // Map Message to Describe for backward compatibility
+					"Owner":                 "",                    // Default empty, can be extracted from Extend if needed
+					"Handler":               "",                    // Default empty, can be extracted from Extend if needed
+					"Solution":              "",                    // Default empty, can be extracted from Extend if needed
+					"DispatchRuleId":        0,                     // Default 0, will be set if available
+					"DispatchRuleName":      "",                    // Default empty, will be set if available
 				}, nil
 			}
 		}
@@ -1038,7 +1061,138 @@ func (s *ArmsService) DescribeArmsAlertRule(id string) (object map[string]interf
 		alertMap := alert.(map[string]interface{})
 		if alertId, ok := alertMap["AlertId"]; ok {
 			if int64(alertId.(float64)) == alertIdInt {
-				return alertMap, nil
+				// Convert RPC response to standardized format matching AlertRule struct
+				standardizedAlert := make(map[string]interface{})
+
+				// Core fields from AlertRule struct
+				if alertId, ok := alertMap["AlertId"]; ok {
+					standardizedAlert["AlertId"] = int64(alertId.(float64))
+				}
+				if alertName, ok := alertMap["AlertName"]; ok && alertName != nil {
+					standardizedAlert["AlertName"] = alertName.(string)
+				}
+				if alertCheckType, ok := alertMap["AlertCheckType"]; ok && alertCheckType != nil {
+					standardizedAlert["AlertCheckType"] = alertCheckType.(string)
+				}
+				if alertGroup, ok := alertMap["AlertGroup"]; ok && alertGroup != nil {
+					if alertGroupFloat, ok := alertGroup.(float64); ok {
+						standardizedAlert["AlertGroup"] = int64(alertGroupFloat)
+					}
+				}
+				if alertStatus, ok := alertMap["AlertStatus"]; ok && alertStatus != nil {
+					standardizedAlert["AlertStatus"] = alertStatus.(string)
+					standardizedAlert["State"] = alertStatus.(string) // Map to State for consistency
+				}
+				if alertType, ok := alertMap["AlertType"]; ok && alertType != nil {
+					standardizedAlert["AlertType"] = alertType.(string)
+				}
+				if level, ok := alertMap["Level"]; ok && level != nil {
+					standardizedAlert["Level"] = level.(string)
+					standardizedAlert["Severity"] = level.(string) // Map to Severity for backward compatibility
+				}
+				if message, ok := alertMap["Message"]; ok && message != nil {
+					standardizedAlert["Message"] = message.(string)
+					standardizedAlert["Describe"] = message.(string) // Map to Describe for backward compatibility
+				}
+				if duration, ok := alertMap["Duration"]; ok && duration != nil {
+					standardizedAlert["Duration"] = duration.(string)
+				}
+				if promQL, ok := alertMap["PromQL"]; ok && promQL != nil {
+					standardizedAlert["PromQL"] = promQL.(string)
+				}
+				if clusterId, ok := alertMap["ClusterId"]; ok && clusterId != nil {
+					standardizedAlert["ClusterId"] = clusterId.(string)
+				}
+				if metricsType, ok := alertMap["MetricsType"]; ok && metricsType != nil {
+					standardizedAlert["MetricsType"] = metricsType.(string)
+				}
+				if notifyStrategy, ok := alertMap["NotifyStrategy"]; ok && notifyStrategy != nil {
+					standardizedAlert["NotifyStrategy"] = notifyStrategy.(string)
+				}
+				if autoAddNewApp, ok := alertMap["AutoAddNewApplication"]; ok && autoAddNewApp != nil {
+					if autoAddBool, ok := autoAddNewApp.(bool); ok {
+						standardizedAlert["AutoAddNewApplication"] = autoAddBool
+					}
+				}
+				if regionId, ok := alertMap["RegionId"]; ok && regionId != nil {
+					standardizedAlert["RegionId"] = regionId.(string)
+				}
+				if userId, ok := alertMap["UserId"]; ok && userId != nil {
+					standardizedAlert["UserId"] = userId.(string)
+				}
+				if createdTime, ok := alertMap["CreatedTime"]; ok && createdTime != nil {
+					if createdTimeFloat, ok := createdTime.(float64); ok {
+						standardizedAlert["CreatedTime"] = int64(createdTimeFloat)
+						standardizedAlert["CreateTime"] = int64(createdTimeFloat) // Map to CreateTime for backward compatibility
+					}
+				}
+				if updatedTime, ok := alertMap["UpdatedTime"]; ok && updatedTime != nil {
+					if updatedTimeFloat, ok := updatedTime.(float64); ok {
+						standardizedAlert["UpdatedTime"] = int64(updatedTimeFloat)
+					}
+				}
+				if extend, ok := alertMap["Extend"]; ok && extend != nil {
+					standardizedAlert["Extend"] = extend.(string)
+				}
+				if pids, ok := alertMap["Pids"]; ok && pids != nil {
+					standardizedAlert["Pids"] = pids
+				}
+				if annotations, ok := alertMap["Annotations"]; ok && annotations != nil {
+					standardizedAlert["Annotations"] = annotations
+				}
+				if labels, ok := alertMap["Labels"]; ok && labels != nil {
+					standardizedAlert["Labels"] = labels
+				}
+				if tags, ok := alertMap["Tags"]; ok && tags != nil {
+					standardizedAlert["Tags"] = tags
+				}
+				if filters, ok := alertMap["Filters"]; ok && filters != nil {
+					standardizedAlert["Filters"] = filters
+				}
+				if alertRuleContent, ok := alertMap["AlertRuleContent"]; ok && alertRuleContent != nil {
+					standardizedAlert["AlertRuleContent"] = alertRuleContent
+				}
+
+				// Legacy/backward compatibility fields - set defaults if not available
+				if _, ok := standardizedAlert["Owner"]; !ok {
+					if owner, ok := alertMap["Owner"]; ok && owner != nil {
+						standardizedAlert["Owner"] = owner.(string)
+					} else {
+						standardizedAlert["Owner"] = ""
+					}
+				}
+				if _, ok := standardizedAlert["Handler"]; !ok {
+					if handler, ok := alertMap["Handler"]; ok && handler != nil {
+						standardizedAlert["Handler"] = handler.(string)
+					} else {
+						standardizedAlert["Handler"] = ""
+					}
+				}
+				if _, ok := standardizedAlert["Solution"]; !ok {
+					if solution, ok := alertMap["Solution"]; ok && solution != nil {
+						standardizedAlert["Solution"] = solution.(string)
+					} else {
+						standardizedAlert["Solution"] = ""
+					}
+				}
+				if _, ok := standardizedAlert["DispatchRuleId"]; !ok {
+					if dispatchRuleId, ok := alertMap["DispatchRuleId"]; ok && dispatchRuleId != nil {
+						if dispatchRuleIdFloat, ok := dispatchRuleId.(float64); ok {
+							standardizedAlert["DispatchRuleId"] = dispatchRuleIdFloat
+						}
+					} else {
+						standardizedAlert["DispatchRuleId"] = float64(0)
+					}
+				}
+				if _, ok := standardizedAlert["DispatchRuleName"]; !ok {
+					if dispatchRuleName, ok := alertMap["DispatchRuleName"]; ok && dispatchRuleName != nil {
+						standardizedAlert["DispatchRuleName"] = dispatchRuleName.(string)
+					} else {
+						standardizedAlert["DispatchRuleName"] = ""
+					}
+				}
+
+				return standardizedAlert, nil
 			}
 		}
 	}
@@ -1050,9 +1204,69 @@ func (s *ArmsService) DescribeArmsAlertRule(id string) (object map[string]interf
 func (s *ArmsService) CreateArmsAlertRule(alertName, severity, description, integrationType, clusterId string, rule map[string]interface{}) (int64, error) {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
-		alertId, err := s.armsAPI.CreateOrUpdateAlertRule(alertName, severity, description, integrationType, clusterId, rule)
-		if err == nil {
-			return alertId, nil
+		// Convert parameters to AlertRule struct
+		alertRule := &aliyunArmsAPI.AlertRule{
+			AlertName: alertName,
+			Level:     severity,
+			Message:   description,
+			AlertType: "PROMETHEUS_MONITORING_ALERT_RULE",
+			ClusterId: clusterId,
+		}
+
+		// Set rule parameters from map
+		if rule != nil {
+			if promql, ok := rule["promql"].(string); ok && promql != "" {
+				alertRule.PromQL = promql
+			} else if expression, ok := rule["expression"].(string); ok && expression != "" {
+				alertRule.PromQL = expression
+			}
+
+			if duration, ok := rule["duration"].(int); ok && duration > 0 {
+				alertRule.Duration = fmt.Sprintf("%d", duration)
+			} else if durationFloat, ok := rule["duration"].(float64); ok && durationFloat > 0 {
+				alertRule.Duration = fmt.Sprintf("%.0f", durationFloat)
+			}
+
+			if message, ok := rule["message"].(string); ok && message != "" {
+				alertRule.Message = message
+			}
+
+			if checkType, ok := rule["check_type"].(string); ok && checkType != "" {
+				alertRule.AlertCheckType = checkType
+			} else {
+				alertRule.AlertCheckType = "CUSTOM"
+			}
+
+			if alertGroup, ok := rule["alert_group"].(int); ok {
+				alertRule.AlertGroup = int64(alertGroup)
+			} else if alertGroupFloat, ok := rule["alert_group"].(float64); ok {
+				alertRule.AlertGroup = int64(alertGroupFloat)
+			} else {
+				alertRule.AlertGroup = -1
+			}
+
+			// Set labels if provided in rule
+			if labels, ok := rule["labels"].(map[string]interface{}); ok && len(labels) > 0 {
+				for key, value := range labels {
+					alertRule.Labels = append(alertRule.Labels, aliyunArmsAPI.AlertRuleLabel{
+						Key:   key,
+						Value: fmt.Sprintf("%v", value),
+					})
+				}
+			}
+		}
+
+		// Set default values for required fields if not specified
+		if alertRule.AlertCheckType == "" {
+			alertRule.AlertCheckType = "CUSTOM"
+		}
+		if alertRule.AlertGroup == 0 {
+			alertRule.AlertGroup = -1
+		}
+
+		createdRule, err := s.armsAPI.CreateAlertRule(alertRule)
+		if err == nil && createdRule != nil {
+			return createdRule.AlertId, nil
 		}
 	}
 
@@ -1170,7 +1384,14 @@ func (s *ArmsService) CreateArmsAlertRule(alertName, severity, description, inte
 func (s *ArmsService) UpdateArmsAlertRule(alertId int64, alertName, severity, description, integrationType, clusterId string, rule map[string]interface{}) error {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
-		_, err := s.armsAPI.CreateOrUpdateAlertRule(alertName, severity, description, integrationType, clusterId, rule)
+		_, err := s.armsAPI.UpdateAlertRule(&aliyunArmsAPI.AlertRule{
+			AlertId:   alertId,
+			AlertName: alertName,
+			Level:     severity,
+			Message:   description,
+			AlertType: "PROMETHEUS_MONITORING_ALERT_RULE",
+			ClusterId: clusterId,
+		})
 		if err == nil {
 			return nil
 		}

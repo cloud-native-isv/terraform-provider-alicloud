@@ -110,23 +110,23 @@ func TestAccAlicloudARMSAlertContactGroup_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfig(map[string]interface{}{
-					"alert_contact_group_name": "${var.name}",
-					"contact_ids":              []string{"${alicloud_arms_alert_contact.default.0.id}", "${alicloud_arms_alert_contact.default.1.id}"},
+					"contact_group_name": "${var.name}",
+					"contact_ids":        []string{"${alicloud_arms_alert_contact.default.0.id}", "${alicloud_arms_alert_contact.default.1.id}"},
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
-						"alert_contact_group_name": name,
-						"contact_ids.#":            "2",
+						"contact_group_name": name,
+						"contact_ids.#":      "2",
 					}),
 				),
 			},
 			{
 				Config: testAccConfig(map[string]interface{}{
-					"alert_contact_group_name": "${var.name}_update",
+					"contact_group_name": "${var.name}_update",
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
-						"alert_contact_group_name": name + "_update",
+						"contact_group_name": name + "_update",
 					}),
 				),
 			},
@@ -142,13 +142,13 @@ func TestAccAlicloudARMSAlertContactGroup_basic(t *testing.T) {
 			},
 			{
 				Config: testAccConfig(map[string]interface{}{
-					"alert_contact_group_name": "${var.name}",
-					"contact_ids":              []string{"${alicloud_arms_alert_contact.default.0.id}", "${alicloud_arms_alert_contact.default.1.id}"},
+					"contact_group_name": "${var.name}",
+					"contact_ids":        []string{"${alicloud_arms_alert_contact.default.0.id}", "${alicloud_arms_alert_contact.default.1.id}"},
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheck(map[string]string{
-						"alert_contact_group_name": name,
-						"contact_ids.#":            "2",
+						"contact_group_name": name,
+						"contact_ids.#":      "2",
 					}),
 				),
 			},
@@ -184,8 +184,8 @@ func TestUnitAlicloudARMSAlertContactGroup(t *testing.T) {
 	dMock, _ := schema.InternalMap(p["alicloud_arms_alert_contact_group"].Schema).Data(nil, nil)
 	dMock.MarkNewResource()
 	for key, value := range map[string]interface{}{
-		"alert_contact_group_name": "${var.name}",
-		"contact_ids":              []string{"contact_ids"},
+		"contact_group_name": "${var.name}",
+		"contact_ids":        []string{"contact_ids"},
 	} {
 		err := dCreate.Set(key, value)
 		assert.Nil(t, err)
@@ -322,7 +322,7 @@ func TestUnitAlicloudARMSAlertContactGroup(t *testing.T) {
 
 	t.Run("UpdateAlertContactGroupAbnormal", func(t *testing.T) {
 		diff := terraform.NewInstanceDiff()
-		for _, key := range []string{"alert_contact_group_name"} {
+		for _, key := range []string{"contact_group_name"} {
 			switch p["alicloud_arms_alert_contact_group"].Schema[key].Type {
 			case schema.TypeString:
 				diff.SetAttribute(key, &terraform.ResourceAttrDiff{Old: d.Get(key).(string), New: d.Get(key).(string) + "_update"})
@@ -357,7 +357,7 @@ func TestUnitAlicloudARMSAlertContactGroup(t *testing.T) {
 
 	t.Run("UpdateAlertContactGroupNormal", func(t *testing.T) {
 		diff := terraform.NewInstanceDiff()
-		for _, key := range []string{"alert_contact_group_name"} {
+		for _, key := range []string{"contact_group_name"} {
 			switch p["alicloud_arms_alert_contact_group"].Schema[key].Type {
 			case schema.TypeString:
 				diff.SetAttribute(key, &terraform.ResourceAttrDiff{Old: d.Get(key).(string), New: d.Get(key).(string) + "_update"})
