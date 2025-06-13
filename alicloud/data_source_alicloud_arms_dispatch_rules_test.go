@@ -19,7 +19,7 @@ func TestAccAlicloudARMSDispatchRulesDataSource(t *testing.T) {
 
 	nameRegexConf := dataSourceTestAccConfig{
 		existConfig: testAccConfig(map[string]interface{}{
-			"name_regex":     "${alicloud_arms_dispatch_rule.default.dispatch_rule_name}",
+			"name_regex":     "${alicloud_arms_alert_dispatch_rule.default.dispatch_rule_name}",
 			"enable_details": "true",
 		}),
 		fakeConfig: testAccConfig(map[string]interface{}{
@@ -29,7 +29,7 @@ func TestAccAlicloudARMSDispatchRulesDataSource(t *testing.T) {
 
 	nameConf := dataSourceTestAccConfig{
 		existConfig: testAccConfig(map[string]interface{}{
-			"dispatch_rule_name": "${alicloud_arms_dispatch_rule.default.dispatch_rule_name}",
+			"dispatch_rule_name": "${alicloud_arms_alert_dispatch_rule.default.dispatch_rule_name}",
 			"enable_details":     "true",
 		}),
 		fakeConfig: testAccConfig(map[string]interface{}{
@@ -38,25 +38,25 @@ func TestAccAlicloudARMSDispatchRulesDataSource(t *testing.T) {
 	}
 	idsConf := dataSourceTestAccConfig{
 		existConfig: testAccConfig(map[string]interface{}{
-			"ids":            []string{"${alicloud_arms_dispatch_rule.default.id}"},
+			"ids":            []string{"${alicloud_arms_alert_dispatch_rule.default.id}"},
 			"enable_details": "true",
 		}),
 		fakeConfig: testAccConfig(map[string]interface{}{
-			"ids": []string{"${alicloud_arms_dispatch_rule.default.id}_fake"},
+			"ids": []string{"${alicloud_arms_alert_dispatch_rule.default.id}_fake"},
 		}),
 	}
 
 	allConf := dataSourceTestAccConfig{
 		existConfig: testAccConfig(map[string]interface{}{
-			"name_regex":         "${alicloud_arms_dispatch_rule.default.dispatch_rule_name}",
-			"dispatch_rule_name": "${alicloud_arms_dispatch_rule.default.dispatch_rule_name}",
-			"ids":                []string{"${alicloud_arms_dispatch_rule.default.id}"},
+			"name_regex":         "${alicloud_arms_alert_dispatch_rule.default.dispatch_rule_name}",
+			"dispatch_rule_name": "${alicloud_arms_alert_dispatch_rule.default.dispatch_rule_name}",
+			"ids":                []string{"${alicloud_arms_alert_dispatch_rule.default.id}"},
 			"enable_details":     "true",
 		}),
 		fakeConfig: testAccConfig(map[string]interface{}{
-			"name_regex":         "${alicloud_arms_dispatch_rule.default.dispatch_rule_name}",
-			"dispatch_rule_name": "${alicloud_arms_dispatch_rule.default.dispatch_rule_name}_fake",
-			"ids":                []string{"${alicloud_arms_dispatch_rule.default.id}"},
+			"name_regex":         "${alicloud_arms_alert_dispatch_rule.default.dispatch_rule_name}",
+			"dispatch_rule_name": "${alicloud_arms_alert_dispatch_rule.default.dispatch_rule_name}_fake",
+			"ids":                []string{"${alicloud_arms_alert_dispatch_rule.default.id}"},
 		}),
 	}
 	var existArmsDispatchRulesMapFunc = func(rand int) map[string]string {
@@ -111,11 +111,11 @@ resource "alicloud_arms_alert_contact" "default" {
   email              = "${var.name}@aaa.com"
 }
 resource "alicloud_arms_alert_contact_group" "default" {
-  alert_contact_group_name = var.name
+  contact_group_name = var.name
   contact_ids              = [alicloud_arms_alert_contact.default.id]
 }
 
-resource "alicloud_arms_dispatch_rule" "default" {
+resource "alicloud_arms_alert_dispatch_rule" "default" {
   dispatch_rule_name = var.name
   dispatch_type      = "CREATE_ALERT"
   group_rules {

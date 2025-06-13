@@ -1,13 +1,13 @@
 ---
 subcategory: "Application Real-Time Monitoring Service (ARMS)"
 layout: "alicloud"
-page_title: "Alicloud: alicloud_arms_dispatch_rule"
+page_title: "Alicloud: alicloud_arms_alert_dispatch_rule"
 sidebar_current: "docs-alicloud-resource-arms-dispatch-rule"
 description: |-
   Provides a Alicloud Application Real-Time Monitoring Service (ARMS) Alert Dispatch rule resource.
 ---
 
-# alicloud_arms_dispatch_rule
+# alicloud_arms_alert_dispatch_rule
 
 Provides a Application Real-Time Monitoring Service (ARMS) Alert Dispatch Rule resource.
 
@@ -20,7 +20,7 @@ For information about Application Real-Time Monitoring Service (ARMS) Alert Disp
 Basic Usage
 
 <div style="display: block;margin-bottom: 40px;"><div class="oics-button" style="float: right;position: absolute;margin-bottom: 10px;">
-  <a href="https://api.aliyun.com/terraform?resource=alicloud_arms_dispatch_rule&exampleId=58f87d10-2d4b-83e1-d859-0c6597ded12110ed076a&activeTab=example&spm=docs.r.arms_dispatch_rule.0.58f87d102d&intl_lang=EN_US" target="_blank">
+  <a href="https://api.aliyun.com/terraform?resource=alicloud_arms_alert_dispatch_rule&exampleId=58f87d10-2d4b-83e1-d859-0c6597ded12110ed076a&activeTab=example&spm=docs.r.arms_dispatch_rule.0.58f87d102d&intl_lang=EN_US" target="_blank">
     <img alt="Open in AliCloud" src="https://img.alicdn.com/imgextra/i1/O1CN01hjjqXv1uYUlY56FyX_!!6000000006049-55-tps-254-36.svg" style="max-height: 44px; max-width: 100%;">
   </a>
 </div></div>
@@ -35,7 +35,7 @@ resource "alicloud_arms_alert_contact_group" "default" {
   contact_ids              = [alicloud_arms_alert_contact.default.id]
 }
 
-resource "alicloud_arms_dispatch_rule" "default" {
+resource "alicloud_arms_alert_dispatch_rule" "default" {
   dispatch_rule_name = "example_value"
   dispatch_type      = "CREATE_ALERT"
   group_rules {
@@ -172,5 +172,5 @@ The following attributes are exported:
 Application Real-Time Monitoring Service (ARMS) Alert Contact can be imported using the id, e.g.
 
 ```shell
-$ terraform import alicloud_arms_dispatch_rule.example <id>
+$ terraform import alicloud_arms_alert_dispatch_rule.example <id>
 ```

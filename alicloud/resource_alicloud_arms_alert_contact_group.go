@@ -22,7 +22,7 @@ func resourceAlicloudArmsAlertContactGroup() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
-			"alert_contact_group_name": {
+			"contact_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -50,7 +50,7 @@ func resourceAlicloudArmsAlertContactGroupCreate(d *schema.ResourceData, meta in
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_contact_group", "NewArmsAPI", AlibabaCloudSdkGoERROR)
 	}
 
-	contactGroupName := d.Get("alert_contact_group_name").(string)
+	contactGroupName := d.Get("contact_group_name").(string)
 	var contactIds []string
 	if v, ok := d.GetOk("contact_ids"); ok {
 		for _, id := range v.(*schema.Set).List() {
@@ -109,7 +109,7 @@ func resourceAlicloudArmsAlertContactGroupRead(d *schema.ResourceData, meta inte
 	}
 
 	contactGroup := contactGroups[0]
-	d.Set("alert_contact_group_name", contactGroup.ContactGroupName)
+	d.Set("contact_group_name", contactGroup.ContactGroupName)
 
 	// Parse ContactIds string into slice
 	contactIdsItems := make([]string, 0)
@@ -133,7 +133,7 @@ func resourceAlicloudArmsAlertContactGroupUpdate(d *schema.ResourceData, meta in
 	client := meta.(*connectivity.AliyunClient)
 	update := false
 
-	if d.HasChange("alert_contact_group_name") || d.HasChange("contact_ids") {
+	if d.HasChange("contact_group_name") || d.HasChange("contact_ids") {
 		update = true
 	}
 
@@ -150,7 +150,7 @@ func resourceAlicloudArmsAlertContactGroupUpdate(d *schema.ResourceData, meta in
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "NewArmsAPI", AlibabaCloudSdkGoERROR)
 		}
 
-		contactGroupName := d.Get("alert_contact_group_name").(string)
+		contactGroupName := d.Get("contact_group_name").(string)
 		var contactIds []string
 		if v, ok := d.GetOk("contact_ids"); ok {
 			for _, id := range v.(*schema.Set).List() {

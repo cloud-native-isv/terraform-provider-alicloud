@@ -1,5 +1,6 @@
 provider "alicloud" {
   region = var.region
+  skip_region_validation = true
 }
 
 data "alicloud_instance_types" "c2g4" {

@@ -197,7 +197,7 @@ func TestAccAlicloudARMSPrometheusAlertRule_basic1(t *testing.T) {
 					"message":                    "node available memory is less than 10%",
 					"duration":                   "1",
 					"notify_type":                "DISPATCH_RULE",
-					"dispatch_rule_id":           "${alicloud_arms_dispatch_rule.default.id}",
+					"dispatch_rule_id":           "${alicloud_arms_alert_dispatch_rule.default.id}",
 					"type":                       name,
 				}),
 				Check: resource.ComposeTestCheckFunc(
@@ -248,11 +248,11 @@ resource "alicloud_arms_alert_contact" "default" {
   email              = "${var.name}@aaa.com"
 }
 resource "alicloud_arms_alert_contact_group" "default" {
-  alert_contact_group_name = var.name
+  contact_group_name = var.name
   contact_ids              = [alicloud_arms_alert_contact.default.id]
 }
 
-resource "alicloud_arms_dispatch_rule" "default" {
+resource "alicloud_arms_alert_dispatch_rule" "default" {
   dispatch_rule_name = var.name
   dispatch_type      = "CREATE_ALERT"
   group_rules {

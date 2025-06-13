@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudArmsAlertRules() *schema.Resource {
+func dataSourceAlicloudArmsAlertHistorys() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudArmsAlertRulesRead,
+		Read: dataSourceAlicloudArmsAlertHistorysRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -124,7 +124,7 @@ func dataSourceAlicloudArmsAlertRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudArmsAlertRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAlicloudArmsAlertHistorysRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Initialize ARMS API client with credentials
@@ -185,7 +185,7 @@ func dataSourceAlicloudArmsAlertRulesRead(d *schema.ResourceData, meta interface
 	}
 
 	// Call ARMS API to list alert rules
-	var allAlerts []*armsAPI.AlertRule
+	var allAlerts []*armsAPI.AlertHistory
 	page := int64(1)
 	size := int64(100) // Use reasonable page size
 

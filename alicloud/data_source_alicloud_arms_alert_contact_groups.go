@@ -34,7 +34,7 @@ func dataSourceAlicloudArmsAlertContactGroups() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Computed: true,
 			},
-			"alert_contact_group_name": {
+			"contact_group_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -66,7 +66,7 @@ func dataSourceAlicloudArmsAlertContactGroups() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"alert_contact_group_name": {
+						"contact_group_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -91,7 +91,7 @@ func dataSourceAlicloudArmsAlertContactGroupsRead(d *schema.ResourceData, meta i
 
 	action := "SearchAlertContactGroup"
 	request := make(map[string]interface{})
-	if v, ok := d.GetOk("alert_contact_group_name"); ok {
+	if v, ok := d.GetOk("contact_group_name"); ok {
 		request["ContactGroupName"] = v
 	}
 	if v, ok := d.GetOk("contact_id"); ok {
@@ -163,7 +163,7 @@ func dataSourceAlicloudArmsAlertContactGroupsRead(d *schema.ResourceData, meta i
 		mapping := map[string]interface{}{
 			"id":                       fmt.Sprint(object["ContactGroupId"]),
 			"alert_contact_group_id":   fmt.Sprint(object["ContactGroupId"]),
-			"alert_contact_group_name": object["ContactGroupName"],
+			"contact_group_name": object["ContactGroupName"],
 			"create_time":              fmt.Sprint(object["CreateTime"]),
 		}
 		contactIdsItems := make([]string, 0)

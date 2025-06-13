@@ -322,7 +322,7 @@ func resourceAlicloudArmsDispatchRuleCreate(d *schema.ResourceData, meta interfa
 	})
 	addDebug(action, response, request)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_dispatch_rule", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_dispatch_rule", action, AlibabaCloudSdkGoERROR)
 	}
 
 	d.SetId(fmt.Sprint(response["DispatchRuleId"]))
@@ -336,7 +336,7 @@ func resourceAlicloudArmsDispatchRuleRead(d *schema.ResourceData, meta interface
 	object, err := armsService.DescribeArmsDispatchRule(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_arms_dispatch_rule armsService.DescribeArmsDispatchRule Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_arms_alert_dispatch_rule armsService.DescribeArmsDispatchRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
@@ -345,7 +345,7 @@ func resourceAlicloudArmsDispatchRuleRead(d *schema.ResourceData, meta interface
 	notifyPolicy, err := armsService.DescribeArmsAlertNotificationPolicy(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_arms_dispatch_rule armsService.DescribeArmsAlertNotificationPolicy Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_arms_alert_dispatch_rule armsService.DescribeArmsAlertNotificationPolicy Failed!!! %s", err)
 			// Set empty notify policy if not found
 			notifyPolicy = make(map[string]interface{})
 		} else {
@@ -577,7 +577,7 @@ func resourceAlicloudArmsDispatchRuleUpdate(d *schema.ResourceData, meta interfa
 	})
 	addDebug(action, response, request)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_dispatch_rule", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_dispatch_rule", action, AlibabaCloudSdkGoERROR)
 	}
 
 	return resourceAlicloudArmsDispatchRuleRead(d, meta)

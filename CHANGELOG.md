@@ -836,7 +836,7 @@ ENHANCEMENTS:
 
 ENHANCEMENTS:
 
-- resource/alicloud_arms_dispatch_rule: add new attribute notify_template and data-source/alicloud_arms_dispatch_rules: add new attribute notify_template. ([#7909](https://github.com/aliyun/terraform-provider-alicloud/issues/7909))
+- resource/alicloud_arms_alert_dispatch_rule: add new attribute notify_template and data-source/alicloud_arms_dispatch_rules: add new attribute notify_template. ([#7909](https://github.com/aliyun/terraform-provider-alicloud/issues/7909))
 - resource/alicloud_ess_scaling_configuration: add attribute custom_priorities. ([#7929](https://github.com/aliyun/terraform-provider-alicloud/issues/7929))
 - resource/alicloud_ess_scaling_group: add attribute of stop_instance_timeout. ([#7945](https://github.com/aliyun/terraform-provider-alicloud/issues/7945))
 - resource/alicloud_cen_private_zone: Improved alicloud_cen_private_zone testcase. ([#7963](https://github.com/aliyun/terraform-provider-alicloud/issues/7963))
@@ -878,7 +878,7 @@ ENHANCEMENTS:
 - resource/alicloud_polardb_cluster_endpoint: modify retry; docs: Improves description for cluster. ([#7952](https://github.com/aliyun/terraform-provider-alicloud/issues/7952))
 - resource/alicloud_data_works_project: add new attributes dev_environment_enabled, dev_role_disabled, pai_task_enabled and etc. ([#7953](https://github.com/aliyun/terraform-provider-alicloud/issues/7953))
 - resource/alicloud_governance_account: support modify account_tags. ([#7955](https://github.com/aliyun/terraform-provider-alicloud/issues/7955))
-- data-source/alicloud_arms_dispatch_rules: add new attribute notify_start_time and notify_end_time; resource/alicloud_arms_dispatch_rule: add new attribute notify_start_time and notify_end_time. ([#7904](https://github.com/aliyun/terraform-provider-alicloud/issues/7904))
+- data-source/alicloud_arms_dispatch_rules: add new attribute notify_start_time and notify_end_time; resource/alicloud_arms_alert_dispatch_rule: add new attribute notify_start_time and notify_end_time. ([#7904](https://github.com/aliyun/terraform-provider-alicloud/issues/7904))
 - docs: improve docs for alicloud_slb_attachment. ([#7940](https://github.com/aliyun/terraform-provider-alicloud/issues/7940))
 - docs: Improves docs of resource alicloud_dcdn_domain and alicloud_cdn_domain_new. ([#7941](https://github.com/aliyun/terraform-provider-alicloud/issues/7941))
 - docs: improve examples for alicloud_config_rule. ([#7942](https://github.com/aliyun/terraform-provider-alicloud/issues/7942))
