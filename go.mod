@@ -67,9 +67,14 @@ require (
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.0.6
 =======
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.3.0
+<<<<<<< HEAD
 >>>>>>> 7f6807ac4 (update go mod)
 	github.com/alibabacloud-go/darabonba-openapi v0.1.18
 >>>>>>> 87f6a6723 (refactor oss bucket config)
+||||||| parent of 6e72d52c8 (refactor code)
+	github.com/alibabacloud-go/darabonba-openapi v0.1.18
+=======
+>>>>>>> 6e72d52c8 (refactor code)
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.6
 >>>>>>> c188fec34 (update resource code)
 	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7
@@ -107,6 +112,7 @@ require (
 	github.com/alibabacloud-go/darabonba-array v0.1.0 // indirect
 	github.com/alibabacloud-go/darabonba-encode-util v0.0.2 // indirect
 	github.com/alibabacloud-go/darabonba-map v0.0.2 // indirect
+	github.com/alibabacloud-go/darabonba-openapi v0.1.18 // indirect
 	github.com/alibabacloud-go/darabonba-signature-util v0.0.7 // indirect
 	github.com/alibabacloud-go/darabonba-string v1.0.2 // indirect
 	github.com/alibabacloud-go/debug v1.0.1 // indirect
@@ -114,6 +120,7 @@ require (
 	github.com/alibabacloud-go/foasconsole-20211028 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/openapi-util v0.1.1 // indirect
 	github.com/alibabacloud-go/rds-20140815/v5 v5.0.5 // indirect
+	github.com/alibabacloud-go/sls-20201230/v6 v6.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/tea-oss-utils v1.1.0 // indirect
 	github.com/alibabacloud-go/tea-roa-utils v1.1.5 // indirect
 	github.com/alibabacloud-go/tea-rpc-utils v1.1.2 // indirect

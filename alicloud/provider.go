@@ -114,7 +114,7 @@ func Provider() terraform.ResourceProvider {
 			"skip_region_validation": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false,
+				Default:     true,
 				Description: descriptions["skip_region_validation"],
 			},
 			"configuration_source": {

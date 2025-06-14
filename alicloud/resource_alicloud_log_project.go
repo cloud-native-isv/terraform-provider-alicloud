@@ -7,9 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -66,63 +64,65 @@ func resourceAliCloudSlsProject() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: StringMatch(regexp.MustCompile("^[0-9a-zA-Z_-]+$"), "The name of the log project. It is the only in one Alicloud account. The project name is globally unique in Alibaba Cloud and cannot be modified after it is created. The naming rules are as follows:- The project name must be globally unique. - The name can contain only lowercase letters, digits, and hyphens (-). - It must start and end with a lowercase letter or number. - The value contains 3 to 63 characters."),
 			},
-			// Removed service_logging field as it's now managed by alicloud_log_project_logging resource
 		},
 	}
 }
 
 func resourceAliCloudSlsProjectCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	action := fmt.Sprintf("/")
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	body := make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	var err error
-	request = make(map[string]interface{})
-	if v, ok := d.GetOk("project_name"); ok {
-		request["projectName"] = v
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_project", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
-	if v, ok := d.GetOk("name"); ok {
-		request["projectName"] = v
+
+	// Get project name from either project_name or name field
+	var projectName string
+	if v, ok := d.GetOk("project_name"); ok {
+		projectName = v.(string)
+	} else if v, ok := d.GetOk("name"); ok {
+		projectName = v.(string)
+	} else {
+		return WrapError(fmt.Errorf("either project_name or name must be specified"))
+	}
+
+	// Prepare create project request
+	createRequest := map[string]interface{}{
+		"projectName": projectName,
 	}
 
 	if v, ok := d.GetOk("description"); ok {
-		request["description"] = v
+		createRequest["description"] = v.(string)
 	}
 	if v, ok := d.GetOk("resource_group_id"); ok {
-		request["resourceGroupId"] = v
+		createRequest["resourceGroupId"] = v.(string)
 	}
-	body = request
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.Do("Sls", roaParam("POST", "2020-12-30", "CreateProject", action), query, body, nil, hostMap, false)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
 
+	// Create project using SlsService
+	err = slsService.CreateProject(createRequest)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_project", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_project", "CreateProject", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprint(request["projectName"]))
+	d.SetId(projectName)
 
-	return resourceAliCloudSlsProjectUpdate(d, meta)
+	// Use StateRefreshFunc to wait for project creation completion
+	stateConf := BuildStateConf([]string{}, []string{"Normal"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.SlsProjectStateRefreshFunc(d.Id(), "status", []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return resourceAliCloudSlsProjectRead(d, meta)
 }
 
 func resourceAliCloudSlsProjectRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsServiceV2(client)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_project", "NewSlsService", AlibabaCloudSdkGoERROR)
+	}
 
-	objectRaw, err := slsServiceV2.DescribeSlsProject(d.Id())
+	// Get project details
+	objectRaw, err := slsService.DescribeSlsProject(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_log_project DescribeSlsProject Failed!!! %s", err)
@@ -132,131 +132,90 @@ func resourceAliCloudSlsProjectRead(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
+	// Set basic project attributes
 	d.Set("create_time", objectRaw["createTime"])
 	d.Set("description", objectRaw["description"])
 	d.Set("resource_group_id", objectRaw["resourceGroupId"])
 	d.Set("status", objectRaw["status"])
 	d.Set("project_name", objectRaw["projectName"])
 
-	objectRaw, err = slsServiceV2.DescribeListTagResources(d.Id())
+	// Get and set tags
+	tagObjectRaw, err := slsService.DescribeListTagResources(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
-	tagsMaps := objectRaw["tagResources"]
+	tagsMaps := tagObjectRaw["tagResources"]
 	d.Set("tags", tagsToMap(tagsMaps))
 
-	d.Set("project_name", d.Id())
-
-	logService := LogService{client}
-	policy, err := logService.DescribeLogProjectPolicy(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-	if policy != "" && policy != "{}" {
+	// Set project policy if exists
+	if policy, exists := objectRaw["policy"]; exists && policy != "" && policy != "{}" {
 		d.Set("policy", policy)
 	}
 
+	// Set deprecated name field for backward compatibility
 	d.Set("name", d.Get("project_name"))
+
 	return nil
 }
 
 func resourceAliCloudSlsProjectUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]*string
-	var body map[string]interface{}
-	var hostMap map[string]*string
-	update := false
-	d.Partial(true)
-	action := fmt.Sprintf("/")
-	var err error
-	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	body = make(map[string]interface{})
-	hostMap = make(map[string]*string)
-	hostMap["project"] = StringPointer(d.Id())
-	if !d.IsNewResource() && d.HasChange("description") {
-		update = true
-	}
-	request["description"] = d.Get("description")
-	body = request
-	if update {
-		wait := incrementalWait(3*time.Second, 5*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.Do("Sls", roaParam("PUT", "2020-12-30", "UpdateProject", action), query, body, nil, hostMap, false)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(action, response, request)
-			return nil
-		})
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-		}
-	}
-	update = false
-	action = fmt.Sprintf("/resourcegroup")
-	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	body = make(map[string]interface{})
-	hostMap = make(map[string]*string)
-	request["resourceId"] = d.Id()
-	if _, ok := d.GetOk("resource_group_id"); ok && !d.IsNewResource() && d.HasChange("resource_group_id") {
-		update = true
-	}
-	request["resourceGroupId"] = d.Get("resource_group_id")
-	request["resourceType"] = "PROJECT"
-	body = request
-	if update {
-		wait := incrementalWait(3*time.Second, 5*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.Do("Sls", roaParam("PUT", "2020-12-30", "ChangeResourceGroup", action), query, body, nil, hostMap, false)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(action, response, request)
-			return nil
-		})
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-		}
-	}
-	slsServiceV2, err := NewSlsServiceV2(client)
-	if d.HasChange("tags") {
-		if err := slsServiceV2.SetResourceTags(d, "PROJECT"); err != nil {
-			return WrapError(err)
-		}
-	}
+	slsService, err := NewSlsService(client)
 	if err != nil {
-		return WrapError(err)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_project", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
 
+	d.Partial(true)
+
+	// Update project description
+	if d.HasChange("description") {
+		updateRequest := map[string]interface{}{
+			"projectName": d.Id(),
+			"description": d.Get("description"),
+		}
+
+		err := slsService.UpdateProject(updateRequest)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateProject", AlibabaCloudSdkGoERROR)
+		}
+		d.SetPartial("description")
+	}
+
+	// Update resource group
+	if d.HasChange("resource_group_id") {
+		resourceGroupRequest := map[string]interface{}{
+			"resourceId":      d.Id(),
+			"resourceGroupId": d.Get("resource_group_id"),
+			"resourceType":    "PROJECT",
+		}
+
+		err := slsService.ChangeResourceGroup(resourceGroupRequest)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ChangeResourceGroup", AlibabaCloudSdkGoERROR)
+		}
+		d.SetPartial("resource_group_id")
+	}
+
+	// Update tags
+	if d.HasChange("tags") {
+		if err := slsService.SetResourceTags(d, "PROJECT"); err != nil {
+			return WrapError(err)
+		}
+		d.SetPartial("tags")
+	}
+
+	// Update project policy
 	if d.HasChange("policy") {
-		var requestInfo *sls.Client
 		policy := ""
 		if v, ok := d.GetOk("policy"); ok {
 			policy = v.(string)
 		}
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-			if policy == "" {
-				return nil, slsClient.DeleteProjectPolicy(d.Id())
-			}
-			return nil, slsClient.UpdateProjectPolicy(d.Id(), policy)
-		})
+
+		err := slsService.UpdateProjectPolicy(d.Id(), policy)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateProjectPolicy", AliyunLogGoSdkERROR)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateProjectPolicy", AlibabaCloudSdkGoERROR)
 		}
-		addDebug("UpdateProjectPolicy", raw, requestInfo, request)
 		d.SetPartial("policy")
 	}
 
@@ -265,33 +224,21 @@ func resourceAliCloudSlsProjectUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceAliCloudSlsProjectDelete(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
-	action := fmt.Sprintf("/")
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	hostMap := make(map[string]*string)
-	var err error
-	request = make(map[string]interface{})
-	hostMap["project"] = StringPointer(d.Id())
-
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.Do("Sls", roaParam("DELETE", "2020-12-30", "DeleteProject", action), query, nil, nil, hostMap, false)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
-
+	slsService, err := NewSlsService(client)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_project", "NewSlsService", AlibabaCloudSdkGoERROR)
+	}
+
+	err = slsService.DeleteProject(d.Id())
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteProject", AlibabaCloudSdkGoERROR)
+	}
+
+	// Use StateRefreshFunc to wait for project deletion completion
+	stateConf := BuildStateConf([]string{"Normal"}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, slsService.SlsProjectStateRefreshFunc(d.Id(), "status", []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
 	return nil

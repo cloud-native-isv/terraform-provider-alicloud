@@ -16,7 +16,7 @@ func TestAccAliCloudSlsScheduledSQL_basic6614(t *testing.T) {
 	resourceId := "alicloud_sls_scheduled_sql.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsScheduledSQLMap6614)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsScheduledSQL")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -188,7 +188,7 @@ func TestAccAliCloudSlsScheduledSQL_basic6613(t *testing.T) {
 	resourceId := "alicloud_sls_scheduled_sql.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsScheduledSQLMap6613)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsScheduledSQL")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -362,7 +362,7 @@ func TestAccAliCloudSlsScheduledSQL_basic6609(t *testing.T) {
 	resourceId := "alicloud_sls_scheduled_sql.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsScheduledSQLMap6609)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsScheduledSQL")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -530,7 +530,7 @@ func TestAccAliCloudSlsScheduledSQL_basic6614_twin(t *testing.T) {
 	resourceId := "alicloud_sls_scheduled_sql.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsScheduledSQLMap6614)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsScheduledSQL")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -606,7 +606,7 @@ func TestAccAliCloudSlsScheduledSQL_basic6613_twin(t *testing.T) {
 	resourceId := "alicloud_sls_scheduled_sql.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsScheduledSQLMap6613)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsScheduledSQL")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -682,7 +682,7 @@ func TestAccAliCloudSlsScheduledSQL_basic6609_twin(t *testing.T) {
 	resourceId := "alicloud_sls_scheduled_sql.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsScheduledSQLMap6609)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsScheduledSQL")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -765,7 +765,7 @@ func TestAccAliCloudSlsScheduledSQL_basic6614_raw(t *testing.T) {
 	resourceId := "alicloud_sls_scheduled_sql.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsScheduledSQLMap6614)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsScheduledSQL")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -889,7 +889,7 @@ func TestAccAliCloudSlsScheduledSQL_basic6613_raw(t *testing.T) {
 	resourceId := "alicloud_sls_scheduled_sql.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsScheduledSQLMap6613)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsScheduledSQL")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -1080,7 +1080,7 @@ func TestAccAliCloudSlsScheduledSQL_basic6609_raw(t *testing.T) {
 	resourceId := "alicloud_sls_scheduled_sql.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsScheduledSQLMap6609)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsScheduledSQL")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()

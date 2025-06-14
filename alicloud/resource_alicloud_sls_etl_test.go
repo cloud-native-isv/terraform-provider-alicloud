@@ -16,7 +16,7 @@ func TestAccAliCloudSlsEtl_basic10468(t *testing.T) {
 	resourceId := "alicloud_sls_etl.default"
 	ra := resourceAttrInit(resourceId, AliCloudSlsEtlMap10468)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsEtl")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -235,7 +235,7 @@ func TestAccAliCloudSlsEtl_basic10468_twin(t *testing.T) {
 	resourceId := "alicloud_sls_etl.default"
 	ra := resourceAttrInit(resourceId, AliCloudSlsEtlMap10468)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsEtl")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
