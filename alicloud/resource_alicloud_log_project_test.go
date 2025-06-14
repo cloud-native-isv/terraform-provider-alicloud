@@ -311,7 +311,7 @@ func TestAccAliCloudSlsProject_basic4209(t *testing.T) {
 	resourceId := "alicloud_log_project.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsProjectMap4209)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsProject")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -485,7 +485,7 @@ func TestAccAliCloudSlsProject_basic4209_twin(t *testing.T) {
 	resourceId := "alicloud_log_project.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsProjectMap4209)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsProject")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()

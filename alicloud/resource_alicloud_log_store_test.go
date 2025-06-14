@@ -1265,7 +1265,7 @@ func testAccCheckSLSLogStoreDestroyWithProviders(providers *[]*schema.Provider) 
 
 func testAccCheckSLSLogStoreDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
 	client := provider.Meta().(*connectivity.AliyunClient)
-	slsServiceV2 := SlsServiceV2{client}
+	slsServiceV2 := SlsService{client}
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "alicloud_log_store" {

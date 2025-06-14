@@ -16,7 +16,7 @@ func TestAccAliCloudSlsOssExportSink_basic9137(t *testing.T) {
 	resourceId := "alicloud_sls_oss_export_sink.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsOssExportSinkMap9137)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsOssExportSink")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -219,7 +219,7 @@ func TestAccAliCloudSlsOssExportSink_basic9051(t *testing.T) {
 	resourceId := "alicloud_sls_oss_export_sink.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsOssExportSinkMap9051)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsOssExportSink")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()

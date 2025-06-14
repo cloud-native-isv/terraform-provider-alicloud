@@ -16,7 +16,7 @@ func TestAccAliCloudSlsCollectionPolicy_basic8160(t *testing.T) {
 	resourceId := "alicloud_sls_collection_policy.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsCollectionPolicyMap8160)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsCollectionPolicy")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -330,7 +330,7 @@ func TestAccAliCloudSlsCollectionPolicy_basic8140(t *testing.T) {
 	resourceId := "alicloud_sls_collection_policy.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsCollectionPolicyMap8140)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsCollectionPolicy")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -641,7 +641,7 @@ func TestAccAliCloudSlsCollectionPolicy_basic7850(t *testing.T) {
 	resourceId := "alicloud_sls_collection_policy.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsCollectionPolicyMap7850)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsCollectionPolicy")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -791,7 +791,7 @@ func TestAccAliCloudSlsCollectionPolicy_basic8160_twin(t *testing.T) {
 	resourceId := "alicloud_sls_collection_policy.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsCollectionPolicyMap8160)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsCollectionPolicy")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -871,7 +871,7 @@ func TestAccAliCloudSlsCollectionPolicy_basic8140_twin(t *testing.T) {
 	resourceId := "alicloud_sls_collection_policy.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsCollectionPolicyMap8140)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsCollectionPolicy")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -946,7 +946,7 @@ func TestAccAliCloudSlsCollectionPolicy_basic7850_twin(t *testing.T) {
 	resourceId := "alicloud_sls_collection_policy.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsCollectionPolicyMap7850)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsCollectionPolicy")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -1001,7 +1001,7 @@ func TestAccAliCloudSlsCollectionPolicy_basic8160_raw(t *testing.T) {
 	resourceId := "alicloud_sls_collection_policy.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsCollectionPolicyMap8160)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsCollectionPolicy")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -1174,7 +1174,7 @@ func TestAccAliCloudSlsCollectionPolicy_basic8140_raw(t *testing.T) {
 	resourceId := "alicloud_sls_collection_policy.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsCollectionPolicyMap8140)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsCollectionPolicy")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -1337,7 +1337,7 @@ func TestAccAliCloudSlsCollectionPolicy_basic7850_raw(t *testing.T) {
 	resourceId := "alicloud_sls_collection_policy.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsCollectionPolicyMap7850)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsCollectionPolicy")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()

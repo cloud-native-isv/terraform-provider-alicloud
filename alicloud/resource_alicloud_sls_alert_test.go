@@ -16,7 +16,7 @@ func TestAccAliCloudSlsAlert_basic5844(t *testing.T) {
 	resourceId := "alicloud_sls_alert.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsAlertMap5844)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsAlert")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -671,7 +671,7 @@ func TestAccAliCloudSlsAlert_basic6423(t *testing.T) {
 	resourceId := "alicloud_sls_alert.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsAlertMap6423)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsAlert")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -1358,7 +1358,7 @@ func TestAccAliCloudSlsAlert_basic5844_twin(t *testing.T) {
 	resourceId := "alicloud_sls_alert.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsAlertMap5844)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsAlert")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
@@ -1544,7 +1544,7 @@ func TestAccAliCloudSlsAlert_basic6423_twin(t *testing.T) {
 	resourceId := "alicloud_sls_alert.default"
 	ra := resourceAttrInit(resourceId, AlicloudSlsAlertMap6423)
 	rc := resourceCheckInitWithDescribeMethod(resourceId, &v, func() interface{} {
-		return &SlsServiceV2{testAccProvider.Meta().(*connectivity.AliyunClient)}
+		return &SlsService{testAccProvider.Meta().(*connectivity.AliyunClient)}
 	}, "DescribeSlsAlert")
 	rac := resourceAttrCheckInit(rc, ra)
 	testAccCheck := rac.resourceAttrMapUpdateSet()
