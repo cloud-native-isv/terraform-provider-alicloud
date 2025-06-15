@@ -1,7 +1,6 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -210,8 +209,12 @@ func resourceAlicloudLogETL() *schema.Resource {
 
 func resourceAlicloudLogETLCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var requestinfo *aliyunSlsAPI.Client
-	logService := NewLogService(client)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	logService := NewSlsService(client)
 	etlJob, err := getETLJob(d, meta)
 	if err != nil {
 		return err
@@ -220,12 +223,7 @@ func resourceAlicloudLogETLCreate(d *schema.ResourceData, meta interface{}) erro
 	project := d.Get("project").(string)
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-
-		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			requestinfo = slsClient
-			return nil, slsClient.CreateETL(project, etlJob)
-		})
+		err := slsService.CreateETL(project, &etlJob)
 		if err != nil {
 			if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
 				wait()
@@ -234,7 +232,7 @@ func resourceAlicloudLogETLCreate(d *schema.ResourceData, meta interface{}) erro
 			return resource.NonRetryableError(err)
 		}
 		if debugOn() {
-			addDebug("CreateETL", raw, requestinfo, map[string]interface{}{
+			addDebug("CreateETL", nil, nil, map[string]interface{}{
 				"project":  project,
 				"logstore": d.Get("logstore").(string),
 			})
@@ -254,7 +252,7 @@ func resourceAlicloudLogETLCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAlicloudLogETLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := NewLogService(client)
+	logService := NewSlsService(client)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
@@ -262,7 +260,7 @@ func resourceAlicloudLogETLRead(d *schema.ResourceData, meta interface{}) error 
 	etl, err := logService.DescribeLogEtl(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_log_etl LogService.DescribeLogEtl Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_log_etl SlsService.DescribeLogEtl Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
@@ -347,21 +345,22 @@ func resourceAlicloudLogETLRead(d *schema.ResourceData, meta interface{}) error 
 
 func resourceAlicloudLogETLUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
 	}
 	wait := incrementalWait(3*time.Second, 3*time.Second)
-	logService := NewLogService(client)
+	logService := NewSlsService(client)
 	if d.HasChange("status") {
 		status := d.Get("status").(string)
 		if status == "STARTING" || status == "RUNNING" {
 			if err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-				_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-					ctx := context.Background()
-					return nil, slsClient.StartETL(parts[0], d.Get("etl_name").(string))
-				})
+				err := slsService.StartETL(parts[0], d.Get("etl_name").(string))
 				if err != nil {
 					if IsExpectedErrors(err, []string{LogClientTimeout}) {
 						wait()
@@ -379,10 +378,7 @@ func resourceAlicloudLogETLUpdate(d *schema.ResourceData, meta interface{}) erro
 			}
 		} else if status == "STOPPING" || status == "STOPPED" {
 			if err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-				_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-					ctx := context.Background()
-					return nil, slsClient.StopETL(parts[0], d.Get("etl_name").(string))
-				})
+				err := slsService.StopETL(parts[0], d.Get("etl_name").(string))
 				if err != nil {
 					if IsExpectedErrors(err, []string{LogClientTimeout}) {
 						wait()
@@ -404,28 +400,31 @@ func resourceAlicloudLogETLUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-		_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			etl, err := getETLJob(d, meta)
-			if err != nil {
-				return nil, err
+		etl, err := getETLJob(d, meta)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+		status := d.Get("status").(string)
+		if status == "STOPPING" || status == "STOPPED" {
+			err = slsService.aliyunSlsAPI.UpdateETL(parts[0], parts[1], &etl)
+		} else {
+			// For running ETL, we need to stop, update, then start again
+			err = slsService.aliyunSlsAPI.StopETL(parts[0], parts[1])
+			if err == nil {
+				err = slsService.aliyunSlsAPI.UpdateETL(parts[0], parts[1], &etl)
+				if err == nil {
+					err = slsService.aliyunSlsAPI.StartETL(parts[0], parts[1])
+					if err == nil {
+						// Use the correct state refresh function
+						logService := NewSlsService(client)
+						stateConf := BuildStateConf([]string{}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, logService.sls.SlsEtlStateRefreshFunc(d.Id(), "status", []string{}))
+						if _, err := stateConf.WaitForState(); err != nil {
+							return resource.NonRetryableError(WrapErrorf(err, IdMsg, d.Id()))
+						}
+					}
+				}
 			}
-			status := d.Get("status").(string)
-			if status == "STOPPING" || status == "STOPPED" {
-				return nil, slsClient.UpdateETL(parts[0], etl)
-			}
-			if err = slsClient.RestartETL(parts[0], etl); err != nil {
-				return nil, err
-			}
-
-			// Use the correct state refresh function
-			logService := NewLogService(client)
-			stateConf := BuildStateConf([]string{}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, logService.sls.SlsEtlStateRefreshFunc(d.Id(), "status", []string{}))
-			if _, err := stateConf.WaitForState(); err != nil {
-				return nil, WrapErrorf(err, IdMsg, d.Id())
-			}
-			return nil, nil
-		})
+		}
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				wait()
@@ -442,19 +441,19 @@ func resourceAlicloudLogETLUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAlicloudLogETLDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := NewLogService(client)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	logService := NewSlsService(client)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
 	}
-	var requestInfo *aliyunSlsAPI.Client
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			requestInfo = slsClient
-			return nil, slsClient.DeleteETL(parts[0], parts[1])
-		})
+		err := slsService.aliyunSlsAPI.DeleteETL(parts[0], parts[1])
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				wait()
@@ -463,7 +462,7 @@ func resourceAlicloudLogETLDelete(d *schema.ResourceData, meta interface{}) erro
 			return resource.NonRetryableError(err)
 		}
 		if debugOn() {
-			addDebug("DeleteLogETL", raw, requestInfo, map[string]interface{}{
+			addDebug("DeleteLogETL", nil, nil, map[string]interface{}{
 				"project_name": parts[0],
 				"elt_name":     parts[1],
 			})
@@ -493,7 +492,7 @@ func getETLJob(d *schema.ResourceData, meta interface{}) (aliyunSlsAPI.ETL, erro
 	config = aliyunSlsAPI.ETLConfiguration{
 		FromTime:   int64(d.Get("from_time").(int)),
 		Logstore:   d.Get("logstore").(string),
-		Parameters: parms,
+		Parameters: []string{}, // Initialize as empty slice, will be populated if needed
 		Script:     d.Get("script").(string),
 		ToTime:     int64(d.Get("to_time").(int)),
 		Version:    d.Get("version").(string),

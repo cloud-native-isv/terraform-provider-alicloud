@@ -315,9 +315,9 @@ func resourceAliCloudSlsScheduledSQLCreate(d *schema.ResourceData, meta interfac
 
 func resourceAliCloudSlsScheduledSQLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsServiceV2(client)
+	slsServiceV2, err := NewSlsService(client)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
 
 	objectRaw, err := slsServiceV2.DescribeSlsScheduledSQL(d.Id())
@@ -543,9 +543,9 @@ func resourceAliCloudSlsScheduledSQLUpdate(d *schema.ResourceData, meta interfac
 	if d.HasChange("status") {
 		client := meta.(*connectivity.AliyunClient)
 		stateConf := BuildStateConf([]string{}, []string{"COMPLETE"}, d.Timeout(schema.TimeoutUpdate), 1*time.Second, func() (interface{}, string, error) {
-			slsServiceV2, err := NewSlsServiceV2(client)
+			slsServiceV2, err := NewSlsService(client)
 			if err != nil {
-				return nil, "", WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+				return nil, "", WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "NewSlsService", AlibabaCloudSdkGoERROR)
 			}
 			return slsServiceV2.SlsScheduledSQLStateRefreshFunc(d.Id(), "$.state", []string{})()
 		})

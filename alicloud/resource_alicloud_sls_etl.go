@@ -3,10 +3,11 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -229,7 +230,7 @@ func resourceAliCloudSlsEtlCreate(d *schema.ResourceData, meta interface{}) erro
 
 	d.SetId(fmt.Sprintf("%v:%v", *hostMap["project"], request["name"]))
 
-	slsServiceV2, err := NewSlsServiceV2(client)
+	slsServiceV2, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -243,7 +244,7 @@ func resourceAliCloudSlsEtlCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceAliCloudSlsEtlRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsServiceV2(client)
+	slsServiceV2, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -420,7 +421,7 @@ func resourceAliCloudSlsEtlUpdate(d *schema.ResourceData, meta interface{}) erro
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		slsServiceV2, err := NewSlsServiceV2(client)
+		slsServiceV2, err := NewSlsService(client)
 		if err != nil {
 			return WrapError(err)
 		}

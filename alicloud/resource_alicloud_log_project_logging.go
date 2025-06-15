@@ -65,7 +65,7 @@ func resourceAlicloudLogProjectLogging() *schema.Resource {
 
 func resourceAlicloudLogProjectLoggingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsServiceV2(client)
+	slsServiceV2, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -92,7 +92,7 @@ func resourceAlicloudLogProjectLoggingCreate(d *schema.ResourceData, meta interf
 
 func resourceAlicloudLogProjectLoggingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsServiceV2(client)
+	slsServiceV2, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -128,7 +128,7 @@ func resourceAlicloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 
 func resourceAlicloudLogProjectLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsServiceV2(client)
+	slsServiceV2, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -148,7 +148,7 @@ func resourceAlicloudLogProjectLoggingUpdate(d *schema.ResourceData, meta interf
 
 func resourceAlicloudLogProjectLoggingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsServiceV2(client)
+	slsServiceV2, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}

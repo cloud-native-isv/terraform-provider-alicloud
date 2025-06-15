@@ -170,7 +170,7 @@ func resourceAlicloudLogOssShipperCreate(d *schema.ResourceData, meta interface{
 
 func resourceAlicloudLogOssShipperRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService(client)
+	logService := SlsService(client)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
@@ -178,7 +178,7 @@ func resourceAlicloudLogOssShipperRead(d *schema.ResourceData, meta interface{})
 	shipper, err := logService.DescribeLogOssShipper(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_log_oss_shipper LogService.DescribeLogOssShipper Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_log_oss_shipper SlsService.DescribeLogOssShipper Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
@@ -257,7 +257,7 @@ func resourceAlicloudLogOssShipperUpdate(d *schema.ResourceData, meta interface{
 
 func resourceAlicloudLogOssShipperDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService(client)
+	logService := SlsService(client)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)

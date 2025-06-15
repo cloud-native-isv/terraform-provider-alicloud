@@ -1,11 +1,9 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -60,14 +58,12 @@ func dataSourceAlicloudLogServiceRead(d *schema.ResourceData, meta interface{}) 
 
 func checkLogServiceReady(meta interface{}) (bool, error) {
 	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return false, err
+	}
 
-	_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-		ctx := context.Background()
-		// Try to list projects to check if service is available
-		projects, err := slsClient.ListLogProjects(ctx, "", "")
-		return projects, err
-	})
-
+	_, err = slsService.ListProjects()
 	if err != nil {
 		// If we get specific service not enabled errors, return false
 		if IsExpectedErrors(err, []string{"ServiceNotEnabled", "ServiceNotOpen", "Forbidden"}) {

@@ -31,8 +31,3 @@ func NewSlsService(client *connectivity.AliyunClient) (*SlsService, error) {
 		aliyunSlsAPI: slsAPI,
 	}, nil
 }
-
-// NewSlsServiceV2 creates a new SlsService instance (alias for NewSlsService for backward compatibility)
-func NewSlsServiceV2(client *connectivity.AliyunClient) (*SlsService, error) {
-	return NewSlsService(client)
-}

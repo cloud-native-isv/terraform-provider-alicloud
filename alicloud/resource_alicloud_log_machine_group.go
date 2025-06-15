@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -96,7 +96,7 @@ func resourceAlicloudLogMachineGroupCreate(d *schema.ResourceData, meta interfac
 
 func resourceAlicloudLogMachineGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService(client)
+	logService := SlsService(client)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
@@ -138,7 +138,7 @@ func resourceAlicloudLogMachineGroupUpdate(d *schema.ResourceData, meta interfac
 		}
 		if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
 			raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
+				ctx := context.Background()
 				requestInfo = slsClient
 				return nil, slsClient.UpdateMachineGroup(parts[0], params)
 			})
@@ -166,7 +166,7 @@ func resourceAlicloudLogMachineGroupUpdate(d *schema.ResourceData, meta interfac
 
 func resourceAlicloudLogMachineGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService(client)
+	logService := SlsService(client)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)

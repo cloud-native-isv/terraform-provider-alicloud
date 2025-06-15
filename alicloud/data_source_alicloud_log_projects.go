@@ -1,15 +1,11 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"regexp"
-	"time"
+	"strings"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -92,106 +88,99 @@ func dataSourceAlicloudLogProjects() *schema.Resource {
 
 func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := NewLogService(client)
-
-	var objects []map[string]interface{}
-	var logProjectNameRegex *regexp.Regexp
-	if v, ok := d.GetOk("name_regex"); ok {
-		r, err := regexp.Compile(v.(string))
-		if err != nil {
-			return WrapError(err)
-		}
-		logProjectNameRegex = r
-	}
-
-	idsMap := make(map[string]string)
-	if v, ok := d.GetOk("ids"); ok {
-		for _, vv := range v.([]interface{}) {
-			if vv == nil {
-				continue
-			}
-			idsMap[vv.(string)] = vv.(string)
-		}
-	}
-	status, statusOk := d.GetOk("status")
-	var response []string
-	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			return slsClient.ListLogProjects(ctx, "", "")
-		})
-		if err != nil {
-			if IsExpectedErrors(err, []string{LogClientTimeout}) {
-				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		if projects, ok := raw.([]*aliyunSlsAPI.LogProject); ok {
-			response = make([]string, len(projects))
-			for i, project := range projects {
-				response[i] = project.ProjectName
-			}
-		}
-		return nil
-	})
-	addDebug("ListProject", response)
+	slsService, err := NewSlsService(client)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_projects", "ListProject", AliyunLogGoSdkERROR)
+		return WrapError(err)
 	}
 
-	for _, projectName := range response {
-		if logProjectNameRegex != nil {
-			if !logProjectNameRegex.MatchString(projectName) {
-				continue
+	request := map[string]interface{}{}
+	if v, ok := d.GetOk("name_regex"); ok {
+		request["projectName"] = v.(string)
+	}
+
+	var allProjects []map[string]interface{}
+
+	var projectNames []string
+	if v, ok := d.GetOk("ids"); ok {
+		for _, item := range v.([]interface{}) {
+			if item != nil {
+				projectNames = append(projectNames, strings.Trim(item.(string), `"`))
 			}
 		}
-		if len(idsMap) > 0 {
-			if _, ok := idsMap[projectName]; !ok {
-				continue
+	}
+
+	if len(projectNames) > 0 {
+		// Get specific projects by names
+		for _, name := range projectNames {
+			project, err := slsService.DescribeSlsProject(name)
+			if err != nil {
+				if NotFoundError(err) {
+					continue
+				}
+				return WrapError(err)
 			}
+			allProjects = append(allProjects, project)
+		}
+	} else {
+		// List all projects
+		response, err := slsService.ListProjects()
+		if err != nil {
+			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_projects", "ListProjects", AliyunLogGoSdkERROR)
 		}
 
-		project, err := logService.DescribeLogProject(projectName)
-		if err != nil {
-			if NotFoundError(err) {
-				log.Printf("The project '%s' is no exist! \n", projectName)
-				continue
+		if projects, ok := response["projects"].([]interface{}); ok {
+			for _, v := range projects {
+				if item, ok := v.(map[string]interface{}); ok {
+					allProjects = append(allProjects, item)
+				}
 			}
+		}
+	}
+
+	var filteredProjects []map[string]interface{}
+	nameRegex, ok := d.GetOk("name_regex")
+	if ok && nameRegex.(string) != "" {
+		r, err := regexp.Compile(nameRegex.(string))
+		if err != nil {
 			return WrapError(err)
 		}
-
-		// Use jsonpath to extract status for compatibility
-		if statusOk && status.(string) != "" {
-			if projectStatus, exists := project["status"]; exists && status.(string) != projectStatus.(string) {
-				continue
+		for _, project := range allProjects {
+			if projectName, exists := project["projectName"]; exists {
+				if r.MatchString(projectName.(string)) {
+					filteredProjects = append(filteredProjects, project)
+				}
 			}
 		}
-
-		objects = append(objects, project)
+	} else {
+		filteredProjects = allProjects
 	}
 
-	ids := make([]string, 0)
-	names := make([]interface{}, 0)
-	s := make([]map[string]interface{}, 0)
-	for _, object := range objects {
+	return logProjectsDecriptionAttributes(d, filteredProjects, meta)
+}
+
+func logProjectsDecriptionAttributes(d *schema.ResourceData, projects []map[string]interface{}, meta interface{}) error {
+	var ids []string
+	var names []interface{}
+	var s []map[string]interface{}
+
+	for _, project := range projects {
 		mapping := map[string]interface{}{
-			"id":               object["projectName"],
-			"description":      object["description"],
-			"last_modify_time": object["lastModifyTime"],
-			"owner":            object["owner"],
-			"project_name":     object["projectName"],
-			"region":           object["region"],
-			"status":           object["status"],
+			"id":               project["id"],
+			"description":      project["description"],
+			"last_modify_time": project["last_modify_time"],
+			"owner":            project["owner"],
+			"project_name":     project["project_name"],
+			"region":           project["region"],
+			"status":           project["status"],
 		}
 
-		// Get project policy if exists
-		if policy, exists := object["policy"]; exists && policy != nil {
+		// Handle policy if exists
+		if policy, ok := project["policy"]; ok {
 			mapping["policy"] = policy
 		}
 
 		ids = append(ids, fmt.Sprint(mapping["id"]))
-		names = append(names, object["projectName"])
+		names = append(names, project["project_name"])
 		s = append(s, mapping)
 	}
 
@@ -207,6 +196,7 @@ func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{})
 	if err := d.Set("projects", s); err != nil {
 		return WrapError(err)
 	}
+
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		writeToFile(output.(string), s)
 	}

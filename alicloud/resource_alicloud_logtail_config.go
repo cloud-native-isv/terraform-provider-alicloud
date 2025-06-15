@@ -50,7 +50,7 @@ func resourceAlicloudLogtailConfig() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"LogService"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"SlsService"}, false),
 			},
 			"input_detail": {
 				Type:     schema.TypeString,

@@ -4,7 +4,7 @@
 // - service_alicloud_sls_logstore.go: LogStore operations
 // - service_alicloud_sls_job.go: Job operations (Alert, ScheduledSQL, ETL, etc.)
 // - service_alicloud_sls_config.go: Configuration operations (MachineGroup, etc.)
-// - service_alicloud_sls_legacy.go: Legacy LogService compatibility
+// - service_alicloud_sls_legacy.go: Legacy SlsService compatibility
 
 // This file is kept for backward compatibility but all functionality
 // has been moved to the split files above.

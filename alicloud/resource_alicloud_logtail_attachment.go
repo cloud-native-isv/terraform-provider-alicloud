@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -44,7 +45,7 @@ func resourceAlicloudLogtailAttachmentCreate(d *schema.ResourceData, meta interf
 	group_name := d.Get("machine_group_name").(string)
 	var requestInfo *sls.Client
 	raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
+		ctx := context.Background()
 		requestInfo = slsClient
 		return nil, slsClient.ApplyConfigToMachineGroup(project, config_name, group_name)
 	})
@@ -64,7 +65,7 @@ func resourceAlicloudLogtailAttachmentCreate(d *schema.ResourceData, meta interf
 
 func resourceAlicloudLogtailAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService(client)
+	logService := SlsService(client)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
@@ -87,14 +88,14 @@ func resourceAlicloudLogtailAttachmentRead(d *schema.ResourceData, meta interfac
 
 func resourceAlicloudLogtailAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService(client)
+	logService := SlsService(client)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
 	}
 	var requestInfo *sls.Client
 	raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
+		ctx := context.Background()
 		requestInfo = slsClient
 		return nil, slsClient.RemoveConfigFromMachineGroup(parts[0], parts[1], parts[2])
 	})

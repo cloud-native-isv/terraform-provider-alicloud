@@ -1,7 +1,6 @@
 package alicloud
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/aliyun/fc-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -635,20 +633,21 @@ func parseLogConfig(d *schema.ResourceData, meta interface{}) (project, logstore
 		}
 	}
 	if project != "" {
+		slsService, serviceErr := NewSlsService(client)
+		if serviceErr != nil {
+			err = WrapError(serviceErr)
+			return
+		}
+
 		err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-			raw, e := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-				ctx := context.Background()
-				// Check if project exists by trying to get it
-				_, err := slsClient.GetLogProject(ctx, project)
-				return nil, err
-			})
+			_, e := slsService.DescribeSlsProject(project)
 			if e != nil {
 				if NotFoundError(e) {
 					return resource.RetryableError(e)
 				}
 				return resource.NonRetryableError(e)
 			}
-			addDebug("GetLogProject", raw, project)
+			addDebug("GetLogProject", nil, project)
 			return nil
 		})
 	}
@@ -659,20 +658,21 @@ func parseLogConfig(d *schema.ResourceData, meta interface{}) (project, logstore
 	}
 
 	if logstore != "" {
+		slsService, serviceErr := NewSlsService(client)
+		if serviceErr != nil {
+			err = WrapError(serviceErr)
+			return
+		}
+
 		err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-			raw, e := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-				ctx := context.Background()
-				// Check if logstore exists by trying to get it
-				_, err := slsClient.GetLogStore(ctx, project, logstore)
-				return nil, err
-			})
+			_, e := slsService.aliyunSlsAPI.GetLogStore(project, logstore)
 			if e != nil {
 				if NotFoundError(e) {
 					return resource.RetryableError(e)
 				}
 				return resource.NonRetryableError(e)
 			}
-			addDebug("GetLogStore", raw)
+			addDebug("GetLogStore", nil)
 			return nil
 		})
 	}

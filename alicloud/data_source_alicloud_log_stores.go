@@ -1,13 +1,11 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -66,6 +64,10 @@ func dataSourceAlicloudLogStores() *schema.Resource {
 
 func dataSourceAlicloudLogStoresRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	objects := make([]string, 0)
 	var logStoreNameRegex *regexp.Regexp
@@ -88,10 +90,8 @@ func dataSourceAlicloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 	}
 	project := d.Get("project").(string)
 	var response []string
-	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			return slsClient.ListLogStores(project, "", "", "")
-		})
+	err = resource.Retry(2*time.Minute, func() *resource.RetryError {
+		stores, err := slsService.ListLogStores(project, "", "", "")
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				time.Sleep(5 * time.Second)
@@ -99,11 +99,9 @@ func dataSourceAlicloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 			}
 			return resource.NonRetryableError(err)
 		}
-		if stores, ok := raw.([]*aliyunSlsAPI.LogStore); ok {
-			response = make([]string, len(stores))
-			for i, store := range stores {
-				response[i] = store.LogstoreName
-			}
+		response = make([]string, len(stores))
+		for i, store := range stores {
+			response[i] = store.LogstoreName
 		}
 		return nil
 	})

@@ -2,15 +2,12 @@ package alicloud
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -64,7 +61,6 @@ func resourceAlicloudLogDashboard() *schema.Resource {
 
 func resourceAlicloudLogDashboardCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := NewLogService(client)
 
 	dashboard := map[string]interface{}{
 		"dashboardName": d.Get("dashboard_name").(string),
@@ -117,7 +113,7 @@ func resourceAlicloudLogDashboardCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAlicloudLogDashboardRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := NewLogService(client)
+	logService := NewSlsService(client)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
@@ -239,25 +235,20 @@ func resourceAlicloudLogDashboardUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceAlicloudLogDashboardDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := NewLogService(client)
+	logService := NewSlsService(client)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
 	}
-	var requestInfo *sls.Client
 	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			requestInfo = slsClient
-			return nil, slsClient.DeleteDashboard(parts[0], parts[1])
-		})
+		err := logService.sls.DeleteDashboard(parts[0], parts[1])
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout, "RequestTimeout"}) {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
-		addDebug("DeleteDashboard", raw, requestInfo, map[string]interface{}{
+		addDebug("DeleteDashboard", nil, nil, map[string]interface{}{
 			"project_name": parts[0],
 			"dashboard":    parts[1],
 		})

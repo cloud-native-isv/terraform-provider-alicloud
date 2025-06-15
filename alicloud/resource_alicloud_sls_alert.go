@@ -750,9 +750,9 @@ func resourceAliCloudSlsAlertCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAliCloudSlsAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsServiceV2(client)
+	slsServiceV2, err := NewSlsService(client)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_alert", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_alert", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
 
 	objectRaw, err := slsServiceV2.DescribeSlsAlert(d.Id())
@@ -1343,9 +1343,9 @@ func resourceAliCloudSlsAlertUpdate(d *schema.ResourceData, meta interface{}) er
 
 	if d.HasChange("status") {
 		client := meta.(*connectivity.AliyunClient)
-		slsServiceV2, err := NewSlsServiceV2(client)
+		slsServiceV2, err := NewSlsService(client)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_alert", "NewSlsServiceV2", AlibabaCloudSdkGoERROR)
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_alert", "NewSlsService", AlibabaCloudSdkGoERROR)
 		}
 		object, err := slsServiceV2.DescribeSlsAlert(d.Id())
 		if err != nil {

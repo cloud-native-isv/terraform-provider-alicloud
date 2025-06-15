@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -85,7 +85,7 @@ func resourceAlicloudLogResourceRecordCreate(d *schema.ResourceData, meta interf
 
 func resourceAlicloudLogResourceRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService(client)
+	logService := SlsService(client)
 
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -144,7 +144,7 @@ func resourceAlicloudLogResourceRecordUpdate(d *schema.ResourceData, meta interf
 
 func resourceAlicloudLogResourceRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService(client)
+	logService := SlsService(client)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)

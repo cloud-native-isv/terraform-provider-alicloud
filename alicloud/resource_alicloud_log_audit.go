@@ -6,9 +6,8 @@ import (
 	"log"
 	"strings"
 	"time"
+
 	slsPop "github.com/aliyun/alibaba-cloud-sdk-go/services/sls"
-	sls "github.com/aliyun/aliyun-log-go-sdk"
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -134,7 +133,7 @@ func resourceAlicloudLogAuditUpdate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAlicloudLogAuditRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := NewLogService(client)
+	logService := NewSlsService(client)
 	response, err := logService.DescribeLogAudit(d.Id())
 	if err != nil {
 		if NotFoundError(err) {

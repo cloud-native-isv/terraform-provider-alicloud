@@ -1,11 +1,11 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
 	"github.com/PaesslerAG/jsonpath"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
@@ -25,8 +25,7 @@ func (s *SlsService) DescribeSlsLogStore(id string) (object map[string]interface
 	projectName := parts[0]
 	logstoreName := parts[1]
 
-	ctx := context.Background()
-	logstore, err := s.aliyunSlsAPI.GetLogStore(ctx, projectName, logstoreName)
+	logstore, err := s.aliyunSlsAPI.GetLogStore(projectName, logstoreName)
 	if err != nil {
 		if strings.Contains(err.Error(), "LogStoreNotExist") {
 			return object, WrapErrorf(NotFoundErr("LogStore", id), NotFoundMsg, "")
@@ -69,8 +68,7 @@ func (s *SlsService) DescribeGetLogStoreMeteringMode(id string) (object map[stri
 	projectName := parts[0]
 	logstoreName := parts[1]
 
-	ctx := context.Background()
-	meteringMode, err := s.aliyunSlsAPI.GetLogStoreMeteringMode(ctx, projectName, logstoreName)
+	meteringMode, err := s.aliyunSlsAPI.GetLogStoreMeteringMode(projectName, logstoreName)
 	if err != nil {
 		if strings.Contains(err.Error(), "LogStoreNotExist") {
 			return object, WrapErrorf(NotFoundErr("LogStore", id), NotFoundMsg, "")
@@ -100,8 +98,7 @@ func (s *SlsService) DescribeSlsLogStoreIndex(id string) (object map[string]inte
 	projectName := parts[0]
 	logstoreName := parts[1]
 
-	ctx := context.Background()
-	index, err := s.aliyunSlsAPI.GetLogStoreIndex(ctx, projectName, logstoreName)
+	index, err := s.aliyunSlsAPI.GetLogStoreIndex(projectName, logstoreName)
 	if err != nil {
 		if strings.Contains(err.Error(), "IndexConfigNotExist") {
 			return object, WrapErrorf(NotFoundErr("LogStoreIndex", id), NotFoundMsg, "")
@@ -138,4 +135,14 @@ func (s *SlsService) SlsLogStoreStateRefreshFunc(id string, field string, failSt
 		}
 		return object, currentStatus, nil
 	}
+}
+
+// ListLogStores encapsulates the call to aliyunSlsAPI.ListLogStores
+func (s *SlsService) ListLogStores(project, offset, size, logstoreName string) ([]*aliyunSlsAPI.LogStore, error) {
+	return s.aliyunSlsAPI.ListLogStores(project, offset, size, logstoreName)
+}
+
+// GetLogStore encapsulates the call to aliyunSlsAPI.GetLogStore
+func (s *SlsService) GetLogStore(project, logstore string) (*aliyunSlsAPI.LogStore, error) {
+	return s.aliyunSlsAPI.GetLogStore(project, logstore)
 }

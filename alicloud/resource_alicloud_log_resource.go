@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -95,7 +95,7 @@ func resourceAlicloudLogResourceCreate(d *schema.ResourceData, meta interface{})
 
 func resourceAlicloudLogResourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService(client)
+	logService := SlsService(client)
 
 	resourceName := d.Id()
 	object, err := logService.DescribeLogResource(resourceName)
@@ -147,7 +147,7 @@ func resourceAlicloudLogResourceUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceAlicloudLogResourceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService(client)
+	logService := SlsService(client)
 	var requestInfo *sls.Client
 	err := resource.Retry(3*time.Minute, func() *resource.RetryError {
 		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
