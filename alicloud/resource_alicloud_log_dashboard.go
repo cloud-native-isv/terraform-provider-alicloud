@@ -1,13 +1,14 @@
 package alicloud
 
 import (
+	"context"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -90,7 +91,8 @@ func resourceAlicloudLogDashboardCreate(d *schema.ResourceData, meta interface{}
 	dashboardStr := string(dashboardBytes)
 
 	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		_, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 			return nil, slsClient.CreateDashboardString(d.Get("project_name").(string), dashboardStr)
 		})
 		if err != nil {
@@ -113,7 +115,7 @@ func resourceAlicloudLogDashboardCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAlicloudLogDashboardRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := NewLogService(client)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
@@ -126,8 +128,24 @@ func resourceAlicloudLogDashboardRead(d *schema.ResourceData, meta interface{}) 
 		}
 		return WrapError(err)
 	}
-	dashboard := map[string]interface{}{}
-	err = json.Unmarshal([]byte(object), &dashboard)
+
+	// Handle response based on the actual return type from the new service
+	var objectBytes []byte
+	var dashboard map[string]interface{}
+
+	// Try to handle different response types
+	if objectStr, ok := object["content"].(string); ok {
+		objectBytes = []byte(objectStr)
+	} else {
+		// Direct conversion of object to JSON bytes
+		if objBytes, err := json.Marshal(object); err == nil {
+			objectBytes = objBytes
+		} else {
+			return WrapError(err)
+		}
+	}
+
+	err = json.Unmarshal(objectBytes, &dashboard)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -143,18 +161,23 @@ func resourceAlicloudLogDashboardRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	for k, v := range dashboard["charts"].([]interface{}) {
-		if action, actionOK := v.(map[string]interface{})["action"]; actionOK {
-			if action == nil {
-				delete((dashboard["charts"].([]interface{})[k]).(map[string]interface{}), "action")
+	if charts, ok := dashboard["charts"].([]interface{}); ok {
+		for k, v := range charts {
+			if chartMap, isMap := v.(map[string]interface{}); isMap {
+				if action, actionOK := chartMap["action"]; actionOK {
+					if action == nil {
+						delete(chartMap, "action")
+					}
+				}
 			}
 		}
+		charlist, err := json.Marshal(charts)
+		if err != nil {
+			return WrapError(err)
+		}
+		d.Set("char_list", string(charlist))
 	}
-	charlist, err := json.Marshal(dashboard["charts"])
-	if err != nil {
-		return WrapError(err)
-	}
-	d.Set("char_list", string(charlist))
+
 	return nil
 }
 
@@ -200,7 +223,8 @@ func resourceAlicloudLogDashboardUpdate(d *schema.ResourceData, meta interface{}
 		}
 		dashboardStr := string(dashboardBytes)
 
-		_, err = client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		_, err = client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 			return nil, slsClient.UpdateDashboardString(parts[0], parts[1], dashboardStr)
 		})
 		if err != nil {
@@ -212,14 +236,15 @@ func resourceAlicloudLogDashboardUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceAlicloudLogDashboardDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := NewLogService(client)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
 	}
 	var requestInfo *sls.Client
 	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 			requestInfo = slsClient
 			return nil, slsClient.DeleteDashboard(parts[0], parts[1])
 		})

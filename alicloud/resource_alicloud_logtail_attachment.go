@@ -1,9 +1,10 @@
 package alicloud
 
 import (
+	"context"
 	"fmt"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -42,7 +43,8 @@ func resourceAlicloudLogtailAttachmentCreate(d *schema.ResourceData, meta interf
 	config_name := d.Get("logtail_config_name").(string)
 	group_name := d.Get("machine_group_name").(string)
 	var requestInfo *sls.Client
-	raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+	raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 		requestInfo = slsClient
 		return nil, slsClient.ApplyConfigToMachineGroup(project, config_name, group_name)
 	})
@@ -62,7 +64,7 @@ func resourceAlicloudLogtailAttachmentCreate(d *schema.ResourceData, meta interf
 
 func resourceAlicloudLogtailAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := LogService(client)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
@@ -85,13 +87,14 @@ func resourceAlicloudLogtailAttachmentRead(d *schema.ResourceData, meta interfac
 
 func resourceAlicloudLogtailAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := LogService(client)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
 	}
 	var requestInfo *sls.Client
-	raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+	raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 		requestInfo = slsClient
 		return nil, slsClient.RemoveConfigFromMachineGroup(parts[0], parts[1], parts[2])
 	})

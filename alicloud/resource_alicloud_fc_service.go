@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -8,9 +9,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/fc-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -634,11 +635,12 @@ func parseLogConfig(d *schema.ResourceData, meta interface{}) (project, logstore
 		}
 	}
 	if project != "" {
-		var requestInfo *sls.Client
 		err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-			raw, e := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-				requestInfo = slsClient
-				return slsClient.CheckProjectExist(project)
+			raw, e := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+				ctx := context.Background()
+				// Check if project exists by trying to get it
+				_, err := slsClient.GetLogProject(ctx, project)
+				return nil, err
 			})
 			if e != nil {
 				if NotFoundError(e) {
@@ -646,20 +648,23 @@ func parseLogConfig(d *schema.ResourceData, meta interface{}) (project, logstore
 				}
 				return resource.NonRetryableError(e)
 			}
-			addDebug("CheckProjectExist", raw, requestInfo, project)
+			addDebug("GetLogProject", raw, project)
 			return nil
 		})
 	}
 
 	if err != nil {
-		err = WrapErrorf(err, DefaultErrorMsg, d.Id(), "CheckProjectExist", FcGoSdk)
+		err = WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetLogProject", FcGoSdk)
 		return
 	}
 
 	if logstore != "" {
 		err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-			raw, e := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-				return slsClient.CheckLogstoreExist(project, logstore)
+			raw, e := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+				ctx := context.Background()
+				// Check if logstore exists by trying to get it
+				_, err := slsClient.GetLogStore(ctx, project, logstore)
+				return nil, err
 			})
 			if e != nil {
 				if NotFoundError(e) {
@@ -667,7 +672,7 @@ func parseLogConfig(d *schema.ResourceData, meta interface{}) (project, logstore
 				}
 				return resource.NonRetryableError(e)
 			}
-			addDebug("CheckLogstoreExist", raw)
+			addDebug("GetLogStore", raw)
 			return nil
 		})
 	}

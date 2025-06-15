@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -8,7 +9,7 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/yundun_dbaudit"
-	sls "github.com/aliyun/aliyun-log-go-sdk"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -101,8 +102,9 @@ func testSweepDbauditInstances(region string) error {
 			log.Printf("[ERROR] Deleting Instance %s got an error: %#v.", v.InstanceId, err)
 		}
 		// 释放产生的 sls project
-		_, err = client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-			return nil, slsClient.DeleteProject(v.InstanceId)
+		_, err = client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
+			return nil, slsClient.DeleteLogProject(ctx, v.InstanceId)
 		})
 		if err != nil {
 			log.Printf("[ERROR] Failed to delete Log Project (%s): %s", v.InstanceId, err)

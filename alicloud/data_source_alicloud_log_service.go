@@ -1,14 +1,12 @@
 package alicloud
 
 import (
-	slsPop "github.com/aliyun/alibaba-cloud-sdk-go/services/sls"
-	"time"
-
-	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
+	"context"
 	"fmt"
 
+	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
@@ -32,77 +30,53 @@ func dataSourceAlicloudLogService() *schema.Resource {
 		},
 	}
 }
+
 func dataSourceAlicloudLogServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("LogServiceHasNotBeenOpened")
 		d.Set("status", "")
 		return nil
 	}
-	isNotOpened, err := waitServiceReady(meta, false)
-	if err == nil {
+
+	// Check if service is ready by trying to list projects
+	isServiceReady, err := checkLogServiceReady(meta)
+	if err == nil && isServiceReady {
 		d.SetId("LogServiceHasBeenOpened")
 		d.Set("status", "Opened")
 		return nil
 	}
-	if isNotOpened {
-		client := meta.(*connectivity.AliyunClient)
-		resp, err := client.WithLogPopClient(func(slsPopClient *slsPop.Client) (interface{}, error) {
-			request := slsPop.CreateOpenSlsServiceRequest()
-			return slsPopClient.OpenSlsService(request)
-		})
-		response := resp.(*slsPop.OpenSlsServiceResponse)
-		// response, err := conn.DoRequest(StringPointer("OpenSlsService"), nil, StringPointer("POST"), StringPointer("2019-10-23"), StringPointer("AK"), nil, nil, &util.RuntimeOptions{})
-		addDebug("OpenSlsService", response, nil)
-		if err != nil {
-			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_service", "OpenLogService", AlibabaCloudSdkGoERROR)
-		}
-		if !response.Success {
-			return WrapErrorf(fmt.Errorf("%s", response), DataDefaultErrorMsg, "alicloud_log_service", "OpenLogService", AlibabaCloudSdkGoERROR)
-		}
-		_, err = waitServiceReady(meta, true)
-		if err == nil {
-			d.SetId("LogServiceHasBeenOpened")
-			d.Set("status", "Opened")
-			return nil
-		}
-		return WrapError(err)
+
+	// Note: Service activation via API is not currently supported in the new SLS API
+	// Users should enable the service through the Alibaba Cloud console
+	if err != nil {
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_service", "CheckLogService", AlibabaCloudSdkGoERROR)
 	}
-	return WrapError(err)
+
+	// If service is not ready, return appropriate status
+	d.SetId("LogServiceHasNotBeenOpened")
+	d.Set("status", "NotOpened")
+	return WrapError(fmt.Errorf("Log Service is not enabled. Please enable it through the Alibaba Cloud console first"))
 }
 
-func waitServiceReady(meta interface{}, hasOpened bool) (bool, error) {
-	beginTime := time.Now().Unix()
+func checkLogServiceReady(meta interface{}) (bool, error) {
 	client := meta.(*connectivity.AliyunClient)
-	for {
-		resp, err := client.WithLogPopClient(func(slsPopClient *slsPop.Client) (interface{}, error) {
-			request := slsPop.CreateGetSlsServiceRequest()
-			return slsPopClient.GetSlsService(request)
-		})
-		response := resp.(*slsPop.GetSlsServiceResponse)
-		//response, err := conn.DoRequest(StringPointer("GetSlsService"), nil, StringPointer("POST"), StringPointer("2019-10-23"), StringPointer("AK"), nil, nil, &util.RuntimeOptions{})
-		addDebug("GetSlsService", response, nil)
-		if err != nil {
-			return false, WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_service", "GetLogService", AlibabaCloudSdkGoERROR)
-		}
-		addDebug("GetSlsService", response, nil)
-		if err != nil {
-			return false, WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_service", "GetLogService", AlibabaCloudSdkGoERROR)
-		}
-		if !response.Success {
-			return false, WrapErrorf(fmt.Errorf("%s", response), DataDefaultErrorMsg, "alicloud_log_service", "GetLogService", AlibabaCloudSdkGoERROR)
-		}
-		status := response.Status
-		if "Opened" == status {
+
+	_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+		ctx := context.Background()
+		// Try to list projects to check if service is available
+		projects, err := slsClient.ListLogProjects(ctx, "", "")
+		return projects, err
+	})
+
+	if err != nil {
+		// If we get specific service not enabled errors, return false
+		if IsExpectedErrors(err, []string{"ServiceNotEnabled", "ServiceNotOpen", "Forbidden"}) {
 			return false, nil
 		}
-		if hasOpened || "Opening" == status {
-			if time.Now().Unix()-beginTime >= maxWaitTime {
-				return false, fmt.Errorf("wait until the maxWaitTime(60s) is still in the %s state", status)
-			}
-			time.Sleep(time.Second)
-			continue
-		}
-		return true, fmt.Errorf("incorrect status: %s", status)
+		// Other errors should be returned
+		return false, err
 	}
 
+	// If we can successfully call the API, service is ready
+	return true, nil
 }

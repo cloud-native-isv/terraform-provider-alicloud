@@ -1,14 +1,14 @@
 package alicloud
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"time"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
-
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -92,9 +92,9 @@ func dataSourceAlicloudLogProjects() *schema.Resource {
 
 func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := NewLogService(client)
 
-	var objects []*sls.LogProject
+	var objects []map[string]interface{}
 	var logProjectNameRegex *regexp.Regexp
 	if v, ok := d.GetOk("name_regex"); ok {
 		r, err := regexp.Compile(v.(string))
@@ -116,8 +116,9 @@ func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{})
 	status, statusOk := d.GetOk("status")
 	var response []string
 	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-			return slsClient.ListProject()
+		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
+			return slsClient.ListLogProjects(ctx, "", "")
 		})
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
@@ -126,14 +127,19 @@ func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{})
 			}
 			return resource.NonRetryableError(err)
 		}
-		response, _ = raw.([]string)
+		if projects, ok := raw.([]*aliyunSlsAPI.LogProject); ok {
+			response = make([]string, len(projects))
+			for i, project := range projects {
+				response[i] = project.ProjectName
+			}
+		}
 		return nil
 	})
 	addDebug("ListProject", response)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_projects", "ListProject", AliyunLogGoSdkERROR)
 	}
-	policyMap := make(map[string]string)
+
 	for _, projectName := range response {
 		if logProjectNameRegex != nil {
 			if !logProjectNameRegex.MatchString(projectName) {
@@ -145,6 +151,7 @@ func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{})
 				continue
 			}
 		}
+
 		project, err := logService.DescribeLogProject(projectName)
 		if err != nil {
 			if NotFoundError(err) {
@@ -153,14 +160,12 @@ func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{})
 			}
 			return WrapError(err)
 		}
-		if statusOk && status.(string) != "" && status.(string) != project.Status {
-			continue
-		}
 
-		if policy, err := logService.DescribeLogProjectPolicy(projectName); err != nil {
-			return WrapError(err)
-		} else {
-			policyMap[projectName] = policy
+		// Use jsonpath to extract status for compatibility
+		if statusOk && status.(string) != "" {
+			if projectStatus, exists := project["status"]; exists && status.(string) != projectStatus.(string) {
+				continue
+			}
 		}
 
 		objects = append(objects, project)
@@ -171,19 +176,22 @@ func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{})
 	s := make([]map[string]interface{}, 0)
 	for _, object := range objects {
 		mapping := map[string]interface{}{
-			"id":               object.Name,
-			"description":      object.Description,
-			"last_modify_time": object.LastModifyTime,
-			"owner":            object.Owner,
-			"project_name":     object.Name,
-			"region":           object.Region,
-			"status":           object.Status,
+			"id":               object["projectName"],
+			"description":      object["description"],
+			"last_modify_time": object["lastModifyTime"],
+			"owner":            object["owner"],
+			"project_name":     object["projectName"],
+			"region":           object["region"],
+			"status":           object["status"],
 		}
-		if policy, ok := policyMap[object.Name]; ok {
+
+		// Get project policy if exists
+		if policy, exists := object["policy"]; exists && policy != nil {
 			mapping["policy"] = policy
 		}
+
 		ids = append(ids, fmt.Sprint(mapping["id"]))
-		names = append(names, object.Name)
+		names = append(names, object["projectName"])
 		s = append(s, mapping)
 	}
 

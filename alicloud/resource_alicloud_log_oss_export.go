@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,8 +9,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -156,14 +157,16 @@ func resourceAlicloudLogOssExport() *schema.Resource {
 
 func resourceAlicloudLogOssExportCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var requestInfo *sls.Client
+	var requestInfo *aliyunSlsAPI.Client
 	projectName := d.Get("project_name").(string)
 	logstoreName := d.Get("logstore_name").(string)
 	exportName := d.Get("export_name").(string)
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	if err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-			return nil, slsClient.CreateExport(projectName, buildOSSExport(d))
+		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
+			requestInfo = slsClient
+			return nil, slsClient.CreateExport(parts[0], buildOSSExport(d))
 		})
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
@@ -187,7 +190,7 @@ func resourceAlicloudLogOssExportCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAlicloudLogOssExportRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := LogService(client)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
@@ -202,7 +205,7 @@ func resourceAlicloudLogOssExportRead(d *schema.ResourceData, meta interface{}) 
 		return WrapError(err)
 	}
 
-	ossDataSink := ossExport.ExportConfiguration.DataSink.(*sls.AliyunOSSSink)
+	ossDataSink := ossExport.ExportConfiguration.DataSink.(*aliyunSlsAPI.AliyunOSSSink)
 	d.Set("project_name", parts[0])
 	d.Set("logstore_name", parts[1])
 	d.Set("export_name", parts[2])
@@ -221,24 +224,24 @@ func resourceAlicloudLogOssExportRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("content_type", ossDataSink.ContentType)
 
 	if ossDataSink.ContentType == "json" {
-		detail := new(sls.JsonContentDetail)
+		detail := new(aliyunSlsAPI.JsonContentDetail)
 		contentDetailBytes, _ := json.Marshal(ossDataSink.ContentDetail)
 		json.Unmarshal(contentDetailBytes, detail)
 		d.Set("json_enable_tag", detail.EnableTag)
 	} else if ossDataSink.ContentType == "csv" {
-		detail := new(sls.CsvContentDetail)
+		detail := new(aliyunSlsAPI.CsvContentDetail)
 		contentDetailBytes, _ := json.Marshal(ossDataSink.ContentDetail)
 		json.Unmarshal(contentDetailBytes, detail)
 		d.Set("csv_config_delimiter", detail.Delimiter)
 		d.Set("csv_config_header", detail.Header)
 		d.Set("csv_config_linefeed", detail.LineFeed)
-		d.Set("csv_config_columns", detail.ColumnNames)
-		d.Set("csv_config_null", detail.Null)
+		d.Set("csv_config_columns", detail.Columns)
+		d.Set("csv_config_null", detail.NullValue)
 		d.Set("csv_config_quote", detail.Quote)
 	} else if ossDataSink.ContentType == "parquet" || ossDataSink.ContentType == "orc" {
 		var config []map[string]interface{}
 		contentDetailBytes, _ := json.Marshal(ossDataSink.ContentDetail)
-		detail := new(sls.ParquetContentDetail)
+		detail := new(aliyunSlsAPI.ParquetContentDetail)
 		json.Unmarshal(contentDetailBytes, detail)
 		for _, column := range detail.Columns {
 			tempMap := map[string]interface{}{
@@ -260,7 +263,8 @@ func resourceAlicloudLogOssExportUpdate(d *schema.ResourceData, meta interface{}
 	}
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	if err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-		_, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 			return nil, slsClient.RestartExport(parts[0], buildOSSExport(d))
 		})
 		if err != nil {
@@ -280,15 +284,17 @@ func resourceAlicloudLogOssExportUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceAlicloudLogOssExportDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := LogService(client)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
 	}
-	var requestInfo *sls.Client
+	var requestInfo *aliyunSlsAPI.Client
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
+			requestInfo = slsClient
 			return nil, slsClient.DeleteExport(parts[0], parts[2])
 		})
 		if err != nil {
@@ -317,17 +323,16 @@ func resourceAlicloudLogOssExportDelete(d *schema.ResourceData, meta interface{}
 
 }
 
-func buildOSSExport(d *schema.ResourceData) *sls.Export {
+func buildOSSExport(d *schema.ResourceData) *aliyunSlsAPI.Export {
 	contentType := d.Get("content_type").(string)
-	ossExportConfig := &sls.AliyunOSSSink{
-		Type:           sls.DataSinkOSS,
+	ossExportConfig := &aliyunSlsAPI.AliyunOSSSink{
+		Type:           aliyunSlsAPI.DataSinkOSS,
 		Bucket:         d.Get("bucket").(string),
 		PathFormat:     d.Get("path_format").(string),
-		PathFormatType: "time",
-		BufferSize:     int64(d.Get("buffer_size").(int)),
-		BufferInterval: int64(d.Get("buffer_interval").(int)),
+		BufferSize:     d.Get("buffer_size").(int),
+		BufferInterval: d.Get("buffer_interval").(int),
 		TimeZone:       d.Get("time_zone").(string),
-		ContentType:    sls.OSSContentType(contentType),
+		ContentType:    aliyunSlsAPI.OSSContentType(contentType),
 	}
 
 	roleArn := ""
@@ -342,7 +347,7 @@ func buildOSSExport(d *schema.ResourceData) *sls.Export {
 		ossExportConfig.Suffix = v.(string)
 	}
 	if v, ok := d.GetOk("compress_type"); ok {
-		ossExportConfig.CompressionType = sls.OSSCompressionType(v.(string))
+		ossExportConfig.CompressionType = aliyunSlsAPI.OSSCompressionType(v.(string))
 	}
 
 	if contentType == "json" {
@@ -350,13 +355,13 @@ func buildOSSExport(d *schema.ResourceData) *sls.Export {
 		if v, ok := d.GetOk("json_enable_tag"); ok {
 			enableTag = v.(bool)
 		}
-		ossExportConfig.ContentDetail = sls.JsonContentDetail{EnableTag: enableTag}
+		ossExportConfig.ContentDetail = aliyunSlsAPI.JsonContentDetail{EnableTag: enableTag}
 	} else if contentType == "parquet" || contentType == "orc" {
-		detail := sls.ParquetContentDetail{}
+		detail := aliyunSlsAPI.ParquetContentDetail{}
 		if configColumns, ok := d.GetOk("config_columns"); ok {
 			for _, f := range configColumns.(*schema.Set).List() {
 				v := f.(map[string]interface{})
-				config := sls.Column{
+				config := aliyunSlsAPI.Column{
 					Name: v["name"].(string),
 					Type: v["type"].(string),
 				}
@@ -365,7 +370,7 @@ func buildOSSExport(d *schema.ResourceData) *sls.Export {
 		}
 		ossExportConfig.ContentDetail = detail
 	} else if contentType == "csv" {
-		detail := sls.CsvContentDetail{}
+		detail := aliyunSlsAPI.CsvContentDetail{}
 		if v, ok := d.GetOk("csv_config_delimiter"); ok {
 			detail.Delimiter = v.(string)
 		}
@@ -376,13 +381,10 @@ func buildOSSExport(d *schema.ResourceData) *sls.Export {
 			detail.LineFeed = v.(string)
 		}
 		if v, ok := d.GetOk("csv_config_null"); ok {
-			detail.Null = v.(string)
+			detail.NullValue = v.(string)
 		}
 		if v, ok := d.GetOk("csv_config_quote"); ok {
 			detail.Quote = v.(string)
-		}
-		if v, ok := d.GetOk("csv_config_escape"); ok {
-			detail.Escape = v.(string)
 		}
 		columns := []string{}
 		if v, ok := d.GetOk("csv_config_columns"); ok {
@@ -390,8 +392,7 @@ func buildOSSExport(d *schema.ResourceData) *sls.Export {
 				columns = append(columns, v.(string))
 			}
 		}
-
-		detail.ColumnNames = columns
+		detail.Columns = columns
 		ossExportConfig.ContentDetail = detail
 	}
 	fromTime := int64(0)
@@ -403,27 +404,25 @@ func buildOSSExport(d *schema.ResourceData) *sls.Export {
 		logReadRoleArn = v.(string)
 	}
 
-	return &sls.Export{
-		ScheduledJob: sls.ScheduledJob{
-			BaseJob: sls.BaseJob{
+	return &aliyunSlsAPI.Export{
+		ScheduledJob: aliyunSlsAPI.ScheduledJob{
+			BaseJob: aliyunSlsAPI.BaseJob{
 				Name:        d.Get("export_name").(string),
 				DisplayName: d.Get("display_name").(string),
 				Description: "",
-				Type:        sls.EXPORT_JOB,
+				Type:        aliyunSlsAPI.EXPORT_JOB,
 			},
-			Schedule: &sls.Schedule{
+			Schedule: &aliyunSlsAPI.Schedule{
 				Type: "Resident",
 			},
 		},
-
-		ExportConfiguration: &sls.ExportConfiguration{
+		ExportConfiguration: &aliyunSlsAPI.ExportConfiguration{
 			FromTime:   fromTime,
-			LogStore:   d.Get("logstore_name").(string),
-			Parameters: map[string]string{},
+			Logstore:   d.Get("logstore_name").(string),
+			Parameters: []string{},
 			RoleArn:    logReadRoleArn,
-			Version:    sls.ExportVersion2,
+			Version:    aliyunSlsAPI.ExportVersion2,
 			DataSink:   ossExportConfig,
 		},
 	}
-
 }

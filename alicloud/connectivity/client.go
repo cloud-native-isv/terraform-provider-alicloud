@@ -57,18 +57,17 @@ import (
 	r_kvstore "github.com/aliyun/alibaba-cloud-sdk-go/services/r-kvstore"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ram"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/slb"
-	slsPop "github.com/aliyun/alibaba-cloud-sdk-go/services/sls"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/smartag"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/sts"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/yundun_dbaudit"
 	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
-	sls "github.com/aliyun/aliyun-log-go-sdk"
 	ali_mns "github.com/aliyun/aliyun-mns-go-sdk"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
 	otsTunnel "github.com/aliyun/aliyun-tablestore-go-sdk/tunnel"
 	"github.com/aliyun/fc-go-sdk"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/denverdino/aliyungo/cdn"
 	"github.com/denverdino/aliyungo/cs"
 
@@ -112,10 +111,9 @@ type AliyunClient struct {
 	cdnconn                      *cdn.CdnClient
 	otsconn                      *ots.Client
 	cmsconn                      *cms.Client
-	logconn                      *sls.Client
+	slsAPIConn                   *aliyunSlsAPI.SlsAPI
 	fcconn                       *fc.Client
 	cenconn                      *cbn.Client
-	logpopconn                   *slsPop.Client
 	ddsconn                      *dds.Client
 	gpdbconn                     *gpdb.Client
 	stsconn                      *sts.Client
@@ -783,57 +781,26 @@ func (client *AliyunClient) WithCmsClient(do func(*cms.Client) (interface{}, err
 	return do(client.cmsconn)
 }
 
-func (client *AliyunClient) WithLogPopClient(do func(*slsPop.Client) (interface{}, error)) (interface{}, error) {
-	if client.logpopconn != nil && !client.config.needRefreshCredential() {
-		return do(client.logpopconn)
-	}
-	product := "sls"
-	endpoint, err := client.loadApiEndpoint(product)
-	if err != nil {
-		return nil, err
+func (client *AliyunClient) WithSlsAPIClient(do func(*aliyunSlsAPI.SlsAPI) (interface{}, error)) (interface{}, error) {
+	if client.slsAPIConn != nil && !client.config.needRefreshCredential() {
+		return do(client.slsAPIConn)
 	}
 
-	logpopconn, err := slsPop.NewClientWithOptions(client.config.RegionId, client.getSdkConfig(0), client.config.getAuthCredential(true))
-	if err != nil {
-		return nil, fmt.Errorf("unable to initialize the sls client: %#v", err)
-	}
-	logpopconn.SetReadTimeout(time.Duration(client.config.ClientReadTimeout) * time.Millisecond)
-	logpopconn.SetConnectTimeout(time.Duration(client.config.ClientConnectTimeout) * time.Millisecond)
-	logpopconn.SourceIp = client.config.SourceIp
-	logpopconn.SecureTransport = client.config.SecureTransport
-	endpoint = strings.TrimPrefix(strings.TrimPrefix(endpoint, "https://"), "http://")
-	logpopconn.Domain = endpoint + "/open-api"
-	client.logpopconn = logpopconn
-
-	return do(client.logpopconn)
-}
-
-func (client *AliyunClient) WithLogClient(do func(*sls.Client) (interface{}, error)) (interface{}, error) {
-	goSdkMutex.Lock()
-	defer goSdkMutex.Unlock()
-
-	if client.logconn != nil && !client.config.needRefreshCredential() {
-		return do(client.logconn)
-	}
-	product := "sls"
-	endpoint, err := client.loadApiEndpoint(product)
-	if err != nil {
-		return nil, err
-	}
-
-	if !strings.HasPrefix(endpoint, "http") {
-		endpoint = fmt.Sprintf("https://%s", strings.TrimPrefix(endpoint, "://"))
-	}
 	accessKey, secretKey, securityToken := client.config.GetRefreshCredential()
-	client.logconn = &sls.Client{
-		AccessKeyID:     accessKey,
-		AccessKeySecret: secretKey,
-		Endpoint:        endpoint,
-		SecurityToken:   securityToken,
-		UserAgent:       client.getUserAgent(),
+	credentials := &aliyunSlsAPI.SlsCredentials{
+		AccessKey:     accessKey,
+		SecretKey:     secretKey,
+		RegionId:      client.config.RegionId,
+		SecurityToken: securityToken,
 	}
 
-	return do(client.logconn)
+	slsAPIConn, err := aliyunSlsAPI.NewSlsAPI(credentials)
+	if err != nil {
+		return nil, fmt.Errorf("unable to initialize the SLS API client: %#v", err)
+	}
+
+	client.slsAPIConn = slsAPIConn
+	return do(client.slsAPIConn)
 }
 
 func (client *AliyunClient) WithDrdsClient(do func(*drds.Client) (interface{}, error)) (interface{}, error) {

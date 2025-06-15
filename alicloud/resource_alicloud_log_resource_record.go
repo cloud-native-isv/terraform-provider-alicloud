@@ -1,12 +1,13 @@
 package alicloud
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -62,7 +63,8 @@ func resourceAlicloudLogResourceRecordCreate(d *schema.ResourceData, meta interf
 		Value: value,
 	}
 	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		_, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 			return nil, slsClient.CreateResourceRecord(recordResourceName, record)
 		})
 		if err != nil {
@@ -83,7 +85,7 @@ func resourceAlicloudLogResourceRecordCreate(d *schema.ResourceData, meta interf
 
 func resourceAlicloudLogResourceRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := LogService(client)
 
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -121,7 +123,8 @@ func resourceAlicloudLogResourceRecordUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		_, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 			return nil, slsClient.UpdateResourceRecord(resourceName, params)
 		})
 		if err != nil {
@@ -141,14 +144,15 @@ func resourceAlicloudLogResourceRecordUpdate(d *schema.ResourceData, meta interf
 
 func resourceAlicloudLogResourceRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := LogService(client)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
 	}
 	var requestInfo *sls.Client
 	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 			requestInfo = slsClient
 			return nil, slsClient.DeleteResourceRecord(parts[0], parts[1])
 		})

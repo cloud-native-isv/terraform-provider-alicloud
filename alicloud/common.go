@@ -26,10 +26,10 @@ import (
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
-	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
 	"github.com/aliyun/fc-go-sdk"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/denverdino/aliyungo/common"
 	"github.com/denverdino/aliyungo/cs"
 	"github.com/google/uuid"
@@ -940,7 +940,7 @@ func addDebug(action, content interface{}, requestInfo ...interface{}) {
 			request.Version = client.Config.APIVersion
 			request.Product = "FC"
 			request.ActionName = fmt.Sprintf("%s", action)
-		case *sls.Client:
+		case *aliyunSlsAPI.SlsAPI:
 			request.Product = "LOG"
 			request.ActionName = fmt.Sprintf("%s", action)
 		case *tablestore.TableStoreClient:

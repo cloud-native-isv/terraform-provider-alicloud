@@ -1,12 +1,13 @@
 package alicloud
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"testing"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -31,8 +32,9 @@ func testSweepLogConfigs(region string) error {
 		"tf_testAcc",
 	}
 
-	raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-		return slsClient.ListProject()
+	raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
+		return slsClient.ListLogProjects(ctx)
 	})
 	if err != nil {
 		log.Printf("[ERROR] Error retrieving Log Projects: %s", WrapError(err))
@@ -44,7 +46,8 @@ func testSweepLogConfigs(region string) error {
 		skip := true
 		for _, prefix := range prefixes {
 			if strings.HasPrefix(strings.ToLower(name), strings.ToLower(prefix)) {
-				cfNameList, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+				cfNameList, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 					cfNames, _, cfErr := slsClient.ListConfig(name, 0, 100)
 					return cfNames, cfErr
 				})
@@ -53,7 +56,8 @@ func testSweepLogConfigs(region string) error {
 				}
 				for _, cfName := range cfNameList.([]string) {
 					log.Printf("[INFO] Deleting Log config: %s", cfName)
-					_, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+					_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 						return nil, slsClient.DeleteConfig(name, cfName)
 					})
 					if err != nil {
@@ -69,8 +73,9 @@ func testSweepLogConfigs(region string) error {
 			continue
 		}
 		log.Printf("[INFO] Deleting Log Project: %s", name)
-		_, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-			return nil, slsClient.DeleteProject(name)
+		_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
+			return nil, slsClient.DeleteLogProject(ctx, name)
 		})
 		if err != nil {
 			log.Printf("[ERROR] Failed to delete Log Project (%s): %s", name, err)

@@ -1,14 +1,15 @@
 package alicloud
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -134,18 +135,18 @@ func resourceAlicloudLogOssShipper() *schema.Resource {
 
 func resourceAlicloudLogOssShipperCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var requestInfo *sls.Client
+	var requestInfo *aliyunSlsAPI.Client
 	projectName := d.Get("project_name").(string)
 	logstoreName := d.Get("logstore_name").(string)
 	shipperName := d.Get("shipper_name").(string)
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	if err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 			requestInfo = slsClient
-			project, _ := sls.NewLogProject(projectName, slsClient.Endpoint, slsClient.AccessKeyID, slsClient.AccessKeySecret)
-			project, _ = project.WithToken(slsClient.SecurityToken)
-			logstore, _ := sls.NewLogStore(logstoreName, project)
-			return nil, logstore.CreateShipper(buildConfig(d))
+			project, _ := aliyunSlsAPI.NewLogProject(projectName, slsClient.Endpoint, slsClient.AccessKeyID, slsClient.AccessKeySecret)
+			logstore, _ := aliyunSlsAPI.NewLogStore(logstoreName, project)
+			return nil, slsClient.CreateShipper(logstore, buildConfig(d))
 		})
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
@@ -169,7 +170,7 @@ func resourceAlicloudLogOssShipperCreate(d *schema.ResourceData, meta interface{
 
 func resourceAlicloudLogOssShipperRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := LogService(client)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
@@ -184,7 +185,7 @@ func resourceAlicloudLogOssShipperRead(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	ossShipperConfig := shipper.TargetConfiguration.(*sls.OSSShipperConfig)
+	ossShipperConfig := shipper.TargetConfiguration.(*aliyunSlsAPI.OSSShipperConfig)
 	d.Set("project_name", parts[0])
 	d.Set("logstore_name", parts[1])
 	d.Set("shipper_name", parts[2])
@@ -233,11 +234,11 @@ func resourceAlicloudLogOssShipperUpdate(d *schema.ResourceData, meta interface{
 	}
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	if err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-		_, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-			project, _ := sls.NewLogProject(parts[0], slsClient.Endpoint, slsClient.AccessKeyID, slsClient.AccessKeySecret)
-			project, _ = project.WithToken(slsClient.SecurityToken)
-			logstore, _ := sls.NewLogStore(parts[1], project)
-			return nil, logstore.UpdateShipper(buildConfig(d))
+		_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
+			project, _ := aliyunSlsAPI.NewLogProject(parts[0], slsClient.Endpoint, slsClient.AccessKeyID, slsClient.AccessKeySecret)
+			logstore, _ := aliyunSlsAPI.NewLogStore(parts[1], project)
+			return nil, slsClient.UpdateShipper(logstore, buildConfig(d))
 		})
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
@@ -256,19 +257,20 @@ func resourceAlicloudLogOssShipperUpdate(d *schema.ResourceData, meta interface{
 
 func resourceAlicloudLogOssShipperDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := LogService(client)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
 	}
-	var requestInfo *sls.Client
+	var requestInfo *aliyunSlsAPI.Client
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-			project, _ := sls.NewLogProject(parts[0], slsClient.Endpoint, slsClient.AccessKeyID, slsClient.AccessKeySecret)
-			project, _ = project.WithToken(slsClient.SecurityToken)
-			logstore, _ := sls.NewLogStore(parts[1], project)
-			return nil, logstore.DeleteShipper(parts[2])
+		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
+			requestInfo = slsClient
+			project, _ := aliyunSlsAPI.NewLogProject(parts[0], slsClient.Endpoint, slsClient.AccessKeyID, slsClient.AccessKeySecret)
+			logstore, _ := aliyunSlsAPI.NewLogStore(parts[1], project)
+			return nil, slsClient.DeleteShipper(logstore, parts[2])
 		})
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
@@ -296,50 +298,50 @@ func resourceAlicloudLogOssShipperDelete(d *schema.ResourceData, meta interface{
 
 }
 
-func buildConfig(d *schema.ResourceData) *sls.Shipper {
+func buildConfig(d *schema.ResourceData) *aliyunSlsAPI.Shipper {
 	format := d.Get("format").(string)
-	var storage sls.ShipperStorage
+	var storage aliyunSlsAPI.ShipperStorage
 	if format == "json" {
 		enableTag := d.Get("json_enable_tag").(bool)
-		storage = sls.ShipperStorage{
+		storage = aliyunSlsAPI.ShipperStorage{
 			Format: "json",
-			Detail: sls.OssStorageJsonDetail{EnableTag: enableTag},
+			Detail: aliyunSlsAPI.OssStorageJsonDetail{EnableTag: enableTag},
 		}
 	} else if format == "parquet" {
-		detail := sls.OssStoreageParquet{}
+		detail := aliyunSlsAPI.OssStoreageParquet{}
 		for _, f := range d.Get("parquet_config").(*schema.Set).List() {
 			v := f.(map[string]interface{})
-			config := sls.ParquetConfig{
+			config := aliyunSlsAPI.ParquetConfig{
 				Name: v["name"].(string),
 				Type: v["type"].(string),
 			}
 			detail.Columns = append(detail.Columns, config)
 		}
-		storage = sls.ShipperStorage{
+		storage = aliyunSlsAPI.ShipperStorage{
 			Format: "parquet",
 			Detail: detail,
 		}
 
 	} else if format == "csv" {
-		detail := sls.OssStoreageCsvDetail{
-			Delimiter:      d.Get("csv_config_delimiter").(string),
-			Header:         d.Get("csv_config_header").(bool),
-			LineFeed:       d.Get("csv_config_linefeed").(string),
-			NullIdentifier: d.Get("csv_config_nullidentifier").(string),
-			Quote:          d.Get("csv_config_quote").(string),
+		detail := aliyunSlsAPI.OssStoreageCsvDetail{
+			Delimiter: d.Get("csv_config_delimiter").(string),
+			Header:    d.Get("csv_config_header").(bool),
+			LineFeed:  d.Get("csv_config_linefeed").(string),
+			NullValue: d.Get("csv_config_nullidentifier").(string),
+			Quote:     d.Get("csv_config_quote").(string),
 		}
 		columns := []string{}
 		for _, v := range d.Get("csv_config_columns").([]interface{}) {
 			columns = append(columns, v.(string))
 		}
 		detail.Columns = columns
-		storage = sls.ShipperStorage{
+		storage = aliyunSlsAPI.ShipperStorage{
 			Format: "csv",
 			Detail: detail,
 		}
 	}
 
-	ossShipperConfig := &sls.OSSShipperConfig{
+	ossShipperConfig := &aliyunSlsAPI.OSSShipperConfig{
 		OssBucket:      d.Get("oss_bucket").(string),
 		OssPrefix:      d.Get("oss_prefix").(string),
 		RoleArn:        d.Get("role_arn").(string),
@@ -349,7 +351,7 @@ func buildConfig(d *schema.ResourceData) *sls.Shipper {
 		PathFormat:     d.Get("path_format").(string),
 		Storage:        storage,
 	}
-	ossShipper := &sls.Shipper{
+	ossShipper := &aliyunSlsAPI.Shipper{
 		ShipperName:         d.Get("shipper_name").(string),
 		TargetType:          "oss",
 		TargetConfiguration: ossShipperConfig,

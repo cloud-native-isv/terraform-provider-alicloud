@@ -6,7 +6,7 @@ import (
 
 	"github.com/alibabacloud-go/tea/tea"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 
 	"fmt"
 
@@ -186,9 +186,10 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 		return false
 	}
 
-	if e, ok := err.(*sls.Error); ok {
+	// Handle SLS API errors from cws-lib-go
+	if e, ok := err.(*aliyunSlsAPI.SlsAPIError); ok {
 		for _, code := range expectCodes {
-			if e.Code == code || strings.Contains(e.Message, code) || strings.Contains(e.String(), code) {
+			if strings.Contains(e.Error(), code) {
 				return true
 			}
 		}
