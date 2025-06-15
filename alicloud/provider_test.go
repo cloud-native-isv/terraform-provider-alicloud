@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"context"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -15,7 +16,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
 
 	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
-	sls "github.com/aliyun/aliyun-log-go-sdk"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/aliyun/fc-go-sdk"
 

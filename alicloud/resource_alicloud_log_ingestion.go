@@ -1,14 +1,15 @@
 package alicloud
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"regexp"
 	"time"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -80,12 +81,13 @@ func resourceAlicloudLogIngestion() *schema.Resource {
 
 func resourceAlicloudLogIngestionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var requestinfo *sls.Client
+	var requestinfo *aliyunSlsAPI.Client
 	ingestion := getIngestion(d)
 	project := d.Get("project").(string)
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 			requestinfo = slsClient
 			return nil, slsClient.CreateIngestion(project, ingestion)
 		})
@@ -113,7 +115,7 @@ func resourceAlicloudLogIngestionCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAlicloudLogIngestionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := LogService(client)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
@@ -145,12 +147,13 @@ func resourceAlicloudLogIngestionRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceAlicloudLogIngestionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var requestinfo *sls.Client
+	var requestinfo *aliyunSlsAPI.Client
 	ingestion := getIngestion(d)
 	project := d.Get("project").(string)
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 			requestinfo = slsClient
 			return nil, slsClient.UpdateIngestion(project, ingestion)
 		})
@@ -177,15 +180,16 @@ func resourceAlicloudLogIngestionUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceAlicloudLogIngestionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
-	var requestinfo *sls.Client
+	logService := LogService(client)
+	var requestinfo *aliyunSlsAPI.Client
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
 	}
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
+			ctx := context.Background()
 			requestinfo = slsClient
 			return nil, slsClient.DeleteIngestion(parts[0], parts[2])
 		})
@@ -210,29 +214,29 @@ func resourceAlicloudLogIngestionDelete(d *schema.ResourceData, meta interface{}
 	return WrapError(logService.WaitForLogIngestion(d.Id(), Deleted, DefaultTimeout))
 }
 
-func getIngestion(d *schema.ResourceData) *sls.Ingestion {
-	ingest := &sls.Ingestion{
-		ScheduledJob: sls.ScheduledJob{
-			BaseJob: sls.BaseJob{
+func getIngestion(d *schema.ResourceData) *aliyunSlsAPI.Ingestion {
+	ingest := &aliyunSlsAPI.Ingestion{
+		ScheduledJob: aliyunSlsAPI.ScheduledJob{
+			BaseJob: aliyunSlsAPI.BaseJob{
 				Name:        d.Get("ingestion_name").(string),
 				DisplayName: d.Get("display_name").(string),
 				Description: d.Get("description").(string),
-				Type:        sls.INGESTION_JOB,
+				Type:        aliyunSlsAPI.INGESTION_JOB,
 			},
-			Schedule: &sls.Schedule{
+			Schedule: &aliyunSlsAPI.Schedule{
 				Type:           "FixedRate",
 				Interval:       d.Get("interval").(string),
 				RunImmediately: d.Get("run_immediately").(bool),
 				TimeZone:       d.Get("time_zone").(string),
 			},
 		},
-		IngestionConfiguration: &sls.IngestionConfiguration{
+		IngestionConfiguration: &aliyunSlsAPI.IngestionConfiguration{
 			LogStore: d.Get("logstore").(string),
 		},
 	}
 	s := d.Get("source").(string)
 	m := map[string]interface{}{}
 	json.Unmarshal([]byte(s), &m)
-	ingest.IngestionConfiguration.DataSource = m
+	ingest.IngestionConfiguration.Source = m
 	return ingest
 }

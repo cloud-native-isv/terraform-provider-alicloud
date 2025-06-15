@@ -90,6 +90,10 @@ func (s *LogService) DescribeLogResourceRecord(id string) (map[string]interface{
 	return s.sls.DescribeSlsResourceRecord(id)
 }
 
+func (s *LogService) DescribeLogAudit(id string) (map[string]interface{}, error) {
+	return s.sls.DescribeSlsAudit(id)
+}
+
 func (s *LogService) DescribeLogProjectTags(projectName string) (map[string]interface{}, error) {
 	return s.sls.DescribeListTagResources(projectName)
 }

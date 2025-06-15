@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	slsPop "github.com/aliyun/alibaba-cloud-sdk-go/services/sls"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -133,7 +133,7 @@ func resourceAlicloudLogAuditUpdate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAlicloudLogAuditRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	logService := NewLogService(client)
 	response, err := logService.DescribeLogAudit(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -142,7 +142,21 @@ func resourceAlicloudLogAuditRead(d *schema.ResourceData, meta interface{}) erro
 		}
 		return WrapError(err)
 	}
-	displayName, initMap, err := getInitParameter(response.GetHttpContentString())
+
+	// Handle response based on the actual return type from the new service
+	var responseContent string
+	if responseBytes, ok := response["content"]; ok {
+		responseContent = responseBytes.(string)
+	} else {
+		// Fallback to try converting the entire response to JSON string
+		if responseData, jsonErr := json.Marshal(response); jsonErr == nil {
+			responseContent = string(responseData)
+		} else {
+			return WrapError(fmt.Errorf("failed to parse response from DescribeLogAudit"))
+		}
+	}
+
+	displayName, initMap, err := getInitParameter(responseContent)
 	if err != nil {
 		return WrapError(err)
 	}
