@@ -1,15 +1,16 @@
 package alicloud
 
 import (
-	"context"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -63,7 +64,7 @@ func resourceAlicloudLogDashboard() *schema.Resource {
 
 func resourceAlicloudLogDashboardCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var requestInfo *sls.Client
+	logService := NewLogService(client)
 
 	dashboard := map[string]interface{}{
 		"dashboardName": d.Get("dashboard_name").(string),
@@ -91,10 +92,11 @@ func resourceAlicloudLogDashboardCreate(d *schema.ResourceData, meta interface{}
 	dashboardStr := string(dashboardBytes)
 
 	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			return nil, slsClient.CreateDashboardString(d.Get("project_name").(string), dashboardStr)
-		})
+		// Create dashboard using RPC call directly since CWS-Lib-Go doesn't have CreateDashboardString method
+		_, err := client.RpcPost("sls", "2020-12-30", "CreateDashboard", nil, map[string]interface{}{
+			"project":   d.Get("project_name").(string),
+			"dashboard": dashboardStr,
+		}, true)
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				time.Sleep(5 * time.Second)
@@ -102,7 +104,7 @@ func resourceAlicloudLogDashboardCreate(d *schema.ResourceData, meta interface{}
 			}
 			return resource.NonRetryableError(err)
 		}
-		addDebug("CreateDashboard", dashboard, requestInfo, map[string]interface{}{
+		addDebug("CreateDashboard", dashboard, nil, map[string]interface{}{
 			"dashBoard": dashboard,
 		})
 		d.SetId(fmt.Sprintf("%s%s%s", d.Get("project_name").(string), COLON_SEPARATED, d.Get("dashboard_name").(string)))
@@ -162,7 +164,7 @@ func resourceAlicloudLogDashboardRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if charts, ok := dashboard["charts"].([]interface{}); ok {
-		for k, v := range charts {
+		for _, v := range charts {
 			if chartMap, isMap := v.(map[string]interface{}); isMap {
 				if action, actionOK := chartMap["action"]; actionOK {
 					if action == nil {
@@ -223,10 +225,11 @@ func resourceAlicloudLogDashboardUpdate(d *schema.ResourceData, meta interface{}
 		}
 		dashboardStr := string(dashboardBytes)
 
-		_, err = client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			return nil, slsClient.UpdateDashboardString(parts[0], parts[1], dashboardStr)
-		})
+		// Update dashboard using RPC call directly since CWS-Lib-Go doesn't have UpdateDashboardString method
+		_, err = client.RpcPost("sls", "2020-12-30", "UpdateDashboard", nil, map[string]interface{}{
+			"project":   parts[0],
+			"dashboard": dashboardStr,
+		}, true)
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateDashboard", AliyunLogGoSdkERROR)
 		}

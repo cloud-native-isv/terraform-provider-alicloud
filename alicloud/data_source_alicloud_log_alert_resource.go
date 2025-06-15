@@ -48,7 +48,7 @@ func dataSourceAlicloudLogAlertResourceRead(d *schema.ResourceData, meta interfa
 				// Since the new API doesn't have direct InitUserAlertResource equivalent,
 				// we can try to check if alert resources are available by listing projects
 				// This serves as initialization verification
-				_, err := slsClient.ListLogProjects(ctx, "", "")
+				_, err := slsClient.ListLogProjects("", "")
 				if err != nil {
 					return nil, fmt.Errorf("failed to initialize user alert resources: %w", err)
 				}
@@ -58,7 +58,7 @@ func dataSourceAlicloudLogAlertResourceRead(d *schema.ResourceData, meta interfa
 					return nil, fmt.Errorf("project name is required for project type")
 				}
 				// Check if the internal-alert-history logstore exists
-				_, err := slsClient.GetLogStore(ctx, project, "internal-alert-history")
+				_, err := slsClient.GetLogStore(project, "internal-alert-history")
 				if err != nil {
 					if IsExpectedErrors(err, []string{"LogStoreNotExist", "ProjectNotExist"}) {
 						// Create the logstore for alert history if it doesn't exist
@@ -67,7 +67,7 @@ func dataSourceAlicloudLogAlertResourceRead(d *schema.ResourceData, meta interfa
 							Ttl:          7, // 7 days retention
 							ShardCount:   2, // 2 shards by default
 						}
-						err = slsClient.CreateLogStore(ctx, project, logstore)
+						err = slsClient.CreateLogStore(project, logstore)
 						if err != nil {
 							return nil, fmt.Errorf("failed to create internal-alert-history logstore: %w", err)
 						}

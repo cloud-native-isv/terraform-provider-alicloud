@@ -90,9 +90,7 @@ func dataSourceAlicloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 	var response []string
 	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
 		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			// Call ListLogStores with the required parameters
-			return slsClient.ListLogStores(ctx, project, "", "", "")
+			return slsClient.ListLogStores(project, "", "", "")
 		})
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
