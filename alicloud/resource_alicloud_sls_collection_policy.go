@@ -262,11 +262,11 @@ func resourceAliCloudSlsCollectionPolicyCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(fmt.Sprint(request["policyName"]))
 
-	slsServiceV2, err := NewSlsService(client)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_collection_policy", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
-	stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsServiceV2.SlsCollectionPolicyStateRefreshFunc(d.Id(), "#policyName", []string{}))
+	stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.SlsCollectionPolicyStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -276,12 +276,12 @@ func resourceAliCloudSlsCollectionPolicyCreate(d *schema.ResourceData, meta inte
 
 func resourceAliCloudSlsCollectionPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsService(client)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_collection_policy", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
 
-	objectRaw, err := slsServiceV2.DescribeSlsCollectionPolicy(d.Id())
+	policy, err := slsService.DescribeSlsCollectionPolicy(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sls_collection_policy DescribeSlsCollectionPolicy Failed!!! %s", err)
@@ -291,105 +291,64 @@ func resourceAliCloudSlsCollectionPolicyRead(d *schema.ResourceData, meta interf
 		return WrapError(err)
 	}
 
-	if objectRaw["centralizeEnabled"] != nil {
-		d.Set("centralize_enabled", objectRaw["centralizeEnabled"])
-	}
-	if objectRaw["dataCode"] != nil {
-		d.Set("data_code", objectRaw["dataCode"])
-	}
-	if objectRaw["enabled"] != nil {
-		d.Set("enabled", objectRaw["enabled"])
-	}
-	if objectRaw["productCode"] != nil {
-		d.Set("product_code", objectRaw["productCode"])
-	}
-	if objectRaw["policyName"] != nil {
-		d.Set("policy_name", objectRaw["policyName"])
-	}
+	// Set basic attributes
+	d.Set("centralize_enabled", policy.CentralizeEnabled)
+	d.Set("data_code", policy.DataCode)
+	d.Set("enabled", policy.Enabled)
+	d.Set("product_code", policy.ProductCode)
+	d.Set("policy_name", policy.PolicyName)
 
+	// Handle centralize config
 	centralizeConfigMaps := make([]map[string]interface{}, 0)
-	centralizeConfigMap := make(map[string]interface{})
-	centralizeConfig1Raw := make(map[string]interface{})
-	if objectRaw["centralizeConfig"] != nil {
-		centralizeConfig1Raw = objectRaw["centralizeConfig"].(map[string]interface{})
-	}
-	if len(centralizeConfig1Raw) > 0 {
-		centralizeConfigMap["dest_logstore"] = centralizeConfig1Raw["destLogstore"]
-		centralizeConfigMap["dest_project"] = centralizeConfig1Raw["destProject"]
-		centralizeConfigMap["dest_region"] = centralizeConfig1Raw["destRegion"]
-		centralizeConfigMap["dest_ttl"] = centralizeConfig1Raw["destTTL"]
-
+	if policy.CentralizeConfig != nil {
+		centralizeConfigMap := make(map[string]interface{})
+		centralizeConfigMap["dest_logstore"] = policy.CentralizeConfig.DestLogstore
+		centralizeConfigMap["dest_project"] = policy.CentralizeConfig.DestProject
+		centralizeConfigMap["dest_region"] = policy.CentralizeConfig.DestRegion
+		centralizeConfigMap["dest_ttl"] = policy.CentralizeConfig.DestTTL
 		centralizeConfigMaps = append(centralizeConfigMaps, centralizeConfigMap)
-	}
-	if objectRaw["centralizeConfig"] != nil {
+
 		if err := d.Set("centralize_config", centralizeConfigMaps); err != nil {
 			return err
 		}
 	}
-	dataConfigMaps := make([]map[string]interface{}, 0)
-	dataConfigMap := make(map[string]interface{})
-	dataConfig1Raw := make(map[string]interface{})
-	if objectRaw["dataConfig"] != nil {
-		dataConfig1Raw = objectRaw["dataConfig"].(map[string]interface{})
-	}
-	if len(dataConfig1Raw) > 0 {
-		dataConfigMap["data_project"] = dataConfig1Raw["dataProject"]
-		dataConfigMap["data_region"] = dataConfig1Raw["dataRegion"]
 
+	// Handle data config
+	dataConfigMaps := make([]map[string]interface{}, 0)
+	if policy.DataConfig != nil {
+		dataConfigMap := make(map[string]interface{})
+		dataConfigMap["data_project"] = policy.DataConfig.DataProject
+		dataConfigMap["data_region"] = policy.DataConfig.DataRegion
 		dataConfigMaps = append(dataConfigMaps, dataConfigMap)
-	}
-	if objectRaw["dataConfig"] != nil {
+
 		if err := d.Set("data_config", dataConfigMaps); err != nil {
 			return err
 		}
 	}
+
+	// Handle policy config
 	policyConfigMaps := make([]map[string]interface{}, 0)
-	policyConfigMap := make(map[string]interface{})
-	policyConfig1Raw := make(map[string]interface{})
-	if objectRaw["policyConfig"] != nil {
-		policyConfig1Raw = objectRaw["policyConfig"].(map[string]interface{})
-	}
-	if len(policyConfig1Raw) > 0 {
-		policyConfigMap["resource_mode"] = policyConfig1Raw["resourceMode"]
-		policyConfigMap["resource_tags"] = policyConfig1Raw["resourceTags"]
-
-		instanceIds1Raw := make([]interface{}, 0)
-		if policyConfig1Raw["instanceIds"] != nil {
-			instanceIds1Raw = policyConfig1Raw["instanceIds"].([]interface{})
-		}
-
-		policyConfigMap["instance_ids"] = instanceIds1Raw
-		regions1Raw := make([]interface{}, 0)
-		if policyConfig1Raw["regions"] != nil {
-			regions1Raw = policyConfig1Raw["regions"].([]interface{})
-		}
-
-		policyConfigMap["regions"] = regions1Raw
+	if policy.PolicyConfig != nil {
+		policyConfigMap := make(map[string]interface{})
+		policyConfigMap["resource_mode"] = policy.PolicyConfig.ResourceMode
+		policyConfigMap["resource_tags"] = policy.PolicyConfig.ResourceTags
+		policyConfigMap["instance_ids"] = policy.PolicyConfig.InstanceIds
+		policyConfigMap["regions"] = policy.PolicyConfig.Regions
 		policyConfigMaps = append(policyConfigMaps, policyConfigMap)
-	}
-	if objectRaw["policyConfig"] != nil {
+
 		if err := d.Set("policy_config", policyConfigMaps); err != nil {
 			return err
 		}
 	}
+
+	// Handle resource directory
 	resourceDirectoryMaps := make([]map[string]interface{}, 0)
-	resourceDirectoryMap := make(map[string]interface{})
-	resourceDirectory1Raw := make(map[string]interface{})
-	if objectRaw["resourceDirectory"] != nil {
-		resourceDirectory1Raw = objectRaw["resourceDirectory"].(map[string]interface{})
-	}
-	if len(resourceDirectory1Raw) > 0 {
-		resourceDirectoryMap["account_group_type"] = resourceDirectory1Raw["accountGroupType"]
-
-		members1Raw := make([]interface{}, 0)
-		if resourceDirectory1Raw["members"] != nil {
-			members1Raw = resourceDirectory1Raw["members"].([]interface{})
-		}
-
-		resourceDirectoryMap["members"] = members1Raw
+	if policy.ResourceDirectory != nil && policy.ResourceDirectory.AccountGroupType != "" {
+		resourceDirectoryMap := make(map[string]interface{})
+		resourceDirectoryMap["account_group_type"] = policy.ResourceDirectory.AccountGroupType
+		resourceDirectoryMap["members"] = policy.ResourceDirectory.Members
 		resourceDirectoryMaps = append(resourceDirectoryMaps, resourceDirectoryMap)
-	}
-	if objectRaw["resourceDirectory"] != nil && objectRaw["resourceDirectory"].(map[string]interface{})["accountGroupType"] != "" {
+
 		if err := d.Set("resource_directory", resourceDirectoryMaps); err != nil {
 			return err
 		}
@@ -402,7 +361,7 @@ func resourceAliCloudSlsCollectionPolicyRead(d *schema.ResourceData, meta interf
 
 func resourceAliCloudSlsCollectionPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsService(client)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_collection_policy", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
@@ -539,7 +498,7 @@ func resourceAliCloudSlsCollectionPolicyUpdate(d *schema.ResourceData, meta inte
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, slsServiceV2.SlsCollectionPolicyStateRefreshFunc(d.Id(), "#policyName", []string{}))
+		stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, slsService.SlsCollectionPolicyStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -551,7 +510,7 @@ func resourceAliCloudSlsCollectionPolicyUpdate(d *schema.ResourceData, meta inte
 func resourceAliCloudSlsCollectionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsService(client)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_collection_policy", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
@@ -594,7 +553,7 @@ func resourceAliCloudSlsCollectionPolicyDelete(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, slsServiceV2.SlsCollectionPolicyStateRefreshFunc(d.Id(), "policyName", []string{}))
+	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, slsService.SlsCollectionPolicyStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

@@ -113,12 +113,15 @@ func resourceAlicloudLogDashboardCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAlicloudLogDashboardRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := NewSlsService(client)
+	logService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
 	}
-	object, err := logService.DescribeLogDashboard(d.Id())
+	dashboard, err := logService.DescribeSlsDashboard(parts[0], parts[1])
 	if err != nil {
 		if NotFoundError(err) {
 			d.SetId("")
@@ -127,53 +130,57 @@ func resourceAlicloudLogDashboardRead(d *schema.ResourceData, meta interface{}) 
 		return WrapError(err)
 	}
 
-	// Handle response based on the actual return type from the new service
-	var objectBytes []byte
-	var dashboard map[string]interface{}
-
-	// Try to handle different response types
-	if objectStr, ok := object["content"].(string); ok {
-		objectBytes = []byte(objectStr)
-	} else {
-		// Direct conversion of object to JSON bytes
-		if objBytes, err := json.Marshal(object); err == nil {
-			objectBytes = objBytes
-		} else {
-			return WrapError(err)
-		}
-	}
-
-	err = json.Unmarshal(objectBytes, &dashboard)
-	if err != nil {
-		return WrapError(err)
-	}
-
 	d.Set("project_name", parts[0])
-	d.Set("dashboard_name", dashboard["dashboardName"])
-	d.Set("display_name", dashboard["displayName"])
-	if v, ok := dashboard["attribute"]; ok {
-		if attributeBytes, err := json.Marshal(v); err == nil {
+	d.Set("dashboard_name", dashboard.Name)
+	d.Set("display_name", dashboard.DisplayName)
+
+	if dashboard.Attribute != nil && len(dashboard.Attribute) > 0 {
+		if attributeBytes, err := json.Marshal(dashboard.Attribute); err == nil {
 			d.Set("attribute", string(attributeBytes))
 		} else {
 			return WrapError(err)
 		}
 	}
 
-	if charts, ok := dashboard["charts"].([]interface{}); ok {
-		for _, v := range charts {
-			if chartMap, isMap := v.(map[string]interface{}); isMap {
-				if action, actionOK := chartMap["action"]; actionOK {
-					if action == nil {
-						delete(chartMap, "action")
-					}
-				}
+	if dashboard.ChartList != nil && len(dashboard.ChartList) > 0 {
+		// Convert chart list to the expected format
+		var charts []interface{}
+		for _, chart := range dashboard.ChartList {
+			chartMap := make(map[string]interface{})
+			chartMap["title"] = chart.Title
+			chartMap["type"] = chart.Type
+
+			// Handle search configuration
+			if chart.Search != nil {
+				search := make(map[string]interface{})
+				search["logstore"] = chart.Search.Logstore
+				search["topic"] = chart.Search.Topic
+				search["query"] = chart.Search.Query
+				search["start"] = chart.Search.Start
+				search["end"] = chart.Search.End
+				search["timeSpanType"] = chart.Search.TimeSpanType
+				chartMap["search"] = search
 			}
+
+			// Handle display configuration
+			if chart.Display != nil {
+				display := make(map[string]interface{})
+				display["xPos"] = chart.Display.XPos
+				display["yPos"] = chart.Display.YPos
+				display["width"] = chart.Display.Width
+				display["height"] = chart.Display.Height
+				display["displayName"] = chart.Display.DisplayName
+				chartMap["display"] = display
+			}
+
+			charts = append(charts, chartMap)
 		}
-		charlist, err := json.Marshal(charts)
-		if err != nil {
+
+		if charlistBytes, err := json.Marshal(charts); err == nil {
+			d.Set("char_list", string(charlistBytes))
+		} else {
 			return WrapError(err)
 		}
-		d.Set("char_list", string(charlist))
 	}
 
 	return nil
@@ -235,13 +242,16 @@ func resourceAlicloudLogDashboardUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceAlicloudLogDashboardDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := NewSlsService(client)
+	logService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
 	}
 	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
-		err := logService.sls.DeleteDashboard(parts[0], parts[1])
+		err := logService.DeleteDashboard(parts[0], parts[1])
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout, "RequestTimeout"}) {
 				return resource.RetryableError(err)
@@ -260,7 +270,7 @@ func resourceAlicloudLogDashboardDelete(d *schema.ResourceData, meta interface{}
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDashboard", AliyunLogGoSdkERROR)
 	}
-	return WrapError(logService.WaitForLogDashboard(d.Id(), Deleted, DefaultTimeout))
+	return WrapError(logService.WaitForSlsDashboard(d.Id(), Deleted, DefaultTimeout))
 }
 
 func chartListDiffSuppress(k, old, new string, d *schema.ResourceData) bool {

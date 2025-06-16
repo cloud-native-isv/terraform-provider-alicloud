@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -112,28 +113,27 @@ func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{})
 	if len(projectNames) > 0 {
 		// Get specific projects by names
 		for _, name := range projectNames {
-			project, err := slsService.DescribeSlsProject(name)
+			project, err := slsService.DescribeLogProject(name)
 			if err != nil {
 				if NotFoundError(err) {
 					continue
 				}
 				return WrapError(err)
 			}
-			allProjects = append(allProjects, project)
+			// Convert LogProject to map[string]interface{}
+			projectMap := convertLogProjectToMap(project)
+			allProjects = append(allProjects, projectMap)
 		}
 	} else {
 		// List all projects
-		response, err := slsService.ListProjects()
+		projects, err := slsService.ListProjects()
 		if err != nil {
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_projects", "ListProjects", AliyunLogGoSdkERROR)
 		}
 
-		if projects, ok := response["projects"].([]interface{}); ok {
-			for _, v := range projects {
-				if item, ok := v.(map[string]interface{}); ok {
-					allProjects = append(allProjects, item)
-				}
-			}
+		for _, project := range projects {
+			projectMap := convertLogProjectToMap(project)
+			allProjects = append(allProjects, projectMap)
 		}
 	}
 
@@ -145,7 +145,7 @@ func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{})
 			return WrapError(err)
 		}
 		for _, project := range allProjects {
-			if projectName, exists := project["projectName"]; exists {
+			if projectName, exists := project["project_name"]; exists {
 				if r.MatchString(projectName.(string)) {
 					filteredProjects = append(filteredProjects, project)
 				}
@@ -156,6 +156,19 @@ func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{})
 	}
 
 	return logProjectsDecriptionAttributes(d, filteredProjects, meta)
+}
+
+// convertLogProjectToMap converts aliyunSlsAPI.LogProject to map[string]interface{} for compatibility
+func convertLogProjectToMap(project *aliyunSlsAPI.LogProject) map[string]interface{} {
+	return map[string]interface{}{
+		"id":               project.ProjectName,
+		"description":      project.Description,
+		"last_modify_time": project.LastModifyTime,
+		"owner":            project.Owner,
+		"project_name":     project.ProjectName,
+		"region":           project.Region,
+		"status":           project.Status,
+	}
 }
 
 func logProjectsDecriptionAttributes(d *schema.ResourceData, projects []map[string]interface{}, meta interface{}) error {

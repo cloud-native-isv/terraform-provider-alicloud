@@ -2,7 +2,6 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -209,6 +208,11 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("telemetry_type"); ok && v == "Metrics" {
 		client := meta.(*connectivity.AliyunClient)
+		slsService, err := NewSlsService(client)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsService", AlibabaCloudSdkGoERROR)
+		}
+
 		projectName := d.Get("project_name").(string)
 		if v, ok := d.GetOkExists("project"); ok {
 			projectName = v.(string)
@@ -219,13 +223,8 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 		}
 
 		logstore := buildLogStore(d)
-		var requestinfo *aliyunSlsAPI.Client
-		err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-				ctx := context.Background()
-				requestinfo = slsClient
-				return nil, slsClient.CreateLogStore(parts[0], buildLogStore(d))
-			})
+		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+			err := slsService.aliyunSlsAPI.CreateLogStore(projectName, logstore)
 			if err != nil {
 				if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
 					time.Sleep(10 * time.Second)
@@ -233,10 +232,6 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 				}
 				return resource.NonRetryableError(err)
 			}
-			addDebug("CreateLogStore", raw, requestinfo, map[string]interface{}{
-				"project":  projectName,
-				"logstore": logstore,
-			})
 			return nil
 		})
 		if err != nil {
@@ -357,12 +352,12 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 
 func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsService(client)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
 
-	objectRaw, err := slsServiceV2.DescribeSlsLogStore(d.Id())
+	logstore, err := slsService.DescribeSlsLogStore(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_log_store DescribeSlsLogStore Failed!!! %s", err)
@@ -372,82 +367,51 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 		return WrapError(err)
 	}
 
-	if objectRaw["appendMeta"] != nil {
-		d.Set("append_meta", objectRaw["appendMeta"])
-	}
-	if objectRaw["autoSplit"] != nil {
-		d.Set("auto_split", objectRaw["autoSplit"])
-	}
-	if objectRaw["createTime"] != nil {
-		d.Set("create_time", objectRaw["createTime"])
-	}
-	if objectRaw["enable_tracking"] != nil {
-		d.Set("enable_web_tracking", objectRaw["enable_tracking"])
-	}
-	if objectRaw["hot_ttl"] != nil {
-		d.Set("hot_ttl", objectRaw["hot_ttl"])
-	}
-	if objectRaw["infrequentAccessTTL"] != nil {
-		d.Set("infrequent_access_ttl", objectRaw["infrequentAccessTTL"])
-	}
-	if objectRaw["maxSplitShard"] != nil {
-		d.Set("max_split_shard_count", objectRaw["maxSplitShard"])
-	}
-	if objectRaw["mode"] != nil {
-		d.Set("mode", objectRaw["mode"])
-	}
-	if objectRaw["ttl"] != nil {
-		d.Set("retention_period", objectRaw["ttl"])
-	}
-	if objectRaw["shardCount"] != nil {
-		d.Set("shard_count", objectRaw["shardCount"])
-	}
-	if objectRaw["telemetryType"] != nil {
-		d.Set("telemetry_type", objectRaw["telemetryType"])
-	}
-	if objectRaw["logstoreName"] != nil {
-		d.Set("logstore_name", objectRaw["logstoreName"])
-	}
+	// Set logstore attributes using struct fields instead of map access
+	d.Set("append_meta", logstore.AppendMeta)
+	d.Set("auto_split", logstore.AutoSplit)
+	d.Set("create_time", logstore.CreateTime)
+	d.Set("enable_web_tracking", logstore.EnableTracking)
+	d.Set("hot_ttl", logstore.HotTtl)
+	d.Set("infrequent_access_ttl", logstore.InfrequentAccessTTL)
+	d.Set("max_split_shard_count", logstore.MaxSplitShard)
+	d.Set("mode", logstore.Mode)
+	d.Set("retention_period", logstore.Ttl)
+	d.Set("shard_count", logstore.ShardCount)
+	d.Set("telemetry_type", logstore.TelemetryType)
+	d.Set("logstore_name", logstore.LogstoreName)
 
+	// Handle encryption configuration
 	encryptConfMaps := make([]map[string]interface{}, 0)
-	encryptConfMap := make(map[string]interface{})
-	encrypt_conf1Raw := make(map[string]interface{})
-	if objectRaw["encrypt_conf"] != nil {
-		encrypt_conf1Raw = objectRaw["encrypt_conf"].(map[string]interface{})
-	}
-	if len(encrypt_conf1Raw) > 0 {
-		encryptConfMap["enable"] = encrypt_conf1Raw["enable"]
-		encryptConfMap["encrypt_type"] = encrypt_conf1Raw["encrypt_type"]
+	if logstore.EncryptConf != nil {
+		encryptConfMap := make(map[string]interface{})
+		encryptConfMap["enable"] = logstore.EncryptConf.Enable
+		encryptConfMap["encrypt_type"] = logstore.EncryptConf.EncryptType
 
 		userCmkInfoMaps := make([]map[string]interface{}, 0)
-		userCmkInfoMap := make(map[string]interface{})
-		user_cmk_info1Raw := make(map[string]interface{})
-		if encrypt_conf1Raw["user_cmk_info"] != nil {
-			user_cmk_info1Raw = encrypt_conf1Raw["user_cmk_info"].(map[string]interface{})
-		}
-		if len(user_cmk_info1Raw) > 0 {
-			userCmkInfoMap["arn"] = user_cmk_info1Raw["arn"]
-			userCmkInfoMap["cmk_key_id"] = user_cmk_info1Raw["cmk_key_id"]
-			userCmkInfoMap["region_id"] = user_cmk_info1Raw["region_id"]
-
+		if logstore.EncryptConf.UserCmkInfo != nil {
+			userCmkInfoMap := make(map[string]interface{})
+			userCmkInfoMap["arn"] = logstore.EncryptConf.UserCmkInfo.Arn
+			userCmkInfoMap["cmk_key_id"] = logstore.EncryptConf.UserCmkInfo.CmkKeyId
+			userCmkInfoMap["region_id"] = logstore.EncryptConf.UserCmkInfo.RegionId
 			userCmkInfoMaps = append(userCmkInfoMaps, userCmkInfoMap)
 		}
 		encryptConfMap["user_cmk_info"] = userCmkInfoMaps
 		encryptConfMaps = append(encryptConfMaps, encryptConfMap)
-	}
-	if objectRaw["encrypt_conf"] != nil {
+
 		if err := d.Set("encrypt_conf", encryptConfMaps); err != nil {
 			return err
 		}
 	}
 
-	objectRaw, err = slsServiceV2.DescribeGetLogStoreMeteringMode(d.Id())
+	// Get metering mode information
+	meteringMode, err := slsService.DescribeGetLogStoreMeteringMode(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
-	if objectRaw["meteringMode"] != nil {
-		d.Set("metering_mode", objectRaw["meteringMode"])
+	if meteringMode != nil {
+		d.Set("metering_mode", meteringMode.MeteringMode)
 	}
 
 	parts := strings.Split(d.Id(), ":")
@@ -456,38 +420,20 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("project", d.Get("project_name"))
 	d.Set("name", d.Get("logstore_name"))
-	logService := SlsService(client)
-	object, err := logService.DescribeLogStore(d.Id())
+
+	// Get shard information using the SLS service
+	shards, err := slsService.GetLogStoreShards(parts[0], parts[1])
 	if err != nil {
-		if NotFoundError(err) {
-			d.SetId("")
-			return nil
-		}
-		return err
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "GetLogStoreShards", AliyunLogGoSdkERROR)
 	}
-	var shards []*aliyunSlsAPI.Shard
-	err = resource.Retry(d.Timeout(schema.TimeoutRead), func() *resource.RetryError {
-		shards, err = object.ListShards()
-		if err != nil {
-			if IsExpectedErrors(err, []string{"InternalServerError"}) {
-				time.Sleep(10 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug("ListShards", shards)
-		return nil
-	})
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "ListShards", AliyunLogGoSdkERROR)
-	}
+
 	var shardList []map[string]interface{}
 	for _, s := range shards {
 		mapping := map[string]interface{}{
-			"id":        s.ShardID,
+			"id":        s.ShardId,
 			"status":    s.Status,
 			"begin_key": s.InclusiveBeginKey,
-			"end_key":   s.ExclusiveBeginKey,
+			"end_key":   s.ExclusiveEndKey,
 		}
 		shardList = append(shardList, mapping)
 	}
@@ -607,13 +553,13 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		logstore := buildLogStore(d)
-		var requestinfo *aliyunSlsAPI.Client
+		slsService, err := NewSlsService(client)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsService", AlibabaCloudSdkGoERROR)
+		}
+
 		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-				ctx := context.Background()
-				requestinfo = slsClient
-				return nil, slsClient.UpdateMetricStore(projectName, logstore)
-			})
+			err := slsService.aliyunSlsAPI.UpdateLogStore(projectName, logstore.LogstoreName, logstore)
 			if err != nil {
 				if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
 					time.Sleep(10 * time.Second)
@@ -621,14 +567,10 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 				}
 				return resource.NonRetryableError(err)
 			}
-			addDebug("UpdateMetricStore", raw, requestinfo, map[string]interface{}{
-				"project":  projectName,
-				"logstore": logstore,
-			})
 			return nil
 		})
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "CreateLogStoreV2", AliyunLogGoSdkERROR)
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "UpdateLogStore", AliyunLogGoSdkERROR)
 		}
 
 		update = false
@@ -662,12 +604,12 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 	hostMap = make(map[string]*string)
 	hostMap["project"] = StringPointer(parts[0])
 
-	slsServiceV2, err := NewSlsService(client)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
-	objectRaw, _ := slsServiceV2.DescribeGetLogStoreMeteringMode(d.Id())
-	if d.HasChange("metering_mode") && objectRaw["meteringMode"] != d.Get("metering_mode") {
+	meteringModeObj, _ := slsService.DescribeGetLogStoreMeteringMode(d.Id())
+	if d.HasChange("metering_mode") && meteringModeObj != nil && meteringModeObj.MeteringMode != d.Get("metering_mode").(string) {
 		update = true
 	}
 	request["meteringMode"] = d.Get("metering_mode")
@@ -766,7 +708,7 @@ func buildEncrypt(d *schema.ResourceData) *aliyunSlsAPI.EncryptConf {
 		cmkInfo := value["user_cmk_info"].([]interface{})
 		if len(cmkInfo) > 0 {
 			cmk := cmkInfo[0].(map[string]interface{})
-			encryptConf.UserCmkInfo = &aliyunSlsAPI.EncryptUserCmkConf{
+			encryptConf.UserCmkInfo = &aliyunSlsAPI.UserCmkInfo{
 				CmkKeyId: cmk["cmk_key_id"].(string),
 				Arn:      cmk["arn"].(string),
 				RegionId: cmk["region_id"].(string),

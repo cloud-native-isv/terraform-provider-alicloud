@@ -1,7 +1,6 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -134,6 +133,10 @@ func resourceAlicloudLogStoreIndex() *schema.Resource {
 
 func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store_index", "NewSlsService", AlibabaCloudSdkGoERROR)
+	}
 
 	_, fullOk := d.GetOk("full_text")
 	_, fieldOk := d.GetOk("field_search")
@@ -143,13 +146,11 @@ func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 
 	project := d.Get("project").(string)
 	logstore := d.Get("logstore").(string)
+	id := fmt.Sprintf("%s%s%s", project, COLON_SEPARATED, logstore)
 
 	// Check if index already exists
 	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			return slsClient.GetIndex(ctx, project, logstore)
-		})
+		_, err := slsService.DescribeSlsLogStoreIndex(id)
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				time.Sleep(5 * time.Second)
@@ -176,10 +177,7 @@ func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 	}
 
 	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			return nil, slsClient.CreateIndex(ctx, project, logstore, &index)
-		})
+		err := slsService.aliyunSlsAPI.CreateLogStoreIndex(project, logstore, &index)
 		if err != nil {
 			if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
 				return resource.RetryableError(err)
@@ -192,27 +190,26 @@ func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store_index", "CreateIndex", AliyunLogGoSdkERROR)
 	}
 
-	d.SetId(fmt.Sprintf("%s%s%s", project, COLON_SEPARATED, logstore))
+	d.SetId(id)
 
 	return resourceAlicloudLogStoreIndexRead(d, meta)
 }
 
 func resourceAlicloudLogStoreIndexRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store_index", "NewSlsService", AlibabaCloudSdkGoERROR)
+	}
+
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	project := parts[0]
-	logstore := parts[1]
-
 	var index *aliyunSlsAPI.LogStoreIndex
 	err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			return slsClient.GetIndex(ctx, project, logstore)
-		})
+		index, err = slsService.DescribeSlsLogStoreIndex(d.Id())
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				time.Sleep(5 * time.Second)
@@ -224,7 +221,6 @@ func resourceAlicloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 			}
 			return resource.NonRetryableError(err)
 		}
-		index = raw.(*aliyunSlsAPI.LogStoreIndex)
 		return nil
 	})
 
@@ -237,39 +233,59 @@ func resourceAlicloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 		return nil
 	}
 
-	if line := index.Line; line != nil {
+	// Set full text index configuration using struct fields
+	if index.Line != nil {
 		mapping := map[string]interface{}{
-			"case_sensitive":  line.CaseSensitive,
+			"case_sensitive":  index.Line.CaseSensitive,
 			"include_chinese": false, // The new API doesn't have Chn field, setting default
-			"token":           strings.Join(line.Token, ""),
+		}
+		if index.Line.Token != nil && len(index.Line.Token) > 0 {
+			tokenStr := ""
+			for _, token := range index.Line.Token {
+				tokenStr += token
+			}
+			mapping["token"] = tokenStr
 		}
 		if err := d.Set("full_text", []map[string]interface{}{mapping}); err != nil {
 			return WrapError(err)
 		}
 	}
-	if keys := index.Keys; keys != nil {
+
+	// Set field search index configuration using struct fields
+	if index.Keys != nil && len(index.Keys) > 0 {
 		var keySet []map[string]interface{}
-		for k, v := range keys {
+		for keyName, indexKey := range index.Keys {
 			mapping := map[string]interface{}{
-				"name":             k,
-				"type":             v.Type,
-				"alias":            v.Alias,
-				"case_sensitive":   v.CaseSensitive,
+				"name":             keyName,
+				"type":             indexKey.Type,
+				"alias":            indexKey.Alias,
+				"case_sensitive":   indexKey.CaseSensitive,
 				"include_chinese":  false, // The new API doesn't have Chn field, setting default
-				"token":            strings.Join(v.Token, ""),
-				"enable_analytics": v.DocValue,
+				"enable_analytics": indexKey.DocValue,
 			}
-			if len(v.JsonKeys) > 0 {
-				var result = []map[string]interface{}{}
-				for k1, v1 := range v.JsonKeys {
-					var value = map[string]interface{}{}
-					value["doc_value"] = v1.DocValue
-					value["alias"] = v1.Alias
-					value["type"] = v1.Type
-					value["name"] = k1
-					result = append(result, value)
+
+			// Handle token field
+			if indexKey.Token != nil && len(indexKey.Token) > 0 {
+				tokenStr := ""
+				for _, token := range indexKey.Token {
+					tokenStr += token
 				}
-				mapping["json_keys"] = result
+				mapping["token"] = tokenStr
+			}
+
+			// Handle JSON keys for nested fields
+			if indexKey.JsonKeys != nil && len(indexKey.JsonKeys) > 0 {
+				var jsonKeyResults []map[string]interface{}
+				for jsonKeyName, jsonIndexKey := range indexKey.JsonKeys {
+					jsonKeyMapping := map[string]interface{}{
+						"name":      jsonKeyName,
+						"type":      jsonIndexKey.Type,
+						"alias":     jsonIndexKey.Alias,
+						"doc_value": jsonIndexKey.DocValue,
+					}
+					jsonKeyResults = append(jsonKeyResults, jsonKeyMapping)
+				}
+				mapping["json_keys"] = jsonKeyResults
 			}
 			keySet = append(keySet, mapping)
 		}
@@ -277,6 +293,7 @@ func resourceAlicloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 			return WrapError(err)
 		}
 	}
+
 	d.Set("project", parts[0])
 	d.Set("logstore", parts[1])
 	return nil
@@ -284,6 +301,10 @@ func resourceAlicloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 
 func resourceAlicloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store_index", "NewSlsService", AlibabaCloudSdkGoERROR)
+	}
 
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -293,16 +314,16 @@ func resourceAlicloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{
 	project := parts[0]
 	logstore := parts[1]
 
-	// Get current index
-	var index *aliyunSlsAPI.LogStoreIndex
-	_, err = client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-		ctx := context.Background()
-		var getErr error
-		index, getErr = slsClient.GetIndex(ctx, project, logstore)
-		return index, getErr
-	})
+	// Get current index using structured data
+	currentIndex, err := slsService.DescribeSlsLogStoreIndex(d.Id())
 	if err != nil {
 		return WrapError(err)
+	}
+
+	var index aliyunSlsAPI.LogStoreIndex
+	// Copy existing configuration to preserve unchanged parts
+	if currentIndex != nil {
+		index = *currentIndex
 	}
 
 	update := false
@@ -317,10 +338,7 @@ func resourceAlicloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{
 
 	if update {
 		if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-			_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-				ctx := context.Background()
-				return nil, slsClient.UpdateIndex(ctx, project, logstore, index)
-			})
+			err := slsService.aliyunSlsAPI.UpdateLogStoreIndex(project, logstore, &index)
 			if err != nil {
 				if IsExpectedErrors(err, []string{LogClientTimeout}) {
 					time.Sleep(5 * time.Second)
@@ -346,6 +364,10 @@ func resourceAlicloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{
 
 func resourceAlicloudLogStoreIndexDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store_index", "NewSlsService", AlibabaCloudSdkGoERROR)
+	}
 
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -356,10 +378,7 @@ func resourceAlicloudLogStoreIndexDelete(d *schema.ResourceData, meta interface{
 	logstore := parts[1]
 
 	// Check if index exists
-	_, err = client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-		ctx := context.Background()
-		return slsClient.GetIndex(ctx, project, logstore)
-	})
+	_, err = slsService.DescribeSlsLogStoreIndex(d.Id())
 	if err != nil {
 		if IsExpectedErrors(err, []string{"IndexConfigNotExist"}) {
 			return nil
@@ -368,10 +387,7 @@ func resourceAlicloudLogStoreIndexDelete(d *schema.ResourceData, meta interface{
 	}
 
 	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		_, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			return nil, slsClient.DeleteIndex(ctx, project, logstore)
-		})
+		err := slsService.aliyunSlsAPI.DeleteLogStoreIndex(project, logstore)
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				time.Sleep(5 * time.Second)

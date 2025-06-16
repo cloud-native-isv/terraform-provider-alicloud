@@ -1,16 +1,12 @@
 package alicloud
 
 import (
-	"context"
-	"fmt"
 	"time"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAlicloudLogMachineGroup() *schema.Resource {
@@ -37,18 +33,17 @@ func resourceAlicloudLogMachineGroup() *schema.Resource {
 			"identify_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      sls.MachineIDTypeIP,
-				ValidateFunc: validation.StringInSlice([]string{sls.MachineIDTypeIP, sls.MachineIDTypeUserDefined}, false),
+				Default:      aliyunSlsAPI.MachineIDTypeIP,
+				ValidateFunc: validation.StringInSlice([]string{aliyunSlsAPI.MachineIDTypeIP, aliyunSlsAPI.MachineIDTypeUserDefined}, false),
+			},
+			"identify_list": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"topic": {
 				Type:     schema.TypeString,
 				Optional: true,
-			},
-			"identify_list": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Required: true,
-				MinItems: 1,
 			},
 		},
 	}
@@ -56,52 +51,61 @@ func resourceAlicloudLogMachineGroup() *schema.Resource {
 
 func resourceAlicloudLogMachineGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	params := &sls.MachineGroup{
-		Name:          d.Get("name").(string),
-		MachineIDType: d.Get("identify_type").(string),
-		MachineIDList: expandStringList(d.Get("identify_list").(*schema.Set).List()),
-		Attribute: sls.MachinGroupAttribute{
-			TopicName: d.Get("topic").(string),
-		},
-	}
-	var requestInfo *sls.Client
-	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			requestInfo = slsClient
-			return nil, slsClient.CreateMachineGroup(d.Get("project").(string), params)
-		})
-		if err != nil {
-			if IsExpectedErrors(err, []string{LogClientTimeout}) {
-				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		if debugOn() {
-			addDebug("CreateMachineGroup", raw, requestInfo, map[string]interface{}{
-				"project":      d.Get("project").(string),
-				"MachineGroup": params,
-			})
-		}
-		return nil
-	}); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_machine_group", "CreateMachineGroup", AliyunLogGoSdkERROR)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
 	}
 
-	d.SetId(fmt.Sprintf("%s%s%s", d.Get("project").(string), COLON_SEPARATED, d.Get("name").(string)))
+	projectName := d.Get("project").(string)
+	machineGroupName := d.Get("name").(string)
+
+	// Build machine group object
+	machineGroup := &aliyunSlsAPI.MachineGroup{
+		Name:          machineGroupName,
+		MachineIDType: d.Get("identify_type").(string),
+		MachineIDList: expandStringList(d.Get("identify_list").([]interface{})),
+	}
+
+	// Set topic if provided
+	if topic, ok := d.GetOk("topic"); ok {
+		machineGroup.Attribute = &aliyunSlsAPI.MachineGroupAttribute{
+			GroupTopic: topic.(string),
+		}
+	}
+
+	// Create machine group
+	err = slsService.CreateSlsMachineGroup(projectName, machineGroup)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_machine_group", "CreateMachineGroup", AlibabaCloudSdkGoERROR)
+	}
+
+	// Set resource ID using the composite format: project:machine_group_name
+	d.SetId(slsService.BuildMachineGroupId(projectName, machineGroupName))
+
+	// Wait for machine group to be available
+	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.SlsMachineGroupStateRefreshFunc(projectName, machineGroupName, []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
 
 	return resourceAlicloudLogMachineGroupRead(d, meta)
 }
 
 func resourceAlicloudLogMachineGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := SlsService(client)
-	parts, err := ParseResourceId(d.Id(), 2)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
-	object, err := logService.DescribeLogMachineGroup(d.Id())
+
+	// Parse the composite ID
+	projectName, machineGroupName, err := slsService.ParseMachineGroupId(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Get machine group details
+	machineGroup, err := slsService.DescribeSlsMachineGroup(projectName, machineGroupName)
 	if err != nil {
 		if NotFoundError(err) {
 			d.SetId("")
@@ -110,54 +114,57 @@ func resourceAlicloudLogMachineGroupRead(d *schema.ResourceData, meta interface{
 		return WrapError(err)
 	}
 
-	d.Set("project", parts[0])
-	d.Set("name", object.Name)
-	d.Set("identify_type", object.MachineIDType)
-	d.Set("identify_list", object.MachineIDList)
-	d.Set("topic", object.Attribute.TopicName)
+	// Set resource attributes
+	d.Set("project", projectName)
+	d.Set("name", machineGroup.Name)
+	d.Set("identify_type", machineGroup.MachineIDType)
+	d.Set("identify_list", machineGroup.MachineIDList)
+
+	// Set topic if available
+	if machineGroup.Attribute != nil {
+		d.Set("topic", machineGroup.Attribute.GroupTopic)
+	}
 
 	return nil
 }
 
 func resourceAlicloudLogMachineGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	if d.HasChange("identify_type") || d.HasChange("identify_list") || d.HasChange("topic") {
-		parts, err := ParseResourceId(d.Id(), 2)
-		if err != nil {
-			return WrapError(err)
+	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+	// Parse the composite ID
+	projectName, machineGroupName, err := slsService.ParseMachineGroupId(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+
+	if d.HasChanges("identify_type", "identify_list", "topic") {
+		// Build updated machine group object
+		machineGroup := &aliyunSlsAPI.MachineGroup{
+			Name:          machineGroupName,
+			MachineIDType: d.Get("identify_type").(string),
+			MachineIDList: expandStringList(d.Get("identify_list").([]interface{})),
 		}
 
-		client := meta.(*connectivity.AliyunClient)
-		var requestInfo *sls.Client
-		params := &sls.MachineGroup{
-			Name:          parts[1],
-			MachineIDType: d.Get("identify_type").(string),
-			MachineIDList: expandStringList(d.Get("identify_list").(*schema.Set).List()),
-			Attribute: sls.MachinGroupAttribute{
-				TopicName: d.Get("topic").(string),
-			},
+		// Set topic if provided
+		if topic, ok := d.GetOk("topic"); ok {
+			machineGroup.Attribute = &aliyunSlsAPI.MachineGroupAttribute{
+				GroupTopic: topic.(string),
+			}
 		}
-		if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-			raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-				ctx := context.Background()
-				requestInfo = slsClient
-				return nil, slsClient.UpdateMachineGroup(parts[0], params)
-			})
-			if err != nil {
-				if IsExpectedErrors(err, []string{LogClientTimeout}) {
-					time.Sleep(5 * time.Second)
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			if debugOn() {
-				addDebug("UpdateMachineGroup", raw, requestInfo, map[string]interface{}{
-					"project":      parts[0],
-					"MachineGroup": params,
-				})
-			}
-			return nil
-		}); err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateMachineGroup", AliyunLogGoSdkERROR)
+
+		// Update machine group
+		err := slsService.UpdateSlsMachineGroup(projectName, machineGroupName, machineGroup)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateMachineGroup", AlibabaCloudSdkGoERROR)
+		}
+
+		// Wait for machine group to be updated
+		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, slsService.SlsMachineGroupStateRefreshFunc(projectName, machineGroupName, []string{}))
+		if _, err := stateConf.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
 
@@ -166,35 +173,22 @@ func resourceAlicloudLogMachineGroupUpdate(d *schema.ResourceData, meta interfac
 
 func resourceAlicloudLogMachineGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := SlsService(client)
-	parts, err := ParseResourceId(d.Id(), 2)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
-	var requestInfo *sls.Client
-	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithSlsAPIClient(func(slsClient *aliyunSlsAPI.SlsAPI) (interface{}, error) {
-			ctx := context.Background()
-			requestInfo = slsClient
-			return nil, slsClient.DeleteMachineGroup(parts[0], parts[1])
-		})
-		if err != nil {
-			if IsExpectedErrors(err, []string{LogClientTimeout}) {
-				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		if debugOn() {
-			addDebug("DeleteMachineGroup", raw, requestInfo, map[string]interface{}{
-				"project":      parts[0],
-				"machineGroup": parts[1],
-			})
-		}
-		return nil
-	})
+	// Parse the composite ID
+	projectName, machineGroupName, err := slsService.ParseMachineGroupId(d.Id())
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "ListShards", AliyunLogGoSdkERROR)
+		return WrapError(err)
 	}
-	return WrapError(logService.WaitForLogMachineGroup(d.Id(), Deleted, DefaultTimeout))
+
+	// Delete machine group
+	err = slsService.DeleteSlsMachineGroup(projectName, machineGroupName)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteMachineGroup", AlibabaCloudSdkGoERROR)
+	}
+
+	// Wait for machine group to be deleted
+	return WrapError(slsService.WaitForSlsMachineGroup(projectName, machineGroupName, "Deleted", DefaultTimeoutMedium))
 }

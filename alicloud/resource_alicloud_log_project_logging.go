@@ -4,9 +4,8 @@ package alicloud
 import (
 	"time"
 
-	sls "github.com/alibabacloud-go/sls-20201230/client"
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -65,7 +64,7 @@ func resourceAlicloudLogProjectLogging() *schema.Resource {
 
 func resourceAlicloudLogProjectLoggingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsService(client)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -73,17 +72,17 @@ func resourceAlicloudLogProjectLoggingCreate(d *schema.ResourceData, meta interf
 	projectName := d.Get("project_name").(string)
 	logging := createLoggingFromSchema(d)
 
-	_, err = slsServiceV2.GetSlsLogging(projectName)
+	_, err = slsService.GetProjectLogging(projectName)
 	if err != nil {
 		if !NotFoundError(err) {
 			return WrapError(err)
 		}
-		err = slsServiceV2.CreateSlsLogging(projectName, logging)
+		err = slsService.CreateProjectLogging(projectName, logging)
 	} else {
-		err = slsServiceV2.UpdateSlsLogging(projectName, logging)
+		err = slsService.UpdateProjectLogging(projectName, logging)
 	}
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_project_logging", "CreateOrUpdateSlsLogging", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_project_logging", "CreateOrUpdateProjectLogging", AlibabaCloudSdkGoERROR)
 	}
 
 	d.SetId(projectName)
@@ -92,14 +91,14 @@ func resourceAlicloudLogProjectLoggingCreate(d *schema.ResourceData, meta interf
 
 func resourceAlicloudLogProjectLoggingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsService(client)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
 	projectName := d.Id()
 
-	logging, err := slsServiceV2.GetSlsLogging(projectName)
+	logging, err := slsService.GetProjectLogging(projectName)
 	if err != nil {
 		if NotFoundError(err) {
 			d.SetId("")
@@ -114,8 +113,8 @@ func resourceAlicloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	loggingDetailsSet := make([]map[string]interface{}, 0)
 	for _, loggingDetail := range logging.LoggingDetails {
 		loggingDetailsSet = append(loggingDetailsSet, map[string]interface{}{
-			"type":     *loggingDetail.Type,
-			"logstore": *loggingDetail.Logstore,
+			"type":     loggingDetail.Type,
+			"logstore": loggingDetail.Logstore,
 		})
 	}
 
@@ -128,7 +127,7 @@ func resourceAlicloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 
 func resourceAlicloudLogProjectLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsService(client)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -137,9 +136,9 @@ func resourceAlicloudLogProjectLoggingUpdate(d *schema.ResourceData, meta interf
 
 	if d.HasChange("logging_details") {
 		logging := createLoggingFromSchema(d)
-		err := slsServiceV2.UpdateSlsLogging(projectName, logging)
+		err := slsService.UpdateProjectLogging(projectName, logging)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateSlsLogging", AlibabaCloudSdkGoERROR)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateProjectLogging", AlibabaCloudSdkGoERROR)
 		}
 	}
 
@@ -148,7 +147,7 @@ func resourceAlicloudLogProjectLoggingUpdate(d *schema.ResourceData, meta interf
 
 func resourceAlicloudLogProjectLoggingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsServiceV2, err := NewSlsService(client)
+	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -157,7 +156,7 @@ func resourceAlicloudLogProjectLoggingDelete(d *schema.ResourceData, meta interf
 
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		err := slsServiceV2.DeleteSlsLogging(projectName)
+		err := slsService.DeleteProjectLogging(projectName)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -169,27 +168,27 @@ func resourceAlicloudLogProjectLoggingDelete(d *schema.ResourceData, meta interf
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteSlsLogging", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteProjectLogging", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil
 }
 
-func createLoggingFromSchema(d *schema.ResourceData) *sls.Logging {
+func createLoggingFromSchema(d *schema.ResourceData) *aliyunSlsAPI.LogProjectLogging {
 	loggingDetailsSet := d.Get("logging_details").(*schema.Set).List()
-	loggingDetails := make([]*sls.LoggingLoggingDetails, 0, len(loggingDetailsSet))
+	loggingDetails := make([]aliyunSlsAPI.LogProjectLoggingDetails, 0, len(loggingDetailsSet))
 
 	for _, item := range loggingDetailsSet {
 		if m, ok := item.(map[string]interface{}); ok {
-			loggingDetails = append(loggingDetails, &sls.LoggingLoggingDetails{
-				Type:     tea.String(m["type"].(string)),
-				Logstore: tea.String(m["logstore"].(string)),
+			loggingDetails = append(loggingDetails, aliyunSlsAPI.LogProjectLoggingDetails{
+				Type:     m["type"].(string),
+				Logstore: m["logstore"].(string),
 			})
 		}
 	}
 
-	return &sls.Logging{
-		LoggingProject: tea.String(d.Get("logging_project").(string)),
+	return &aliyunSlsAPI.LogProjectLogging{
+		LoggingProject: d.Get("logging_project").(string),
 		LoggingDetails: loggingDetails,
 	}
 }
