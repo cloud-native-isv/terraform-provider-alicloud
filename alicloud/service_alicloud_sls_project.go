@@ -179,7 +179,7 @@ func (s *SlsService) GetProjectLogging(projectName string) (*aliyunSlsAPI.LogPro
 
 	logging, err := s.aliyunSlsAPI.GetLogProjectLogging(projectName)
 	if err != nil {
-		if strings.Contains(err.Error(), "ProjectNotExist") {
+		if strings.Contains(err.Error(), "LoggingNotExist") {
 			return nil, WrapErrorf(NotFoundErr("LogProjectLogging", projectName), NotFoundMsg, "")
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, projectName, "GetLogging", AlibabaCloudSdkGoERROR)
