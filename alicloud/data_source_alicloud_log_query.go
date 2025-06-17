@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	timeUtils "github.com/cloud-native-tools/cws-lib-go/lib/common/time"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -32,14 +33,14 @@ func dataSourceAlicloudLogQuery() *schema.Resource {
 				Description: "Query string for log search. Default is '*' which matches all logs.",
 			},
 			"from_time": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Query start time as Unix timestamp.",
+				Description: "Query start time. Supports Unix timestamp or relative time like 'now', '-1h', '-30m', '-1d'.",
 			},
 			"to_time": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Query end time as Unix timestamp.",
+				Description: "Query end time. Supports Unix timestamp or relative time like 'now', '-1h', '-30m', '-1d'.",
 			},
 			"line_count": {
 				Type:         schema.TypeInt,
@@ -126,23 +127,38 @@ func dataSourceAlicloudLogQueryRead(d *schema.ResourceData, meta interface{}) er
 	projectName := d.Get("project_name").(string)
 	logstoreName := d.Get("logstore_name").(string)
 	query := d.Get("query").(string)
-	fromTime := int32(d.Get("from_time").(int))
-	toTime := int32(d.Get("to_time").(int))
+	fromTimeStr := d.Get("from_time").(string)
+	toTimeStr := d.Get("to_time").(string)
 	lineCount := int64(d.Get("line_count").(int))
 
+	// Parse time parameters
+	fromTime, err := timeUtils.ParseTimeParam(fromTimeStr)
+	if err != nil {
+		return WrapError(fmt.Errorf("invalid from_time: %w", err))
+	}
+
+	toTime, err := timeUtils.ParseTimeParam(toTimeStr)
+	if err != nil {
+		return WrapError(fmt.Errorf("invalid to_time: %w", err))
+	}
+
+	// Convert to int32 for API call
+	fromTime32 := int32(fromTime)
+	toTime32 := int32(toTime)
+
 	// Validate time range
-	if fromTime >= toTime {
+	if fromTime32 >= toTime32 {
 		return WrapError(fmt.Errorf("from_time must be less than to_time"))
 	}
 
 	// Execute log query
-	result, err := slsService.QuerySlsLogs(projectName, logstoreName, fromTime, toTime, query, lineCount)
+	result, err := slsService.QuerySlsLogs(projectName, logstoreName, fromTime32, toTime32, query, lineCount)
 	if err != nil {
 		return WrapError(err)
 	}
 
 	// Set unique ID for the data source
-	d.SetId(fmt.Sprintf("%s:%s:%d:%d", projectName, logstoreName, fromTime, toTime))
+	d.SetId(fmt.Sprintf("%s:%s:%d:%d", projectName, logstoreName, fromTime32, toTime32))
 
 	// Process and set log data
 	logs := make([]map[string]interface{}, 0)
