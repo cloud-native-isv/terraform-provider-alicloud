@@ -31,3 +31,23 @@ func NewSlsService(client *connectivity.AliyunClient) (*SlsService, error) {
 		aliyunSlsAPI: slsAPI,
 	}, nil
 }
+
+
+// getSlsAPI creates and returns an SLS API client using CWS-Lib-Go
+func (s *SlsService) getSlsAPI() (*aliyunSlsAPI.SlsAPI, error) {
+	// Create credentials from the AliyunClient
+	credentials := &common.Credentials{
+		AccessKey:     s.client.AccessKey,
+		SecretKey:     s.client.SecretKey,
+		RegionId:      s.client.RegionId,
+		SecurityToken: s.client.SecurityToken,
+	}
+
+	// Create SLS API client
+	slsAPI, err := aliyunSlsAPI.NewSlsAPI(credentials)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create SLS API client: %w", err)
+	}
+
+	return slsAPI, nil
+}

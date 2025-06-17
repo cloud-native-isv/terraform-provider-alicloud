@@ -2,11 +2,11 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"strings"
 	"time"
+
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // DescribeSlsDashboard retrieves a dashboard by project and dashboard name
@@ -193,25 +193,6 @@ func (s *SlsService) WaitForSlsDashboard(id string, status Status, timeout time.
 	}
 
 	return nil
-}
-
-// getSlsAPI creates and returns an SLS API client using CWS-Lib-Go
-func (s *SlsService) getSlsAPI() (*sls.SlsAPI, error) {
-	// Create credentials from the AliyunClient
-	credentials := &common.Credentials{
-		AccessKey:     s.client.AccessKey,
-		SecretKey:     s.client.SecretKey,
-		RegionId:      s.client.RegionId,
-		SecurityToken: s.client.SecurityToken,
-	}
-
-	// Create SLS API client
-	slsAPI, err := sls.NewSlsAPI(credentials)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create SLS API client: %w", err)
-	}
-
-	return slsAPI, nil
 }
 
 // Helper functions for converting between Terraform and SLS API types

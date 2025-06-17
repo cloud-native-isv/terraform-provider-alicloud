@@ -783,6 +783,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_dcdn_waf_policies":                                dataSourceAlicloudDcdnWafPolicies(),
 			"alicloud_hbr_service":                                      dataSourceAlicloudHbrService(),
 			"alicloud_api_gateway_log_configs":                          dataSourceAlicloudApiGatewayLogConfigs(),
+			"alicloud_log_query":                                        dataSourceAlicloudLogQuery(),
 			"alicloud_dbs_backup_plans":                                 dataSourceAlicloudDbsBackupPlans(),
 			"alicloud_dcdn_waf_domains":                                 dataSourceAlicloudDcdnWafDomains(),
 			"alicloud_vpc_public_ip_address_pools":                      dataSourceAlicloudVpcPublicIpAddressPools(),
