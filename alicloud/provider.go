@@ -520,6 +520,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_direct_mail_receiverses":                          dataSourceAlicloudDirectMailReceiverses(),
 			"alicloud_log_projects":                                     dataSourceAlicloudLogProjects(),
 			"alicloud_log_stores":                                       dataSourceAlicloudLogStores(),
+			"alicloud_log_store_indexes":                                dataSourceAlicloudLogStoreIndexes(),
 			"alicloud_event_bridge_service":                             dataSourceAlicloudEventBridgeService(),
 			"alicloud_event_bridge_event_buses":                         dataSourceAlicloudEventBridgeEventBuses(),
 			"alicloud_amqp_virtual_hosts":                               dataSourceAlicloudAmqpVirtualHosts(),
