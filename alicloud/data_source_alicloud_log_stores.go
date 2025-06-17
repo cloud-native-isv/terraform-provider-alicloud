@@ -176,44 +176,70 @@ func dataSourceAlicloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 		logStoreNameRegex = r
 	}
 
-	idsMap := make(map[string]string)
-	if v, ok := d.GetOk("ids"); ok {
-		for _, vv := range v.([]interface{}) {
-			if vv == nil {
-				continue
-			}
-			idsMap[vv.(string)] = vv.(string)
-		}
-	}
 	project := d.Get("project").(string)
 	var stores []*aliyunSlsAPI.LogStore
-	err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-		response, err := slsService.ListLogStores(project, "", "", "")
-		if err != nil {
-			if IsExpectedErrors(err, []string{LogClientTimeout}) {
-				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
+
+	// Check if specific store names are provided
+	var storeNames []string
+	if v, ok := d.GetOk("ids"); ok {
+		for _, item := range v.([]interface{}) {
+			if item != nil {
+				storeNames = append(storeNames, item.(string))
 			}
-			return resource.NonRetryableError(err)
 		}
-		stores = response
-		return nil
-	})
-	addDebug("ListLogStore", stores)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_stores", "ListLogStore", AliyunLogGoSdkERROR)
 	}
 
-	// Filter stores based on name regex and ids
+	if len(storeNames) > 0 {
+		// Get specific stores by names
+		for _, storeName := range storeNames {
+			err = resource.Retry(2*time.Minute, func() *resource.RetryError {
+				store, err := slsService.GetLogStore(project, storeName)
+				if err != nil {
+					if IsExpectedErrors(err, []string{LogClientTimeout}) {
+						time.Sleep(5 * time.Second)
+						return resource.RetryableError(err)
+					}
+					if NotFoundError(err) {
+						return resource.NonRetryableError(err)
+					}
+					return resource.NonRetryableError(err)
+				}
+				stores = append(stores, store)
+				return nil
+			})
+			if err != nil {
+				if NotFoundError(err) {
+					continue
+				}
+				return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_stores", "GetLogStore", AliyunLogGoSdkERROR)
+			}
+		}
+	} else {
+		// List all stores
+		err = resource.Retry(2*time.Minute, func() *resource.RetryError {
+			response, err := slsService.ListLogStores(project, "", "", "")
+			if err != nil {
+				if IsExpectedErrors(err, []string{LogClientTimeout}) {
+					time.Sleep(5 * time.Second)
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			stores = response
+			return nil
+		})
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_stores", "ListLogStore", AliyunLogGoSdkERROR)
+		}
+	}
+
+	addDebug("LogStores", stores)
+
+	// Filter stores based on name regex
 	var filteredStores []*aliyunSlsAPI.LogStore
 	for _, store := range stores {
 		if logStoreNameRegex != nil {
 			if !logStoreNameRegex.MatchString(store.LogstoreName) {
-				continue
-			}
-		}
-		if len(idsMap) > 0 {
-			if _, ok := idsMap[store.LogstoreName]; !ok {
 				continue
 			}
 		}

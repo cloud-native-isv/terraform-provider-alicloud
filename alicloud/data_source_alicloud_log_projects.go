@@ -39,6 +39,12 @@ func dataSourceAlicloudLogProjects() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"Normal", "Disable"}, true),
 				ForceNew:     true,
 			},
+			"disable": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
 			"output_file": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -89,6 +95,14 @@ func dataSourceAlicloudLogProjects() *schema.Resource {
 
 func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+
+	// Check if disable parameter is set to true
+	if disable, ok := d.GetOk("disable"); ok && disable.(bool) {
+		// Return empty result without calling SLS service
+		var emptyProjects []map[string]interface{}
+		return logProjectsDecriptionAttributes(d, emptyProjects, meta)
+	}
+
 	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
