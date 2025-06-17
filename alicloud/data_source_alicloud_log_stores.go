@@ -1,11 +1,11 @@
 package alicloud
 
 import (
-	"fmt"
 	"regexp"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -55,6 +55,104 @@ func dataSourceAlicloudLogStores() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"project_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"ttl": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"shard_count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"create_time": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"last_modify_time": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"enable_tracking": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"auto_split": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"max_split_shard": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"append_meta": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"hot_ttl": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"infrequent_access_ttl": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"mode": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"encrypt_conf": {
+							Type:     schema.TypeList,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enable": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+									"encrypt_type": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"user_cmk_info": {
+										Type:     schema.TypeList,
+										Computed: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"cmk_key_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"arn": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"region_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"product_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"processor_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"telemetry_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -69,7 +167,6 @@ func dataSourceAlicloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 		return WrapError(err)
 	}
 
-	objects := make([]string, 0)
 	var logStoreNameRegex *regexp.Regexp
 	if v, ok := d.GetOk("name_regex"); ok {
 		r, err := regexp.Compile(v.(string))
@@ -89,9 +186,9 @@ func dataSourceAlicloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 	project := d.Get("project").(string)
-	var response []string
+	var stores []*aliyunSlsAPI.LogStore
 	err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-		stores, err := slsService.ListLogStores(project, "", "", "")
+		response, err := slsService.ListLogStores(project, "", "", "")
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				time.Sleep(5 * time.Second)
@@ -99,39 +196,74 @@ func dataSourceAlicloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 			}
 			return resource.NonRetryableError(err)
 		}
-		response = make([]string, len(stores))
-		for i, store := range stores {
-			response[i] = store.LogstoreName
-		}
+		stores = response
 		return nil
 	})
-	addDebug("ListLogStore", response)
+	addDebug("ListLogStore", stores)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_stores", "ListLogStore", AliyunLogGoSdkERROR)
 	}
-	for _, v := range response {
+
+	// Filter stores based on name regex and ids
+	var filteredStores []*aliyunSlsAPI.LogStore
+	for _, store := range stores {
 		if logStoreNameRegex != nil {
-			if !logStoreNameRegex.MatchString(v) {
+			if !logStoreNameRegex.MatchString(store.LogstoreName) {
 				continue
 			}
 		}
 		if len(idsMap) > 0 {
-			if _, ok := idsMap[v]; !ok {
+			if _, ok := idsMap[store.LogstoreName]; !ok {
 				continue
 			}
 		}
-		objects = append(objects, v)
+		filteredStores = append(filteredStores, store)
 	}
+
 	ids := make([]string, 0)
 	names := make([]interface{}, 0)
 	s := make([]map[string]interface{}, 0)
-	for _, object := range objects {
+	for _, store := range filteredStores {
 		mapping := map[string]interface{}{
-			"id":         object,
-			"store_name": object,
+			"id":                    store.LogstoreName,
+			"store_name":            store.LogstoreName,
+			"project_name":          store.ProjectName,
+			"ttl":                   store.Ttl,
+			"shard_count":           store.ShardCount,
+			"create_time":           store.CreateTime,
+			"last_modify_time":      store.LastModifyTime,
+			"enable_tracking":       store.EnableTracking,
+			"auto_split":            store.AutoSplit,
+			"max_split_shard":       store.MaxSplitShard,
+			"append_meta":           store.AppendMeta,
+			"hot_ttl":               store.HotTtl,
+			"infrequent_access_ttl": store.InfrequentAccessTTL,
+			"mode":                  store.Mode,
+			"product_type":          store.ProductType,
+			"processor_id":          store.ProcessorId,
+			"telemetry_type":        store.TelemetryType,
 		}
-		ids = append(ids, fmt.Sprint(mapping["id"]))
-		names = append(names, object)
+
+		// Handle encryption configuration
+		if store.EncryptConf != nil {
+			encryptConf := map[string]interface{}{
+				"enable":       store.EncryptConf.Enable,
+				"encrypt_type": store.EncryptConf.EncryptType,
+			}
+
+			if store.EncryptConf.UserCmkInfo != nil {
+				userCmkInfo := map[string]interface{}{
+					"cmk_key_id": store.EncryptConf.UserCmkInfo.CmkKeyId,
+					"arn":        store.EncryptConf.UserCmkInfo.Arn,
+					"region_id":  store.EncryptConf.UserCmkInfo.RegionId,
+				}
+				encryptConf["user_cmk_info"] = []map[string]interface{}{userCmkInfo}
+			}
+			mapping["encrypt_conf"] = []map[string]interface{}{encryptConf}
+		}
+
+		ids = append(ids, store.LogstoreName)
+		names = append(names, store.LogstoreName)
 		s = append(s, mapping)
 	}
 

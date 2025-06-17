@@ -57,6 +57,21 @@ func (s *SlsService) UpdateSlsDashboard(projectName, dashboardName string, dashb
 	return nil
 }
 
+
+// DeleteDashboard deletes an SLS dashboard
+func (s *SlsService) DeleteDashboard(projectName, dashboardName string) error {
+	if s.aliyunSlsAPI == nil {
+		return fmt.Errorf("aliyunSlsAPI client is not initialized")
+	}
+
+	err := s.aliyunSlsAPI.DeleteDashboard(projectName, dashboardName)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, dashboardName, "DeleteDashboard", AlibabaCloudSdkGoERROR)
+	}
+	return nil
+}
+
+
 // DeleteSlsDashboard deletes a dashboard from the specified project
 func (s *SlsService) DeleteSlsDashboard(projectName, dashboardName string) error {
 	slsAPI, err := s.getSlsAPI()

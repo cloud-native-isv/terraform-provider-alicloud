@@ -9,12 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-// DescribeSlsLogStore returns LogStore information using structured data
-func (s *SlsService) DescribeSlsLogStore(id string) (*aliyunSlsAPI.LogStore, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
+// DescribeLogStore returns LogStore information using structured data
+func (s *SlsService) DescribeLogStoreById(id string) (*aliyunSlsAPI.LogStore, error) {
 	parts := strings.Split(id, ":")
 	if len(parts) != 2 {
 		return nil, WrapError(fmt.Errorf("invalid Resource Id %s. Expected parts' length %d, got %d", id, 2, len(parts)))
@@ -23,43 +19,24 @@ func (s *SlsService) DescribeSlsLogStore(id string) (*aliyunSlsAPI.LogStore, err
 	projectName := parts[0]
 	logstoreName := parts[1]
 
+	return s.DescribeLogStore(projectName, logstoreName)
+}
+
+// DescribeLogStore returns LogStore information using structured data
+func (s *SlsService) DescribeLogStore(projectName, logstoreName string) (*aliyunSlsAPI.LogStore, error) {
+	if s.aliyunSlsAPI == nil {
+		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
+	}
+
 	logstore, err := s.aliyunSlsAPI.GetLogStore(projectName, logstoreName)
 	if err != nil {
 		if strings.Contains(err.Error(), "LogStoreNotExist") {
-			return nil, WrapErrorf(NotFoundErr("LogStore", id), NotFoundMsg, "")
+			return nil, WrapErrorf(NotFoundErr("LogStore", projectName, logstoreName), NotFoundMsg, "")
 		}
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetLogStore", AlibabaCloudSdkGoERROR)
+		return nil, WrapErrorf(err, DefaultErrorMsg, logstoreName, "GetLogStore", AlibabaCloudSdkGoERROR)
 	}
 
 	return logstore, nil
-}
-
-// DescribeSlsLogStoreCompat returns LogStore information as map for compatibility with legacy code
-func (s *SlsService) DescribeSlsLogStoreCompat(id string) (object map[string]interface{}, err error) {
-	logstore, err := s.DescribeSlsLogStore(id)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert aliyunSlsAPI.LogStore to map[string]interface{} for compatibility
-	result := make(map[string]interface{})
-	result["logstoreName"] = logstore.LogstoreName
-	result["ttl"] = logstore.Ttl
-	result["shardCount"] = logstore.ShardCount
-	result["enableWebTracking"] = logstore.EnableTracking
-	result["autoSplit"] = logstore.AutoSplit
-	result["maxSplitShard"] = logstore.MaxSplitShard
-	result["appendMeta"] = logstore.AppendMeta
-	result["hotTtl"] = logstore.HotTtl
-	result["infrequentAccessTtl"] = logstore.InfrequentAccessTTL
-	result["mode"] = logstore.Mode
-	result["telemetryType"] = logstore.TelemetryType
-	result["encryptConf"] = logstore.EncryptConf
-	result["productType"] = logstore.ProductType
-	result["createTime"] = logstore.CreateTime
-	result["lastModifyTime"] = logstore.LastModifyTime
-
-	return result, nil
 }
 
 // DescribeGetLogStoreMeteringMode returns LogStore metering mode information using structured data
@@ -142,11 +119,11 @@ func (s *SlsService) DescribeSlsLogStoreIndexCompat(id string) (object map[strin
 	return result, nil
 }
 
-// SlsLogStoreStateRefreshFunc returns a StateRefreshFunc for LogStore resource state monitoring
-func (s *SlsService) SlsLogStoreStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {
+// LogStoreStateRefreshFunc returns a StateRefreshFunc for LogStore resource state monitoring
+func (s *SlsService) LogStoreStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		// Use the new structured method
-		logstore, err := s.DescribeSlsLogStore(id)
+		logstore, err := s.DescribeLogStoreById(id)
 		if err != nil {
 			if NotFoundError(err) {
 				return logstore, "", nil
@@ -198,6 +175,40 @@ func (s *SlsService) GetLogStore(project, logstore string) (*aliyunSlsAPI.LogSto
 func (s *SlsService) CreateLogStore(project string, logstore *aliyunSlsAPI.LogStore) error {
 	return s.aliyunSlsAPI.CreateLogStore(project, logstore)
 }
+
+// CreateLogStoreIfNotExist creates a logstore if it does not exist
+func (s *SlsService) CreateLogStoreIfNotExist(projectName string, logstore *aliyunSlsAPI.LogStore) (*aliyunSlsAPI.LogStore, error) {
+	if s.aliyunSlsAPI == nil {
+		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
+	}
+
+	if logstore == nil {
+		return nil, fmt.Errorf("logstore parameter cannot be nil")
+	}
+
+	if logstore.LogstoreName == "" {
+		return nil, fmt.Errorf("logstore name cannot be empty")
+	}
+
+	// Check if logstore exists
+	_, err := s.aliyunSlsAPI.GetLogStore(projectName, logstore.LogstoreName)
+	if err != nil {
+		if strings.Contains(err.Error(), "LogStoreNotExist") || strings.Contains(err.Error(), "does not exist") {
+			// Logstore doesn't exist, create it with provided configuration
+			if err := s.aliyunSlsAPI.CreateLogStore(projectName, logstore); err != nil {
+				return nil, WrapErrorf(err, DefaultErrorMsg, logstore.LogstoreName, "CreateLogStore", AlibabaCloudSdkGoERROR)
+			}
+			// Return the created logstore
+			return logstore, nil
+		} else {
+			// Other error occurred
+			return nil, WrapErrorf(err, DefaultErrorMsg, logstore.LogstoreName, "GetLogStore", AlibabaCloudSdkGoERROR)
+		}
+	}
+	// Logstore already exists, return nil, nil
+	return nil, nil
+}
+
 
 // UpdateLogStore encapsulates the call to aliyunSlsAPI.UpdateLogStore
 func (s *SlsService) UpdateLogStore(project, logstoreName string, logstore *aliyunSlsAPI.LogStore) error {

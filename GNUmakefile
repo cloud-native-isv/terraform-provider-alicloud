@@ -84,16 +84,12 @@ clean:
 #-----------------------------------
 mac:
 	GOOS=darwin GOARCH=amd64 go build -o bin/terraform-provider-alicloud
-	tar czvf bin/terraform-provider-alicloud_darwin-amd64.tgz bin/terraform-provider-alicloud
-	rm -rf bin/terraform-provider-alicloud
 
 windows:
 	GOOS=windows GOARCH=amd64 go build -o bin/terraform-provider-alicloud.exe
-	tar czvf bin/terraform-provider-alicloud_windows-amd64.tgz bin/terraform-provider-alicloud.exe
 
 linux:
 	GOOS=linux GOARCH=amd64 go build -o bin/terraform-provider-alicloud
-	tar czvf bin/terraform-provider-alicloud_linux-amd64.tgz bin/terraform-provider-alicloud
 
 macarm:
 	GOOS=darwin GOARCH=arm64 go build -o bin/terraform-provider-alicloud_v1.0.0

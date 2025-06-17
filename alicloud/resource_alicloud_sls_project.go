@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -51,11 +52,45 @@ func resourceAliCloudLogProject() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"owner": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"region": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"last_modify_time": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"data_redundancy_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: StringInSlice([]string{string(aliyunSlsAPI.DataRedundancyTypeLRS), string(aliyunSlsAPI.DataRedundancyTypeZRS)}, false),
+				Default:      string(aliyunSlsAPI.DataRedundancyTypeZRS),
+			},
+			"recycle_bin_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"quota": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"policy": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"tags": tagsSchema(),
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -85,20 +120,33 @@ func resourceAliCloudLogProjectCreate(d *schema.ResourceData, meta interface{}) 
 		return WrapError(fmt.Errorf("either project_name or name must be specified"))
 	}
 
-	// Prepare create project request
-	createRequest := map[string]interface{}{
-		"projectName": projectName,
+	// Build LogProject struct for creation
+	logProject := &aliyunSlsAPI.LogProject{
+		ProjectName: projectName,
 	}
 
+	// Set optional fields if provided
 	if v, ok := d.GetOk("description"); ok {
-		createRequest["description"] = v.(string)
+		logProject.Description = v.(string)
 	}
 	if v, ok := d.GetOk("resource_group_id"); ok {
-		createRequest["resourceGroupId"] = v.(string)
+		logProject.ResourceGroupId = v.(string)
+	}
+	if v, ok := d.GetOk("data_redundancy_type"); ok {
+		logProject.DataRedundancyType = aliyunSlsAPI.DataRedundancyType(v.(string))
+	}
+	if v, ok := d.GetOk("recycle_bin_enabled"); ok {
+		logProject.RecycleBinEnabled = v.(bool)
+	}
+	if v, ok := d.GetOk("quota"); ok {
+		quotaMap := v.(map[string]interface{})
+		if len(quotaMap) > 0 {
+			logProject.Quota = quotaMap
+		}
 	}
 
 	// Create project using SlsService
-	err = slsService.CreateProject(createRequest)
+	err = slsService.CreateProject(logProject)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_project", "CreateProject", AlibabaCloudSdkGoERROR)
 	}
@@ -138,21 +186,16 @@ func resourceAliCloudLogProjectRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("resource_group_id", project.ResourceGroupId)
 	d.Set("status", project.Status)
 	d.Set("project_name", project.ProjectName)
-
-	// Get and set tags
-	tagObjectRaw, err := slsService.DescribeListTagResources(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-
-	tagsMaps := tagObjectRaw["tagResources"]
-	d.Set("tags", tagsToMap(tagsMaps))
+	d.Set("owner", project.Owner)
+	d.Set("region", project.Region)
+	d.Set("location", project.Location)
+	d.Set("last_modify_time", project.LastModifyTime)
+	d.Set("data_redundancy_type", project.DataRedundancyType)
+	d.Set("recycle_bin_enabled", project.RecycleBinEnabled)
+	d.Set("quota", project.Quota)
 
 	// Set deprecated name field for backward compatibility
 	d.Set("name", d.Get("project_name"))
-
-	// Note: Policy handling is moved to a separate call since it's not part of the basic project structure
-	// This matches the pattern used in the original implementation
 
 	return nil
 }
@@ -193,14 +236,6 @@ func resourceAliCloudLogProjectUpdate(d *schema.ResourceData, meta interface{}) 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ChangeResourceGroup", AlibabaCloudSdkGoERROR)
 		}
 		d.SetPartial("resource_group_id")
-	}
-
-	// Update tags
-	if d.HasChange("tags") {
-		if err := slsService.SetResourceTags(d, "PROJECT"); err != nil {
-			return WrapError(err)
-		}
-		d.SetPartial("tags")
 	}
 
 	// Update project policy

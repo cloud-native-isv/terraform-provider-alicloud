@@ -192,6 +192,12 @@ func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(id)
 
+	// Wait for index to be created and available using StateRefreshFunc
+	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.LogStoreIndexStateRefreshFunc(id, "$.project", []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
 	return resourceAlicloudLogStoreIndexRead(d, meta)
 }
 
@@ -357,6 +363,12 @@ func resourceAlicloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{
 		}); err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateIndex", AliyunLogGoSdkERROR)
 		}
+
+		// Wait for index update to complete using StateRefreshFunc
+		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, slsService.LogStoreIndexStateRefreshFunc(d.Id(), "$.project", []string{}))
+		if _, err := stateConf.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
 	}
 
 	return resourceAlicloudLogStoreIndexRead(d, meta)
@@ -405,6 +417,13 @@ func resourceAlicloudLogStoreIndexDelete(d *schema.ResourceData, meta interface{
 	}); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteIndex", AliyunLogGoSdkERROR)
 	}
+
+	// Wait for index to be completely deleted using StateRefreshFunc
+	stateConf := BuildStateConf([]string{"Available"}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, slsService.LogStoreIndexStateRefreshFunc(d.Id(), "$.project", []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
 	return nil
 }
 

@@ -54,8 +54,8 @@ func (s *SlsService) DeleteSlsLogStoreIndex(projectName string, logstoreName str
 	return nil
 }
 
-// SlsLogStoreIndexStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a log store index
-func (s *SlsService) SlsLogStoreIndexStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {
+// LogStoreIndexStateRefreshFunc returns a resource.StateRefreshFunc that is used to watch a log store index
+func (s *SlsService) LogStoreIndexStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSlsLogStoreIndex(id)
 		if err != nil {

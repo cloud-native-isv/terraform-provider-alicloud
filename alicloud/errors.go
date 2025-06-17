@@ -3,22 +3,19 @@ package alicloud
 import (
 	"regexp"
 	"strings"
-
-	"github.com/alibabacloud-go/tea/tea"
-
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
-
 	"fmt"
-
 	"log"
 	"runtime"
 
+	"github.com/alibabacloud-go/tea/tea"
+	"github.com/denverdino/aliyungo/common"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/aliyun/fc-go-sdk"
+	
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
-	"github.com/denverdino/aliyungo/common"
 )
 
 const (

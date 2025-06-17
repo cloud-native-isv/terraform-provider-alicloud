@@ -22,14 +22,55 @@ import (
 	"strings"
 	"time"
 
+<<<<<<< HEAD
+||||||| parent of 1992f10c9 (remove unused code and fix some log)
+	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+
+	"github.com/denverdino/aliyungo/cs"
+
+=======
+	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+
+>>>>>>> 1992f10c9 (remove unused code and fix some log)
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/tea"
+<<<<<<< HEAD
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
 	"github.com/aliyun/fc-go-sdk"
 	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+||||||| parent of 1992f10c9 (remove unused code and fix some log)
+	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
+	"github.com/aliyun/fc-go-sdk"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+
+	"gopkg.in/yaml.v2"
+
+	"math"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+=======
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+
+	"gopkg.in/yaml.v2"
+
+	"math"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+>>>>>>> 1992f10c9 (remove unused code and fix some log)
 	"github.com/denverdino/aliyungo/common"
 	"github.com/denverdino/aliyungo/cs"
 	"github.com/google/uuid"
@@ -890,102 +931,176 @@ func addDebug(action, content interface{}, requestInfo ...interface{}) {
 		})
 	}
 
-	// Generate stack trace
-	trace := "[DEBUG TRACE]:\n"
-	for skip := 1; skip < 5; skip++ {
-		_, filepath, line, _ := runtime.Caller(skip)
-		trace += fmt.Sprintf("%s:%d\n", filepath, line)
+	// Get current code location (caller info)
+	_, file, line, ok := runtime.Caller(1)
+	location := "unknown"
+	if ok {
+		location = fmt.Sprintf("%s:%d", filepath.Base(file), line)
 	}
 
-	debugContent := content
-	if len(requestInfo) > 0 {
-		var request = struct {
-			Domain     string
-			Version    string
-			UserAgent  string
-			ActionName string
-			Method     string
-			Product    string
-			Region     string
-			AK         string
-		}{}
-
-		switch requestInfo[0].(type) {
-		case *requests.RpcRequest:
-			tmp := requestInfo[0].(*requests.RpcRequest)
-			request.Domain = tmp.GetDomain()
-			request.Version = tmp.GetVersion()
-			request.ActionName = tmp.GetActionName()
-			request.Method = tmp.GetMethod()
-			request.Product = tmp.GetProduct()
-			request.Region = tmp.GetRegionId()
-		case *requests.RoaRequest:
-			tmp := requestInfo[0].(*requests.RoaRequest)
-			request.Domain = tmp.GetDomain()
-			request.Version = tmp.GetVersion()
-			request.ActionName = tmp.GetActionName()
-			request.Method = tmp.GetMethod()
-			request.Product = tmp.GetProduct()
-			request.Region = tmp.GetRegionId()
-		case *requests.CommonRequest:
-			tmp := requestInfo[0].(*requests.CommonRequest)
-			request.Domain = tmp.GetDomain()
-			request.Version = tmp.GetVersion()
-			request.ActionName = tmp.GetActionName()
-			request.Method = tmp.GetMethod()
-			request.Product = tmp.GetProduct()
-			request.Region = tmp.GetRegionId()
-		case *fc.Client:
-			client := requestInfo[0].(*fc.Client)
-			request.Version = client.Config.APIVersion
-			request.Product = "FC"
-			request.ActionName = fmt.Sprintf("%s", action)
-		case *aliyunSlsAPI.SlsAPI:
-			request.Product = "LOG"
-			request.ActionName = fmt.Sprintf("%s", action)
-		case *tablestore.TableStoreClient:
-			request.Product = "OTS"
-			request.ActionName = fmt.Sprintf("%s", action)
-		case *oss.Client:
-			request.Product = "OSS"
-			request.ActionName = fmt.Sprintf("%s", action)
-		case *datahub.DataHub:
-			request.Product = "DataHub"
-			request.ActionName = fmt.Sprintf("%s", action)
-		case *cs.Client:
-			request.Product = "CS"
-			request.ActionName = fmt.Sprintf("%s", action)
-		}
-
-		requestContent := ""
-		if len(requestInfo) > 1 {
-			switch requestInfo[1].(type) {
-			case *tea.SDKError:
-				requestContent = fmt.Sprintf("%#v", requestInfo[1].(*tea.SDKError).Error())
-			default:
-				requestContent = fmt.Sprintf("%#v", requestInfo[1])
-			}
-		}
-
-		if len(requestInfo) == 1 {
-			if v, ok := requestInfo[0].(map[string]interface{}); ok {
-				if res, err := json.Marshal(&v); err == nil {
-					requestContent = string(res)
-				}
-				if res, err := json.Marshal(&content); err == nil {
-					debugContent = string(res)
-				}
-			}
-		}
-
-		debugContent = fmt.Sprintf("%vDomain:%v, Version:%v, ActionName:%v, Method:%v, Product:%v, Region:%v\n\n"+
-			"*************** %s Request ***************\n%#v\n",
-			debugContent, request.Domain, request.Version, request.ActionName,
-			request.Method, request.Product, request.Region, request.ActionName, requestContent)
-	}
+	// Format debug message as single line
+	debugMsg := fmt.Sprintf("[%s] %v: %v", location, action, content)
 
 	// Use hclog to output debug information
-	logger.Debug(fmt.Sprintf(DefaultDebugMsg, action, debugContent, trace))
+	logger.Debug(debugMsg)
+}
+
+// addDebugStructure prints a complete Go structure with field names and values using reflection
+func addDebugStructure(action string, structValue interface{}) {
+	if !debugOn() {
+		return
+	}
+
+	// Get logger with proper level
+	logger := providerLogger
+	if logger == nil {
+		// Fallback if logger is not initialized
+		logger = hclog.New(&hclog.LoggerOptions{
+			Name:   "alicloud",
+			Level:  getLogLevel(),
+			Output: os.Stderr,
+		})
+	}
+
+	// Get current code location (caller info)
+	_, file, line, ok := runtime.Caller(1)
+	location := "unknown"
+	if ok {
+		location = fmt.Sprintf("%s:%d", filepath.Base(file), line)
+	}
+
+	// Format structure details
+	structDetails := formatStructure(structValue, 0)
+
+	// Format debug message
+	debugMsg := fmt.Sprintf("[%s] %s Structure:\n%s", location, action, structDetails)
+
+	// Use hclog to output debug information
+	logger.Debug(debugMsg)
+}
+
+// formatStructure recursively formats a structure using reflection
+func formatStructure(value interface{}, indent int) string {
+	if value == nil {
+		return fmt.Sprintf("%s<nil>", strings.Repeat("  ", indent))
+	}
+
+	v := reflect.ValueOf(value)
+	t := reflect.TypeOf(value)
+
+	// Dereference pointer if necessary
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return fmt.Sprintf("%s<nil pointer>", strings.Repeat("  ", indent))
+		}
+		v = v.Elem()
+		t = t.Elem()
+	}
+
+	switch v.Kind() {
+	case reflect.Struct:
+		var result strings.Builder
+		result.WriteString(fmt.Sprintf("%s%s {\n", strings.Repeat("  ", indent), t.Name()))
+
+		for i := 0; i < v.NumField(); i++ {
+			field := t.Field(i)
+			fieldValue := v.Field(i)
+
+			// Skip unexported fields
+			if !fieldValue.CanInterface() {
+				continue
+			}
+
+			// Get field name and json tag if available
+			fieldName := field.Name
+			if jsonTag := field.Tag.Get("json"); jsonTag != "" && jsonTag != "-" {
+				if commaIndex := strings.Index(jsonTag, ","); commaIndex > 0 {
+					fieldName = fmt.Sprintf("%s (json:%s)", fieldName, jsonTag[:commaIndex])
+				} else {
+					fieldName = fmt.Sprintf("%s (json:%s)", fieldName, jsonTag)
+				}
+			}
+
+			result.WriteString(fmt.Sprintf("%s%s: ", strings.Repeat("  ", indent+1), fieldName))
+
+			// Handle different field types
+			if fieldValue.Kind() == reflect.Struct || (fieldValue.Kind() == reflect.Ptr && !fieldValue.IsNil() && fieldValue.Elem().Kind() == reflect.Struct) {
+				result.WriteString("\n")
+				result.WriteString(formatStructure(fieldValue.Interface(), indent+2))
+				result.WriteString("\n")
+			} else if fieldValue.Kind() == reflect.Slice || fieldValue.Kind() == reflect.Array {
+				result.WriteString(formatSlice(fieldValue, indent+1))
+				result.WriteString("\n")
+			} else if fieldValue.Kind() == reflect.Map {
+				result.WriteString(formatMap(fieldValue, indent+1))
+				result.WriteString("\n")
+			} else {
+				result.WriteString(fmt.Sprintf("%v\n", fieldValue.Interface()))
+			}
+		}
+
+		result.WriteString(fmt.Sprintf("%s}", strings.Repeat("  ", indent)))
+		return result.String()
+
+	case reflect.Slice, reflect.Array:
+		return formatSlice(v, indent)
+
+	case reflect.Map:
+		return formatMap(v, indent)
+
+	default:
+		return fmt.Sprintf("%s%v", strings.Repeat("  ", indent), v.Interface())
+	}
+}
+
+// formatSlice formats slice/array values
+func formatSlice(v reflect.Value, indent int) string {
+	if v.Len() == 0 {
+		return "[]"
+	}
+
+	var result strings.Builder
+	result.WriteString("[\n")
+
+	for i := 0; i < v.Len(); i++ {
+		element := v.Index(i)
+		if element.Kind() == reflect.Struct || (element.Kind() == reflect.Ptr && !element.IsNil() && element.Elem().Kind() == reflect.Struct) {
+			result.WriteString(fmt.Sprintf("%s[%d]:\n", strings.Repeat("  ", indent+1), i))
+			result.WriteString(formatStructure(element.Interface(), indent+2))
+			result.WriteString("\n")
+		} else {
+			result.WriteString(fmt.Sprintf("%s[%d]: %v\n", strings.Repeat("  ", indent+1), i, element.Interface()))
+		}
+	}
+
+	result.WriteString(fmt.Sprintf("%s]", strings.Repeat("  ", indent)))
+	return result.String()
+}
+
+// formatMap formats map values
+func formatMap(v reflect.Value, indent int) string {
+	if v.Len() == 0 {
+		return "{}"
+	}
+
+	var result strings.Builder
+	result.WriteString("{\n")
+
+	for _, key := range v.MapKeys() {
+		value := v.MapIndex(key)
+		result.WriteString(fmt.Sprintf("%s%v: ", strings.Repeat("  ", indent+1), key.Interface()))
+
+		if value.Kind() == reflect.Struct || (value.Kind() == reflect.Ptr && !value.IsNil() && value.Elem().Kind() == reflect.Struct) {
+			result.WriteString("\n")
+			result.WriteString(formatStructure(value.Interface(), indent+2))
+			result.WriteString("\n")
+		} else {
+			result.WriteString(fmt.Sprintf("%v\n", value.Interface()))
+		}
+	}
+
+	result.WriteString(fmt.Sprintf("%s}", strings.Repeat("  ", indent)))
+	return result.String()
 }
 
 // Return a ComplexError which including extra error message, error occurred file and path
