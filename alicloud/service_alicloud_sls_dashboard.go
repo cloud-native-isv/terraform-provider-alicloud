@@ -2,11 +2,11 @@ package alicloud
 
 import (
 	"fmt"
-	"strings"
-	"time"
-
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"strings"
+	"time"
 )
 
 // DescribeSlsDashboard retrieves a dashboard by project and dashboard name
@@ -57,7 +57,6 @@ func (s *SlsService) UpdateSlsDashboard(projectName, dashboardName string, dashb
 	return nil
 }
 
-
 // DeleteDashboard deletes an SLS dashboard
 func (s *SlsService) DeleteDashboard(projectName, dashboardName string) error {
 	if s.aliyunSlsAPI == nil {
@@ -70,7 +69,6 @@ func (s *SlsService) DeleteDashboard(projectName, dashboardName string) error {
 	}
 	return nil
 }
-
 
 // DeleteSlsDashboard deletes a dashboard from the specified project
 func (s *SlsService) DeleteSlsDashboard(projectName, dashboardName string) error {
@@ -200,7 +198,7 @@ func (s *SlsService) WaitForSlsDashboard(id string, status Status, timeout time.
 // getSlsAPI creates and returns an SLS API client using CWS-Lib-Go
 func (s *SlsService) getSlsAPI() (*sls.SlsAPI, error) {
 	// Create credentials from the AliyunClient
-	credentials := &sls.SlsCredentials{
+	credentials := &common.Credentials{
 		AccessKey:     s.client.AccessKey,
 		SecretKey:     s.client.SecretKey,
 		RegionId:      s.client.RegionId,

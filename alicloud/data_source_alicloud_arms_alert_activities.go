@@ -8,6 +8,7 @@ import (
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -98,7 +99,7 @@ func dataSourceAlicloudArmsAlertActivitiesRead(d *schema.ResourceData, meta inte
 	client := meta.(*connectivity.AliyunClient)
 
 	// Initialize ARMS API client
-	armsCredentials := &arms.ArmsCredentials{
+	armsCredentials := &common.Credentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,

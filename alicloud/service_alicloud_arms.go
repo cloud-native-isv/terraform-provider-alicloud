@@ -9,6 +9,7 @@ import (
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -21,7 +22,7 @@ type ArmsService struct {
 // NewArmsService creates a new ArmsService instance
 func NewArmsService(client *connectivity.AliyunClient) *ArmsService {
 	// Initialize the ARMS API client
-	armsAPI, err := aliyunArmsAPI.NewARMSClientWithCredentials(&aliyunArmsAPI.ArmsCredentials{
+	armsAPI, err := aliyunArmsAPI.NewARMSClientWithCredentials(&common.Credentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,

@@ -8,6 +8,7 @@ import (
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -77,7 +78,7 @@ func resourceAlicloudArmsAlertIntegrationCreate(d *schema.ResourceData, meta int
 	client := meta.(*connectivity.AliyunClient)
 
 	// Initialize ARMS API client
-	armsCredentials := &arms.ArmsCredentials{
+	armsCredentials := &common.Credentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,
@@ -121,7 +122,7 @@ func resourceAlicloudArmsAlertIntegrationRead(d *schema.ResourceData, meta inter
 	client := meta.(*connectivity.AliyunClient)
 
 	// Initialize ARMS API client
-	armsCredentials := &arms.ArmsCredentials{
+	armsCredentials := &common.Credentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,
@@ -171,7 +172,7 @@ func resourceAlicloudArmsAlertIntegrationUpdate(d *schema.ResourceData, meta int
 	client := meta.(*connectivity.AliyunClient)
 
 	// Initialize ARMS API client
-	armsCredentials := &arms.ArmsCredentials{
+	armsCredentials := &common.Credentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,
@@ -223,7 +224,7 @@ func resourceAlicloudArmsAlertIntegrationDelete(d *schema.ResourceData, meta int
 	client := meta.(*connectivity.AliyunClient)
 
 	// Initialize ARMS API client
-	armsCredentials := &arms.ArmsCredentials{
+	armsCredentials := &common.Credentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,

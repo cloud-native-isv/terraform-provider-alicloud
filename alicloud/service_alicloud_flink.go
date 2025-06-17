@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunCommonAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -16,8 +17,8 @@ type FlinkService struct {
 
 // NewFlinkService creates a new FlinkService using cws-lib-go implementation
 func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
-	// Convert AliyunClient credentials to FlinkCredentials
-	credentials := &aliyunFlinkAPI.FlinkCredentials{
+	// Convert AliyunClient credentials to Credentials
+	credentials := &aliyunCommonAPI.Credentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,

@@ -2,8 +2,8 @@ package alicloud
 
 import (
 	"fmt"
-
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 )
 
@@ -14,7 +14,7 @@ type SlsService struct {
 
 // NewSlsService creates a new SlsService instance with initialized clients
 func NewSlsService(client *connectivity.AliyunClient) (*SlsService, error) {
-	credentials := &aliyunSlsAPI.SlsCredentials{
+	credentials := &common.Credentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,
