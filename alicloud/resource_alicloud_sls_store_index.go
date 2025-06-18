@@ -148,15 +148,29 @@ func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 	logstore := d.Get("logstore").(string)
 	id := fmt.Sprintf("%s%s%s", project, COLON_SEPARATED, logstore)
 
+	// First, ensure the log store exists and is available before creating index
+	if err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+		_, err := slsService.DescribeLogStore(project, logstore)
+		if err != nil {
+			if NotFoundError(err) {
+				return resource.RetryableError(WrapErrorf(err, DefaultErrorMsg, logstore, "DescribeLogStore", AlibabaCloudSdkGoERROR))
+			}
+			return resource.NonRetryableError(WrapErrorf(err, DefaultErrorMsg, logstore, "DescribeLogStore", AlibabaCloudSdkGoERROR))
+		}
+		return nil
+	}); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, logstore, "WaitForLogStoreAvailable", AlibabaCloudSdkGoERROR)
+	}
+
 	// Check if index already exists
 	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		_, err := slsService.DescribeSlsLogStoreIndex(id)
+		_, err := slsService.GetSlsLogStoreIndex(project, logstore)
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				time.Sleep(5 * time.Second)
 				return resource.RetryableError(WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "GetIndex", AliyunLogGoSdkERROR))
 			}
-			if !IsExpectedErrors(err, []string{"IndexConfigNotExist"}) {
+			if !IsExpectedErrors(err, []string{"IndexConfigNotExist", "index config doesn't exist"}) {
 				return resource.NonRetryableError(WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "GetIndex", AliyunLogGoSdkERROR))
 			}
 		} else {
@@ -176,9 +190,14 @@ func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 		index.Keys = buildIndexKeys(d)
 	}
 
-	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+	// Create index with retry logic that handles log store not being ready
+	if err := resource.Retry(5*time.Minute, func() *resource.RetryError {
 		err := slsService.aliyunSlsAPI.CreateLogStoreIndex(project, logstore, &index)
 		if err != nil {
+			// Handle specific case where log store is not ready yet
+			if strings.Contains(err.Error(), "LogStoreNotExist") || strings.Contains(err.Error(), "not found") {
+				return resource.RetryableError(WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store_index", "CreateIndex", AlibabaCloudSdkGoERROR))
+			}
 			if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
 				return resource.RetryableError(err)
 			}
@@ -192,9 +211,8 @@ func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(id)
 
-	// Wait for index to be created and available using StateRefreshFunc
-	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.LogStoreIndexStateRefreshFunc(id, "$.project", []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
+	// Wait for index to be created and available using improved StateRefreshFunc
+	if err := slsService.WaitForLogStoreIndexAvailable(id, int(d.Timeout(schema.TimeoutCreate).Seconds())); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
@@ -213,18 +231,61 @@ func resourceAlicloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	var index *aliyunSlsAPI.LogStoreIndex
-	err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-		index, err = slsService.DescribeSlsLogStoreIndex(d.Id())
+	projectName := parts[0]
+	logstoreName := parts[1]
+
+	// First check if log store exists using improved error handling
+	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+		_, err := slsService.DescribeLogStore(projectName, logstoreName)
 		if err != nil {
+			if NotFoundError(err) {
+				// Log store doesn't exist, remove index from state
+				d.SetId("")
+				return nil
+			}
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
-			if IsExpectedErrors(err, []string{"IndexConfigNotExist"}) {
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	}); err != nil {
+		return WrapError(err)
+	}
+
+	// If log store doesn't exist, we've already cleared the ID
+	if d.Id() == "" {
+		return nil
+	}
+
+	// Now check the index using improved error handling and state refresh
+	var index *aliyunSlsAPI.LogStoreIndex
+	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
+		index, err = slsService.GetSlsLogStoreIndex(projectName, logstoreName)
+		if err != nil {
+			// Handle IndexConfigNotExist and similar errors
+			if strings.Contains(err.Error(), "IndexConfigNotExist") ||
+				strings.Contains(err.Error(), "not found") ||
+				NotFoundError(err) {
+				// Index doesn't exist, remove from state
 				d.SetId("")
 				return nil
 			}
+
+			// Handle timeout and retryable errors
+			if IsExpectedErrors(err, []string{LogClientTimeout}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+
+			// Handle other retryable errors that might indicate the service is still being set up
+			if strings.Contains(err.Error(), "InternalServerError") ||
+				strings.Contains(err.Error(), "ServiceUnavailable") {
+				time.Sleep(10 * time.Second)
+				return resource.RetryableError(err)
+			}
+
 			return resource.NonRetryableError(err)
 		}
 		return nil
@@ -234,8 +295,8 @@ func resourceAlicloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	if index == nil {
-		d.SetId("")
+	// If index doesn't exist, we've already cleared the ID
+	if d.Id() == "" || index == nil {
 		return nil
 	}
 
@@ -320,10 +381,59 @@ func resourceAlicloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{
 	project := parts[0]
 	logstore := parts[1]
 
-	// Get current index using structured data
-	currentIndex, err := slsService.DescribeSlsLogStoreIndex(d.Id())
+	// First ensure the log store still exists before updating index
+	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+		_, err := slsService.DescribeLogStore(project, logstore)
+		if err != nil {
+			if NotFoundError(err) {
+				// Log store doesn't exist, remove index from state
+				d.SetId("")
+				return nil
+			}
+			if IsExpectedErrors(err, []string{LogClientTimeout}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	}); err != nil {
+		return WrapError(err)
+	}
+
+	// If log store doesn't exist, we've already cleared the ID
+	if d.Id() == "" {
+		return nil
+	}
+
+	// Get current index using structured data with improved error handling
+	var currentIndex *aliyunSlsAPI.LogStoreIndex
+	err = resource.Retry(2*time.Minute, func() *resource.RetryError {
+		currentIndex, err = slsService.GetSlsLogStoreIndex(project, logstore)
+		if err != nil {
+			if strings.Contains(err.Error(), "IndexConfigNotExist") ||
+				strings.Contains(err.Error(), "not found") ||
+				NotFoundError(err) {
+				// Index doesn't exist, remove from state
+				d.SetId("")
+				return nil
+			}
+			if IsExpectedErrors(err, []string{LogClientTimeout}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
 	if err != nil {
 		return WrapError(err)
+	}
+
+	// If index doesn't exist, we've already cleared the ID
+	if d.Id() == "" {
+		return nil
 	}
 
 	var index aliyunSlsAPI.LogStoreIndex
@@ -343,10 +453,15 @@ func resourceAlicloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	if update {
-		if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+		// Update index with retry logic
+		if err := resource.Retry(3*time.Minute, func() *resource.RetryError {
 			err := slsService.aliyunSlsAPI.UpdateLogStoreIndex(project, logstore, &index)
 			if err != nil {
-				if IsExpectedErrors(err, []string{LogClientTimeout}) {
+				// Handle specific errors that might indicate the service is still being set up
+				if strings.Contains(err.Error(), "LogStoreNotExist") || strings.Contains(err.Error(), "not found") {
+					return resource.RetryableError(WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store_index", "UpdateIndex", AlibabaCloudSdkGoERROR))
+				}
+				if IsExpectedErrors(err, []string{LogClientTimeout, "InternalServerError"}) {
 					time.Sleep(5 * time.Second)
 					return resource.RetryableError(err)
 				}
@@ -364,9 +479,8 @@ func resourceAlicloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateIndex", AliyunLogGoSdkERROR)
 		}
 
-		// Wait for index update to complete using StateRefreshFunc
-		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, slsService.LogStoreIndexStateRefreshFunc(d.Id(), "$.project", []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
+		// Wait for index update to complete using improved StateRefreshFunc
+		if err := slsService.WaitForLogStoreIndexAvailable(d.Id(), int(d.Timeout(schema.TimeoutUpdate).Seconds())); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
@@ -390,7 +504,7 @@ func resourceAlicloudLogStoreIndexDelete(d *schema.ResourceData, meta interface{
 	logstore := parts[1]
 
 	// Check if index exists
-	_, err = slsService.DescribeSlsLogStoreIndex(d.Id())
+	_, err = slsService.GetSlsLogStoreIndex(project, logstore)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"IndexConfigNotExist"}) {
 			return nil
@@ -418,9 +532,8 @@ func resourceAlicloudLogStoreIndexDelete(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteIndex", AliyunLogGoSdkERROR)
 	}
 
-	// Wait for index to be completely deleted using StateRefreshFunc
-	stateConf := BuildStateConf([]string{"Available"}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, slsService.LogStoreIndexStateRefreshFunc(d.Id(), "$.project", []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
+	// Wait for index to be completely deleted using improved StateRefreshFunc
+	if err := slsService.WaitForLogStoreIndexDeleted(d.Id(), int(d.Timeout(schema.TimeoutDelete).Seconds())); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 

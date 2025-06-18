@@ -63,19 +63,57 @@ func (s *SlsService) LogProjectStateRefreshFunc(id string, field string, failSta
 		object, err := s.DescribeLogProject(id)
 		if err != nil {
 			if NotFoundError(err) {
-				return object, "", nil
+				return nil, "deleted", nil
 			}
 			return nil, "", WrapError(err)
 		}
 
-		v, err := jsonpath.Get(field, object)
-		currentStatus := fmt.Sprint(v)
-		for _, failState := range failStates {
-			if currentStatus == failState {
-				return object, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
+		// If project exists, it's in Normal status
+		if object != nil {
+			// Convert to map for jsonpath compatibility
+			projectMap := make(map[string]interface{})
+			projectMap["projectName"] = object.ProjectName
+			projectMap["description"] = object.Description
+			projectMap["resourceGroupId"] = object.ResourceGroupId
+			projectMap["status"] = object.Status
+			projectMap["owner"] = object.Owner
+			projectMap["region"] = object.Region
+			projectMap["location"] = object.Location
+			projectMap["createTime"] = object.CreateTime
+			projectMap["lastModifyTime"] = object.LastModifyTime
+			projectMap["dataRedundancyType"] = object.DataRedundancyType
+			projectMap["recycleBinEnabled"] = object.RecycleBinEnabled
+			projectMap["quota"] = object.Quota
+
+			// Try to get the requested field, fallback to "Normal" if field doesn't exist
+			var currentStatus string
+			if field != "" {
+				if v, err := jsonpath.Get(field, projectMap); err == nil {
+					currentStatus = fmt.Sprint(v)
+				} else {
+					// If the field doesn't exist or there's an error, default to "Normal"
+					currentStatus = "Normal"
+				}
+			} else {
+				currentStatus = "Normal"
 			}
+
+			// Handle empty status - default to Normal if object exists
+			if currentStatus == "" || currentStatus == "<nil>" {
+				currentStatus = "Normal"
+			}
+
+			for _, failState := range failStates {
+				if currentStatus == failState {
+					return projectMap, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
+				}
+			}
+
+			return projectMap, currentStatus, nil
 		}
-		return object, currentStatus, nil
+
+		// This should not happen, but handle it gracefully
+		return nil, "unknown", nil
 	}
 }
 

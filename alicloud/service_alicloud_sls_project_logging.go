@@ -813,11 +813,37 @@ func (s *SlsService) CreateProjectLogging(projectName string, logging *aliyunSls
 	// Ensure logging project exists
 	if logging != nil && logging.LoggingProject != "" {
 		addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Checking/creating logging project: %s", logging.LoggingProject), nil)
-		// Create project with default configuration
+		
+		// Create project with region-aware configuration
 		createProject := &aliyunSlsAPI.LogProject{
-			ProjectName:        logging.LoggingProject,
-			DataRedundancyType: aliyunSlsAPI.DataRedundancyTypeZRS,
+			ProjectName: logging.LoggingProject,
 		}
+		
+		// Only set dataRedundancyType for regions that support it
+		// eu-central-1 and some other regions don't support this parameter
+		supportedRegions := []string{
+			"cn-hangzhou", "cn-shanghai", "cn-beijing", "cn-qingdao", "cn-zhangjiakou", 
+			"cn-huhehaote", "cn-shenzhen", "cn-chengdu", "cn-hongkong",
+			"ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ap-southeast-5",
+			"ap-northeast-1", "ap-south-1", "us-west-1", "us-east-1", 
+			"eu-west-1", "me-east-1",
+		}
+		
+		regionSupportsDataRedundancy := false
+		if s.client != nil {
+			for _, region := range supportedRegions {
+				if region == string(s.client.Region) {
+					regionSupportsDataRedundancy = true
+					break
+				}
+			}
+		}
+		
+		if regionSupportsDataRedundancy {
+			createProject.DataRedundancyType = aliyunSlsAPI.DataRedundancyTypeZRS
+		}
+		// If region doesn't support data redundancy, leave the field unset
+		
 		if _, err := s.CreateProjectIfNotExist(createProject); err != nil {
 			addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Failed to create logging project: %s", logging.LoggingProject), err)
 			return WrapErrorf(err, DefaultErrorMsg, logging.LoggingProject, "CreateProjectIfNotExist", AlibabaCloudSdkGoERROR)
@@ -830,6 +856,7 @@ func (s *SlsService) CreateProjectLogging(projectName string, logging *aliyunSls
 			for _, detail := range logging.LoggingDetails {
 				if detail.Logstore != "" {
 					addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Checking/creating logstore: %s in project: %s", detail.Logstore, logging.LoggingProject), nil)
+					
 					// Create logstore with default configuration
 					createLogStore := &aliyunSlsAPI.LogStore{
 						LogstoreName:  detail.Logstore,
@@ -900,7 +927,7 @@ func (s *SlsService) CreateProjectLogging(projectName string, logging *aliyunSls
 	addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Calling API to create project logging for: %s", projectName), logging)
 	err := s.aliyunSlsAPI.CreateLogProjectLogging(projectName, logging)
 	if err != nil {
-		addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("API call failed for project: %s", projectName), err)
+		addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Failed to create project logging configuration for: %s", projectName), err)
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "CreateLogging", AlibabaCloudSdkGoERROR)
 	}
 
@@ -919,11 +946,37 @@ func (s *SlsService) UpdateProjectLogging(projectName string, logging *aliyunSls
 	// Ensure logging project exists
 	if logging != nil && logging.LoggingProject != "" {
 		addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Checking/creating logging project: %s", logging.LoggingProject), nil)
-		// Create project with default configuration
+		
+		// Create project with region-aware configuration
 		createProject := &aliyunSlsAPI.LogProject{
-			ProjectName:        logging.LoggingProject,
-			DataRedundancyType: aliyunSlsAPI.DataRedundancyTypeZRS,
+			ProjectName: logging.LoggingProject,
 		}
+		
+		// Only set dataRedundancyType for regions that support it
+		// eu-central-1 and some other regions don't support this parameter
+		supportedRegions := []string{
+			"cn-hangzhou", "cn-shanghai", "cn-beijing", "cn-qingdao", "cn-zhangjiakou", 
+			"cn-huhehaote", "cn-shenzhen", "cn-chengdu", "cn-hongkong",
+			"ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ap-southeast-5",
+			"ap-northeast-1", "ap-south-1", "us-west-1", "us-east-1", 
+			"eu-west-1", "me-east-1",
+		}
+		
+		regionSupportsDataRedundancy := false
+		if s.client != nil {
+			for _, region := range supportedRegions {
+				if region == string(s.client.Region) {
+					regionSupportsDataRedundancy = true
+					break
+				}
+			}
+		}
+		
+		if regionSupportsDataRedundancy {
+			createProject.DataRedundancyType = aliyunSlsAPI.DataRedundancyTypeZRS
+		}
+		// If region doesn't support data redundancy, leave the field unset
+		
 		if _, err := s.CreateProjectIfNotExist(createProject); err != nil {
 			addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Failed to create logging project: %s", logging.LoggingProject), err)
 			return WrapErrorf(err, DefaultErrorMsg, logging.LoggingProject, "CreateProjectIfNotExist", AlibabaCloudSdkGoERROR)
@@ -957,10 +1010,6 @@ func (s *SlsService) UpdateProjectLogging(projectName string, logging *aliyunSls
 						addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Checking/creating default index for internal-diagnostic_log logstore: %s", detail.Logstore), nil)
 						defaultIndex := InternalDiagnosticLogStoreIndex
 
-						// Print detailed structure of the default index configuration
-						// addDebugStructure("InternalDiagnosticLogStoreIndex", defaultIndex)
-						// addDebugStructure("InternalDiagnosticLogStoreIndex(in sdk)", aliyunSlsAPI.ConvertLogStoreIndexToSDKIndex(defaultIndex))
-
 						// Create or update the index for the logstore
 						if err := s.aliyunSlsAPI.CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
 							// Log warning but don't fail the whole operation if index creation fails
@@ -974,10 +1023,6 @@ func (s *SlsService) UpdateProjectLogging(projectName string, logging *aliyunSls
 					} else if detail.Logstore == "internal-operation_log" {
 						addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Checking/creating default index for internal-operation_log logstore: %s", detail.Logstore), nil)
 						defaultIndex := InternalOperationLogStoreIndex
-
-						// Print detailed structure of the default index configuration
-						// addDebugStructure("InternalDiagnosticLogStoreIndex", defaultIndex)
-						// addDebugStructure("InternalDiagnosticLogStoreIndex(in sdk)", aliyunSlsAPI.ConvertLogStoreIndexToSDKIndex(defaultIndex))
 
 						// Create or update the index for the logstore
 						if err := s.aliyunSlsAPI.CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {

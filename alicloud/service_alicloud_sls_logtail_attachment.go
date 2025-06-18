@@ -83,22 +83,47 @@ func (s *SlsService) SlsLogtailAttachmentStateRefreshFunc(id string, field strin
 		object, err := s.DescribeSlsLogtailAttachment(id)
 		if err != nil {
 			if NotFoundError(err) {
-				return object, "", nil
+				// When resource is not found during deletion, this is the expected success state
+				return nil, "deleted", nil
 			}
 			return nil, "", WrapError(err)
 		}
 
+		// Handle the case when object is found
+		if object == nil {
+			// Object is nil but no error - treat as deleted
+			return nil, "deleted", nil
+		}
+
 		v, err := jsonpath.Get(field, object)
 		if err != nil {
-			return nil, "", WrapError(err)
+			// If we can't get the field, try to use a default status
+			if status, ok := object["status"]; ok {
+				currentStatus := fmt.Sprint(status)
+				for _, failState := range failStates {
+					if currentStatus == failState {
+						return object, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
+					}
+				}
+				return object, currentStatus, nil
+			}
+			// If no status field exists, assume it's active
+			return object, "active", nil
 		}
+
 		currentStatus := fmt.Sprint(v)
+
+		// Handle empty status - default to active if object exists
+		if currentStatus == "" || currentStatus == "<nil>" {
+			currentStatus = "active"
+		}
 
 		for _, failState := range failStates {
 			if currentStatus == failState {
 				return object, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
 			}
 		}
+
 		return object, currentStatus, nil
 	}
 }

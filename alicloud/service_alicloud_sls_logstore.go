@@ -78,47 +78,6 @@ func (s *SlsService) DescribeGetLogStoreMeteringModeCompat(id string) (object ma
 	return result, nil
 }
 
-// DescribeSlsLogStoreIndex returns LogStore index configuration using structured data
-func (s *SlsService) DescribeSlsLogStoreIndex(id string) (*aliyunSlsAPI.LogStoreIndex, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	parts := strings.Split(id, ":")
-	if len(parts) != 2 {
-		return nil, WrapError(fmt.Errorf("invalid Resource Id %s. Expected parts' length %d, got %d", id, 2, len(parts)))
-	}
-
-	projectName := parts[0]
-	logstoreName := parts[1]
-
-	index, err := s.aliyunSlsAPI.GetLogStoreIndex(projectName, logstoreName)
-	if err != nil {
-		if strings.Contains(err.Error(), "IndexConfigNotExist") {
-			return nil, WrapErrorf(NotFoundErr("LogStoreIndex", id), NotFoundMsg, "")
-		}
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetLogStoreIndex", AlibabaCloudSdkGoERROR)
-	}
-
-	return index, nil
-}
-
-// DescribeSlsLogStoreIndexCompat returns LogStore index configuration as map for compatibility with legacy code
-func (s *SlsService) DescribeSlsLogStoreIndexCompat(id string) (object map[string]interface{}, err error) {
-	index, err := s.DescribeSlsLogStoreIndex(id)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert to map for compatibility
-	result := make(map[string]interface{})
-	result["keys"] = index.Keys
-	result["line"] = index.Line
-	result["ttl"] = index.TTL
-
-	return result, nil
-}
-
 // LogStoreStateRefreshFunc returns a StateRefreshFunc for LogStore resource state monitoring
 func (s *SlsService) LogStoreStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
@@ -126,38 +85,60 @@ func (s *SlsService) LogStoreStateRefreshFunc(id string, field string, failState
 		logstore, err := s.DescribeLogStoreById(id)
 		if err != nil {
 			if NotFoundError(err) {
-				return logstore, "", nil
+				return nil, "deleted", nil
 			}
 			return nil, "", WrapError(err)
 		}
 
-		// Convert to map for jsonpath compatibility
-		object := make(map[string]interface{})
-		object["logstoreName"] = logstore.LogstoreName
-		object["ttl"] = logstore.Ttl
-		object["shardCount"] = logstore.ShardCount
-		object["enableWebTracking"] = logstore.EnableTracking
-		object["autoSplit"] = logstore.AutoSplit
-		object["maxSplitShard"] = logstore.MaxSplitShard
-		object["appendMeta"] = logstore.AppendMeta
-		object["hotTtl"] = logstore.HotTtl
-		object["infrequentAccessTtl"] = logstore.InfrequentAccessTTL
-		object["mode"] = logstore.Mode
-		object["telemetryType"] = logstore.TelemetryType
-		object["encryptConf"] = logstore.EncryptConf
-		object["productType"] = logstore.ProductType
-		object["createTime"] = logstore.CreateTime
-		object["lastModifyTime"] = logstore.LastModifyTime
+		// If logstore exists, it's available
+		if logstore != nil {
+			// Convert to map for jsonpath compatibility
+			object := make(map[string]interface{})
+			object["logstoreName"] = logstore.LogstoreName
+			object["ttl"] = logstore.Ttl
+			object["shardCount"] = logstore.ShardCount
+			object["enableWebTracking"] = logstore.EnableTracking
+			object["autoSplit"] = logstore.AutoSplit
+			object["maxSplitShard"] = logstore.MaxSplitShard
+			object["appendMeta"] = logstore.AppendMeta
+			object["hotTtl"] = logstore.HotTtl
+			object["infrequentAccessTtl"] = logstore.InfrequentAccessTTL
+			object["mode"] = logstore.Mode
+			object["telemetryType"] = logstore.TelemetryType
+			object["encryptConf"] = logstore.EncryptConf
+			object["productType"] = logstore.ProductType
+			object["createTime"] = logstore.CreateTime
+			object["lastModifyTime"] = logstore.LastModifyTime
+			object["status"] = "available" // Set explicit status
 
-		v, err := jsonpath.Get(field, object)
-		currentStatus := fmt.Sprint(v)
+			// For LogStore resources, if we can successfully retrieve the logstore, it's available
+			// The field parameter is typically used to specify which field to check for state
+			// but for LogStore, existence means available state
+			currentStatus := "available"
 
-		for _, failState := range failStates {
-			if currentStatus == failState {
-				return object, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
+			// Only try to get specific field if it's not the default "logstoreName" field
+			// The issue was that "logstoreName" was being used as the state which returned the actual name
+			if field != "" && field != "logstoreName" {
+				if v, err := jsonpath.Get(field, object); err == nil && v != nil {
+					fieldValue := fmt.Sprint(v)
+					// Only use field value as status if it looks like a status (not a name)
+					if fieldValue != "" && fieldValue != "<nil>" && fieldValue != logstore.LogstoreName {
+						currentStatus = fieldValue
+					}
+				}
 			}
+
+			for _, failState := range failStates {
+				if currentStatus == failState {
+					return object, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
+				}
+			}
+
+			return object, currentStatus, nil
 		}
-		return object, currentStatus, nil
+
+		// This should not happen, but handle it gracefully
+		return nil, "unknown", nil
 	}
 }
 
@@ -209,7 +190,6 @@ func (s *SlsService) CreateLogStoreIfNotExist(projectName string, logstore *aliy
 	return nil, nil
 }
 
-
 // UpdateLogStore encapsulates the call to aliyunSlsAPI.UpdateLogStore
 func (s *SlsService) UpdateLogStore(project, logstoreName string, logstore *aliyunSlsAPI.LogStore) error {
 	return s.aliyunSlsAPI.UpdateLogStore(project, logstoreName, logstore)
@@ -218,21 +198,6 @@ func (s *SlsService) UpdateLogStore(project, logstoreName string, logstore *aliy
 // DeleteLogStore encapsulates the call to aliyunSlsAPI.DeleteLogStore
 func (s *SlsService) DeleteLogStore(project, logstoreName string) error {
 	return s.aliyunSlsAPI.DeleteLogStore(project, logstoreName)
-}
-
-// CreateLogStoreIndex encapsulates the call to aliyunSlsAPI.CreateLogStoreIndex
-func (s *SlsService) CreateLogStoreIndex(project, logstoreName string, index *aliyunSlsAPI.LogStoreIndex) error {
-	return s.aliyunSlsAPI.CreateLogStoreIndex(project, logstoreName, index)
-}
-
-// UpdateLogStoreIndex encapsulates the call to aliyunSlsAPI.UpdateLogStoreIndex
-func (s *SlsService) UpdateLogStoreIndex(project, logstoreName string, index *aliyunSlsAPI.LogStoreIndex) error {
-	return s.aliyunSlsAPI.UpdateLogStoreIndex(project, logstoreName, index)
-}
-
-// DeleteLogStoreIndex encapsulates the call to aliyunSlsAPI.DeleteLogStoreIndex
-func (s *SlsService) DeleteLogStoreIndex(project, logstoreName string) error {
-	return s.aliyunSlsAPI.DeleteLogStoreIndex(project, logstoreName)
 }
 
 // UpdateLogStoreMeteringMode encapsulates the call to aliyunSlsAPI.UpdateLogStoreMeteringMode

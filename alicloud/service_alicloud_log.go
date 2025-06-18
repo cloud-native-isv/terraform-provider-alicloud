@@ -530,23 +530,42 @@ func (s *LogService) WaitForLogstoreAlert(id string, status Status, timeout int)
 		return WrapError(err)
 	}
 	name := parts[1]
+
 	for {
 		object, err := s.DescribeLogAlert(id)
 		if err != nil {
 			if NotFoundError(err) {
 				if status == Deleted {
-					return nil
+					return nil // Successfully deleted
 				}
 			} else {
 				return WrapError(err)
 			}
 		}
-		if object.Name == name && status != Deleted {
-			return nil
+
+		// Check if we found the object and it matches expectations
+		if object != nil && object.Name == name {
+			if status != Deleted {
+				return nil // Resource exists and we're not waiting for deletion
+			}
+			// If we're waiting for deletion but resource still exists, continue waiting
+		} else {
+			// Object not found or name doesn't match
+			if status == Deleted {
+				return nil // Successfully deleted
+			}
 		}
+
 		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, id, GetFunc(1), timeout, object.Name, name, ProviderERROR)
+			objectName := "nil"
+			if object != nil {
+				objectName = object.Name
+			}
+			return WrapErrorf(err, WaitTimeoutMsg, id, GetFunc(1), timeout, objectName, name, ProviderERROR)
 		}
+
+		// Add a small delay to avoid busy waiting
+		time.Sleep(3 * time.Second)
 	}
 }
 

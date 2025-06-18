@@ -135,40 +135,13 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 		return IsExpectedErrors(e.Cause, expectCodes)
 	}
 
-	// Handle FlinkServiceError from cws-lib-go
-	if e, ok := err.(*aliyunFlinkAPI.FlinkServiceError); ok {
-		for _, code := range expectCodes {
-			if (e.ErrorCode != nil && *e.ErrorCode == code) || (e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) {
-				return true
-			}
-		}
-		return false
-	}
-
-	// Handle FlinkAPIError from cws-lib-go
-	if e, ok := err.(*aliyunFlinkAPI.FlinkAPIError); ok {
-		for _, code := range expectCodes {
-			if strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
-				return true
-			}
-		}
-		return false
-	}
-
-	// Handle FlinkSDKError from cws-lib-go
-	if e, ok := err.(*aliyunFlinkAPI.FlinkSDKError); ok {
-		for _, code := range expectCodes {
-			if strings.Contains(e.SDK, code) || strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
-				return true
-			}
-		}
-		return false
-	}
-
 	// Handle ArmsServiceError from cws-lib-go
 	if e, ok := err.(*aliyunArmsAPI.ArmsServiceError); ok {
 		for _, code := range expectCodes {
-			if (e.ErrorCode != nil && *e.ErrorCode == code) || (e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) || (e.Message != nil && strings.Contains(*e.Message, code)) {
+			if (e.ErrorCode != nil && *e.ErrorCode == code) ||
+				(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) ||
+				(e.Message != nil && strings.Contains(*e.Message, code)) ||
+				strings.Contains(e.Error(), code) {
 				return true
 			}
 		}
@@ -178,7 +151,9 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 	// Handle ArmsAPIError from cws-lib-go
 	if e, ok := err.(*aliyunArmsAPI.ArmsAPIError); ok {
 		for _, code := range expectCodes {
-			if strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
+			if strings.Contains(e.Operation, code) ||
+				strings.Contains(e.Message, code) ||
+				strings.Contains(e.Error(), code) {
 				return true
 			}
 		}
@@ -188,7 +163,47 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 	// Handle ArmsSDKError from cws-lib-go
 	if e, ok := err.(*aliyunArmsAPI.ArmsSDKError); ok {
 		for _, code := range expectCodes {
-			if strings.Contains(e.SDK, code) || strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
+			if strings.Contains(e.SDK, code) ||
+				strings.Contains(e.Operation, code) ||
+				strings.Contains(e.Message, code) ||
+				strings.Contains(e.Error(), code) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Handle FlinkServiceError from cws-lib-go
+	if e, ok := err.(*aliyunFlinkAPI.FlinkServiceError); ok {
+		for _, code := range expectCodes {
+			if (e.ErrorCode != nil && *e.ErrorCode == code) ||
+				(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) ||
+				strings.Contains(e.Error(), code) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Handle FlinkAPIError from cws-lib-go
+	if e, ok := err.(*aliyunFlinkAPI.FlinkAPIError); ok {
+		for _, code := range expectCodes {
+			if strings.Contains(e.Operation, code) ||
+				strings.Contains(e.Message, code) ||
+				strings.Contains(e.Error(), code) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Handle FlinkSDKError from cws-lib-go
+	if e, ok := err.(*aliyunFlinkAPI.FlinkSDKError); ok {
+		for _, code := range expectCodes {
+			if strings.Contains(e.SDK, code) ||
+				strings.Contains(e.Operation, code) ||
+				strings.Contains(e.Message, code) ||
+				strings.Contains(e.Error(), code) {
 				return true
 			}
 		}
@@ -198,7 +213,9 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 	// Handle SlsAPIError from cws-lib-go (already exists)
 	if e, ok := err.(*aliyunSlsAPI.SlsAPIError); ok {
 		for _, code := range expectCodes {
-			if strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
+			if strings.Contains(e.Operation, code) ||
+				strings.Contains(e.Message, code) ||
+				strings.Contains(e.Error(), code) {
 				return true
 			}
 		}
@@ -208,7 +225,10 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 	// Handle SlsServiceError from cws-lib-go
 	if e, ok := err.(*aliyunSlsAPI.SlsServiceError); ok {
 		for _, code := range expectCodes {
-			if (e.ErrorCode != nil && *e.ErrorCode == code) || (e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) || (e.Message != nil && strings.Contains(*e.Message, code)) {
+			if (e.ErrorCode != nil && *e.ErrorCode == code) ||
+				(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) ||
+				(e.Message != nil && strings.Contains(*e.Message, code)) ||
+				strings.Contains(e.Error(), code) {
 				return true
 			}
 		}
@@ -218,7 +238,10 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 	// Handle SlsSDKError from cws-lib-go
 	if e, ok := err.(*aliyunSlsAPI.SlsSDKError); ok {
 		for _, code := range expectCodes {
-			if strings.Contains(e.SDK, code) || strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
+			if strings.Contains(e.SDK, code) ||
+				strings.Contains(e.Operation, code) ||
+				strings.Contains(e.Message, code) ||
+				strings.Contains(e.Error(), code) {
 				return true
 			}
 		}
@@ -256,16 +279,6 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 	if e, ok := err.(*common.Error); ok {
 		for _, code := range expectCodes {
 			if e.Code == code || fmt.Sprint(e.StatusCode) == code || strings.Contains(e.Message, code) {
-				return true
-			}
-		}
-		return false
-	}
-
-	// Handle SLS API errors from cws-lib-go
-	if e, ok := err.(*aliyunSlsAPI.SlsAPIError); ok {
-		for _, code := range expectCodes {
-			if strings.Contains(e.Error(), code) {
 				return true
 			}
 		}
