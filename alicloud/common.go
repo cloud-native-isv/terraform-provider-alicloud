@@ -1159,12 +1159,12 @@ func GetFunc(level int) string {
 }
 
 func ParseResourceIds(id string) (parts []string, err error) {
-	parts = strings.Split(id, ":")
+	parts = strings.Split(id, COLON_SEPARATED)
 	return parts, err
 }
 
 func ParseResourceId(id string, length int) (parts []string, err error) {
-	parts = strings.Split(id, ":")
+	parts = strings.Split(id, COLON_SEPARATED)
 
 	if len(parts) != length {
 		err = WrapError(fmt.Errorf("Invalid Resource Id %s. Expected parts' length %d, got %d", id, length, len(parts)))
@@ -1173,7 +1173,7 @@ func ParseResourceId(id string, length int) (parts []string, err error) {
 }
 
 func ParseResourceIdN(id string, length int) (parts []string, err error) {
-	parts = strings.SplitN(id, ":", length)
+	parts = strings.SplitN(id, COLON_SEPARATED, length)
 
 	if len(parts) != length {
 		err = WrapError(fmt.Errorf("Invalid Resource Id %s. Expected parts' length %d, got %d", id, length, len(parts)))
@@ -1213,7 +1213,7 @@ func EscapeColons(s string) string {
 }
 
 func ParseSlbListenerId(id string) (parts []string, err error) {
-	parts = strings.Split(id, ":")
+	parts = strings.Split(id, COLON_SEPARATED)
 	if len(parts) != 2 && len(parts) != 3 {
 		err = WrapError(fmt.Errorf("Invalid alicloud_slb_listener Id %s. Expected Id format is <slb id>:<protocol>:< frontend>.", id))
 	}

@@ -451,6 +451,11 @@ func resourceAlicloudLogAlertCreate(d *schema.ResourceData, meta interface{}) er
 		}
 		return nil
 	}); err != nil {
+		// Check if the error is JobAlreadyExist, if so, import the existing resource
+		if IsExpectedErrors(err, []string{"JobAlreadyExist"}) {
+			d.SetId(fmt.Sprintf("%s%s%s", project_name, COLON_SEPARATED, alert_name))
+			return resourceAlicloudLogAlertRead(d, meta)
+		}
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_alert", "CreateLogstoreAlert", AliyunLogGoSdkERROR)
 	}
 

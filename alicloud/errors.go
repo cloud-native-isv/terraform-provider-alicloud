@@ -1,21 +1,20 @@
 package alicloud
 
 import (
-	"regexp"
-	"strings"
 	"fmt"
 	"log"
+	"regexp"
 	"runtime"
+	"strings"
 
 	"github.com/alibabacloud-go/tea/tea"
-	"github.com/denverdino/aliyungo/common"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
-	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/aliyun/fc-go-sdk"
-	
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+	"github.com/denverdino/aliyungo/common"
+
+	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 )
 
 const (
@@ -146,6 +145,86 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 		return false
 	}
 
+	// Handle FlinkAPIError from cws-lib-go
+	if e, ok := err.(*aliyunFlinkAPI.FlinkAPIError); ok {
+		for _, code := range expectCodes {
+			if strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Handle FlinkSDKError from cws-lib-go
+	if e, ok := err.(*aliyunFlinkAPI.FlinkSDKError); ok {
+		for _, code := range expectCodes {
+			if strings.Contains(e.SDK, code) || strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Handle ArmsServiceError from cws-lib-go
+	if e, ok := err.(*aliyunArmsAPI.ArmsServiceError); ok {
+		for _, code := range expectCodes {
+			if (e.ErrorCode != nil && *e.ErrorCode == code) || (e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) || (e.Message != nil && strings.Contains(*e.Message, code)) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Handle ArmsAPIError from cws-lib-go
+	if e, ok := err.(*aliyunArmsAPI.ArmsAPIError); ok {
+		for _, code := range expectCodes {
+			if strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Handle ArmsSDKError from cws-lib-go
+	if e, ok := err.(*aliyunArmsAPI.ArmsSDKError); ok {
+		for _, code := range expectCodes {
+			if strings.Contains(e.SDK, code) || strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Handle SlsAPIError from cws-lib-go (already exists)
+	if e, ok := err.(*aliyunSlsAPI.SlsAPIError); ok {
+		for _, code := range expectCodes {
+			if strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Handle SlsServiceError from cws-lib-go
+	if e, ok := err.(*aliyunSlsAPI.SlsServiceError); ok {
+		for _, code := range expectCodes {
+			if (e.ErrorCode != nil && *e.ErrorCode == code) || (e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) || (e.Message != nil && strings.Contains(*e.Message, code)) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Handle SlsSDKError from cws-lib-go
+	if e, ok := err.(*aliyunSlsAPI.SlsSDKError); ok {
+		for _, code := range expectCodes {
+			if strings.Contains(e.SDK, code) || strings.Contains(e.Operation, code) || strings.Contains(e.Message, code) {
+				return true
+			}
+		}
+		return false
+	}
+
 	if e, ok := err.(*tea.SDKError); ok {
 		for _, code := range expectCodes {
 			// The second statement aims to match the tea sdk history bug
@@ -187,33 +266,6 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 	if e, ok := err.(*aliyunSlsAPI.SlsAPIError); ok {
 		for _, code := range expectCodes {
 			if strings.Contains(e.Error(), code) {
-				return true
-			}
-		}
-		return false
-	}
-
-	if e, ok := err.(oss.ServiceError); ok {
-		for _, code := range expectCodes {
-			if e.Code == code || strings.Contains(e.Message, code) {
-				return true
-			}
-		}
-		return false
-	}
-
-	if e, ok := err.(*fc.ServiceError); ok {
-		for _, code := range expectCodes {
-			if e.ErrorCode == code || strings.Contains(e.ErrorMessage, code) {
-				return true
-			}
-		}
-		return false
-	}
-
-	if e, ok := err.(*datahub.DatahubClientError); ok {
-		for _, code := range expectCodes {
-			if e.Code == code || strings.Contains(e.Message, code) {
 				return true
 			}
 		}
