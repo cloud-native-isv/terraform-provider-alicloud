@@ -1104,7 +1104,6 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_api_gateway_acl_entry_attachment":                     resourceAliCloudApiGatewayAclEntryAttachment(),
 			"alicloud_api_gateway_instance_acl_attachment":                  resourceAliCloudApiGatewayInstanceAclAttachment(),
 			"alicloud_cloud_firewall_nat_firewall_control_policy":           resourceAliCloudCloudFirewallNatFirewallControlPolicy(),
-			"alicloud_sls_alert":                                            resourceAlicloudLogAlert(),
 			"alicloud_oss_bucket_cors":                                      resourceAliCloudOssBucketCors(),
 			"alicloud_oss_bucket_server_side_encryption":                    resourceAliCloudOssBucketServerSideEncryption(),
 			"alicloud_oss_bucket_logging":                                   resourceAliCloudOssBucketLogging(),
