@@ -58,6 +58,8 @@ func (s *SlsService) CreateSlsLogtailConfig(projectName string, config *slsAPI.L
 		return fmt.Errorf("aliyunSlsAPI client is not initialized")
 	}
 
+	addDebugJson(fmt.Sprintf("UpdateSlsLogtailConfig, project: %s, config: %s", projectName), config)
+
 	// Use cws-lib-go API method
 	return s.aliyunSlsAPI.CreateLogtailConfig(projectName, config)
 }
@@ -67,6 +69,8 @@ func (s *SlsService) UpdateSlsLogtailConfig(projectName string, configName strin
 	if s.aliyunSlsAPI == nil {
 		return fmt.Errorf("aliyunSlsAPI client is not initialized")
 	}
+
+	addDebugJson(fmt.Sprintf("UpdateSlsLogtailConfig, project: %s, config: %s", projectName, configName), config)
 
 	// Use cws-lib-go API method
 	return s.aliyunSlsAPI.UpdateLogtailConfig(projectName, configName, config)
