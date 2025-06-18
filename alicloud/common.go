@@ -979,6 +979,51 @@ func addDebugStructure(action string, structValue interface{}) {
 	logger.Debug(debugMsg)
 }
 
+// addDebugJson prints a structure using formatted JSON string
+func addDebugJson(action string, structValue interface{}) {
+	if !debugOn() {
+		return
+	}
+
+	// Get logger with proper level
+	logger := providerLogger
+	if logger == nil {
+		// Fallback if logger is not initialized
+		logger = hclog.New(&hclog.LoggerOptions{
+			Name:   "alicloud",
+			Level:  getLogLevel(),
+			Output: os.Stderr,
+		})
+	}
+
+	// Get current code location (caller info)
+	_, file, line, ok := runtime.Caller(1)
+	location := "unknown"
+	if ok {
+		location = fmt.Sprintf("%s:%d", filepath.Base(file), line)
+	}
+
+	// Convert structure to formatted JSON
+	var jsonStr string
+	if structValue == nil {
+		jsonStr = "null"
+	} else {
+		jsonBytes, err := json.MarshalIndent(structValue, "", "  ")
+		if err != nil {
+			// If JSON marshaling fails, fall back to string representation
+			jsonStr = fmt.Sprintf("JSON marshal error: %v\nValue: %+v", err, structValue)
+		} else {
+			jsonStr = string(jsonBytes)
+		}
+	}
+
+	// Format debug message
+	debugMsg := fmt.Sprintf("[%s] %s JSON:\n%s", location, action, jsonStr)
+
+	// Use hclog to output debug information
+	logger.Debug(debugMsg)
+}
+
 // formatStructure recursively formats a structure using reflection
 func formatStructure(value interface{}, indent int) string {
 	if value == nil {
