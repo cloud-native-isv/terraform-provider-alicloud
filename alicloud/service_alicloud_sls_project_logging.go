@@ -819,19 +819,9 @@ func (s *SlsService) CreateProjectLogging(projectName string, logging *aliyunSls
 			ProjectName: logging.LoggingProject,
 		}
 		
-		// Only set dataRedundancyType for regions that support it
-		// eu-central-1 and some other regions don't support this parameter
-		supportedRegions := []string{
-			"cn-hangzhou", "cn-shanghai", "cn-beijing", "cn-qingdao", "cn-zhangjiakou", 
-			"cn-huhehaote", "cn-shenzhen", "cn-chengdu", "cn-hongkong",
-			"ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ap-southeast-5",
-			"ap-northeast-1", "ap-south-1", "us-west-1", "us-east-1", 
-			"eu-west-1", "me-east-1",
-		}
-		
 		regionSupportsDataRedundancy := false
 		if s.client != nil {
-			for _, region := range supportedRegions {
+			for _, region := range SupportsDataRedundancyRegions {
 				if region == string(s.client.Region) {
 					regionSupportsDataRedundancy = true
 					break
@@ -951,20 +941,10 @@ func (s *SlsService) UpdateProjectLogging(projectName string, logging *aliyunSls
 		createProject := &aliyunSlsAPI.LogProject{
 			ProjectName: logging.LoggingProject,
 		}
-		
-		// Only set dataRedundancyType for regions that support it
-		// eu-central-1 and some other regions don't support this parameter
-		supportedRegions := []string{
-			"cn-hangzhou", "cn-shanghai", "cn-beijing", "cn-qingdao", "cn-zhangjiakou", 
-			"cn-huhehaote", "cn-shenzhen", "cn-chengdu", "cn-hongkong",
-			"ap-southeast-1", "ap-southeast-2", "ap-southeast-3", "ap-southeast-5",
-			"ap-northeast-1", "ap-south-1", "us-west-1", "us-east-1", 
-			"eu-west-1", "me-east-1",
-		}
-		
+				
 		regionSupportsDataRedundancy := false
 		if s.client != nil {
-			for _, region := range supportedRegions {
+			for _, region := range SupportsDataRedundancyRegions {
 				if region == string(s.client.Region) {
 					regionSupportsDataRedundancy = true
 					break
