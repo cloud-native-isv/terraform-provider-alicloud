@@ -3,9 +3,12 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	slsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -121,12 +124,34 @@ func resourceAlicloudLogtailConfigCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "ValidateConfig", AlibabaCloudSdkGoERROR)
 	}
 
-	// Create logtail config
-	if err := slsService.CreateSlsLogtailConfig(projectName, config); err != nil {
+	// Create logtail config with retry logic to handle ConfigAlreadyExist error
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		err := slsService.CreateSlsLogtailConfig(projectName, config)
+		if err != nil {
+			// Handle ConfigAlreadyExist error by importing existing resource
+			if IsExpectedErrors(err, []string{"ConfigAlreadyExist"}) {
+				log.Printf("[INFO] LogtailConfig %s already exists, importing existing resource", configName)
+				d.SetId(fmt.Sprintf("%s%s%s%s%s", projectName, COLON_SEPARATED, "config", COLON_SEPARATED, configName))
+				return nil
+			}
+			if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
+				time.Sleep(10 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
+	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "CreateLogtailConfig", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprintf("%s%s%s%s%s", projectName, COLON_SEPARATED, "config", COLON_SEPARATED, configName))
+	// Set ID if not already set (for new resources)
+	if d.Id() == "" {
+		d.SetId(fmt.Sprintf("%s%s%s%s%s", projectName, COLON_SEPARATED, "config", COLON_SEPARATED, configName))
+	}
+
 	return resourceAlicloudLogtailConfigRead(d, meta)
 }
 

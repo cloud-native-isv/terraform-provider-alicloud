@@ -226,6 +226,12 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 			err := slsService.aliyunSlsAPI.CreateLogStore(projectName, logstore)
 			if err != nil {
+				// Handle LogStoreAlreadyExist error by importing existing resource
+				if IsExpectedErrors(err, []string{"LogStoreAlreadyExist"}) {
+					log.Printf("[INFO] LogStore %s already exists, importing existing resource", logstoreName)
+					d.SetId(fmt.Sprintf("%s%s%s", projectName, COLON_SEPARATED, logstoreName))
+					return nil
+				}
 				if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
 					time.Sleep(10 * time.Second)
 					return resource.RetryableError(err)
@@ -237,7 +243,11 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "CreateLogStoreV2", AliyunLogGoSdkERROR)
 		}
-		d.SetId(fmt.Sprintf("%s%s%s", projectName, COLON_SEPARATED, logstoreName))
+
+		// Set ID if not already set (for new resources)
+		if d.Id() == "" {
+			d.SetId(fmt.Sprintf("%s%s%s", projectName, COLON_SEPARATED, logstoreName))
+		}
 
 		// Wait for the logstore to be available using state refresh function
 		stateConf := BuildStateConf([]string{}, []string{"available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.LogStoreStateRefreshFunc(d.Id(), "logstoreName", []string{}))
@@ -338,6 +348,12 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		response, err = client.Do("Sls", roaParam("POST", "2020-12-30", "CreateLogStore", action), query, body, nil, hostMap, false)
 		if err != nil {
+			// Handle LogStoreAlreadyExist error by importing existing resource
+			if IsExpectedErrors(err, []string{"LogStoreAlreadyExist"}) {
+				log.Printf("[INFO] LogStore %s already exists, importing existing resource", request["logstoreName"])
+				d.SetId(fmt.Sprintf("%v:%v", *hostMap["project"], request["logstoreName"]))
+				return nil
+			}
 			if NeedRetry(err) {
 				wait()
 				return resource.RetryableError(err)
@@ -352,7 +368,10 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", action, AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprintf("%v:%v", *hostMap["project"], request["logstoreName"]))
+	// Set ID if not already set (for new resources)
+	if d.Id() == "" {
+		d.SetId(fmt.Sprintf("%v:%v", *hostMap["project"], request["logstoreName"]))
+	}
 
 	// Wait for the logstore to be available using state refresh function
 	slsService, err := NewSlsService(client)

@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -162,7 +163,8 @@ func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, DefaultErrorMsg, logstore, "WaitForLogStoreAvailable", AlibabaCloudSdkGoERROR)
 	}
 
-	// Check if index already exists
+	// Check if index already exists and handle auto-import
+	var indexExists bool
 	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
 		_, err := slsService.GetSlsLogStoreIndex(project, logstore)
 		if err != nil {
@@ -174,12 +176,19 @@ func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 				return resource.NonRetryableError(WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "GetIndex", AliyunLogGoSdkERROR))
 			}
 		} else {
-			return resource.NonRetryableError(WrapError(Error("There is already existing an index in the store %s. Please import it using id '%s%s%s'.",
-				logstore, project, COLON_SEPARATED, logstore)))
+			// Index already exists, mark for auto-import
+			indexExists = true
 		}
 		return nil
 	}); err != nil {
 		return err
+	}
+
+	if indexExists {
+		// Auto-import existing index instead of failing
+		log.Printf("[INFO] Index already exists in logstore %s, importing existing resource", logstore)
+		d.SetId(id)
+		return resourceAlicloudLogStoreIndexRead(d, meta)
 	}
 
 	var index aliyunSlsAPI.LogStoreIndex

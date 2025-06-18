@@ -803,17 +803,12 @@ var InternalDiagnosticLogStoreIndex = &aliyunSlsAPI.LogStoreIndex{
 }
 
 func (s *SlsService) CreateProjectLogging(projectName string, logging *aliyunSlsAPI.LogProjectLogging) error {
-	addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Starting create project logging for project: %s", projectName), nil)
-
 	if s.aliyunSlsAPI == nil {
-		addDebug("SlsService.CreateProjectLogging", "aliyunSlsAPI client is not initialized", nil)
 		return fmt.Errorf("aliyunSlsAPI client is not initialized")
 	}
 
 	// Ensure logging project exists
 	if logging != nil && logging.LoggingProject != "" {
-		addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Checking/creating logging project: %s", logging.LoggingProject), nil)
-
 		// Create project with region-aware configuration
 		createProject := &aliyunSlsAPI.LogProject{
 			ProjectName:        logging.LoggingProject,
@@ -823,18 +818,13 @@ func (s *SlsService) CreateProjectLogging(projectName string, logging *aliyunSls
 		}
 
 		if _, err := s.CreateProjectIfNotExist(createProject); err != nil {
-			addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Failed to create logging project: %s", logging.LoggingProject), err)
 			return WrapErrorf(err, DefaultErrorMsg, logging.LoggingProject, "CreateProjectIfNotExist", AlibabaCloudSdkGoERROR)
 		}
-		addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Successfully ensured logging project exists: %s", logging.LoggingProject), nil)
 
 		// Ensure all logstores in logging details exist
 		if logging.LoggingDetails != nil {
-			addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Processing %d logstore configurations", len(logging.LoggingDetails)), nil)
 			for _, detail := range logging.LoggingDetails {
 				if detail.Logstore != "" {
-					addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Checking/creating logstore: %s in project: %s", detail.Logstore, logging.LoggingProject), nil)
-
 					// Create logstore with default configuration
 					createLogStore := &aliyunSlsAPI.LogStore{
 						LogstoreName:  detail.Logstore,
@@ -844,88 +834,44 @@ func (s *SlsService) CreateProjectLogging(projectName string, logging *aliyunSls
 						MaxSplitShard: 64,   // Default max split shard count
 						AppendMeta:    true, // Enable append meta
 					}
-					createdLogStore, err := s.CreateLogStoreIfNotExist(logging.LoggingProject, createLogStore)
+					_, err := s.CreateLogStoreIfNotExist(logging.LoggingProject, createLogStore)
 					if err != nil {
-						addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Failed to create logstore: %s in project: %s", detail.Logstore, logging.LoggingProject), err)
 						return WrapErrorf(err, DefaultErrorMsg, detail.Logstore, "CreateLogStoreIfNotExist", AlibabaCloudSdkGoERROR)
 					}
 
-					// Always check and create default index for internal logstores
-					// regardless of whether the logstore was newly created or already existed
+					// Create default index for internal logstores
 					switch detail.Logstore {
 					case "internal-diagnostic_log":
-						addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Checking/creating default index for internal-diagnostic_log logstore: %s", detail.Logstore), nil)
 						defaultIndex := InternalDiagnosticLogStoreIndex
-
-						// Print detailed structure of the default index configuration
-						// addDebugStructure("InternalDiagnosticLogStoreIndex", defaultIndex)
-						// addDebugStructure("InternalDiagnosticLogStoreIndex(in sdk)", aliyunSlsAPI.ConvertLogStoreIndexToSDKIndex(defaultIndex))
-
-						// Create or update the index for the logstore
 						if err := s.aliyunSlsAPI.CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
-							// Log warning but don't fail the whole operation if index creation fails
-							// This ensures the logging configuration is still created even if index fails
-							// Users can manually create indexes later if needed
-							addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Warning: Failed to create or update index for logstore %s: %v", detail.Logstore, err), err)
 							fmt.Printf("Warning: Failed to create or update index for logstore %s: %v\n", detail.Logstore, err)
-						} else {
-							addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Successfully created or updated index for logstore: %s", detail.Logstore), nil)
 						}
 					case "internal-operation_log":
-						addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Checking/creating default index for internal-operation_log logstore: %s", detail.Logstore), nil)
 						defaultIndex := InternalOperationLogStoreIndex
-
-						// Print detailed structure of the default index configuration
-						// addDebugStructure("InternalOperationLogStoreIndex", defaultIndex)
-						// addDebugStructure("InternalOperationLogStoreIndex(in sdk)", aliyunSlsAPI.ConvertLogStoreIndexToSDKIndex(defaultIndex))
-
-						// Create or update the index for the logstore
 						if err := s.aliyunSlsAPI.CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
-							// Log warning but don't fail the whole operation if index creation fails
-							// This ensures the logging configuration is still created even if index fails
-							// Users can manually create indexes later if needed
-							addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Warning: Failed to create or update index for logstore %s: %v", detail.Logstore, err), err)
 							fmt.Printf("Warning: Failed to create or update index for logstore %s: %v\n", detail.Logstore, err)
-						} else {
-							addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Successfully created or updated index for logstore: %s", detail.Logstore), nil)
 						}
-					}
-
-					// Log the result based on whether logstore was newly created
-					if createdLogStore != nil {
-						addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Logstore %s was newly created", detail.Logstore), nil)
-					} else {
-						addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Logstore %s already existed", detail.Logstore), nil)
 					}
 				}
 			}
-			addDebug("SlsService.CreateProjectLogging", "Completed processing all logstore configurations", nil)
 		}
 	}
 
-	addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Calling API to create project logging for: %s", projectName), logging)
 	err := s.aliyunSlsAPI.CreateLogProjectLogging(projectName, logging)
 	if err != nil {
-		addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Failed to create project logging configuration for: %s", projectName), err)
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "CreateLogging", AlibabaCloudSdkGoERROR)
 	}
 
-	addDebug("SlsService.CreateProjectLogging", fmt.Sprintf("Successfully created project logging for: %s", projectName), nil)
 	return nil
 }
 
 func (s *SlsService) UpdateProjectLogging(projectName string, logging *aliyunSlsAPI.LogProjectLogging) error {
-	addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Starting update project logging for project: %s", projectName), nil)
-
 	if s.aliyunSlsAPI == nil {
-		addDebug("SlsService.UpdateProjectLogging", "aliyunSlsAPI client is not initialized", nil)
 		return fmt.Errorf("aliyunSlsAPI client is not initialized")
 	}
 
 	// Ensure logging project exists
 	if logging != nil && logging.LoggingProject != "" {
-		addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Checking/creating logging project: %s", logging.LoggingProject), nil)
-
 		// Create project with region-aware configuration
 		createProject := &aliyunSlsAPI.LogProject{
 			ProjectName:        logging.LoggingProject,
@@ -935,17 +881,13 @@ func (s *SlsService) UpdateProjectLogging(projectName string, logging *aliyunSls
 		}
 
 		if _, err := s.CreateProjectIfNotExist(createProject); err != nil {
-			addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Failed to create logging project: %s", logging.LoggingProject), err)
 			return WrapErrorf(err, DefaultErrorMsg, logging.LoggingProject, "CreateProjectIfNotExist", AlibabaCloudSdkGoERROR)
 		}
-		addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Successfully ensured logging project exists: %s", logging.LoggingProject), nil)
 
 		// Ensure all logstores in logging details exist
 		if logging.LoggingDetails != nil {
-			addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Processing %d logstore configurations", len(logging.LoggingDetails)), nil)
 			for _, detail := range logging.LoggingDetails {
 				if detail.Logstore != "" {
-					addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Checking/creating logstore: %s in project: %s", detail.Logstore, logging.LoggingProject), nil)
 					// Create logstore with default configuration
 					createLogStore := &aliyunSlsAPI.LogStore{
 						LogstoreName:  detail.Logstore,
@@ -955,107 +897,62 @@ func (s *SlsService) UpdateProjectLogging(projectName string, logging *aliyunSls
 						MaxSplitShard: 64,   // Default max split shard count
 						AppendMeta:    true, // Enable append meta
 					}
-					createdLogStore, err := s.CreateLogStoreIfNotExist(logging.LoggingProject, createLogStore)
+					_, err := s.CreateLogStoreIfNotExist(logging.LoggingProject, createLogStore)
 					if err != nil {
-						addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Failed to create logstore: %s in project: %s", detail.Logstore, logging.LoggingProject), err)
 						return WrapErrorf(err, DefaultErrorMsg, detail.Logstore, "CreateLogStoreIfNotExist", AlibabaCloudSdkGoERROR)
 					}
 
-					// Always check and create default index for internal logstores
-					// regardless of whether the logstore was newly created or already existed
+					// Create default index for internal logstores
 					switch detail.Logstore {
 					case "internal-diagnostic_log":
-						addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Checking/creating default index for internal-diagnostic_log logstore: %s", detail.Logstore), nil)
 						defaultIndex := InternalDiagnosticLogStoreIndex
-
-						// Create or update the index for the logstore
 						if err := s.aliyunSlsAPI.CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
-							// Log warning but don't fail the whole operation if index creation fails
-							// This ensures the logging configuration is still created even if index fails
-							// Users can manually create indexes later if needed
-							addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Warning: Failed to create or update index for logstore %s: %v", detail.Logstore, err), err)
 							fmt.Printf("Warning: Failed to create or update index for logstore %s: %v\n", detail.Logstore, err)
-						} else {
-							addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Successfully created or updated index for logstore: %s", detail.Logstore), nil)
 						}
 					case "internal-operation_log":
-						addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Checking/creating default index for internal-operation_log logstore: %s", detail.Logstore), nil)
 						defaultIndex := InternalOperationLogStoreIndex
-
-						// Create or update the index for the logstore
 						if err := s.aliyunSlsAPI.CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
-							// Log warning but don't fail the whole operation if index creation fails
-							// This ensures the logging configuration is still created even if index fails
-							// Users can manually create indexes later if needed
-							addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Warning: Failed to create or update index for logstore %s: %v", detail.Logstore, err), err)
 							fmt.Printf("Warning: Failed to create or update index for logstore %s: %v\n", detail.Logstore, err)
-						} else {
-							addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Successfully created or updated index for logstore: %s", detail.Logstore), nil)
 						}
 					}
-
-					// Log the result based on whether logstore was newly created
-					if createdLogStore != nil {
-						addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Logstore %s was newly created", detail.Logstore), nil)
-					} else {
-						addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Logstore %s already existed", detail.Logstore), nil)
-					}
-					addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Successfully ensured logstore exists: %s", detail.Logstore), nil)
 				}
 			}
-			addDebug("SlsService.UpdateProjectLogging", "Completed processing all logstore configurations", nil)
 		}
 	}
 
-	addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Calling API to update project logging for: %s", projectName), logging)
 	err := s.aliyunSlsAPI.UpdateLogProjectLogging(projectName, logging)
 	if err != nil {
-		addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("API call failed for project: %s", projectName), err)
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "UpdateLogging", AlibabaCloudSdkGoERROR)
 	}
 
-	addDebug("SlsService.UpdateProjectLogging", fmt.Sprintf("Successfully updated project logging for: %s", projectName), nil)
 	return nil
 }
 
 func (s *SlsService) DeleteProjectLogging(projectName string) error {
-	addDebug("SlsService.DeleteProjectLogging", fmt.Sprintf("Starting delete project logging for project: %s", projectName), nil)
-
 	if s.aliyunSlsAPI == nil {
-		addDebug("SlsService.DeleteProjectLogging", "aliyunSlsAPI client is not initialized", nil)
 		return fmt.Errorf("aliyunSlsAPI client is not initialized")
 	}
 
-	addDebug("SlsService.DeleteProjectLogging", fmt.Sprintf("Calling API to delete project logging for: %s", projectName), nil)
 	err := s.aliyunSlsAPI.DeleteLogProjectLogging(projectName)
 	if err != nil {
-		addDebug("SlsService.DeleteProjectLogging", fmt.Sprintf("API call failed for project: %s", projectName), err)
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "DeleteLogging", AlibabaCloudSdkGoERROR)
 	}
 
-	addDebug("SlsService.DeleteProjectLogging", fmt.Sprintf("Successfully deleted project logging for: %s", projectName), nil)
 	return nil
 }
 
 func (s *SlsService) GetProjectLogging(projectName string) (*aliyunSlsAPI.LogProjectLogging, error) {
-	addDebug("SlsService.GetProjectLogging", fmt.Sprintf("Starting get project logging for project: %s", projectName), nil)
-
 	if s.aliyunSlsAPI == nil {
-		addDebug("SlsService.GetProjectLogging", "aliyunSlsAPI client is not initialized", nil)
 		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
 	}
 
-	addDebug("SlsService.GetProjectLogging", fmt.Sprintf("Calling API to get project logging for: %s", projectName), nil)
 	logging, err := s.aliyunSlsAPI.GetLogProjectLogging(projectName)
 	if err != nil {
 		if strings.Contains(err.Error(), "LoggingNotExist") {
-			addDebug("SlsService.GetProjectLogging", fmt.Sprintf("Project logging not found for: %s", projectName), err)
 			return nil, WrapErrorf(NotFoundErr("LogProjectLogging", projectName), NotFoundMsg, "")
 		}
-		addDebug("SlsService.GetProjectLogging", fmt.Sprintf("API call failed for project: %s", projectName), err)
 		return nil, WrapErrorf(err, DefaultErrorMsg, projectName, "GetLogging", AlibabaCloudSdkGoERROR)
 	}
 
-	addDebug("SlsService.GetProjectLogging", fmt.Sprintf("Successfully retrieved project logging for: %s", projectName), logging)
 	return logging, nil
 }
