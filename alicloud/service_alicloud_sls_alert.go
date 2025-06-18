@@ -202,7 +202,13 @@ func (s *SlsService) SlsAlertStateRefreshFunc(projectName string, alertName stri
 			return nil, "", WrapError(err)
 		}
 
-		return alert, alert.Status, nil
+		// Handle pointer type for Status field
+		status := ""
+		if alert.Status != nil {
+			status = *alert.Status
+		}
+
+		return alert, status, nil
 	}
 }
 
@@ -222,14 +228,26 @@ func (s *SlsService) DescribeSlsAlert(id string) (map[string]interface{}, error)
 	}
 
 	// Convert alert to map for compatibility with existing resource implementation
-	result := map[string]interface{}{
-		"name":           alert.Name,
-		"displayName":    alert.DisplayName,
-		"description":    alert.Description,
-		"status":         alert.Status,
-		"state":          alert.State,
-		"createTime":     alert.CreateTime,
-		"lastModifyTime": alert.LastModifyTime,
+	// Handle pointer types and removed fields properly
+	result := map[string]interface{}{}
+
+	if alert.Name != nil {
+		result["name"] = *alert.Name
+	}
+	if alert.DisplayName != nil {
+		result["displayName"] = *alert.DisplayName
+	}
+	if alert.Description != nil {
+		result["description"] = *alert.Description
+	}
+	if alert.Status != nil {
+		result["status"] = *alert.Status
+	}
+	if alert.CreateTime != nil {
+		result["createTime"] = *alert.CreateTime
+	}
+	if alert.LastModifiedTime != nil {
+		result["lastModifyTime"] = *alert.LastModifiedTime
 	}
 
 	// Add configuration if present

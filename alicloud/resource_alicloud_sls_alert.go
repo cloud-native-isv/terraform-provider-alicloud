@@ -545,15 +545,39 @@ func resourceAlicloudLogAlertDelete(d *schema.ResourceData, meta interface{}) er
 
 // buildSlsAlertFromSchema builds an Alert object from Terraform schema data
 func buildSlsAlertFromSchema(d *schema.ResourceData) (*aliyunSlsAPI.Alert, error) {
+	// Use pointer types to match the new Alert struct definition
+	alertName := d.Get("alert_name").(string)
+	displayName := d.Get("alert_displayname").(string)
+	description := d.Get("alert_description").(string)
+	status := "ENABLED" // Default status
+
 	alert := &aliyunSlsAPI.Alert{
-		Name:        d.Get("alert_name").(string),
-		DisplayName: d.Get("alert_displayname").(string),
-		Description: d.Get("alert_description").(string),
-		Status:      "ENABLED", // Default status
+		Name:        &alertName,
+		DisplayName: &displayName,
+		Description: &description,
+		Status:      &status,
 	}
 
 	// Build configuration
 	config := &aliyunSlsAPI.AlertConfig{}
+
+	// This was missing in the original function and caused the SLS API error
+	if v, ok := d.GetOk("condition"); ok && v.(string) != "" {
+		// Handle legacy condition field (deprecated but still used)
+		condition := v.(string)
+		config.ConditionConfiguration = &aliyunSlsAPI.ConditionConfiguration{
+			Condition:      condition,
+			CountCondition: condition, // Use same condition for both fields
+		}
+	} else {
+		// If no explicit condition is set, we need to build one from severity_configurations
+		// This ensures ConditionConfiguration is always set
+		defaultCondition := "__count__ > 0"
+		config.ConditionConfiguration = &aliyunSlsAPI.ConditionConfiguration{
+			Condition:      defaultCondition,
+			CountCondition: defaultCondition,
+		}
+	}
 
 	// Set basic configuration fields
 	if v, ok := d.GetOk("auto_annotation"); ok {
