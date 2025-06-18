@@ -184,6 +184,12 @@ func resourceAliCloudRamRoleCreate(d *schema.ResourceData, meta interface{}) err
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		response, err = client.RpcPost("Ram", "2015-05-01", action, query, request, true)
 		if err != nil {
+			// Handle EntityAlreadyExists.Role error by auto-importing existing role
+			if IsExpectedErrors(err, []string{"EntityAlreadyExists.Role"}) {
+				log.Printf("[INFO] RAM role %s already exists, importing existing resource", request.RoleName)
+				d.SetId(request.RoleName)
+				return nil
+			}
 			if NeedRetry(err) {
 				wait()
 				return resource.RetryableError(err)

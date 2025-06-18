@@ -64,6 +64,13 @@ func resourceAliCloudRamRolePolicyAttachmentCreate(d *schema.ResourceData, meta 
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		response, err = client.RpcPost("Ram", "2015-05-01", action, query, request, true)
 		if err != nil {
+			// Handle EntityAlreadyExists.Role.Policy error by auto-importing existing attachment
+			if IsExpectedErrors(err, []string{"EntityAlreadyExists.Role.Policy"}) {
+				log.Printf("[INFO] RAM role policy attachment already exists for role %s and policy %s, importing existing resource", request["RoleName"], request["PolicyName"])
+				// Set ID and continue to Read function
+				d.SetId(fmt.Sprintf("%v:%v:%v:%v", "role", request["PolicyName"], request["PolicyType"], request["RoleName"]))
+				return nil
+			}
 			if NeedRetry(err) {
 				wait()
 				return resource.RetryableError(err)
@@ -78,8 +85,10 @@ func resourceAliCloudRamRolePolicyAttachmentCreate(d *schema.ResourceData, meta 
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ram_role_policy_attachment", action, AlibabaCloudSdkGoERROR)
 	}
 
-	// In order to be compatible with previous Id (before 1.9.6) which format to role:<policy_name>:<policy_type>:<role_name>
-	d.SetId(fmt.Sprintf("%v:%v:%v:%v", "role", request["PolicyName"], request["PolicyType"], request["RoleName"]))
+	// Set ID if not already set (for non-auto-import case)
+	if d.Id() == "" {
+		d.SetId(fmt.Sprintf("%v:%v:%v:%v", "role", request["PolicyName"], request["PolicyType"], request["RoleName"]))
+	}
 
 	return resourceAliCloudRamRolePolicyAttachmentRead(d, meta)
 }

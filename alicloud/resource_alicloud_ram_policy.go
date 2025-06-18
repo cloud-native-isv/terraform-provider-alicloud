@@ -191,6 +191,12 @@ func resourceAliCloudRamPolicyCreate(d *schema.ResourceData, meta interface{}) e
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		response, err = client.RpcPost("Ram", "2015-05-01", action, query, request, true)
 		if err != nil {
+			// Handle EntityAlreadyExists.Policy error by auto-importing existing policy
+			if IsExpectedErrors(err, []string{"EntityAlreadyExists.Policy"}) {
+				log.Printf("[INFO] RAM policy %s already exists, importing existing resource", request["PolicyName"])
+				d.SetId(fmt.Sprint(request["PolicyName"]))
+				return nil
+			}
 			if NeedRetry(err) {
 				wait()
 				return resource.RetryableError(err)
@@ -205,8 +211,11 @@ func resourceAliCloudRamPolicyCreate(d *schema.ResourceData, meta interface{}) e
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ram_policy", action, AlibabaCloudSdkGoERROR)
 	}
 
-	responsePolicy := response["Policy"].(map[string]interface{})
-	d.SetId(fmt.Sprint(responsePolicy["PolicyName"]))
+	// Set ID based on whether it was auto-imported or newly created
+	if d.Id() == "" {
+		responsePolicy := response["Policy"].(map[string]interface{})
+		d.SetId(fmt.Sprint(responsePolicy["PolicyName"]))
+	}
 
 	return resourceAliCloudRamPolicyRead(d, meta)
 }

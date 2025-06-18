@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"log"
 	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
@@ -83,11 +84,19 @@ func resourceAlicloudRamUserCreate(d *schema.ResourceData, meta interface{}) err
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	var err error
 	var raw interface{}
+	var userAlreadyExists bool
+
 	err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutCreate)), func() *resource.RetryError {
 		raw, err = client.WithRamClient(func(ramClient *ram.Client) (interface{}, error) {
 			return ramClient.CreateUser(request)
 		})
 		if err != nil {
+			// Handle EntityAlreadyExists.User error by auto-importing existing user
+			if IsExpectedErrors(err, []string{"EntityAlreadyExists.User"}) {
+				log.Printf("[INFO] RAM user %s already exists, importing existing resource", request.UserName)
+				userAlreadyExists = true
+				return nil
+			}
 			if NeedRetry(err) {
 				wait()
 				return resource.RetryableError(err)
@@ -102,9 +111,25 @@ func resourceAlicloudRamUserCreate(d *schema.ResourceData, meta interface{}) err
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ram_user", request.GetActionName(), AlibabaCloudSdkGoERROR)
 	}
 
-	response, _ := raw.(*ram.CreateUserResponse)
+	if userAlreadyExists {
+		// Get existing user using the GetUser API
+		getUserRequest := ram.CreateGetUserRequest()
+		getUserRequest.RegionId = client.RegionId
+		getUserRequest.UserName = request.UserName
 
-	d.SetId(response.User.UserId)
+		userRaw, err := client.WithRamClient(func(ramClient *ram.Client) (interface{}, error) {
+			return ramClient.GetUser(getUserRequest)
+		})
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_ram_user", "GetUser", AlibabaCloudSdkGoERROR)
+		}
+
+		getUserResponse, _ := userRaw.(*ram.GetUserResponse)
+		d.SetId(getUserResponse.User.UserId)
+	} else {
+		response, _ := raw.(*ram.CreateUserResponse)
+		d.SetId(response.User.UserId)
+	}
 
 	err = ramService.WaitForRamUser(d.Id(), Normal, DefaultTimeout)
 	if err != nil {

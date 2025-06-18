@@ -63,6 +63,13 @@ func resourceAliCloudRamUserPolicyAttachmentCreate(d *schema.ResourceData, meta 
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		response, err = client.RpcPost("Ram", "2015-05-01", action, query, request, true)
 		if err != nil {
+			// Handle EntityAlreadyExists.User.Policy error by auto-importing existing attachment
+			if IsExpectedErrors(err, []string{"EntityAlreadyExists.User.Policy"}) {
+				log.Printf("[INFO] RAM user policy attachment already exists for user %s and policy %s, importing existing resource", request["UserName"], request["PolicyName"])
+				// Set ID and continue to Read function
+				d.SetId(fmt.Sprintf("%v:%v:%v:%v", "user", request["PolicyName"], request["PolicyType"], request["UserName"]))
+				return nil
+			}
 			if NeedRetry(err) {
 				wait()
 				return resource.RetryableError(err)
@@ -77,7 +84,10 @@ func resourceAliCloudRamUserPolicyAttachmentCreate(d *schema.ResourceData, meta 
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ram_user_policy_attachment", action, AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprintf("%v:%v:%v:%v", "user", request["PolicyName"], request["PolicyType"], request["UserName"]))
+	// Set ID if not already set (for non-auto-import case)
+	if d.Id() == "" {
+		d.SetId(fmt.Sprintf("%v:%v:%v:%v", "user", request["PolicyName"], request["PolicyType"], request["UserName"]))
+	}
 
 	return resourceAliCloudRamUserPolicyAttachmentRead(d, meta)
 }
