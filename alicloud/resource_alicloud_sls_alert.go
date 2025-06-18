@@ -2,7 +2,11 @@ package alicloud
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
+	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -394,23 +398,435 @@ func resourceAlicloudLogAlert() *schema.Resource {
 }
 
 func resourceAlicloudLogAlertCreate(d *schema.ResourceData, meta interface{}) error {
-	// TODO: Log alert management is not yet fully implemented in the new SLS API
-	// This resource needs to be updated to use the new API methods when they become available
-	return WrapError(fmt.Errorf("log alert management is temporarily unavailable during API migration"))
+	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	projectName := d.Get("project_name").(string)
+	alertName := d.Get("alert_name").(string)
+
+	// Build alert object from schema
+	alert, err := buildSlsAlertFromSchema(d)
+	if err != nil {
+		return WrapError(fmt.Errorf("failed to build alert from schema: %w", err))
+	}
+
+	// Create the alert
+	err = slsService.CreateSlsAlert(projectName, alert)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Set resource ID as project_name:alert_name
+	d.SetId(fmt.Sprintf("%s:%s", projectName, alertName))
+
+	// Wait for alert to be created successfully
+	stateConf := BuildStateConf([]string{}, []string{"ENABLED", "DISABLED"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.SlsAlertStateRefreshFunc(projectName, alertName))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return resourceAlicloudLogAlertRead(d, meta)
 }
 
 func resourceAlicloudLogAlertRead(d *schema.ResourceData, meta interface{}) error {
-	// TODO: Log alert management is not yet fully implemented in the new SLS API
-	d.SetId("")
+	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Parse resource ID
+	parts := strings.Split(d.Id(), ":")
+	if len(parts) != 2 {
+		return WrapError(fmt.Errorf("invalid SLS alert ID format: %s, expected format: project_name:alert_name", d.Id()))
+	}
+
+	projectName := parts[0]
+	alertName := parts[1]
+
+	// Get alert details
+	alertMap, err := slsService.DescribeSlsAlert(d.Id())
+	if err != nil {
+		if NotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
+		return WrapError(err)
+	}
+
+	// Set basic attributes
+	d.Set("project_name", projectName)
+	d.Set("alert_name", alertName)
+	d.Set("alert_displayname", alertMap["displayName"])
+	d.Set("alert_description", alertMap["description"])
+	d.Set("status", alertMap["status"])
+
+	// Set configuration if present
+	if configuration, ok := alertMap["configuration"]; ok && configuration != nil {
+		configMap := configuration.(map[string]interface{})
+		configurationMaps := []map[string]interface{}{configMap}
+		d.Set("configuration", configurationMaps)
+	}
+
+	// Set schedule if present
+	if schedule, ok := alertMap["schedule"]; ok && schedule != nil {
+		scheduleMap := schedule.(map[string]interface{})
+		scheduleMaps := []map[string]interface{}{scheduleMap}
+		d.Set("schedule", scheduleMaps)
+	}
+
 	return nil
 }
 
 func resourceAlicloudLogAlertUpdate(d *schema.ResourceData, meta interface{}) error {
-	// TODO: Log alert management is not yet fully implemented in the new SLS API
-	return WrapError(fmt.Errorf("log alert management is temporarily unavailable during API migration"))
+	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Parse resource ID
+	parts := strings.Split(d.Id(), ":")
+	if len(parts) != 2 {
+		return WrapError(fmt.Errorf("invalid SLS alert ID format: %s, expected format: project_name:alert_name", d.Id()))
+	}
+
+	projectName := parts[0]
+	alertName := parts[1]
+
+	// Build updated alert object from schema
+	alert, err := buildSlsAlertFromSchema(d)
+	if err != nil {
+		return WrapError(fmt.Errorf("failed to build alert from schema: %w", err))
+	}
+
+	// Update the alert
+	err = slsService.UpdateSlsAlert(projectName, alertName, alert)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Wait for alert to be updated successfully
+	stateConf := BuildStateConf([]string{}, []string{"ENABLED", "DISABLED"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, slsService.SlsAlertStateRefreshFunc(projectName, alertName))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return resourceAlicloudLogAlertRead(d, meta)
 }
 
 func resourceAlicloudLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
-	// TODO: Log alert management is not yet fully implemented in the new SLS API
+	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Parse resource ID
+	parts := strings.Split(d.Id(), ":")
+	if len(parts) != 2 {
+		return WrapError(fmt.Errorf("invalid SLS alert ID format: %s, expected format: project_name:alert_name", d.Id()))
+	}
+
+	projectName := parts[0]
+	alertName := parts[1]
+
+	// Delete the alert
+	err = slsService.DeleteSlsAlert(projectName, alertName)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	return nil
+}
+
+// buildSlsAlertFromSchema builds an Alert object from Terraform schema data
+func buildSlsAlertFromSchema(d *schema.ResourceData) (*aliyunSlsAPI.Alert, error) {
+	alert := &aliyunSlsAPI.Alert{
+		Name:        d.Get("alert_name").(string),
+		DisplayName: d.Get("alert_displayname").(string),
+		Description: d.Get("alert_description").(string),
+		Status:      "ENABLED", // Default status
+	}
+
+	// Build configuration
+	config := &aliyunSlsAPI.AlertConfig{}
+
+	// Set basic configuration fields
+	if v, ok := d.GetOk("auto_annotation"); ok {
+		autoAnnotation := v.(bool)
+		config.AutoAnnotation = &autoAnnotation
+	}
+
+	if v, ok := d.GetOk("dashboard"); ok {
+		dashboard := v.(string)
+		config.Dashboard = &dashboard
+	}
+
+	if v, ok := d.GetOk("mute_until"); ok {
+		muteUntil := int64(v.(int))
+		config.MuteUntil = &muteUntil
+	}
+
+	if v, ok := d.GetOk("no_data_fire"); ok {
+		noDataFire := v.(bool)
+		config.NoDataFire = &noDataFire
+	}
+
+	if v, ok := d.GetOk("no_data_severity"); ok {
+		noDataSeverity := int32(v.(int))
+		config.NoDataSeverity = &noDataSeverity
+	}
+
+	if v, ok := d.GetOk("send_resolved"); ok {
+		sendResolved := v.(bool)
+		config.SendResolved = &sendResolved
+	}
+
+	// Build query list
+	if v, ok := d.GetOk("query_list"); ok {
+		queryListRaw := v.([]interface{})
+		config.QueryList = make([]*aliyunSlsAPI.AlertQuery, 0, len(queryListRaw))
+
+		for _, queryRaw := range queryListRaw {
+			queryMap := queryRaw.(map[string]interface{})
+			query := &aliyunSlsAPI.AlertQuery{
+				Query: queryMap["query"].(string),
+				Start: queryMap["start"].(string),
+				End:   queryMap["end"].(string),
+			}
+
+			if chartTitle, ok := queryMap["chart_title"].(string); ok {
+				query.ChartTitle = chartTitle
+			}
+			if project, ok := queryMap["project"].(string); ok {
+				query.Project = project
+			}
+			if store, ok := queryMap["store"].(string); ok {
+				query.Store = store
+			}
+			if storeType, ok := queryMap["store_type"].(string); ok {
+				query.StoreType = storeType
+			}
+			if timeSpanType, ok := queryMap["time_span_type"].(string); ok {
+				query.TimeSpanType = timeSpanType
+			}
+			if region, ok := queryMap["region"].(string); ok {
+				query.Region = region
+			}
+			if roleArn, ok := queryMap["role_arn"].(string); ok {
+				query.RoleArn = roleArn
+			}
+			if dashboardId, ok := queryMap["dashboard_id"].(string); ok {
+				query.DashboardId = dashboardId
+			}
+
+			config.QueryList = append(config.QueryList, query)
+		}
+	}
+
+	// Build severity configurations
+	if v, ok := d.GetOk("severity_configurations"); ok {
+		severityConfigsRaw := v.([]interface{})
+		config.SeverityConfigurations = make([]*aliyunSlsAPI.SeverityConfiguration, 0, len(severityConfigsRaw))
+
+		for _, severityConfigRaw := range severityConfigsRaw {
+			severityConfigMap := severityConfigRaw.(map[string]interface{})
+			severityConfig := &aliyunSlsAPI.SeverityConfiguration{
+				Severity: aliyunSlsAPI.Severity(severityConfigMap["severity"].(int)),
+			}
+
+			if evalCondition, ok := severityConfigMap["eval_condition"].(map[string]interface{}); ok {
+				// Handle eval_condition with backward compatibility
+				condition := ""
+				countCondition := ""
+
+				if conditionVal, exists := evalCondition["condition"]; exists {
+					if condStr, isString := conditionVal.(string); isString && condStr != "" {
+						condition = condStr
+					} else {
+						// Provide default condition if empty or invalid
+						condition = "__count__ > 0"
+					}
+				} else {
+					condition = "__count__ > 0"
+				}
+
+				if countConditionVal, exists := evalCondition["count_condition"]; exists {
+					if countCondStr, isString := countConditionVal.(string); isString && countCondStr != "" {
+						countCondition = countCondStr
+					} else {
+						// Provide default count condition if empty or invalid
+						countCondition = "__count__ > 0"
+					}
+				} else {
+					countCondition = "__count__ > 0"
+				}
+
+				severityConfig.EvalCondition = aliyunSlsAPI.ConditionConfiguration{
+					Condition:      condition,
+					CountCondition: countCondition,
+				}
+			}
+
+			config.SeverityConfigurations = append(config.SeverityConfigurations, severityConfig)
+		}
+	}
+
+	// Build labels
+	if v, ok := d.GetOk("labels"); ok {
+		labelsRaw := v.([]interface{})
+		config.Labels = make([]*aliyunSlsAPI.AlertTag, 0, len(labelsRaw))
+
+		for _, labelRaw := range labelsRaw {
+			labelMap := labelRaw.(map[string]interface{})
+			key := labelMap["key"].(string)
+			value := labelMap["value"].(string)
+			config.Labels = append(config.Labels, &aliyunSlsAPI.AlertTag{
+				Key:   &key,
+				Value: &value,
+			})
+		}
+	}
+
+	// Build annotations
+	if v, ok := d.GetOk("annotations"); ok {
+		annotationsRaw := v.([]interface{})
+		config.Annotations = make([]*aliyunSlsAPI.AlertTag, 0, len(annotationsRaw))
+
+		for _, annotationRaw := range annotationsRaw {
+			annotationMap := annotationRaw.(map[string]interface{})
+			key := annotationMap["key"].(string)
+			value := annotationMap["value"].(string)
+			config.Annotations = append(config.Annotations, &aliyunSlsAPI.AlertTag{
+				Key:   &key,
+				Value: &value,
+			})
+		}
+	}
+
+	// Build join configurations
+	if v, ok := d.GetOk("join_configurations"); ok {
+		joinConfigsRaw := v.([]interface{})
+		config.JoinConfigurations = make([]*aliyunSlsAPI.JoinConfiguration, 0, len(joinConfigsRaw))
+
+		for _, joinConfigRaw := range joinConfigsRaw {
+			joinConfigMap := joinConfigRaw.(map[string]interface{})
+			config.JoinConfigurations = append(config.JoinConfigurations, &aliyunSlsAPI.JoinConfiguration{
+				Type:      joinConfigMap["type"].(string),
+				Condition: joinConfigMap["condition"].(string),
+			})
+		}
+	}
+
+	// Build group configuration
+	if v, ok := d.GetOk("group_configuration"); ok {
+		groupConfigSet := v.(*schema.Set)
+		if groupConfigSet.Len() > 0 {
+			groupConfigMap := groupConfigSet.List()[0].(map[string]interface{})
+			groupConfig := &aliyunSlsAPI.GroupConfiguration{
+				Type: groupConfigMap["type"].(string),
+			}
+
+			if fields, ok := groupConfigMap["fields"].(*schema.Set); ok {
+				fieldsList := make([]string, 0, fields.Len())
+				for _, field := range fields.List() {
+					fieldsList = append(fieldsList, field.(string))
+				}
+				groupConfig.Fields = fieldsList
+			}
+
+			config.GroupConfiguration = groupConfig
+		}
+	}
+
+	// Build policy configuration
+	if v, ok := d.GetOk("policy_configuration"); ok {
+		policyConfigSet := v.(*schema.Set)
+		if policyConfigSet.Len() > 0 {
+			policyConfigMap := policyConfigSet.List()[0].(map[string]interface{})
+			config.PolicyConfiguration = &aliyunSlsAPI.PolicyConfiguration{
+				AlertPolicyId:  policyConfigMap["alert_policy_id"].(string),
+				RepeatInterval: policyConfigMap["repeat_interval"].(string),
+			}
+
+			if actionPolicyId, ok := policyConfigMap["action_policy_id"].(string); ok {
+				config.PolicyConfiguration.ActionPolicyId = actionPolicyId
+			}
+		}
+	}
+
+	// Build template configuration
+	if v, ok := d.GetOk("template_configuration"); ok {
+		templateConfigList := v.([]interface{})
+		if len(templateConfigList) > 0 {
+			templateConfigMap := templateConfigList[0].(map[string]interface{})
+			config.TemplateConfiguration = &aliyunSlsAPI.TemplateConfiguration{
+				Id:   templateConfigMap["id"].(string),
+				Type: templateConfigMap["type"].(string),
+			}
+
+			if lang, ok := templateConfigMap["lang"].(string); ok {
+				config.TemplateConfiguration.Lang = lang
+			}
+
+			if tokens, ok := templateConfigMap["tokens"].(map[string]interface{}); ok {
+				tokenMap := make(map[string]string)
+				for k, v := range tokens {
+					tokenMap[k] = v.(string)
+				}
+				config.TemplateConfiguration.Tokens = tokenMap
+			}
+
+			if annotations, ok := templateConfigMap["annotations"].(map[string]interface{}); ok {
+				annotationMap := make(map[string]string)
+				for k, v := range annotations {
+					annotationMap[k] = v.(string)
+				}
+				config.TemplateConfiguration.Annotations = annotationMap
+			}
+		}
+	}
+
+	alert.Configuration = config
+
+	// Build schedule
+	if v, ok := d.GetOk("schedule"); ok {
+		scheduleSet := v.(*schema.Set)
+		if scheduleSet.Len() > 0 {
+			scheduleMap := scheduleSet.List()[0].(map[string]interface{})
+			schedule := &aliyunSlsAPI.Schedule{
+				Type: scheduleMap["type"].(string),
+			}
+
+			if interval, ok := scheduleMap["interval"].(string); ok {
+				schedule.Interval = interval
+			}
+			if cronExpression, ok := scheduleMap["cron_expression"].(string); ok {
+				schedule.CronExpression = cronExpression
+			}
+			if dayOfWeek, ok := scheduleMap["day_of_week"].(int); ok {
+				schedule.DayOfWeek = int32(dayOfWeek)
+			}
+			if hour, ok := scheduleMap["hour"].(int); ok {
+				schedule.Hour = int32(hour)
+			}
+			if delay, ok := scheduleMap["delay"].(int); ok {
+				schedule.Delay = int32(delay)
+			}
+			if timeZone, ok := scheduleMap["time_zone"].(string); ok {
+				schedule.TimeZone = timeZone
+			}
+			if runImmediately, ok := scheduleMap["run_immediately"].(bool); ok {
+				schedule.RunImmediately = runImmediately
+			}
+
+			alert.Schedule = schedule
+		}
+	}
+
+	return alert, nil
 }
