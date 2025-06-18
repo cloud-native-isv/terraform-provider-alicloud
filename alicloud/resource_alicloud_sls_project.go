@@ -10,7 +10,45 @@ import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
+
+// validateDataRedundancyType validates data redundancy type based on region support
+func validateDataRedundancyType(val interface{}, key string) (warns []string, errs []error) {
+	// First validate that the value is one of the allowed types
+	validTypes := []string{string(aliyunSlsAPI.DataRedundancyTypeLRS), string(aliyunSlsAPI.DataRedundancyTypeZRS)}
+	typeWarns, typeErrs := validation.StringInSlice(validTypes, false)(val, key)
+	warns = append(warns, typeWarns...)
+	errs = append(errs, typeErrs...)
+
+	// Note: Region-specific validation will be performed during resource creation
+	// since validation functions don't have access to the provider context
+	// This ensures the value type is correct before creation
+
+	return warns, errs
+}
+
+// validateDataRedundancyTypeForRegion performs region-specific validation during resource operations
+func validateDataRedundancyTypeForRegion(dataRedundancyType string, region string) error {
+	if dataRedundancyType == "" {
+		return nil // Optional field, no validation needed
+	}
+
+	// Check if the region supports data redundancy
+	regionSupportsDataRedundancy := false
+	for _, supportedRegion := range SupportsDataRedundancyRegions {
+		if supportedRegion == region {
+			regionSupportsDataRedundancy = true
+			break
+		}
+	}
+
+	if dataRedundancyType == string(aliyunSlsAPI.DataRedundancyTypeZRS) && !regionSupportsDataRedundancy {
+		return fmt.Errorf("[data_redundancy_type = %s] is not supported in region %s. Supported regions: %v", dataRedundancyType, region, SupportsDataRedundancyRegions)
+	}
+
+	return nil
+}
 
 func resourceAliCloudLogProject() *schema.Resource {
 	return &schema.Resource{
@@ -71,8 +109,8 @@ func resourceAliCloudLogProject() *schema.Resource {
 			"data_redundancy_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: StringInSlice([]string{string(aliyunSlsAPI.DataRedundancyTypeLRS), string(aliyunSlsAPI.DataRedundancyTypeZRS)}, false),
-				Default:      string(aliyunSlsAPI.DataRedundancyTypeZRS),
+				ValidateFunc: validateDataRedundancyType,
+				Default:      string(aliyunSlsAPI.DataRedundancyTypeLRS),
 			},
 			"recycle_bin_enabled": {
 				Type:     schema.TypeBool,
@@ -132,25 +170,17 @@ func resourceAliCloudLogProjectCreate(d *schema.ResourceData, meta interface{}) 
 	if v, ok := d.GetOk("resource_group_id"); ok {
 		logProject.ResourceGroupId = v.(string)
 	}
-		
-	regionSupportsDataRedundancy := false
-	for _, region := range SupportsDataRedundancyRegions {
-		if region == string(client.Region) {
-			regionSupportsDataRedundancy = true
-			break
+
+	// Check region support for data redundancy and set the field accordingly
+	if v, ok := d.GetOk("data_redundancy_type"); ok {
+		dataRedundancyType := v.(string)
+		validErr := validateDataRedundancyTypeForRegion(dataRedundancyType, client.RegionId)
+		if validErr != nil {
+			return WrapErrorf(validErr, DefaultErrorMsg, "alicloud_log_project", "CreateProject", AlibabaCloudSdkGoERROR)
 		}
+		logProject.DataRedundancyType = aliyunSlsAPI.DataRedundancyType(dataRedundancyType)
 	}
-	
-	if regionSupportsDataRedundancy {
-		if v, ok := d.GetOk("data_redundancy_type"); ok {
-			logProject.DataRedundancyType = aliyunSlsAPI.DataRedundancyType(v.(string))
-		} else {
-			// Set default value only for supported regions
-			logProject.DataRedundancyType = aliyunSlsAPI.DataRedundancyTypeZRS
-		}
-	}
-	// If region doesn't support data redundancy, leave the field unset
-	
+
 	if v, ok := d.GetOk("recycle_bin_enabled"); ok {
 		logProject.RecycleBinEnabled = v.(bool)
 	}
