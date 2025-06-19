@@ -135,7 +135,8 @@ func dataSourceAlicloudLogStoreIndexesRead(d *schema.ResourceData, meta interfac
 	index, err := slsService.GetSlsLogStoreIndex(project, logstore)
 	if err != nil {
 		if NotFoundError(err) {
-			return WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
+			d.SetId("")
+			return nil
 		}
 		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_store_indexes", "GetSlsLogStoreIndex", AlibabaCloudSdkGoERROR)
 	}

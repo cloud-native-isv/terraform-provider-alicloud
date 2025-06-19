@@ -20,6 +20,7 @@ import (
 const (
 	// common
 	NotFound                = "NotFound"
+	ErrorMsgNotExist        = "ErrorMsgNotExist"
 	ResourceNotfound        = "ResourceNotfound"
 	ServiceUnavailable      = "ServiceUnavailable"
 	InstanceNotFound        = "Instance.Notfound"
@@ -95,11 +96,98 @@ func NotFoundError(err error) bool {
 		return false
 	}
 
-	if e, ok := err.(*aliyunFlinkAPI.FlinkServiceError); ok {
-		if e.ErrorCode != nil && *e.ErrorCode == "404" {
+	// Handle ArmsServiceError from cws-lib-go
+	if e, ok := err.(*aliyunArmsAPI.ArmsServiceError); ok {
+		if (e.ErrorCode != nil && (*e.ErrorCode == "404" || strings.Contains(*e.ErrorCode, NotFound))) ||
+			(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, NotFound)) ||
+			(e.Message != nil && strings.Contains(*e.Message, NotFound)) ||
+			strings.Contains(e.Error(), NotFound) {
 			return true
 		}
+		return false
+	}
 
+	// Handle ArmsAPIError from cws-lib-go
+	if e, ok := err.(*aliyunArmsAPI.ArmsAPIError); ok {
+		if strings.Contains(e.Operation, NotFound) ||
+			strings.Contains(e.Message, NotFound) ||
+			strings.Contains(e.Error(), NotFound) {
+			return true
+		}
+		return false
+	}
+
+	// Handle ArmsSDKError from cws-lib-go
+	if e, ok := err.(*aliyunArmsAPI.ArmsSDKError); ok {
+		if strings.Contains(e.SDK, NotFound) ||
+			strings.Contains(e.Operation, NotFound) ||
+			strings.Contains(e.Message, NotFound) ||
+			strings.Contains(e.Error(), NotFound) {
+			return true
+		}
+		return false
+	}
+
+	if e, ok := err.(*aliyunFlinkAPI.FlinkServiceError); ok {
+		if (e.ErrorCode != nil && (*e.ErrorCode == "404" || strings.Contains(*e.ErrorCode, ErrorMsgNotExist))) ||
+			(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, ErrorMsgNotExist)) ||
+			(e.Message != nil && strings.Contains(*e.Message, ErrorMsgNotExist)) ||
+			strings.Contains(e.Error(), ErrorMsgNotExist) {
+			return true
+		}
+		return false
+	}
+
+	// Handle FlinkAPIError from cws-lib-go
+	if e, ok := err.(*aliyunFlinkAPI.FlinkAPIError); ok {
+		if strings.Contains(e.Operation, NotFound) ||
+			strings.Contains(e.Message, NotFound) ||
+			strings.Contains(e.Error(), NotFound) {
+			return true
+		}
+		return false
+	}
+
+	// Handle FlinkSDKError from cws-lib-go
+	if e, ok := err.(*aliyunFlinkAPI.FlinkSDKError); ok {
+		if strings.Contains(e.SDK, NotFound) ||
+			strings.Contains(e.Operation, NotFound) ||
+			strings.Contains(e.Message, NotFound) ||
+			strings.Contains(e.Error(), NotFound) {
+			return true
+		}
+		return false
+	}
+
+	// Handle SlsServiceError from cws-lib-go
+	if e, ok := err.(*aliyunSlsAPI.SlsServiceError); ok {
+		if (e.ErrorCode != nil && (*e.ErrorCode == "404" || strings.Contains(*e.ErrorCode, ErrorMsgNotExist))) ||
+			(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, ErrorMsgNotExist)) ||
+			(e.Message != nil && strings.Contains(*e.Message, ErrorMsgNotExist)) ||
+			strings.Contains(e.Error(), ErrorMsgNotExist) {
+			return true
+		}
+		return false
+	}
+
+	// Handle SlsAPIError from cws-lib-go
+	if e, ok := err.(*aliyunSlsAPI.SlsAPIError); ok {
+		if strings.Contains(e.Operation, NotFound) ||
+			strings.Contains(e.Message, NotFound) ||
+			strings.Contains(e.Error(), NotFound) {
+			return true
+		}
+		return false
+	}
+
+	// Handle SlsSDKError from cws-lib-go
+	if e, ok := err.(*aliyunSlsAPI.SlsSDKError); ok {
+		if strings.Contains(e.SDK, NotFound) ||
+			strings.Contains(e.Operation, NotFound) ||
+			strings.Contains(e.Message, NotFound) ||
+			strings.Contains(e.Error(), NotFound) {
+			return true
+		}
 		return false
 	}
 
