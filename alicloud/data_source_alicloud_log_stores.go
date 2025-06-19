@@ -222,8 +222,11 @@ func dataSourceAlicloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 				if IsExpectedErrors(err, []string{LogClientTimeout}) {
 					time.Sleep(5 * time.Second)
 					return resource.RetryableError(err)
+				} else if NotFoundError(err) {
+					return nil
+				} else {
+					return resource.NonRetryableError(err)
 				}
-				return resource.NonRetryableError(err)
 			}
 			stores = response
 			return nil

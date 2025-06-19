@@ -12,15 +12,17 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/denverdino/aliyungo/common"
 
+	// Import unified error handling from cws-lib-go
 	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
+	commonErrors "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	aliyunRdsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/rds"
 	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 )
 
 const (
 	// common
 	NotFound                = "NotFound"
-	ErrorMsgNotExist        = "NotExist"
 	ResourceNotfound        = "ResourceNotfound"
 	ServiceUnavailable      = "ServiceUnavailable"
 	InstanceNotFound        = "Instance.Notfound"
@@ -82,115 +84,27 @@ func GetNotFoundErrorFromString(str string) error {
 		message:   str,
 	}
 }
+
+// NotFoundError checks if the error indicates a resource was not found
 func NotFoundError(err error) bool {
 	if err == nil {
 		return false
 	}
+
+	// Handle ComplexError recursively
 	if e, ok := err.(*ComplexError); ok {
 		if e.Err != nil && strings.HasPrefix(e.Err.Error(), ResourceNotfound) {
 			return true
 		}
 		return NotFoundError(e.Cause)
 	}
-	if err == nil {
-		return false
+
+	// Use unified error checking from cws-lib-go for all supported service types
+	if commonErrors.IsNotFoundError(err) {
+		return true
 	}
 
-	// Handle ArmsServiceError from cws-lib-go
-	if e, ok := err.(*aliyunArmsAPI.ArmsServiceError); ok {
-		if (e.ErrorCode != nil && (*e.ErrorCode == "404" || strings.Contains(*e.ErrorCode, NotFound))) ||
-			(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, NotFound)) ||
-			(e.Message != nil && strings.Contains(*e.Message, NotFound)) ||
-			strings.Contains(e.Error(), NotFound) {
-			return true
-		}
-		return false
-	}
-
-	// Handle ArmsAPIError from cws-lib-go
-	if e, ok := err.(*aliyunArmsAPI.ArmsAPIError); ok {
-		if strings.Contains(e.Operation, NotFound) ||
-			strings.Contains(e.Message, NotFound) ||
-			strings.Contains(e.Error(), NotFound) {
-			return true
-		}
-		return false
-	}
-
-	// Handle ArmsSDKError from cws-lib-go
-	if e, ok := err.(*aliyunArmsAPI.ArmsSDKError); ok {
-		if strings.Contains(e.SDK, NotFound) ||
-			strings.Contains(e.Operation, NotFound) ||
-			strings.Contains(e.Message, NotFound) ||
-			strings.Contains(e.Error(), NotFound) {
-			return true
-		}
-		return false
-	}
-
-	if e, ok := err.(*aliyunFlinkAPI.FlinkServiceError); ok {
-		if (e.ErrorCode != nil && (*e.ErrorCode == "404" || strings.Contains(*e.ErrorCode, ErrorMsgNotExist))) ||
-			(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, ErrorMsgNotExist)) ||
-			(e.Message != nil && strings.Contains(*e.Message, ErrorMsgNotExist)) ||
-			strings.Contains(e.Error(), ErrorMsgNotExist) {
-			return true
-		}
-		return false
-	}
-
-	// Handle FlinkAPIError from cws-lib-go
-	if e, ok := err.(*aliyunFlinkAPI.FlinkAPIError); ok {
-		if strings.Contains(e.Operation, NotFound) ||
-			strings.Contains(e.Message, NotFound) ||
-			strings.Contains(e.Error(), NotFound) {
-			return true
-		}
-		return false
-	}
-
-	// Handle FlinkSDKError from cws-lib-go
-	if e, ok := err.(*aliyunFlinkAPI.FlinkSDKError); ok {
-		if strings.Contains(e.SDK, NotFound) ||
-			strings.Contains(e.Operation, NotFound) ||
-			strings.Contains(e.Message, NotFound) ||
-			strings.Contains(e.Error(), NotFound) {
-			return true
-		}
-		return false
-	}
-
-	// Handle SlsServiceError from cws-lib-go
-	if e, ok := err.(*aliyunSlsAPI.SlsServiceError); ok {
-		if (e.ErrorCode != nil && (*e.ErrorCode == "404" || strings.Contains(*e.ErrorCode, ErrorMsgNotExist))) ||
-			(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, ErrorMsgNotExist)) ||
-			(e.Message != nil && strings.Contains(*e.Message, ErrorMsgNotExist)) ||
-			strings.Contains(e.Error(), ErrorMsgNotExist) {
-			return true
-		}
-		return false
-	}
-
-	// Handle SlsAPIError from cws-lib-go
-	if e, ok := err.(*aliyunSlsAPI.SlsAPIError); ok {
-		if strings.Contains(e.Operation, NotFound) ||
-			strings.Contains(e.Message, NotFound) ||
-			strings.Contains(e.Error(), NotFound) {
-			return true
-		}
-		return false
-	}
-
-	// Handle SlsSDKError from cws-lib-go
-	if e, ok := err.(*aliyunSlsAPI.SlsSDKError); ok {
-		if strings.Contains(e.SDK, NotFound) ||
-			strings.Contains(e.Operation, NotFound) ||
-			strings.Contains(e.Message, NotFound) ||
-			strings.Contains(e.Error(), NotFound) {
-			return true
-		}
-		return false
-	}
-
+	// Handle legacy SDK errors
 	if e, ok := err.(*tea.SDKError); ok {
 		return tea.IntValue(e.StatusCode) == 404 || regexp.MustCompile(NotFound).MatchString(tea.StringValue(e.Message))
 	}
@@ -214,128 +128,62 @@ func NotFoundError(err error) bool {
 	return false
 }
 
+func IsExpectedErrorCodes(code string, errorCodes []string) bool {
+	if code == "" {
+		return false
+	}
+	for _, v := range errorCodes {
+		if v == code {
+			return true
+		}
+	}
+	return false
+}
+
+// IsExpectedErrors checks if the error matches any of the expected error codes
 func IsExpectedErrors(err error, expectCodes []string) bool {
 	if err == nil {
 		return false
 	}
 
+	// Handle ComplexError recursively
 	if e, ok := err.(*ComplexError); ok {
 		return IsExpectedErrors(e.Cause, expectCodes)
 	}
 
-	// Handle ArmsServiceError from cws-lib-go
-	if e, ok := err.(*aliyunArmsAPI.ArmsServiceError); ok {
-		for _, code := range expectCodes {
-			if (e.ErrorCode != nil && *e.ErrorCode == code) ||
-				(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) ||
-				(e.Message != nil && strings.Contains(*e.Message, code)) ||
-				strings.Contains(e.Error(), code) {
+	// Check for specific error patterns in expected codes
+	for _, code := range expectCodes {
+		// Use unified error checking for common patterns
+		switch code {
+		case NotFound, InstanceNotFound, RamInstanceNotFound:
+			if commonErrors.IsNotFoundError(err) {
+				return true
+			}
+		case Throttling, ThrottlingUser, ServiceUnavailable:
+			if commonErrors.IsQuotaError(err) || commonErrors.IsRetryableError(err) {
 				return true
 			}
 		}
-		return false
 	}
 
-	// Handle ArmsAPIError from cws-lib-go
-	if e, ok := err.(*aliyunArmsAPI.ArmsAPIError); ok {
-		for _, code := range expectCodes {
-			if strings.Contains(e.Operation, code) ||
-				strings.Contains(e.Message, code) ||
-				strings.Contains(e.Error(), code) {
-				return true
-			}
-		}
-		return false
+	// Handle service-specific error types from cws-lib-go
+	// Use type assertion to check specific service error types
+	switch err.(type) {
+	case *aliyunArmsAPI.ArmsServiceError, *aliyunArmsAPI.ArmsAPIError, *aliyunArmsAPI.ArmsSDKError:
+		return checkExpectedCodesInError(err.Error(), expectCodes) ||
+			checkExpectedCodesInErrorCode(aliyunArmsAPI.GetArmsErrorCode(err), expectCodes)
+	case *aliyunFlinkAPI.FlinkServiceError, *aliyunFlinkAPI.FlinkAPIError, *aliyunFlinkAPI.FlinkSDKError:
+		return checkExpectedCodesInError(err.Error(), expectCodes) ||
+			checkExpectedCodesInErrorCode(aliyunFlinkAPI.GetErrorCode(err), expectCodes)
+	case *aliyunSlsAPI.SlsServiceError, *aliyunSlsAPI.SlsAPIError, *aliyunSlsAPI.SlsSDKError:
+		return checkExpectedCodesInError(err.Error(), expectCodes) ||
+			checkExpectedCodesInErrorCode(aliyunSlsAPI.GetSlsErrorCode(err), expectCodes)
+	case *aliyunRdsAPI.RDSServiceError, *aliyunRdsAPI.RDSAPIError, *aliyunRdsAPI.RDSSDKError:
+		return checkExpectedCodesInError(err.Error(), expectCodes) ||
+			checkExpectedCodesInErrorCode(aliyunRdsAPI.GetRDSErrorCode(err), expectCodes)
 	}
 
-	// Handle ArmsSDKError from cws-lib-go
-	if e, ok := err.(*aliyunArmsAPI.ArmsSDKError); ok {
-		for _, code := range expectCodes {
-			if strings.Contains(e.SDK, code) ||
-				strings.Contains(e.Operation, code) ||
-				strings.Contains(e.Message, code) ||
-				strings.Contains(e.Error(), code) {
-				return true
-			}
-		}
-		return false
-	}
-
-	// Handle FlinkServiceError from cws-lib-go
-	if e, ok := err.(*aliyunFlinkAPI.FlinkServiceError); ok {
-		for _, code := range expectCodes {
-			if (e.ErrorCode != nil && *e.ErrorCode == code) ||
-				(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) ||
-				strings.Contains(e.Error(), code) {
-				return true
-			}
-		}
-		return false
-	}
-
-	// Handle FlinkAPIError from cws-lib-go
-	if e, ok := err.(*aliyunFlinkAPI.FlinkAPIError); ok {
-		for _, code := range expectCodes {
-			if strings.Contains(e.Operation, code) ||
-				strings.Contains(e.Message, code) ||
-				strings.Contains(e.Error(), code) {
-				return true
-			}
-		}
-		return false
-	}
-
-	// Handle FlinkSDKError from cws-lib-go
-	if e, ok := err.(*aliyunFlinkAPI.FlinkSDKError); ok {
-		for _, code := range expectCodes {
-			if strings.Contains(e.SDK, code) ||
-				strings.Contains(e.Operation, code) ||
-				strings.Contains(e.Message, code) ||
-				strings.Contains(e.Error(), code) {
-				return true
-			}
-		}
-		return false
-	}
-
-	// Handle SlsAPIError from cws-lib-go (already exists)
-	if e, ok := err.(*aliyunSlsAPI.SlsAPIError); ok {
-		for _, code := range expectCodes {
-			if strings.Contains(e.Operation, code) ||
-				strings.Contains(e.Message, code) ||
-				strings.Contains(e.Error(), code) {
-				return true
-			}
-		}
-		return false
-	}
-
-	// Handle SlsServiceError from cws-lib-go
-	if e, ok := err.(*aliyunSlsAPI.SlsServiceError); ok {
-		for _, code := range expectCodes {
-			if (e.ErrorCode != nil && *e.ErrorCode == code) ||
-				(e.ErrorMessage != nil && strings.Contains(*e.ErrorMessage, code)) ||
-				(e.Message != nil && strings.Contains(*e.Message, code)) ||
-				strings.Contains(e.Error(), code) {
-				return true
-			}
-		}
-		return false
-	}
-
-	// Handle SlsSDKError from cws-lib-go
-	if e, ok := err.(*aliyunSlsAPI.SlsSDKError); ok {
-		for _, code := range expectCodes {
-			if strings.Contains(e.SDK, code) ||
-				strings.Contains(e.Operation, code) ||
-				strings.Contains(e.Message, code) ||
-				strings.Contains(e.Error(), code) {
-				return true
-			}
-		}
-		return false
-	}
-
+	// Handle legacy SDK errors
 	if e, ok := err.(*tea.SDKError); ok {
 		for _, code := range expectCodes {
 			// The second statement aims to match the tea sdk history bug
@@ -373,19 +221,45 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 		return false
 	}
 
+	// Fallback: check if any expected code appears in error message
+	return checkExpectedCodesInError(err.Error(), expectCodes)
+}
+
+// Helper function to check if any expected code appears in error message
+func checkExpectedCodesInError(errorMsg string, expectCodes []string) bool {
 	for _, code := range expectCodes {
-		if strings.Contains(err.Error(), code) {
+		if strings.Contains(errorMsg, code) {
 			return true
 		}
 	}
 	return false
 }
 
+// Helper function to check if error code matches any expected code
+func checkExpectedCodesInErrorCode(errorCode string, expectCodes []string) bool {
+	if errorCode == "" {
+		return false
+	}
+	for _, code := range expectCodes {
+		if errorCode == code {
+			return true
+		}
+	}
+	return false
+}
+
+// NeedRetry checks if the error is retryable
 func NeedRetry(err error) bool {
 	if err == nil {
 		return false
 	}
 
+	// Use unified retry checking from cws-lib-go
+	if commonErrors.IsRetryableError(err) {
+		return true
+	}
+
+	// Additional Terraform-specific retry conditions
 	postRegex := regexp.MustCompile("^Post [\"]*https://.*")
 	if postRegex.MatchString(err.Error()) {
 		return true
@@ -417,9 +291,15 @@ func NeedRetry(err error) bool {
 	return false
 }
 
+// NoCodeRegexRetry is similar to NeedRetry but without code regex matching
 func NoCodeRegexRetry(err error) bool {
 	if err == nil {
 		return false
+	}
+
+	// Use unified retry checking from cws-lib-go
+	if commonErrors.IsRetryableError(err) {
+		return true
 	}
 
 	postRegex := regexp.MustCompile("^Post [\"]*https://.*")
@@ -451,18 +331,6 @@ func NoCodeRegexRetry(err error) bool {
 		return e.Code == ServiceUnavailable || e.Code == "Rejected.Throttling" || throttlingRegex.MatchString(e.Code)
 	}
 
-	return false
-}
-
-func IsExpectedErrorCodes(code string, errorCodes []string) bool {
-	if code == "" {
-		return false
-	}
-	for _, v := range errorCodes {
-		if v == code {
-			return true
-		}
-	}
 	return false
 }
 
