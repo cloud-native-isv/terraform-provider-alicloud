@@ -101,20 +101,6 @@ func resourceAliCloudSelectDBDbInstance() *schema.Resource {
 				Sensitive: true,
 				Optional:  true,
 			},
-			"upgraded_engine_minor_version": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"upgraded_engine_minor_version": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"engine_minor_version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  "4.0.4",
-			},
 			"maintenance_window": {
 				Type:     schema.TypeString,
 				Optional: true,

@@ -1033,17 +1033,6 @@ func resourceAlicloudCSManagedKubernetesCreate(d *schema.ResourceData, meta inte
 			}
 		}
 	}
-	if v, ok := d.GetOk("audit_log_config"); ok {
-		m := v.([]interface{})[0].(map[string]interface{})
-		if vv, ok := m["enabled"]; ok {
-			request.AuditLogConfig = &roacs.CreateClusterRequestAuditLogConfig{
-				Enabled: tea.Bool(vv.(bool)),
-			}
-		}
-		if vv, ok := m["sls_project_name"]; ok {
-			request.AuditLogConfig.SlsProjectName = tea.String(vv.(string))
-		}
-	}
 
 	var err error
 	var resp *roacs.CreateClusterResponse

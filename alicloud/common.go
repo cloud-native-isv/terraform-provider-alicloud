@@ -22,57 +22,10 @@ import (
 	"strings"
 	"time"
 
-<<<<<<< HEAD
-||||||| parent of 1992f10c9 (remove unused code and fix some log)
-	"github.com/hashicorp/go-hclog"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
-	"github.com/denverdino/aliyungo/cs"
-
-=======
-	"github.com/hashicorp/go-hclog"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
->>>>>>> 1992f10c9 (remove unused code and fix some log)
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/tea"
-<<<<<<< HEAD
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
-	"github.com/aliyun/fc-go-sdk"
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
-||||||| parent of 1992f10c9 (remove unused code and fix some log)
-	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
-	"github.com/aliyun/fc-go-sdk"
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
-	"gopkg.in/yaml.v2"
-
-	"math"
-
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-=======
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
-	"gopkg.in/yaml.v2"
-
-	"math"
-
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
->>>>>>> 1992f10c9 (remove unused code and fix some log)
 	"github.com/denverdino/aliyungo/common"
-	"github.com/denverdino/aliyungo/cs"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"

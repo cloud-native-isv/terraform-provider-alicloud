@@ -186,8 +186,8 @@ func resourceAliCloudRamRoleCreate(d *schema.ResourceData, meta interface{}) err
 		if err != nil {
 			// Handle EntityAlreadyExists.Role error by auto-importing existing role
 			if IsExpectedErrors(err, []string{"EntityAlreadyExists.Role"}) {
-				log.Printf("[INFO] RAM role %s already exists, importing existing resource", request.RoleName)
-				d.SetId(request.RoleName)
+				log.Printf("[INFO] RAM role %s already exists, importing existing resource", request["RoleName"].(string))
+				d.SetId(request["RoleName"].(string))
 				return nil
 			}
 			if NeedRetry(err) {
