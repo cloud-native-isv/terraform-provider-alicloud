@@ -20,7 +20,7 @@ import (
 const (
 	// common
 	NotFound                = "NotFound"
-	ErrorMsgNotExist        = "ErrorMsgNotExist"
+	ErrorMsgNotExist        = "NotExist"
 	ResourceNotfound        = "ResourceNotfound"
 	ServiceUnavailable      = "ServiceUnavailable"
 	InstanceNotFound        = "Instance.Notfound"
