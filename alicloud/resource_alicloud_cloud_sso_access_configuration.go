@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"hash/crc32"
 	"log"
 	"regexp"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -97,7 +98,7 @@ func resourceAliCloudCloudSsoAccessConfiguration() *schema.Resource {
 						"permission_policy_document": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.ValidateJsonString,
+							ValidateFunc: validation.StringIsJSON,
 						},
 					},
 				},

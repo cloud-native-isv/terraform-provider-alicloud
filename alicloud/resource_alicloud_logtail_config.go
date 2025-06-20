@@ -31,7 +31,7 @@ func resourceAlicloudLogtailConfig() *schema.Resource {
 			"input_type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"file", "plugin", "service_canal", "service_docker_stdout", "service_syslog"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"file", "plugin"}, false),
 			},
 			"log_sample": {
 				Type:     schema.TypeString,
@@ -65,10 +65,10 @@ func resourceAlicloudLogtailConfig() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				StateFunc: func(v interface{}) string {
-					yaml, _ := normalizeJsonString(v)
-					return yaml
+					jsonString, _ := normalizeJsonString(v)
+					return jsonString
 				},
-				ValidateFunc: validation.ValidateJsonString,
+				ValidateFunc: validation.StringIsJSON,
 			},
 			"output_detail": {
 				Type:     schema.TypeMap,
@@ -92,10 +92,10 @@ func resourceAlicloudLogtailConfigCreate(d *schema.ResourceData, meta interface{
 	configName := d.Get("name").(string)
 	logstoreName := d.Get("logstore").(string)
 
-	// Parse input detail JSON
+	// Parse input detail JSON directly to strongly typed structure
 	inputDetailStr := d.Get("input_detail").(string)
-	var inputDetail map[string]interface{}
-	if err := json.Unmarshal([]byte(inputDetailStr), &inputDetail); err != nil {
+	inputDetail := &slsAPI.LogtailConfigInputDetail{}
+	if err := json.Unmarshal([]byte(inputDetailStr), inputDetail); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "ParseInputDetail", AlibabaCloudSdkGoERROR)
 	}
 
@@ -106,7 +106,7 @@ func resourceAlicloudLogtailConfigCreate(d *schema.ResourceData, meta interface{
 		LogstoreName: logstoreName,
 	}
 
-	// Create LogtailConfig object
+	// Create LogtailConfig object with strongly typed InputDetail
 	config := &slsAPI.LogtailConfig{
 		ConfigName:   configName,
 		InputType:    d.Get("input_type").(string),
@@ -221,10 +221,10 @@ func resourceAlicloudLogtailConfigUpdate(d *schema.ResourceData, meta interface{
 	projectName := parts[0]
 	configName := parts[2]
 
-	// Parse input detail JSON
+	// Parse input detail JSON directly to strongly typed structure
 	inputDetailStr := d.Get("input_detail").(string)
-	var inputDetail map[string]interface{}
-	if err := json.Unmarshal([]byte(inputDetailStr), &inputDetail); err != nil {
+	inputDetail := &slsAPI.LogtailConfigInputDetail{}
+	if err := json.Unmarshal([]byte(inputDetailStr), inputDetail); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "ParseInputDetail", AlibabaCloudSdkGoERROR)
 	}
 
