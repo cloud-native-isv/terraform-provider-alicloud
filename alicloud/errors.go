@@ -13,11 +13,7 @@ import (
 	"github.com/denverdino/aliyungo/common"
 
 	// Import unified error handling from cws-lib-go
-	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	commonErrors "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
-	aliyunRdsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/rds"
-	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 )
 
 const (
@@ -151,9 +147,8 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 		return IsExpectedErrors(e.Cause, expectCodes)
 	}
 
-	// Check for specific error patterns in expected codes
+	// Check for specific error patterns in expected codes using unified error checking
 	for _, code := range expectCodes {
-		// Use unified error checking for common patterns
 		switch code {
 		case NotFound, InstanceNotFound, RamInstanceNotFound:
 			if commonErrors.IsNotFoundError(err) {
@@ -163,24 +158,12 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 			if commonErrors.IsQuotaError(err) || commonErrors.IsRetryableError(err) {
 				return true
 			}
+		default:
+			// Use unified error code extraction from cws-lib-go
+			if errorCode := commonErrors.GetErrorCode(err); errorCode == code {
+				return true
+			}
 		}
-	}
-
-	// Handle service-specific error types from cws-lib-go
-	// Use type assertion to check specific service error types
-	switch err.(type) {
-	case *aliyunArmsAPI.ArmsServiceError, *aliyunArmsAPI.ArmsAPIError, *aliyunArmsAPI.ArmsSDKError:
-		return checkExpectedCodesInError(err.Error(), expectCodes) ||
-			checkExpectedCodesInErrorCode(aliyunArmsAPI.GetArmsErrorCode(err), expectCodes)
-	case *aliyunFlinkAPI.FlinkServiceError, *aliyunFlinkAPI.FlinkAPIError, *aliyunFlinkAPI.FlinkSDKError:
-		return checkExpectedCodesInError(err.Error(), expectCodes) ||
-			checkExpectedCodesInErrorCode(aliyunFlinkAPI.GetErrorCode(err), expectCodes)
-	case *aliyunSlsAPI.SlsServiceError, *aliyunSlsAPI.SlsAPIError, *aliyunSlsAPI.SlsSDKError:
-		return checkExpectedCodesInError(err.Error(), expectCodes) ||
-			checkExpectedCodesInErrorCode(aliyunSlsAPI.GetSlsErrorCode(err), expectCodes)
-	case *aliyunRdsAPI.RDSServiceError, *aliyunRdsAPI.RDSAPIError, *aliyunRdsAPI.RDSSDKError:
-		return checkExpectedCodesInError(err.Error(), expectCodes) ||
-			checkExpectedCodesInErrorCode(aliyunRdsAPI.GetRDSErrorCode(err), expectCodes)
 	}
 
 	// Handle legacy SDK errors
@@ -468,3 +451,83 @@ const FailedToReachTargetStatusWithError = "Resource %s failed to reach target s
 const FailedToReachTargetStatusWithRequestId = FailedToReachTargetStatus + " Last RequestId: %s."
 const FailedToReachTargetAttribute = "Failed to reach value for target attribute. Current value is %s."
 const RequiredWhenMsg = "attribute '%s' is required when '%s' is %v"
+
+// IsAlreadyExistError checks if the error indicates a resource already exists
+func IsAlreadyExistError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	// Handle ComplexError recursively
+	if e, ok := err.(*ComplexError); ok {
+		return IsAlreadyExistError(e.Cause)
+	}
+
+	// Use unified conflict error checking from cws-lib-go
+	if commonErrors.IsConflictError(err) {
+		return true
+	}
+
+	// Handle legacy SDK errors
+	if e, ok := err.(*tea.SDKError); ok {
+		if e.Code != nil {
+			code := strings.ToLower(*e.Code)
+			if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") {
+				return true
+			}
+		}
+		if e.Message != nil {
+			message := strings.ToLower(*e.Message)
+			if strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
+				return true
+			}
+		}
+	}
+
+	if e, ok := err.(*errors.ServerError); ok {
+		code := strings.ToLower(e.ErrorCode())
+		message := strings.ToLower(e.Message())
+		if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") ||
+			strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
+			return true
+		}
+	}
+
+	if e, ok := err.(*ProviderError); ok {
+		code := strings.ToLower(e.ErrorCode())
+		message := strings.ToLower(e.Message())
+		if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") ||
+			strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
+			return true
+		}
+	}
+
+	if e, ok := err.(*common.Error); ok {
+		code := strings.ToLower(e.Code)
+		message := strings.ToLower(e.Message)
+		if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") ||
+			strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
+			return true
+		}
+	}
+
+	// Check common "already exists" patterns in error message
+	errorMsg := strings.ToLower(err.Error())
+	alreadyExistPatterns := []string{
+		"already exist",
+		"alreadyexist",
+		"projectalreadyexist",
+		"duplicate",
+		"conflict",
+		"exists",
+		"409", // HTTP Conflict status code
+	}
+
+	for _, pattern := range alreadyExistPatterns {
+		if strings.Contains(errorMsg, pattern) {
+			return true
+		}
+	}
+
+	return false
+}

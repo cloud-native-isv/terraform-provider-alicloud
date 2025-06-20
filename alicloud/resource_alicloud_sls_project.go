@@ -194,17 +194,21 @@ func resourceAliCloudLogProjectCreate(d *schema.ResourceData, meta interface{}) 
 	// Create project using SlsService
 	err = slsService.CreateProject(logProject)
 	if err != nil {
+		// Check if the error is due to project already existing
+		if IsAlreadyExistError(err) {
+			log.Printf("[INFO] Project %s already exists, importing existing resource into Terraform state", projectName)
+			d.SetId(projectName)
+			return resourceAliCloudLogProjectRead(d, meta)
+		}
+
+		// For any other error, return the original error
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_project", "CreateProject", AlibabaCloudSdkGoERROR)
 	}
 
+	// Set the resource ID
 	d.SetId(projectName)
 
-	// Use StateRefreshFunc to wait for project creation completion
-	stateConf := BuildStateConf([]string{}, []string{"Normal"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.LogProjectStateRefreshFunc(d.Id(), "status", []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
-
+	// For newly created projects, we can directly call Read since SLS projects are immediately available
 	return resourceAliCloudLogProjectRead(d, meta)
 }
 
