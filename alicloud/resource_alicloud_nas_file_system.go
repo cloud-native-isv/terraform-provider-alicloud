@@ -208,11 +208,13 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 			"vswitch_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"vpc_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"zone_id": {
@@ -297,7 +299,7 @@ func resourceAliCloudNasFileSystemCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAliCloudNasFileSystemUpdate(d, meta)
+	return resourceAliCloudNasFileSystemRead(d, meta)
 }
 
 func resourceAliCloudNasFileSystemRead(d *schema.ResourceData, meta interface{}) error {
@@ -314,6 +316,7 @@ func resourceAliCloudNasFileSystemRead(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
+	// Set all basic attributes first
 	d.Set("capacity", objectRaw["Capacity"])
 	d.Set("create_time", objectRaw["CreateTime"])
 	d.Set("description", objectRaw["Description"])
@@ -325,97 +328,136 @@ func resourceAliCloudNasFileSystemRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_group_id", objectRaw["ResourceGroupId"])
 	d.Set("status", objectRaw["Status"])
 	d.Set("storage_type", objectRaw["StorageType"])
-	d.Set("vswitch_id", objectRaw["QuorumVswId"])
-	d.Set("vpc_id", objectRaw["VpcId"])
 	d.Set("zone_id", objectRaw["ZoneId"])
 
-	optionsMaps := make([]map[string]interface{}, 0)
-	optionsMap := make(map[string]interface{})
-	optionsRaw := make(map[string]interface{})
-	if objectRaw["Options"] != nil {
-		optionsRaw = objectRaw["Options"].(map[string]interface{})
+	// Always set vpc_id and vswitch_id, even if empty, to maintain consistency
+	if vpcId, ok := objectRaw["VpcId"]; ok {
+		if vpcId != nil && fmt.Sprint(vpcId) != "" {
+			d.Set("vpc_id", vpcId)
+		} else {
+			d.Set("vpc_id", "")
+		}
+	} else {
+		d.Set("vpc_id", "")
 	}
-	if len(optionsRaw) > 0 {
-		optionsMap["enable_oplock"] = optionsRaw["EnableOplock"]
 
-		optionsMaps = append(optionsMaps, optionsMap)
+	// Check for VSwitchId first, fallback to QuorumVswId if needed
+	if vswitchId, ok := objectRaw["VSwitchId"]; ok && vswitchId != nil && fmt.Sprint(vswitchId) != "" {
+		d.Set("vswitch_id", vswitchId)
+	} else if quorumVswId, ok := objectRaw["QuorumVswId"]; ok && quorumVswId != nil && fmt.Sprint(quorumVswId) != "" {
+		d.Set("vswitch_id", quorumVswId)
+	} else {
+		d.Set("vswitch_id", "")
+	}
+
+	// Handle options block - always set even if empty
+	optionsMaps := make([]map[string]interface{}, 0)
+	if objectRaw["Options"] != nil {
+		optionsRaw := objectRaw["Options"].(map[string]interface{})
+		if len(optionsRaw) > 0 {
+			optionsMap := make(map[string]interface{})
+			optionsMap["enable_oplock"] = optionsRaw["EnableOplock"]
+			optionsMaps = append(optionsMaps, optionsMap)
+		}
 	}
 	if err := d.Set("options", optionsMaps); err != nil {
 		return err
 	}
 
-	checkValue00 := d.Get("file_system_type")
-	checkValue01 := d.Get("protocol_type")
-	if (checkValue00 == "standard") && (checkValue01 == "SMB") {
+	// Use values from API response for conditional checks instead of state
+	fileSystemType := fmt.Sprint(objectRaw["FileSystemType"])
+	protocolType := fmt.Sprint(objectRaw["ProtocolType"])
+
+	// Handle conditional SMB ACL for standard + SMB
+	if (fileSystemType == "standard") && (protocolType == "SMB") {
 		objectRaw, err = nasServiceV2.DescribeFileSystemDescribeSmbAcl(d.Id())
 		if err != nil && !NotFoundError(err) {
 			return WrapError(err)
 		}
 
 		smbAclMaps := make([]map[string]interface{}, 0)
-		smbAclMap := make(map[string]interface{})
-
-		smbAclMap["enable_anonymous_access"] = objectRaw["EnableAnonymousAccess"]
-		smbAclMap["enabled"] = objectRaw["Enabled"]
-		smbAclMap["encrypt_data"] = objectRaw["EncryptData"]
-		smbAclMap["home_dir_path"] = objectRaw["HomeDirPath"]
-		smbAclMap["reject_unencrypted_access"] = objectRaw["RejectUnencryptedAccess"]
-		smbAclMap["super_admin_sid"] = objectRaw["SuperAdminSid"]
-
-		smbAclMaps = append(smbAclMaps, smbAclMap)
+		if err == nil && objectRaw != nil {
+			smbAclMap := make(map[string]interface{})
+			smbAclMap["enable_anonymous_access"] = objectRaw["EnableAnonymousAccess"]
+			smbAclMap["enabled"] = objectRaw["Enabled"]
+			smbAclMap["encrypt_data"] = objectRaw["EncryptData"]
+			smbAclMap["home_dir_path"] = objectRaw["HomeDirPath"]
+			smbAclMap["reject_unencrypted_access"] = objectRaw["RejectUnencryptedAccess"]
+			smbAclMap["super_admin_sid"] = objectRaw["SuperAdminSid"]
+			smbAclMaps = append(smbAclMaps, smbAclMap)
+		}
 		if err := d.Set("smb_acl", smbAclMaps); err != nil {
 			return err
 		}
-
+	} else {
+		// For non-SMB or non-standard, ensure smb_acl is set to empty
+		if err := d.Set("smb_acl", []map[string]interface{}{}); err != nil {
+			return err
+		}
 	}
-	checkValue00 = d.Get("file_system_type")
-	if checkValue00 == "standard" {
+
+	// Handle conditional Recycle Bin for standard
+	if fileSystemType == "standard" {
 		objectRaw, err = nasServiceV2.DescribeFileSystemGetRecycleBinAttribute(d.Id())
 		if err != nil && !NotFoundError(err) {
 			return WrapError(err)
 		}
 
 		recycleBinMaps := make([]map[string]interface{}, 0)
-		recycleBinMap := make(map[string]interface{})
-
-		recycleBinMap["enable_time"] = objectRaw["EnableTime"]
-		recycleBinMap["reserved_days"] = objectRaw["ReservedDays"]
-		recycleBinMap["secondary_size"] = objectRaw["SecondarySize"]
-		recycleBinMap["size"] = objectRaw["Size"]
-		recycleBinMap["status"] = objectRaw["Status"]
-
-		recycleBinMaps = append(recycleBinMaps, recycleBinMap)
+		if err == nil && objectRaw != nil {
+			recycleBinMap := make(map[string]interface{})
+			recycleBinMap["enable_time"] = objectRaw["EnableTime"]
+			recycleBinMap["reserved_days"] = objectRaw["ReservedDays"]
+			recycleBinMap["secondary_size"] = objectRaw["SecondarySize"]
+			recycleBinMap["size"] = objectRaw["Size"]
+			recycleBinMap["status"] = objectRaw["Status"]
+			recycleBinMaps = append(recycleBinMaps, recycleBinMap)
+		}
 		if err := d.Set("recycle_bin", recycleBinMaps); err != nil {
 			return err
 		}
-
+	} else {
+		// For non-standard, ensure recycle_bin is set to empty
+		if err := d.Set("recycle_bin", []map[string]interface{}{}); err != nil {
+			return err
+		}
 	}
+
+	// Handle tags - always fetch and set
 	objectRaw, err = nasServiceV2.DescribeFileSystemListTagResources(d.Id())
 	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
-	tagsMaps, _ := jsonpath.Get("$.TagResources.TagResource", objectRaw)
-	d.Set("tags", tagsToMap(tagsMaps))
+	tagsMaps := make(map[string]interface{})
+	if err == nil && objectRaw != nil {
+		if tagsRaw, err := jsonpath.Get("$.TagResources.TagResource", objectRaw); err == nil {
+			tagsMaps = tagsToMap(tagsRaw)
+		}
+	}
+	d.Set("tags", tagsMaps)
 
-	checkValue00 = d.Get("file_system_type")
-	checkValue01 = d.Get("protocol_type")
-	if (checkValue00 == "standard") && (checkValue01 == "NFS") {
+	// Handle conditional NFS ACL for standard + NFS
+	if (fileSystemType == "standard") && (protocolType == "NFS") {
 		objectRaw, err = nasServiceV2.DescribeFileSystemDescribeNfsAcl(d.Id())
 		if err != nil && !NotFoundError(err) {
 			return WrapError(err)
 		}
 
 		nfsAclMaps := make([]map[string]interface{}, 0)
-		nfsAclMap := make(map[string]interface{})
-
-		nfsAclMap["enabled"] = objectRaw["Enabled"]
-
-		nfsAclMaps = append(nfsAclMaps, nfsAclMap)
+		if err == nil && objectRaw != nil {
+			nfsAclMap := make(map[string]interface{})
+			nfsAclMap["enabled"] = objectRaw["Enabled"]
+			nfsAclMaps = append(nfsAclMaps, nfsAclMap)
+		}
 		if err := d.Set("nfs_acl", nfsAclMaps); err != nil {
 			return err
 		}
-
+	} else {
+		// For non-NFS or non-standard, ensure nfs_acl is set to empty
+		if err := d.Set("nfs_acl", []map[string]interface{}{}); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -750,7 +792,7 @@ func resourceAliCloudNasFileSystemUpdate(d *schema.ResourceData, meta interface{
 	update = false
 	enableUpdateRecycleBinAttribute := false
 	checkValue00 = d.Get("recycle_bin.0.status")
-	checkValue01 := d.Get("file_system_type")
+	checkValue01 = d.Get("file_system_type")
 	if (checkValue00 == "Enable") && (checkValue01 == "standard") {
 		enableUpdateRecycleBinAttribute = true
 	}
