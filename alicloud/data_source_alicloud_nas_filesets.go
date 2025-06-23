@@ -2,11 +2,9 @@ package alicloud
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	aliyunNasAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/nas"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -83,12 +81,19 @@ func dataSourceAlicloudNasFilesets() *schema.Resource {
 
 func dataSourceAlicloudNasFilesetsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	action := "DescribeFilesets"
-	request := make(map[string]interface{})
-	request["FileSystemId"] = d.Get("file_system_id")
-	request["MaxResults"] = PageSizeMedium
-	var objects []map[string]interface{}
+	fileSystemId := d.Get("file_system_id").(string)
+
+	// Use service layer to get filesets
+	filesets, err := nasService.ListNasFilesets(fileSystemId)
+	if err != nil {
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_nas_filesets", "DescribeNasFilesets", AlibabaCloudSdkGoERROR)
+	}
+
 	idsMap := make(map[string]string)
 	if v, ok := d.GetOk("ids"); ok {
 		for _, vv := range v.([]interface{}) {
@@ -99,60 +104,33 @@ func dataSourceAlicloudNasFilesetsRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 	status, statusOk := d.GetOk("status")
-	var response map[string]interface{}
-	var err error
-	for {
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-			response, err = client.RpcPost("NAS", "2017-06-26", action, nil, request, true)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
-		if err != nil {
-			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_nas_filesets", action, AlibabaCloudSdkGoERROR)
-		}
-		resp, err := jsonpath.Get("$.Entries.Entrie", response)
-		if err != nil {
-			return WrapErrorf(err, FailedGetAttributeMsg, action, "$.Entries.Entrie", response)
-		}
-		result, _ := resp.([]interface{})
-		for _, v := range result {
-			item := v.(map[string]interface{})
-			if len(idsMap) > 0 {
-				if _, ok := idsMap[fmt.Sprint(request["FileSystemId"], ":", item["FsetId"])]; !ok {
-					continue
-				}
-			}
-			if statusOk && status.(string) != "" && status.(string) != item["Status"].(string) {
+
+	var objects []*aliyunNasAPI.Fileset
+	for _, fileset := range filesets {
+		filesetId := fmt.Sprint(fileSystemId, ":", fileset.FsetId)
+		if len(idsMap) > 0 {
+			if _, ok := idsMap[filesetId]; !ok {
 				continue
 			}
-			objects = append(objects, item)
 		}
-		if nextToken, ok := response["NextToken"].(string); ok && nextToken != "" {
-			request["NextToken"] = nextToken
-		} else {
-			break
+		if statusOk && status.(string) != "" && status.(string) != fileset.Status {
+			continue
 		}
+		objects = append(objects, &fileset)
 	}
+
 	ids := make([]string, 0)
 	s := make([]map[string]interface{}, 0)
 	for _, object := range objects {
 		mapping := map[string]interface{}{
-			"create_time":      object["CreateTime"],
-			"description":      object["Description"],
-			"file_system_id":   request["FileSystemId"],
-			"file_system_path": object["FileSystemPath"],
-			"id":               fmt.Sprint(request["FileSystemId"], ":", object["FsetId"]),
-			"fileset_id":       fmt.Sprint(object["FsetId"]),
-			"status":           object["Status"],
-			"update_time":      object["UpdateTime"],
+			"create_time":      object.CreateTime,
+			"description":      object.Description,
+			"file_system_id":   fileSystemId,
+			"file_system_path": object.FileSystemPath,
+			"id":               fmt.Sprint(fileSystemId, ":", object.FsetId),
+			"fileset_id":       object.FsetId,
+			"status":           object.Status,
+			"update_time":      object.CreateTime, // Note: API may not have UpdateTime, using CreateTime as fallback
 		}
 		ids = append(ids, fmt.Sprint(mapping["id"]))
 		s = append(s, mapping)

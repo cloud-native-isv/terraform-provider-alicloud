@@ -143,11 +143,12 @@ func resourceAliCloudNasAccessGroupRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	d.Set("access_group_type", objectRaw["AccessGroupType"])
-	d.Set("create_time", objectRaw["CreateTime"])
-	d.Set("description", objectRaw["Description"])
-	d.Set("access_group_name", objectRaw["AccessGroupName"])
-	d.Set("file_system_type", objectRaw["FileSystemType"])
+	// Use struct field access instead of map indexing since objectRaw is now *aliyunNasAPI.AccessGroup
+	d.Set("access_group_type", objectRaw.AccessGroupType)
+	d.Set("create_time", objectRaw.CreateTime)
+	d.Set("description", objectRaw.Description)
+	d.Set("access_group_name", objectRaw.AccessGroupName)
+	d.Set("file_system_type", objectRaw.FileSystemType)
 
 	parts := strings.Split(d.Id(), ":")
 	d.Set("access_group_name", parts[0])

@@ -1,10 +1,8 @@
 package alicloud
 
 import (
-	"fmt"
-
-	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunNasAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/nas"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -113,14 +111,18 @@ func dataSourceAlicloudNasMountTargets() *schema.Resource {
 
 func dataSourceAlicloudNasMountTargetsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	action := "DescribeMountTargets"
-	request := make(map[string]interface{})
-	request["FileSystemId"] = d.Get("file_system_id")
-	request["RegionId"] = client.RegionId
-	request["PageSize"] = PageSizeLarge
-	request["PageNumber"] = 1
-	var objects []map[string]interface{}
+	fileSystemId := d.Get("file_system_id").(string)
+
+	// Use service layer to get mount targets
+	mountTargets, err := nasService.DescribeNasMountTargets(fileSystemId)
+	if err != nil {
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_nas_mount_targets", "DescribeNasMountTargets", AlibabaCloudSdkGoERROR)
+	}
 
 	idsMap := make(map[string]string)
 	if v, ok := d.GetOk("ids"); ok {
@@ -132,69 +134,52 @@ func dataSourceAlicloudNasMountTargetsRead(d *schema.ResourceData, meta interfac
 		}
 	}
 	status, statusOk := d.GetOk("status")
-	var response map[string]interface{}
-	var err error
-	for {
-		response, err = client.RpcPost("NAS", "2017-06-26", action, nil, request, true)
-		if err != nil {
-			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_nas_mount_targets", action, AlibabaCloudSdkGoERROR)
-		}
-		addDebug(action, response, request)
 
-		resp, err := jsonpath.Get("$.MountTargets.MountTarget", response)
-		if err != nil {
-			return WrapErrorf(err, FailedGetAttributeMsg, action, "$.MountTargets.MountTarget", response)
+	var objects []*aliyunNasAPI.MountTarget
+	for _, mountTarget := range mountTargets {
+		if v, ok := d.GetOk("access_group_name"); ok && v.(string) != "" && mountTarget.AccessGroupName != v.(string) {
+			continue
 		}
-		result, _ := resp.([]interface{})
-		for _, v := range result {
-			item := v.(map[string]interface{})
-			if v, ok := d.GetOk("access_group_name"); ok && v.(string) != "" && item["AccessGroup"].(string) != v.(string) {
-				continue
-			}
-			if v, ok := d.GetOk("mount_target_domain"); ok && v.(string) != "" && item["MountTargetDomain"].(string) != v.(string) {
-				continue
-			}
-			if v, ok := d.GetOk("type"); ok && v.(string) != "" && item["NetworkType"].(string) != v.(string) {
-				continue
-			}
-			if v, ok := d.GetOk("network_type"); ok && v.(string) != "" && item["NetworkType"].(string) != v.(string) {
-				continue
-			}
-			if v, ok := d.GetOk("vpc_id"); ok && v.(string) != "" && item["VpcId"].(string) != v.(string) {
-				continue
-			}
-			if v, ok := d.GetOk("vswitch_id"); ok && v.(string) != "" && item["VswId"].(string) != v.(string) {
-				continue
-			}
-			if len(idsMap) > 0 {
-				if _, ok := idsMap[fmt.Sprint(item["MountTargetDomain"])]; !ok {
-					continue
-				}
-			}
-			if statusOk && status.(string) != "" && status.(string) != item["Status"].(string) {
-				continue
-			}
-			objects = append(objects, item)
+		if v, ok := d.GetOk("mount_target_domain"); ok && v.(string) != "" && mountTarget.MountTargetDomain != v.(string) {
+			continue
 		}
-		if len(result) < PageSizeLarge {
-			break
+		if v, ok := d.GetOk("type"); ok && v.(string) != "" && mountTarget.NetworkType != v.(string) {
+			continue
 		}
-		request["PageNumber"] = request["PageNumber"].(int) + 1
+		if v, ok := d.GetOk("network_type"); ok && v.(string) != "" && mountTarget.NetworkType != v.(string) {
+			continue
+		}
+		if v, ok := d.GetOk("vpc_id"); ok && v.(string) != "" && mountTarget.VpcId != v.(string) {
+			continue
+		}
+		if v, ok := d.GetOk("vswitch_id"); ok && v.(string) != "" && mountTarget.VSwitchId != v.(string) {
+			continue
+		}
+		if len(idsMap) > 0 {
+			if _, ok := idsMap[mountTarget.MountTargetDomain]; !ok {
+				continue
+			}
+		}
+		if statusOk && status.(string) != "" && status.(string) != mountTarget.Status {
+			continue
+		}
+		objects = append(objects, mountTarget)
 	}
+
 	ids := make([]string, 0)
 	s := make([]map[string]interface{}, 0)
 	for _, object := range objects {
 		mapping := map[string]interface{}{
-			"access_group_name":   object["AccessGroup"],
-			"id":                  fmt.Sprint(object["MountTargetDomain"]),
-			"mount_target_domain": fmt.Sprint(object["MountTargetDomain"]),
-			"network_type":        object["NetworkType"],
-			"type":                object["NetworkType"],
-			"status":              object["Status"],
-			"vpc_id":              object["VpcId"],
-			"vswitch_id":          object["VswId"],
+			"access_group_name":   object.AccessGroupName,
+			"id":                  object.MountTargetDomain,
+			"mount_target_domain": object.MountTargetDomain,
+			"network_type":        object.NetworkType,
+			"type":                object.NetworkType,
+			"status":              object.Status,
+			"vpc_id":              object.VpcId,
+			"vswitch_id":          object.VSwitchId,
 		}
-		ids = append(ids, fmt.Sprint(object["MountTargetDomain"]))
+		ids = append(ids, object.MountTargetDomain)
 		s = append(s, mapping)
 	}
 

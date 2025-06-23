@@ -1,47 +1,224 @@
 package alicloud
 
 import (
-	"fmt"
-	"time"
-
-	"github.com/PaesslerAG/jsonpath"
+	aliyunNasAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/nas"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
+// EnableNasRecycleBin enables NAS recycle bin for a file system
+func (s *NasService) EnableNasRecycleBin(fileSystemId string, reservedDays int64) error {
+	nasAPI, err := s.getNasAPI()
+	if err != nil {
+		return WrapError(err)
+	}
+
+	err = nasAPI.EnableRecycleBin(fileSystemId, reservedDays)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	return nil
+}
+
+// DisableAndCleanNasRecycleBin disables and cleans NAS recycle bin for a file system
+func (s *NasService) DisableAndCleanNasRecycleBin(fileSystemId string) error {
+	nasAPI, err := s.getNasAPI()
+	if err != nil {
+		return WrapError(err)
+	}
+
+	err = nasAPI.DisableAndCleanRecycleBin(fileSystemId)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	return nil
+}
+
+// GetNasRecycleBinAttribute gets NAS recycle bin attributes for a file system
+func (s *NasService) GetNasRecycleBinAttribute(fileSystemId string) (*aliyunNasAPI.RecycleBinAttribute, error) {
+	nasAPI, err := s.getNasAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	attr, err := nasAPI.GetRecycleBinAttribute(fileSystemId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return attr, nil
+}
+
+// UpdateNasRecycleBinAttribute updates NAS recycle bin attributes for a file system
+func (s *NasService) UpdateNasRecycleBinAttribute(fileSystemId string, reservedDays int64) error {
+	nasAPI, err := s.getNasAPI()
+	if err != nil {
+		return WrapError(err)
+	}
+
+	err = nasAPI.UpdateRecycleBinAttribute(fileSystemId, reservedDays)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	return nil
+}
+
+// ListNasRecycledDirectoriesAndFiles lists recycled directories and files in NAS recycle bin
+func (s *NasService) ListNasRecycledDirectoriesAndFiles(fileSystemId, nextToken, fileId string, maxResults int64) ([]aliyunNasAPI.RecycledDirectoryOrFile, string, error) {
+	nasAPI, err := s.getNasAPI()
+	if err != nil {
+		return nil, "", WrapError(err)
+	}
+
+	entries, token, err := nasAPI.ListRecycledDirectoriesAndFiles(fileSystemId, nextToken, fileId, maxResults)
+	if err != nil {
+		return nil, "", WrapError(err)
+	}
+
+	return entries, token, nil
+}
+
+// CreateNasRecycleBinRestoreJob creates a restore job for recycled files
+func (s *NasService) CreateNasRecycleBinRestoreJob(fileSystemId, fileId, targetFileId, clientToken string) (string, error) {
+	nasAPI, err := s.getNasAPI()
+	if err != nil {
+		return "", WrapError(err)
+	}
+
+	jobId, err := nasAPI.CreateRecycleBinRestoreJob(fileSystemId, fileId, targetFileId, clientToken)
+	if err != nil {
+		return "", WrapError(err)
+	}
+
+	return jobId, nil
+}
+
+// CreateNasRecycleBinDeleteJob creates a delete job for recycled files
+func (s *NasService) CreateNasRecycleBinDeleteJob(fileSystemId, fileId, clientToken string) (string, error) {
+	nasAPI, err := s.getNasAPI()
+	if err != nil {
+		return "", WrapError(err)
+	}
+
+	jobId, err := nasAPI.CreateRecycleBinDeleteJob(fileSystemId, fileId, clientToken)
+	if err != nil {
+		return "", WrapError(err)
+	}
+
+	return jobId, nil
+}
+
+// ListNasRecycleBinJobs lists NAS recycle bin jobs
+func (s *NasService) ListNasRecycleBinJobs(fileSystemId, jobId, status string, pageNumber, pageSize int64) ([]aliyunNasAPI.RecycleBinJob, int64, error) {
+	nasAPI, err := s.getNasAPI()
+	if err != nil {
+		return nil, 0, WrapError(err)
+	}
+
+	jobs, totalCount, err := nasAPI.ListRecycleBinJobs(fileSystemId, jobId, status, pageNumber, pageSize)
+	if err != nil {
+		return nil, 0, WrapError(err)
+	}
+
+	return jobs, totalCount, nil
+}
+
+// GetNasRecycleBinJob gets details of a specific NAS recycle bin job
+func (s *NasService) GetNasRecycleBinJob(fileSystemId, jobId string) (*aliyunNasAPI.RecycleBinJob, error) {
+	nasAPI, err := s.getNasAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	job, err := nasAPI.GetRecycleBinJob(fileSystemId, jobId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return job, nil
+}
+
+// CancelNasRecycleBinJob cancels a NAS recycle bin job
+func (s *NasService) CancelNasRecycleBinJob(jobId string) error {
+	nasAPI, err := s.getNasAPI()
+	if err != nil {
+		return WrapError(err)
+	}
+
+	err = nasAPI.CancelRecycleBinJob(jobId)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	return nil
+}
+
+// NasRecycleBinStateRefreshFunc returns a StateRefreshFunc for waiting for NAS recycle bin state changes
+func (s *NasService) NasRecycleBinStateRefreshFunc(fileSystemId string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		object, err := s.GetNasRecycleBinAttribute(fileSystemId)
+		if err != nil {
+			if NotFoundError(err) {
+				// Recycle bin is disabled
+				return nil, "Disabled", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		for _, failState := range failStates {
+			if object.Status == failState {
+				return object, object.Status, WrapError(Error(FailedToReachTargetStatus, object.Status))
+			}
+		}
+
+		return object, object.Status, nil
+	}
+}
+
+// NasRecycleBinJobStateRefreshFunc returns a StateRefreshFunc for waiting for NAS recycle bin job state changes
+func (s *NasService) NasRecycleBinJobStateRefreshFunc(fileSystemId, jobId string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		object, err := s.GetNasRecycleBinJob(fileSystemId, jobId)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		for _, failState := range failStates {
+			if object.Status == failState {
+				return object, object.Status, WrapError(Error(FailedToReachTargetStatus, object.Status))
+			}
+		}
+
+		return object, object.Status, nil
+	}
+}
+
 // DescribeNasRecycleBin gets NAS recycle bin information
 func (s *NasService) DescribeNasRecycleBin(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	client := s.client
-	action := "GetRecycleBinAttribute"
-	request := map[string]interface{}{
-		"FileSystemId": id,
-	}
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcGet("NAS", "2017-06-26", action, request, nil)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
+	attr, err := s.GetNasRecycleBinAttribute(id)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidFileSystem.NotFound"}) {
-			return object, WrapErrorf(NotFoundErr("NAS:RecycleBin", id), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
+		if aliyunNasAPI.IsNotFoundError(err) {
+			return object, WrapErrorf(NotFoundErr("NAS:RecycleBin", id), NotFoundMsg, ProviderERROR, "")
 		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
+		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetRecycleBinAttribute", AlibabaCloudSdkGoERROR)
 	}
-	v, err := jsonpath.Get("$.RecycleBinAttribute", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.RecycleBinAttribute", response)
+
+	object = map[string]interface{}{
+		"Status":        attr.Status,
+		"ReservedDays":  attr.ReservedDays,
+		"Size":          attr.Size,
+		"SecondarySize": attr.SecondarySize,
+		"ArchiveSize":   attr.ArchiveSize,
+		"EnableTime":    attr.EnableTime,
 	}
-	object = v.(map[string]interface{})
-	if fmt.Sprint(object["Status"]) == "Disable" {
-		return object, WrapErrorf(NotFoundErr("NAS", id), NotFoundWithResponse, response)
+
+	if attr.Status == "Stop" {
+		return object, WrapErrorf(NotFoundErr("NAS", id), NotFoundWithResponse, object)
 	}
 
 	return object, nil
@@ -49,38 +226,22 @@ func (s *NasService) DescribeNasRecycleBin(id string) (object map[string]interfa
 
 // DescribeFileSystemGetRecycleBinAttribute gets file system recycle bin attribute (v2 version)
 func (s *NasService) DescribeFileSystemGetRecycleBinAttribute(id string) (object map[string]interface{}, err error) {
-	client := s.client
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]interface{}
-	request = make(map[string]interface{})
-	query = make(map[string]interface{})
-	request["FileSystemId"] = id
-
-	action := "GetRecycleBinAttribute"
-
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("NAS", "2017-06-26", action, query, request, true)
-
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
+	attr, err := s.GetNasRecycleBinAttribute(id)
+	if err != nil {
+		if aliyunNasAPI.IsNotFoundError(err) {
+			return object, WrapErrorf(NotFoundErr("NAS:RecycleBin", id), NotFoundMsg, ProviderERROR, "")
 		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
+		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetRecycleBinAttribute", AlibabaCloudSdkGoERROR)
 	}
 
-	v, err := jsonpath.Get("$.RecycleBinAttribute", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.RecycleBinAttribute", response)
+	object = map[string]interface{}{
+		"Status":        attr.Status,
+		"ReservedDays":  attr.ReservedDays,
+		"Size":          attr.Size,
+		"SecondarySize": attr.SecondarySize,
+		"ArchiveSize":   attr.ArchiveSize,
+		"EnableTime":    attr.EnableTime,
 	}
 
-	return v.(map[string]interface{}), nil
+	return object, nil
 }

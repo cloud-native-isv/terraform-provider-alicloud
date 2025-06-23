@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"fmt"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	aliyunNasAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/nas"
@@ -32,7 +33,6 @@ func NewNasService(client *connectivity.AliyunClient) (*NasService, error) {
 	}, nil
 }
 
-
 // getNasAPI creates and returns an SLS API client using CWS-Lib-Go
 func (s *NasService) getNasAPI() (*aliyunNasAPI.NasAPI, error) {
 	// Create credentials from the AliyunClient
@@ -51,4 +51,3 @@ func (s *NasService) getNasAPI() (*aliyunNasAPI.NasAPI, error) {
 
 	return nasAPI, nil
 }
-
