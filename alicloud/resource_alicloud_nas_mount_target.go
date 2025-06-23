@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunNasAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/nas"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -74,73 +75,67 @@ func resourceAliCloudNasMountTarget() *schema.Resource {
 }
 
 func resourceAliCloudNasMountTargetCreate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
-
-	action := "CreateMountTarget"
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]interface{})
-	var err error
-	request = make(map[string]interface{})
-	if v, ok := d.GetOk("file_system_id"); ok {
-		request["FileSystemId"] = v
-	}
-
-	if v, ok := d.GetOkExists("dual_stack"); ok {
-		request["EnableIpv6"] = v
-	}
-	if v, ok := d.GetOk("vpc_id"); ok {
-		request["VpcId"] = v
-	}
-	request["AccessGroupName"] = d.Get("access_group_name")
-	if v, ok := d.GetOk("security_group_id"); ok {
-		request["SecurityGroupId"] = v
-	}
-	if v, ok := d.GetOk("vswitch_id"); ok {
-		request["VSwitchId"] = v
-	}
-	request["NetworkType"] = string(Vpc)
-	if _, ok := d.GetOk("vpc_id"); !ok {
-		vswitchId := Trim(d.Get("vswitch_id").(string))
-		if vswitchId != "" {
-			vpcService := VpcService{client}
-			vsw, err := vpcService.DescribeVSwitchWithTeadsl(vswitchId)
-			if err != nil {
-				return WrapError(err)
-			}
-			request["VpcId"] = vsw["VpcId"]
-			request["VSwitchId"] = vswitchId
-		}
-	}
-
-	if v, ok := d.GetOk("network_type"); ok {
-		request["NetworkType"] = v
-	}
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RpcPost("NAS", "2017-06-26", action, query, request, true)
-		if err != nil {
-			if NeedRetry(err) || IsExpectedErrors(err, []string{"OperationDenied.InvalidState"}) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_mount_target", action, AlibabaCloudSdkGoERROR)
-	}
-
-	d.SetId(fmt.Sprintf("%v:%v", request["FileSystemId"], response["MountTargetDomain"]))
-
 	nasService, err := NewNasService(client)
 	if err != nil {
 		return WrapError(err)
 	}
+
+	// Get NAS API client
+	nasAPI, err := nasService.getNasAPI()
+	if err != nil {
+		return WrapError(fmt.Errorf("failed to get NAS API client: %w", err))
+	}
+
+	// Prepare mount target object
+	mountTarget := &aliyunNasAPI.MountTarget{
+		NetworkType:     d.Get("network_type").(string),
+		AccessGroupName: d.Get("access_group_name").(string),
+	}
+
+	if mountTarget.NetworkType == "" {
+		mountTarget.NetworkType = string(Vpc)
+	}
+
+	if v, ok := d.GetOk("vpc_id"); ok {
+		mountTarget.VpcId = v.(string)
+	}
+
+	if v, ok := d.GetOk("vswitch_id"); ok {
+		mountTarget.VSwitchId = v.(string)
+	}
+
+	// If vpc_id is not provided but vswitch_id is, get vpc_id from vswitch
+	if mountTarget.VpcId == "" && mountTarget.VSwitchId != "" {
+		vpcService := VpcService{client}
+		vsw, err := vpcService.DescribeVSwitchWithTeadsl(mountTarget.VSwitchId)
+		if err != nil {
+			return WrapError(err)
+		}
+		mountTarget.VpcId = vsw["VpcId"].(string)
+	}
+
+	fileSystemId := d.Get("file_system_id").(string)
+
+	wait := incrementalWait(3*time.Second, 5*time.Second)
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		createdMountTarget, createErr := nasAPI.CreateMountTarget(fileSystemId, mountTarget)
+		if createErr != nil {
+			if NeedRetry(createErr) || IsExpectedErrors(createErr, []string{"OperationDenied.InvalidState"}) {
+				wait()
+				return resource.RetryableError(createErr)
+			}
+			return resource.NonRetryableError(createErr)
+		}
+		mountTarget = createdMountTarget
+		return nil
+	})
+
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_mount_target", "CreateMountTarget", AlibabaCloudSdkGoERROR)
+	}
+
+	d.SetId(fmt.Sprintf("%s:%s", fileSystemId, mountTarget.MountTargetDomain))
 
 	stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -157,7 +152,7 @@ func resourceAliCloudNasMountTargetRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	objectRaw, err := nasService.DescribeNasMountTarget(d.Id())
+	mountTarget, err := nasService.DescribeNasMountTarget(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_mount_target DescribeNasMountTarget Failed!!! %s", err)
@@ -167,12 +162,12 @@ func resourceAliCloudNasMountTargetRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	d.Set("access_group_name", objectRaw["AccessGroup"])
-	d.Set("network_type", objectRaw["NetworkType"])
-	d.Set("status", objectRaw["Status"])
-	d.Set("vswitch_id", objectRaw["VswId"])
-	d.Set("vpc_id", objectRaw["VpcId"])
-	d.Set("mount_target_domain", objectRaw["MountTargetDomain"])
+	d.Set("access_group_name", mountTarget.AccessGroupName)
+	d.Set("network_type", mountTarget.NetworkType)
+	d.Set("status", mountTarget.Status)
+	d.Set("vswitch_id", mountTarget.VSwitchId)
+	d.Set("vpc_id", mountTarget.VpcId)
+	d.Set("mount_target_domain", mountTarget.MountTargetDomain)
 
 	parts := strings.Split(d.Id(), ":")
 	d.Set("file_system_id", parts[0])
@@ -182,53 +177,56 @@ func resourceAliCloudNasMountTargetRead(d *schema.ResourceData, meta interface{}
 
 func resourceAliCloudNasMountTargetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]interface{}
-	update := false
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	var err error
+	update := false
 	parts := strings.Split(d.Id(), ":")
-	action := "ModifyMountTarget"
-	request = make(map[string]interface{})
-	query = make(map[string]interface{})
-	request["MountTargetDomain"] = parts[1]
-	request["FileSystemId"] = parts[0]
+	fileSystemId := parts[0]
+	mountTargetDomain := parts[1]
+
+	var accessGroupName, status string
 
 	if !d.IsNewResource() && d.HasChange("access_group_name") {
 		update = true
 	}
-	request["AccessGroupName"] = d.Get("access_group_name")
+	accessGroupName = d.Get("access_group_name").(string)
+
 	if d.HasChange("status") {
 		update = true
-		request["Status"] = d.Get("status")
+		status = d.Get("status").(string)
 	}
 
 	if update {
+		// Get NAS API client
+		nasAPI, err := nasService.getNasAPI()
+		if err != nil {
+			return WrapError(fmt.Errorf("failed to get NAS API client: %w", err))
+		}
+
 		wait := incrementalWait(3*time.Second, 5*time.Second)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.RpcPost("NAS", "2017-06-26", action, query, request, true)
-			if err != nil {
-				if NeedRetry(err) || IsExpectedErrors(err, []string{"OperationDenied.InvalidState"}) {
+			modifyErr := nasAPI.ModifyMountTarget(fileSystemId, mountTargetDomain, accessGroupName, status)
+			if modifyErr != nil {
+				if NeedRetry(modifyErr) || IsExpectedErrors(modifyErr, []string{"OperationDenied.InvalidState"}) {
 					wait()
-					return resource.RetryableError(err)
+					return resource.RetryableError(modifyErr)
 				}
-				return resource.NonRetryableError(err)
+				return resource.NonRetryableError(modifyErr)
 			}
 			return nil
 		})
-		addDebug(action, response, request)
+
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-		}
-		nasService, err := NewNasService(client)
-		if err != nil {
-			return WrapError(err)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyMountTarget", AlibabaCloudSdkGoERROR)
 		}
 
-		stateConf := BuildStateConf([]string{}, []string{"[]"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, nasService.DescribeAsyncNasMountTargetStateRefreshFunc(d, response, "$.FileSystems.FileSystem[*].Status", []string{}))
-		if jobDetail, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id(), jobDetail)
+		// Wait for update to complete
+		stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, nasService.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{}))
+		if _, err := stateConf.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
 
@@ -236,48 +234,50 @@ func resourceAliCloudNasMountTargetUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceAliCloudNasMountTargetDelete(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
-	parts := strings.Split(d.Id(), ":")
-	action := "DeleteMountTarget"
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]interface{})
-	var err error
-	request = make(map[string]interface{})
-	request["MountTargetDomain"] = parts[1]
-	request["FileSystemId"] = parts[0]
-
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.RpcPost("NAS", "2017-06-26", action, query, request, true)
-
-		if err != nil || IsExpectedErrors(err, []string{"VolumeStatusForbidOperation", "OperationDenied.InvalidState"}) {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
-	if err != nil || IsExpectedErrors(err, []string{"Forbidden.NasNotFound"}) {
-		if NotFoundError(err) {
-			return nil
-		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-	}
-
 	nasService, err := NewNasService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	stateConf := BuildStateConf([]string{}, []string{"[]"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasService.DescribeAsyncNasMountTargetStateRefreshFunc(d, response, "$.MountTargets.MountTarget[*]", []string{}))
-	if jobDetail, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id(), jobDetail)
+	parts := strings.Split(d.Id(), ":")
+
+	fileSystemId := parts[0]
+	mountTargetDomain := parts[1]
+
+	// Get NAS API client
+	nasAPI, err := nasService.getNasAPI()
+	if err != nil {
+		return WrapError(fmt.Errorf("failed to get NAS API client: %w", err))
+	}
+
+	wait := incrementalWait(3*time.Second, 5*time.Second)
+	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		deleteErr := nasAPI.DeleteMountTarget(fileSystemId, mountTargetDomain)
+		if deleteErr != nil {
+			if IsExpectedErrors(deleteErr, []string{"Forbidden.NasNotFound"}) {
+				return nil
+			}
+			if NeedRetry(deleteErr) || IsExpectedErrors(deleteErr, []string{"VolumeStatusForbidOperation", "OperationDenied.InvalidState"}) {
+				wait()
+				return resource.RetryableError(deleteErr)
+			}
+			return resource.NonRetryableError(deleteErr)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteMountTarget", AlibabaCloudSdkGoERROR)
+	}
+
+	// Wait for deletion to complete
+	stateConf := BuildStateConf([]string{"Active", "Inactive"}, []string{""}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasService.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		if NotFoundError(err) {
+			return nil
+		}
+		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
 	return nil

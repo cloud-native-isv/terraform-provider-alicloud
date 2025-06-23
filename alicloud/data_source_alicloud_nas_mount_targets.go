@@ -118,10 +118,10 @@ func dataSourceAlicloudNasMountTargetsRead(d *schema.ResourceData, meta interfac
 
 	fileSystemId := d.Get("file_system_id").(string)
 
-	// Use service layer to get mount targets
-	mountTargets, err := nasService.DescribeNasMountTargets(fileSystemId)
+	// Use service layer to get mount targets list
+	mountTargets, err := nasService.ListNasMountTargets(fileSystemId)
 	if err != nil {
-		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_nas_mount_targets", "DescribeNasMountTargets", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_nas_mount_targets", "ListNasMountTargets", AlibabaCloudSdkGoERROR)
 	}
 
 	idsMap := make(map[string]string)
@@ -163,7 +163,7 @@ func dataSourceAlicloudNasMountTargetsRead(d *schema.ResourceData, meta interfac
 		if statusOk && status.(string) != "" && status.(string) != mountTarget.Status {
 			continue
 		}
-		objects = append(objects, mountTarget)
+		objects = append(objects, &mountTarget)
 	}
 
 	ids := make([]string, 0)

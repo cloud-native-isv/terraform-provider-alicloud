@@ -29,7 +29,6 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 			"capacity": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Computed: true,
 			},
 			"create_time": {
 				Type:     schema.TypeString,
@@ -42,14 +41,12 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 			"encrypt_type": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: IntInSlice([]int{0, 1, 2}),
 			},
 			"file_system_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: StringInSlice([]string{"standard", "extreme", "cpfs"}, false),
 			},
@@ -64,20 +61,17 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 			"kms_key_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
 			},
 			"nfs_acl": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},
@@ -92,7 +86,6 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 						"enable_oplock": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},
@@ -106,20 +99,17 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 			"recycle_bin": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"status": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ValidateFunc: StringInSlice([]string{"Enable", "Disable"}, false),
 						},
 						"reserved_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Computed:     true,
 							ValidateFunc: IntBetween(0, 180),
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								if v, ok := d.GetOk("recycle_bin.0.status"); ok && v.(string) == "Enable" {
@@ -130,32 +120,26 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 						},
 						"size": {
 							Type:     schema.TypeInt,
-							Computed: true,
 						},
 						"secondary_size": {
 							Type:     schema.TypeInt,
-							Computed: true,
 						},
 						"enable_time": {
 							Type:     schema.TypeString,
-							Computed: true,
 						},
 					},
 				},
 			},
 			"region_id": {
 				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"resource_group_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"smb_acl": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -166,7 +150,6 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 						"enable_anonymous_access": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: true,
 						},
 						"super_admin_sid": {
 							Type:     schema.TypeString,
@@ -175,7 +158,6 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: true,
 						},
 						"reject_unencrypted_access": {
 							Type:     schema.TypeBool,
@@ -194,7 +176,6 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 			},
 			"status": {
 				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"storage_type": {
 				Type:         schema.TypeString,
@@ -206,19 +187,16 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 			"vswitch_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
 			},
 			"vpc_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
 			},
 			"zone_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
 			},
 		},
@@ -318,113 +296,162 @@ func resourceAliCloudNasFileSystemRead(d *schema.ResourceData, meta interface{})
 	d.Set("storage_type", fileSystem.StorageType)
 	d.Set("zone_id", fileSystem.ZoneId)
 
-	// Always set vpc_id and vswitch_id, even if empty, to maintain consistency
+	// Handle vpc_id and vswitch_id with proper state preservation
 	if fileSystem.VpcId != "" {
 		d.Set("vpc_id", fileSystem.VpcId)
-	} else {
-		d.Set("vpc_id", "")
+	} else if v, ok := d.GetOk("vpc_id"); ok && v.(string) != "" {
+		// Preserve existing state value if API doesn't return it
+		d.Set("vpc_id", v.(string))
 	}
 
-	if fileSystem.VSwitchId != "" {
-		d.Set("vswitch_id", fileSystem.VSwitchId)
-	} else {
-		d.Set("vswitch_id", "")
+	if v, ok := d.GetOk("vswitch_id"); ok && v.(string) != "" {
+		// Preserve existing state value if API doesn't return it
+		d.Set("vswitch_id", v.(string))
 	}
 
-	// Handle options block - Note: Options is not available in the strong type yet
-	// Keep options empty for now until CWS-Lib-Go adds support
+	// Always set options - empty for now until CWS-Lib-Go adds support
 	optionsMaps := make([]map[string]interface{}, 0)
 	if err := d.Set("options", optionsMaps); err != nil {
 		return err
 	}
 
-	// Handle conditional SMB ACL for standard + SMB
-	if fileSystem.FileSystemType == "standard" && fileSystem.ProtocolType == "SMB" {
-		objectRaw, err := nasService.DescribeFileSystemDescribeSmbAcl(d.Id())
-		if err != nil && !NotFoundError(err) {
-			return WrapError(err)
-		}
-
-		smbAclMaps := make([]map[string]interface{}, 0)
-		if err == nil && objectRaw != nil {
-			smbAclMap := make(map[string]interface{})
-			smbAclMap["enable_anonymous_access"] = objectRaw["EnableAnonymousAccess"]
-			smbAclMap["enabled"] = objectRaw["Enabled"]
-			smbAclMap["encrypt_data"] = objectRaw["EncryptData"]
-			smbAclMap["home_dir_path"] = objectRaw["HomeDirPath"]
-			smbAclMap["reject_unencrypted_access"] = objectRaw["RejectUnencryptedAccess"]
-			smbAclMap["super_admin_sid"] = objectRaw["SuperAdminSid"]
-			smbAclMaps = append(smbAclMaps, smbAclMap)
-		}
-		if err := d.Set("smb_acl", smbAclMaps); err != nil {
-			return err
-		}
-	} else {
-		// For non-SMB or non-standard, ensure smb_acl is set to empty
-		if err := d.Set("smb_acl", []map[string]interface{}{}); err != nil {
-			return err
-		}
-	}
-
-	// Handle conditional Recycle Bin for standard
-	if fileSystem.FileSystemType == "standard" {
-		objectRaw, err := nasService.DescribeFileSystemGetRecycleBinAttribute(d.Id())
-		if err != nil && !NotFoundError(err) {
-			return WrapError(err)
-		}
-
-		recycleBinMaps := make([]map[string]interface{}, 0)
-		if err == nil && objectRaw != nil {
-			recycleBinMap := make(map[string]interface{})
-			recycleBinMap["enable_time"] = objectRaw["EnableTime"]
-			recycleBinMap["reserved_days"] = objectRaw["ReservedDays"]
-			recycleBinMap["secondary_size"] = objectRaw["SecondarySize"]
-			recycleBinMap["size"] = objectRaw["Size"]
-			recycleBinMap["status"] = objectRaw["Status"]
-			recycleBinMaps = append(recycleBinMaps, recycleBinMap)
-		}
-		if err := d.Set("recycle_bin", recycleBinMaps); err != nil {
-			return err
-		}
-	} else {
-		// For non-standard, ensure recycle_bin is set to empty
-		if err := d.Set("recycle_bin", []map[string]interface{}{}); err != nil {
-			return err
-		}
-	}
-
-	// Handle tags using strong types from file system
+	// Always set tags as a map to maintain consistency
 	tagsMaps := make(map[string]interface{})
-	if fileSystem.Tags != nil {
+	if fileSystem.Tags != nil && len(fileSystem.Tags) > 0 {
 		for _, tag := range fileSystem.Tags {
 			if tag.Key != "" {
 				tagsMaps[tag.Key] = tag.Value
 			}
 		}
 	}
-	d.Set("tags", tagsMaps)
+	if err := d.Set("tags", tagsMaps); err != nil {
+		return err
+	}
 
-	// Handle conditional NFS ACL for standard + NFS
+	// Handle SMB ACL - always set a value to maintain state consistency
+	smbAclMaps := make([]map[string]interface{}, 0)
+	if fileSystem.FileSystemType == "standard" && fileSystem.ProtocolType == "SMB" {
+		objectRaw, err := nasService.DescribeFileSystemDescribeSmbAcl(d.Id())
+		if err == nil && objectRaw != nil {
+			smbAclMap := make(map[string]interface{})
+			if v, exists := objectRaw["EnableAnonymousAccess"]; exists {
+				smbAclMap["enable_anonymous_access"] = v
+			}
+			if v, exists := objectRaw["Enabled"]; exists {
+				smbAclMap["enabled"] = v
+			} else {
+				smbAclMap["enabled"] = false
+			}
+			if v, exists := objectRaw["EncryptData"]; exists {
+				smbAclMap["encrypt_data"] = v
+			}
+			if v, exists := objectRaw["HomeDirPath"]; exists {
+				smbAclMap["home_dir_path"] = v
+			}
+			if v, exists := objectRaw["RejectUnencryptedAccess"]; exists {
+				smbAclMap["reject_unencrypted_access"] = v
+			}
+			if v, exists := objectRaw["SuperAdminSid"]; exists {
+				smbAclMap["super_admin_sid"] = v
+			}
+			smbAclMaps = append(smbAclMaps, smbAclMap)
+		} else {
+			// Set default values when API call fails or returns no data
+			smbAclMap := map[string]interface{}{
+				"enabled": false,
+			}
+			smbAclMaps = append(smbAclMaps, smbAclMap)
+		}
+	}
+	// Always set smb_acl regardless of conditions to maintain state consistency
+	if err := d.Set("smb_acl", smbAclMaps); err != nil {
+		return err
+	}
+
+	// Handle NFS ACL - always set a value to maintain state consistency
+	nfsAclMaps := make([]map[string]interface{}, 0)
 	if fileSystem.FileSystemType == "standard" && fileSystem.ProtocolType == "NFS" {
 		objectRaw, err := nasService.DescribeFileSystemDescribeNfsAcl(d.Id())
-		if err != nil && !NotFoundError(err) {
-			return WrapError(err)
-		}
-
-		nfsAclMaps := make([]map[string]interface{}, 0)
 		if err == nil && objectRaw != nil {
 			nfsAclMap := make(map[string]interface{})
-			nfsAclMap["enabled"] = objectRaw["Enabled"]
+			if v, exists := objectRaw["Enabled"]; exists {
+				nfsAclMap["enabled"] = v
+			} else {
+				nfsAclMap["enabled"] = false
+			}
+			nfsAclMaps = append(nfsAclMaps, nfsAclMap)
+		} else {
+			// Set default values when API call fails or returns no data
+			nfsAclMap := map[string]interface{}{
+				"enabled": false,
+			}
 			nfsAclMaps = append(nfsAclMaps, nfsAclMap)
 		}
-		if err := d.Set("nfs_acl", nfsAclMaps); err != nil {
-			return err
+	} else {
+		// For non-NFS or non-standard file systems, set default empty state
+		nfsAclMap := map[string]interface{}{
+			"enabled": false,
+		}
+		nfsAclMaps = append(nfsAclMaps, nfsAclMap)
+	}
+	// Always set nfs_acl to maintain state consistency
+	if err := d.Set("nfs_acl", nfsAclMaps); err != nil {
+		return err
+	}
+
+	// Handle Recycle Bin - always set a value to maintain state consistency
+	recycleBinMaps := make([]map[string]interface{}, 0)
+	if fileSystem.FileSystemType == "standard" {
+		objectRaw, err := nasService.DescribeFileSystemGetRecycleBinAttribute(d.Id())
+		if err == nil && objectRaw != nil {
+			recycleBinMap := make(map[string]interface{})
+			if v, exists := objectRaw["EnableTime"]; exists {
+				recycleBinMap["enable_time"] = v
+			}
+			if v, exists := objectRaw["ReservedDays"]; exists {
+				recycleBinMap["reserved_days"] = v
+			} else {
+				recycleBinMap["reserved_days"] = 7 // Default value
+			}
+			if v, exists := objectRaw["SecondarySize"]; exists {
+				recycleBinMap["secondary_size"] = v
+			} else {
+				recycleBinMap["secondary_size"] = 0
+			}
+			if v, exists := objectRaw["Size"]; exists {
+				recycleBinMap["size"] = v
+			} else {
+				recycleBinMap["size"] = 0
+			}
+			if v, exists := objectRaw["Status"]; exists {
+				recycleBinMap["status"] = v
+			} else {
+				recycleBinMap["status"] = "Disable"
+			}
+			recycleBinMaps = append(recycleBinMaps, recycleBinMap)
+		} else {
+			// Set default values when API call fails or returns no data
+			recycleBinMap := map[string]interface{}{
+				"status":         "Disable",
+				"reserved_days":  7,
+				"size":           0,
+				"secondary_size": 0,
+			}
+			recycleBinMaps = append(recycleBinMaps, recycleBinMap)
 		}
 	} else {
-		// For non-NFS or non-standard, ensure nfs_acl is set to empty
-		if err := d.Set("nfs_acl", []map[string]interface{}{}); err != nil {
-			return err
+		// For non-standard file systems, set default empty state
+		recycleBinMap := map[string]interface{}{
+			"status":         "Disable",
+			"reserved_days":  7,
+			"size":           0,
+			"secondary_size": 0,
 		}
+		recycleBinMaps = append(recycleBinMaps, recycleBinMap)
+	}
+	// Always set recycle_bin to maintain state consistency
+	if err := d.Set("recycle_bin", recycleBinMaps); err != nil {
+		return err
 	}
 
 	return nil
@@ -572,11 +599,11 @@ func updateFileSystemRecycleBin(d *schema.ResourceData, nasService *NasService) 
 			if v, ok := d.GetOkExists("recycle_bin.0.reserved_days"); ok {
 				reservedDays = int64(v.(int))
 			}
-			if err := nasService.EnableRecycleBin(d.Id(), reservedDays); err != nil {
+			if err := nasService.EnableNasRecycleBin(d.Id(), reservedDays); err != nil {
 				return err
 			}
 		} else if status == "Disable" {
-			if err := nasService.DisableAndCleanRecycleBin(d.Id()); err != nil {
+			if err := nasService.DisableAndCleanNasRecycleBin(d.Id()); err != nil {
 				return err
 			}
 		}
@@ -586,9 +613,11 @@ func updateFileSystemRecycleBin(d *schema.ResourceData, nasService *NasService) 
 		status := d.Get("recycle_bin.0.status").(string)
 		if status == "Enable" {
 			reservedDays := int64(d.Get("recycle_bin.0.reserved_days").(int))
-			// Note: UpdateRecycleBinAttribute signature expects (fileSystemId, reservedDays, status)
-			// but implementation only uses fileSystemId and reservedDays
-			if err := nasService.UpdateRecycleBinAttribute(d.Id(), reservedDays, status); err != nil {
+			if err := nasService.UpdateNasRecycleBinAttribute(d.Id(), reservedDays); err != nil {
+				return err
+			}
+		} else if status == "Disable" {
+			if err := nasService.DisableAndCleanNasRecycleBin(d.Id()); err != nil {
 				return err
 			}
 		}
@@ -681,6 +710,7 @@ func updateFileSystemSmbAcl(d *schema.ResourceData, nasService *NasService) erro
 
 	return nil
 }
+
 func resourceAliCloudNasFileSystemDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
@@ -697,11 +727,18 @@ func resourceAliCloudNasFileSystemDelete(d *schema.ResourceData, meta interface{
 		return WrapError(err)
 	}
 
-	// Wait for deletion completion
-	stateConf := BuildStateConf([]string{"Running", "Stopped"}, []string{""}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasService.DescribeNasFileSystemStateRefreshFunc(d.Id(), "", []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
-
-	return nil
+	// Wait for deletion completion by checking if resource is gone
+	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		_, err := nasService.DescribeNasFileSystem(d.Id())
+		if err != nil {
+			if NotFoundError(err) {
+				// Resource is deleted successfully
+				return nil
+			}
+			// Other errors should not be retried
+			return resource.NonRetryableError(err)
+		}
+		// Resource still exists, continue waiting
+		return resource.RetryableError(Error("NAS file system still exists, waiting for deletion to complete"))
+	})
 }

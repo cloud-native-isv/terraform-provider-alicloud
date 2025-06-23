@@ -6,13 +6,9 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/nas"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAlicloudNasFileset() *schema.Resource {
@@ -26,6 +22,7 @@ func resourceAlicloudNasFileset() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(2 * time.Minute),
+			Update: schema.DefaultTimeout(2 * time.Minute),
 			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
@@ -34,9 +31,10 @@ func resourceAlicloudNasFileset() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.All(validation.StringLenBetween(2, 128), validation.StringDoesNotMatch(regexp.MustCompile(`(^http://.*)|(^https://.*)`), "It cannot begin with \"http://\", \"https://\".")),
 			},
-			"dry_run": {
+			"deletion_protection": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 			"file_system_id": {
 				Type:     schema.TypeString,
@@ -62,85 +60,73 @@ func resourceAlicloudNasFileset() *schema.Resource {
 
 func resourceAlicloudNasFilesetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-
-	// Create credentials for CWS-Lib-Go API
-	credentials := &common.Credentials{
-		AccessKey:     client.AccessKey,
-		SecretKey:     client.SecretKey,
-		RegionId:      client.RegionId,
-		SecurityToken: client.SecurityToken,
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
 	}
 
-	// Create NAS API client
-	nasAPI, err := nas.NewNasAPI(credentials)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_fileset", "NewNasAPI", AlibabaCloudSdkGoERROR)
+	fileSystemId := d.Get("file_system_id").(string)
+	fileSystemPath := d.Get("file_system_path").(string)
+	description := ""
+	if v, ok := d.GetOk("description"); ok {
+		description = v.(string)
 	}
+	deletionProtection := d.Get("deletion_protection").(bool)
 
-	// Create fileset using strong-typed API with individual parameters
-	fileset, err := nasAPI.CreateFileset(
-		d.Get("file_system_id").(string),
-		d.Get("file_system_path").(string),
-		func() string {
-			if v, ok := d.GetOk("description"); ok {
-				return v.(string)
-			}
-			return ""
-		}(),
-		false, // deletionProtection - default to false
-	)
+	// Create fileset using service layer
+	fileset, err := nasService.CreateNasFileset(fileSystemId, fileSystemPath, description, deletionProtection)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_fileset", "CreateFileset", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_fileset", "CreateNasFileset", AlibabaCloudSdkGoERROR)
 	}
 
 	// Set resource ID in format: fileSystemId:filesetId
-	d.SetId(fmt.Sprint(d.Get("file_system_id").(string), ":", fileset.FsetId))
+	d.SetId(fmt.Sprintf("%s:%s", fileSystemId, fileset.FsetId))
 
-	// Wait for fileset to be created using StateRefreshFunc
-	stateConf := BuildStateConf([]string{}, []string{"CREATED"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, func() (interface{}, string, error) {
-		parts, err := ParseResourceId(d.Id(), 2)
-		if err != nil {
-			return nil, "", WrapError(err)
-		}
-
-		fileSystemId := parts[0]
-		fsetId := parts[1]
-
-		object, err := nasAPI.GetFileset(fileSystemId, fsetId)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"InvalidFileset.NotFound", "Forbidden.FilesetNotFound"}) {
-				return nil, "", WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
-			}
-			return nil, "", WrapError(err)
-		}
-
-		return object, object.Status, nil
-	})
-
-	if _, err := stateConf.WaitForState(); err != nil {
+	// Wait for fileset to be created
+	err = nasService.WaitForNasFileset(d.Id(), "Running", int(d.Timeout(schema.TimeoutCreate).Seconds()))
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
 	return resourceAlicloudNasFilesetRead(d, meta)
 }
+
 func resourceAlicloudNasFilesetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-
-	// Create credentials for CWS-Lib-Go API
-	credentials := &common.Credentials{
-		AccessKey:     client.AccessKey,
-		SecretKey:     client.SecretKey,
-		RegionId:      client.RegionId,
-		SecurityToken: client.SecurityToken,
-	}
-
-	// Create NAS API client
-	nasAPI, err := nas.NewNasAPI(credentials)
+	nasService, err := NewNasService(client)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_fileset", "NewNasAPI", AlibabaCloudSdkGoERROR)
+		return WrapError(err)
 	}
 
-	// Parse resource ID to extract file system ID and fileset ID
+	// Get fileset using service layer
+	fileset, err := nasService.DescribeNasFileset(d.Id())
+	if err != nil {
+		if !d.IsNewResource() && NotFoundError(err) {
+			log.Printf("[DEBUG] Resource alicloud_nas_fileset DescribeNasFileset Failed!!! %s", err)
+			d.SetId("")
+			return nil
+		}
+		return WrapError(err)
+	}
+
+	// Set resource attributes using strong types
+	d.Set("file_system_id", fileset.FileSystemId)
+	d.Set("fileset_id", fileset.FsetId)
+	d.Set("description", fileset.Description)
+	d.Set("file_system_path", fileset.FileSystemPath)
+	d.Set("status", fileset.Status)
+	d.Set("deletion_protection", fileset.DeletionProtection)
+
+	return nil
+}
+
+func resourceAlicloudNasFilesetUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
@@ -149,105 +135,63 @@ func resourceAlicloudNasFilesetRead(d *schema.ResourceData, meta interface{}) er
 	fileSystemId := parts[0]
 	fsetId := parts[1]
 
-	// Get fileset using strong-typed API
-	object, err := nasAPI.GetFileset(fileSystemId, fsetId)
-	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidFileset.NotFound", "Forbidden.FilesetNotFound"}) {
-			log.Printf("[DEBUG] Resource alicloud_nas_fileset not found, removing from state: %s", err)
-			d.SetId("")
-			return nil
-		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetFileset", AlibabaCloudSdkGoERROR)
-	}
+	update := false
+	description := ""
+	deletionProtection := false
 
-	// Set resource attributes using strong types
-	d.Set("file_system_id", object.FileSystemId)
-	d.Set("fileset_id", object.FsetId)
-	d.Set("description", object.Description)
-	d.Set("file_system_path", object.FileSystemPath)
-	d.Set("status", object.Status)
-
-	return nil
-}
-func resourceAlicloudNasFilesetUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	var response map[string]interface{}
-	parts, err := ParseResourceId(d.Id(), 2)
-	if err != nil {
-		return WrapError(err)
-	}
-	request := map[string]interface{}{
-		"FileSystemId": parts[0],
-		"FsetId":       parts[1],
-	}
 	if d.HasChange("description") {
+		update = true
 		if v, ok := d.GetOk("description"); ok {
-			request["Description"] = v
+			description = v.(string)
 		}
 	}
-	if v, ok := d.GetOkExists("dry_run"); ok {
-		request["DryRun"] = v
+
+	if d.HasChange("deletion_protection") {
+		update = true
+		deletionProtection = d.Get("deletion_protection").(bool)
 	}
-	action := "ModifyFileset"
-	request["ClientToken"] = buildClientToken("ModifyFileset")
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-		response, err = client.RpcPost("NAS", "2017-06-26", action, nil, request, true)
+
+	if update {
+		// Update fileset using service layer
+		err := nasService.UpdateNasFileset(fileSystemId, fsetId, description, deletionProtection)
 		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateNasFileset", AlibabaCloudSdkGoERROR)
 		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+
+		// Wait for update to complete
+		err = nasService.WaitForNasFileset(d.Id(), "Running", int(d.Timeout(schema.TimeoutUpdate).Seconds()))
+		if err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
 	}
+
 	return resourceAlicloudNasFilesetRead(d, meta)
 }
+
 func resourceAlicloudNasFilesetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	parts, err := ParseResourceId(d.Id(), 2)
-	if err != nil {
-		return WrapError(err)
-	}
-	action := "DeleteFileset"
-	var response map[string]interface{}
-	request := map[string]interface{}{
-		"FileSystemId": parts[0],
-		"FsetId":       parts[1],
-	}
-
-	if v, ok := d.GetOkExists("dry_run"); ok {
-		request["DryRun"] = v
-	}
-	request["ClientToken"] = buildClientToken("DeleteFileset")
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.RpcPost("NAS", "2017-06-26", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-	}
 	nasService, err := NewNasService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasFilesetStateRefreshFunc(d.Id(), []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
+	parts, err := ParseResourceId(d.Id(), 2)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	fileSystemId := parts[0]
+	fsetId := parts[1]
+
+	// Delete fileset using service layer
+	err = nasService.DeleteNasFileset(fileSystemId, fsetId)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteNasFileset", AlibabaCloudSdkGoERROR)
+	}
+
+	// Wait for fileset to be deleted
+	err = nasService.WaitForNasFilesetDeleted(d.Id(), int(d.Timeout(schema.TimeoutDelete).Seconds()))
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
