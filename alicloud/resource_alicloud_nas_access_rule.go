@@ -135,9 +135,12 @@ func resourceAliCloudNasAccessRuleCreate(d *schema.ResourceData, meta interface{
 
 func resourceAliCloudNasAccessRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasServiceV2 := NasServiceV2{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	objectRaw, err := nasServiceV2.DescribeNasAccessRule(d.Id())
+	objectRaw, err := nasService.DescribeNasAccessRule(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_access_rule DescribeNasAccessRule Failed!!! %s", err)

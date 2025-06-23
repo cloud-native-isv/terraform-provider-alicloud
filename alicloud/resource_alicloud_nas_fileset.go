@@ -91,7 +91,11 @@ func resourceAlicloudNasFilesetCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(fmt.Sprint(request["FileSystemId"], ":", response["FsetId"]))
-	nasService := NasService{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	stateConf := BuildStateConf([]string{}, []string{"CREATED"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasFilesetStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -101,7 +105,11 @@ func resourceAlicloudNasFilesetCreate(d *schema.ResourceData, meta interface{}) 
 }
 func resourceAlicloudNasFilesetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasService := NasService{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	object, err := nasService.DescribeNasFileset(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -194,7 +202,11 @@ func resourceAlicloudNasFilesetDelete(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
-	nasService := NasService{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasFilesetStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())

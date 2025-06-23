@@ -215,8 +215,12 @@ func resourceAliCloudNasAccessPointCreate(d *schema.ResourceData, meta interface
 	AccessPointAccessPointId, _ := jsonpath.Get("$.AccessPoint.AccessPointId", response)
 	d.SetId(fmt.Sprintf("%v:%v", query["FileSystemId"], AccessPointAccessPointId))
 
-	nasServiceV2 := NasServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{"active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasServiceV2.NasAccessPointStateRefreshFunc(d.Id(), "Status", []string{}))
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	stateConf := BuildStateConf([]string{}, []string{"active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasAccessPointStateRefreshFunc(d.Id(), "Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -226,9 +230,12 @@ func resourceAliCloudNasAccessPointCreate(d *schema.ResourceData, meta interface
 
 func resourceAliCloudNasAccessPointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasServiceV2 := NasServiceV2{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	objectRaw, err := nasServiceV2.DescribeNasAccessPoint(d.Id())
+	objectRaw, err := nasService.DescribeNasAccessPoint(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_access_point DescribeNasAccessPoint Failed!!! %s", err)
@@ -373,8 +380,12 @@ func resourceAliCloudNasAccessPointDelete(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	nasServiceV2 := NasServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasServiceV2.NasAccessPointStateRefreshFunc(d.Id(), "Status", []string{}))
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasService.NasAccessPointStateRefreshFunc(d.Id(), "Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

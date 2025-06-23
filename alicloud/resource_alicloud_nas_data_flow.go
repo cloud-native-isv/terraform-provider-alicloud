@@ -115,7 +115,11 @@ func resourceAlicloudNasDataFlowCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(fmt.Sprint(request["FileSystemId"], ":", response["DataFlowId"]))
-	nasService := NasService{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasDataFlowStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -125,7 +129,11 @@ func resourceAlicloudNasDataFlowCreate(d *schema.ResourceData, meta interface{})
 }
 func resourceAlicloudNasDataFlowRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasService := NasService{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	object, err := nasService.DescribeNasDataFlow(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -147,8 +155,11 @@ func resourceAlicloudNasDataFlowRead(d *schema.ResourceData, meta interface{}) e
 }
 func resourceAlicloudNasDataFlowUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasService := NasService{client}
-	var err error
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	var response map[string]interface{}
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -309,7 +320,11 @@ func resourceAlicloudNasDataFlowDelete(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
-	nasService := NasService{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasService.NasDataFlowStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())

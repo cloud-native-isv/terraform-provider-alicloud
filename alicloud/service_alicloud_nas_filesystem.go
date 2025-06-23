@@ -6,53 +6,55 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/nas"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-// DescribeNasFileSystem gets NAS file system information
+// DescribeNasFileSystem gets NAS file system information using CWS-Lib-Go API
 func (s *NasService) DescribeNasFileSystem(id string) (object map[string]interface{}, err error) {
-	client := s.client
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]interface{}
-	request = make(map[string]interface{})
-	query = make(map[string]interface{})
-	request["FileSystemId"] = id
+	// Create NAS API client using CWS-Lib-Go
+	credentials := &common.Credentials{
+		AccessKey:     s.client.AccessKey,
+		SecretKey:     s.client.SecretKey,
+		RegionId:      s.client.RegionId,
+		SecurityToken: s.client.SecurityToken,
+	}
 
-	action := "DescribeFileSystems"
-
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("NAS", "2017-06-26", action, query, request, true)
-
-		if err != nil {
-			if IsExpectedErrors(err, []string{"InvalidFileSystemStatus.Ordering"}) || NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
+	nasAPI, err := nas.NewNasAPI(credentials)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"Resource.NotFound", "InvalidFileSystem.NotFound"}) {
-			return object, WrapErrorf(NotFoundErr("FileSystem", id), NotFoundMsg, response)
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
+		return object, WrapErrorf(err, DefaultErrorMsg, id, "NewNasAPI", AlibabaCloudSdkGoERROR)
 	}
 
-	v, err := jsonpath.Get("$.FileSystems.FileSystem[*]", response)
+	fileSystem, err := nasAPI.GetFileSystem(id)
 	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.FileSystems.FileSystem[*]", response)
+		if nas.IsNotFoundError(err) {
+			return object, WrapErrorf(NotFoundErr("FileSystem", id), NotFoundMsg, err)
+		}
+		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetFileSystem", AlibabaCloudSdkGoERROR)
 	}
 
-	if len(v.([]interface{})) == 0 {
-		return object, WrapErrorf(NotFoundErr("FileSystem", id), NotFoundMsg, response)
+	// Convert FileSystem struct to map[string]interface{} for compatibility
+	result := map[string]interface{}{
+		"FileSystemId":    fileSystem.FileSystemId,
+		"Description":     fileSystem.Description,
+		"StorageType":     fileSystem.StorageType,
+		"ProtocolType":    fileSystem.ProtocolType,
+		"CreateTime":      fileSystem.CreateTime,
+		"RegionId":        fileSystem.RegionId,
+		"ZoneId":          fileSystem.ZoneId,
+		"FileSystemType":  fileSystem.FileSystemType,
+		"Status":          fileSystem.Status,
+		"Capacity":        fileSystem.Capacity,
+		"EncryptType":     fileSystem.EncryptType,
+		"KMSKeyId":        fileSystem.KMSKeyId,
+		"ResourceGroupId": fileSystem.ResourceGroupId,
+		"VpcId":           fileSystem.VpcId,
+		"VSwitchId":       fileSystem.VSwitchId,
 	}
 
-	return v.([]interface{})[0].(map[string]interface{}), nil
+	return result, nil
 }
 
 // NasFileSystemStateRefreshFunc returns a StateRefreshFunc for NAS file system status
@@ -137,22 +139,50 @@ func (s *NasService) DescribeAsyncNasFileSystemStateRefreshFunc(d *schema.Resour
 	}
 }
 
-// DescribeAsyncDescribeFileSystems gets async file system information
+// DescribeAsyncDescribeFileSystems gets async file system information using CWS-Lib-Go API
 func (s *NasService) DescribeAsyncDescribeFileSystems(d *schema.ResourceData, res map[string]interface{}) (object map[string]interface{}, err error) {
-	client := s.client
-	id := d.Id()
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]interface{}
-	request = make(map[string]interface{})
-	query = make(map[string]interface{})
-	request["FileSystemId"] = d.Id()
+	return s.DescribeNasFileSystem(d.Id())
+}
 
-	action := "DescribeFileSystems"
+// ModifyFileSystem modifies a NAS file system using CWS-Lib-Go API
+func (s *NasService) ModifyFileSystem(request map[string]interface{}) error {
+	// Create NAS API client using CWS-Lib-Go
+	credentials := &common.Credentials{
+		AccessKey:     s.client.AccessKey,
+		SecretKey:     s.client.SecretKey,
+		RegionId:      s.client.RegionId,
+		SecurityToken: s.client.SecurityToken,
+	}
+
+	nasAPI, err := nas.NewNasAPI(credentials)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, request["FileSystemId"], "NewNasAPI", AlibabaCloudSdkGoERROR)
+	}
+
+	fileSystemId := fmt.Sprint(request["FileSystemId"])
+	description := ""
+	if desc, ok := request["Description"]; ok {
+		description = fmt.Sprint(desc)
+	}
+
+	err = nasAPI.ModifyFileSystem(fileSystemId, description)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, fileSystemId, "ModifyFileSystem", AlibabaCloudSdkGoERROR)
+	}
+
+	return nil
+}
+
+// UpgradeFileSystem upgrades the capacity of a NAS file system using direct RPC (not available in CWS-Lib-Go yet)
+func (s *NasService) UpgradeFileSystem(request map[string]interface{}) error {
+	client := s.client
+	action := "UpgradeFileSystem"
+	var response map[string]interface{}
+	var err error
 
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("NAS", "2017-06-26", action, query, request, true)
+		response, err = client.RpcPost("NAS", "2017-06-26", action, nil, request, true)
 
 		if err != nil {
 			if NeedRetry(err) {
@@ -164,9 +194,125 @@ func (s *NasService) DescribeAsyncDescribeFileSystems(d *schema.ResourceData, re
 		return nil
 	})
 	addDebug(action, response, request)
+
 	if err != nil {
-		return response, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, request["FileSystemId"], action, AlibabaCloudSdkGoERROR)
 	}
 
-	return response, nil
+	return nil
+}
+
+// EnableRecycleBin enables the recycle bin for a NAS file system using direct RPC (not available in CWS-Lib-Go yet)
+func (s *NasService) EnableRecycleBin(request map[string]interface{}) error {
+	client := s.client
+	action := "EnableRecycleBin"
+	var response map[string]interface{}
+	var err error
+
+	wait := incrementalWait(3*time.Second, 5*time.Second)
+	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+		response, err = client.RpcPost("NAS", "2017-06-26", action, nil, request, true)
+
+		if err != nil {
+			if NeedRetry(err) {
+				wait()
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+	addDebug(action, response, request)
+
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, request["FileSystemId"], action, AlibabaCloudSdkGoERROR)
+	}
+
+	return nil
+}
+
+// DisableAndCleanRecycleBin disables and cleans the recycle bin for a NAS file system using direct RPC (not available in CWS-Lib-Go yet)
+func (s *NasService) DisableAndCleanRecycleBin(fileSystemId string) error {
+	client := s.client
+	action := "DisableAndCleanRecycleBin"
+	var response map[string]interface{}
+	var err error
+
+	request := map[string]interface{}{
+		"FileSystemId": fileSystemId,
+	}
+
+	wait := incrementalWait(3*time.Second, 5*time.Second)
+	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+		response, err = client.RpcPost("NAS", "2017-06-26", action, nil, request, true)
+
+		if err != nil {
+			if NeedRetry(err) {
+				wait()
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+	addDebug(action, response, request)
+
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, fileSystemId, action, AlibabaCloudSdkGoERROR)
+	}
+
+	return nil
+}
+
+// UpdateRecycleBinAttribute updates the recycle bin attributes for a NAS file system using direct RPC (not available in CWS-Lib-Go yet)
+func (s *NasService) UpdateRecycleBinAttribute(request map[string]interface{}) error {
+	client := s.client
+	action := "UpdateRecycleBinAttribute"
+	var response map[string]interface{}
+	var err error
+
+	wait := incrementalWait(3*time.Second, 5*time.Second)
+	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
+		response, err = client.RpcPost("NAS", "2017-06-26", action, nil, request, true)
+
+		if err != nil {
+			if NeedRetry(err) {
+				wait()
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+	addDebug(action, response, request)
+
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, request["FileSystemId"], action, AlibabaCloudSdkGoERROR)
+	}
+
+	return nil
+}
+
+// CreateNasFileSystem creates a NAS file system using CWS-Lib-Go API
+func (s *NasService) CreateNasFileSystem(fileSystem *nas.FileSystem) (*nas.FileSystem, error) {
+	// Create NAS API client using CWS-Lib-Go
+	credentials := &common.Credentials{
+		AccessKey:     s.client.AccessKey,
+		SecretKey:     s.client.SecretKey,
+		RegionId:      s.client.RegionId,
+		SecurityToken: s.client.SecurityToken,
+	}
+
+	nasAPI, err := nas.NewNasAPI(credentials)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_file_system", "NewNasAPI", AlibabaCloudSdkGoERROR)
+	}
+
+	// Create file system using CWS-Lib-Go API
+	createdFileSystem, err := nasAPI.CreateFileSystem(fileSystem)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_file_system", "CreateFileSystem", AlibabaCloudSdkGoERROR)
+	}
+
+	return createdFileSystem, nil
 }

@@ -137,8 +137,12 @@ func resourceAliCloudNasMountTargetCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprintf("%v:%v", request["FileSystemId"], response["MountTargetDomain"]))
 
-	nasServiceV2 := NasServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasServiceV2.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{}))
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -148,9 +152,12 @@ func resourceAliCloudNasMountTargetCreate(d *schema.ResourceData, meta interface
 
 func resourceAliCloudNasMountTargetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasServiceV2 := NasServiceV2{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	objectRaw, err := nasServiceV2.DescribeNasMountTarget(d.Id())
+	objectRaw, err := nasService.DescribeNasMountTarget(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_mount_target DescribeNasMountTarget Failed!!! %s", err)
@@ -214,8 +221,12 @@ func resourceAliCloudNasMountTargetUpdate(d *schema.ResourceData, meta interface
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		nasServiceV2 := NasServiceV2{client}
-		stateConf := BuildStateConf([]string{}, []string{"[]"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, nasServiceV2.DescribeAsyncNasMountTargetStateRefreshFunc(d, response, "$.FileSystems.FileSystem[*].Status", []string{}))
+		nasService, err := NewNasService(client)
+		if err != nil {
+			return WrapError(err)
+		}
+
+		stateConf := BuildStateConf([]string{}, []string{"[]"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, nasService.DescribeAsyncNasMountTargetStateRefreshFunc(d, response, "$.FileSystems.FileSystem[*].Status", []string{}))
 		if jobDetail, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id(), jobDetail)
 		}
@@ -259,8 +270,12 @@ func resourceAliCloudNasMountTargetDelete(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	nasServiceV2 := NasServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{"[]"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasServiceV2.DescribeAsyncNasMountTargetStateRefreshFunc(d, response, "$.MountTargets.MountTarget[*]", []string{}))
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	stateConf := BuildStateConf([]string{}, []string{"[]"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasService.DescribeAsyncNasMountTargetStateRefreshFunc(d, response, "$.MountTargets.MountTarget[*]", []string{}))
 	if jobDetail, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id(), jobDetail)
 	}

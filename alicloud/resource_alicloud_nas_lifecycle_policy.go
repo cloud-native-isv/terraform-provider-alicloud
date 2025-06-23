@@ -87,7 +87,11 @@ func resourceAlicloudNasLifecyclePolicyCreate(d *schema.ResourceData, meta inter
 }
 func resourceAlicloudNasLifecyclePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasService := NasService{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	object, err := nasService.DescribeNasLifecyclePolicy(d.Id())
 	if err != nil {
 		if NotFoundError(err) {

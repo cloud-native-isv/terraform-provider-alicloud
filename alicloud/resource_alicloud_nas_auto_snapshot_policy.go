@@ -119,8 +119,12 @@ func resourceAliCloudNasAutoSnapshotPolicyCreate(d *schema.ResourceData, meta in
 
 	d.SetId(fmt.Sprint(response["AutoSnapshotPolicyId"]))
 
-	nasServiceV2 := NasServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasServiceV2.NasAutoSnapshotPolicyStateRefreshFunc(d.Id(), "Status", []string{}))
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasAutoSnapshotPolicyStateRefreshFunc(d.Id(), "Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -130,9 +134,12 @@ func resourceAliCloudNasAutoSnapshotPolicyCreate(d *schema.ResourceData, meta in
 
 func resourceAliCloudNasAutoSnapshotPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasServiceV2 := NasServiceV2{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	objectRaw, err := nasServiceV2.DescribeNasAutoSnapshotPolicy(d.Id())
+	objectRaw, err := nasService.DescribeNasAutoSnapshotPolicy(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_auto_snapshot_policy DescribeNasAutoSnapshotPolicy Failed!!! %s", err)
@@ -212,8 +219,12 @@ func resourceAliCloudNasAutoSnapshotPolicyUpdate(d *schema.ResourceData, meta in
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		nasServiceV2 := NasServiceV2{client}
-		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, nasServiceV2.NasAutoSnapshotPolicyStateRefreshFunc(d.Id(), "Status", []string{}))
+		nasService, err := NewNasService(client)
+		if err != nil {
+			return WrapError(err)
+		}
+
+		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, nasService.NasAutoSnapshotPolicyStateRefreshFunc(d.Id(), "Status", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -255,8 +266,12 @@ func resourceAliCloudNasAutoSnapshotPolicyDelete(d *schema.ResourceData, meta in
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	nasServiceV2 := NasServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{""}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasServiceV2.NasAutoSnapshotPolicyStateRefreshFunc(d.Id(), "Status", []string{}))
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	stateConf := BuildStateConf([]string{}, []string{""}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasService.NasAutoSnapshotPolicyStateRefreshFunc(d.Id(), "Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

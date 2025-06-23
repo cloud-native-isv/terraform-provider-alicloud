@@ -172,7 +172,11 @@ func resourceAlicloudNasSmbAclAttachmentUpdate(d *schema.ResourceData, meta inte
 
 func resourceAlicloudNasSmbAclAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasService := NasService{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	object, err := nasService.DescribeNasSmbAcl(d.Id())
 	if err != nil {
 		if NotFoundError(err) {

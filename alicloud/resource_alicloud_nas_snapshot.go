@@ -90,7 +90,11 @@ func resourceAlicloudNasSnapshotCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(fmt.Sprint(response["SnapshotId"]))
-	nasService := NasService{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	stateConf := BuildStateConf([]string{}, []string{"accomplished"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasSnapshotStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -100,7 +104,11 @@ func resourceAlicloudNasSnapshotCreate(d *schema.ResourceData, meta interface{})
 }
 func resourceAlicloudNasSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasService := NasService{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	object, err := nasService.DescribeNasSnapshot(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -121,10 +129,13 @@ func resourceAlicloudNasSnapshotRead(d *schema.ResourceData, meta interface{}) e
 }
 func resourceAlicloudNasSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasService := NasService{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	action := "DeleteSnapshot"
 	var response map[string]interface{}
-	var err error
 	request := map[string]interface{}{
 		"SnapshotId": d.Id(),
 	}

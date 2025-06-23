@@ -44,7 +44,8 @@ Provider 层 (alicloud/)
 ├── Resource 层 (resource_alicloud_*.go)
 ├── DataSource 层 (data_source_alicloud_*.go)
 └── Service 层 (service_alicloud_*.go)
-    └── API 层 (CWS-Lib-Go/阿里云官方SDK)
+    └── API 层 (CWS-Lib-Go)
+        └── SDk 层 (阿里云官方SDK)
 ```
 
 对于添加或者重构一个已有的 resource 或 datasource，需要先定义他的 service 层，resource 或 datasource 只依赖与 service 层提供的函数。

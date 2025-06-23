@@ -128,9 +128,12 @@ func resourceAliCloudNasAccessGroupCreate(d *schema.ResourceData, meta interface
 
 func resourceAliCloudNasAccessGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nasServiceV2 := NasServiceV2{client}
+	nasService, err := NewNasService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	objectRaw, err := nasServiceV2.DescribeNasAccessGroup(d.Id())
+	objectRaw, err := nasService.DescribeNasAccessGroup(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_access_group DescribeNasAccessGroup Failed!!! %s", err)

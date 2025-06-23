@@ -44,7 +44,8 @@ Provider Layer (alicloud/)
 ├── Resource Layer (resource_alicloud_*.go)
 ├── DataSource Layer (data_source_alicloud_*.go)
 └── Service Layer (service_alicloud_*.go)
-    └── API Layer (CWS-Lib-Go/Alibaba Cloud Official SDK)
+    └── API Layer (CWS-Lib-Go)
+        └── API Layer (Alibaba Cloud Official SDK)
 ```
 
 For adding or refactoring an existing resource or datasource, you need to first define its service layer, and the resource or datasource should only depend on functions provided by the service layer.
