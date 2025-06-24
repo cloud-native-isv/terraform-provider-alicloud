@@ -24,7 +24,7 @@ func NewNasService(client *connectivity.AliyunClient) (*NasService, error) {
 
 	nasAPI, err := aliyunNasAPI.NewNasAPI(credentials)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create SLS API client: %w", err)
+		return nil, fmt.Errorf("failed to create NAS API client: %w", err)
 	}
 
 	return &NasService{
@@ -33,7 +33,7 @@ func NewNasService(client *connectivity.AliyunClient) (*NasService, error) {
 	}, nil
 }
 
-// getNasAPI creates and returns an SLS API client using CWS-Lib-Go
+// getNasAPI creates and returns a NAS API client using CWS-Lib-Go
 func (s *NasService) getNasAPI() (*aliyunNasAPI.NasAPI, error) {
 	// Create credentials from the AliyunClient
 	credentials := &common.Credentials{
@@ -43,10 +43,10 @@ func (s *NasService) getNasAPI() (*aliyunNasAPI.NasAPI, error) {
 		SecurityToken: s.client.SecurityToken,
 	}
 
-	// Create SLS API client
+	// Create NAS API client
 	nasAPI, err := aliyunNasAPI.NewNasAPI(credentials)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create SLS API client: %w", err)
+		return nil, fmt.Errorf("failed to create NAS API client: %w", err)
 	}
 
 	return nasAPI, nil

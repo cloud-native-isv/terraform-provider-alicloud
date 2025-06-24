@@ -135,6 +135,11 @@ func resourceAliCloudNasAccessRuleCreate(d *schema.ResourceData, meta interface{
 	resourceId := nasService.buildResourceId(accessGroupName, accessRule.AccessRuleId, fileSystemType)
 	d.SetId(resourceId)
 
+	// Set the computed attributes immediately after creation to ensure state consistency
+	d.Set("access_rule_id", accessRule.AccessRuleId)
+	d.Set("rw_access_type", rwAccessType)
+	d.Set("user_access_type", userAccessType)
+
 	return resourceAliCloudNasAccessRuleRead(d, meta)
 }
 
@@ -166,11 +171,26 @@ func resourceAliCloudNasAccessRuleRead(d *schema.ResourceData, meta interface{})
 	d.Set("access_group_name", accessGroupName)
 	d.Set("access_rule_id", accessRule.AccessRuleId)
 	d.Set("source_cidr_ip", accessRule.SourceCidrIp)
-	d.Set("ipv6_source_cidr_ip", accessRule.Ipv6SourceCidrIp)
-	d.Set("rw_access_type", accessRule.RWAccessType)
-	d.Set("user_access_type", accessRule.UserAccessType)
 	d.Set("priority", int(accessRule.Priority))
 	d.Set("file_system_type", fileSystemType)
+
+	// Handle optional fields with proper defaults to prevent plan drift
+	// Set ipv6_source_cidr_ip - if empty from API, set as empty string (this is expected)
+	d.Set("ipv6_source_cidr_ip", accessRule.Ipv6SourceCidrIp)
+
+	// Set rw_access_type with default value if empty from API
+	rwAccessType := accessRule.RWAccessType
+	if rwAccessType == "" {
+		rwAccessType = "RDWR"
+	}
+	d.Set("rw_access_type", rwAccessType)
+
+	// Set user_access_type with default value if empty from API
+	userAccessType := accessRule.UserAccessType
+	if userAccessType == "" {
+		userAccessType = "no_squash"
+	}
+	d.Set("user_access_type", userAccessType)
 
 	return nil
 }

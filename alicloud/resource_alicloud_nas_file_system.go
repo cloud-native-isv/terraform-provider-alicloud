@@ -120,18 +120,22 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 						},
 						"size": {
 							Type:     schema.TypeInt,
+							Optional: true,
 						},
 						"secondary_size": {
 							Type:     schema.TypeInt,
+							Optional: true,
 						},
 						"enable_time": {
 							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
 			},
 			"region_id": {
 				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"resource_group_id": {
 				Type:     schema.TypeString,
@@ -176,6 +180,7 @@ func resourceAliCloudNasFileSystem() *schema.Resource {
 			},
 			"status": {
 				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"storage_type": {
 				Type:         schema.TypeString,
@@ -248,6 +253,8 @@ func resourceAliCloudNasFileSystemCreate(d *schema.ResourceData, meta interface{
 		fileSystem.SnapshotId = v.(string)
 	}
 
+	fileSystem.RegionId = client.RegionId
+
 	// Create file system using service layer
 	createdFileSystem, err := nasService.CreateNasFileSystem(fileSystem)
 	if err != nil {
@@ -290,11 +297,14 @@ func resourceAliCloudNasFileSystemRead(d *schema.ResourceData, meta interface{})
 	d.Set("file_system_type", fileSystem.FileSystemType)
 	d.Set("kms_key_id", fileSystem.KMSKeyId)
 	d.Set("protocol_type", fileSystem.ProtocolType)
-	d.Set("region_id", fileSystem.RegionId)
 	d.Set("resource_group_id", fileSystem.ResourceGroupId)
 	d.Set("status", fileSystem.Status)
 	d.Set("storage_type", fileSystem.StorageType)
 	d.Set("zone_id", fileSystem.ZoneId)
+
+	// Set region_id from client configuration, not from API response
+	// This ensures consistency with the provider configuration
+	d.Set("region_id", client.RegionId)
 
 	// Handle vpc_id and vswitch_id with proper state preservation
 	if fileSystem.VpcId != "" {

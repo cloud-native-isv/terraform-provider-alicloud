@@ -137,7 +137,8 @@ func resourceAliCloudNasMountTargetCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprintf("%s:%s", fileSystemId, mountTarget.MountTargetDomain))
 
-	stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{}))
+	// Wait for mount target to become active using simplified state refresh
+	stateConf := BuildStateConf([]string{"pending"}, []string{"active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{"failed", "error"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

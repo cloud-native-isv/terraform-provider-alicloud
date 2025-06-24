@@ -220,12 +220,13 @@ func resourceAliCloudNasAccessPointCreate(d *schema.ResourceData, meta interface
 	// Set resource ID
 	d.SetId(fmt.Sprint(fileSystemId, ":", accessPoint.AccessPointId))
 
-	// Wait for access point to be created
-	stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasAccessPointStateRefreshFunc(d.Id(), []string{}))
+	// Wait for access point to become active using StateRefreshFunc
+	stateConf := BuildStateConf([]string{"creating", "pending"}, []string{"active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasAccessPointStateRefreshFunc(d.Id(), []string{"failed", "error"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
+	// Finally call Read to sync complete state
 	return resourceAliCloudNasAccessPointRead(d, meta)
 }
 
