@@ -80,8 +80,7 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 	namespaceName := d.Get("namespace_name").(string)
 
 	namespace := &aliyunFlinkAPI.Namespace{
-		Name:        namespaceName,
-		WorkspaceId: workspaceId,
+		Name: namespaceName,
 	}
 
 	// Handle resource specification
@@ -163,8 +162,7 @@ func resourceAliCloudFlinkNamespaceUpdate(d *schema.ResourceData, meta interface
 
 	if d.HasChange("resource_spec") {
 		namespace := &aliyunFlinkAPI.Namespace{
-			Name:        namespaceName,
-			WorkspaceId: workspaceId,
+			Name: namespaceName,
 		}
 
 		// Handle resource specification

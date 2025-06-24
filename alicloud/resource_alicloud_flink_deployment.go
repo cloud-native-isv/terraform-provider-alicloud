@@ -66,24 +66,6 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 					},
 				},
 			},
-			// Artifact configuration (existing fields for backward compatibility)
-			"entry_class": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"jar_uri": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"jar_artifact_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-			"program_args": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			// Extended artifact configuration
 			"artifact": {
 				Type:     schema.TypeList,
@@ -559,13 +541,6 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 	if deployment.Artifact != nil {
 		// Set new artifact structure
 		d.Set("artifact", flattenArtifact(deployment.Artifact))
-
-		// Set legacy fields for backward compatibility
-		if deployment.Artifact.JarArtifact != nil {
-			d.Set("jar_uri", deployment.Artifact.JarArtifact.JarUri)
-			d.Set("entry_class", deployment.Artifact.JarArtifact.EntryClass)
-			d.Set("program_args", deployment.Artifact.JarArtifact.MainArgs)
-		}
 	}
 
 	// Set streaming resource setting using both new and legacy fields
@@ -660,8 +635,8 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		hasChanged = true
 	}
 
-	// Check for changes in artifact configuration (new or legacy)
-	if d.HasChange("artifact") || d.HasChange("jar_uri") || d.HasChange("entry_class") || d.HasChange("program_args") {
+	// Check for changes in artifact configuration (new structure only)
+	if d.HasChange("artifact") {
 		artifact, err := expandArtifact(d)
 		if err != nil {
 			return WrapError(err)
@@ -798,7 +773,7 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 
 // expandArtifact converts schema artifact to API artifact
 func expandArtifact(d *schema.ResourceData) (*aliyunFlinkAPI.Artifact, error) {
-	// Check for new artifact structure first
+	// Check for new artifact structure
 	if artifactList, ok := d.GetOk("artifact"); ok {
 		artifacts := artifactList.([]interface{})
 		if len(artifacts) > 0 {
@@ -866,23 +841,6 @@ func expandArtifact(d *schema.ResourceData) (*aliyunFlinkAPI.Artifact, error) {
 			}
 			return artifact, nil
 		}
-	}
-
-	// Fallback to legacy artifact configuration for backward compatibility
-	if jarUri, ok := d.GetOk("jar_uri"); ok {
-		artifact := &aliyunFlinkAPI.Artifact{
-			Kind: "JAR",
-			JarArtifact: &aliyunFlinkAPI.JarArtifact{
-				JarUri: jarUri.(string),
-			},
-		}
-		if entryClass, ok := d.GetOk("entry_class"); ok {
-			artifact.JarArtifact.EntryClass = entryClass.(string)
-		}
-		if mainArgs, ok := d.GetOk("program_args"); ok {
-			artifact.JarArtifact.MainArgs = mainArgs.(string)
-		}
-		return artifact, nil
 	}
 
 	return nil, nil

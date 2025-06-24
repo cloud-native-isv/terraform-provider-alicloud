@@ -8,6 +8,7 @@ import (
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
@@ -32,75 +33,432 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the namespace.",
 			},
-			"name": {
+			"job_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The name of the deployment draft.",
 			},
+			// Draft 特有参数 - 关联的部署ID
 			"deployment_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Associated deployment ID.",
+				Description: "Associated deployment ID for this draft.",
 			},
-			"artifact_uri": {
+			// 基本配置 - 与 deployment 对齐
+			"description": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The URI of the deployment artifact (e.g., JAR file in OSS).",
-			},
-			"flink_configuration": {
-				Type:        schema.TypeMap,
 				Optional:    true,
-				Description: "Map of Flink configuration properties.",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Description: "Description of the deployment draft.",
+			},
+			"engine_version": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "vvr-8.0.5-flink-1.17",
+				Description: "The Flink engine version.",
+			},
+			"execution_mode": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "STREAMING",
+				ValidateFunc: validation.StringInSlice([]string{"STREAMING", "BATCH"}, false),
+				Description:  "The execution mode for the Flink job.",
+			},
+			// 部署目标配置 - 与 deployment 对齐
+			"deployment_target": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Deployment target configuration.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "session-cluster",
+							Description: "The name of the deployment target.",
+						},
+					},
 				},
 			},
+			// Artifact 配置 - 支持两种方式：简单的 URI 和复杂的结构
+			"artifact_uri": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The URI of the deployment artifact (e.g., JAR file in OSS). Use this for simple JAR artifacts.",
+			},
+			"artifact": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Extended artifact configuration. If specified, takes precedence over artifact_uri.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"kind": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"JAR", "PYTHON", "SQLSCRIPT"}, false),
+							Description:  "The type of artifact.",
+						},
+						"jar_artifact": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: "JAR artifact configuration.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"jar_uri": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "The URI of the JAR file.",
+									},
+									"entry_class": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "The main class of the JAR.",
+									},
+									"main_args": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Main method arguments.",
+									},
+									"additional_dependencies": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        &schema.Schema{Type: schema.TypeString},
+										Description: "Additional dependencies.",
+									},
+								},
+							},
+						},
+						"python_artifact": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: "Python artifact configuration.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"python_artifact_uri": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "The URI of the Python artifact.",
+									},
+									"entry_module": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "The entry module.",
+									},
+									"main_args": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Main method arguments.",
+									},
+									"additional_dependencies": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        &schema.Schema{Type: schema.TypeString},
+										Description: "Additional dependencies.",
+									},
+									"additional_python_libraries": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        &schema.Schema{Type: schema.TypeString},
+										Description: "Additional Python libraries.",
+									},
+									"additional_python_archives": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        &schema.Schema{Type: schema.TypeString},
+										Description: "Additional Python archives.",
+									},
+								},
+							},
+						},
+						"sql_artifact": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: "SQL artifact configuration.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"sql_script": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "The SQL script content.",
+									},
+									"additional_dependencies": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										Elem:        &schema.Schema{Type: schema.TypeString},
+										Description: "Additional dependencies.",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			// 资源配置 - 保持旧的简单结构以及新的复杂结构
+			"parallelism": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     1,
+				Description: "The parallelism of the job.",
+			},
 			"job_manager_resource_spec": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "JobManager resource specification (legacy, use streaming_resource_setting instead).",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cpu": {
 							Type:        schema.TypeFloat,
-							Required:    true,
+							Optional:    true,
+							Default:     1.0,
 							Description: "CPU cores for JobManager.",
 						},
 						"memory": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
+							Default:     "1g",
 							Description: "Memory for JobManager (e.g., \"1g\").",
 						},
 					},
 				},
 			},
 			"task_manager_resource_spec": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "TaskManager resource specification (legacy, use streaming_resource_setting instead).",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cpu": {
 							Type:        schema.TypeFloat,
-							Required:    true,
+							Optional:    true,
+							Default:     2.0,
 							Description: "CPU cores for TaskManager.",
 						},
 						"memory": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
+							Default:     "2g",
 							Description: "Memory for TaskManager (e.g., \"2g\").",
 						},
 					},
 				},
 			},
-			"environment_variables": {
+			"streaming_resource_setting": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Streaming resource setting configuration.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"resource_setting_mode": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "BASIC",
+							ValidateFunc: validation.StringInSlice([]string{"BASIC", "EXPERT"}, false),
+							Description:  "Resource setting mode.",
+						},
+						"basic_resource_setting": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: "Basic resource setting.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"parallelism": {
+										Type:        schema.TypeInt,
+										Optional:    true,
+										Description: "Job parallelism.",
+									},
+									"jobmanager_resource_setting_spec": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										MaxItems:    1,
+										Description: "JobManager resource specification.",
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"cpu": {
+													Type:        schema.TypeFloat,
+													Optional:    true,
+													Description: "CPU cores.",
+												},
+												"memory": {
+													Type:        schema.TypeString,
+													Optional:    true,
+													Description: "Memory size.",
+												},
+											},
+										},
+									},
+									"taskmanager_resource_setting_spec": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										MaxItems:    1,
+										Description: "TaskManager resource specification.",
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"cpu": {
+													Type:        schema.TypeFloat,
+													Optional:    true,
+													Description: "CPU cores.",
+												},
+												"memory": {
+													Type:        schema.TypeString,
+													Optional:    true,
+													Description: "Memory size.",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"expert_resource_setting": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: "Expert resource setting.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"resource_plan": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "Resource plan configuration.",
+									},
+									"jobmanager_resource_setting_spec": {
+										Type:        schema.TypeList,
+										Optional:    true,
+										MaxItems:    1,
+										Description: "JobManager resource specification.",
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"cpu": {
+													Type:        schema.TypeFloat,
+													Optional:    true,
+													Description: "CPU cores.",
+												},
+												"memory": {
+													Type:        schema.TypeString,
+													Optional:    true,
+													Description: "Memory size.",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			// Flink 配置 - 统一命名
+			"flink_conf": {
 				Type:        schema.TypeMap,
 				Optional:    true,
-				Description: "Map of environment variables.",
+				Description: "Flink configuration properties.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
+			// 日志配置 - 与 deployment 对齐
+			"logging": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Logging configuration.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"logging_profile": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Logging profile.",
+						},
+						"log4j2_configuration_template": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Log4j2 configuration template.",
+						},
+						"log4j_loggers": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "Log4j loggers configuration.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"logger_name": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "Logger name.",
+									},
+									"logger_level": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "Logger level.",
+									},
+								},
+							},
+						},
+						"log_reserve_policy": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: "Log reserve policy.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"expiration_days": {
+										Type:        schema.TypeInt,
+										Optional:    true,
+										Description: "Log expiration days.",
+									},
+									"open_history": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Description: "Whether to open history logs.",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			// 标签配置 - 与 deployment 对齐
+			"tags": {
+				Type:        schema.TypeMap,
+				Optional:    true,
+				Description: "Resource tags.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			// Draft 特有参数 - 环境变量
+			"environment_variables": {
+				Type:        schema.TypeMap,
+				Optional:    true,
+				Description: "Environment variables for the deployment draft.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			// 保持向后兼容的旧参数名 - 标记为 Deprecated
+			"name": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Deprecated:  "Use job_name instead",
+				Description: "Deprecated: Use job_name instead. The name of the deployment draft.",
+			},
+			"flink_configuration": {
+				Type:        schema.TypeMap,
+				Optional:    true,
+				Deprecated:  "Use flink_conf instead",
+				Description: "Deprecated: Use flink_conf instead. Map of Flink configuration properties.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			// Computed 字段
 			"create_time": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -120,6 +478,31 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The ID of the deployment draft.",
+			},
+			"creator": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The creator of the deployment draft.",
+			},
+			"creator_name": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The creator name of the deployment draft.",
+			},
+			"modifier": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The modifier of the deployment draft.",
+			},
+			"modifier_name": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The modifier name of the deployment draft.",
+			},
+			"referenced_deployment_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The referenced deployment ID.",
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{

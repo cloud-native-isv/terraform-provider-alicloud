@@ -38,7 +38,7 @@ func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
 
 // Zone methods
 func (s *FlinkService) DescribeSupportedZones() ([]*aliyunFlinkAPI.ZoneInfo, error) {
-	return s.aliyunFlinkAPI.ListSupportedZones()
+	return s.aliyunFlinkAPI.ListSupportedZones(s.client.RegionId)
 }
 
 // Engine methods
