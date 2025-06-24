@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/PaesslerAG/jsonpath"
 	slsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -80,8 +79,8 @@ func (s *SlsService) ListSlsLogtailConfigs(projectName string, configNameFilter 
 	return s.aliyunSlsAPI.ListLogtailConfigs(projectName, configNameFilter)
 }
 
-// SlsLogtailConfigStateRefreshFunc returns a StateRefreshFunc for logtail config status monitoring
-func (s *SlsService) SlsLogtailConfigStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {
+// LogtailConfigStateRefreshFunc returns a StateRefreshFunc for logtail config status monitoring
+func (s *SlsService) LogtailConfigStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSlsLogtailConfig(id)
 		if err != nil {
@@ -91,11 +90,23 @@ func (s *SlsService) SlsLogtailConfigStateRefreshFunc(id string, field string, f
 			return nil, "", WrapError(err)
 		}
 
-		v, err := jsonpath.Get(field, object)
-		if err != nil {
-			return nil, "", WrapError(err)
+		// Handle strongly typed LogtailConfig object instead of using jsonpath.Get
+		var currentStatus string
+		switch field {
+		case "configName":
+			currentStatus = object.ConfigName
+		case "inputType":
+			currentStatus = object.InputType
+		case "outputType":
+			currentStatus = object.OutputType
+		case "createTime":
+			currentStatus = fmt.Sprint(object.CreateTime)
+		case "lastModifyTime":
+			currentStatus = fmt.Sprint(object.LastModifyTime)
+		default:
+			// For other fields, assume the config exists and is available
+			currentStatus = "Available"
 		}
-		currentStatus := fmt.Sprint(v)
 
 		for _, failState := range failStates {
 			if currentStatus == failState {

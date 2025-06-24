@@ -150,7 +150,7 @@ func resourceAlicloudLogtailConfigCreate(d *schema.ResourceData, meta interface{
 	}
 
 	// Use state refresh function to wait for the logtail config to be fully created and available
-	stateConf := BuildStateConf([]string{"Creating"}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.SlsLogtailConfigStateRefreshFunc(resourceId, "configName", []string{"Failed"}))
+	stateConf := BuildStateConf([]string{""}, []string{config.ConfigName}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.LogtailConfigStateRefreshFunc(resourceId, "configName", []string{"Failed"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, resourceId)
 	}
