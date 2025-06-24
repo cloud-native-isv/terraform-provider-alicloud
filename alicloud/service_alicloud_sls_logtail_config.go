@@ -10,15 +10,15 @@ import (
 )
 
 // DescribeSlsLogtailConfig retrieves logtail configuration details
-func (s *SlsService) DescribeSlsLogtailConfig(id string) (object map[string]interface{}, err error) {
+func (s *SlsService) DescribeSlsLogtailConfig(id string) (*slsAPI.LogtailConfig, error) {
 	if s.aliyunSlsAPI == nil {
 		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
 	}
 
 	parts := strings.Split(id, ":")
 	if len(parts) != 3 {
-		err = WrapError(fmt.Errorf("invalid Resource Id %s. Expected parts' length %d, got %d", id, 3, len(parts)))
-		return
+		err := WrapError(fmt.Errorf("invalid Resource Id %s. Expected parts' length %d, got %d", id, 3, len(parts)))
+		return nil, err
 	}
 
 	projectName := parts[0]
@@ -28,28 +28,12 @@ func (s *SlsService) DescribeSlsLogtailConfig(id string) (object map[string]inte
 	config, err := s.aliyunSlsAPI.GetLogtailConfig(projectName, configName)
 	if err != nil {
 		if strings.Contains(err.Error(), "ConfigNotExist") || strings.Contains(err.Error(), "config not found") {
-			return object, WrapErrorf(NotFoundErr("LogtailConfig", id), NotFoundMsg, "")
+			return nil, WrapErrorf(NotFoundErr("LogtailConfig", id), NotFoundMsg, "")
 		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetLogtailConfig", AlibabaCloudSdkGoERROR)
+		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetLogtailConfig", AlibabaCloudSdkGoERROR)
 	}
 
-	// Convert LogtailConfig to map for compatibility with existing Terraform schema
-	result := make(map[string]interface{})
-	result["configName"] = config.ConfigName
-	result["inputType"] = config.InputType
-	result["inputDetail"] = config.InputDetail
-	result["outputType"] = config.OutputType
-	result["outputDetail"] = config.OutputDetail
-	result["logSample"] = config.LogSample
-	result["createTime"] = config.CreateTime
-	result["lastModifyTime"] = config.LastModifyTime
-
-	// Extract logstore name from output detail for backward compatibility
-	if config.OutputDetail != nil {
-		result["logstoreName"] = config.OutputDetail.LogstoreName
-	}
-
-	return result, nil
+	return config, nil
 }
 
 // CreateSlsLogtailConfig creates a new logtail configuration

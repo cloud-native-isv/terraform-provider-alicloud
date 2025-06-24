@@ -57,8 +57,7 @@ func resourceAlicloudLogtailConfig() *schema.Resource {
 			},
 			"output_type": {
 				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"LogService"}, false),
 			},
 			"input_detail": {
@@ -72,7 +71,7 @@ func resourceAlicloudLogtailConfig() *schema.Resource {
 			},
 			"output_detail": {
 				Type:     schema.TypeMap,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -124,6 +123,10 @@ func resourceAlicloudLogtailConfigCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "ValidateConfig", AlibabaCloudSdkGoERROR)
 	}
 
+	// Set resource ID before creation
+	resourceId := fmt.Sprintf("%s%s%s%s%s", projectName, COLON_SEPARATED, "config", COLON_SEPARATED, configName)
+	d.SetId(resourceId)
+
 	// Create logtail config with retry logic to handle ConfigAlreadyExist error
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		err := slsService.CreateSlsLogtailConfig(projectName, config)
@@ -131,7 +134,6 @@ func resourceAlicloudLogtailConfigCreate(d *schema.ResourceData, meta interface{
 			// Handle ConfigAlreadyExist error by importing existing resource
 			if IsExpectedErrors(err, []string{"ConfigAlreadyExist"}) {
 				log.Printf("[INFO] LogtailConfig %s already exists, importing existing resource", configName)
-				d.SetId(fmt.Sprintf("%s%s%s%s%s", projectName, COLON_SEPARATED, "config", COLON_SEPARATED, configName))
 				return nil
 			}
 			if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
@@ -147,11 +149,13 @@ func resourceAlicloudLogtailConfigCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "CreateLogtailConfig", AlibabaCloudSdkGoERROR)
 	}
 
-	// Set ID if not already set (for new resources)
-	if d.Id() == "" {
-		d.SetId(fmt.Sprintf("%s%s%s%s%s", projectName, COLON_SEPARATED, "config", COLON_SEPARATED, configName))
+	// Use state refresh function to wait for the logtail config to be fully created and available
+	stateConf := BuildStateConf([]string{"Creating"}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.SlsLogtailConfigStateRefreshFunc(resourceId, "configName", []string{"Failed"}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, resourceId)
 	}
 
+	// Read the resource state to ensure all fields including output_detail are properly set
 	return resourceAlicloudLogtailConfigRead(d, meta)
 }
 
@@ -177,30 +181,34 @@ func resourceAlicloudLogtailConfigRead(d *schema.ResourceData, meta interface{})
 	}
 
 	d.Set("project", parts[0])
-	d.Set("name", object["configName"])
-	d.Set("input_type", object["inputType"])
-	d.Set("output_type", object["outputType"])
-	d.Set("log_sample", object["logSample"])
-	d.Set("create_time", object["createTime"])
-	d.Set("last_modify_time", object["lastModifyTime"])
+	d.Set("name", object.ConfigName)
+	d.Set("input_type", object.InputType)
+	d.Set("output_type", object.OutputType)
+	d.Set("log_sample", object.LogSample)
+	d.Set("create_time", object.CreateTime)
+	d.Set("last_modify_time", object.LastModifyTime)
 
 	// Set logstore from output detail
-	if v, ok := object["logstoreName"]; ok {
-		d.Set("logstore", v)
+	if object.OutputDetail != nil {
+		d.Set("logstore", object.OutputDetail.LogstoreName)
 	}
 
 	// Convert input detail to JSON string
-	if inputDetail, ok := object["inputDetail"]; ok {
-		inputDetailBytes, err := json.Marshal(inputDetail)
+	if object.InputDetail != nil {
+		inputDetailBytes, err := json.Marshal(object.InputDetail)
 		if err != nil {
 			return WrapError(err)
 		}
 		d.Set("input_detail", string(inputDetailBytes))
 	}
 
-	// Set output detail
-	if outputDetail, ok := object["outputDetail"]; ok {
-		d.Set("output_detail", outputDetail)
+	// Set output detail as map for schema compatibility
+	if object.OutputDetail != nil {
+		outputDetailMap := map[string]string{
+			"endpoint":     object.OutputDetail.Endpoint,
+			"logstoreName": object.OutputDetail.LogstoreName,
+		}
+		d.Set("output_detail", outputDetailMap)
 	}
 
 	return nil
