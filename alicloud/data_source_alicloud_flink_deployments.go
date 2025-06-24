@@ -1,27 +1,45 @@
 package alicloud
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func dataSourceAlicloudFlinkDeployments() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAlicloudFlinkDeploymentsRead,
 		Schema: map[string]*schema.Schema{
+			"workspace_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"namespace_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 			"ids": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				ForceNew: true,
 				Computed: true,
 			},
 			"names": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				ForceNew: true,
 				Computed: true,
+			},
+			"output_file": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"deployments": {
 				Type:     schema.TypeList,
@@ -32,7 +50,19 @@ func dataSourceAlicloudFlinkDeployments() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"deployment_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"namespace": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"workspace_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -40,7 +70,42 @@ func dataSourceAlicloudFlinkDeployments() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						// Add other fields as needed
+						"job_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"engine_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"execution_mode": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"creator": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"creator_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"modifier": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"modifier_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"create_time": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"modified_time": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -55,72 +120,95 @@ func dataSourceAlicloudFlinkDeploymentsRead(d *schema.ResourceData, meta interfa
 		return WrapError(err)
 	}
 
-	namespaceName := d.Get("namespace").(string)
+	workspaceId := d.Get("workspace_id").(string)
+	namespaceName := d.Get("namespace_name").(string)
 
+	// Get all deployments
 	deployments, err := flinkService.ListDeployments(namespaceName)
 	if err != nil {
-		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_flink_deployments", "ListDeployments", AliyunLogGoSdkERROR)
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_flink_deployments", "ListDeployments", AlibabaCloudSdkGoERROR)
 	}
 
-	var ids []string
-	var objects []map[string]interface{}
+	// Filter results if ids or names are provided
+	idsMap := make(map[string]string)
+	if v, ok := d.GetOk("ids"); ok {
+		for _, vv := range v.([]interface{}) {
+			if vv == nil {
+				continue
+			}
+			idsMap[vv.(string)] = vv.(string)
+		}
+	}
 
-	for _, item := range deployments {
-		object := map[string]interface{}{
-			"deployment_id":  item.DeploymentId,
-			"name":           item.Name,
-			"description":    item.Description,
-			"status":         item.Status,
-			"engine_version": item.EngineVersion,
-			"execution_mode": item.ExecutionMode,
-			"create_time":    item.CreateTime,
-			"modified_time":  item.ModifiedTime,
+	namesMap := make(map[string]string)
+	if v, ok := d.GetOk("names"); ok {
+		for _, vv := range v.([]interface{}) {
+			if vv == nil {
+				continue
+			}
+			namesMap[vv.(string)] = vv.(string)
+		}
+	}
+
+	var deploymentMaps []map[string]interface{}
+	var filteredIds []string
+	var filteredNames []string
+
+	for _, deployment := range deployments {
+		deploymentId := fmt.Sprintf("%s:%s", namespaceName, deployment.DeploymentId)
+
+		// Apply filters
+		if len(idsMap) > 0 {
+			if _, ok := idsMap[deploymentId]; !ok {
+				continue
+			}
 		}
 
-		// Add artifact information if available
-		if item.Artifact != nil {
-			artifactInfo := map[string]interface{}{
-				"kind": item.Artifact.Kind,
+		if len(namesMap) > 0 {
+			if _, ok := namesMap[deployment.Name]; !ok {
+				continue
 			}
-
-			// Handle different artifact types
-			switch item.Artifact.Kind {
-			case "JAR":
-				if item.Artifact.JarArtifact != nil {
-					artifactInfo["jar_uri"] = item.Artifact.JarArtifact.JarUri
-					artifactInfo["entry_class"] = item.Artifact.JarArtifact.EntryClass
-					artifactInfo["main_args"] = item.Artifact.JarArtifact.MainArgs
-				}
-			case "PYTHON":
-				if item.Artifact.PythonArtifact != nil {
-					artifactInfo["python_artifact_uri"] = item.Artifact.PythonArtifact.PythonArtifactUri
-					artifactInfo["entry_module"] = item.Artifact.PythonArtifact.EntryModule
-					artifactInfo["main_args"] = item.Artifact.PythonArtifact.MainArgs
-				}
-			case "SQLSCRIPT":
-				if item.Artifact.SqlArtifact != nil {
-					artifactInfo["sql_script"] = item.Artifact.SqlArtifact.SqlScript
-				}
-			}
-
-			object["artifact"] = []map[string]interface{}{artifactInfo}
 		}
 
-		objects = append(objects, object)
-		ids = append(ids, item.DeploymentId)
+		deploymentMap := map[string]interface{}{
+			"id":             deploymentId,
+			"deployment_id":  deployment.DeploymentId,
+			"name":           deployment.Name,
+			"namespace":      deployment.Namespace,
+			"workspace_id":   workspaceId,
+			"status":         deployment.Status,
+			"job_id":         deployment.JobID,
+			"engine_version": deployment.EngineVersion,
+			"execution_mode": deployment.ExecutionMode,
+			"creator":        deployment.Creator,
+			"creator_name":   deployment.CreatorName,
+			"modifier":       deployment.Modifier,
+			"modifier_name":  deployment.ModifierName,
+			"create_time":    deployment.CreatedAt,
+			"modified_time":  deployment.ModifiedAt,
+		}
+
+		deploymentMaps = append(deploymentMaps, deploymentMap)
+		filteredIds = append(filteredIds, deploymentId)
+		filteredNames = append(filteredNames, deployment.Name)
 	}
 
-	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("deployments", objects); err != nil {
+	d.SetId(fmt.Sprintf("%s:%s:%d", workspaceId, namespaceName, time.Now().Unix()))
+
+	if err := d.Set("ids", filteredIds); err != nil {
 		return WrapError(err)
 	}
-	if err := d.Set("ids", ids); err != nil {
+	if err := d.Set("names", filteredNames); err != nil {
+		return WrapError(err)
+	}
+	if err := d.Set("deployments", deploymentMaps); err != nil {
 		return WrapError(err)
 	}
 
-	// output
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), objects)
+		if err := writeToFile(output.(string), deploymentMaps); err != nil {
+			return WrapError(err)
+		}
 	}
 
 	return nil

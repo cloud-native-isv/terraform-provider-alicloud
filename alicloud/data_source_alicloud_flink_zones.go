@@ -1,34 +1,26 @@
 package alicloud
 
 import (
-	"sort"
+	"fmt"
+	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func dataSourceAlicloudFlinkZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAliCloudFlinkZonesRead,
-
+		Read: dataSourceAlicloudFlinkZonesRead,
 		Schema: map[string]*schema.Schema{
-			"architecture_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Description:  "The architecture type of Flink instances.",
-				ValidateFunc: validation.StringInSlice([]string{"X86", "ARM"}, true),
-				ForceNew:     true,
-				Default:      "X86",
+			"ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Computed: true,
 			},
 			"output_file": {
 				Type:     schema.TypeString,
 				Optional: true,
-			},
-			"ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"zones": {
 				Type:     schema.TypeList,
@@ -39,6 +31,18 @@ func dataSourceAlicloudFlinkZones() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"zone_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"zone_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"deprecated": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -46,50 +50,65 @@ func dataSourceAlicloudFlinkZones() *schema.Resource {
 	}
 }
 
-func dataSourceAliCloudFlinkZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAlicloudFlinkZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	response, err := flinkService.DescribeSupportedZones()
+	// Get all supported zones
+	zones, err := flinkService.DescribeSupportedZones()
 	if err != nil {
-		return WrapError(err)
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_flink_zones", "DescribeSupportedZones", AlibabaCloudSdkGoERROR)
 	}
 
-	var ids []string
-	var zoneList []map[string]interface{}
-
-	if response != nil {
-		// Extract zone IDs and sort them
-		var zoneIds []string
-		for _, zone := range response {
-			if zone != nil && zone.ZoneID != "" {
-				zoneIds = append(zoneIds, zone.ZoneID)
+	// Filter results if ids are provided
+	idsMap := make(map[string]string)
+	if v, ok := d.GetOk("ids"); ok {
+		for _, vv := range v.([]interface{}) {
+			if vv == nil {
+				continue
 			}
-		}
-		sort.Strings(zoneIds)
-
-		for _, zoneId := range zoneIds {
-			ids = append(ids, zoneId)
-			zone := map[string]interface{}{
-				"id": zoneId,
-			}
-			zoneList = append(zoneList, zone)
+			idsMap[vv.(string)] = vv.(string)
 		}
 	}
 
-	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("ids", ids); err != nil {
+	var zoneMaps []map[string]interface{}
+	var filteredIds []string
+
+	for _, zone := range zones {
+		// Apply filters
+		if len(idsMap) > 0 {
+			if _, ok := idsMap[zone.ZoneID]; !ok {
+				continue
+			}
+		}
+
+		zoneMap := map[string]interface{}{
+			"id":         zone.ZoneID,
+			"zone_id":    zone.ZoneID,
+			"zone_name":  zone.ZoneName,
+			"deprecated": zone.Deprecated,
+		}
+
+		zoneMaps = append(zoneMaps, zoneMap)
+		filteredIds = append(filteredIds, zone.ZoneID)
+	}
+
+	d.SetId(fmt.Sprintf("flink_zones_%d", time.Now().Unix()))
+
+	if err := d.Set("ids", filteredIds); err != nil {
 		return WrapError(err)
 	}
-	if err := d.Set("zones", zoneList); err != nil {
+	if err := d.Set("zones", zoneMaps); err != nil {
 		return WrapError(err)
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), zoneList)
+		if err := writeToFile(output.(string), zoneMaps); err != nil {
+			return WrapError(err)
+		}
 	}
 
 	return nil

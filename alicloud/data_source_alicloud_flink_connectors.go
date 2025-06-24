@@ -2,7 +2,7 @@ package alicloud
 
 import (
 	"fmt"
-	"regexp"
+	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -16,40 +16,32 @@ func dataSourceAlicloudFlinkConnectors() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"namespace_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"name_regex": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.ValidateRegexp,
-			},
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"type": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"ids": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Elem:     &schema.Schema{Type: schema.TypeString},
 				Computed: true,
 			},
 			"names": {
 				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+			},
+			"output_file": {
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"connectors": {
 				Type:     schema.TypeList,
@@ -68,42 +60,12 @@ func dataSourceAlicloudFlinkConnectors() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"properties": {
-							Type:     schema.TypeList,
+						"jar_url": {
+							Type:     schema.TypeString,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"key": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"value": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"description": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
 						},
-						"dependencies": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"supported_formats": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"lookup": {
-							Type:     schema.TypeBool,
+						"description": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"source": {
@@ -114,21 +76,19 @@ func dataSourceAlicloudFlinkConnectors() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"creator": {
-							Type:     schema.TypeString,
+						"lookup": {
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"creator_name": {
-							Type:     schema.TypeString,
+						"supported_formats": {
+							Type:     schema.TypeList,
 							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
-						"modifier": {
-							Type:     schema.TypeString,
+						"dependencies": {
+							Type:     schema.TypeList,
 							Computed: true,
-						},
-						"modifier_name": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
@@ -147,79 +107,87 @@ func dataSourceAlicloudFlinkConnectorsRead(d *schema.ResourceData, meta interfac
 	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
 
-	response, err := flinkService.ListCustomConnectors(workspaceId, namespaceName)
+	// Get all connectors
+	connectors, err := flinkService.ListCustomConnectors(workspaceId, namespaceName)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_connectors", "ListCustomConnectors", AliyunLogGoSdkERROR)
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_flink_connectors", "ListCustomConnectors", AlibabaCloudSdkGoERROR)
 	}
 
-	if response == nil {
-		return WrapErrorf(fmt.Errorf("empty response"), DefaultErrorMsg, "alicloud_flink_connectors", "ListCustomConnectors", AliyunLogGoSdkERROR)
+	// Filter results if ids or names are provided
+	idsMap := make(map[string]string)
+	if v, ok := d.GetOk("ids"); ok {
+		for _, vv := range v.([]interface{}) {
+			if vv == nil {
+				continue
+			}
+			idsMap[vv.(string)] = vv.(string)
+		}
 	}
 
-	var filteredConnectorIds []string
-	var filteredConnectorNames []string
-	var filteredConnectors []map[string]interface{}
-
-	nameRegex, nameRegexOk := d.GetOk("name_regex")
-	var r *regexp.Regexp
-	if nameRegexOk {
-		r = regexp.MustCompile(nameRegex.(string))
+	namesMap := make(map[string]string)
+	if v, ok := d.GetOk("names"); ok {
+		for _, vv := range v.([]interface{}) {
+			if vv == nil {
+				continue
+			}
+			namesMap[vv.(string)] = vv.(string)
+		}
 	}
 
-	connectorType := d.Get("type").(string)
+	var connectorMaps []map[string]interface{}
+	var filteredIds []string
+	var filteredNames []string
 
-	for _, connector := range response {
-		if connector.Name == "" {
-			continue
+	for _, connector := range connectors {
+		connectorId := fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, connector.Name)
+
+		// Apply filters
+		if len(idsMap) > 0 {
+			if _, ok := idsMap[connectorId]; !ok {
+				continue
+			}
 		}
 
-		// Apply name_regex filter if set
-		if nameRegexOk && !r.MatchString(connector.Name) {
-			continue
+		if len(namesMap) > 0 {
+			if _, ok := namesMap[connector.Name]; !ok {
+				continue
+			}
 		}
 
-		// Apply type filter if set
-		if connectorType != "" && connector.Type != connectorType {
-			continue
+		connectorMap := map[string]interface{}{
+			"id":                connectorId,
+			"name":              connector.Name,
+			"type":              connector.Type,
+			"jar_url":           connector.JarUrl,
+			"description":       connector.Description,
+			"source":            connector.Source,
+			"sink":              connector.Sink,
+			"lookup":            connector.Lookup,
+			"supported_formats": connector.SupportedFormats,
+			"dependencies":      connector.Dependencies,
 		}
 
-		mapping := map[string]interface{}{
-			"id":   fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, connector.Name),
-			"name": connector.Name,
-			"type": connector.Type,
-		}
-
-		if connector.Creator != "" {
-			mapping["creator"] = connector.Creator
-		}
-
-		if connector.Description != "" {
-			mapping["description"] = connector.Description
-		}
-
-		// Handle dependencies
-		if connector.Dependencies != nil && len(connector.Dependencies) > 0 {
-			mapping["dependencies"] = connector.Dependencies
-		}
-
-		filteredConnectorIds = append(filteredConnectorIds, mapping["id"].(string))
-		filteredConnectorNames = append(filteredConnectorNames, mapping["name"].(string))
-		filteredConnectors = append(filteredConnectors, mapping)
+		connectorMaps = append(connectorMaps, connectorMap)
+		filteredIds = append(filteredIds, connectorId)
+		filteredNames = append(filteredNames, connector.Name)
 	}
 
-	d.SetId(dataResourceIdHash(filteredConnectorIds))
-	if err := d.Set("ids", filteredConnectorIds); err != nil {
+	d.SetId(fmt.Sprintf("%s:%s:%d", workspaceId, namespaceName, time.Now().Unix()))
+
+	if err := d.Set("ids", filteredIds); err != nil {
 		return WrapError(err)
 	}
-	if err := d.Set("names", filteredConnectorNames); err != nil {
+	if err := d.Set("names", filteredNames); err != nil {
 		return WrapError(err)
 	}
-	if err := d.Set("connectors", filteredConnectors); err != nil {
+	if err := d.Set("connectors", connectorMaps); err != nil {
 		return WrapError(err)
 	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), filteredConnectors)
+		if err := writeToFile(output.(string), connectorMaps); err != nil {
+			return WrapError(err)
+		}
 	}
 
 	return nil

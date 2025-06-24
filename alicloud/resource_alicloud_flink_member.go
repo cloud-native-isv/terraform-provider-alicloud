@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -58,14 +59,14 @@ func resourceAliCloudFlinkMemberCreate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	role := d.Get("role").(string)
 
-	// Create a request map for the service method
-	memberData := map[string]interface{}{
-		"member": name,
-		"role":   role,
+	// Create a Member struct for the service method
+	member := &aliyunFlinkAPI.Member{
+		Member: name,
+		Role:   role,
 	}
 
-	// Pass workspaceId, namespaceName and request to the service method
-	_, err = flinkService.CreateMember(workspaceId, namespaceName, memberData)
+	// Pass workspaceId, namespaceName and Member struct to the service method
+	_, err = flinkService.CreateMember(workspaceId, namespaceName, member)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -115,7 +116,7 @@ func resourceAliCloudFlinkMemberRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("workspace_id", workspaceId)
 		d.Set("namespace_name", namespaceName)
 		d.Set("name", name)
-		d.Set("role", response["role"])
+		d.Set("role", response.Role)
 	}
 
 	return nil
@@ -133,14 +134,14 @@ func resourceAliCloudFlinkMemberUpdate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	role := d.Get("role").(string)
 
-	// Create a map with the member data
-	memberData := map[string]interface{}{
-		"member": name,
-		"role":   role,
+	// Create a Member struct for the service method
+	member := &aliyunFlinkAPI.Member{
+		Member: name,
+		Role:   role,
 	}
 
-	// Pass workspaceId, namespaceName and map to the service method
-	_, err = flinkService.UpdateMember(workspaceId, namespaceName, memberData)
+	// Pass workspaceId, namespaceName and Member struct to the service method
+	_, err = flinkService.UpdateMember(workspaceId, namespaceName, member)
 	if err != nil {
 		return WrapError(err)
 	}

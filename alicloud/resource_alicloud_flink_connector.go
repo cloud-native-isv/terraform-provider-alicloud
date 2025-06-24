@@ -2,15 +2,17 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-// resourceAliCloudFlinkConnector provides the resource implementation for Alibaba Cloud Flink connector
 func resourceAliCloudFlinkConnector() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudFlinkConnectorCreate,
@@ -20,98 +22,70 @@ func resourceAliCloudFlinkConnector() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"namespace_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"connector_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"connector_type": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"jar_url": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"description": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"properties": {
-				Type:     schema.TypeList,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"value": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"description": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
 			},
-			"dependencies": {
-				Type:     schema.TypeList,
+			"source": {
+				Type:     schema.TypeBool,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Default:  false,
 			},
-			"supported_formats": {
-				Type:     schema.TypeList,
+			"sink": {
+				Type:     schema.TypeBool,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Default:  false,
 			},
 			"lookup": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"source": {
-				Type:     schema.TypeBool,
+			"supported_formats": {
+				Type:     schema.TypeList,
 				Optional: true,
-				Default:  true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"sink": {
-				Type:     schema.TypeBool,
+			"dependencies": {
+				Type:     schema.TypeList,
 				Optional: true,
-				Default:  true,
-			},
-			"creator": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"creator_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"modifier": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"modifier_name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(20 * time.Minute),
-			Update: schema.DefaultTimeout(20 * time.Minute),
-			Delete: schema.DefaultTimeout(20 * time.Minute),
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 	}
 }
@@ -125,83 +99,48 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 
 	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
-	name := d.Get("name").(string)
-	connectorType := d.Get("type").(string)
+	connectorName := d.Get("connector_name").(string)
 
 	connector := &aliyunFlinkAPI.Connector{
-		Name: name,
-		Type: connectorType,
-	}
-
-	// Handle properties
-	if properties, ok := d.GetOk("properties"); ok {
-		propertyList := properties.([]interface{})
-		connector.Properties = make([]*aliyunFlinkAPI.Property, len(propertyList))
-		for i, prop := range propertyList {
-			propMap := prop.(map[string]interface{})
-			connector.Properties[i] = &aliyunFlinkAPI.Property{
-				Key:         propMap["key"].(string),
-				Description: propMap["description"].(string),
-			}
-		}
-	}
-
-	// Handle dependencies
-	if dependencies, ok := d.GetOk("dependencies"); ok {
-		depList := dependencies.([]interface{})
-		connector.Dependencies = make([]string, len(depList))
-		for i, dep := range depList {
-			connector.Dependencies[i] = dep.(string)
-		}
+		Name:        connectorName,
+		Type:        d.Get("connector_type").(string),
+		JarUrl:      d.Get("jar_url").(string),
+		Description: d.Get("description").(string),
+		Source:      d.Get("source").(bool),
+		Sink:        d.Get("sink").(bool),
+		Lookup:      d.Get("lookup").(bool),
 	}
 
 	// Handle supported formats
-	if supportedFormats, ok := d.GetOk("supported_formats"); ok {
-		formatList := supportedFormats.([]interface{})
-		connector.SupportedFormats = make([]string, len(formatList))
-		for i, format := range formatList {
+	if supportedFormats := d.Get("supported_formats").([]interface{}); len(supportedFormats) > 0 {
+		connector.SupportedFormats = make([]string, len(supportedFormats))
+		for i, format := range supportedFormats {
 			connector.SupportedFormats[i] = format.(string)
 		}
 	}
 
-	// Handle flags
-	connector.Lookup = d.Get("lookup").(bool)
-	connector.Source = d.Get("source").(bool)
-	connector.Sink = d.Get("sink").(bool)
-
-	// Register connector
-	var response *aliyunFlinkAPI.Connector
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		resp, err := flinkService.RegisterCustomConnector(workspaceId, namespaceName, connector)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
-				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
+	// Handle dependencies
+	if dependencies := d.Get("dependencies").([]interface{}); len(dependencies) > 0 {
+		connector.Dependencies = make([]string, len(dependencies))
+		for i, dep := range dependencies {
+			connector.Dependencies[i] = dep.(string)
 		}
-		response = resp
-		return nil
-	})
+	}
 
+	// Create connector
+	_, err = flinkService.RegisterCustomConnector(workspaceId, namespaceName, connector)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_connector", "RegisterCustomConnector", AlibabaCloudSdkGoERROR)
 	}
 
-	if response == nil || response.Name == "" {
-		return WrapError(Error("Failed to get connector name from response"))
-	}
+	d.SetId(workspaceId + ":" + namespaceName + ":" + connectorName)
 
-	// Set composite ID: workspace:namespace:connector_name
-	d.SetId(workspaceId + ":" + namespaceName + ":" + response.Name)
-
-	// Wait for connector registration to complete using StateRefreshFunc
-	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkConnectorStateRefreshFunc(workspaceId, namespaceName, response.Name, []string{}))
+	// Wait for connector to be available
+	stateConf := BuildStateConf([]string{"CREATING"}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkConnectorStateRefreshFunc(workspaceId, namespaceName, connectorName, []string{"FAILED"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	// 最后调用Read同步状态
 	return resourceAliCloudFlinkConnectorRead(d, meta)
 }
 
@@ -212,19 +151,15 @@ func resourceAliCloudFlinkConnectorRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	// Parse resource ID
-	parts, err := ParseResourceId(d.Id(), 3)
+	workspaceId, namespaceName, connectorName, err := parseConnectorResourceId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
-	workspaceId := parts[0]
-	namespaceName := parts[1]
-	name := parts[2]
-
-	connector, err := flinkService.GetConnector(workspaceId, namespaceName, name)
+	connector, err := flinkService.GetConnector(workspaceId, namespaceName, connectorName)
 	if err != nil {
-		if NotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
+			log.Printf("[DEBUG] Resource alicloud_flink_connector GetConnector Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
@@ -233,15 +168,15 @@ func resourceAliCloudFlinkConnectorRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("workspace_id", workspaceId)
 	d.Set("namespace_name", namespaceName)
-	d.Set("name", name)
-	d.Set("type", connector.Type)
-	d.Set("creator", connector.Creator)
+	d.Set("connector_name", connector.Name)
+	d.Set("connector_type", connector.Type)
+	d.Set("jar_url", connector.JarUrl)
 	d.Set("description", connector.Description)
-
-	// Set dependencies
-	if connector.Dependencies != nil && len(connector.Dependencies) > 0 {
-		d.Set("dependencies", connector.Dependencies)
-	}
+	d.Set("source", connector.Source)
+	d.Set("sink", connector.Sink)
+	d.Set("lookup", connector.Lookup)
+	d.Set("supported_formats", connector.SupportedFormats)
+	d.Set("dependencies", connector.Dependencies)
 
 	return nil
 }
@@ -253,75 +188,74 @@ func resourceAliCloudFlinkConnectorUpdate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	// Parse resource ID
-	parts, err := ParseResourceId(d.Id(), 3)
+	workspaceId, namespaceName, connectorName, err := parseConnectorResourceId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
-	workspaceId := parts[0]
-	namespaceName := parts[1]
-	name := parts[2]
-
-	d.Partial(true)
-
-	// Determine if any updateable fields have changed
-	updateConnector := false
-	if d.HasChanges("properties", "dependencies", "supported_formats", "lookup", "source", "sink") {
-		updateConnector = true
+	update := false
+	connector := &aliyunFlinkAPI.Connector{
+		Name: connectorName,
 	}
 
-	if updateConnector {
-		// First delete existing connector
-		err = flinkService.DeleteCustomConnector(workspaceId, namespaceName, name)
-		if err != nil && !NotFoundError(err) {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteCustomConnector", AliyunLogGoSdkERROR)
-		}
+	if d.HasChange("jar_url") {
+		connector.JarUrl = d.Get("jar_url").(string)
+		update = true
+	}
 
-		// Wait for deletion to complete
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			_, err := flinkService.GetConnector(workspaceId, namespaceName, name)
-			if err != nil {
-				if NotFoundError(err) {
-					return nil
-				}
-				return resource.NonRetryableError(WrapError(err))
+	if d.HasChange("description") {
+		connector.Description = d.Get("description").(string)
+		update = true
+	}
+
+	if d.HasChange("source") {
+		connector.Source = d.Get("source").(bool)
+		update = true
+	}
+
+	if d.HasChange("sink") {
+		connector.Sink = d.Get("sink").(bool)
+		update = true
+	}
+
+	if d.HasChange("lookup") {
+		connector.Lookup = d.Get("lookup").(bool)
+		update = true
+	}
+
+	if d.HasChange("supported_formats") {
+		if supportedFormats := d.Get("supported_formats").([]interface{}); len(supportedFormats) > 0 {
+			connector.SupportedFormats = make([]string, len(supportedFormats))
+			for i, format := range supportedFormats {
+				connector.SupportedFormats[i] = format.(string)
 			}
-
-			return resource.RetryableError(WrapErrorf(
-				fmt.Errorf("Waiting for Flink connector %s to be deleted", d.Id()),
-				DefaultErrorMsg,
-				d.Id(),
-				"DeleteCustomConnector",
-				AliyunLogGoSdkERROR))
-		})
-		if err != nil {
-			return WrapError(err)
 		}
+		update = true
+	}
 
-		// Create updated connector object
-		connector := &aliyunFlinkAPI.Connector{
-			Name: name,
-			Type: d.Get("type").(string),
-		}
-
-		// Handle dependencies if provided
-		if deps, ok := d.GetOk("dependencies"); ok {
-			dependencies := make([]string, 0)
-			for _, dep := range deps.([]interface{}) {
-				dependencies = append(dependencies, dep.(string))
+	if d.HasChange("dependencies") {
+		if dependencies := d.Get("dependencies").([]interface{}); len(dependencies) > 0 {
+			connector.Dependencies = make([]string, len(dependencies))
+			for i, dep := range dependencies {
+				connector.Dependencies[i] = dep.(string)
 			}
-			connector.Dependencies = dependencies
 		}
+		update = true
+	}
 
-		// Register the connector again with updated properties
+	if update {
 		_, err := flinkService.RegisterCustomConnector(workspaceId, namespaceName, connector)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_connector", "RegisterCustomConnector", AliyunLogGoSdkERROR)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "RegisterCustomConnector", AlibabaCloudSdkGoERROR)
+		}
+
+		// Wait for update to complete
+		stateConf := BuildStateConf([]string{"MODIFYING"}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, flinkService.FlinkConnectorStateRefreshFunc(workspaceId, namespaceName, connectorName, []string{"FAILED"}))
+		if _, err := stateConf.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
 
-	d.Partial(false)
 	return resourceAliCloudFlinkConnectorRead(d, meta)
 }
 
@@ -332,38 +266,51 @@ func resourceAliCloudFlinkConnectorDelete(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	// Parse resource ID
-	parts, err := ParseResourceId(d.Id(), 3)
+	workspaceId, namespaceName, connectorName, err := parseConnectorResourceId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
-	workspaceId := parts[0]
-	namespaceName := parts[1]
-	name := parts[2]
-
-	err = flinkService.DeleteCustomConnector(workspaceId, namespaceName, name)
+	err = flinkService.DeleteCustomConnector(workspaceId, namespaceName, connectorName)
 	if err != nil {
 		if NotFoundError(err) {
 			return nil
 		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteCustomConnector", AliyunLogGoSdkERROR)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteCustomConnector", AlibabaCloudSdkGoERROR)
 	}
 
-	return WrapError(resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		_, err := flinkService.GetConnector(workspaceId, namespaceName, name)
-		if err != nil {
-			if NotFoundError(err) {
-				return nil
+	// Wait for connector to be deleted
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"DELETING"},
+		Target:  []string{""},
+		Refresh: func() (interface{}, string, error) {
+			connector, err := flinkService.GetConnector(workspaceId, namespaceName, connectorName)
+			if err != nil {
+				if NotFoundError(err) {
+					return nil, "", nil
+				}
+				return nil, "", WrapError(err)
 			}
-			return resource.NonRetryableError(WrapError(err))
-		}
+			return connector, "DELETING", nil
+		},
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
 
-		return resource.RetryableError(WrapErrorf(
-			fmt.Errorf("Alibaba Cloud Flink connector %s still exists.", d.Id()),
-			DefaultErrorMsg,
-			d.Id(),
-			"DeleteCustomConnector",
-			AliyunLogGoSdkERROR))
-	}))
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return nil
+}
+
+// Helper function to parse connector resource ID
+func parseConnectorResourceId(id string) (string, string, string, error) {
+	parts := strings.Split(id, ":")
+	if len(parts) != 3 {
+		return "", "", "", fmt.Errorf("invalid connector resource ID format: %s, expected workspace_id:namespace_name:connector_name", id)
+	}
+	return parts[0], parts[1], parts[2], nil
 }
