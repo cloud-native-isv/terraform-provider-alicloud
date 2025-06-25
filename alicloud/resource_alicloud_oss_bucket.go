@@ -595,7 +595,7 @@ func resourceAlicloudOssBucketCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAlicloudOssBucketRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossService := OssService{client}
+	ossService := NewOssServiceV2(client)
 	object, err := ossService.DescribeOssBucket(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -1733,7 +1733,7 @@ func resourceAlicloudOssBucketAccessMonitorUpdate(client *connectivity.AliyunCli
 
 func resourceAlicloudOssBucketDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossService := OssService{client}
+	ossService := NewOssServiceV2(client)
 	var requestInfo *oss.Client
 	raw, err := client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
 		requestInfo = ossClient
