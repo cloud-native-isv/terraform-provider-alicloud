@@ -9,11 +9,7 @@ import (
 
 // CreateNasFileset creates a new NAS fileset
 func (s *NasService) CreateNasFileset(fileSystemId, fileSystemPath, description string, deletionProtection bool) (*aliyunNasAPI.Fileset, error) {
-	// Use getNasAPI() method to get NAS API client
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_fileset", "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	fileset, err := nasAPI.CreateFileset(fileSystemId, fileSystemPath, description, deletionProtection)
 	if err != nil {
@@ -33,11 +29,7 @@ func (s *NasService) DescribeNasFileset(id string) (*aliyunNasAPI.Fileset, error
 	fileSystemId := parts[0]
 	fsetId := parts[1]
 
-	// Use getNasAPI() method to get NAS API client
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	fileset, err := nasAPI.GetFileset(fileSystemId, fsetId)
 	if err != nil {
@@ -52,13 +44,9 @@ func (s *NasService) DescribeNasFileset(id string) (*aliyunNasAPI.Fileset, error
 
 // UpdateNasFileset updates a NAS fileset
 func (s *NasService) UpdateNasFileset(fileSystemId, fsetId, description string, deletionProtection bool) error {
-	// Use getNasAPI() method to get NAS API client
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, fsetId, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.ModifyFileset(fileSystemId, fsetId, description, deletionProtection)
+	err := nasAPI.ModifyFileset(fileSystemId, fsetId, description, deletionProtection)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, fsetId, "ModifyFileset", AlibabaCloudSdkGoERROR)
 	}
@@ -68,13 +56,9 @@ func (s *NasService) UpdateNasFileset(fileSystemId, fsetId, description string, 
 
 // DeleteNasFileset deletes a NAS fileset
 func (s *NasService) DeleteNasFileset(fileSystemId, fsetId string) error {
-	// Use getNasAPI() method to get NAS API client
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, fsetId, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.DeleteFileset(fileSystemId, fsetId)
+	err := nasAPI.DeleteFileset(fileSystemId, fsetId)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"InvalidFileSystem.NotFound", "InvalidFileset.NotFound"}) {
 			return nil
@@ -87,11 +71,7 @@ func (s *NasService) DeleteNasFileset(fileSystemId, fsetId string) error {
 
 // ListNasFilesets lists all filesets in a file system
 func (s *NasService) ListNasFilesets(fileSystemId string) ([]aliyunNasAPI.Fileset, error) {
-	// Use getNasAPI() method to get NAS API client
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, fileSystemId, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	filesets, err := nasAPI.ListFilesets(fileSystemId)
 	if err != nil {

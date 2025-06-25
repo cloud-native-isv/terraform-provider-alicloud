@@ -10,19 +10,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-// DescribeNasAccessRule gets NAS access rule information
 func (s *NasService) DescribeNasAccessRule(id string) (*aliyunNasAPI.AccessRule, error) {
 	accessGroupName, accessRuleId, _, err := s.parseResourceId(id)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "ParseResourceId", AlibabaCloudSdkGoERROR)
 	}
 
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	// Get specific access rule by ID
 	accessRule, err := nasAPI.GetAccessRule(accessGroupName, accessRuleId)
 	if err != nil {
 		if aliyunNasAPI.IsNotFoundError(err) {
@@ -34,12 +29,8 @@ func (s *NasService) DescribeNasAccessRule(id string) (*aliyunNasAPI.AccessRule,
 	return accessRule, nil
 }
 
-// CreateNasAccessRule creates a new NAS access rule
 func (s *NasService) CreateNasAccessRule(accessGroupName, sourceCidrIp, rwAccessType, userAccessType string, priority int32, fileSystemType, ipv6SourceCidrIp string) (*aliyunNasAPI.AccessRule, error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_access_rule", "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	accessRule, err := nasAPI.CreateAccessRule(accessGroupName, sourceCidrIp, rwAccessType, userAccessType, priority, fileSystemType, ipv6SourceCidrIp)
 	if err != nil {
@@ -49,14 +40,10 @@ func (s *NasService) CreateNasAccessRule(accessGroupName, sourceCidrIp, rwAccess
 	return accessRule, nil
 }
 
-// UpdateNasAccessRule updates an existing NAS access rule
 func (s *NasService) UpdateNasAccessRule(accessGroupName, accessRuleId, sourceCidrIp, rwAccessType, userAccessType string, priority int32, fileSystemType, ipv6SourceCidrIp string) error {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, accessRuleId, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.ModifyAccessRule(accessGroupName, accessRuleId, sourceCidrIp, rwAccessType, userAccessType, priority, fileSystemType, ipv6SourceCidrIp)
+	err := nasAPI.ModifyAccessRule(accessGroupName, accessRuleId, sourceCidrIp, rwAccessType, userAccessType, priority, fileSystemType, ipv6SourceCidrIp)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, accessRuleId, "ModifyAccessRule", AlibabaCloudSdkGoERROR)
 	}
@@ -64,14 +51,10 @@ func (s *NasService) UpdateNasAccessRule(accessGroupName, accessRuleId, sourceCi
 	return nil
 }
 
-// DeleteNasAccessRule deletes a NAS access rule
 func (s *NasService) DeleteNasAccessRule(accessGroupName, accessRuleId string) error {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, accessRuleId, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.DeleteAccessRule(accessGroupName, accessRuleId)
+	err:= nasAPI.DeleteAccessRule(accessGroupName, accessRuleId)
 	if err != nil {
 		if aliyunNasAPI.IsNotFoundError(err) {
 			return nil
@@ -82,12 +65,8 @@ func (s *NasService) DeleteNasAccessRule(accessGroupName, accessRuleId string) e
 	return nil
 }
 
-// ListNasAccessRules lists all access rules for an access group
 func (s *NasService) ListNasAccessRules(accessGroupName string) ([]aliyunNasAPI.AccessRule, error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, accessGroupName, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	accessRules, err := nasAPI.ListAccessRules(accessGroupName)
 	if err != nil {
@@ -97,7 +76,6 @@ func (s *NasService) ListNasAccessRules(accessGroupName string) ([]aliyunNasAPI.
 	return accessRules, nil
 }
 
-// NasAccessRuleStateRefreshFunc returns a StateRefreshFunc for NAS access rule status
 func (s *NasService) NasAccessRuleStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		accessRule, err := s.DescribeNasAccessRule(id)
@@ -108,7 +86,6 @@ func (s *NasService) NasAccessRuleStateRefreshFunc(id string, failStates []strin
 			return nil, "", WrapError(err)
 		}
 
-		// For access rules, they are usually active once created
 		status := "Available"
 		if accessRule.AccessRuleId != "" {
 			status = "Active"
@@ -124,7 +101,6 @@ func (s *NasService) NasAccessRuleStateRefreshFunc(id string, failStates []strin
 	}
 }
 
-// WaitForNasAccessRule waits for NAS access rule to reach target status
 func (s *NasService) WaitForNasAccessRule(id string, status Status, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
@@ -150,7 +126,6 @@ func (s *NasService) WaitForNasAccessRule(id string, status Status, timeout int)
 	}
 }
 
-// Helper function to convert Terraform schema data to API create request
 func (s *NasService) buildCreateAccessRuleRequest(d *schema.ResourceData) *aliyunNasAPI.CreateAccessRuleRequest {
 	request := &aliyunNasAPI.CreateAccessRuleRequest{
 		AccessGroupName: d.Get("access_group_name").(string),
@@ -185,7 +160,6 @@ func (s *NasService) buildCreateAccessRuleRequest(d *schema.ResourceData) *aliyu
 	return request
 }
 
-// Helper function to convert Terraform schema data to API modify request
 func (s *NasService) buildModifyAccessRuleRequest(d *schema.ResourceData) *aliyunNasAPI.CreateAccessRuleRequest {
 	request := &aliyunNasAPI.CreateAccessRuleRequest{}
 
@@ -216,7 +190,6 @@ func (s *NasService) buildModifyAccessRuleRequest(d *schema.ResourceData) *aliyu
 	return request
 }
 
-// Helper function to parse resource ID
 func (s *NasService) parseResourceId(id string) (accessGroupName, accessRuleId, fileSystemType string, err error) {
 	parts := strings.Split(id, ":")
 	if len(parts) < 2 {
@@ -234,7 +207,6 @@ func (s *NasService) parseResourceId(id string) (accessGroupName, accessRuleId, 
 	return accessGroupName, accessRuleId, fileSystemType, nil
 }
 
-// Helper function to build resource ID
 func (s *NasService) buildResourceId(accessGroupName, accessRuleId, fileSystemType string) string {
 	if fileSystemType == "" || fileSystemType == "standard" {
 		return fmt.Sprintf("%s:%s", accessGroupName, accessRuleId)

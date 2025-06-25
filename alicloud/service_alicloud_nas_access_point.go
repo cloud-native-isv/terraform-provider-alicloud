@@ -19,11 +19,7 @@ func (s *NasService) DescribeNasAccessGroup(id string) (accessGroup *aliyunNasAP
 	accessGroupName := parts[0]
 	fileSystemType := parts[1]
 
-	// Use getNasAPI() method to get NAS API client
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	// List access groups and find the specific one
 	accessGroups, err := nasAPI.ListAccessGroups()
@@ -87,12 +83,8 @@ func (s *NasService) NasAccessGroupStateRefreshFunc(id string, field string, fai
 	}
 }
 
-// CreateNasAccessGroup creates a new NAS access group
 func (s *NasService) CreateNasAccessGroup(request *aliyunNasAPI.AccessGroup) (*aliyunNasAPI.AccessGroup, error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_access_group", "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	accessGroup, err := nasAPI.CreateAccessGroup(request)
 	if err != nil {
@@ -102,14 +94,10 @@ func (s *NasService) CreateNasAccessGroup(request *aliyunNasAPI.AccessGroup) (*a
 	return accessGroup, nil
 }
 
-// UpdateNasAccessGroup updates an existing NAS access group
 func (s *NasService) UpdateNasAccessGroup(accessGroupName string, request *aliyunNasAPI.AccessGroup) error {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, accessGroupName, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.ModifyAccessGroup(accessGroupName, request)
+	err := nasAPI.ModifyAccessGroup(accessGroupName, request)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, accessGroupName, "ModifyAccessGroup", AlibabaCloudSdkGoERROR)
 	}
@@ -117,14 +105,10 @@ func (s *NasService) UpdateNasAccessGroup(accessGroupName string, request *aliyu
 	return nil
 }
 
-// DeleteNasAccessGroup deletes a NAS access group
 func (s *NasService) DeleteNasAccessGroup(accessGroupName string) error {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, accessGroupName, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.DeleteAccessGroup(accessGroupName)
+	err := nasAPI.DeleteAccessGroup(accessGroupName)
 	if err != nil {
 		if aliyunNasAPI.IsNotFoundError(err) {
 			return nil
@@ -135,12 +119,8 @@ func (s *NasService) DeleteNasAccessGroup(accessGroupName string) error {
 	return nil
 }
 
-// CreateNasAccessPoint creates a new NAS access point
 func (s *NasService) CreateNasAccessPoint(fileSystemId, accessPointName, accessGroup, rootPath string, enabledRam bool, vpcId, vSwitchId string, ownerUid, ownerGid int64, permission string, posixUser *aliyunNasAPI.PosixUser) (*aliyunNasAPI.AccessPoint, error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_access_point", "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	accessPoint, err := nasAPI.CreateAccessPoint(fileSystemId, accessPointName, accessGroup, rootPath, enabledRam, vpcId, vSwitchId, ownerUid, ownerGid, permission, posixUser)
 	if err != nil {
@@ -150,14 +130,10 @@ func (s *NasService) CreateNasAccessPoint(fileSystemId, accessPointName, accessG
 	return accessPoint, nil
 }
 
-// UpdateNasAccessPoint updates an existing NAS access point
 func (s *NasService) UpdateNasAccessPoint(fileSystemId, accessPointId, accessPointName, accessGroup string, enabledRam bool) error {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, accessPointId, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.ModifyAccessPoint(fileSystemId, accessPointId, accessPointName, accessGroup, enabledRam)
+	err := nasAPI.ModifyAccessPoint(fileSystemId, accessPointId, accessPointName, accessGroup, enabledRam)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, accessPointId, "ModifyAccessPoint", AlibabaCloudSdkGoERROR)
 	}
@@ -165,14 +141,10 @@ func (s *NasService) UpdateNasAccessPoint(fileSystemId, accessPointId, accessPoi
 	return nil
 }
 
-// DeleteNasAccessPoint deletes a NAS access point
 func (s *NasService) DeleteNasAccessPoint(fileSystemId, accessPointId string) error {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, accessPointId, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.DeleteAccessPoint(fileSystemId, accessPointId)
+	err := nasAPI.DeleteAccessPoint(fileSystemId, accessPointId)
 	if err != nil {
 		if aliyunNasAPI.IsNotFoundError(err) {
 			return nil
@@ -183,7 +155,6 @@ func (s *NasService) DeleteNasAccessPoint(fileSystemId, accessPointId string) er
 	return nil
 }
 
-// NasAccessPointStateRefreshFunc returns a StateRefreshFunc for NAS access point status
 func (s *NasService) NasAccessPointStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		parts := strings.Split(id, ":")
@@ -211,15 +182,9 @@ func (s *NasService) NasAccessPointStateRefreshFunc(id string, failStates []stri
 	}
 }
 
-// DescribeNasAccessPoint gets NAS access point information
 func (s *NasService) DescribeNasAccessPoint(fileSystemId, accessPointId string) (accessPoint *aliyunNasAPI.AccessPoint, err error) {
-	// Use getNasAPI() method to get NAS API client
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, accessPointId, "getNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	// Get the specific access point
 	accessPoint, err = nasAPI.GetAccessPoint(fileSystemId, accessPointId)
 	if err != nil {
 		if aliyunNasAPI.IsNotFoundError(err) {

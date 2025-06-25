@@ -33,9 +33,7 @@ func NewNasService(client *connectivity.AliyunClient) (*NasService, error) {
 	}, nil
 }
 
-// getNasAPI creates and returns a NAS API client using CWS-Lib-Go
 func (s *NasService) getNasAPI() (*aliyunNasAPI.NasAPI, error) {
-	// Create credentials from the AliyunClient
 	credentials := &common.Credentials{
 		AccessKey:     s.client.AccessKey,
 		SecretKey:     s.client.SecretKey,
@@ -43,7 +41,6 @@ func (s *NasService) getNasAPI() (*aliyunNasAPI.NasAPI, error) {
 		SecurityToken: s.client.SecurityToken,
 	}
 
-	// Create NAS API client
 	nasAPI, err := aliyunNasAPI.NewNasAPI(credentials)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create NAS API client: %w", err)

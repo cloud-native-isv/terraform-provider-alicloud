@@ -5,14 +5,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-// EnableNasRecycleBin enables NAS recycle bin for a file system
 func (s *NasService) EnableNasRecycleBin(fileSystemId string, reservedDays int64) error {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.EnableRecycleBin(fileSystemId, reservedDays)
+	err := nasAPI.EnableRecycleBin(fileSystemId, reservedDays)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -20,14 +16,10 @@ func (s *NasService) EnableNasRecycleBin(fileSystemId string, reservedDays int64
 	return nil
 }
 
-// DisableAndCleanNasRecycleBin disables and cleans NAS recycle bin for a file system
 func (s *NasService) DisableAndCleanNasRecycleBin(fileSystemId string) error {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.DisableAndCleanRecycleBin(fileSystemId)
+	err := nasAPI.DisableAndCleanRecycleBin(fileSystemId)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -35,12 +27,8 @@ func (s *NasService) DisableAndCleanNasRecycleBin(fileSystemId string) error {
 	return nil
 }
 
-// GetNasRecycleBinAttribute gets NAS recycle bin attributes for a file system
 func (s *NasService) GetNasRecycleBinAttribute(fileSystemId string) (*aliyunNasAPI.RecycleBinAttribute, error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	attr, err := nasAPI.GetRecycleBinAttribute(fileSystemId)
 	if err != nil {
@@ -50,14 +38,10 @@ func (s *NasService) GetNasRecycleBinAttribute(fileSystemId string) (*aliyunNasA
 	return attr, nil
 }
 
-// UpdateNasRecycleBinAttribute updates NAS recycle bin attributes for a file system
 func (s *NasService) UpdateNasRecycleBinAttribute(fileSystemId string, reservedDays int64) error {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.UpdateRecycleBinAttribute(fileSystemId, reservedDays)
+	err := nasAPI.UpdateRecycleBinAttribute(fileSystemId, reservedDays)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -65,12 +49,8 @@ func (s *NasService) UpdateNasRecycleBinAttribute(fileSystemId string, reservedD
 	return nil
 }
 
-// ListNasRecycledDirectoriesAndFiles lists recycled directories and files in NAS recycle bin
 func (s *NasService) ListNasRecycledDirectoriesAndFiles(fileSystemId, nextToken, fileId string, maxResults int64) ([]aliyunNasAPI.RecycledDirectoryOrFile, string, error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, "", WrapError(err)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	entries, token, err := nasAPI.ListRecycledDirectoriesAndFiles(fileSystemId, nextToken, fileId, maxResults)
 	if err != nil {
@@ -80,12 +60,8 @@ func (s *NasService) ListNasRecycledDirectoriesAndFiles(fileSystemId, nextToken,
 	return entries, token, nil
 }
 
-// CreateNasRecycleBinRestoreJob creates a restore job for recycled files
 func (s *NasService) CreateNasRecycleBinRestoreJob(fileSystemId, fileId, targetFileId, clientToken string) (string, error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return "", WrapError(err)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	jobId, err := nasAPI.CreateRecycleBinRestoreJob(fileSystemId, fileId, targetFileId, clientToken)
 	if err != nil {
@@ -95,12 +71,8 @@ func (s *NasService) CreateNasRecycleBinRestoreJob(fileSystemId, fileId, targetF
 	return jobId, nil
 }
 
-// CreateNasRecycleBinDeleteJob creates a delete job for recycled files
 func (s *NasService) CreateNasRecycleBinDeleteJob(fileSystemId, fileId, clientToken string) (string, error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return "", WrapError(err)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	jobId, err := nasAPI.CreateRecycleBinDeleteJob(fileSystemId, fileId, clientToken)
 	if err != nil {
@@ -110,12 +82,8 @@ func (s *NasService) CreateNasRecycleBinDeleteJob(fileSystemId, fileId, clientTo
 	return jobId, nil
 }
 
-// ListNasRecycleBinJobs lists NAS recycle bin jobs
 func (s *NasService) ListNasRecycleBinJobs(fileSystemId, jobId, status string, pageNumber, pageSize int64) ([]aliyunNasAPI.RecycleBinJob, int64, error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, 0, WrapError(err)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	jobs, totalCount, err := nasAPI.ListRecycleBinJobs(fileSystemId, jobId, status, pageNumber, pageSize)
 	if err != nil {
@@ -125,12 +93,8 @@ func (s *NasService) ListNasRecycleBinJobs(fileSystemId, jobId, status string, p
 	return jobs, totalCount, nil
 }
 
-// GetNasRecycleBinJob gets details of a specific NAS recycle bin job
 func (s *NasService) GetNasRecycleBinJob(fileSystemId, jobId string) (*aliyunNasAPI.RecycleBinJob, error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	job, err := nasAPI.GetRecycleBinJob(fileSystemId, jobId)
 	if err != nil {
@@ -140,14 +104,10 @@ func (s *NasService) GetNasRecycleBinJob(fileSystemId, jobId string) (*aliyunNas
 	return job, nil
 }
 
-// CancelNasRecycleBinJob cancels a NAS recycle bin job
 func (s *NasService) CancelNasRecycleBinJob(jobId string) error {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.CancelRecycleBinJob(jobId)
+	err := nasAPI.CancelRecycleBinJob(jobId)
 	if err != nil {
 		return WrapError(err)
 	}

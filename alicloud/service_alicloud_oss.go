@@ -3,10 +3,26 @@ package alicloud
 import (
 	"strconv"
 	"time"
+	"strings"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 )
+
+type LifecycleRuleStatus string
+
+const (
+	ExpirationStatusEnabled  = LifecycleRuleStatus("Enabled")
+	ExpirationStatusDisabled = LifecycleRuleStatus("Disabled")
+)
+
+func ossNotFoundError(err error) bool {
+	if e, ok := err.(oss.ServiceError); ok &&
+		(e.StatusCode == 404 || strings.HasPrefix(e.Code, "NoSuch") || strings.HasPrefix(e.Message, "No Row found")) {
+		return true
+	}
+	return false
+}
 
 // OssService *connectivity.AliyunClient
 type OssService struct {

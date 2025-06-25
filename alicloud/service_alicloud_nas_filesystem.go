@@ -14,10 +14,7 @@ import (
 
 // DescribeNasFileSystem gets NAS file system information using CWS-Lib-Go API
 func (s *NasService) DescribeNasFileSystem(id string) (fileSystem *aliyunNasAPI.FileSystem, err error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "NewNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	fileSystem, err = nasAPI.GetFileSystem(id)
 	if err != nil {
@@ -201,10 +198,7 @@ func (s *NasService) UpgradeFileSystem(fileSystemId string, capacity int64) erro
 }
 
 func (s *NasService) CreateNasFileSystem(fileSystem *aliyunNasAPI.FileSystem) (*aliyunNasAPI.FileSystem, error) {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_file_system", "NewNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
 	// Create file system using CWS-Lib-Go API
 	createdFileSystem, err := nasAPI.CreateFileSystem(fileSystem)
@@ -216,12 +210,9 @@ func (s *NasService) CreateNasFileSystem(fileSystem *aliyunNasAPI.FileSystem) (*
 }
 
 func (s *NasService) DeleteNasFileSystem(fileSystemId string) error {
-	nasAPI, err := s.getNasAPI()
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, fileSystemId, "NewNasAPI", AlibabaCloudSdkGoERROR)
-	}
+	nasAPI := s.aliyunNasAPI
 
-	err = nasAPI.DeleteFileSystem(fileSystemId)
+	err := nasAPI.DeleteFileSystem(fileSystemId)
 	if err != nil {
 		if aliyunNasAPI.IsNotFoundError(err) {
 			return nil

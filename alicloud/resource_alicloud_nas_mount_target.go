@@ -81,13 +81,6 @@ func resourceAliCloudNasMountTargetCreate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	// Get NAS API client
-	nasAPI, err := nasService.getNasAPI()
-	if err != nil {
-		return WrapError(fmt.Errorf("failed to get NAS API client: %w", err))
-	}
-
-	// Prepare mount target object
 	mountTarget := &aliyunNasAPI.MountTarget{
 		NetworkType:     d.Get("network_type").(string),
 		AccessGroupName: d.Get("access_group_name").(string),
@@ -105,7 +98,6 @@ func resourceAliCloudNasMountTargetCreate(d *schema.ResourceData, meta interface
 		mountTarget.VSwitchId = v.(string)
 	}
 
-	// If vpc_id is not provided but vswitch_id is, get vpc_id from vswitch
 	if mountTarget.VpcId == "" && mountTarget.VSwitchId != "" {
 		vpcService := VpcService{client}
 		vsw, err := vpcService.DescribeVSwitchWithTeadsl(mountTarget.VSwitchId)
@@ -119,6 +111,10 @@ func resourceAliCloudNasMountTargetCreate(d *schema.ResourceData, meta interface
 
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		nasAPI, err := nasService.getNasAPI()
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
 		createdMountTarget, createErr := nasAPI.CreateMountTarget(fileSystemId, mountTarget)
 		if createErr != nil {
 			if NeedRetry(createErr) || IsExpectedErrors(createErr, []string{"OperationDenied.InvalidState"}) {
@@ -138,7 +134,7 @@ func resourceAliCloudNasMountTargetCreate(d *schema.ResourceData, meta interface
 	d.SetId(fmt.Sprintf("%s:%s", fileSystemId, mountTarget.MountTargetDomain))
 
 	// Wait for mount target to become active using simplified state refresh
-	stateConf := BuildStateConf([]string{"pending"}, []string{"active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{"failed", "error"}))
+	stateConf := BuildStateConf([]string{"Pending"}, []string{"Active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{"Failed", "Error"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -201,11 +197,7 @@ func resourceAliCloudNasMountTargetUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if update {
-		// Get NAS API client
-		nasAPI, err := nasService.getNasAPI()
-		if err != nil {
-			return WrapError(fmt.Errorf("failed to get NAS API client: %w", err))
-		}
+		nasAPI := nasService.aliyunNasAPI
 
 		wait := incrementalWait(3*time.Second, 5*time.Second)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
@@ -246,11 +238,7 @@ func resourceAliCloudNasMountTargetDelete(d *schema.ResourceData, meta interface
 	fileSystemId := parts[0]
 	mountTargetDomain := parts[1]
 
-	// Get NAS API client
-	nasAPI, err := nasService.getNasAPI()
-	if err != nil {
-		return WrapError(fmt.Errorf("failed to get NAS API client: %w", err))
-	}
+	nasAPI := nasService.aliyunNasAPI
 
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
