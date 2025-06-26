@@ -69,7 +69,7 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				Description: "Deployment target configuration.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"draft_name": {
+						"name": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Default:     "session-cluster",
@@ -504,7 +504,6 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	name := d.Get("draft_name").(string)
-	artifactURI := d.Get("artifact_uri").(string)
 
 	// Create deployment draft using cws-lib-go service
 	draft := &aliyunFlinkAPI.DeploymentDraft{
@@ -513,12 +512,23 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		Name:      name,
 	}
 
-	// Set artifact
-	draft.Artifact = &aliyunFlinkAPI.Artifact{
-		Kind: "JAR",
-		JarArtifact: &aliyunFlinkAPI.JarArtifact{
-			JarUri: artifactURI,
-		},
+	// Set description
+	if description, ok := d.GetOk("description"); ok {
+		draft.Description = description.(string)
+	}
+
+	// Set engine version
+	if engineVersion, ok := d.GetOk("engine_version"); ok {
+		draft.EngineVersion = engineVersion.(string)
+	} else {
+		draft.EngineVersion = "vvr-11.1-jdk11-flink-1.20" // default value
+	}
+
+	// Set execution mode
+	if executionMode, ok := d.GetOk("execution_mode"); ok {
+		draft.ExecutionMode = executionMode.(string)
+	} else {
+		draft.ExecutionMode = "STREAMING" // default value
 	}
 
 	// Set deployment ID if provided
@@ -526,36 +536,140 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		draft.ReferencedDeploymentId = deploymentId.(string)
 	}
 
+	// Handle artifact configuration
+	if artifactUri, ok := d.GetOk("artifact_uri"); ok {
+		// Simple artifact URI - create JAR artifact
+		draft.Artifact = &aliyunFlinkAPI.Artifact{
+			Kind: "JAR",
+			JarArtifact: &aliyunFlinkAPI.JarArtifact{
+				JarUri: artifactUri.(string),
+			},
+		}
+	} else if artifactConfig, ok := d.GetOk("artifact"); ok {
+		// Complex artifact configuration
+		artifactList := artifactConfig.([]interface{})
+		if len(artifactList) > 0 {
+			artifactMap := artifactList[0].(map[string]interface{})
+			artifact := &aliyunFlinkAPI.Artifact{
+				Kind: artifactMap["kind"].(string),
+			}
+
+			switch artifact.Kind {
+			case "JAR":
+				if jarArtifactList, ok := artifactMap["jar_artifact"].([]interface{}); ok && len(jarArtifactList) > 0 {
+					jarArtifactMap := jarArtifactList[0].(map[string]interface{})
+					jarArtifact := &aliyunFlinkAPI.JarArtifact{
+						JarUri: jarArtifactMap["jar_uri"].(string),
+					}
+					if entryClass, ok := jarArtifactMap["entry_class"]; ok {
+						jarArtifact.EntryClass = entryClass.(string)
+					}
+					if mainArgs, ok := jarArtifactMap["main_args"]; ok {
+						jarArtifact.MainArgs = mainArgs.(string)
+					}
+					if additionalDeps, ok := jarArtifactMap["additional_dependencies"]; ok {
+						deps := additionalDeps.([]interface{})
+						jarArtifact.AdditionalDependencies = make([]string, len(deps))
+						for i, dep := range deps {
+							jarArtifact.AdditionalDependencies[i] = dep.(string)
+						}
+					}
+					artifact.JarArtifact = jarArtifact
+				}
+			case "PYTHON":
+				if pythonArtifactList, ok := artifactMap["python_artifact"].([]interface{}); ok && len(pythonArtifactList) > 0 {
+					pythonArtifactMap := pythonArtifactList[0].(map[string]interface{})
+					pythonArtifact := &aliyunFlinkAPI.PythonArtifact{
+						PythonArtifactUri: pythonArtifactMap["python_artifact_uri"].(string),
+					}
+					if entryModule, ok := pythonArtifactMap["entry_module"]; ok {
+						pythonArtifact.EntryModule = entryModule.(string)
+					}
+					if mainArgs, ok := pythonArtifactMap["main_args"]; ok {
+						pythonArtifact.MainArgs = mainArgs.(string)
+					}
+					if additionalDeps, ok := pythonArtifactMap["additional_dependencies"]; ok {
+						deps := additionalDeps.([]interface{})
+						pythonArtifact.AdditionalDependencies = make([]string, len(deps))
+						for i, dep := range deps {
+							pythonArtifact.AdditionalDependencies[i] = dep.(string)
+						}
+					}
+					if additionalLibs, ok := pythonArtifactMap["additional_python_libraries"]; ok {
+						libs := additionalLibs.([]interface{})
+						pythonArtifact.AdditionalPythonLibraries = make([]string, len(libs))
+						for i, lib := range libs {
+							pythonArtifact.AdditionalPythonLibraries[i] = lib.(string)
+						}
+					}
+					if additionalArchives, ok := pythonArtifactMap["additional_python_archives"]; ok {
+						archives := additionalArchives.([]interface{})
+						pythonArtifact.AdditionalPythonArchives = make([]string, len(archives))
+						for i, archive := range archives {
+							pythonArtifact.AdditionalPythonArchives[i] = archive.(string)
+						}
+					}
+					artifact.PythonArtifact = pythonArtifact
+				}
+			case "SQLSCRIPT":
+				if sqlArtifactList, ok := artifactMap["sql_artifact"].([]interface{}); ok && len(sqlArtifactList) > 0 {
+					sqlArtifactMap := sqlArtifactList[0].(map[string]interface{})
+					sqlArtifact := &aliyunFlinkAPI.SqlArtifact{
+						SqlScript: sqlArtifactMap["sql_script"].(string),
+					}
+					if additionalDeps, ok := sqlArtifactMap["additional_dependencies"]; ok {
+						deps := additionalDeps.([]interface{})
+						sqlArtifact.AdditionalDependencies = make([]string, len(deps))
+						for i, dep := range deps {
+							sqlArtifact.AdditionalDependencies[i] = dep.(string)
+						}
+					}
+					artifact.SqlArtifact = sqlArtifact
+				}
+			}
+			draft.Artifact = artifact
+		}
+	}
+
 	// Handle Flink configuration
-	if flinkConf, ok := d.GetOk("flink_configuration"); ok {
+	if flinkConf, ok := d.GetOk("flink_conf"); ok {
 		draft.FlinkConf = make(map[string]string)
 		for k, v := range flinkConf.(map[string]interface{}) {
 			draft.FlinkConf[k] = v.(string)
 		}
 	}
 
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		resp, err := flinkService.CreateDeploymentDraft(workspaceId, namespaceName, draft)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
-				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
+	// Handle environment variables (stored as LocalVariables)
+	if envVars, ok := d.GetOk("environment_variables"); ok {
+		envVarMap := envVars.(map[string]interface{})
+		draft.LocalVariables = make([]*aliyunFlinkAPI.LocalVariable, 0, len(envVarMap))
+		for k, v := range envVarMap {
+			draft.LocalVariables = append(draft.LocalVariables, &aliyunFlinkAPI.LocalVariable{
+				Name:  k,
+				Value: v.(string),
+			})
 		}
-		draft = resp
-		return nil
-	})
+	}
 
+	// Handle labels/tags
+	if tags, ok := d.GetOk("tags"); ok {
+		draft.Labels = make(map[string]interface{})
+		for k, v := range tags.(map[string]interface{}) {
+			draft.Labels[k] = v.(string)
+		}
+	}
+
+	newDraft, err := flinkService.CreateDeploymentDraft(workspaceId, namespaceName, draft)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment_draft", "CreateDeploymentDraft", AlibabaCloudSdkGoERROR)
 	}
+	addDebugJson("DeploymentDraft", newDraft)
 
-	d.SetId(fmt.Sprintf("%s:%s", namespaceName, draft.Id))
-	d.Set("draft_id", draft.Id)
+	d.SetId(fmt.Sprintf("%s:%s", namespaceName, newDraft.Id))
+	d.Set("draft_id", newDraft.Id)
 
 	// Wait for deployment draft creation to complete using StateRefreshFunc
-	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceId, namespaceName, draft.Id, []string{}))
+	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceId, namespaceName, newDraft.Id, []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -595,33 +709,135 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 		return nil
 	}
 
-	// Update state with values from the draft
+	// Set basic fields
 	d.Set("namespace_name", deploymentDraft.Namespace)
 	d.Set("workspace_id", deploymentDraft.Workspace)
 	d.Set("draft_name", deploymentDraft.Name)
 	d.Set("draft_id", deploymentDraft.Id)
+	d.Set("description", deploymentDraft.Description)
+	d.Set("engine_version", deploymentDraft.EngineVersion)
+	d.Set("execution_mode", deploymentDraft.ExecutionMode)
+	d.Set("status", deploymentDraft.Status)
 
+	// Set deployment ID if present
 	if deploymentDraft.ReferencedDeploymentId != "" {
 		d.Set("deployment_id", deploymentDraft.ReferencedDeploymentId)
+		d.Set("referenced_deployment_id", deploymentDraft.ReferencedDeploymentId)
 	}
 
+	// Set creator information
+	d.Set("creator", deploymentDraft.Creator)
+	d.Set("creator_name", deploymentDraft.CreatorName)
+	d.Set("modifier", deploymentDraft.Modifier)
+	d.Set("modifier_name", deploymentDraft.ModifierName)
+
+	// Set timestamps
 	if deploymentDraft.CreatedAt > 0 {
-		// Convert from int64 to string if needed
-		createdAtStr := fmt.Sprintf("%d", deploymentDraft.CreatedAt)
-		d.Set("create_time", createdAtStr)
+		d.Set("create_time", fmt.Sprintf("%d", deploymentDraft.CreatedAt))
 	}
-
 	if deploymentDraft.ModifiedAt > 0 {
-		// Convert from int64 to string if needed
-		modifiedAtStr := fmt.Sprintf("%d", deploymentDraft.ModifiedAt)
-		d.Set("update_time", modifiedAtStr)
+		d.Set("update_time", fmt.Sprintf("%d", deploymentDraft.ModifiedAt))
 	}
 
-	// Set artifact URI
+	// Set artifact configuration
 	if deploymentDraft.Artifact != nil {
+		// Handle simple artifact URI case
 		if deploymentDraft.Artifact.JarArtifact != nil {
 			d.Set("artifact_uri", deploymentDraft.Artifact.JarArtifact.JarUri)
 		}
+
+		// Handle complex artifact configuration
+		artifactConfig := make([]map[string]interface{}, 0, 1)
+		artifactMap := map[string]interface{}{
+			"kind": deploymentDraft.Artifact.Kind,
+		}
+
+		switch deploymentDraft.Artifact.Kind {
+		case "JAR":
+			if deploymentDraft.Artifact.JarArtifact != nil {
+				jarArtifact := make([]map[string]interface{}, 0, 1)
+				jarMap := map[string]interface{}{
+					"jar_uri": deploymentDraft.Artifact.JarArtifact.JarUri,
+				}
+				if deploymentDraft.Artifact.JarArtifact.EntryClass != "" {
+					jarMap["entry_class"] = deploymentDraft.Artifact.JarArtifact.EntryClass
+				}
+				if deploymentDraft.Artifact.JarArtifact.MainArgs != "" {
+					jarMap["main_args"] = deploymentDraft.Artifact.JarArtifact.MainArgs
+				}
+				if len(deploymentDraft.Artifact.JarArtifact.AdditionalDependencies) > 0 {
+					jarMap["additional_dependencies"] = deploymentDraft.Artifact.JarArtifact.AdditionalDependencies
+				}
+				jarArtifact = append(jarArtifact, jarMap)
+				artifactMap["jar_artifact"] = jarArtifact
+			}
+		case "PYTHON":
+			if deploymentDraft.Artifact.PythonArtifact != nil {
+				pythonArtifact := make([]map[string]interface{}, 0, 1)
+				pythonMap := map[string]interface{}{
+					"python_artifact_uri": deploymentDraft.Artifact.PythonArtifact.PythonArtifactUri,
+				}
+				if deploymentDraft.Artifact.PythonArtifact.EntryModule != "" {
+					pythonMap["entry_module"] = deploymentDraft.Artifact.PythonArtifact.EntryModule
+				}
+				if deploymentDraft.Artifact.PythonArtifact.MainArgs != "" {
+					pythonMap["main_args"] = deploymentDraft.Artifact.PythonArtifact.MainArgs
+				}
+				if len(deploymentDraft.Artifact.PythonArtifact.AdditionalDependencies) > 0 {
+					pythonMap["additional_dependencies"] = deploymentDraft.Artifact.PythonArtifact.AdditionalDependencies
+				}
+				if len(deploymentDraft.Artifact.PythonArtifact.AdditionalPythonLibraries) > 0 {
+					pythonMap["additional_python_libraries"] = deploymentDraft.Artifact.PythonArtifact.AdditionalPythonLibraries
+				}
+				if len(deploymentDraft.Artifact.PythonArtifact.AdditionalPythonArchives) > 0 {
+					pythonMap["additional_python_archives"] = deploymentDraft.Artifact.PythonArtifact.AdditionalPythonArchives
+				}
+				pythonArtifact = append(pythonArtifact, pythonMap)
+				artifactMap["python_artifact"] = pythonArtifact
+			}
+		case "SQLSCRIPT":
+			if deploymentDraft.Artifact.SqlArtifact != nil {
+				sqlArtifact := make([]map[string]interface{}, 0, 1)
+				sqlMap := map[string]interface{}{
+					"sql_script": deploymentDraft.Artifact.SqlArtifact.SqlScript,
+				}
+				if len(deploymentDraft.Artifact.SqlArtifact.AdditionalDependencies) > 0 {
+					sqlMap["additional_dependencies"] = deploymentDraft.Artifact.SqlArtifact.AdditionalDependencies
+				}
+				sqlArtifact = append(sqlArtifact, sqlMap)
+				artifactMap["sql_artifact"] = sqlArtifact
+			}
+		}
+
+		artifactConfig = append(artifactConfig, artifactMap)
+		d.Set("artifact", artifactConfig)
+	}
+
+	// Set Flink configuration
+	if deploymentDraft.FlinkConf != nil && len(deploymentDraft.FlinkConf) > 0 {
+		flinkConf := make(map[string]interface{})
+		for k, v := range deploymentDraft.FlinkConf {
+			flinkConf[k] = v
+		}
+		d.Set("flink_conf", flinkConf)
+	}
+
+	// Set environment variables (from LocalVariables)
+	if deploymentDraft.LocalVariables != nil && len(deploymentDraft.LocalVariables) > 0 {
+		envVars := make(map[string]interface{})
+		for _, localVar := range deploymentDraft.LocalVariables {
+			envVars[localVar.Name] = localVar.Value
+		}
+		d.Set("environment_variables", envVars)
+	}
+
+	// Set labels/tags
+	if deploymentDraft.Labels != nil && len(deploymentDraft.Labels) > 0 {
+		tags := make(map[string]interface{})
+		for k, v := range deploymentDraft.Labels {
+			tags[k] = v
+		}
+		d.Set("tags", tags)
 	}
 
 	return nil
@@ -643,18 +859,32 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	draftID := parts[1]
 	workspaceID := d.Get("workspace_id").(string)
 
-	// Use service methods instead of directly accessing Ververica client
-	// First, get the current deployment draft
+	// Get the current deployment draft
 	deploymentDraft, err := flinkService.GetDeploymentDraft(workspaceID, namespace, draftID)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	// Only update fields that have changed
 	update := false
 
+	// Update basic fields
 	if d.HasChange("draft_name") {
 		deploymentDraft.Name = d.Get("draft_name").(string)
+		update = true
+	}
+
+	if d.HasChange("description") {
+		deploymentDraft.Description = d.Get("description").(string)
+		update = true
+	}
+
+	if d.HasChange("engine_version") {
+		deploymentDraft.EngineVersion = d.Get("engine_version").(string)
+		update = true
+	}
+
+	if d.HasChange("execution_mode") {
+		deploymentDraft.ExecutionMode = d.Get("execution_mode").(string)
 		update = true
 	}
 
@@ -667,52 +897,172 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 		update = true
 	}
 
-	if d.HasChange("artifact_uri") {
-		if deploymentDraft.Artifact == nil {
+	// Update artifact configuration
+	if d.HasChange("artifact_uri") || d.HasChange("artifact") {
+		if artifactUri, ok := d.GetOk("artifact_uri"); ok {
+			// Simple artifact URI
 			deploymentDraft.Artifact = &aliyunFlinkAPI.Artifact{
-				Kind:        "JAR",
-				JarArtifact: &aliyunFlinkAPI.JarArtifact{},
+				Kind: "JAR",
+				JarArtifact: &aliyunFlinkAPI.JarArtifact{
+					JarUri: artifactUri.(string),
+				},
+			}
+		} else if artifactConfig, ok := d.GetOk("artifact"); ok {
+			// Complex artifact configuration
+			artifactList := artifactConfig.([]interface{})
+			if len(artifactList) > 0 {
+				artifactMap := artifactList[0].(map[string]interface{})
+				artifact := &aliyunFlinkAPI.Artifact{
+					Kind: artifactMap["kind"].(string),
+				}
+
+				switch artifact.Kind {
+				case "JAR":
+					if jarArtifactList, ok := artifactMap["jar_artifact"].([]interface{}); ok && len(jarArtifactList) > 0 {
+						jarArtifactMap := jarArtifactList[0].(map[string]interface{})
+						jarArtifact := &aliyunFlinkAPI.JarArtifact{
+							JarUri: jarArtifactMap["jar_uri"].(string),
+						}
+						if entryClass, ok := jarArtifactMap["entry_class"]; ok {
+							jarArtifact.EntryClass = entryClass.(string)
+						}
+						if mainArgs, ok := jarArtifactMap["main_args"]; ok {
+							jarArtifact.MainArgs = mainArgs.(string)
+						}
+						if additionalDeps, ok := jarArtifactMap["additional_dependencies"]; ok {
+							deps := additionalDeps.([]interface{})
+							jarArtifact.AdditionalDependencies = make([]string, len(deps))
+							for i, dep := range deps {
+								jarArtifact.AdditionalDependencies[i] = dep.(string)
+							}
+						}
+						artifact.JarArtifact = jarArtifact
+					}
+				case "PYTHON":
+					if pythonArtifactList, ok := artifactMap["python_artifact"].([]interface{}); ok && len(pythonArtifactList) > 0 {
+						pythonArtifactMap := pythonArtifactList[0].(map[string]interface{})
+						pythonArtifact := &aliyunFlinkAPI.PythonArtifact{
+							PythonArtifactUri: pythonArtifactMap["python_artifact_uri"].(string),
+						}
+						if entryModule, ok := pythonArtifactMap["entry_module"]; ok {
+							pythonArtifact.EntryModule = entryModule.(string)
+						}
+						if mainArgs, ok := pythonArtifactMap["main_args"]; ok {
+							pythonArtifact.MainArgs = mainArgs.(string)
+						}
+						if additionalDeps, ok := pythonArtifactMap["additional_dependencies"]; ok {
+							deps := additionalDeps.([]interface{})
+							pythonArtifact.AdditionalDependencies = make([]string, len(deps))
+							for i, dep := range deps {
+								pythonArtifact.AdditionalDependencies[i] = dep.(string)
+							}
+						}
+						if additionalLibs, ok := pythonArtifactMap["additional_python_libraries"]; ok {
+							libs := additionalLibs.([]interface{})
+							pythonArtifact.AdditionalPythonLibraries = make([]string, len(libs))
+							for i, lib := range libs {
+								pythonArtifact.AdditionalPythonLibraries[i] = lib.(string)
+							}
+						}
+						if additionalArchives, ok := pythonArtifactMap["additional_python_archives"]; ok {
+							archives := additionalArchives.([]interface{})
+							pythonArtifact.AdditionalPythonArchives = make([]string, len(archives))
+							for i, archive := range archives {
+								pythonArtifact.AdditionalPythonArchives[i] = archive.(string)
+							}
+						}
+						artifact.PythonArtifact = pythonArtifact
+					}
+				case "SQLSCRIPT":
+					if sqlArtifactList, ok := artifactMap["sql_artifact"].([]interface{}); ok && len(sqlArtifactList) > 0 {
+						sqlArtifactMap := sqlArtifactList[0].(map[string]interface{})
+						sqlArtifact := &aliyunFlinkAPI.SqlArtifact{
+							SqlScript: sqlArtifactMap["sql_script"].(string),
+						}
+						if additionalDeps, ok := sqlArtifactMap["additional_dependencies"]; ok {
+							deps := additionalDeps.([]interface{})
+							sqlArtifact.AdditionalDependencies = make([]string, len(deps))
+							for i, dep := range deps {
+								sqlArtifact.AdditionalDependencies[i] = dep.(string)
+							}
+						}
+						artifact.SqlArtifact = sqlArtifact
+					}
+				}
+				deploymentDraft.Artifact = artifact
 			}
 		}
-
-		if deploymentDraft.Artifact.JarArtifact == nil {
-			deploymentDraft.Artifact.JarArtifact = &aliyunFlinkAPI.JarArtifact{}
-		}
-
-		deploymentDraft.Artifact.JarArtifact.JarUri = d.Get("artifact_uri").(string)
 		update = true
 	}
 
-	// Handle Flink configuration if changed
-	if d.HasChange("flink_configuration") {
-		flinkConf := d.Get("flink_configuration").(map[string]interface{})
-		deploymentDraft.FlinkConf = make(map[string]string)
-		for k, v := range flinkConf {
-			deploymentDraft.FlinkConf[k] = v.(string)
+	// Update Flink configuration
+	if d.HasChange("flink_conf") {
+		if flinkConf, ok := d.GetOk("flink_conf"); ok {
+			deploymentDraft.FlinkConf = make(map[string]string)
+			for k, v := range flinkConf.(map[string]interface{}) {
+				deploymentDraft.FlinkConf[k] = v.(string)
+			}
+		} else {
+			deploymentDraft.FlinkConf = nil
 		}
 		update = true
 	}
 
-	// Handle resource specifications if changed
-	// Note: DeploymentDraft API doesn't support resource specifications
-	// These are handled during deployment, not in draft
-	if d.HasChange("job_manager_resource_spec") || d.HasChange("task_manager_resource_spec") {
-		// Log a warning that resource specs are ignored for drafts
-		// In practice, these would be applied when the draft is deployed
+	// Update environment variables (stored as LocalVariables)
+	if d.HasChange("environment_variables") {
+		if envVars, ok := d.GetOk("environment_variables"); ok {
+			envVarMap := envVars.(map[string]interface{})
+			deploymentDraft.LocalVariables = make([]*aliyunFlinkAPI.LocalVariable, 0, len(envVarMap))
+			for k, v := range envVarMap {
+				deploymentDraft.LocalVariables = append(deploymentDraft.LocalVariables, &aliyunFlinkAPI.LocalVariable{
+					Name:  k,
+					Value: v.(string),
+				})
+			}
+		} else {
+			deploymentDraft.LocalVariables = nil
+		}
+		update = true
+	}
+
+	// Update labels/tags
+	if d.HasChange("tags") {
+		if tags, ok := d.GetOk("tags"); ok {
+			deploymentDraft.Labels = make(map[string]interface{})
+			for k, v := range tags.(map[string]interface{}) {
+				deploymentDraft.Labels[k] = v.(string)
+			}
+		} else {
+			deploymentDraft.Labels = nil
+		}
 		update = true
 	}
 
 	if update {
-		// Call the service method to update the deployment draft
-		_, err = flinkService.UpdateDeploymentDraft(workspaceID, namespace, deploymentDraft)
+		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			_, err := flinkService.UpdateDeploymentDraft(workspaceID, namespace, deploymentDraft)
+			if err != nil {
+				if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
+					time.Sleep(5 * time.Second)
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
+
 		if err != nil {
-			return WrapError(err)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateDeploymentDraft", AlibabaCloudSdkGoERROR)
 		}
 
-		// Wait a moment for the update to be processed
-		time.Sleep(5 * time.Second)
+		// Wait for update to complete using StateRefreshFunc
+		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceID, namespace, draftID, []string{}))
+		if _, err := stateConf.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
 	}
 
+	// 最后调用Read同步状态
 	return resourceAliCloudFlinkDeploymentDraftRead(d, meta)
 }
 

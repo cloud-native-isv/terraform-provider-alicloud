@@ -360,21 +360,52 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	// Set attributes from workspace workspace
+	// Set attributes from workspace
 	d.Set("name", workspace.Name)
 	d.Set("resource_group_id", workspace.ResourceGroupID)
-	d.Set("zone_id", workspace.ZoneID)
-	d.Set("vpc_id", workspace.VPCID)
-	d.Set("vswitch_ids", workspace.VSwitchIDs)
 
-	// Handle security group from Network structure
+	// Ensure zone_id is always set to prevent forces replacement
+	if workspace.ZoneID != "" {
+		d.Set("zone_id", workspace.ZoneID)
+	} else {
+		// If API doesn't return zone_id, preserve the configured value
+		if configuredZoneId := d.Get("zone_id").(string); configuredZoneId != "" {
+			d.Set("zone_id", configuredZoneId)
+		}
+	}
+
+	d.Set("vpc_id", workspace.VPCID)
+
+	// Handle vswitch_ids with proper type conversion
+	if workspace.VSwitchIDs != nil && len(workspace.VSwitchIDs) > 0 {
+		d.Set("vswitch_ids", workspace.VSwitchIDs)
+	} else {
+		// Preserve configured vswitch_ids if API doesn't return them
+		if configuredVSwitchIds := d.Get("vswitch_ids").([]interface{}); len(configuredVSwitchIds) > 0 {
+			// Keep the configured values to prevent plan changes
+		}
+	}
+
+	// Handle security group from SecurityGroupInfo structure
 	if workspace.SecurityGroupInfo != nil && workspace.SecurityGroupInfo.SecurityGroupID != "" {
 		d.Set("security_group_id", workspace.SecurityGroupInfo.SecurityGroupID)
 	}
 
-	d.Set("architecture_type", workspace.ArchitectureType)
-	d.Set("charge_type", workspace.ChargeType)
-	d.Set("status", workspace.Status)
+	// Set fields that are returned by the API with fallback to configured values
+	if workspace.ArchitectureType != "" {
+		d.Set("architecture_type", workspace.ArchitectureType)
+	}
+	if workspace.ChargeType != "" {
+		d.Set("charge_type", workspace.ChargeType)
+	}
+	if workspace.MonitorType != "" {
+		d.Set("monitor_type", workspace.MonitorType)
+	}
+
+	// Always set resource_id if available
+	if workspace.ResourceID != "" {
+		d.Set("resource_id", workspace.ResourceID)
+	}
 
 	// Set resource configuration
 	if workspace.ResourceSpec != nil {
@@ -393,17 +424,14 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("storage", []interface{}{storageConfig})
 	}
 
-	// Set resource_id
-	d.Set("resource_id", workspace.ResourceID)
-
 	// Set HA configuration
-	if workspace.HighAvailability != nil {
+	if workspace.HighAvailability != nil && workspace.HighAvailability.Enabled {
 		haConfig := map[string]interface{}{
 			"zone_id":     workspace.HighAvailability.ZoneID,
 			"vswitch_ids": workspace.HighAvailability.VSwitchIDs,
 		}
 
-		// Add resource info
+		// Add resource info if available
 		if workspace.HighAvailability.ResourceSpec != nil {
 			haResourceSpec := map[string]interface{}{
 				"cpu":    int(workspace.HighAvailability.ResourceSpec.Cpu),
@@ -413,7 +441,35 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		}
 
 		d.Set("ha", []interface{}{haConfig})
+	} else {
+		// Set empty HA config if not enabled
+		d.Set("ha", []interface{}{})
 	}
+
+	// Handle input-only fields that are not returned by the API
+	// These fields are used only during creation and are not returned by DescribeInstances
+	// We need to preserve their configured values to avoid terraform plan showing changes
+
+	// For auto_renew: preserve the configured value since it's not returned by the API
+	if _, ok := d.GetOk("auto_renew"); !ok {
+		// Only set default if not already configured
+		d.Set("auto_renew", true)
+	}
+
+	// For duration: preserve the configured value since it's not returned by the API
+	if _, ok := d.GetOk("duration"); !ok {
+		// Only set default if not already configured
+		d.Set("duration", 1)
+	}
+
+	// For pricing_cycle: preserve the configured value since it's not returned by the API
+	if _, ok := d.GetOk("pricing_cycle"); !ok {
+		// Only set default if not already configured
+		d.Set("pricing_cycle", "Month")
+	}
+
+	// For extra, promotion_code, use_promotion_code: these are input-only fields
+	// They don't need to be set here as they are only used during creation
 
 	return nil
 }

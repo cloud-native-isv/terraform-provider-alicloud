@@ -21,13 +21,12 @@ func resourceAliCloudFlinkVariable() *schema.Resource {
 			"workspace_id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				ForceNew:    true,
 				Description: "ID of the Flink workspaceId",
 			},
 			"namespace_name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				ForceNew:    true,
+				ForceNew:    true, // Variable cannot be moved between namespaces
 				Description: "ID of the Flink namespaceName",
 			},
 			"kind": {
@@ -39,7 +38,7 @@ func resourceAliCloudFlinkVariable() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				ForceNew:    true,
+				ForceNew:    true, // Variable name is part of the unique identifier and cannot be changed
 				Description: "Name of the Flink variable",
 			},
 			"value": {
@@ -66,15 +65,25 @@ func resourceAliCloudFlinkVariableRead(d *schema.ResourceData, meta interface{})
 	workspaceId, namespaceName, varName := splitVariableID(d.Id())
 	variable, err := flinkService.GetVariable(workspaceId, namespaceName, varName)
 	if err != nil {
+		if NotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_variable", "GetVariable", AlibabaCloudSdkGoERROR)
 	}
 
+	// Set all required fields to prevent forces replacement
+	// These fields MUST be set in Read function to prevent Terraform from thinking they changed
 	d.Set("workspace_id", workspaceId)
 	d.Set("namespace_name", namespaceName)
-	d.Set("name", variable.Name)
-	d.Set("value", variable.Value)
-	d.Set("description", variable.Description)
-	d.Set("kind", variable.Kind)
+	d.Set("name", varName)
+
+	// Set variable fields from API response
+	if variable != nil {
+		d.Set("value", variable.Value)
+		d.Set("description", variable.Description)
+		d.Set("kind", variable.Kind)
+	}
 
 	return nil
 }

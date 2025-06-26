@@ -111,12 +111,19 @@ func resourceAliCloudFlinkMemberRead(d *schema.ResourceData, meta interface{}) e
 		return WrapError(err)
 	}
 
-	// Set attributes based on response
+	// Set all required fields to prevent forces replacement
+	// These fields MUST be set in Read function to prevent Terraform from thinking they changed
+	d.Set("workspace_id", workspaceId)
+	d.Set("namespace_name", namespaceName)
+	d.Set("name", name)
+
+	// Set response fields
 	if response != nil {
-		d.Set("workspace_id", workspaceId)
-		d.Set("namespace_name", namespaceName)
-		d.Set("name", name)
 		d.Set("role", response.Role)
+	} else {
+		// If response is nil but no error, resource might not exist
+		d.SetId("")
+		return nil
 	}
 
 	return nil
