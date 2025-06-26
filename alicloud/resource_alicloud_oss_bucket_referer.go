@@ -115,7 +115,7 @@ func resourceAliCloudOssBucketRefererCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(fmt.Sprint(*hostMap["bucket"]))
 
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 	stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, ossServiceV2.OssBucketRefererStateRefreshFunc(d.Id(), "#$.RefererList", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -126,7 +126,7 @@ func resourceAliCloudOssBucketRefererCreate(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudOssBucketRefererRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketReferer(d.Id())
 	if err != nil {
@@ -236,7 +236,7 @@ func resourceAliCloudOssBucketRefererUpdate(d *schema.ResourceData, meta interfa
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		ossServiceV2 := NewOssServiceV2(client)
+		ossServiceV2 := NewOssService(client)
 		stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, ossServiceV2.OssBucketRefererStateRefreshFunc(d.Id(), "#RefererList", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())

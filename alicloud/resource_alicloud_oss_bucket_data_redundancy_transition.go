@@ -3,10 +3,11 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -89,7 +90,7 @@ func resourceAliCloudOssBucketDataRedundancyTransitionCreate(d *schema.ResourceD
 
 func resourceAliCloudOssBucketDataRedundancyTransitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketDataRedundancyTransition(d.Id())
 	if err != nil {

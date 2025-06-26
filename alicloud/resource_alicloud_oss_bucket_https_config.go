@@ -2,12 +2,13 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceAliCloudOssBucketHttpsConfig() *schema.Resource {
@@ -91,7 +92,7 @@ func resourceAliCloudOssBucketHttpsConfigCreate(d *schema.ResourceData, meta int
 
 	d.SetId(fmt.Sprint(*hostMap["bucket"]))
 
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 	stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, ossServiceV2.OssBucketHttpsConfigStateRefreshFunc(d.Id(), "#TLSVersion", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -102,7 +103,7 @@ func resourceAliCloudOssBucketHttpsConfigCreate(d *schema.ResourceData, meta int
 
 func resourceAliCloudOssBucketHttpsConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketHttpsConfig(d.Id())
 	if err != nil {
@@ -178,7 +179,7 @@ func resourceAliCloudOssBucketHttpsConfigUpdate(d *schema.ResourceData, meta int
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		ossServiceV2 := NewOssServiceV2(client)
+		ossServiceV2 := NewOssService(client)
 		stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, ossServiceV2.OssBucketHttpsConfigStateRefreshFunc(d.Id(), "#TLSVersion", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())

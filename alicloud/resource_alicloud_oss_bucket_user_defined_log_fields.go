@@ -3,12 +3,13 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceAliCloudOssBucketUserDefinedLogFields() *schema.Resource {
@@ -108,7 +109,7 @@ func resourceAliCloudOssBucketUserDefinedLogFieldsCreate(d *schema.ResourceData,
 
 func resourceAliCloudOssBucketUserDefinedLogFieldsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketUserDefinedLogFields(d.Id())
 	if err != nil {

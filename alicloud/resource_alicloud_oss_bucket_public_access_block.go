@@ -3,12 +3,13 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceAliCloudOssBucketPublicAccessBlock() *schema.Resource {
@@ -85,7 +86,7 @@ func resourceAliCloudOssBucketPublicAccessBlockCreate(d *schema.ResourceData, me
 
 func resourceAliCloudOssBucketPublicAccessBlockRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketPublicAccessBlock(d.Id())
 	if err != nil {

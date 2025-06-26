@@ -59,7 +59,7 @@ func resourceAliCloudOssBucketLogging() *schema.Resource {
 
 func resourceAlicloudOssBucketLoggingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossService := NewOssServiceV2(client)
+	ossService := NewOssService(client)
 	bucket := d.Get("bucket").(string)
 	targetBucket := d.Get("target_bucket").(string)
 	targetPrefix := d.Get("target_prefix").(string)
@@ -89,7 +89,7 @@ func resourceAlicloudOssBucketLoggingCreate(d *schema.ResourceData, meta interfa
 
 func resourceAlicloudOssBucketLoggingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossService := NewOssServiceV2(client)
+	ossService := NewOssService(client)
 	bucket := d.Id()
 
 	// Get bucket logging configuration
@@ -140,7 +140,7 @@ func resourceAlicloudOssBucketLoggingRead(d *schema.ResourceData, meta interface
 
 func resourceAlicloudOssBucketLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossService := NewOssServiceV2(client)
+	ossService := NewOssService(client)
 	bucket := d.Id()
 
 	d.Partial(true)
@@ -186,7 +186,7 @@ func resourceAlicloudOssBucketLoggingUpdate(d *schema.ResourceData, meta interfa
 
 func resourceAlicloudOssBucketLoggingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossService := NewOssServiceV2(client)
+	ossService := NewOssService(client)
 	bucket := d.Id()
 
 	// First, remove user defined log fields if they exist

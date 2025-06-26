@@ -84,7 +84,7 @@ func resourceAliCloudOssBucketAclCreate(d *schema.ResourceData, meta interface{}
 
 func resourceAliCloudOssBucketAclRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketAcl(d.Id())
 	if err != nil {

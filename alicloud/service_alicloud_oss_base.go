@@ -26,7 +26,7 @@ func (cp *ossv2CredentialsProvider) GetCredentials(ctx context.Context) (ossv2cr
 	}, nil
 }
 
-func NewOssServiceV2(client *connectivity.AliyunClient) *OssService {
+func NewOssService(client *connectivity.AliyunClient) *OssService {
 	v2Client := ossv2.NewClient(&ossv2.Config{
 		Region:              &client.RegionId,
 		Endpoint:            &client.RegionId,

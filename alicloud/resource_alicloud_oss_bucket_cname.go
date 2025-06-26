@@ -3,11 +3,12 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
-	"github.com/tidwall/sjson"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
+	"github.com/tidwall/sjson"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -175,7 +176,7 @@ func resourceAliCloudOssBucketCnameCreate(d *schema.ResourceData, meta interface
 	BucketCnameConfigurationCnameDomainVar, _ := jsonpath.Get("BucketCnameConfiguration.Cname.Domain", request)
 	d.SetId(fmt.Sprintf("%v:%v", *hostMap["bucket"], BucketCnameConfigurationCnameDomainVar))
 
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 	stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("domain"))}, d.Timeout(schema.TimeoutCreate), 5*time.Second, ossServiceV2.OssBucketCnameStateRefreshFunc(d.Id(), "$.Domain", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -186,7 +187,7 @@ func resourceAliCloudOssBucketCnameCreate(d *schema.ResourceData, meta interface
 
 func resourceAliCloudOssBucketCnameRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketCname(d.Id())
 	if err != nil {
@@ -317,7 +318,7 @@ func resourceAliCloudOssBucketCnameUpdate(d *schema.ResourceData, meta interface
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		ossServiceV2 := NewOssServiceV2(client)
+		ossServiceV2 := NewOssService(client)
 		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("domain"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, ossServiceV2.OssBucketCnameStateRefreshFunc(d.Id(), "$.Domain", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
@@ -369,7 +370,7 @@ func resourceAliCloudOssBucketCnameDelete(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, ossServiceV2.OssBucketCnameStateRefreshFunc(d.Id(), "$.Domain", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())

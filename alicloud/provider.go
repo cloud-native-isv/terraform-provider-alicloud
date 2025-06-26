@@ -1107,6 +1107,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_oss_bucket_cors":                                      resourceAliCloudOssBucketCors(),
 			"alicloud_oss_bucket_server_side_encryption":                    resourceAliCloudOssBucketServerSideEncryption(),
 			"alicloud_oss_bucket_logging":                                   resourceAliCloudOssBucketLogging(),
+			"alicloud_oss_bucket_lifecycle":                                 resourceAliCloudOssBucketLifecycle(),
 			"alicloud_oss_bucket_request_payment":                           resourceAliCloudOssBucketRequestPayment(),
 			"alicloud_oss_bucket_versioning":                                resourceAliCloudOssBucketVersioning(),
 			"alicloud_oss_bucket_policy":                                    resourceAliCloudOssBucketPolicy(),

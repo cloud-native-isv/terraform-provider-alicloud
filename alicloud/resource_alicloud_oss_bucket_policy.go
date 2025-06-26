@@ -80,7 +80,7 @@ func resourceAliCloudOssBucketPolicyCreate(d *schema.ResourceData, meta interfac
 	d.SetId(fmt.Sprint(*hostMap["bucket"]))
 
 	// Wait for bucket policy to be available to avoid 404 error when reading immediately
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 	stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, ossServiceV2.OssBucketPolicyStateRefreshFunc(d.Id(), "#", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -91,7 +91,7 @@ func resourceAliCloudOssBucketPolicyCreate(d *schema.ResourceData, meta interfac
 
 func resourceAliCloudOssBucketPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketPolicy(d.Id())
 	if err != nil {

@@ -81,7 +81,7 @@ func resourceAliCloudOssBucketMetaQueryCreate(d *schema.ResourceData, meta inter
 
 func resourceAliCloudOssBucketMetaQueryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketMetaQuery(d.Id())
 	if err != nil {
@@ -133,7 +133,7 @@ func resourceAliCloudOssBucketMetaQueryDelete(d *schema.ResourceData, meta inter
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 	stateConf := BuildStateConf([]string{}, []string{""}, d.Timeout(schema.TimeoutDelete), 5*time.Second, ossServiceV2.OssBucketMetaQueryStateRefreshFunc(d.Id(), "State", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())

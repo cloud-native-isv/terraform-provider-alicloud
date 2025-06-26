@@ -141,7 +141,7 @@ func resourceAliCloudOssBucketCorsCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(*hostMap["bucket"]))
 
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 	stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, ossServiceV2.OssBucketCorsStateRefreshFunc(d.Id(), "#CORSRule", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -152,7 +152,7 @@ func resourceAliCloudOssBucketCorsCreate(d *schema.ResourceData, meta interface{
 
 func resourceAliCloudOssBucketCorsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketCors(d.Id())
 	if err != nil {
@@ -283,7 +283,7 @@ func resourceAliCloudOssBucketCorsUpdate(d *schema.ResourceData, meta interface{
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		ossServiceV2 := NewOssServiceV2(client)
+		ossServiceV2 := NewOssService(client)
 		stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, ossServiceV2.OssBucketCorsStateRefreshFunc(d.Id(), "#CORSRule", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())

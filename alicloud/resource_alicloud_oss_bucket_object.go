@@ -225,7 +225,7 @@ func resourceAlicloudOssBucketObjectRead(d *schema.ResourceData, meta interface{
 
 func resourceAlicloudOssBucketObjectDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossService := NewOssServiceV2(client)
+	ossService := NewOssService(client)
 	var requestInfo *oss.Client
 	raw, err := client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
 		requestInfo = ossClient

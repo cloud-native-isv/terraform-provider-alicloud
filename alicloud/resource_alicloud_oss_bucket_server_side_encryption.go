@@ -2,11 +2,12 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceAliCloudOssBucketServerSideEncryption() *schema.Resource {
@@ -101,7 +102,7 @@ func resourceAliCloudOssBucketServerSideEncryptionCreate(d *schema.ResourceData,
 
 	d.SetId(fmt.Sprint(*hostMap["bucket"]))
 
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 	stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, ossServiceV2.OssBucketServerSideEncryptionStateRefreshFunc(d.Id(), "#SSEAlgorithm", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -112,7 +113,7 @@ func resourceAliCloudOssBucketServerSideEncryptionCreate(d *schema.ResourceData,
 
 func resourceAliCloudOssBucketServerSideEncryptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	ossServiceV2 := NewOssServiceV2(client)
+	ossServiceV2 := NewOssService(client)
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketServerSideEncryption(d.Id())
 	if err != nil {
@@ -192,7 +193,7 @@ func resourceAliCloudOssBucketServerSideEncryptionUpdate(d *schema.ResourceData,
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		ossServiceV2 := NewOssServiceV2(client)
+		ossServiceV2 := NewOssService(client)
 		stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, ossServiceV2.OssBucketServerSideEncryptionStateRefreshFunc(d.Id(), "#SSEAlgorithm", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
