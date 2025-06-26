@@ -2,19 +2,10 @@ package alicloud
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"strconv"
-	"strings"
-	"time"
 
-	"github.com/PaesslerAG/jsonpath"
 	ossv2 "github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
 	ossv2credentials "github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
-	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/tidwall/sjson"
 )
 
 type OssService struct {
