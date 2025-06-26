@@ -33,18 +33,16 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the namespace.",
 			},
-			"job_name": {
+			"draft_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The name of the deployment draft.",
 			},
-			// Draft 特有参数 - 关联的部署ID
 			"deployment_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Associated deployment ID for this draft.",
 			},
-			// 基本配置 - 与 deployment 对齐
 			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -53,7 +51,7 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 			"engine_version": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "vvr-8.0.5-flink-1.17",
+				Default:     "vvr-11.1-jdk11-flink-1.20",
 				Description: "The Flink engine version.",
 			},
 			"execution_mode": {
@@ -71,7 +69,7 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				Description: "Deployment target configuration.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": {
+						"draft_name": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Default:     "session-cluster",
@@ -442,23 +440,6 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			// 保持向后兼容的旧参数名 - 标记为 Deprecated
-			"name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Deprecated:  "Use job_name instead",
-				Description: "Deprecated: Use job_name instead. The name of the deployment draft.",
-			},
-			"flink_configuration": {
-				Type:        schema.TypeMap,
-				Optional:    true,
-				Deprecated:  "Use flink_conf instead",
-				Description: "Deprecated: Use flink_conf instead. Map of Flink configuration properties.",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			// Computed 字段
 			"create_time": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -522,7 +503,7 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 
 	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
-	name := d.Get("name").(string)
+	name := d.Get("draft_name").(string)
 	artifactURI := d.Get("artifact_uri").(string)
 
 	// Create deployment draft using cws-lib-go service
@@ -553,11 +534,6 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		}
 	}
 
-	// Note: DeploymentDraft doesn't support resource specifications in the API
-	// Resource specs are handled during deployment, not in draft creation
-
-	// Create the deployment draft
-	var response *aliyunFlinkAPI.DeploymentDraft
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		resp, err := flinkService.CreateDeploymentDraft(workspaceId, namespaceName, draft)
 		if err != nil {
@@ -567,7 +543,7 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 			}
 			return resource.NonRetryableError(err)
 		}
-		response = resp
+		draft = resp
 		return nil
 	})
 
@@ -575,15 +551,11 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment_draft", "CreateDeploymentDraft", AlibabaCloudSdkGoERROR)
 	}
 
-	if response == nil || response.DeploymentDraftId == "" {
-		return WrapError(Error("Failed to get deployment draft ID from response"))
-	}
-
-	d.SetId(fmt.Sprintf("%s:%s", namespaceName, response.DeploymentDraftId))
-	d.Set("draft_id", response.DeploymentDraftId)
+	d.SetId(fmt.Sprintf("%s:%s", namespaceName, draft.Id))
+	d.Set("draft_id", draft.Id)
 
 	// Wait for deployment draft creation to complete using StateRefreshFunc
-	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceId, namespaceName, response.DeploymentDraftId, []string{}))
+	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceId, namespaceName, draft.Id, []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -623,11 +595,11 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 		return nil
 	}
 
-	// Update state with values from the response
+	// Update state with values from the draft
 	d.Set("namespace_name", deploymentDraft.Namespace)
 	d.Set("workspace_id", deploymentDraft.Workspace)
-	d.Set("name", deploymentDraft.Name)
-	d.Set("draft_id", deploymentDraft.DeploymentDraftId)
+	d.Set("draft_name", deploymentDraft.Name)
+	d.Set("draft_id", deploymentDraft.Id)
 
 	if deploymentDraft.ReferencedDeploymentId != "" {
 		d.Set("deployment_id", deploymentDraft.ReferencedDeploymentId)
@@ -681,8 +653,8 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	// Only update fields that have changed
 	update := false
 
-	if d.HasChange("name") {
-		deploymentDraft.Name = d.Get("name").(string)
+	if d.HasChange("draft_name") {
+		deploymentDraft.Name = d.Get("draft_name").(string)
 		update = true
 	}
 

@@ -43,7 +43,7 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 			"engine_version": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "vvr-8.0.5-flink-1.17",
+				Default:  "vvr-11.1-jdk11-flink-1.20",
 			},
 			"execution_mode": {
 				Type:         schema.TypeString,

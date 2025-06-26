@@ -34,7 +34,7 @@ func resourceAliCloudFlinkVariable() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Kind of the Flink variable",
-				Default:     "Plain",
+				Default:     "Clear",
 			},
 			"name": {
 				Type:        schema.TypeString,

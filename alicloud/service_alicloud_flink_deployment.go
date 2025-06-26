@@ -49,13 +49,7 @@ func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string, failStates []s
 
 // Deployment Draft methods
 func (s *FlinkService) CreateDeploymentDraft(workspaceID string, namespaceName string, draft *aliyunFlinkAPI.DeploymentDraft) (*aliyunFlinkAPI.DeploymentDraft, error) {
-	// Call the underlying API with the proper signature
-	result, err := s.aliyunFlinkAPI.CreateDeploymentDraft(workspaceID, namespaceName, draft)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment_draft", "CreateDeploymentDraft", AlibabaCloudSdkGoERROR)
-	}
-
-	return result, nil
+	return s.aliyunFlinkAPI.CreateDeploymentDraft(workspaceID, namespaceName, draft)
 }
 
 func (s *FlinkService) GetDeploymentDraft(workspaceId string, namespaceName string, draftId string) (*aliyunFlinkAPI.DeploymentDraft, error) {
