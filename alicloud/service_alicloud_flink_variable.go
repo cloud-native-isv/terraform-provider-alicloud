@@ -1,33 +1,33 @@
 package alicloud
 
 import (
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // Variable methods
-func (s *FlinkService) GetVariable(workspaceId string, namespaceName string, variableName string) (*aliyunFlinkAPI.Variable, error) {
+func (s *FlinkService) GetVariable(workspaceId string, namespaceName string, variableName string) (*flinkAPI.Variable, error) {
 	// Call the underlying API to get variable
-	return s.aliyunFlinkAPI.GetVariable(workspaceId, namespaceName, variableName)
+	return s.flinkAPI.GetVariable(workspaceId, namespaceName, variableName)
 }
 
-func (s *FlinkService) CreateVariable(workspaceId string, namespaceName string, variable *aliyunFlinkAPI.Variable) (*aliyunFlinkAPI.Variable, error) {
+func (s *FlinkService) CreateVariable(workspaceId string, namespaceName string, variable *flinkAPI.Variable) (*flinkAPI.Variable, error) {
 	// Call underlying API
-	return s.aliyunFlinkAPI.CreateVariable(workspaceId, namespaceName, variable)
+	return s.flinkAPI.CreateVariable(workspaceId, namespaceName, variable)
 }
 
-func (s *FlinkService) UpdateVariable(workspaceId string, namespaceName string, variable *aliyunFlinkAPI.Variable) (*aliyunFlinkAPI.Variable, error) {
+func (s *FlinkService) UpdateVariable(workspaceId string, namespaceName string, variable *flinkAPI.Variable) (*flinkAPI.Variable, error) {
 	// Call underlying API
-	return s.aliyunFlinkAPI.UpdateVariable(workspaceId, namespaceName, variable)
+	return s.flinkAPI.UpdateVariable(workspaceId, namespaceName, variable)
 }
 
 func (s *FlinkService) DeleteVariable(workspaceId string, namespaceName string, variableName string) error {
 	// Call the underlying API
-	return s.aliyunFlinkAPI.DeleteVariable(workspaceId, namespaceName, variableName)
+	return s.flinkAPI.DeleteVariable(workspaceId, namespaceName, variableName)
 }
 
-func (s *FlinkService) ListVariables(workspaceId string, namespaceName string) ([]aliyunFlinkAPI.Variable, error) {
-	return s.aliyunFlinkAPI.ListVariables(workspaceId, namespaceName)
+func (s *FlinkService) ListVariables(workspaceId string, namespaceName string) ([]flinkAPI.Variable, error) {
+	return s.flinkAPI.ListVariables(workspaceId, namespaceName)
 }
 
 func (s *FlinkService) FlinkVariableStateRefreshFunc(workspaceId string, namespaceName string, variableName string, failStates []string) resource.StateRefreshFunc {

@@ -1946,6 +1946,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_flink_namespace":                                       resourceAliCloudFlinkNamespace(),
 			"alicloud_flink_deployment":                                      resourceAliCloudFlinkDeployment(),
 			"alicloud_flink_deployment_draft":                                resourceAliCloudFlinkDeploymentDraft(),
+			"alicloud_flink_deployment_folder":                                resourceAliCloudFlinkDeploymentFolder(),
 			"alicloud_flink_job":                                             resourceAliCloudFlinkJob(),
 			"alicloud_flink_member":                                          resourceAliCloudFlinkMember(),
 			"alicloud_flink_variable":                                        resourceAliCloudFlinkVariable(),

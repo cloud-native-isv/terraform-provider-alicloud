@@ -1,41 +1,41 @@
 package alicloud
 
 import (
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // Member methods
-func (s *FlinkService) CreateMember(workspaceId string, namespaceName string, member *aliyunFlinkAPI.Member) (*aliyunFlinkAPI.Member, error) {
+func (s *FlinkService) CreateMember(workspaceId string, namespaceName string, member *flinkAPI.Member) (*flinkAPI.Member, error) {
 	// Set workspace and namespace
 	member.WorkspaceID = workspaceId
 	member.NamespaceName = namespaceName
 
 	// Call the underlying API
-	return s.aliyunFlinkAPI.CreateMember(member)
+	return s.flinkAPI.CreateMember(member)
 }
 
-func (s *FlinkService) GetMember(workspaceId string, namespaceName string, memberId string) (*aliyunFlinkAPI.Member, error) {
+func (s *FlinkService) GetMember(workspaceId string, namespaceName string, memberId string) (*flinkAPI.Member, error) {
 	// Call the underlying API
-	return s.aliyunFlinkAPI.GetMember(workspaceId, namespaceName, memberId)
+	return s.flinkAPI.GetMember(workspaceId, namespaceName, memberId)
 }
 
-func (s *FlinkService) UpdateMember(workspaceId string, namespaceName string, member *aliyunFlinkAPI.Member) (*aliyunFlinkAPI.Member, error) {
+func (s *FlinkService) UpdateMember(workspaceId string, namespaceName string, member *flinkAPI.Member) (*flinkAPI.Member, error) {
 	// Set workspace and namespace
 	member.WorkspaceID = workspaceId
 	member.NamespaceName = namespaceName
 
 	// Call the underlying API
-	return s.aliyunFlinkAPI.UpdateMember(member)
+	return s.flinkAPI.UpdateMember(member)
 }
 
 func (s *FlinkService) DeleteMember(workspaceId string, namespaceName string, memberId string) error {
 	// Call the underlying API
-	return s.aliyunFlinkAPI.DeleteMember(workspaceId, namespaceName, memberId)
+	return s.flinkAPI.DeleteMember(workspaceId, namespaceName, memberId)
 }
 
-func (s *FlinkService) ListMembers(workspaceId, namespaceName string) ([]aliyunFlinkAPI.Member, error) {
-	return s.aliyunFlinkAPI.ListMembers(workspaceId, namespaceName)
+func (s *FlinkService) ListMembers(workspaceId, namespaceName string) ([]flinkAPI.Member, error) {
+	return s.flinkAPI.ListMembers(workspaceId, namespaceName)
 }
 
 // FlinkMemberStateRefreshFunc provides state refresh for members

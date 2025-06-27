@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -506,7 +506,7 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	name := d.Get("draft_name").(string)
 
 	// Create deployment draft using cws-lib-go service
-	draft := &aliyunFlinkAPI.DeploymentDraft{
+	draft := &flinkAPI.DeploymentDraft{
 		Workspace: workspaceId,
 		Namespace: namespaceName,
 		Name:      name,
@@ -539,9 +539,9 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	// Handle artifact configuration
 	if artifactUri, ok := d.GetOk("artifact_uri"); ok {
 		// Simple artifact URI - create JAR artifact
-		draft.Artifact = &aliyunFlinkAPI.Artifact{
+		draft.Artifact = &flinkAPI.Artifact{
 			Kind: "JAR",
-			JarArtifact: &aliyunFlinkAPI.JarArtifact{
+			JarArtifact: &flinkAPI.JarArtifact{
 				JarUri: artifactUri.(string),
 			},
 		}
@@ -550,7 +550,7 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		artifactList := artifactConfig.([]interface{})
 		if len(artifactList) > 0 {
 			artifactMap := artifactList[0].(map[string]interface{})
-			artifact := &aliyunFlinkAPI.Artifact{
+			artifact := &flinkAPI.Artifact{
 				Kind: artifactMap["kind"].(string),
 			}
 
@@ -558,7 +558,7 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 			case "JAR":
 				if jarArtifactList, ok := artifactMap["jar_artifact"].([]interface{}); ok && len(jarArtifactList) > 0 {
 					jarArtifactMap := jarArtifactList[0].(map[string]interface{})
-					jarArtifact := &aliyunFlinkAPI.JarArtifact{
+					jarArtifact := &flinkAPI.JarArtifact{
 						JarUri: jarArtifactMap["jar_uri"].(string),
 					}
 					if entryClass, ok := jarArtifactMap["entry_class"]; ok {
@@ -579,7 +579,7 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 			case "PYTHON":
 				if pythonArtifactList, ok := artifactMap["python_artifact"].([]interface{}); ok && len(pythonArtifactList) > 0 {
 					pythonArtifactMap := pythonArtifactList[0].(map[string]interface{})
-					pythonArtifact := &aliyunFlinkAPI.PythonArtifact{
+					pythonArtifact := &flinkAPI.PythonArtifact{
 						PythonArtifactUri: pythonArtifactMap["python_artifact_uri"].(string),
 					}
 					if entryModule, ok := pythonArtifactMap["entry_module"]; ok {
@@ -614,7 +614,7 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 			case "SQLSCRIPT":
 				if sqlArtifactList, ok := artifactMap["sql_artifact"].([]interface{}); ok && len(sqlArtifactList) > 0 {
 					sqlArtifactMap := sqlArtifactList[0].(map[string]interface{})
-					sqlArtifact := &aliyunFlinkAPI.SqlArtifact{
+					sqlArtifact := &flinkAPI.SqlArtifact{
 						SqlScript: sqlArtifactMap["sql_script"].(string),
 					}
 					if additionalDeps, ok := sqlArtifactMap["additional_dependencies"]; ok {
@@ -642,9 +642,9 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	// Handle environment variables (stored as LocalVariables)
 	if envVars, ok := d.GetOk("environment_variables"); ok {
 		envVarMap := envVars.(map[string]interface{})
-		draft.LocalVariables = make([]*aliyunFlinkAPI.LocalVariable, 0, len(envVarMap))
+		draft.LocalVariables = make([]*flinkAPI.LocalVariable, 0, len(envVarMap))
 		for k, v := range envVarMap {
-			draft.LocalVariables = append(draft.LocalVariables, &aliyunFlinkAPI.LocalVariable{
+			draft.LocalVariables = append(draft.LocalVariables, &flinkAPI.LocalVariable{
 				Name:  k,
 				Value: v.(string),
 			})
@@ -901,9 +901,9 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	if d.HasChange("artifact_uri") || d.HasChange("artifact") {
 		if artifactUri, ok := d.GetOk("artifact_uri"); ok {
 			// Simple artifact URI
-			deploymentDraft.Artifact = &aliyunFlinkAPI.Artifact{
+			deploymentDraft.Artifact = &flinkAPI.Artifact{
 				Kind: "JAR",
-				JarArtifact: &aliyunFlinkAPI.JarArtifact{
+				JarArtifact: &flinkAPI.JarArtifact{
 					JarUri: artifactUri.(string),
 				},
 			}
@@ -912,7 +912,7 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 			artifactList := artifactConfig.([]interface{})
 			if len(artifactList) > 0 {
 				artifactMap := artifactList[0].(map[string]interface{})
-				artifact := &aliyunFlinkAPI.Artifact{
+				artifact := &flinkAPI.Artifact{
 					Kind: artifactMap["kind"].(string),
 				}
 
@@ -920,7 +920,7 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 				case "JAR":
 					if jarArtifactList, ok := artifactMap["jar_artifact"].([]interface{}); ok && len(jarArtifactList) > 0 {
 						jarArtifactMap := jarArtifactList[0].(map[string]interface{})
-						jarArtifact := &aliyunFlinkAPI.JarArtifact{
+						jarArtifact := &flinkAPI.JarArtifact{
 							JarUri: jarArtifactMap["jar_uri"].(string),
 						}
 						if entryClass, ok := jarArtifactMap["entry_class"]; ok {
@@ -941,7 +941,7 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 				case "PYTHON":
 					if pythonArtifactList, ok := artifactMap["python_artifact"].([]interface{}); ok && len(pythonArtifactList) > 0 {
 						pythonArtifactMap := pythonArtifactList[0].(map[string]interface{})
-						pythonArtifact := &aliyunFlinkAPI.PythonArtifact{
+						pythonArtifact := &flinkAPI.PythonArtifact{
 							PythonArtifactUri: pythonArtifactMap["python_artifact_uri"].(string),
 						}
 						if entryModule, ok := pythonArtifactMap["entry_module"]; ok {
@@ -976,7 +976,7 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 				case "SQLSCRIPT":
 					if sqlArtifactList, ok := artifactMap["sql_artifact"].([]interface{}); ok && len(sqlArtifactList) > 0 {
 						sqlArtifactMap := sqlArtifactList[0].(map[string]interface{})
-						sqlArtifact := &aliyunFlinkAPI.SqlArtifact{
+						sqlArtifact := &flinkAPI.SqlArtifact{
 							SqlScript: sqlArtifactMap["sql_script"].(string),
 						}
 						if additionalDeps, ok := sqlArtifactMap["additional_dependencies"]; ok {
@@ -1012,9 +1012,9 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	if d.HasChange("environment_variables") {
 		if envVars, ok := d.GetOk("environment_variables"); ok {
 			envVarMap := envVars.(map[string]interface{})
-			deploymentDraft.LocalVariables = make([]*aliyunFlinkAPI.LocalVariable, 0, len(envVarMap))
+			deploymentDraft.LocalVariables = make([]*flinkAPI.LocalVariable, 0, len(envVarMap))
 			for k, v := range envVarMap {
-				deploymentDraft.LocalVariables = append(deploymentDraft.LocalVariables, &aliyunFlinkAPI.LocalVariable{
+				deploymentDraft.LocalVariables = append(deploymentDraft.LocalVariables, &flinkAPI.LocalVariable{
 					Name:  k,
 					Value: v.(string),
 				})

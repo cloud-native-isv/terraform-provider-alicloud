@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -102,7 +102,7 @@ func resourceAliCloudFlinkVariableCreate(d *schema.ResourceData, meta interface{
 	description := d.Get("description").(string)
 	kind := d.Get("kind").(string)
 
-	variable := &aliyunFlinkAPI.Variable{
+	variable := &flinkAPI.Variable{
 		Name:        name,
 		Value:       value,
 		Description: description,
@@ -149,7 +149,7 @@ func resourceAliCloudFlinkVariableUpdate(d *schema.ResourceData, meta interface{
 	description := d.Get("description").(string)
 	kind := d.Get("kind").(string)
 
-	variable := &aliyunFlinkAPI.Variable{
+	variable := &flinkAPI.Variable{
 		Name:        varName,
 		Value:       value,
 		Description: description,

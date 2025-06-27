@@ -1,25 +1,25 @@
 package alicloud
 
 import (
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // Connector methods
-func (s *FlinkService) ListCustomConnectors(workspaceId string, namespaceName string) ([]*aliyunFlinkAPI.Connector, error) {
-	return s.aliyunFlinkAPI.ListConnectors(workspaceId, namespaceName)
+func (s *FlinkService) ListCustomConnectors(workspaceId string, namespaceName string) ([]*flinkAPI.Connector, error) {
+	return s.flinkAPI.ListConnectors(workspaceId, namespaceName)
 }
 
-func (s *FlinkService) RegisterCustomConnector(workspaceId string, namespaceName string, connector *aliyunFlinkAPI.Connector) (*aliyunFlinkAPI.Connector, error) {
-	return s.aliyunFlinkAPI.RegisterConnector(workspaceId, namespaceName, connector)
+func (s *FlinkService) RegisterCustomConnector(workspaceId string, namespaceName string, connector *flinkAPI.Connector) (*flinkAPI.Connector, error) {
+	return s.flinkAPI.RegisterConnector(workspaceId, namespaceName, connector)
 }
 
-func (s *FlinkService) GetConnector(workspaceId string, namespaceName string, connectorName string) (*aliyunFlinkAPI.Connector, error) {
-	return s.aliyunFlinkAPI.GetConnector(workspaceId, namespaceName, connectorName)
+func (s *FlinkService) GetConnector(workspaceId string, namespaceName string, connectorName string) (*flinkAPI.Connector, error) {
+	return s.flinkAPI.GetConnector(workspaceId, namespaceName, connectorName)
 }
 
 func (s *FlinkService) DeleteCustomConnector(workspaceId string, namespaceName string, connectorName string) error {
-	return s.aliyunFlinkAPI.DeleteConnector(workspaceId, namespaceName, connectorName)
+	return s.flinkAPI.DeleteConnector(workspaceId, namespaceName, connectorName)
 }
 
 func (s *FlinkService) FlinkConnectorStateRefreshFunc(workspaceId string, namespaceName string, connectorName string, failStates []string) resource.StateRefreshFunc {

@@ -1,27 +1,27 @@
 package alicloud
 
 import (
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // Job methods
-func (s *FlinkService) DescribeFlinkJob(id string) (*aliyunFlinkAPI.Job, error) {
+func (s *FlinkService) DescribeFlinkJob(id string) (*flinkAPI.Job, error) {
 	// Parse job ID to extract namespace and job ID
 	// Format: namespace:jobId
 	namespaceName, jobId, err := parseJobId(id)
 	if err != nil {
 		return nil, err
 	}
-	return s.aliyunFlinkAPI.GetJob(namespaceName, jobId)
+	return s.flinkAPI.GetJob(namespaceName, jobId)
 }
 
-func (s *FlinkService) StartJobWithParams(namespaceName string, job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.Job, error) {
+func (s *FlinkService) StartJobWithParams(namespaceName string, job *flinkAPI.Job) (*flinkAPI.Job, error) {
 	job.Namespace = namespaceName
-	return s.aliyunFlinkAPI.StartJob(job)
+	return s.flinkAPI.StartJob(job)
 }
 
-func (s *FlinkService) UpdateJob(job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.HotUpdateJobResult, error) {
+func (s *FlinkService) UpdateJob(job *flinkAPI.Job) (*flinkAPI.HotUpdateJobResult, error) {
 	// Parse job ID to extract namespace and job ID
 	namespaceName, jobId, err := parseJobId(job.JobId)
 	if err != nil {
@@ -29,22 +29,22 @@ func (s *FlinkService) UpdateJob(job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.HotUp
 	}
 
 	// Create HotUpdateJobParams from job with proper strong typing
-	params := &aliyunFlinkAPI.HotUpdateJobParams{
+	params := &flinkAPI.HotUpdateJobParams{
 		JobConfig: job.FlinkConf, // Use strong typed FlinkConf field
 	}
 
 	// Get workspace ID from job context or use job's workspace field
 	workspaceId := job.Workspace
 
-	return s.aliyunFlinkAPI.UpdateJob(workspaceId, namespaceName, jobId, params)
+	return s.flinkAPI.UpdateJob(workspaceId, namespaceName, jobId, params)
 }
 
 func (s *FlinkService) StopJob(namespaceName, jobId string, withSavepoint bool) error {
-	return s.aliyunFlinkAPI.StopJob(namespaceName, jobId, withSavepoint)
+	return s.flinkAPI.StopJob(namespaceName, jobId, withSavepoint)
 }
 
-func (s *FlinkService) ListJobs(workspaceId, namespaceName, deploymentId string) ([]aliyunFlinkAPI.Job, error) {
-	return s.aliyunFlinkAPI.ListJobs(workspaceId, namespaceName, deploymentId)
+func (s *FlinkService) ListJobs(workspaceId, namespaceName, deploymentId string) ([]flinkAPI.Job, error) {
+	return s.flinkAPI.ListJobs(workspaceId, namespaceName, deploymentId)
 }
 
 func (s *FlinkService) FlinkJobStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {

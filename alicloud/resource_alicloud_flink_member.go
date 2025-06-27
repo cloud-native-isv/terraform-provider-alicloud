@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -60,7 +60,7 @@ func resourceAliCloudFlinkMemberCreate(d *schema.ResourceData, meta interface{})
 	role := d.Get("role").(string)
 
 	// Create a Member struct for the service method
-	member := &aliyunFlinkAPI.Member{
+	member := &flinkAPI.Member{
 		Member: name,
 		Role:   role,
 	}
@@ -142,7 +142,7 @@ func resourceAliCloudFlinkMemberUpdate(d *schema.ResourceData, meta interface{})
 	role := d.Get("role").(string)
 
 	// Create a Member struct for the service method
-	member := &aliyunFlinkAPI.Member{
+	member := &flinkAPI.Member{
 		Member: name,
 		Role:   role,
 	}

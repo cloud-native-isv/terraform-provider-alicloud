@@ -1,29 +1,29 @@
 package alicloud
 
 import (
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // Namespace methods
-func (s *FlinkService) ListNamespaces(workspaceId string) ([]aliyunFlinkAPI.Namespace, error) {
-	return s.aliyunFlinkAPI.ListNamespaces(workspaceId)
+func (s *FlinkService) ListNamespaces(workspaceId string) ([]flinkAPI.Namespace, error) {
+	return s.flinkAPI.ListNamespaces(workspaceId)
 }
 
-func (s *FlinkService) CreateNamespace(workspaceId string, namespace *aliyunFlinkAPI.Namespace) (*aliyunFlinkAPI.Namespace, error) {
-	// Create namespace using the aliyunFlinkAPI directly
-	result, err := s.aliyunFlinkAPI.CreateNamespace(workspaceId, namespace)
+func (s *FlinkService) CreateNamespace(workspaceId string, namespace *flinkAPI.Namespace) (*flinkAPI.Namespace, error) {
+	// Create namespace using the flinkAPI directly
+	result, err := s.flinkAPI.CreateNamespace(workspaceId, namespace)
 	return result, err
 }
 
-func (s *FlinkService) GetNamespace(workspaceId, namespaceName string) (*aliyunFlinkAPI.Namespace, error) {
+func (s *FlinkService) GetNamespace(workspaceId, namespaceName string) (*flinkAPI.Namespace, error) {
 	// Fetch the namespace using the API
-	return s.aliyunFlinkAPI.GetNamespace(workspaceId, namespaceName)
+	return s.flinkAPI.GetNamespace(workspaceId, namespaceName)
 }
 
 func (s *FlinkService) DeleteNamespace(workspaceId string, namespaceName string) error {
-	// Delete the namespace using aliyunFlinkAPI
-	return s.aliyunFlinkAPI.DeleteNamespace(workspaceId, namespaceName)
+	// Delete the namespace using flinkAPI
+	return s.flinkAPI.DeleteNamespace(workspaceId, namespaceName)
 }
 
 // FlinkNamespaceStateRefreshFunc provides state refresh for namespaces

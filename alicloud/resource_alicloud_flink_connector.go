@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -101,7 +101,7 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 	namespaceName := d.Get("namespace_name").(string)
 	connectorName := d.Get("connector_name").(string)
 
-	connector := &aliyunFlinkAPI.Connector{
+	connector := &flinkAPI.Connector{
 		Name:        connectorName,
 		Type:        d.Get("connector_type").(string),
 		JarUrl:      d.Get("jar_url").(string),
@@ -194,7 +194,7 @@ func resourceAliCloudFlinkConnectorUpdate(d *schema.ResourceData, meta interface
 	}
 
 	update := false
-	connector := &aliyunFlinkAPI.Connector{
+	connector := &flinkAPI.Connector{
 		Name: connectorName,
 	}
 
