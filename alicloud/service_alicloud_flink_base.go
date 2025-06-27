@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	aliyunCommonAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
-	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 )
 
 type FlinkService struct {
 	client   *connectivity.AliyunClient
-	flinkAPI *flinkAPI.FlinkAPI
+	flinkAPI *aliyunFlinkAPI.FlinkAPI
 }
 
 // NewFlinkService creates a new FlinkService using cws-lib-go implementation
@@ -25,7 +25,7 @@ func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
 	}
 
 	// Create the cws-lib-go FlinkAPI
-	flinkAPI, err := flinkAPI.NewFlinkAPI(credentials)
+	flinkAPI, err := aliyunFlinkAPI.NewFlinkAPI(credentials)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cws-lib-go FlinkAPI: %w", err)
 	}
@@ -37,12 +37,12 @@ func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
 }
 
 // Zone methods
-func (s *FlinkService) DescribeSupportedZones() ([]*flinkAPI.ZoneInfo, error) {
+func (s *FlinkService) DescribeSupportedZones() ([]*aliyunFlinkAPI.ZoneInfo, error) {
 	return s.flinkAPI.ListSupportedZones(s.client.RegionId)
 }
 
 // Engine methods
-func (s *FlinkService) ListEngines(workspaceId string) ([]*flinkAPI.FlinkEngine, error) {
+func (s *FlinkService) ListEngines(workspaceId string) ([]*aliyunFlinkAPI.FlinkEngine, error) {
 	return s.flinkAPI.ListEngines(workspaceId)
 }
 

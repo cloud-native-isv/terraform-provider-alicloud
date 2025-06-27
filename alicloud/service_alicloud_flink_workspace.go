@@ -1,16 +1,16 @@
 package alicloud
 
 import (
-	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // Workspace methods
-func (s *FlinkService) DescribeFlinkWorkspace(id string) (*flinkAPI.Workspace, error) {
+func (s *FlinkService) DescribeFlinkWorkspace(id string) (*aliyunFlinkAPI.Workspace, error) {
 	return s.flinkAPI.GetWorkspace(id)
 }
 
-func (s *FlinkService) CreateInstance(workspace *flinkAPI.Workspace) (*flinkAPI.Workspace, error) {
+func (s *FlinkService) CreateInstance(workspace *aliyunFlinkAPI.Workspace) (*aliyunFlinkAPI.Workspace, error) {
 	return s.flinkAPI.CreateWorkspace(workspace)
 }
 
@@ -35,6 +35,6 @@ func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(id string) resource.StateR
 }
 
 // Instance/Workspace methods (aliases for workspace methods)
-func (s *FlinkService) ListInstances() ([]flinkAPI.Workspace, error) {
+func (s *FlinkService) ListInstances() ([]aliyunFlinkAPI.Workspace, error) {
 	return s.flinkAPI.ListWorkspaces()
 }

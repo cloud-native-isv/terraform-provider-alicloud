@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -79,14 +79,14 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
 
-	namespace := &flinkAPI.Namespace{
+	namespace := &aliyunFlinkAPI.Namespace{
 		Name: namespaceName,
 	}
 
 	// Handle resource specification
 	if resourceSpecList := d.Get("resource_spec").([]interface{}); len(resourceSpecList) > 0 {
 		resourceSpecMap := resourceSpecList[0].(map[string]interface{})
-		namespace.ResourceSpec = &flinkAPI.ResourceSpec{
+		namespace.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{
 			Cpu:      float64(resourceSpecMap["cpu"].(int)),
 			MemoryGB: float64(resourceSpecMap["memory_gb"].(int)),
 		}
@@ -161,14 +161,14 @@ func resourceAliCloudFlinkNamespaceUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if d.HasChange("resource_spec") {
-		namespace := &flinkAPI.Namespace{
+		namespace := &aliyunFlinkAPI.Namespace{
 			Name: namespaceName,
 		}
 
 		// Handle resource specification
 		if resourceSpecList := d.Get("resource_spec").([]interface{}); len(resourceSpecList) > 0 {
 			resourceSpecMap := resourceSpecList[0].(map[string]interface{})
-			namespace.ResourceSpec = &flinkAPI.ResourceSpec{
+			namespace.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{
 				Cpu:      float64(resourceSpecMap["cpu"].(int)),
 				MemoryGB: float64(resourceSpecMap["memory_gb"].(int)),
 			}

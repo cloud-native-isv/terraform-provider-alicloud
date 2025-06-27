@@ -1,12 +1,12 @@
 package alicloud
 
 import (
-	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // Job methods
-func (s *FlinkService) DescribeFlinkJob(id string) (*flinkAPI.Job, error) {
+func (s *FlinkService) DescribeFlinkJob(id string) (*aliyunFlinkAPI.Job, error) {
 	// Parse job ID to extract namespace and job ID
 	// Format: namespace:jobId
 	namespaceName, jobId, err := parseJobId(id)
@@ -16,12 +16,12 @@ func (s *FlinkService) DescribeFlinkJob(id string) (*flinkAPI.Job, error) {
 	return s.flinkAPI.GetJob(namespaceName, jobId)
 }
 
-func (s *FlinkService) StartJobWithParams(namespaceName string, job *flinkAPI.Job) (*flinkAPI.Job, error) {
+func (s *FlinkService) StartJobWithParams(namespaceName string, job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.Job, error) {
 	job.Namespace = namespaceName
 	return s.flinkAPI.StartJob(job)
 }
 
-func (s *FlinkService) UpdateJob(job *flinkAPI.Job) (*flinkAPI.HotUpdateJobResult, error) {
+func (s *FlinkService) UpdateJob(job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.HotUpdateJobResult, error) {
 	// Parse job ID to extract namespace and job ID
 	namespaceName, jobId, err := parseJobId(job.JobId)
 	if err != nil {
@@ -29,7 +29,7 @@ func (s *FlinkService) UpdateJob(job *flinkAPI.Job) (*flinkAPI.HotUpdateJobResul
 	}
 
 	// Create HotUpdateJobParams from job with proper strong typing
-	params := &flinkAPI.HotUpdateJobParams{
+	params := &aliyunFlinkAPI.HotUpdateJobParams{
 		JobConfig: job.FlinkConf, // Use strong typed FlinkConf field
 	}
 
@@ -43,7 +43,7 @@ func (s *FlinkService) StopJob(namespaceName, jobId string, withSavepoint bool) 
 	return s.flinkAPI.StopJob(namespaceName, jobId, withSavepoint)
 }
 
-func (s *FlinkService) ListJobs(workspaceId, namespaceName, deploymentId string) ([]flinkAPI.Job, error) {
+func (s *FlinkService) ListJobs(workspaceId, namespaceName, deploymentId string) ([]aliyunFlinkAPI.Job, error) {
 	return s.flinkAPI.ListJobs(workspaceId, namespaceName, deploymentId)
 }
 

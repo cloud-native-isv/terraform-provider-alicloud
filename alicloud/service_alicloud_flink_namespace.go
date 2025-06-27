@@ -1,22 +1,22 @@
 package alicloud
 
 import (
-	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // Namespace methods
-func (s *FlinkService) ListNamespaces(workspaceId string) ([]flinkAPI.Namespace, error) {
+func (s *FlinkService) ListNamespaces(workspaceId string) ([]aliyunFlinkAPI.Namespace, error) {
 	return s.flinkAPI.ListNamespaces(workspaceId)
 }
 
-func (s *FlinkService) CreateNamespace(workspaceId string, namespace *flinkAPI.Namespace) (*flinkAPI.Namespace, error) {
+func (s *FlinkService) CreateNamespace(workspaceId string, namespace *aliyunFlinkAPI.Namespace) (*aliyunFlinkAPI.Namespace, error) {
 	// Create namespace using the flinkAPI directly
 	result, err := s.flinkAPI.CreateNamespace(workspaceId, namespace)
 	return result, err
 }
 
-func (s *FlinkService) GetNamespace(workspaceId, namespaceName string) (*flinkAPI.Namespace, error) {
+func (s *FlinkService) GetNamespace(workspaceId, namespaceName string) (*aliyunFlinkAPI.Namespace, error) {
 	// Fetch the namespace using the API
 	return s.flinkAPI.GetNamespace(workspaceId, namespaceName)
 }

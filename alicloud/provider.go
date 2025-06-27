@@ -901,6 +901,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_flink_namespaces":                                 dataSourceAlicloudFlinkNamespaces(),
 			"alicloud_flink_engines":                                    dataSourceAlicloudFlinkEngines(),
 			"alicloud_flink_deployments":                                dataSourceAlicloudFlinkDeployments(),
+			"alicloud_flink_deployment_folders":                         dataSourceAlicloudFlinkDeploymentFolders(),
 			"alicloud_arms_alert_prometheus_alert_rules":                dataSourceAlicloudArmsPrometheusAlertRules(),
 			"alicloud_arms_alert_dispatch_rules":                        dataSourceAlicloudArmsAlertDispatchRules(),
 			"alicloud_arms_alert_integrations":                          dataSourceAlicloudArmsAlertIntegrations(),

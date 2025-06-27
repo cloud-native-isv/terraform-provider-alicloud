@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -215,7 +215,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 	sessionClusterName := d.Get("session_cluster_name").(string)
 
 	// Build job request - using the Job struct from cws-lib-go with correct field names
-	request := &flinkAPI.Job{
+	request := &aliyunFlinkAPI.Job{
 		Workspace:          workspaceId,
 		Namespace:          namespaceName,
 		DeploymentId:       deploymentId,
@@ -232,7 +232,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 		restoreList := v.([]interface{})
 		if len(restoreList) > 0 {
 			restoreMap := restoreList[0].(map[string]interface{})
-			request.RestoreStrategy = &flinkAPI.RestoreStrategy{
+			request.RestoreStrategy = &aliyunFlinkAPI.RestoreStrategy{
 				Kind: restoreMap["kind"].(string),
 			}
 			if savepointId, exists := restoreMap["savepoint_id"]; exists && savepointId.(string) != "" {
@@ -244,10 +244,10 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 	// Handle local variables
 	if v, ok := d.GetOk("local_variables"); ok {
 		variableSet := v.(*schema.Set)
-		localVars := make([]*flinkAPI.LocalVariable, 0, variableSet.Len())
+		localVars := make([]*aliyunFlinkAPI.LocalVariable, 0, variableSet.Len())
 		for _, varInterface := range variableSet.List() {
 			varMap := varInterface.(map[string]interface{})
-			localVars = append(localVars, &flinkAPI.LocalVariable{
+			localVars = append(localVars, &aliyunFlinkAPI.LocalVariable{
 				Name:  varMap["name"].(string),
 				Value: varMap["value"].(string),
 			})
