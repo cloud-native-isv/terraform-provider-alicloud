@@ -177,7 +177,7 @@ func dataSourceAlicloudFlinkDeploymentsRead(d *schema.ResourceData, meta interfa
 			"namespace":      deployment.Namespace,
 			"workspace_id":   workspaceId,
 			"status":         deployment.Status,
-			"job_id":         deployment.JobID,
+			"job_id":         deployment.JobId,
 			"engine_version": deployment.EngineVersion,
 			"execution_mode": deployment.ExecutionMode,
 			"creator":        deployment.Creator,

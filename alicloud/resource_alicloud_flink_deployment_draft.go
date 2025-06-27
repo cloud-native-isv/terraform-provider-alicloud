@@ -33,7 +33,7 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the namespace.",
 			},
-			"draft_name": {
+			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The name of the deployment draft.",
@@ -61,7 +61,6 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"STREAMING", "BATCH"}, false),
 				Description:  "The execution mode for the Flink job.",
 			},
-			// 部署目标配置 - 与 deployment 对齐
 			"deployment_target": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -77,12 +76,6 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 						},
 					},
 				},
-			},
-			// Artifact 配置 - 支持两种方式：简单的 URI 和复杂的结构
-			"artifact_uri": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The URI of the deployment artifact (e.g., JAR file in OSS). Use this for simple JAR artifacts.",
 			},
 			"artifact": {
 				Type:        schema.TypeList,
@@ -195,56 +188,11 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 					},
 				},
 			},
-			// 资源配置 - 保持旧的简单结构以及新的复杂结构
 			"parallelism": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Default:     1,
 				Description: "The parallelism of the job.",
-			},
-			"job_manager_resource_spec": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				Description: "JobManager resource specification (legacy, use streaming_resource_setting instead).",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"cpu": {
-							Type:        schema.TypeFloat,
-							Optional:    true,
-							Default:     1.0,
-							Description: "CPU cores for JobManager.",
-						},
-						"memory": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Default:     "1g",
-							Description: "Memory for JobManager (e.g., \"1g\").",
-						},
-					},
-				},
-			},
-			"task_manager_resource_spec": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				Description: "TaskManager resource specification (legacy, use streaming_resource_setting instead).",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"cpu": {
-							Type:        schema.TypeFloat,
-							Optional:    true,
-							Default:     2.0,
-							Description: "CPU cores for TaskManager.",
-						},
-						"memory": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Default:     "2g",
-							Description: "Memory for TaskManager (e.g., \"2g\").",
-						},
-					},
-				},
 			},
 			"streaming_resource_setting": {
 				Type:        schema.TypeList,
@@ -353,7 +301,6 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 					},
 				},
 			},
-			// Flink 配置 - 统一命名
 			"flink_conf": {
 				Type:        schema.TypeMap,
 				Optional:    true,
@@ -362,7 +309,6 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			// 日志配置 - 与 deployment 对齐
 			"logging": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -422,7 +368,6 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 					},
 				},
 			},
-			// 标签配置 - 与 deployment 对齐
 			"tags": {
 				Type:        schema.TypeMap,
 				Optional:    true,
@@ -503,35 +448,26 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 
 	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
-	name := d.Get("draft_name").(string)
+	name := d.Get("name").(string)
 
-	// Create deployment draft using cws-lib-go service
 	draft := &flinkAPI.DeploymentDraft{
 		Workspace: workspaceId,
 		Namespace: namespaceName,
 		Name:      name,
 	}
 
-	// Set description
 	if description, ok := d.GetOk("description"); ok {
 		draft.Description = description.(string)
 	}
 
-	// Set engine version
 	if engineVersion, ok := d.GetOk("engine_version"); ok {
 		draft.EngineVersion = engineVersion.(string)
-	} else {
-		draft.EngineVersion = "vvr-11.1-jdk11-flink-1.20" // default value
 	}
 
-	// Set execution mode
 	if executionMode, ok := d.GetOk("execution_mode"); ok {
 		draft.ExecutionMode = executionMode.(string)
-	} else {
-		draft.ExecutionMode = "STREAMING" // default value
 	}
 
-	// Set deployment ID if provided
 	if deploymentId, ok := d.GetOk("deployment_id"); ok {
 		draft.ReferencedDeploymentId = deploymentId.(string)
 	}
@@ -712,7 +648,7 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 	// Set basic fields
 	d.Set("namespace_name", deploymentDraft.Namespace)
 	d.Set("workspace_id", deploymentDraft.Workspace)
-	d.Set("draft_name", deploymentDraft.Name)
+	d.Set("name", deploymentDraft.Name)
 	d.Set("draft_id", deploymentDraft.Id)
 	d.Set("description", deploymentDraft.Description)
 	d.Set("engine_version", deploymentDraft.EngineVersion)
@@ -868,8 +804,8 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	update := false
 
 	// Update basic fields
-	if d.HasChange("draft_name") {
-		deploymentDraft.Name = d.Get("draft_name").(string)
+	if d.HasChange("name") {
+		deploymentDraft.Name = d.Get("name").(string)
 		update = true
 	}
 
