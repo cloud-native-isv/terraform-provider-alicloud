@@ -34,6 +34,11 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the namespace.",
 			},
+			"folder_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The ID of the folder where the deployment draft is located.",
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -457,6 +462,10 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		Name:      name,
 	}
 
+	if folderId, ok := d.GetOk("folder_id"); ok {
+		draft.ParentId = folderId.(string)
+	}
+
 	if description, ok := d.GetOk("description"); ok {
 		draft.Description = description.(string)
 	}
@@ -655,6 +664,11 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 	d.Set("engine_version", deploymentDraft.EngineVersion)
 	d.Set("execution_mode", deploymentDraft.ExecutionMode)
 	d.Set("status", deploymentDraft.Status)
+
+	// Set folder_id from ParentId
+	if deploymentDraft.ParentId != "" {
+		d.Set("folder_id", deploymentDraft.ParentId)
+	}
 
 	// Set deployment ID if present
 	if deploymentDraft.ReferencedDeploymentId != "" {
