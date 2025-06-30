@@ -1,8 +1,6 @@
 package alicloud
 
 import (
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -89,8 +87,8 @@ func resourceAliCloudFlinkDeploymentFolderCreate(d *schema.ResourceData, meta in
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment_folder", "CreateDeploymentFolder", AlibabaCloudSdkGoERROR)
 	}
 
-	// Set resource ID using a composite format: workspace_id:namespace:folder_id
-	d.SetId(fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, folder.FolderId))
+	// Set resource ID using service helper function
+	d.SetId(service.BuildDeploymentFolderId(workspaceId, namespaceName, folder.FolderId))
 
 	// Wait for folder to be available
 	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, service.DeploymentFolderStateRefreshFunc(workspaceId, namespaceName, folder.FolderId, []string{}))
@@ -110,12 +108,11 @@ func resourceAliCloudFlinkDeploymentFolderRead(d *schema.ResourceData, meta inte
 		return WrapError(err)
 	}
 
-	// Parse resource ID
-	parts := strings.Split(d.Id(), ":")
-	if len(parts) != 3 {
-		return WrapErrorf(fmt.Errorf("invalid resource id format"), IdMsg, d.Id())
+	// Parse resource ID using service helper function
+	workspaceId, namespaceName, folderId, err := service.ParseDeploymentFolderId(d.Id())
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	workspaceId, namespaceName, folderId := parts[0], parts[1], parts[2]
 
 	// Get deployment folder
 	folder, err := service.GetDeploymentFolder(workspaceId, namespaceName, folderId)
@@ -154,12 +151,11 @@ func resourceAliCloudFlinkDeploymentFolderUpdate(d *schema.ResourceData, meta in
 		return WrapError(err)
 	}
 
-	// Parse resource ID
-	parts := strings.Split(d.Id(), ":")
-	if len(parts) != 3 {
-		return WrapErrorf(fmt.Errorf("invalid resource id format"), IdMsg, d.Id())
+	// Parse resource ID using service helper function
+	workspaceId, namespace, folderId, err := service.ParseDeploymentFolderId(d.Id())
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	workspaceId, namespace, folderId := parts[0], parts[1], parts[2]
 
 	// Check if folder_name has changed
 	if d.HasChange("folder_name") {
@@ -190,12 +186,11 @@ func resourceAliCloudFlinkDeploymentFolderDelete(d *schema.ResourceData, meta in
 		return WrapError(err)
 	}
 
-	// Parse resource ID
-	parts := strings.Split(d.Id(), ":")
-	if len(parts) != 3 {
-		return WrapErrorf(fmt.Errorf("invalid resource id format"), IdMsg, d.Id())
+	// Parse resource ID using service helper function
+	workspaceId, namespace, folderId, err := service.ParseDeploymentFolderId(d.Id())
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	workspaceId, namespace, folderId := parts[0], parts[1], parts[2]
 
 	// Delete deployment folder
 	err = service.DeleteDeploymentFolder(workspaceId, namespace, folderId)

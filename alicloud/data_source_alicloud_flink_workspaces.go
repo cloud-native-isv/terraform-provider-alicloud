@@ -88,7 +88,7 @@ func dataSourceAlicloudFlinkWorkspaces() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"create_time": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 						"cluster_state": {

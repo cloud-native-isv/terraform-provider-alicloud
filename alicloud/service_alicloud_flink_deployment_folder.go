@@ -2,10 +2,27 @@ package alicloud
 
 import (
 	"fmt"
+	"strings"
 
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
+
+// BuildDeploymentFolderId constructs the composite resource ID for deployment folder
+// Format: workspace_id:namespace:folder_id
+func (s *FlinkService) BuildDeploymentFolderId(workspaceId, namespace, folderId string) string {
+	return fmt.Sprintf("%s:%s:%s", workspaceId, namespace, folderId)
+}
+
+// ParseDeploymentFolderId parses the composite resource ID for deployment folder
+// Returns workspaceId, namespace, folderId and error
+func (s *FlinkService) ParseDeploymentFolderId(id string) (workspaceId, namespace, folderId string, err error) {
+	parts := strings.Split(id, ":")
+	if len(parts) != 3 {
+		return "", "", "", fmt.Errorf("invalid resource id format: expected workspace_id:namespace:folder_id, got %s", id)
+	}
+	return parts[0], parts[1], parts[2], nil
+}
 
 // CreateDeploymentFolder creates a new deployment folder
 func (s *FlinkService) CreateDeploymentFolder(workspaceId, namespace, folderName, parentId string) (*aliyunFlinkAPI.DeploymentFolder, error) {
