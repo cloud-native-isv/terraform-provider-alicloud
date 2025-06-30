@@ -61,8 +61,8 @@ func resourceAliCloudFlinkMemberCreate(d *schema.ResourceData, meta interface{})
 
 	// Create a Member struct for the service method
 	member := &flinkAPI.Member{
-		Member: name,
-		Role:   role,
+		Name: name,
+		Role: role,
 	}
 
 	// Pass workspaceId, namespaceName and Member struct to the service method
@@ -143,8 +143,8 @@ func resourceAliCloudFlinkMemberUpdate(d *schema.ResourceData, meta interface{})
 
 	// Create a Member struct for the service method
 	member := &flinkAPI.Member{
-		Member: name,
-		Role:   role,
+		Name: name,
+		Role: role,
 	}
 
 	// Pass workspaceId, namespaceName and Member struct to the service method

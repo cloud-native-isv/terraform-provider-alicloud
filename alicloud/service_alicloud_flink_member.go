@@ -8,7 +8,7 @@ import (
 // Member methods
 func (s *FlinkService) CreateMember(workspaceId string, namespaceName string, member *flinkAPI.Member) (*flinkAPI.Member, error) {
 	// Set workspace and namespace
-	member.WorkspaceID = workspaceId
+	member.WorkspaceId = workspaceId
 	member.NamespaceName = namespaceName
 
 	// Call the underlying API
@@ -22,7 +22,7 @@ func (s *FlinkService) GetMember(workspaceId string, namespaceName string, membe
 
 func (s *FlinkService) UpdateMember(workspaceId string, namespaceName string, member *flinkAPI.Member) (*flinkAPI.Member, error) {
 	// Set workspace and namespace
-	member.WorkspaceID = workspaceId
+	member.WorkspaceId = workspaceId
 	member.NamespaceName = namespaceName
 
 	// Call the underlying API
