@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcsSnapshots() *schema.Resource {
+func dataSourceAliCloudEcsSnapshots() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcsSnapshotsRead,
+		Read: dataSourceAliCloudEcsSnapshotsRead,
 		Schema: map[string]*schema.Schema{
 			"category": {
 				Type:         schema.TypeString,
@@ -219,7 +219,7 @@ func dataSourceAlicloudEcsSnapshots() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcsSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcsSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeSnapshots"

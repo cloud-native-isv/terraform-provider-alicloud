@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudBssOpenApiPricingModules() *schema.Resource {
+func dataSourceAliCloudBssOpenApiPricingModules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudBssOpenApiPricingModulesRead,
+		Read: dataSourceAliCloudBssOpenApiPricingModulesRead,
 		Schema: map[string]*schema.Schema{
 			"product_code": {
 				Required: true,
@@ -120,7 +120,7 @@ func dataSourceAlicloudBssOpenApiPricingModules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudBssOpenApiPricingModulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudBssOpenApiPricingModulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

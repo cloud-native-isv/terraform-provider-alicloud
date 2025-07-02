@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcsAutoSnapshotPolicyAttachment() *schema.Resource {
+func resourceAliCloudEcsAutoSnapshotPolicyAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsAutoSnapshotPolicyAttachmentCreate,
-		Read:   resourceAlicloudEcsAutoSnapshotPolicyAttachmentRead,
-		Delete: resourceAlicloudEcsAutoSnapshotPolicyAttachmentDelete,
+		Create: resourceAliCloudEcsAutoSnapshotPolicyAttachmentCreate,
+		Read:   resourceAliCloudEcsAutoSnapshotPolicyAttachmentRead,
+		Delete: resourceAliCloudEcsAutoSnapshotPolicyAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -33,7 +33,7 @@ func resourceAlicloudEcsAutoSnapshotPolicyAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsAutoSnapshotPolicyAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsAutoSnapshotPolicyAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "ApplyAutoSnapshotPolicy"
@@ -59,9 +59,9 @@ func resourceAlicloudEcsAutoSnapshotPolicyAttachmentCreate(d *schema.ResourceDat
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ecs_auto_snapshot_policy_attachment", action, AlibabaCloudSdkGoERROR)
 	}
 	d.SetId(fmt.Sprint(request["autoSnapshotPolicyId"], ":", d.Get("disk_id")))
-	return resourceAlicloudEcsAutoSnapshotPolicyAttachmentRead(d, meta)
+	return resourceAliCloudEcsAutoSnapshotPolicyAttachmentRead(d, meta)
 }
-func resourceAlicloudEcsAutoSnapshotPolicyAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsAutoSnapshotPolicyAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	_, err := ecsService.DescribeEcsAutoSnapshotPolicyAttachment(d.Id())
@@ -80,7 +80,7 @@ func resourceAlicloudEcsAutoSnapshotPolicyAttachmentRead(d *schema.ResourceData,
 
 	return nil
 }
-func resourceAlicloudEcsAutoSnapshotPolicyAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsAutoSnapshotPolicyAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

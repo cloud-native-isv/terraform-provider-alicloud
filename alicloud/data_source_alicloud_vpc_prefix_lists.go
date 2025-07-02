@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcPrefixLists() *schema.Resource {
+func dataSourceAliCloudVpcPrefixLists() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcPrefixListsRead,
+		Read: dataSourceAliCloudVpcPrefixListsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -108,7 +108,7 @@ func dataSourceAlicloudVpcPrefixLists() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcPrefixListsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcPrefixListsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListPrefixLists"

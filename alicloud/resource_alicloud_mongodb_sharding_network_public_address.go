@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudMongodbShardingNetworkPublicAddress() *schema.Resource {
+func resourceAliCloudMongodbShardingNetworkPublicAddress() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMongodbShardingNetworkPublicAddressCreate,
-		Read:   resourceAlicloudMongodbShardingNetworkPublicAddressRead,
-		Delete: resourceAlicloudMongodbShardingNetworkPublicAddressDelete,
+		Create: resourceAliCloudMongodbShardingNetworkPublicAddressCreate,
+		Read:   resourceAliCloudMongodbShardingNetworkPublicAddressRead,
+		Delete: resourceAliCloudMongodbShardingNetworkPublicAddressDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -85,7 +85,7 @@ func resourceAlicloudMongodbShardingNetworkPublicAddress() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMongodbShardingNetworkPublicAddressCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongodbShardingNetworkPublicAddressCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AllocatePublicNetworkAddress"
@@ -122,9 +122,9 @@ func resourceAlicloudMongodbShardingNetworkPublicAddressCreate(d *schema.Resourc
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudMongodbShardingNetworkPublicAddressRead(d, meta)
+	return resourceAliCloudMongodbShardingNetworkPublicAddressRead(d, meta)
 }
-func resourceAlicloudMongodbShardingNetworkPublicAddressRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongodbShardingNetworkPublicAddressRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	MongoDBService := MongoDBService{client}
 	object, err := MongoDBService.DescribeMongodbShardingNetworkPublicAddress(d.Id())
@@ -161,7 +161,7 @@ func resourceAlicloudMongodbShardingNetworkPublicAddressRead(d *schema.ResourceD
 	d.Set("network_address", s)
 	return nil
 }
-func resourceAlicloudMongodbShardingNetworkPublicAddressDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongodbShardingNetworkPublicAddressDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

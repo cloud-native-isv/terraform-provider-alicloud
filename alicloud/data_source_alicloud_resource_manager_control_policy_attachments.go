@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudResourceManagerControlPolicyAttachments() *schema.Resource {
+func dataSourceAliCloudResourceManagerControlPolicyAttachments() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudResourceManagerControlPolicyAttachmentsRead,
+		Read: dataSourceAliCloudResourceManagerControlPolicyAttachmentsRead,
 		Schema: map[string]*schema.Schema{
 			"policy_type": {
 				Type:     schema.TypeString,
@@ -72,7 +72,7 @@ func dataSourceAlicloudResourceManagerControlPolicyAttachments() *schema.Resourc
 	}
 }
 
-func dataSourceAlicloudResourceManagerControlPolicyAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudResourceManagerControlPolicyAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListControlPolicyAttachmentsForTarget"

@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAmqpQueue() *schema.Resource {
+func resourceAliCloudAmqpQueue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAmqpQueueCreate,
-		Read:   resourceAlicloudAmqpQueueRead,
-		Update: resourceAlicloudAmqpQueueUpdate,
-		Delete: resourceAlicloudAmqpQueueDelete,
+		Create: resourceAliCloudAmqpQueueCreate,
+		Read:   resourceAliCloudAmqpQueueRead,
+		Update: resourceAliCloudAmqpQueueUpdate,
+		Delete: resourceAliCloudAmqpQueueDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -73,7 +73,7 @@ func resourceAlicloudAmqpQueue() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAmqpQueueCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAmqpQueueCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateQueue"
@@ -125,9 +125,9 @@ func resourceAlicloudAmqpQueueCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["VirtualHost"], ":", request["QueueName"]))
 
-	return resourceAlicloudAmqpQueueRead(d, meta)
+	return resourceAliCloudAmqpQueueRead(d, meta)
 }
-func resourceAlicloudAmqpQueueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAmqpQueueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	amqpOpenService := AmqpOpenService{client}
 	object, err := amqpOpenService.DescribeAmqpQueue(d.Id())
@@ -150,11 +150,11 @@ func resourceAlicloudAmqpQueueRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("exclusive_state", object["ExclusiveState"])
 	return nil
 }
-func resourceAlicloudAmqpQueueUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAmqpQueueUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudAmqpQueueRead(d, meta)
+	return resourceAliCloudAmqpQueueRead(d, meta)
 }
-func resourceAlicloudAmqpQueueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAmqpQueueDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {

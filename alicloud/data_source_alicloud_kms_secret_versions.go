@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudKmsSecretVersions() *schema.Resource {
+func dataSourceAliCloudKmsSecretVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKmsSecretVersionsRead,
+		Read: dataSourceAliCloudKmsSecretVersionsRead,
 		Schema: map[string]*schema.Schema{
 			"include_deprecated": {
 				Type:     schema.TypeString,
@@ -78,7 +78,7 @@ func dataSourceAlicloudKmsSecretVersions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudKmsSecretVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKmsSecretVersionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListSecretVersionIds"

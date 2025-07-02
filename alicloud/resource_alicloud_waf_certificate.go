@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudWafCertificate() *schema.Resource {
+func resourceAliCloudWafCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudWafCertificateCreate,
-		Read:   resourceAlicloudWafCertificateRead,
-		Delete: resourceAlicloudWafCertificateDelete,
+		Create: resourceAliCloudWafCertificateCreate,
+		Read:   resourceAliCloudWafCertificateRead,
+		Delete: resourceAliCloudWafCertificateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -59,7 +59,7 @@ func resourceAlicloudWafCertificate() *schema.Resource {
 	}
 }
 
-func resourceAlicloudWafCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -88,7 +88,7 @@ func resourceAlicloudWafCertificateCreate(d *schema.ResourceData, meta interface
 			return WrapErrorf(err, DefaultErrorMsg, "alicloud_waf_certificate", action, AlibabaCloudSdkGoERROR)
 		}
 		d.SetId(fmt.Sprint(request["InstanceId"], ":", request["Domain"], ":", formatInt(response["CertificateId"])))
-		return resourceAlicloudWafCertificateRead(d, meta)
+		return resourceAliCloudWafCertificateRead(d, meta)
 	}
 
 	request = make(map[string]interface{})
@@ -130,9 +130,9 @@ func resourceAlicloudWafCertificateCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["Domain"], ":", formatInt(response["CertificateId"])))
 
-	return resourceAlicloudWafCertificateRead(d, meta)
+	return resourceAliCloudWafCertificateRead(d, meta)
 }
-func resourceAlicloudWafCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	wafOpenapiService := WafOpenapiService{client}
 	object, err := wafOpenapiService.DescribeWafCertificate(d.Id())
@@ -154,7 +154,7 @@ func resourceAlicloudWafCertificateRead(d *schema.ResourceData, meta interface{}
 	d.Set("certificate_name", object["CertificateName"])
 	return nil
 }
-func resourceAlicloudWafCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudWafCertificate. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudWafCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudWafCertificate. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

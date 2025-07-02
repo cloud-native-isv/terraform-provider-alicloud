@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudDcdnEr() *schema.Resource {
+func resourceAliCloudDcdnEr() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudDcdnErCreate,
 		Read:   resourceAliCloudDcdnErRead,

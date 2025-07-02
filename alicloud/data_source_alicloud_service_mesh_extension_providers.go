@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudServiceMeshExtensionProviders() *schema.Resource {
+func dataSourceAliCloudServiceMeshExtensionProviders() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudServiceMeshExtensionProvidersRead,
+		Read: dataSourceAliCloudServiceMeshExtensionProvidersRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -81,7 +81,7 @@ func dataSourceAlicloudServiceMeshExtensionProviders() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudServiceMeshExtensionProvidersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudServiceMeshExtensionProvidersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeExtensionProvider"

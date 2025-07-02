@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudNasRecycleBin() *schema.Resource {
+func resourceAliCloudNasRecycleBin() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudNasRecycleBinCreate,
-		Read:   resourceAlicloudNasRecycleBinRead,
-		Update: resourceAlicloudNasRecycleBinUpdate,
-		Delete: resourceAlicloudNasRecycleBinDelete,
+		Create: resourceAliCloudNasRecycleBinCreate,
+		Read:   resourceAliCloudNasRecycleBinRead,
+		Update: resourceAliCloudNasRecycleBinUpdate,
+		Delete: resourceAliCloudNasRecycleBinDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -40,7 +40,7 @@ func resourceAlicloudNasRecycleBin() *schema.Resource {
 	}
 }
 
-func resourceAlicloudNasRecycleBinCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasRecycleBinCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "EnableRecycleBin"
@@ -69,9 +69,9 @@ func resourceAlicloudNasRecycleBinCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(request["FileSystemId"]))
 
-	return resourceAlicloudNasRecycleBinRead(d, meta)
+	return resourceAliCloudNasRecycleBinRead(d, meta)
 }
-func resourceAlicloudNasRecycleBinRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasRecycleBinRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {
@@ -93,7 +93,7 @@ func resourceAlicloudNasRecycleBinRead(d *schema.ResourceData, meta interface{})
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudNasRecycleBinUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasRecycleBinUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"FileSystemId": d.Id(),
@@ -122,9 +122,9 @@ func resourceAlicloudNasRecycleBinUpdate(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
-	return resourceAlicloudNasRecycleBinRead(d, meta)
+	return resourceAliCloudNasRecycleBinRead(d, meta)
 }
-func resourceAlicloudNasRecycleBinDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasRecycleBinDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DisableAndCleanRecycleBin"
 	var response map[string]interface{}

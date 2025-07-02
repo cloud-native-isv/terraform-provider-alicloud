@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudAccessRules() *schema.Resource {
+func dataSourceAliCloudAccessRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAccessRulesRead,
+		Read: dataSourceAliCloudAccessRulesRead,
 
 		Schema: map[string]*schema.Schema{
 			"source_cidr_ip": {
@@ -72,7 +72,7 @@ func dataSourceAlicloudAccessRules() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudAccessRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAccessRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeAccessRules"

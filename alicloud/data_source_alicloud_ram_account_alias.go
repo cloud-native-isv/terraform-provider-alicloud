@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRamAccountAlias() *schema.Resource {
+func dataSourceAliCloudRamAccountAlias() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRamAccountAliasRead,
+		Read: dataSourceAliCloudRamAccountAliasRead,
 
 		Schema: map[string]*schema.Schema{
 			"output_file": {
@@ -26,7 +26,7 @@ func dataSourceAlicloudRamAccountAlias() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRamAccountAliasRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRamAccountAliasRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

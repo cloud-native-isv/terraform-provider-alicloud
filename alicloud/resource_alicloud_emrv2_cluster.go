@@ -2,13 +2,14 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"reflect"
 	"sort"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -19,12 +20,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEmrV2Cluster() *schema.Resource {
+func resourceAliCloudEmrV2Cluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEmrV2ClusterCreate,
-		Read:   resourceAlicloudEmrV2ClusterRead,
-		Update: resourceAlicloudEmrV2ClusterUpdate,
-		Delete: resourceAlicloudEmrV2ClusterDelete,
+		Create: resourceAliCloudEmrV2ClusterCreate,
+		Read:   resourceAliCloudEmrV2ClusterRead,
+		Update: resourceAliCloudEmrV2ClusterUpdate,
+		Delete: resourceAliCloudEmrV2ClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -884,7 +885,7 @@ func resourceAlicloudEmrV2Cluster() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEmrV2ClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEmrV2ClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "RunCluster"
@@ -1305,10 +1306,10 @@ func resourceAlicloudEmrV2ClusterCreate(d *schema.ResourceData, meta interface{}
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEmrV2ClusterRead(d, meta)
+	return resourceAliCloudEmrV2ClusterRead(d, meta)
 }
 
-func resourceAlicloudEmrV2ClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEmrV2ClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	emrService := EmrService{client}
 
@@ -2006,7 +2007,7 @@ func resourceAlicloudEmrV2ClusterRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAlicloudEmrV2ClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEmrV2ClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -2886,7 +2887,7 @@ func resourceAlicloudEmrV2ClusterUpdate(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceAlicloudEmrV2ClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEmrV2ClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	emrService := EmrService{client}
 	var response map[string]interface{}

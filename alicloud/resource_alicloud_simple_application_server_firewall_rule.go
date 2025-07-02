@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudSimpleApplicationServerFirewallRule() *schema.Resource {
+func resourceAliCloudSimpleApplicationServerFirewallRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSimpleApplicationServerFirewallRuleCreate,
-		Read:   resourceAlicloudSimpleApplicationServerFirewallRuleRead,
-		Delete: resourceAlicloudSimpleApplicationServerFirewallRuleDelete,
+		Create: resourceAliCloudSimpleApplicationServerFirewallRuleCreate,
+		Read:   resourceAliCloudSimpleApplicationServerFirewallRuleRead,
+		Delete: resourceAliCloudSimpleApplicationServerFirewallRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +49,7 @@ func resourceAlicloudSimpleApplicationServerFirewallRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSimpleApplicationServerFirewallRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerFirewallRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateFirewallRule"
@@ -82,9 +82,9 @@ func resourceAlicloudSimpleApplicationServerFirewallRuleCreate(d *schema.Resourc
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", response["FirewallId"]))
 
-	return resourceAlicloudSimpleApplicationServerFirewallRuleRead(d, meta)
+	return resourceAliCloudSimpleApplicationServerFirewallRuleRead(d, meta)
 }
-func resourceAlicloudSimpleApplicationServerFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	swasOpenService := SwasOpenService{client}
 	object, err := swasOpenService.DescribeSimpleApplicationServerFirewallRule(d.Id())
@@ -107,7 +107,7 @@ func resourceAlicloudSimpleApplicationServerFirewallRuleRead(d *schema.ResourceD
 	d.Set("rule_protocol", convertSimpleApplicationServerFirewallRuleRuleProtocolResponse(object["RuleProtocol"].(string)))
 	return nil
 }
-func resourceAlicloudSimpleApplicationServerFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

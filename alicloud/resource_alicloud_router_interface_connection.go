@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRouterInterfaceConnection() *schema.Resource {
+func resourceAliCloudRouterInterfaceConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRouterInterfaceConnectionCreate,
-		Read:   resourceAlicloudRouterInterfaceConnectionRead,
-		Delete: resourceAlicloudRouterInterfaceConnectionDelete,
+		Create: resourceAliCloudRouterInterfaceConnectionCreate,
+		Read:   resourceAliCloudRouterInterfaceConnectionRead,
+		Delete: resourceAliCloudRouterInterfaceConnectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,7 +62,7 @@ func resourceAlicloudRouterInterfaceConnection() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRouterInterfaceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRouterInterfaceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 
@@ -87,7 +87,7 @@ func resourceAlicloudRouterInterfaceConnectionCreate(d *schema.ResourceData, met
 			if err = vpcService.WaitForRouterInterfaceConnection(d.Id(), client.RegionId, Active, DefaultTimeout); err != nil {
 				return WrapError(err)
 			}
-			return resourceAlicloudRouterInterfaceConnectionRead(d, meta)
+			return resourceAliCloudRouterInterfaceConnectionRead(d, meta)
 		}
 	}
 
@@ -167,10 +167,10 @@ func resourceAlicloudRouterInterfaceConnectionCreate(d *schema.ResourceData, met
 		}
 	}
 
-	return resourceAlicloudRouterInterfaceConnectionRead(d, meta)
+	return resourceAliCloudRouterInterfaceConnectionRead(d, meta)
 }
 
-func resourceAlicloudRouterInterfaceConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRouterInterfaceConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeRouterInterfaceConnection(d.Id(), client.RegionId)
@@ -201,7 +201,7 @@ func resourceAlicloudRouterInterfaceConnectionRead(d *schema.ResourceData, meta 
 
 }
 
-func resourceAlicloudRouterInterfaceConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRouterInterfaceConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeRouterInterfaceConnection(d.Id(), client.RegionId)

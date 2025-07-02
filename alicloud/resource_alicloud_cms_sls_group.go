@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCmsSlsGroup() *schema.Resource {
+func resourceAliCloudCmsSlsGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCmsSlsGroupCreate,
-		Read:   resourceAlicloudCmsSlsGroupRead,
-		Update: resourceAlicloudCmsSlsGroupUpdate,
-		Delete: resourceAlicloudCmsSlsGroupDelete,
+		Create: resourceAliCloudCmsSlsGroupCreate,
+		Read:   resourceAliCloudCmsSlsGroupRead,
+		Update: resourceAliCloudCmsSlsGroupUpdate,
+		Delete: resourceAliCloudCmsSlsGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -67,7 +67,7 @@ func resourceAlicloudCmsSlsGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCmsSlsGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsSlsGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateHybridMonitorSLSGroup"
@@ -111,9 +111,9 @@ func resourceAlicloudCmsSlsGroupCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(fmt.Sprint(request["SLSGroupName"]))
 
-	return resourceAlicloudCmsSlsGroupRead(d, meta)
+	return resourceAliCloudCmsSlsGroupRead(d, meta)
 }
-func resourceAlicloudCmsSlsGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsSlsGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cmsService := CmsService{client}
 	object, err := cmsService.DescribeCmsSlsGroup(d.Id())
@@ -145,7 +145,7 @@ func resourceAlicloudCmsSlsGroupRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("sls_group_description", object["SLSGroupDescription"])
 	return nil
 }
-func resourceAlicloudCmsSlsGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsSlsGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -198,9 +198,9 @@ func resourceAlicloudCmsSlsGroupUpdate(d *schema.ResourceData, meta interface{})
 			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
 		}
 	}
-	return resourceAlicloudCmsSlsGroupRead(d, meta)
+	return resourceAliCloudCmsSlsGroupRead(d, meta)
 }
-func resourceAlicloudCmsSlsGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsSlsGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteHybridMonitorSLSGroup"
 	var response map[string]interface{}

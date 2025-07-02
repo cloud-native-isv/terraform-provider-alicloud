@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudVpnGatewayVcoRoute() *schema.Resource {
+func resourceAliCloudVpnGatewayVcoRoute() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpnGatewayVcoRouteCreate,
-		Read:   resourceAlicloudVpnGatewayVcoRouteRead,
-		Delete: resourceAlicloudVpnGatewayVcoRouteDelete,
+		Create: resourceAliCloudVpnGatewayVcoRouteCreate,
+		Read:   resourceAliCloudVpnGatewayVcoRouteRead,
+		Delete: resourceAliCloudVpnGatewayVcoRouteDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -59,7 +59,7 @@ func resourceAlicloudVpnGatewayVcoRoute() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpnGatewayVcoRouteCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpnGatewayVcoRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateVcoRouteEntry"
@@ -93,9 +93,9 @@ func resourceAlicloudVpnGatewayVcoRouteCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(fmt.Sprint(request["VpnConnectionId"], ":", request["RouteDest"], ":", request["NextHop"], ":", request["Weight"]))
 
-	return resourceAlicloudVpnGatewayVcoRouteRead(d, meta)
+	return resourceAliCloudVpnGatewayVcoRouteRead(d, meta)
 }
-func resourceAlicloudVpnGatewayVcoRouteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpnGatewayVcoRouteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpnGatewayVcoRoute(d.Id())
@@ -114,7 +114,7 @@ func resourceAlicloudVpnGatewayVcoRouteRead(d *schema.ResourceData, meta interfa
 	d.Set("vpn_connection_id", object["VpnConnectionId"])
 	return nil
 }
-func resourceAlicloudVpnGatewayVcoRouteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpnGatewayVcoRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	parts, err := ParseResourceId(d.Id(), 4)

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudBastionhostHostAccount() *schema.Resource {
+func resourceAliCloudBastionhostHostAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudBastionhostHostAccountCreate,
-		Read:   resourceAlicloudBastionhostHostAccountRead,
-		Update: resourceAlicloudBastionhostHostAccountUpdate,
-		Delete: resourceAlicloudBastionhostHostAccountDelete,
+		Create: resourceAliCloudBastionhostHostAccountCreate,
+		Read:   resourceAliCloudBastionhostHostAccountRead,
+		Update: resourceAliCloudBastionhostHostAccountUpdate,
+		Delete: resourceAliCloudBastionhostHostAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -76,7 +76,7 @@ func resourceAlicloudBastionhostHostAccount() *schema.Resource {
 	}
 }
 
-func resourceAlicloudBastionhostHostAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateHostAccount"
@@ -115,9 +115,9 @@ func resourceAlicloudBastionhostHostAccountCreate(d *schema.ResourceData, meta i
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", response["HostAccountId"]))
 
-	return resourceAlicloudBastionhostHostAccountRead(d, meta)
+	return resourceAliCloudBastionhostHostAccountRead(d, meta)
 }
-func resourceAlicloudBastionhostHostAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	yundunBastionhostService := YundunBastionhostService{client}
 	object, err := yundunBastionhostService.DescribeBastionhostHostAccount(d.Id())
@@ -140,7 +140,7 @@ func resourceAlicloudBastionhostHostAccountRead(d *schema.ResourceData, meta int
 	d.Set("protocol_name", object["ProtocolName"])
 	return nil
 }
-func resourceAlicloudBastionhostHostAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -195,9 +195,9 @@ func resourceAlicloudBastionhostHostAccountUpdate(d *schema.ResourceData, meta i
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudBastionhostHostAccountRead(d, meta)
+	return resourceAliCloudBastionhostHostAccountRead(d, meta)
 }
-func resourceAlicloudBastionhostHostAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

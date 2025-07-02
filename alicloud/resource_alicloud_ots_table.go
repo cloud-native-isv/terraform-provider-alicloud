@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOtsTable() *schema.Resource {
+func resourceAliCloudOtsTable() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunOtsTableCreate,
 		Read:   resourceAliyunOtsTableRead,

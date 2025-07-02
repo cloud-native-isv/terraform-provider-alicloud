@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRdsDBInstanceEndpointAddress() *schema.Resource {
+func resourceAliCloudRdsDBInstanceEndpointAddress() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdsDBInstanceEndpointAddressCreate,
-		Read:   resourceAlicloudRdsDBInstanceEndpointAddressRead,
-		Update: resourceAlicloudRdsDBInstanceEndpointAddressUpdate,
-		Delete: resourceAlicloudRdsDBInstanceEndpointAddressDelete,
+		Create: resourceAliCloudRdsDBInstanceEndpointAddressCreate,
+		Read:   resourceAliCloudRdsDBInstanceEndpointAddressRead,
+		Update: resourceAliCloudRdsDBInstanceEndpointAddressUpdate,
+		Delete: resourceAliCloudRdsDBInstanceEndpointAddressDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,7 +62,7 @@ func resourceAlicloudRdsDBInstanceEndpointAddress() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRdsDBInstanceEndpointAddressCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBInstanceEndpointAddressCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	var response map[string]interface{}
@@ -105,10 +105,10 @@ func resourceAlicloudRdsDBInstanceEndpointAddressCreate(d *schema.ResourceData, 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudRdsDBInstanceEndpointAddressUpdate(d, meta)
+	return resourceAliCloudRdsDBInstanceEndpointAddressUpdate(d, meta)
 }
 
-func resourceAlicloudRdsDBInstanceEndpointAddressUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBInstanceEndpointAddressUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -153,10 +153,10 @@ func resourceAlicloudRdsDBInstanceEndpointAddressUpdate(d *schema.ResourceData, 
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudRdsDBInstanceEndpointAddressRead(d, meta)
+	return resourceAliCloudRdsDBInstanceEndpointAddressRead(d, meta)
 }
 
-func resourceAlicloudRdsDBInstanceEndpointAddressRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBInstanceEndpointAddressRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeDBInstanceEndpointPublicAddress(d.Id())
@@ -178,7 +178,7 @@ func resourceAlicloudRdsDBInstanceEndpointAddressRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceAlicloudRdsDBInstanceEndpointAddressDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBInstanceEndpointAddressDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

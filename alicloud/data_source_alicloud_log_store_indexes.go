@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudLogStoreIndexes() *schema.Resource {
+func dataSourceAliCloudLogStoreIndexes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudLogStoreIndexesRead,
+		Read: dataSourceAliCloudLogStoreIndexesRead,
 		Schema: map[string]*schema.Schema{
 			"project": {
 				Type:     schema.TypeString,
@@ -121,7 +121,7 @@ func dataSourceAlicloudLogStoreIndexes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudLogStoreIndexesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudLogStoreIndexesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {

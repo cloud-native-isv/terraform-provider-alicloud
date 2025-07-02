@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAlbAcl() *schema.Resource {
+func resourceAliCloudAlbAcl() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlbAclCreate,
-		Read:   resourceAlicloudAlbAclRead,
-		Update: resourceAlicloudAlbAclUpdate,
-		Delete: resourceAlicloudAlbAclDelete,
+		Create: resourceAliCloudAlbAclCreate,
+		Read:   resourceAliCloudAlbAclRead,
+		Update: resourceAliCloudAlbAclUpdate,
+		Delete: resourceAliCloudAlbAclDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -75,7 +75,7 @@ func resourceAlicloudAlbAcl() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlbAclCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbAclCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateAcl"
@@ -115,10 +115,10 @@ func resourceAlicloudAlbAclCreate(d *schema.ResourceData, meta interface{}) erro
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudAlbAclUpdate(d, meta)
+	return resourceAliCloudAlbAclUpdate(d, meta)
 }
 
-func resourceAlicloudAlbAclRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbAclRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	albService := AlbService{client}
 	object, err := albService.DescribeAlbAcl(d.Id())
@@ -152,7 +152,7 @@ func resourceAlicloudAlbAclRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceAlicloudAlbAclUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbAclUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	albService := AlbService{client}
 	var response map[string]interface{}
@@ -331,10 +331,10 @@ func resourceAlicloudAlbAclUpdate(d *schema.ResourceData, meta interface{}) erro
 		d.SetPartial("acl_entries")
 	}
 	d.Partial(false)
-	return resourceAlicloudAlbAclRead(d, meta)
+	return resourceAliCloudAlbAclRead(d, meta)
 }
 
-func resourceAlicloudAlbAclDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbAclDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteAcl"
 	var response map[string]interface{}

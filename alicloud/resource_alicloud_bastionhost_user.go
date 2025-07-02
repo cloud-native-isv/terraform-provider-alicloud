@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudBastionhostUser() *schema.Resource {
+func resourceAliCloudBastionhostUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudBastionhostUserCreate,
-		Read:   resourceAlicloudBastionhostUserRead,
-		Update: resourceAlicloudBastionhostUserUpdate,
-		Delete: resourceAlicloudBastionhostUserDelete,
+		Create: resourceAliCloudBastionhostUserCreate,
+		Read:   resourceAliCloudBastionhostUserRead,
+		Update: resourceAliCloudBastionhostUserUpdate,
+		Delete: resourceAliCloudBastionhostUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -89,7 +89,7 @@ func resourceAlicloudBastionhostUser() *schema.Resource {
 	}
 }
 
-func resourceAlicloudBastionhostUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostUserCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateUser"
@@ -145,10 +145,10 @@ func resourceAlicloudBastionhostUserCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", response["UserId"]))
 
-	return resourceAlicloudBastionhostUserUpdate(d, meta)
+	return resourceAliCloudBastionhostUserUpdate(d, meta)
 }
 
-func resourceAlicloudBastionhostUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	yundunBastionhostService := YundunBastionhostService{client}
 	object, err := yundunBastionhostService.DescribeBastionhostUser(d.Id())
@@ -178,7 +178,7 @@ func resourceAlicloudBastionhostUserRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudBastionhostUserUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	yundunBastionhostService := YundunBastionhostService{client}
 	var err error
@@ -320,10 +320,10 @@ func resourceAlicloudBastionhostUserUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudBastionhostUserRead(d, meta)
+	return resourceAliCloudBastionhostUserRead(d, meta)
 }
 
-func resourceAlicloudBastionhostUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostUserDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

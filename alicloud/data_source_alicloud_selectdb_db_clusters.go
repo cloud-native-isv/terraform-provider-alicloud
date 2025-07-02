@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudSelectDBDbClusters() *schema.Resource {
+func dataSourceAliCloudSelectDBDbClusters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSelectDBDbClustersRead,
+		Read: dataSourceAliCloudSelectDBDbClustersRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -178,7 +178,7 @@ func dataSourceAlicloudSelectDBDbClusters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSelectDBDbClustersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSelectDBDbClustersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	selectDBService := SelectDBService{client}
 

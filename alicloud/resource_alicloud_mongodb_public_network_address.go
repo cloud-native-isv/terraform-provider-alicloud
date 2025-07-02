@@ -8,11 +8,11 @@ import (
 	"github.com/samber/lo"
 )
 
-func resourceAlicloudMongoDBPublicNetworkAddress() *schema.Resource {
+func resourceAliCloudMongoDBPublicNetworkAddress() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMongoDBPublicNetworkAddressCreate,
-		Read:   resourceAlicloudMongoDBPublicNetworkAddressRead,
-		Delete: resourceAlicloudMongoDBPublicNetworkAddressDelete,
+		Create: resourceAliCloudMongoDBPublicNetworkAddressCreate,
+		Read:   resourceAliCloudMongoDBPublicNetworkAddressRead,
+		Delete: resourceAliCloudMongoDBPublicNetworkAddressDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -60,7 +60,7 @@ func resourceAlicloudMongoDBPublicNetworkAddress() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMongoDBPublicNetworkAddressCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongoDBPublicNetworkAddressCreate(d *schema.ResourceData, meta interface{}) error {
 	// only one public network address per instance.
 	instanceId := d.Get("db_instance_id").(string)
 	d.SetId(instanceId)
@@ -77,10 +77,10 @@ func resourceAlicloudMongoDBPublicNetworkAddressCreate(d *schema.ResourceData, m
 		return WrapError(err)
 	}
 
-	return resourceAlicloudMongoDBPublicNetworkAddressRead(d, meta)
+	return resourceAliCloudMongoDBPublicNetworkAddressRead(d, meta)
 }
 
-func resourceAlicloudMongoDBPublicNetworkAddressRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongoDBPublicNetworkAddressRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ddsService := MongoDBService{client}
 
@@ -104,7 +104,7 @@ func resourceAlicloudMongoDBPublicNetworkAddressRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceAlicloudMongoDBPublicNetworkAddressDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongoDBPublicNetworkAddressDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ddsService := MongoDBService{client}
 

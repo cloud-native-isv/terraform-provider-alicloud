@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudBastionhostHostShareKeys() *schema.Resource {
+func dataSourceAliCloudBastionhostHostShareKeys() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudBastionhostHostShareKeysRead,
+		Read: dataSourceAliCloudBastionhostHostShareKeysRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -80,7 +80,7 @@ func dataSourceAlicloudBastionhostHostShareKeys() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudBastionhostHostShareKeysRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudBastionhostHostShareKeysRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListHostShareKeys"

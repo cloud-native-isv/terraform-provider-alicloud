@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudArmsAlertSilencePolicy() *schema.Resource {
+func resourceAliCloudArmsAlertSilencePolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudArmsAlertSilencePolicyCreate,
-		Read:   resourceAlicloudArmsAlertSilencePolicyRead,
-		Update: resourceAlicloudArmsAlertSilencePolicyUpdate,
-		Delete: resourceAlicloudArmsAlertSilencePolicyDelete,
+		Create: resourceAliCloudArmsAlertSilencePolicyCreate,
+		Read:   resourceAliCloudArmsAlertSilencePolicyRead,
+		Update: resourceAliCloudArmsAlertSilencePolicyUpdate,
+		Delete: resourceAliCloudArmsAlertSilencePolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -73,7 +73,7 @@ func resourceAlicloudArmsAlertSilencePolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudArmsAlertSilencePolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertSilencePolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateSilencePolicy"
@@ -124,10 +124,10 @@ func resourceAlicloudArmsAlertSilencePolicyCreate(d *schema.ResourceData, meta i
 
 	d.SetId(fmt.Sprint(response["SilenceId"]))
 
-	return resourceAlicloudArmsAlertSilencePolicyRead(d, meta)
+	return resourceAliCloudArmsAlertSilencePolicyRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertSilencePolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertSilencePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	armsService := NewArmsService(client)
 	object, err := armsService.DescribeArmsAlertSilencePolicy(d.Id())
@@ -156,7 +156,7 @@ func resourceAlicloudArmsAlertSilencePolicyRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceAlicloudArmsAlertSilencePolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertSilencePolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -246,10 +246,10 @@ func resourceAlicloudArmsAlertSilencePolicyUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	return resourceAlicloudArmsAlertSilencePolicyRead(d, meta)
+	return resourceAliCloudArmsAlertSilencePolicyRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertSilencePolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertSilencePolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteSilencePolicy"
 	var response map[string]interface{}

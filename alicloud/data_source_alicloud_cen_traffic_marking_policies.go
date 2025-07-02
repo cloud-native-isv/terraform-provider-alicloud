@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenTrafficMarkingPolicies() *schema.Resource {
+func dataSourceAliCloudCenTrafficMarkingPolicies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenTrafficMarkingPoliciesRead,
+		Read: dataSourceAliCloudCenTrafficMarkingPoliciesRead,
 		Schema: map[string]*schema.Schema{
 			"status": {
 				Type:         schema.TypeString,
@@ -98,7 +98,7 @@ func dataSourceAlicloudCenTrafficMarkingPolicies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenTrafficMarkingPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenTrafficMarkingPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTrafficMarkingPolicies"

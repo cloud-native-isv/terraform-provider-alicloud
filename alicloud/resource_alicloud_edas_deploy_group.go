@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEdasDeployGroup() *schema.Resource {
+func resourceAliCloudEdasDeployGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEdasDeployGroupCreate,
-		Read:   resourceAlicloudEdasDeployGroupRead,
-		Delete: resourceAlicloudEdasDeployGroupDelete,
+		Create: resourceAliCloudEdasDeployGroupCreate,
+		Read:   resourceAliCloudEdasDeployGroupRead,
+		Delete: resourceAliCloudEdasDeployGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -37,7 +37,7 @@ func resourceAlicloudEdasDeployGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEdasDeployGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasDeployGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -73,10 +73,10 @@ func resourceAlicloudEdasDeployGroupCreate(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_edas_deploy_group", request.GetActionName(), AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudEdasDeployGroupRead(d, meta)
+	return resourceAliCloudEdasDeployGroupRead(d, meta)
 }
 
-func resourceAlicloudEdasDeployGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasDeployGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -103,7 +103,7 @@ func resourceAlicloudEdasDeployGroupRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudEdasDeployGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasDeployGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 

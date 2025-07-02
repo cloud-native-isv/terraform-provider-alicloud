@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSimpleApplicationServerDisks() *schema.Resource {
+func dataSourceAliCloudSimpleApplicationServerDisks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSimpleApplicationServerDisksRead,
+		Read: dataSourceAliCloudSimpleApplicationServerDisksRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -111,7 +111,7 @@ func dataSourceAlicloudSimpleApplicationServerDisks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSimpleApplicationServerDisksRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSimpleApplicationServerDisksRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListDisks"

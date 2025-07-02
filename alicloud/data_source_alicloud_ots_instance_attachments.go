@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOtsInstanceAttachments() *schema.Resource {
+func dataSourceAliCloudOtsInstanceAttachments() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOtsInstanceAttachmentsRead,
+		Read: dataSourceAliCloudOtsInstanceAttachmentsRead,
 
 		Schema: map[string]*schema.Schema{
 			"instance_name": {
@@ -80,7 +80,7 @@ func dataSourceAlicloudOtsInstanceAttachments() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudOtsInstanceAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOtsInstanceAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	otsService := OtsService{client}
 	instanceName := d.Get("instance_name").(string)

@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudArmsAlertRobot() *schema.Resource {
+func resourceAliCloudArmsAlertRobot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudArmsAlertRobotCreate,
-		Read:   resourceAlicloudArmsAlertRobotRead,
-		Update: resourceAlicloudArmsAlertRobotUpdate,
-		Delete: resourceAlicloudArmsAlertRobotDelete,
+		Create: resourceAliCloudArmsAlertRobotCreate,
+		Read:   resourceAliCloudArmsAlertRobotRead,
+		Update: resourceAliCloudArmsAlertRobotUpdate,
+		Delete: resourceAliCloudArmsAlertRobotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudArmsAlertRobot() *schema.Resource {
 	}
 }
 
-func resourceAlicloudArmsAlertRobotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertRobotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateOrUpdateIMRobot"
@@ -81,9 +81,9 @@ func resourceAlicloudArmsAlertRobotCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprint(response["AlertRobot"].(map[string]interface{})["RobotId"]))
 
-	return resourceAlicloudArmsAlertRobotRead(d, meta)
+	return resourceAliCloudArmsAlertRobotRead(d, meta)
 }
-func resourceAlicloudArmsAlertRobotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertRobotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	armsService := NewArmsService(client)
 	object, err := armsService.DescribeArmsAlertRobot(d.Id())
@@ -102,7 +102,7 @@ func resourceAlicloudArmsAlertRobotRead(d *schema.ResourceData, meta interface{}
 	d.Set("daily_noc_time", object["DailyNocTime"])
 	return nil
 }
-func resourceAlicloudArmsAlertRobotUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertRobotUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -163,9 +163,9 @@ func resourceAlicloudArmsAlertRobotUpdate(d *schema.ResourceData, meta interface
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudArmsAlertRobotRead(d, meta)
+	return resourceAliCloudArmsAlertRobotRead(d, meta)
 }
-func resourceAlicloudArmsAlertRobotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertRobotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteIMRobot"
 	var response map[string]interface{}

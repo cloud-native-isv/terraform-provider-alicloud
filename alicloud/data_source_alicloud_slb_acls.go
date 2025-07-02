@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSlbAcls() *schema.Resource {
+func dataSourceAliCloudSlbAcls() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSlbAclsRead,
+		Read: dataSourceAliCloudSlbAclsRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -115,7 +115,7 @@ func dataSourceAlicloudSlbAcls() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSlbAclsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSlbAclsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := slb.CreateDescribeAccessControlListsRequest()
 	request.RegionId = client.RegionId

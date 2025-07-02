@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudMscSubContactVerificationMessage() *schema.Resource {
+func dataSourceAliCloudMscSubContactVerificationMessage() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMscSubContactVerificationMessageRead,
+		Read: dataSourceAliCloudMscSubContactVerificationMessageRead,
 		Schema: map[string]*schema.Schema{
 			"contact_id": {
 				Type:     schema.TypeString,
@@ -33,7 +33,7 @@ func dataSourceAlicloudMscSubContactVerificationMessage() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMscSubContactVerificationMessageRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMscSubContactVerificationMessageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "SendVerificationMessage"

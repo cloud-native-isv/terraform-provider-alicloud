@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEssAlbServerGroupAttachment() *schema.Resource {
+func resourceAliCloudEssAlbServerGroupAttachment() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunEssAlbServerGroupAttachmentCreate,
 		Read:   resourceAliyunEssAlbServerGroupAttachmentRead,

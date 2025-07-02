@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudAlidnsInstances() *schema.Resource {
+func dataSourceAliCloudAlidnsInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAlidnsInstancesRead,
+		Read: dataSourceAliCloudAlidnsInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"domain_type": {
 				Type:     schema.TypeString,
@@ -84,7 +84,7 @@ func dataSourceAlicloudAlidnsInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAlidnsInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAlidnsInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDnsProductInstances"

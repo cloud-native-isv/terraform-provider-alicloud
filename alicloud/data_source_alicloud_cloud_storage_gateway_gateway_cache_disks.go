@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCloudStorageGatewayGatewayCacheDisks() *schema.Resource {
+func dataSourceAliCloudCloudStorageGatewayGatewayCacheDisks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudStorageGatewayGatewayCacheDisksRead,
+		Read: dataSourceAliCloudCloudStorageGatewayGatewayCacheDisksRead,
 		Schema: map[string]*schema.Schema{
 			"gateway_id": {
 				Type:     schema.TypeString,
@@ -94,7 +94,7 @@ func dataSourceAlicloudCloudStorageGatewayGatewayCacheDisks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudStorageGatewayGatewayCacheDisksRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudStorageGatewayGatewayCacheDisksRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeGatewayCaches"

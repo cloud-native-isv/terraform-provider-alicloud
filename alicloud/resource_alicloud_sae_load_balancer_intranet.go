@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSaeLoadBalancerIntranet() *schema.Resource {
+func resourceAliCloudSaeLoadBalancerIntranet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSaeSaeLoadBalancerIntranetCreate,
-		Read:   resourceAlicloudSaeSaeLoadBalancerIntranetRead,
-		Update: resourceAlicloudSaeSaeLoadBalancerIntranetUpdate,
-		Delete: resourceAlicloudSaeSaeLoadBalancerIntranetDelete,
+		Create: resourceAliCloudSaeSaeLoadBalancerIntranetCreate,
+		Read:   resourceAliCloudSaeSaeLoadBalancerIntranetRead,
+		Update: resourceAliCloudSaeSaeLoadBalancerIntranetUpdate,
+		Delete: resourceAliCloudSaeSaeLoadBalancerIntranetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -64,7 +64,7 @@ func resourceAlicloudSaeLoadBalancerIntranet() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSaeSaeLoadBalancerIntranetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeSaeLoadBalancerIntranetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	saeService := SaeService{client}
 	var response map[string]interface{}
@@ -112,9 +112,9 @@ func resourceAlicloudSaeSaeLoadBalancerIntranetCreate(d *schema.ResourceData, me
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudSaeSaeLoadBalancerIntranetRead(d, meta)
+	return resourceAliCloudSaeSaeLoadBalancerIntranetRead(d, meta)
 }
-func resourceAlicloudSaeSaeLoadBalancerIntranetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeSaeLoadBalancerIntranetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	saeService := SaeService{client}
 
@@ -142,7 +142,7 @@ func resourceAlicloudSaeSaeLoadBalancerIntranetRead(d *schema.ResourceData, meta
 	d.Set("intranet", intranetArray)
 	return nil
 }
-func resourceAlicloudSaeSaeLoadBalancerIntranetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeSaeLoadBalancerIntranetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	saeService := SaeService{client}
 	var err error
@@ -200,9 +200,9 @@ func resourceAlicloudSaeSaeLoadBalancerIntranetUpdate(d *schema.ResourceData, me
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudSaeSaeLoadBalancerIntranetRead(d, meta)
+	return resourceAliCloudSaeSaeLoadBalancerIntranetRead(d, meta)
 }
-func resourceAlicloudSaeSaeLoadBalancerIntranetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeSaeLoadBalancerIntranetDelete(d *schema.ResourceData, meta interface{}) error {
 	request := map[string]*string{
 		"AppId":    StringPointer(d.Id()),
 		"Intranet": StringPointer(strconv.FormatBool(true)),

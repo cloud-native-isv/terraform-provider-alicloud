@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudClickHouseBackupPolicies() *schema.Resource {
+func dataSourceAliCloudClickHouseBackupPolicies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudClickHouseBackupPoliciesRead,
+		Read: dataSourceAliCloudClickHouseBackupPoliciesRead,
 		Schema: map[string]*schema.Schema{
 			"db_cluster_id": {
 				Type:     schema.TypeString,
@@ -60,7 +60,7 @@ func dataSourceAlicloudClickHouseBackupPolicies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudClickHouseBackupPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudClickHouseBackupPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dbClusterId := d.Get("db_cluster_id")
 	clickhouseService := ClickhouseService{client}

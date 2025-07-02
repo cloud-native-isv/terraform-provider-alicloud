@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSagAclRule() *schema.Resource {
+func resourceAliCloudSagAclRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSagAclRuleCreate,
-		Read:   resourceAlicloudSagAclRuleRead,
-		Update: resourceAlicloudSagAclRuleUpdate,
-		Delete: resourceAlicloudSagAclRuleDelete,
+		Create: resourceAliCloudSagAclRuleCreate,
+		Read:   resourceAliCloudSagAclRuleRead,
+		Update: resourceAliCloudSagAclRuleUpdate,
+		Delete: resourceAliCloudSagAclRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -67,7 +67,7 @@ func resourceAlicloudSagAclRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSagAclRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagAclRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := smartag.CreateAddACLRuleRequest()
 	request.AclId = d.Get("acl_id").(string)
@@ -97,10 +97,10 @@ func resourceAlicloudSagAclRuleCreate(d *schema.ResourceData, meta interface{}) 
 	response, _ := raw.(*smartag.AddACLRuleResponse)
 	d.SetId(fmt.Sprintf("%s%s%s", response.AclId, COLON_SEPARATED, response.AcrId))
 
-	return resourceAlicloudSagAclRuleRead(d, meta)
+	return resourceAliCloudSagAclRuleRead(d, meta)
 }
 
-func resourceAlicloudSagAclRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagAclRuleRead(d *schema.ResourceData, meta interface{}) error {
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeSagAclRule(d.Id())
 	if err != nil {
@@ -125,7 +125,7 @@ func resourceAlicloudSagAclRuleRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAlicloudSagAclRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagAclRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	update := false
@@ -183,10 +183,10 @@ func resourceAlicloudSagAclRuleUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 	}
-	return resourceAlicloudSagAclRuleRead(d, meta)
+	return resourceAliCloudSagAclRuleRead(d, meta)
 }
 
-func resourceAlicloudSagAclRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagAclRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sagService := SagService{client}
 	request := smartag.CreateDeleteACLRuleRequest()

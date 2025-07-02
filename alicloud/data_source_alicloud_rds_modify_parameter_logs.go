@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRdsModifyParameterLogs() *schema.Resource {
+func dataSourceAliCloudRdsModifyParameterLogs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRdsModifyParameterLogsRead,
+		Read: dataSourceAliCloudRdsModifyParameterLogsRead,
 
 		Schema: map[string]*schema.Schema{
 			"db_instance_id": {
@@ -68,7 +68,7 @@ func dataSourceAlicloudRdsModifyParameterLogs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRdsModifyParameterLogsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRdsModifyParameterLogsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeModifyParameterLog"
 	request := make(map[string]interface{})

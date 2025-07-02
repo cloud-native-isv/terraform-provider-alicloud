@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudApiGatewayApps() *schema.Resource {
+func dataSourceAliCloudApiGatewayApps() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudApigatewayAppsRead,
+		Read: dataSourceAliCloudApigatewayAppsRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -74,7 +74,7 @@ func dataSourceAlicloudApiGatewayApps() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudApigatewayAppsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudApigatewayAppsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudApiService := CloudApiService{client}
 

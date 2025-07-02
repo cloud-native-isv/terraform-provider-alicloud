@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudHBaseInstanceTypes() *schema.Resource {
+func dataSourceAliCloudHBaseInstanceTypes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudHBaseInstanceTypesRead,
+		Read: dataSourceAliCloudHBaseInstanceTypesRead,
 
 		Schema: map[string]*schema.Schema{
 			"charge_type": {
@@ -146,7 +146,7 @@ func dataSourceAlicloudHBaseInstanceTypes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudHBaseInstanceTypesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudHBaseInstanceTypesRead(d *schema.ResourceData, meta interface{}) error {
 	response, err := describeAvaiableResource(d, meta)
 	if err != nil {
 		return WrapErrorf(err, "describeAvaiableResource failed")

@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEdasService() *schema.Resource {
+func dataSourceAliCloudEdasService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEdasServiceRead,
+		Read: dataSourceAliCloudEdasServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -32,7 +32,7 @@ func dataSourceAlicloudEdasService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudEdasServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEdasServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("EdasServiceHasNotBeenOpened")
 		d.Set("status", "")

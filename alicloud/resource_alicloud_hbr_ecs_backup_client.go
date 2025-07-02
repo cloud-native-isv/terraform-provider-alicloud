@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudHbrEcsBackupClient() *schema.Resource {
+func resourceAliCloudHbrEcsBackupClient() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudHbrEcsBackupClientCreate,
-		Read:   resourceAlicloudHbrEcsBackupClientRead,
-		Update: resourceAlicloudHbrEcsBackupClientUpdate,
-		Delete: resourceAlicloudHbrEcsBackupClientDelete,
+		Create: resourceAliCloudHbrEcsBackupClientCreate,
+		Read:   resourceAliCloudHbrEcsBackupClientRead,
+		Update: resourceAliCloudHbrEcsBackupClientUpdate,
+		Delete: resourceAliCloudHbrEcsBackupClientDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -86,7 +86,7 @@ func resourceAlicloudHbrEcsBackupClient() *schema.Resource {
 	}
 }
 
-func resourceAlicloudHbrEcsBackupClientCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrEcsBackupClientCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "InstallBackupClients"
@@ -122,9 +122,9 @@ func resourceAlicloudHbrEcsBackupClientCreate(d *schema.ResourceData, meta inter
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 	d.SetId(fmt.Sprint(taskResult["ClientId"]))
-	return resourceAlicloudHbrEcsBackupClientUpdate(d, meta)
+	return resourceAliCloudHbrEcsBackupClientUpdate(d, meta)
 }
-func resourceAlicloudHbrEcsBackupClientRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrEcsBackupClientRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hbrService := HbrService{client}
 	object, err := hbrService.DescribeHbrEcsBackupClient(d.Id())
@@ -151,7 +151,7 @@ func resourceAlicloudHbrEcsBackupClientRead(d *schema.ResourceData, meta interfa
 	}
 	return nil
 }
-func resourceAlicloudHbrEcsBackupClientUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrEcsBackupClientUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
@@ -244,9 +244,9 @@ func resourceAlicloudHbrEcsBackupClientUpdate(d *schema.ResourceData, meta inter
 		target := d.Get("status").(string)
 		if object["Status"].(string) != target {
 			if target == "ACTIVATED" {
-				err = resourceAlicloudHbrEcsBackupClientCreate(d, meta)
+				err = resourceAliCloudHbrEcsBackupClientCreate(d, meta)
 			} else if target == "STOPPED" {
-				err = resourceAlicloudHbrEcsBackupClientUninstall(d, meta)
+				err = resourceAliCloudHbrEcsBackupClientUninstall(d, meta)
 			} else {
 				return WrapError(Error(FailedToReachTargetStatus, object["Status"].(string)))
 			}
@@ -257,9 +257,9 @@ func resourceAlicloudHbrEcsBackupClientUpdate(d *schema.ResourceData, meta inter
 	}
 	d.SetPartial("status")
 
-	return resourceAlicloudHbrEcsBackupClientRead(d, meta)
+	return resourceAliCloudHbrEcsBackupClientRead(d, meta)
 }
-func resourceAlicloudHbrEcsBackupClientUninstall(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrEcsBackupClientUninstall(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "UninstallBackupClients"
 	var response map[string]interface{}
@@ -294,8 +294,8 @@ func resourceAlicloudHbrEcsBackupClientUninstall(d *schema.ResourceData, meta in
 
 	return nil
 }
-func resourceAlicloudHbrEcsBackupClientDelete(d *schema.ResourceData, meta interface{}) error {
-	err := resourceAlicloudHbrEcsBackupClientUninstall(d, meta)
+func resourceAliCloudHbrEcsBackupClientDelete(d *schema.ResourceData, meta interface{}) error {
+	err := resourceAliCloudHbrEcsBackupClientUninstall(d, meta)
 	if err != nil {
 		return WrapError(err)
 	}

@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOpenSearchAppGroup() *schema.Resource {
+func resourceAliCloudOpenSearchAppGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOpenSearchAppGroupCreate,
-		Read:   resourceAlicloudOpenSearchAppGroupRead,
-		Update: resourceAlicloudOpenSearchAppGroupUpdate,
-		Delete: resourceAlicloudOpenSearchAppGroupDelete,
+		Create: resourceAliCloudOpenSearchAppGroupCreate,
+		Read:   resourceAliCloudOpenSearchAppGroupRead,
+		Update: resourceAliCloudOpenSearchAppGroupUpdate,
+		Delete: resourceAliCloudOpenSearchAppGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -121,7 +121,7 @@ func resourceAlicloudOpenSearchAppGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOpenSearchAppGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOpenSearchAppGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "/v4/openapi/app-groups"
@@ -173,9 +173,9 @@ func resourceAlicloudOpenSearchAppGroupCreate(d *schema.ResourceData, meta inter
 	}
 	d.SetId(fmt.Sprint(response["result"].(map[string]interface{})["instanceId"]))
 
-	return resourceAlicloudOpenSearchAppGroupUpdate(d, meta)
+	return resourceAliCloudOpenSearchAppGroupUpdate(d, meta)
 }
-func resourceAlicloudOpenSearchAppGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOpenSearchAppGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	openSearchService := OpenSearchService{client}
 	object, err := openSearchService.DescribeOpenSearchAppGroup(d.Id())
@@ -209,7 +209,7 @@ func resourceAlicloudOpenSearchAppGroupRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceAlicloudOpenSearchAppGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOpenSearchAppGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	openSearchService := OpenSearchService{client}
 	var response map[string]interface{}
@@ -294,10 +294,10 @@ func resourceAlicloudOpenSearchAppGroupUpdate(d *schema.ResourceData, meta inter
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudOpenSearchAppGroupRead(d, meta)
+	return resourceAliCloudOpenSearchAppGroupRead(d, meta)
 }
 
-func resourceAlicloudOpenSearchAppGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOpenSearchAppGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	if d.Get("payment_type").(string) == "Subscription" {

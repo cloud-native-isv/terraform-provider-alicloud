@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudPvtzRuleAttachment() *schema.Resource {
+func resourceAliCloudPvtzRuleAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPvtzRuleAttachmentCreate,
-		Read:   resourceAlicloudPvtzRuleAttachmentRead,
-		Update: resourceAlicloudPvtzRuleAttachmentUpdate,
-		Delete: resourceAlicloudPvtzRuleAttachmentDelete,
+		Create: resourceAliCloudPvtzRuleAttachmentCreate,
+		Read:   resourceAliCloudPvtzRuleAttachmentRead,
+		Update: resourceAliCloudPvtzRuleAttachmentUpdate,
+		Delete: resourceAliCloudPvtzRuleAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -45,7 +45,7 @@ func resourceAlicloudPvtzRuleAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPvtzRuleAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzRuleAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "BindResolverRuleVpc"
@@ -80,9 +80,9 @@ func resourceAlicloudPvtzRuleAttachmentCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(fmt.Sprint(request["RuleId"]))
 
-	return resourceAlicloudPvtzRuleAttachmentRead(d, meta)
+	return resourceAliCloudPvtzRuleAttachmentRead(d, meta)
 }
-func resourceAlicloudPvtzRuleAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzRuleAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	pvtzService := PvtzService{client}
 	object, err := pvtzService.DescribePvtzRuleAttachment(d.Id())
@@ -109,7 +109,7 @@ func resourceAlicloudPvtzRuleAttachmentRead(d *schema.ResourceData, meta interfa
 	d.Set("rule_id", d.Id())
 	return nil
 }
-func resourceAlicloudPvtzRuleAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzRuleAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -147,9 +147,9 @@ func resourceAlicloudPvtzRuleAttachmentUpdate(d *schema.ResourceData, meta inter
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudPvtzRuleAttachmentRead(d, meta)
+	return resourceAliCloudPvtzRuleAttachmentRead(d, meta)
 }
-func resourceAlicloudPvtzRuleAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzRuleAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "BindResolverRuleVpc"
 	var response map[string]interface{}

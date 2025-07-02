@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCloudFirewallInstanceMembers() *schema.Resource {
+func dataSourceAliCloudCloudFirewallInstanceMembers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudFirewallInstanceMembersRead,
+		Read: dataSourceAliCloudCloudFirewallInstanceMembersRead,
 		Schema: map[string]*schema.Schema{
 			"current_page": {
 				Optional: true,
@@ -80,7 +80,7 @@ func dataSourceAlicloudCloudFirewallInstanceMembers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudFirewallInstanceMembersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudFirewallInstanceMembersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

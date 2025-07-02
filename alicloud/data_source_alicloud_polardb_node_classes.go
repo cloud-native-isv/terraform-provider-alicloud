@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudPolarDBNodeClasses() *schema.Resource {
+func dataSourceAliCloudPolarDBNodeClasses() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPolarDBInstanceClassesRead,
+		Read: dataSourceAliCloudPolarDBInstanceClassesRead,
 
 		Schema: map[string]*schema.Schema{
 			"pay_type": {
@@ -95,7 +95,7 @@ func dataSourceAlicloudPolarDBNodeClasses() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudPolarDBInstanceClassesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPolarDBInstanceClassesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := polardb.CreateDescribeDBClusterAvailableResourcesRequest()

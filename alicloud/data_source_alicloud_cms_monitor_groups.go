@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCmsMonitorGroups() *schema.Resource {
+func dataSourceAliCloudCmsMonitorGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsMonitorGroupsRead,
+		Read: dataSourceAliCloudCmsMonitorGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"dynamic_tag_rule_id": {
 				Type:     schema.TypeString,
@@ -132,7 +132,7 @@ func dataSourceAlicloudCmsMonitorGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsMonitorGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsMonitorGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeMonitorGroups"

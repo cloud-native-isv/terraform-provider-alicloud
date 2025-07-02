@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDmsEnterpriseProxy() *schema.Resource {
+func resourceAliCloudDmsEnterpriseProxy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDmsEnterpriseProxyCreate,
-		Read:   resourceAlicloudDmsEnterpriseProxyRead,
-		Update: resourceAlicloudDmsEnterpriseProxyUpdate,
-		Delete: resourceAlicloudDmsEnterpriseProxyDelete,
+		Create: resourceAliCloudDmsEnterpriseProxyCreate,
+		Read:   resourceAliCloudDmsEnterpriseProxyRead,
+		Update: resourceAliCloudDmsEnterpriseProxyUpdate,
+		Delete: resourceAliCloudDmsEnterpriseProxyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -47,7 +47,7 @@ func resourceAlicloudDmsEnterpriseProxy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDmsEnterpriseProxyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseProxyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateProxy"
@@ -78,9 +78,9 @@ func resourceAlicloudDmsEnterpriseProxyCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(fmt.Sprint(formatInt(response["ProxyId"])))
 
-	return resourceAlicloudDmsEnterpriseProxyRead(d, meta)
+	return resourceAliCloudDmsEnterpriseProxyRead(d, meta)
 }
-func resourceAlicloudDmsEnterpriseProxyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseProxyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dmsEnterpriseService := DmsEnterpriseService{client}
 	object, err := dmsEnterpriseService.DescribeDmsEnterpriseProxy(d.Id())
@@ -95,11 +95,11 @@ func resourceAlicloudDmsEnterpriseProxyRead(d *schema.ResourceData, meta interfa
 	d.Set("instance_id", fmt.Sprint(formatInt(object["InstanceId"])))
 	return nil
 }
-func resourceAlicloudDmsEnterpriseProxyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseProxyUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudDmsEnterpriseProxyRead(d, meta)
+	return resourceAliCloudDmsEnterpriseProxyRead(d, meta)
 }
-func resourceAlicloudDmsEnterpriseProxyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseProxyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteProxy"
 	var response map[string]interface{}

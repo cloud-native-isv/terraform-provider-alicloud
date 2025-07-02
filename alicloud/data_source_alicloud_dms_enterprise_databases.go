@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudDmsEnterpriseDatabases() *schema.Resource {
+func dataSourceAliCloudDmsEnterpriseDatabases() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDmsEnterpriseDatabasesRead,
+		Read: dataSourceAliCloudDmsEnterpriseDatabasesRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Required: true,
@@ -126,7 +126,7 @@ func dataSourceAlicloudDmsEnterpriseDatabases() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDmsEnterpriseDatabasesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDmsEnterpriseDatabasesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

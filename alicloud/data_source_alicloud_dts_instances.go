@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDtsInstances() *schema.Resource {
+func dataSourceAliCloudDtsInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDtsInstancesRead,
+		Read: dataSourceAliCloudDtsInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"resource_group_id": {
 				Optional: true,
@@ -120,7 +120,7 @@ func dataSourceAlicloudDtsInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDtsInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDtsInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

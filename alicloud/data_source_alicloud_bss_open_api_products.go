@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudBssOpenApiProducts() *schema.Resource {
+func dataSourceAliCloudBssOpenApiProducts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudBssOpenApiProductsRead,
+		Read: dataSourceAliCloudBssOpenApiProductsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Optional: true,
@@ -74,7 +74,7 @@ func dataSourceAlicloudBssOpenApiProducts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudBssOpenApiProductsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudBssOpenApiProductsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

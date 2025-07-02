@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudFCCustomDomain() *schema.Resource {
+func resourceAliCloudFCCustomDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudFCCustomDomainCreate,
-		Read:   resourceAlicloudFCCustomDomainRead,
-		Update: resourceAlicloudFCCustomDomainUpdate,
-		Delete: resourceAlicloudFCCustomDomainDelete,
+		Create: resourceAliCloudFCCustomDomainCreate,
+		Read:   resourceAliCloudFCCustomDomainRead,
+		Update: resourceAliCloudFCCustomDomainUpdate,
+		Delete: resourceAliCloudFCCustomDomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -101,7 +101,7 @@ func resourceAlicloudFCCustomDomain() *schema.Resource {
 	}
 }
 
-func resourceAlicloudFCCustomDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCCustomDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	name := d.Get("domain_name").(string)
@@ -142,10 +142,10 @@ func resourceAlicloudFCCustomDomainCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(*response.DomainName)
 
-	return resourceAlicloudFCCustomDomainRead(d, meta)
+	return resourceAliCloudFCCustomDomainRead(d, meta)
 }
 
-func resourceAlicloudFCCustomDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCCustomDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fcService := FcService{client}
 
@@ -211,7 +211,7 @@ func resourceAlicloudFCCustomDomainRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceAlicloudFCCustomDomainUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCCustomDomainUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	domainName := d.Id()
@@ -245,10 +245,10 @@ func resourceAlicloudFCCustomDomainUpdate(d *schema.ResourceData, meta interface
 		addDebug("UpdateCustomDomain", raw, requestInfo, request)
 	}
 
-	return resourceAlicloudFCCustomDomainRead(d, meta)
+	return resourceAliCloudFCCustomDomainRead(d, meta)
 }
 
-func resourceAlicloudFCCustomDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCCustomDomainDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fcService := FcService{client}
 	domainName := d.Id()

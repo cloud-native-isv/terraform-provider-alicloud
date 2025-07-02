@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudNasMountTargets() *schema.Resource {
+func dataSourceAliCloudNasMountTargets() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNasMountTargetsRead,
+		Read: dataSourceAliCloudNasMountTargetsRead,
 		Schema: map[string]*schema.Schema{
 			"access_group_name": {
 				Type:     schema.TypeString,
@@ -109,7 +109,7 @@ func dataSourceAlicloudNasMountTargets() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNasMountTargetsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNasMountTargetsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {

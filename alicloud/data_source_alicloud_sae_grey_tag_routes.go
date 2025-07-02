@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSaeGreyTagRoutes() *schema.Resource {
+func dataSourceAliCloudSaeGreyTagRoutes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSaeGreyTagRoutesRead,
+		Read: dataSourceAliCloudSaeGreyTagRoutesRead,
 		Schema: map[string]*schema.Schema{
 			"app_id": {
 				Type:     schema.TypeString,
@@ -168,7 +168,7 @@ func dataSourceAlicloudSaeGreyTagRoutes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSaeGreyTagRoutesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSaeGreyTagRoutesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "/pop/v1/sam/tagroute/greyTagRouteList"
 	request := make(map[string]*string)

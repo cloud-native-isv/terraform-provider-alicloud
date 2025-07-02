@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCrChartRepository() *schema.Resource {
+func resourceAliCloudCrChartRepository() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCrChartRepositoryCreate,
-		Read:   resourceAlicloudCrChartRepositoryRead,
-		Update: resourceAlicloudCrChartRepositoryUpdate,
-		Delete: resourceAlicloudCrChartRepositoryDelete,
+		Create: resourceAliCloudCrChartRepositoryCreate,
+		Read:   resourceAliCloudCrChartRepositoryRead,
+		Update: resourceAliCloudCrChartRepositoryUpdate,
+		Delete: resourceAliCloudCrChartRepositoryDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,7 +51,7 @@ func resourceAlicloudCrChartRepository() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCrChartRepositoryCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChartRepositoryCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateChartRepository"
@@ -85,9 +85,9 @@ func resourceAlicloudCrChartRepositoryCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["RepoNamespaceName"], ":", request["RepoName"]))
 
-	return resourceAlicloudCrChartRepositoryRead(d, meta)
+	return resourceAliCloudCrChartRepositoryRead(d, meta)
 }
-func resourceAlicloudCrChartRepositoryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChartRepositoryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := CrService{client}
 	object, err := crService.DescribeCrChartRepository(d.Id())
@@ -110,7 +110,7 @@ func resourceAlicloudCrChartRepositoryRead(d *schema.ResourceData, meta interfac
 	d.Set("summary", object["Summary"])
 	return nil
 }
-func resourceAlicloudCrChartRepositoryUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChartRepositoryUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -156,9 +156,9 @@ func resourceAlicloudCrChartRepositoryUpdate(d *schema.ResourceData, meta interf
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCrChartRepositoryRead(d, meta)
+	return resourceAliCloudCrChartRepositoryRead(d, meta)
 }
-func resourceAlicloudCrChartRepositoryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChartRepositoryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {

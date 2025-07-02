@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCmsNamespaces() *schema.Resource {
+func dataSourceAliCloudCmsNamespaces() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsNamespacesRead,
+		Read: dataSourceAliCloudCmsNamespacesRead,
 		Schema: map[string]*schema.Schema{
 			"keyword": {
 				Type:     schema.TypeString,
@@ -79,7 +79,7 @@ func dataSourceAlicloudCmsNamespaces() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsNamespacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsNamespacesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeHybridMonitorNamespaceList"

@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcdBundle() *schema.Resource {
+func resourceAliCloudEcdBundle() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdBundleCreate,
-		Read:   resourceAlicloudEcdBundleRead,
-		Update: resourceAlicloudEcdBundleUpdate,
-		Delete: resourceAlicloudEcdBundleDelete,
+		Create: resourceAliCloudEcdBundleCreate,
+		Read:   resourceAliCloudEcdBundleRead,
+		Update: resourceAliCloudEcdBundleUpdate,
+		Delete: resourceAliCloudEcdBundleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -76,7 +76,7 @@ func resourceAlicloudEcdBundle() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdBundleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdBundleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateBundle"
@@ -129,10 +129,10 @@ func resourceAlicloudEcdBundleCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(fmt.Sprint(response["BundleId"]))
 
-	return resourceAlicloudEcdBundleRead(d, meta)
+	return resourceAliCloudEcdBundleRead(d, meta)
 }
 
-func resourceAlicloudEcdBundleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdBundleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 
@@ -171,7 +171,7 @@ func resourceAlicloudEcdBundleRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceAlicloudEcdBundleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdBundleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -229,10 +229,10 @@ func resourceAlicloudEcdBundleUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	return resourceAlicloudEcdBundleRead(d, meta)
+	return resourceAliCloudEcdBundleRead(d, meta)
 }
 
-func resourceAlicloudEcdBundleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdBundleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteBundles"
 	var response map[string]interface{}

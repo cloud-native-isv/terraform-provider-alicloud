@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudNlbLoadBalancers() *schema.Resource {
+func dataSourceAliCloudNlbLoadBalancers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNlbLoadBalancersRead,
+		Read: dataSourceAliCloudNlbLoadBalancersRead,
 		Schema: map[string]*schema.Schema{
 			"address_ip_version": {
 				Optional:     true,
@@ -235,7 +235,7 @@ func dataSourceAlicloudNlbLoadBalancers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNlbLoadBalancersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNlbLoadBalancersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

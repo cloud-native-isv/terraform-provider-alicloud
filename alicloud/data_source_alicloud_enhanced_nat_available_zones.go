@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEnhancedNatAvailableZones() *schema.Resource {
+func dataSourceAliCloudEnhancedNatAvailableZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEnhancedNatAvailableZonesRead,
+		Read: dataSourceAliCloudEnhancedNatAvailableZonesRead,
 
 		Schema: map[string]*schema.Schema{
 			"output_file": {
@@ -46,7 +46,7 @@ func dataSourceAlicloudEnhancedNatAvailableZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEnhancedNatAvailableZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEnhancedNatAvailableZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "ListEnhanhcedNatGatewayAvailableZones"

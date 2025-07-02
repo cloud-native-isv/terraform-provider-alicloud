@@ -5,9 +5,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudActiontrailGlobalEventsStorageRegion() *schema.Resource {
+func dataSourceAliCloudActiontrailGlobalEventsStorageRegion() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudActiontrailGlobalEventsStorageRegionRead,
+		Read: dataSourceAliCloudActiontrailGlobalEventsStorageRegionRead,
 		Schema: map[string]*schema.Schema{
 			"storage_region": {
 				Type:     schema.TypeString,
@@ -17,7 +17,7 @@ func dataSourceAlicloudActiontrailGlobalEventsStorageRegion() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudActiontrailGlobalEventsStorageRegionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudActiontrailGlobalEventsStorageRegionRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId("GlobalEventsStorageRegion")
 	client := meta.(*connectivity.AliyunClient)
 

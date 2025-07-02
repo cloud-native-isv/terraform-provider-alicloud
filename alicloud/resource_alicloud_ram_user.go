@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRamUser() *schema.Resource {
+func resourceAliCloudRamUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRamUserCreate,
-		Read:   resourceAlicloudRamUserRead,
-		Update: resourceAlicloudRamUserUpdate,
-		Delete: resourceAlicloudRamUserDelete,
+		Create: resourceAliCloudRamUserCreate,
+		Read:   resourceAliCloudRamUserRead,
+		Update: resourceAliCloudRamUserUpdate,
+		Delete: resourceAliCloudRamUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -57,7 +57,7 @@ func resourceAlicloudRamUser() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRamUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRamUserCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ramService := RamService{client}
 
@@ -136,10 +136,10 @@ func resourceAlicloudRamUserCreate(d *schema.ResourceData, meta interface{}) err
 		return WrapError(err)
 	}
 
-	return resourceAlicloudRamUserRead(d, meta)
+	return resourceAliCloudRamUserRead(d, meta)
 }
 
-func resourceAlicloudRamUserUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRamUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -217,10 +217,10 @@ func resourceAlicloudRamUserUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	return resourceAlicloudRamUserRead(d, meta)
+	return resourceAliCloudRamUserRead(d, meta)
 }
 
-func resourceAlicloudRamUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRamUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	ramService := &RamService{client: client}
@@ -243,7 +243,7 @@ func resourceAlicloudRamUserRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceAlicloudRamUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRamUserDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var raw interface{}

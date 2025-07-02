@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRdsCharacterSetNames() *schema.Resource {
+func dataSourceAliCloudRdsCharacterSetNames() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRdsRdsCharacterSetNamesRead,
+		Read: dataSourceAliCloudRdsRdsCharacterSetNamesRead,
 
 		Schema: map[string]*schema.Schema{
 			"engine": {
@@ -37,7 +37,7 @@ func dataSourceAlicloudRdsCharacterSetNames() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRdsRdsCharacterSetNamesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRdsRdsCharacterSetNamesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeCharacterSetName"
 	request := map[string]interface{}{

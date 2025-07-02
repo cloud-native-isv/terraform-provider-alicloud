@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudHBaseInstances() *schema.Resource {
+func dataSourceAliCloudHBaseInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudHBaseInstancesRead,
+		Read: dataSourceAliCloudHBaseInstancesRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -136,7 +136,7 @@ func dataSourceAlicloudHBaseInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudHBaseInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudHBaseInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hbaseService := HBaseService{client}
 

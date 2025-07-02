@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudGaAdditionalCertificates() *schema.Resource {
+func dataSourceAliCloudGaAdditionalCertificates() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGaAdditionalCertificatesRead,
+		Read: dataSourceAliCloudGaAdditionalCertificatesRead,
 		Schema: map[string]*schema.Schema{
 			"accelerator_id": {
 				Type:     schema.TypeString,
@@ -67,7 +67,7 @@ func dataSourceAlicloudGaAdditionalCertificates() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGaAdditionalCertificatesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGaAdditionalCertificatesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListListenerCertificates"

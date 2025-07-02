@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCmsMetricRuleTemplates() *schema.Resource {
+func dataSourceAliCloudCmsMetricRuleTemplates() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsMetricRuleTemplatesRead,
+		Read: dataSourceAliCloudCmsMetricRuleTemplatesRead,
 		Schema: map[string]*schema.Schema{
 			"keyword": {
 				Type:     schema.TypeString,
@@ -206,7 +206,7 @@ func dataSourceAlicloudCmsMetricRuleTemplates() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsMetricRuleTemplatesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsMetricRuleTemplatesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeMetricRuleTemplateList"

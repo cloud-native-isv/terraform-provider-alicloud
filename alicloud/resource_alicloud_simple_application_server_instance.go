@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudSimpleApplicationServerInstance() *schema.Resource {
+func resourceAliCloudSimpleApplicationServerInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSimpleApplicationServerInstanceCreate,
-		Read:   resourceAlicloudSimpleApplicationServerInstanceRead,
-		Update: resourceAlicloudSimpleApplicationServerInstanceUpdate,
-		Delete: resourceAlicloudSimpleApplicationServerInstanceDelete,
+		Create: resourceAliCloudSimpleApplicationServerInstanceCreate,
+		Read:   resourceAliCloudSimpleApplicationServerInstanceRead,
+		Update: resourceAliCloudSimpleApplicationServerInstanceUpdate,
+		Delete: resourceAliCloudSimpleApplicationServerInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -77,7 +77,7 @@ func resourceAlicloudSimpleApplicationServerInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSimpleApplicationServerInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateInstances"
@@ -126,9 +126,9 @@ func resourceAlicloudSimpleApplicationServerInstanceCreate(d *schema.ResourceDat
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudSimpleApplicationServerInstanceUpdate(d, meta)
+	return resourceAliCloudSimpleApplicationServerInstanceUpdate(d, meta)
 }
-func resourceAlicloudSimpleApplicationServerInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	swasOpenService := SwasOpenService{client}
 	object, err := swasOpenService.DescribeSimpleApplicationServerInstance(d.Id())
@@ -147,7 +147,7 @@ func resourceAlicloudSimpleApplicationServerInstanceRead(d *schema.ResourceData,
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudSimpleApplicationServerInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	swasOpenService := SwasOpenService{client}
 	var err error
@@ -360,10 +360,10 @@ func resourceAlicloudSimpleApplicationServerInstanceUpdate(d *schema.ResourceDat
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudSimpleApplicationServerInstanceRead(d, meta)
+	return resourceAliCloudSimpleApplicationServerInstanceRead(d, meta)
 }
-func resourceAlicloudSimpleApplicationServerInstanceDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudSimpleApplicationServerInstance. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudSimpleApplicationServerInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudSimpleApplicationServerInstance. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }
 func convertSimpleApplicationServerInstancePaymentTypeRequest(source interface{}) interface{} {

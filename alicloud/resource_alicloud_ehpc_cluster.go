@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEhpcCluster() *schema.Resource {
+func resourceAliCloudEhpcCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEhpcClusterCreate,
-		Read:   resourceAlicloudEhpcClusterRead,
-		Update: resourceAlicloudEhpcClusterUpdate,
-		Delete: resourceAlicloudEhpcClusterDelete,
+		Create: resourceAliCloudEhpcClusterCreate,
+		Read:   resourceAliCloudEhpcClusterRead,
+		Update: resourceAliCloudEhpcClusterUpdate,
+		Delete: resourceAliCloudEhpcClusterDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
 			Update: schema.DefaultTimeout(15 * time.Minute),
@@ -428,7 +428,7 @@ func resourceAlicloudEhpcCluster() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEhpcClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEhpcClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateCluster"
@@ -661,9 +661,9 @@ func resourceAlicloudEhpcClusterCreate(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEhpcClusterRead(d, meta)
+	return resourceAliCloudEhpcClusterRead(d, meta)
 }
-func resourceAlicloudEhpcClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEhpcClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ehpcService := EhpcService{client}
 	object, err := ehpcService.DescribeEhpcCluster(d.Id())
@@ -741,7 +741,7 @@ func resourceAlicloudEhpcClusterRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("volume_type", object["VolumeType"])
 	return nil
 }
-func resourceAlicloudEhpcClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEhpcClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -795,9 +795,9 @@ func resourceAlicloudEhpcClusterUpdate(d *schema.ResourceData, meta interface{})
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudEhpcClusterRead(d, meta)
+	return resourceAliCloudEhpcClusterRead(d, meta)
 }
-func resourceAlicloudEhpcClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEhpcClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteCluster"
 	var response map[string]interface{}

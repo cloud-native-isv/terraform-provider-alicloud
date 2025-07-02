@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudServiceCatalogProvisionedProducts() *schema.Resource {
+func dataSourceAliCloudServiceCatalogProvisionedProducts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudServiceCatalogProvisionedProductsRead,
+		Read: dataSourceAliCloudServiceCatalogProvisionedProductsRead,
 		Schema: map[string]*schema.Schema{
 			"access_level_filter": {
 				Optional: true,
@@ -324,7 +324,7 @@ func dataSourceAlicloudServiceCatalogProvisionedProducts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudServiceCatalogProvisionedProductsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudServiceCatalogProvisionedProductsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

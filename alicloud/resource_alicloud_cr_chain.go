@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCrChain() *schema.Resource {
+func resourceAliCloudCrChain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCrChainCreate,
-		Read:   resourceAlicloudCrChainRead,
-		Update: resourceAlicloudCrChainUpdate,
-		Delete: resourceAlicloudCrChainDelete,
+		Create: resourceAliCloudCrChainCreate,
+		Read:   resourceAliCloudCrChainRead,
+		Update: resourceAliCloudCrChainUpdate,
+		Delete: resourceAliCloudCrChainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -147,7 +147,7 @@ func resourceAlicloudCrChain() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCrChainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChainCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateChain"
@@ -185,9 +185,9 @@ func resourceAlicloudCrChainCreate(d *schema.ResourceData, meta interface{}) err
 	}
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", response["ChainId"]))
 
-	return resourceAlicloudCrChainRead(d, meta)
+	return resourceAliCloudCrChainRead(d, meta)
 }
-func resourceAlicloudCrChainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := CrService{client}
 	object, err := crService.DescribeCrChain(d.Id())
@@ -279,7 +279,7 @@ func resourceAlicloudCrChainRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("description", object["Description"])
 	return nil
 }
-func resourceAlicloudCrChainUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChainUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -328,9 +328,9 @@ func resourceAlicloudCrChainUpdate(d *schema.ResourceData, meta interface{}) err
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCrChainRead(d, meta)
+	return resourceAliCloudCrChainRead(d, meta)
 }
-func resourceAlicloudCrChainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChainDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

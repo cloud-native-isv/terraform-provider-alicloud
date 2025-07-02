@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudHbrHanaBackupClients() *schema.Resource {
+func dataSourceAliCloudHbrHanaBackupClients() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudHbrHanaBackupClientsRead,
+		Read: dataSourceAliCloudHbrHanaBackupClientsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -128,7 +128,7 @@ func dataSourceAlicloudHbrHanaBackupClients() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudHbrHanaBackupClientsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudHbrHanaBackupClientsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeClients"

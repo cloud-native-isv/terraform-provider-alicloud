@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOosPatchBaselines() *schema.Resource {
+func dataSourceAliCloudOosPatchBaselines() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOosPatchBaselinesRead,
+		Read: dataSourceAliCloudOosPatchBaselinesRead,
 		Schema: map[string]*schema.Schema{
 			"operation_system": {
 				Type:         schema.TypeString,
@@ -115,7 +115,7 @@ func dataSourceAlicloudOosPatchBaselines() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudOosPatchBaselinesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOosPatchBaselinesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "ListPatchBaselines"
 	request := make(map[string]interface{})

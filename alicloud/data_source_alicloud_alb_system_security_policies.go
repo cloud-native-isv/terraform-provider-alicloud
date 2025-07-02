@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudAlbSystemSecurityPolicies() *schema.Resource {
+func dataSourceAliCloudAlbSystemSecurityPolicies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAlbSystemSecurityPoliciesRead,
+		Read: dataSourceAliCloudAlbSystemSecurityPoliciesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -56,7 +56,7 @@ func dataSourceAlicloudAlbSystemSecurityPolicies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAlbSystemSecurityPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAlbSystemSecurityPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListSystemSecurityPolicies"

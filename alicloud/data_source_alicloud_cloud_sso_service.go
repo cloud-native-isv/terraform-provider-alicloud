@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudSsoService() *schema.Resource {
+func dataSourceAliCloudCloudSsoService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudSsoServiceRead,
+		Read: dataSourceAliCloudCloudSsoServiceRead,
 		Schema: map[string]*schema.Schema{
 			"enable": {
 				Type:         schema.TypeString,
@@ -26,7 +26,7 @@ func dataSourceAlicloudCloudSsoService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudCloudSsoServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudSsoServiceRead(d *schema.ResourceData, meta interface{}) error {
 	var response map[string]interface{}
 	request := map[string]interface{}{}
 	client := meta.(*connectivity.AliyunClient)

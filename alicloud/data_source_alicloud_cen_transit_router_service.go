@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenTransitRouterService() *schema.Resource {
+func dataSourceAliCloudCenTransitRouterService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenTransitRouterServiceRead,
+		Read: dataSourceAliCloudCenTransitRouterServiceRead,
 		Schema: map[string]*schema.Schema{
 			"enable": {
 				Type:         schema.TypeString,
@@ -27,7 +27,7 @@ func dataSourceAlicloudCenTransitRouterService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudCenTransitRouterServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenTransitRouterServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("CenTransitRouterServiceHasNotBeenOpened")
 		d.Set("status", "")

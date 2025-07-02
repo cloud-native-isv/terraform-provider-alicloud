@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudVpcVbrHa() *schema.Resource {
+func resourceAliCloudVpcVbrHa() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpcVbrHaCreate,
-		Read:   resourceAlicloudVpcVbrHaRead,
-		Update: resourceAlicloudVpcVbrHaUpdate,
-		Delete: resourceAlicloudVpcVbrHaDelete,
+		Create: resourceAliCloudVpcVbrHaCreate,
+		Read:   resourceAliCloudVpcVbrHaRead,
+		Update: resourceAliCloudVpcVbrHaUpdate,
+		Delete: resourceAliCloudVpcVbrHaDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -60,7 +60,7 @@ func resourceAlicloudVpcVbrHa() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpcVbrHaCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcVbrHaCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateVbrHa"
@@ -103,9 +103,9 @@ func resourceAlicloudVpcVbrHaCreate(d *schema.ResourceData, meta interface{}) er
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudVpcVbrHaRead(d, meta)
+	return resourceAliCloudVpcVbrHaRead(d, meta)
 }
-func resourceAlicloudVpcVbrHaRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcVbrHaRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpcVbrHa(d.Id())
@@ -124,11 +124,11 @@ func resourceAlicloudVpcVbrHaRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("vbr_id", object["VbrId"])
 	return nil
 }
-func resourceAlicloudVpcVbrHaUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcVbrHaUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudVpcVbrHaRead(d, meta)
+	return resourceAliCloudVpcVbrHaRead(d, meta)
 }
-func resourceAlicloudVpcVbrHaDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcVbrHaDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	action := "DeleteVbrHa"

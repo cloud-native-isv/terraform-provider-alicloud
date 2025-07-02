@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRosRegions() *schema.Resource {
+func dataSourceAliCloudRosRegions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRosRegionsRead,
+		Read: dataSourceAliCloudRosRegionsRead,
 		Schema: map[string]*schema.Schema{
 			"output_file": {
 				Type:     schema.TypeString,
@@ -43,7 +43,7 @@ func dataSourceAlicloudRosRegions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRosRegionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRosRegionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeRegions"
 	request := make(map[string]interface{})

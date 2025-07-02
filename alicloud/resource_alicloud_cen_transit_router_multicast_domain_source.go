@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCenTransitRouterMulticastDomainSource() *schema.Resource {
+func resourceAliCloudCenTransitRouterMulticastDomainSource() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenTransitRouterMulticastDomainSourceCreate,
-		Read:   resourceAlicloudCenTransitRouterMulticastDomainSourceRead,
-		Delete: resourceAlicloudCenTransitRouterMulticastDomainSourceDelete,
+		Create: resourceAliCloudCenTransitRouterMulticastDomainSourceCreate,
+		Read:   resourceAliCloudCenTransitRouterMulticastDomainSourceRead,
+		Delete: resourceAliCloudCenTransitRouterMulticastDomainSourceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +52,7 @@ func resourceAlicloudCenTransitRouterMulticastDomainSource() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenTransitRouterMulticastDomainSourceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterMulticastDomainSourceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	request := make(map[string]interface{})
@@ -94,10 +94,10 @@ func resourceAlicloudCenTransitRouterMulticastDomainSourceCreate(d *schema.Resou
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudCenTransitRouterMulticastDomainSourceRead(d, meta)
+	return resourceAliCloudCenTransitRouterMulticastDomainSourceRead(d, meta)
 }
 
-func resourceAlicloudCenTransitRouterMulticastDomainSourceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterMulticastDomainSourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 
@@ -123,7 +123,7 @@ func resourceAlicloudCenTransitRouterMulticastDomainSourceRead(d *schema.Resourc
 	return nil
 }
 
-func resourceAlicloudCenTransitRouterMulticastDomainSourceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterMulticastDomainSourceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	var err error

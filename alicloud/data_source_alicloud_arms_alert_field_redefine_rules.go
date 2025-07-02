@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudArmsAlertFieldRedefineRules() *schema.Resource {
+func dataSourceAliCloudArmsAlertFieldRedefineRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudArmsAlertFieldRedefineRulesRead,
+		Read: dataSourceAliCloudArmsAlertFieldRedefineRulesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -96,7 +96,7 @@ func dataSourceAlicloudArmsAlertFieldRedefineRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudArmsAlertFieldRedefineRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsAlertFieldRedefineRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListAlertFieldRedefineRules"

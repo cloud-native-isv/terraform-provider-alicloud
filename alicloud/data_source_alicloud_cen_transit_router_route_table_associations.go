@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenTransitRouterRouteTableAssociations() *schema.Resource {
+func dataSourceAliCloudCenTransitRouterRouteTableAssociations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenTransitRouterRouteTableAssociationsRead,
+		Read: dataSourceAliCloudCenTransitRouterRouteTableAssociationsRead,
 		Schema: map[string]*schema.Schema{
 			"status": {
 				Type:         schema.TypeString,
@@ -89,7 +89,7 @@ func dataSourceAlicloudCenTransitRouterRouteTableAssociations() *schema.Resource
 	}
 }
 
-func dataSourceAlicloudCenTransitRouterRouteTableAssociationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenTransitRouterRouteTableAssociationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTransitRouterRouteTableAssociations"

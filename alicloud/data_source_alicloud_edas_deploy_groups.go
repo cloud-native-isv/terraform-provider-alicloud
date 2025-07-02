@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEdasDeployGroups() *schema.Resource {
+func dataSourceAliCloudEdasDeployGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEdasDeployGroupsRead,
+		Read: dataSourceAliCloudEdasDeployGroupsRead,
 
 		Schema: map[string]*schema.Schema{
 			"app_id": {
@@ -86,7 +86,7 @@ func dataSourceAlicloudEdasDeployGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEdasDeployGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEdasDeployGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 

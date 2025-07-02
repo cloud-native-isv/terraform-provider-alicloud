@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDmsEnterpriseInstances() *schema.Resource {
+func dataSourceAliCloudDmsEnterpriseInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDmsEnterpriseInstancesRead,
+		Read: dataSourceAliCloudDmsEnterpriseInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:          schema.TypeString,
@@ -186,7 +186,7 @@ func dataSourceAlicloudDmsEnterpriseInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDmsEnterpriseInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDmsEnterpriseInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListInstances"

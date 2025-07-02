@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdDesktopTypes() *schema.Resource {
+func dataSourceAliCloudEcdDesktopTypes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdDesktopTypesRead,
+		Read: dataSourceAliCloudEcdDesktopTypesRead,
 		Schema: map[string]*schema.Schema{
 			"cpu_count": {
 				Type:     schema.TypeInt,
@@ -105,7 +105,7 @@ func dataSourceAlicloudEcdDesktopTypes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdDesktopTypesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdDesktopTypesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDesktopTypes"

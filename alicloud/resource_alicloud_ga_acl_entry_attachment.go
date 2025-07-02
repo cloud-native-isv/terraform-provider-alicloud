@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudGaAclEntryAttachment() *schema.Resource {
+func resourceAliCloudGaAclEntryAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudGaAclEntryAttachmentCreate,
-		Read:   resourceAlicloudGaAclEntryAttachmentRead,
-		Delete: resourceAlicloudGaAclEntryAttachmentDelete,
+		Create: resourceAliCloudGaAclEntryAttachmentCreate,
+		Read:   resourceAliCloudGaAclEntryAttachmentRead,
+		Delete: resourceAliCloudGaAclEntryAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -47,7 +47,7 @@ func resourceAlicloudGaAclEntryAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudGaAclEntryAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaAclEntryAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gaService := GaService{client}
 	var response map[string]interface{}
@@ -99,10 +99,10 @@ func resourceAlicloudGaAclEntryAttachmentCreate(d *schema.ResourceData, meta int
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudGaAclEntryAttachmentRead(d, meta)
+	return resourceAliCloudGaAclEntryAttachmentRead(d, meta)
 }
 
-func resourceAlicloudGaAclEntryAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaAclEntryAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gaService := GaService{client}
 
@@ -134,7 +134,7 @@ func resourceAlicloudGaAclEntryAttachmentRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceAlicloudGaAclEntryAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaAclEntryAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "RemoveEntriesFromAcl"
 	var response map[string]interface{}

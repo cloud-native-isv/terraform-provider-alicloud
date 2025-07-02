@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudAlidnsGtmInstances() *schema.Resource {
+func dataSourceAliCloudAlidnsGtmInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAlidnsGtmInstancesRead,
+		Read: dataSourceAliCloudAlidnsGtmInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -138,7 +138,7 @@ func dataSourceAlicloudAlidnsGtmInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAlidnsGtmInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAlidnsGtmInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDnsGtmInstances"

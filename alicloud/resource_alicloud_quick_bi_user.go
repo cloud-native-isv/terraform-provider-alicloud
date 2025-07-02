@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudQuickBiUser() *schema.Resource {
+func resourceAliCloudQuickBiUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudQuickBiUserCreate,
-		Read:   resourceAlicloudQuickBiUserRead,
-		Update: resourceAlicloudQuickBiUserUpdate,
-		Delete: resourceAlicloudQuickBiUserDelete,
+		Create: resourceAliCloudQuickBiUserCreate,
+		Read:   resourceAliCloudQuickBiUserRead,
+		Update: resourceAliCloudQuickBiUserUpdate,
+		Delete: resourceAliCloudQuickBiUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -60,7 +60,7 @@ func resourceAlicloudQuickBiUser() *schema.Resource {
 	}
 }
 
-func resourceAlicloudQuickBiUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudQuickBiUserCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddUser"
@@ -94,9 +94,9 @@ func resourceAlicloudQuickBiUserCreate(d *schema.ResourceData, meta interface{})
 	responseResult := response["Result"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseResult["UserId"]))
 
-	return resourceAlicloudQuickBiUserRead(d, meta)
+	return resourceAliCloudQuickBiUserRead(d, meta)
 }
-func resourceAlicloudQuickBiUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudQuickBiUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	quickbiPublicService := QuickbiPublicService{client}
 	object, err := quickbiPublicService.DescribeQuickBiUser(d.Id())
@@ -117,7 +117,7 @@ func resourceAlicloudQuickBiUserRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("user_type", convertQuickBiUserUserTypeResponse(formatInt(object["UserType"])))
 	return nil
 }
-func resourceAlicloudQuickBiUserUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudQuickBiUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -158,9 +158,9 @@ func resourceAlicloudQuickBiUserUpdate(d *schema.ResourceData, meta interface{})
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudQuickBiUserRead(d, meta)
+	return resourceAliCloudQuickBiUserRead(d, meta)
 }
-func resourceAlicloudQuickBiUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudQuickBiUserDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteUser"
 	var response map[string]interface{}

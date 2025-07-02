@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenTransitRouterMulticastDomainAssociations() *schema.Resource {
+func dataSourceAliCloudCenTransitRouterMulticastDomainAssociations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenTransitRouterMulticastDomainAssociationsRead,
+		Read: dataSourceAliCloudCenTransitRouterMulticastDomainAssociationsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -102,7 +102,7 @@ func dataSourceAlicloudCenTransitRouterMulticastDomainAssociations() *schema.Res
 	}
 }
 
-func dataSourceAlicloudCenTransitRouterMulticastDomainAssociationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenTransitRouterMulticastDomainAssociationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTransitRouterMulticastDomainAssociations"

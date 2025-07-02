@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudFlinkZones() *schema.Resource {
+func dataSourceAliCloudFlinkZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFlinkZonesRead,
+		Read: dataSourceAliCloudFlinkZonesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -50,7 +50,7 @@ func dataSourceAlicloudFlinkZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudFlinkZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFlinkZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {

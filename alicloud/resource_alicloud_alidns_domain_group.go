@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAlidnsDomainGroup() *schema.Resource {
+func resourceAliCloudAlidnsDomainGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlidnsDomainGroupCreate,
-		Read:   resourceAlicloudAlidnsDomainGroupRead,
-		Update: resourceAlicloudAlidnsDomainGroupUpdate,
-		Delete: resourceAlicloudAlidnsDomainGroupDelete,
+		Create: resourceAliCloudAlidnsDomainGroupCreate,
+		Read:   resourceAliCloudAlidnsDomainGroupRead,
+		Update: resourceAliCloudAlidnsDomainGroupUpdate,
+		Delete: resourceAliCloudAlidnsDomainGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -40,7 +40,7 @@ func resourceAlicloudAlidnsDomainGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlidnsDomainGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsDomainGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := alidns.CreateAddDomainGroupRequest()
@@ -66,9 +66,9 @@ func resourceAlicloudAlidnsDomainGroupCreate(d *schema.ResourceData, meta interf
 	response, _ := raw.(*alidns.AddDomainGroupResponse)
 	d.SetId(fmt.Sprintf("%v", response.GroupId))
 
-	return resourceAlicloudAlidnsDomainGroupRead(d, meta)
+	return resourceAliCloudAlidnsDomainGroupRead(d, meta)
 }
-func resourceAlicloudAlidnsDomainGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsDomainGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsDomainGroup(d.Id())
@@ -85,7 +85,7 @@ func resourceAlicloudAlidnsDomainGroupRead(d *schema.ResourceData, meta interfac
 	d.Set("group_name", object.GroupName)
 	return nil
 }
-func resourceAlicloudAlidnsDomainGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsDomainGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	update := false
 	request := alidns.CreateUpdateDomainGroupRequest()
@@ -114,9 +114,9 @@ func resourceAlicloudAlidnsDomainGroupUpdate(d *schema.ResourceData, meta interf
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudAlidnsDomainGroupRead(d, meta)
+	return resourceAliCloudAlidnsDomainGroupRead(d, meta)
 }
-func resourceAlicloudAlidnsDomainGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsDomainGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := alidns.CreateDeleteDomainGroupRequest()
 	request.GroupId = d.Id()

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenInstances() *schema.Resource {
+func dataSourceAliCloudCenInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenInstancesRead,
+		Read: dataSourceAliCloudCenInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -96,7 +96,7 @@ func dataSourceAlicloudCenInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := cbn.CreateDescribeCensRequest()

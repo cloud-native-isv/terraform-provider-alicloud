@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudDcdnWafRules() *schema.Resource {
+func dataSourceAliCloudDcdnWafRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDcdnWafRulesRead,
+		Read: dataSourceAliCloudDcdnWafRulesRead,
 		Schema: map[string]*schema.Schema{
 			"query_args": {
 				Optional: true,
@@ -204,7 +204,7 @@ func dataSourceAlicloudDcdnWafRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDcdnWafRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDcdnWafRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

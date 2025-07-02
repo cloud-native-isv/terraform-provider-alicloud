@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudHavip() *schema.Resource {
+func resourceAliCloudHavip() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudHavipCreate,
-		Read:   resourceAlicloudHavipRead,
-		Update: resourceAlicloudHavipUpdate,
-		Delete: resourceAlicloudHavipDelete,
+		Create: resourceAliCloudHavipCreate,
+		Read:   resourceAliCloudHavipRead,
+		Update: resourceAliCloudHavipUpdate,
+		Delete: resourceAliCloudHavipDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +55,7 @@ func resourceAlicloudHavip() *schema.Resource {
 	}
 }
 
-func resourceAlicloudHavipCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHavipCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	var response map[string]interface{}
@@ -99,10 +99,10 @@ func resourceAlicloudHavipCreate(d *schema.ResourceData, meta interface{}) error
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudHavipRead(d, meta)
+	return resourceAliCloudHavipRead(d, meta)
 }
 
-func resourceAlicloudHavipRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHavipRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeHavip(d.Id())
@@ -122,7 +122,7 @@ func resourceAlicloudHavipRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceAlicloudHavipUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHavipUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -158,10 +158,10 @@ func resourceAlicloudHavipUpdate(d *schema.ResourceData, meta interface{}) error
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudHavipRead(d, meta)
+	return resourceAliCloudHavipRead(d, meta)
 }
 
-func resourceAlicloudHavipDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHavipDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteHaVip"
 	var response map[string]interface{}

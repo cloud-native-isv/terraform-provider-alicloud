@@ -49,11 +49,6 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				Optional:    true,
 				Description: "Associated deployment ID for this draft.",
 			},
-			"description": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Description of the deployment draft.",
-			},
 			"engine_version": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -401,11 +396,6 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 				Computed:    true,
 				Description: "The last update time of the deployment draft.",
 			},
-			"status": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The status of the deployment draft.",
-			},
 			"draft_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -464,10 +454,6 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 
 	if folderId, ok := d.GetOk("folder_id"); ok {
 		draft.ParentId = folderId.(string)
-	}
-
-	if description, ok := d.GetOk("description"); ok {
-		draft.Description = description.(string)
 	}
 
 	if engineVersion, ok := d.GetOk("engine_version"); ok {
@@ -660,10 +646,8 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 	d.Set("workspace_id", deploymentDraft.Workspace)
 	d.Set("name", deploymentDraft.Name)
 	d.Set("draft_id", deploymentDraft.Id)
-	d.Set("description", deploymentDraft.Description)
 	d.Set("engine_version", deploymentDraft.EngineVersion)
 	d.Set("execution_mode", deploymentDraft.ExecutionMode)
-	d.Set("status", deploymentDraft.Status)
 
 	// Set folder_id from ParentId
 	if deploymentDraft.ParentId != "" {
@@ -824,11 +808,6 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 		update = true
 	}
 
-	if d.HasChange("description") {
-		deploymentDraft.Description = d.Get("description").(string)
-		update = true
-	}
-
 	if d.HasChange("engine_version") {
 		deploymentDraft.EngineVersion = d.Get("engine_version").(string)
 		update = true
@@ -849,7 +828,11 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	}
 
 	// Update artifact configuration
-	if d.HasChange("artifact_uri") || d.HasChange("artifact") {
+	if d.HasChange("artifact_uri") || d.HasChange("artifact") ||
+		d.HasChange("artifact.0.sql_artifact") || d.HasChange("artifact.0.sql_artifact.0.sql_script") ||
+		d.HasChange("artifact.0.jar_artifact") || d.HasChange("artifact.0.jar_artifact.0.jar_uri") ||
+		d.HasChange("artifact.0.python_artifact") || d.HasChange("artifact.0.python_artifact.0.python_artifact_uri") {
+
 		if artifactUri, ok := d.GetOk("artifact_uri"); ok {
 			// Simple artifact URI
 			deploymentDraft.Artifact = &aliyunFlinkAPI.Artifact{

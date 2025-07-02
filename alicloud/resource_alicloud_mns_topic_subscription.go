@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudMNSSubscription() *schema.Resource {
+func resourceAliCloudMNSSubscription() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMNSSubscriptionCreate,
-		Read:   resourceAlicloudMNSSubscriptionRead,
-		Update: resourceAlicloudMNSSubscriptionUpdate,
-		Delete: resourceAlicloudMNSSubscriptionDelete,
+		Create: resourceAliCloudMNSSubscriptionCreate,
+		Read:   resourceAliCloudMNSSubscriptionRead,
+		Update: resourceAliCloudMNSSubscriptionUpdate,
+		Delete: resourceAliCloudMNSSubscriptionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -65,7 +65,7 @@ func resourceAlicloudMNSSubscription() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMNSSubscriptionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSSubscriptionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	topicName := d.Get("topic_name").(string)
 	name := d.Get("name").(string)
@@ -92,10 +92,10 @@ func resourceAlicloudMNSSubscriptionCreate(d *schema.ResourceData, meta interfac
 	}
 	addDebug("Subscribe", raw)
 	d.SetId(fmt.Sprintf("%s%s%s", topicName, COLON_SEPARATED, name))
-	return resourceAlicloudMNSSubscriptionRead(d, meta)
+	return resourceAliCloudMNSSubscriptionRead(d, meta)
 }
 
-func resourceAlicloudMNSSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mnsService := MnsService{client}
 
@@ -116,7 +116,7 @@ func resourceAlicloudMNSSubscriptionRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudMNSSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("notify_strategy") {
 		client := meta.(*connectivity.AliyunClient)
 		parts, err := ParseResourceId(d.Id(), 2)
@@ -133,10 +133,10 @@ func resourceAlicloudMNSSubscriptionUpdate(d *schema.ResourceData, meta interfac
 		}
 		addDebug("SetSubscriptionAttributes", raw)
 	}
-	return resourceAlicloudMNSSubscriptionRead(d, meta)
+	return resourceAliCloudMNSSubscriptionRead(d, meta)
 }
 
-func resourceAlicloudMNSSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mnsService := MnsService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

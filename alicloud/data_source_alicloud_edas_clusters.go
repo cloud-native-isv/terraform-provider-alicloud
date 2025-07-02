@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEdasClusters() *schema.Resource {
+func dataSourceAliCloudEdasClusters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEdasClustersRead,
+		Read: dataSourceAliCloudEdasClustersRead,
 
 		Schema: map[string]*schema.Schema{
 			"logical_region_id": {
@@ -106,7 +106,7 @@ func dataSourceAlicloudEdasClusters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEdasClustersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEdasClustersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 

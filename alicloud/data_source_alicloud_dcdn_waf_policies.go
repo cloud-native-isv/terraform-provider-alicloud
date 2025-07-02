@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDcdnWafPolicies() *schema.Resource {
+func dataSourceAliCloudDcdnWafPolicies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDcdnWafPoliciesRead,
+		Read: dataSourceAliCloudDcdnWafPoliciesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -96,7 +96,7 @@ func dataSourceAlicloudDcdnWafPolicies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDcdnWafPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDcdnWafPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDcdnWafPolicies"

@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRamRoleAttachment() *schema.Resource {
+func resourceAliCloudRamRoleAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudInstanceRoleAttachmentCreate,
-		Read:   resourceAlicloudInstanceRoleAttachmentRead,
-		Delete: resourceAlicloudInstanceRoleAttachmentDelete,
+		Create: resourceAliCloudInstanceRoleAttachmentCreate,
+		Read:   resourceAliCloudInstanceRoleAttachmentRead,
+		Delete: resourceAliCloudInstanceRoleAttachmentDelete,
 
 		Schema: map[string]*schema.Schema{
 			"role_name": {
@@ -31,7 +31,7 @@ func resourceAlicloudRamRoleAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudInstanceRoleAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudInstanceRoleAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ramService := RamService{client}
 
@@ -59,11 +59,11 @@ func resourceAlicloudInstanceRoleAttachmentCreate(d *schema.ResourceData, meta i
 		}
 		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 		d.SetId(d.Get("role_name").(string) + COLON_SEPARATED + instanceIds)
-		return resource.NonRetryableError(WrapError(resourceAlicloudInstanceRoleAttachmentRead(d, meta)))
+		return resource.NonRetryableError(WrapError(resourceAliCloudInstanceRoleAttachmentRead(d, meta)))
 	})
 }
 
-func resourceAlicloudInstanceRoleAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudInstanceRoleAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
@@ -92,7 +92,7 @@ func resourceAlicloudInstanceRoleAttachmentRead(d *schema.ResourceData, meta int
 
 }
 
-func resourceAlicloudInstanceRoleAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudInstanceRoleAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ramService := RamService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

@@ -2,8 +2,9 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	log "github.com/sirupsen/logrus"
 
@@ -15,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDbauditInstance() *schema.Resource {
+func resourceAliCloudDbauditInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDbauditInstanceCreate,
-		Read:   resourceAlicloudDbauditInstanceRead,
-		Update: resourceAlicloudDbauditInstanceUpdate,
-		Delete: resourceAlicloudDbauditInstanceDelete,
+		Create: resourceAliCloudDbauditInstanceCreate,
+		Read:   resourceAliCloudDbauditInstanceRead,
+		Update: resourceAliCloudDbauditInstanceUpdate,
+		Delete: resourceAliCloudDbauditInstanceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
@@ -61,7 +62,7 @@ func resourceAlicloudDbauditInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDbauditInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbauditInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "CreateInstance"
 	var request map[string]interface{}
@@ -137,10 +138,10 @@ func resourceAlicloudDbauditInstanceCreate(d *schema.ResourceData, meta interfac
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudDbauditInstanceUpdate(d, meta)
+	return resourceAliCloudDbauditInstanceUpdate(d, meta)
 }
 
-func resourceAlicloudDbauditInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbauditInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dbauditService := DbauditService{client}
 	instance, err := dbauditService.DescribeYundunDbauditInstance(d.Id())
@@ -165,7 +166,7 @@ func resourceAlicloudDbauditInstanceRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudDbauditInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbauditInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dbauditService := DbauditService{client}
 
@@ -194,7 +195,7 @@ func resourceAlicloudDbauditInstanceUpdate(d *schema.ResourceData, meta interfac
 
 	if d.IsNewResource() {
 		d.Partial(false)
-		return resourceAlicloudDbauditInstanceRead(d, meta)
+		return resourceAliCloudDbauditInstanceRead(d, meta)
 	}
 
 	if d.HasChange("plan_code") {
@@ -210,10 +211,10 @@ func resourceAlicloudDbauditInstanceUpdate(d *schema.ResourceData, meta interfac
 
 	d.Partial(false)
 	// wait for order complete
-	return resourceAlicloudDbauditInstanceRead(d, meta)
+	return resourceAliCloudDbauditInstanceRead(d, meta)
 }
 
-func resourceAlicloudDbauditInstanceDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudDbauditInstance. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudDbauditInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudDbauditInstance. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudNasSnapshot() *schema.Resource {
+func resourceAliCloudNasSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudNasSnapshotCreate,
-		Read:   resourceAlicloudNasSnapshotRead,
-		Delete: resourceAlicloudNasSnapshotDelete,
+		Create: resourceAliCloudNasSnapshotCreate,
+		Read:   resourceAliCloudNasSnapshotRead,
+		Delete: resourceAliCloudNasSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -56,7 +56,7 @@ func resourceAlicloudNasSnapshot() *schema.Resource {
 	}
 }
 
-func resourceAlicloudNasSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateSnapshot"
@@ -100,9 +100,9 @@ func resourceAlicloudNasSnapshotCreate(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudNasSnapshotRead(d, meta)
+	return resourceAliCloudNasSnapshotRead(d, meta)
 }
-func resourceAlicloudNasSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {
@@ -127,7 +127,7 @@ func resourceAlicloudNasSnapshotRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudNasSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {

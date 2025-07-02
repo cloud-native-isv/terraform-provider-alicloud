@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudLogAlert() *schema.Resource {
+func resourceAliCloudLogAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudLogAlertCreate,
-		Read:   resourceAlicloudLogAlertRead,
-		Update: resourceAlicloudLogAlertUpdate,
-		Delete: resourceAlicloudLogAlertDelete,
+		Create: resourceAliCloudLogAlertCreate,
+		Read:   resourceAliCloudLogAlertRead,
+		Update: resourceAliCloudLogAlertUpdate,
+		Delete: resourceAliCloudLogAlertDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -397,7 +397,7 @@ func resourceAlicloudLogAlert() *schema.Resource {
 	}
 }
 
-func resourceAlicloudLogAlertCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogAlertCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	project_name := d.Get("project_name").(string)
 	alert_name := d.Get("alert_name").(string)
@@ -454,16 +454,16 @@ func resourceAlicloudLogAlertCreate(d *schema.ResourceData, meta interface{}) er
 		// Check if the error is JobAlreadyExist, if so, import the existing resource
 		if IsExpectedErrors(err, []string{"JobAlreadyExist"}) {
 			d.SetId(fmt.Sprintf("%s%s%s", project_name, COLON_SEPARATED, alert_name))
-			return resourceAlicloudLogAlertRead(d, meta)
+			return resourceAliCloudLogAlertRead(d, meta)
 		}
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_alert", "CreateLogstoreAlert", AliyunLogGoSdkERROR)
 	}
 
 	d.SetId(fmt.Sprintf("%s%s%s", project_name, COLON_SEPARATED, alert_name))
-	return resourceAlicloudLogAlertRead(d, meta)
+	return resourceAliCloudLogAlertRead(d, meta)
 }
 
-func resourceAlicloudLogAlertRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	logService := LogService{client}
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -631,7 +631,7 @@ func resourceAlicloudLogAlertRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceAlicloudLogAlertUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogAlertUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -691,10 +691,10 @@ func resourceAlicloudLogAlertUpdate(d *schema.ResourceData, meta interface{}) er
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateAlert", AliyunLogGoSdkERROR)
 	}
 
-	return resourceAlicloudLogAlertRead(d, meta)
+	return resourceAliCloudLogAlertRead(d, meta)
 }
 
-func resourceAlicloudLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	logService := LogService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

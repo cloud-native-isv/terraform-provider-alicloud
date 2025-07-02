@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudRosStack() *schema.Resource {
+func resourceAliCloudRosStack() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRosStackCreate,
-		Read:   resourceAlicloudRosStackRead,
-		Update: resourceAlicloudRosStackUpdate,
-		Delete: resourceAlicloudRosStackDelete,
+		Create: resourceAliCloudRosStackCreate,
+		Read:   resourceAliCloudRosStackRead,
+		Update: resourceAliCloudRosStackUpdate,
+		Delete: resourceAliCloudRosStackDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -148,7 +148,7 @@ func resourceAlicloudRosStack() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRosStackCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	var response map[string]interface{}
@@ -235,9 +235,9 @@ func resourceAlicloudRosStackCreate(d *schema.ResourceData, meta interface{}) er
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudRosStackUpdate(d, meta)
+	return resourceAliCloudRosStackUpdate(d, meta)
 }
-func resourceAlicloudRosStackRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	object, err := rosService.DescribeRosStack(d.Id())
@@ -288,7 +288,7 @@ func resourceAlicloudRosStackRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceAlicloudRosStackUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	var response map[string]interface{}
@@ -386,9 +386,9 @@ func resourceAlicloudRosStackUpdate(d *schema.ResourceData, meta interface{}) er
 		d.SetPartial("timeout_in_minutes")
 	}
 	d.Partial(false)
-	return resourceAlicloudRosStackRead(d, meta)
+	return resourceAliCloudRosStackRead(d, meta)
 }
-func resourceAlicloudRosStackDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	action := "DeleteStack"

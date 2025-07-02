@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCenRouteEntries() *schema.Resource {
+func dataSourceAliCloudCenRouteEntries() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenPublishedRouteEntriesRead,
+		Read: dataSourceAliCloudCenPublishedRouteEntriesRead,
 
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
@@ -102,7 +102,7 @@ func dataSourceAlicloudCenRouteEntries() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenPublishedRouteEntriesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenPublishedRouteEntriesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cenService := CenService{client}
 

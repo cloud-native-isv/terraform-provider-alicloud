@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudExpressConnectVbrPconnAssociations() *schema.Resource {
+func dataSourceAliCloudExpressConnectVbrPconnAssociations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudExpressConnectVbrPconnAssociationsRead,
+		Read: dataSourceAliCloudExpressConnectVbrPconnAssociationsRead,
 		Schema: map[string]*schema.Schema{
 			"vbr_id": {
 				Optional: true,
@@ -104,7 +104,7 @@ func dataSourceAlicloudExpressConnectVbrPconnAssociations() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudExpressConnectVbrPconnAssociationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudExpressConnectVbrPconnAssociationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

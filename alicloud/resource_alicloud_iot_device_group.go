@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudIotDeviceGroup() *schema.Resource {
+func resourceAliCloudIotDeviceGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudIotDeviceGroupCreate,
-		Read:   resourceAlicloudIotDeviceGroupRead,
-		Update: resourceAlicloudIotDeviceGroupUpdate,
-		Delete: resourceAlicloudIotDeviceGroupDelete,
+		Create: resourceAliCloudIotDeviceGroupCreate,
+		Read:   resourceAliCloudIotDeviceGroupRead,
+		Update: resourceAliCloudIotDeviceGroupUpdate,
+		Delete: resourceAliCloudIotDeviceGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -45,7 +45,7 @@ func resourceAlicloudIotDeviceGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudIotDeviceGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudIotDeviceGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDeviceGroup"
@@ -80,9 +80,9 @@ func resourceAlicloudIotDeviceGroupCreate(d *schema.ResourceData, meta interface
 	responseData := response["Data"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseData["GroupId"]))
 
-	return resourceAlicloudIotDeviceGroupRead(d, meta)
+	return resourceAliCloudIotDeviceGroupRead(d, meta)
 }
-func resourceAlicloudIotDeviceGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudIotDeviceGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	iotService := IotService{client}
 	object, err := iotService.DescribeIotDeviceGroup(d.Id())
@@ -103,7 +103,7 @@ func resourceAlicloudIotDeviceGroupRead(d *schema.ResourceData, meta interface{}
 	d.Set("group_name", object["Data"].(map[string]interface{})["GroupName"])
 	return nil
 }
-func resourceAlicloudIotDeviceGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudIotDeviceGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -142,9 +142,9 @@ func resourceAlicloudIotDeviceGroupUpdate(d *schema.ResourceData, meta interface
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudIotDeviceGroupRead(d, meta)
+	return resourceAliCloudIotDeviceGroupRead(d, meta)
 }
-func resourceAlicloudIotDeviceGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudIotDeviceGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDeviceGroup"
 	var response map[string]interface{}

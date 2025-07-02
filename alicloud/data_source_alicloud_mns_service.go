@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudMnsService() *schema.Resource {
+func dataSourceAliCloudMnsService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMnsServiceRead,
+		Read: dataSourceAliCloudMnsServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -30,7 +30,7 @@ func dataSourceAlicloudMnsService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudMnsServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMnsServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("MnsServiceHasNotBeenOpened")
 		d.Set("status", "")

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudApiGatewayService() *schema.Resource {
+func dataSourceAliCloudApiGatewayService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudApigatewayServiceRead,
+		Read: dataSourceAliCloudApigatewayServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -28,7 +28,7 @@ func dataSourceAlicloudApiGatewayService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudApigatewayServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudApigatewayServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("ApiGatewayServicHasNotBeenOpened")
 		d.Set("status", "")

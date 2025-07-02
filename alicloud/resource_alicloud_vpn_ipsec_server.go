@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudVpnIpsecServer() *schema.Resource {
+func resourceAliCloudVpnIpsecServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpnIpsecServerCreate,
-		Read:   resourceAlicloudVpnIpsecServerRead,
-		Update: resourceAlicloudVpnIpsecServerUpdate,
-		Delete: resourceAlicloudVpnIpsecServerDelete,
+		Create: resourceAliCloudVpnIpsecServerCreate,
+		Read:   resourceAliCloudVpnIpsecServerRead,
+		Update: resourceAliCloudVpnIpsecServerUpdate,
+		Delete: resourceAliCloudVpnIpsecServerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -137,7 +137,7 @@ func resourceAlicloudVpnIpsecServer() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpnIpsecServerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpnIpsecServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateIpsecServer"
@@ -221,9 +221,9 @@ func resourceAlicloudVpnIpsecServerCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprint(response["IpsecServerId"]))
 
-	return resourceAlicloudVpnIpsecServerRead(d, meta)
+	return resourceAliCloudVpnIpsecServerRead(d, meta)
 }
-func resourceAlicloudVpnIpsecServerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpnIpsecServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpnIpsecServer(d.Id())
@@ -279,7 +279,7 @@ func resourceAlicloudVpnIpsecServerRead(d *schema.ResourceData, meta interface{}
 
 	return nil
 }
-func resourceAlicloudVpnIpsecServerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpnIpsecServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -386,9 +386,9 @@ func resourceAlicloudVpnIpsecServerUpdate(d *schema.ResourceData, meta interface
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudVpnIpsecServerRead(d, meta)
+	return resourceAliCloudVpnIpsecServerRead(d, meta)
 }
-func resourceAlicloudVpnIpsecServerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpnIpsecServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteIpsecServer"
 	var response map[string]interface{}

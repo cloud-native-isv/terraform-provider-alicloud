@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudSelectDBDbInstances() *schema.Resource {
+func dataSourceAliCloudSelectDBDbInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSelectDBDbInstancesRead,
+		Read: dataSourceAliCloudSelectDBDbInstancesRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -143,7 +143,7 @@ func dataSourceAlicloudSelectDBDbInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSelectDBDbInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSelectDBDbInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	selectDBService := SelectDBService{client}
 

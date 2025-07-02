@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDmsEnterpriseLogicDatabase() *schema.Resource {
+func resourceAliCloudDmsEnterpriseLogicDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDmsEnterpriseLogicDatabaseCreate,
-		Read:   resourceAlicloudDmsEnterpriseLogicDatabaseRead,
-		Update: resourceAlicloudDmsEnterpriseLogicDatabaseUpdate,
-		Delete: resourceAlicloudDmsEnterpriseLogicDatabaseDelete,
+		Create: resourceAliCloudDmsEnterpriseLogicDatabaseCreate,
+		Read:   resourceAliCloudDmsEnterpriseLogicDatabaseRead,
+		Update: resourceAliCloudDmsEnterpriseLogicDatabaseUpdate,
+		Delete: resourceAliCloudDmsEnterpriseLogicDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -75,7 +75,7 @@ func resourceAlicloudDmsEnterpriseLogicDatabase() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDmsEnterpriseLogicDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseLogicDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"RegionId": client.RegionId,
@@ -116,10 +116,10 @@ func resourceAlicloudDmsEnterpriseLogicDatabaseCreate(d *schema.ResourceData, me
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudDmsEnterpriseLogicDatabaseRead(d, meta)
+	return resourceAliCloudDmsEnterpriseLogicDatabaseRead(d, meta)
 }
 
-func resourceAlicloudDmsEnterpriseLogicDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseLogicDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dmsEnterpriseService := DmsEnterpriseService{client}
 
@@ -149,7 +149,7 @@ func resourceAlicloudDmsEnterpriseLogicDatabaseRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceAlicloudDmsEnterpriseLogicDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseLogicDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -190,10 +190,10 @@ func resourceAlicloudDmsEnterpriseLogicDatabaseUpdate(d *schema.ResourceData, me
 		}
 	}
 
-	return resourceAlicloudDmsEnterpriseLogicDatabaseRead(d, meta)
+	return resourceAliCloudDmsEnterpriseLogicDatabaseRead(d, meta)
 }
 
-func resourceAlicloudDmsEnterpriseLogicDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseLogicDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 

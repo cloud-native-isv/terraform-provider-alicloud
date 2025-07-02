@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudNasZones() *schema.Resource {
+func dataSourceAliCloudNasZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNasZonesRead,
+		Read: dataSourceAliCloudNasZonesRead,
 		Schema: map[string]*schema.Schema{
 			"file_system_type": {
 				Type:         schema.TypeString,
@@ -57,7 +57,7 @@ func dataSourceAlicloudNasZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNasZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNasZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeZones"

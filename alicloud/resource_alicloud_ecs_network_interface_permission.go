@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcsNetworkInterfacePermission() *schema.Resource {
+func resourceAliCloudEcsNetworkInterfacePermission() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsNetworkInterfacePermissionCreate,
-		Read:   resourceAlicloudEcsNetworkInterfacePermissionRead,
-		Delete: resourceAlicloudEcsNetworkInterfacePermissionDelete,
+		Create: resourceAliCloudEcsNetworkInterfacePermissionCreate,
+		Read:   resourceAliCloudEcsNetworkInterfacePermissionRead,
+		Delete: resourceAliCloudEcsNetworkInterfacePermissionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -54,7 +54,7 @@ func resourceAlicloudEcsNetworkInterfacePermission() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsNetworkInterfacePermissionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsNetworkInterfacePermissionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateNetworkInterfacePermission"
@@ -89,9 +89,9 @@ func resourceAlicloudEcsNetworkInterfacePermissionCreate(d *schema.ResourceData,
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEcsNetworkInterfacePermissionRead(d, meta)
+	return resourceAliCloudEcsNetworkInterfacePermissionRead(d, meta)
 }
-func resourceAlicloudEcsNetworkInterfacePermissionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsNetworkInterfacePermissionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsNetworkInterfacePermission(d.Id())
@@ -109,7 +109,7 @@ func resourceAlicloudEcsNetworkInterfacePermissionRead(d *schema.ResourceData, m
 	d.Set("status", object["PermissionState"])
 	return nil
 }
-func resourceAlicloudEcsNetworkInterfacePermissionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsNetworkInterfacePermissionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteNetworkInterfacePermission"
 	var response map[string]interface{}

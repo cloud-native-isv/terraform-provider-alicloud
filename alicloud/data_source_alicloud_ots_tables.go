@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOtsTables() *schema.Resource {
+func dataSourceAliCloudOtsTables() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOtsTablesRead,
+		Read: dataSourceAliCloudOtsTablesRead,
 
 		Schema: map[string]*schema.Schema{
 			"instance_name": {
@@ -121,7 +121,7 @@ type OtsTableInfo struct {
 	maxVersion    int
 }
 
-func dataSourceAlicloudOtsTablesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOtsTablesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	otsService := OtsService{client}
 	instanceName := d.Get("instance_name").(string)

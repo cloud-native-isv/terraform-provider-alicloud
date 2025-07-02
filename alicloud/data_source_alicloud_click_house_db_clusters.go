@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudClickHouseDbClusters() *schema.Resource {
+func dataSourceAliCloudClickHouseDbClusters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudClickHouseDbClustersRead,
+		Read: dataSourceAliCloudClickHouseDbClustersRead,
 		Schema: map[string]*schema.Schema{
 			"db_cluster_description": {
 				Type:     schema.TypeString,
@@ -239,7 +239,7 @@ func dataSourceAlicloudClickHouseDbClusters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudClickHouseDbClustersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudClickHouseDbClustersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDBClusters"

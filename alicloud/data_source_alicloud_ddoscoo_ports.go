@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDdoscooPorts() *schema.Resource {
+func dataSourceAliCloudDdoscooPorts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDdoscooPortsRead,
+		Read: dataSourceAliCloudDdoscooPortsRead,
 		Schema: map[string]*schema.Schema{
 			"frontend_port": {
 				Type:     schema.TypeString,
@@ -79,7 +79,7 @@ func dataSourceAlicloudDdoscooPorts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDdoscooPortsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDdoscooPortsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribePort"

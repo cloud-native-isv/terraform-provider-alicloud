@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSslVpnServers() *schema.Resource {
+func dataSourceAliCloudSslVpnServers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSslVpnServersRead,
+		Read: dataSourceAliCloudSslVpnServersRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -112,7 +112,7 @@ func dataSourceAlicloudSslVpnServers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSslVpnServersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSslVpnServersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := vpc.CreateDescribeSslVpnServersRequest()
 	request.RegionId = client.RegionId

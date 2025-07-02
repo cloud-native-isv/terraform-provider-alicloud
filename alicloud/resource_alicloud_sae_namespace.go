@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSaeNamespace() *schema.Resource {
+func resourceAliCloudSaeNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSaeNamespaceCreate,
-		Read:   resourceAlicloudSaeNamespaceRead,
-		Update: resourceAlicloudSaeNamespaceUpdate,
-		Delete: resourceAlicloudSaeNamespaceDelete,
+		Create: resourceAliCloudSaeNamespaceCreate,
+		Read:   resourceAliCloudSaeNamespaceRead,
+		Update: resourceAliCloudSaeNamespaceUpdate,
+		Delete: resourceAliCloudSaeNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -54,7 +54,7 @@ func resourceAlicloudSaeNamespace() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSaeNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "/pop/v1/paas/namespace"
@@ -101,10 +101,10 @@ func resourceAlicloudSaeNamespaceCreate(d *schema.ResourceData, meta interface{}
 		return WrapError(fmt.Errorf("%s failed, response: %v", "POST "+action, response))
 	}
 
-	return resourceAlicloudSaeNamespaceRead(d, meta)
+	return resourceAliCloudSaeNamespaceRead(d, meta)
 }
 
-func resourceAlicloudSaeNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	saeService := SaeService{client}
 	object, err := saeService.DescribeSaeNamespace(d.Id())
@@ -126,7 +126,7 @@ func resourceAlicloudSaeNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAlicloudSaeNamespaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeNamespaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -178,10 +178,10 @@ func resourceAlicloudSaeNamespaceUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	return resourceAlicloudSaeNamespaceRead(d, meta)
+	return resourceAliCloudSaeNamespaceRead(d, meta)
 }
 
-func resourceAlicloudSaeNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "/pop/v1/paas/namespace"
 	var response map[string]interface{}

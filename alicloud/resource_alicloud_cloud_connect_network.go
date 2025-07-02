@@ -1,21 +1,22 @@
 package alicloud
 
 import (
+	"time"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/smartag"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"time"
 )
 
-func resourceAlicloudCloudConnectNetwork() *schema.Resource {
+func resourceAliCloudCloudConnectNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudConnectNetworkCreate,
-		Read:   resourceAlicloudCloudConnectNetworkRead,
-		Update: resourceAlicloudCloudConnectNetworkUpdate,
-		Delete: resourceAlicloudCloudConnectNetworkDelete,
+		Create: resourceAliCloudCloudConnectNetworkCreate,
+		Read:   resourceAliCloudCloudConnectNetworkRead,
+		Update: resourceAliCloudCloudConnectNetworkUpdate,
+		Delete: resourceAliCloudCloudConnectNetworkDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -44,7 +45,7 @@ func resourceAlicloudCloudConnectNetwork() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudConnectNetworkCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudConnectNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := smartag.CreateCreateCloudConnectNetworkRequest()
 
@@ -82,10 +83,10 @@ func resourceAlicloudCloudConnectNetworkCreate(d *schema.ResourceData, meta inte
 	response, _ := raw.(*smartag.CreateCloudConnectNetworkResponse)
 	d.SetId(response.CcnId)
 
-	return resourceAlicloudCloudConnectNetworkRead(d, meta)
+	return resourceAliCloudCloudConnectNetworkRead(d, meta)
 }
 
-func resourceAlicloudCloudConnectNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudConnectNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	ccnService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := ccnService.DescribeCloudConnectNetwork(d.Id())
 	if err != nil {
@@ -103,7 +104,7 @@ func resourceAlicloudCloudConnectNetworkRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAlicloudCloudConnectNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudConnectNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	update := false
@@ -131,10 +132,10 @@ func resourceAlicloudCloudConnectNetworkUpdate(d *schema.ResourceData, meta inte
 		}
 		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 	}
-	return resourceAlicloudCloudConnectNetworkRead(d, meta)
+	return resourceAliCloudCloudConnectNetworkRead(d, meta)
 }
 
-func resourceAlicloudCloudConnectNetworkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudConnectNetworkDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sagService := SagService{client}
 	request := smartag.CreateDeleteCloudConnectNetworkRequest()

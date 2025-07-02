@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudFnFExecution() *schema.Resource {
+func resourceAliCloudFnFExecution() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudFnFExecutionCreate,
-		Read:   resourceAlicloudFnFExecutionRead,
-		Update: resourceAlicloudFnFExecutionUpdate,
-		Delete: resourceAlicloudFnFExecutionDelete,
+		Create: resourceAliCloudFnFExecutionCreate,
+		Read:   resourceAliCloudFnFExecutionRead,
+		Update: resourceAliCloudFnFExecutionUpdate,
+		Delete: resourceAliCloudFnFExecutionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +55,7 @@ func resourceAlicloudFnFExecution() *schema.Resource {
 	}
 }
 
-func resourceAlicloudFnFExecutionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFnFExecutionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "StartExecution"
@@ -92,9 +92,9 @@ func resourceAlicloudFnFExecutionCreate(d *schema.ResourceData, meta interface{}
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudFnFExecutionUpdate(d, meta)
+	return resourceAliCloudFnFExecutionUpdate(d, meta)
 }
-func resourceAlicloudFnFExecutionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFnFExecutionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fnfService := FnfService{client}
 	object, err := fnfService.DescribeFnFExecution(d.Id())
@@ -116,7 +116,7 @@ func resourceAlicloudFnFExecutionRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudFnFExecutionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFnFExecutionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fnfService := FnfService{client}
 	var err error
@@ -165,9 +165,9 @@ func resourceAlicloudFnFExecutionUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudFnFExecutionRead(d, meta)
+	return resourceAliCloudFnFExecutionRead(d, meta)
 }
-func resourceAlicloudFnFExecutionDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudFnFExecution. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudFnFExecutionDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudFnFExecution. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

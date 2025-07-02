@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCloudConnectNetworkAttachment() *schema.Resource {
+func resourceAliCloudCloudConnectNetworkAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudConnectNetworkAttachmentCreate,
-		Read:   resourceAlicloudCloudConnectNetworkAttachmentRead,
-		Delete: resourceAlicloudCloudConnectNetworkAttachmentDelete,
+		Create: resourceAliCloudCloudConnectNetworkAttachmentCreate,
+		Read:   resourceAliCloudCloudConnectNetworkAttachmentRead,
+		Delete: resourceAliCloudCloudConnectNetworkAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -34,7 +34,7 @@ func resourceAlicloudCloudConnectNetworkAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudConnectNetworkAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudConnectNetworkAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := smartag.CreateBindSmartAccessGatewayRequest()
 
@@ -64,10 +64,10 @@ func resourceAlicloudCloudConnectNetworkAttachmentCreate(d *schema.ResourceData,
 
 	d.SetId(fmt.Sprintf("%s%s%s", request.CcnId, COLON_SEPARATED, request.SmartAGId))
 
-	return resourceAlicloudCloudConnectNetworkAttachmentRead(d, meta)
+	return resourceAliCloudCloudConnectNetworkAttachmentRead(d, meta)
 }
 
-func resourceAlicloudCloudConnectNetworkAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudConnectNetworkAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeCloudConnectNetworkAttachment(d.Id())
 	if err != nil {
@@ -84,7 +84,7 @@ func resourceAlicloudCloudConnectNetworkAttachmentRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceAlicloudCloudConnectNetworkAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudConnectNetworkAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sagService := SagService{client}
 

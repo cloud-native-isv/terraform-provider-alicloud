@@ -18,12 +18,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRdsDdrInstance() *schema.Resource {
+func resourceAliCloudRdsDdrInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdsDdrInstanceCreate,
-		Read:   resourceAlicloudRdsDdrInstanceRead,
-		Update: resourceAlicloudRdsDdrInstanceUpdate,
-		Delete: resourceAlicloudRdsDdrInstanceDelete,
+		Create: resourceAliCloudRdsDdrInstanceCreate,
+		Read:   resourceAliCloudRdsDdrInstanceRead,
+		Update: resourceAliCloudRdsDdrInstanceUpdate,
+		Delete: resourceAliCloudRdsDdrInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -487,7 +487,7 @@ func parameterToHashDdr(v interface{}) int {
 	return hashcode.String(m["name"].(string) + "|" + m["value"].(string))
 }
 
-func resourceAlicloudRdsDdrInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDdrInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	var err error
@@ -561,10 +561,10 @@ func resourceAlicloudRdsDdrInstanceCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudRdsDdrInstanceUpdate(d, meta)
+	return resourceAliCloudRdsDdrInstanceUpdate(d, meta)
 }
 
-func resourceAlicloudRdsDdrInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDdrInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	d.Partial(true)
@@ -1112,7 +1112,7 @@ func resourceAlicloudRdsDdrInstanceUpdate(d *schema.ResourceData, meta interface
 
 	if d.IsNewResource() {
 		d.Partial(false)
-		return resourceAlicloudRdsDdrInstanceRead(d, meta)
+		return resourceAliCloudRdsDdrInstanceRead(d, meta)
 	}
 
 	if !d.IsNewResource() && d.HasChange("instance_name") {
@@ -1372,10 +1372,10 @@ func resourceAlicloudRdsDdrInstanceUpdate(d *schema.ResourceData, meta interface
 	}
 
 	d.Partial(false)
-	return resourceAlicloudRdsDdrInstanceRead(d, meta)
+	return resourceAliCloudRdsDdrInstanceRead(d, meta)
 }
 
-func resourceAlicloudRdsDdrInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDdrInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 
@@ -1582,7 +1582,7 @@ func resourceAlicloudRdsDdrInstanceRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceAlicloudRdsDdrInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDdrInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 

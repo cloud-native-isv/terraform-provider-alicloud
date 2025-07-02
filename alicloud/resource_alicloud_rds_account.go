@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudRdsAccount() *schema.Resource {
+func resourceAliCloudRdsAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdsAccountCreate,
-		Read:   resourceAlicloudRdsAccountRead,
-		Update: resourceAlicloudRdsAccountUpdate,
-		Delete: resourceAlicloudRdsAccountDelete,
+		Create: resourceAliCloudRdsAccountCreate,
+		Read:   resourceAliCloudRdsAccountRead,
+		Update: resourceAliCloudRdsAccountUpdate,
+		Delete: resourceAliCloudRdsAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -131,7 +131,7 @@ func resourceAlicloudRdsAccount() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRdsAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	var response map[string]interface{}
@@ -213,9 +213,9 @@ func resourceAlicloudRdsAccountCreate(d *schema.ResourceData, meta interface{}) 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudRdsAccountRead(d, meta)
+	return resourceAliCloudRdsAccountRead(d, meta)
 }
-func resourceAlicloudRdsAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeRdsAccount(d.Id())
@@ -242,7 +242,7 @@ func resourceAlicloudRdsAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("status", object["AccountStatus"])
 	return nil
 }
-func resourceAlicloudRdsAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	var err error
@@ -391,9 +391,9 @@ func resourceAlicloudRdsAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudRdsAccountRead(d, meta)
+	return resourceAliCloudRdsAccountRead(d, meta)
 }
-func resourceAlicloudRdsAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

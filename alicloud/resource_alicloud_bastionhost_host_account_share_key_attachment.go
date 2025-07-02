@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudBastionhostHostAccountShareKeyAttachment() *schema.Resource {
+func resourceAliCloudBastionhostHostAccountShareKeyAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudBastionhostHostAccountShareKeyAttachmentCreate,
-		Read:   resourceAlicloudBastionhostHostAccountShareKeyAttachmentRead,
-		Delete: resourceAlicloudBastionhostHostAccountShareKeyAttachmentDelete,
+		Create: resourceAliCloudBastionhostHostAccountShareKeyAttachmentCreate,
+		Read:   resourceAliCloudBastionhostHostAccountShareKeyAttachmentRead,
+		Delete: resourceAliCloudBastionhostHostAccountShareKeyAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -42,7 +42,7 @@ func resourceAlicloudBastionhostHostAccountShareKeyAttachment() *schema.Resource
 	}
 }
 
-func resourceAlicloudBastionhostHostAccountShareKeyAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostAccountShareKeyAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AttachHostAccountsToHostShareKey"
@@ -72,9 +72,9 @@ func resourceAlicloudBastionhostHostAccountShareKeyAttachmentCreate(d *schema.Re
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["HostShareKeyId"], ":", d.Get("host_account_id")))
 
-	return resourceAlicloudBastionhostHostAccountShareKeyAttachmentRead(d, meta)
+	return resourceAliCloudBastionhostHostAccountShareKeyAttachmentRead(d, meta)
 }
-func resourceAlicloudBastionhostHostAccountShareKeyAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostAccountShareKeyAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	yundunBastionhostService := YundunBastionhostService{client}
 	_, err := yundunBastionhostService.DescribeBastionhostHostAccountShareKeyAttachment(d.Id())
@@ -95,7 +95,7 @@ func resourceAlicloudBastionhostHostAccountShareKeyAttachmentRead(d *schema.Reso
 	d.Set("instance_id", parts[0])
 	return nil
 }
-func resourceAlicloudBastionhostHostAccountShareKeyAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostAccountShareKeyAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {

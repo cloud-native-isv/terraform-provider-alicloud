@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDbfsAutoSnapShotPolicy() *schema.Resource {
+func resourceAliCloudDbfsAutoSnapShotPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDbfsAutoSnapShotPolicyCreate,
-		Read:   resourceAlicloudDbfsAutoSnapShotPolicyRead,
-		Update: resourceAlicloudDbfsAutoSnapShotPolicyUpdate,
-		Delete: resourceAlicloudDbfsAutoSnapShotPolicyDelete,
+		Create: resourceAliCloudDbfsAutoSnapShotPolicyCreate,
+		Read:   resourceAliCloudDbfsAutoSnapShotPolicyRead,
+		Update: resourceAliCloudDbfsAutoSnapShotPolicyUpdate,
+		Delete: resourceAliCloudDbfsAutoSnapShotPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -80,7 +80,7 @@ func resourceAlicloudDbfsAutoSnapShotPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDbfsAutoSnapShotPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbfsAutoSnapShotPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -117,10 +117,10 @@ func resourceAlicloudDbfsAutoSnapShotPolicyCreate(d *schema.ResourceData, meta i
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudDbfsAutoSnapShotPolicyUpdate(d, meta)
+	return resourceAliCloudDbfsAutoSnapShotPolicyUpdate(d, meta)
 }
 
-func resourceAlicloudDbfsAutoSnapShotPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbfsAutoSnapShotPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dbfsService := DbfsService{client}
 
@@ -148,7 +148,7 @@ func resourceAlicloudDbfsAutoSnapShotPolicyRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceAlicloudDbfsAutoSnapShotPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbfsAutoSnapShotPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -203,10 +203,10 @@ func resourceAlicloudDbfsAutoSnapShotPolicyUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	return resourceAlicloudDbfsAutoSnapShotPolicyRead(d, meta)
+	return resourceAliCloudDbfsAutoSnapShotPolicyRead(d, meta)
 }
 
-func resourceAlicloudDbfsAutoSnapShotPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbfsAutoSnapShotPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 

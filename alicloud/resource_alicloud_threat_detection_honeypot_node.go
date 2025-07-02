@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudThreatDetectionHoneypotNode() *schema.Resource {
+func resourceAliCloudThreatDetectionHoneypotNode() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudThreatDetectionHoneypotNodeCreate,
-		Read:   resourceAlicloudThreatDetectionHoneypotNodeRead,
-		Update: resourceAlicloudThreatDetectionHoneypotNodeUpdate,
-		Delete: resourceAlicloudThreatDetectionHoneypotNodeDelete,
+		Create: resourceAliCloudThreatDetectionHoneypotNodeCreate,
+		Read:   resourceAliCloudThreatDetectionHoneypotNodeRead,
+		Update: resourceAliCloudThreatDetectionHoneypotNodeUpdate,
+		Delete: resourceAliCloudThreatDetectionHoneypotNodeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceAlicloudThreatDetectionHoneypotNode() *schema.Resource {
 	}
 }
 
-func resourceAlicloudThreatDetectionHoneypotNodeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionHoneypotNodeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	threatDetectionService := ThreatDetectionService{client}
 	request := make(map[string]interface{})
@@ -102,10 +102,10 @@ func resourceAlicloudThreatDetectionHoneypotNodeCreate(d *schema.ResourceData, m
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudThreatDetectionHoneypotNodeRead(d, meta)
+	return resourceAliCloudThreatDetectionHoneypotNodeRead(d, meta)
 }
 
-func resourceAlicloudThreatDetectionHoneypotNodeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionHoneypotNodeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	threatDetectionService := ThreatDetectionService{client}
 
@@ -129,7 +129,7 @@ func resourceAlicloudThreatDetectionHoneypotNodeRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceAlicloudThreatDetectionHoneypotNodeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionHoneypotNodeUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -178,10 +178,10 @@ func resourceAlicloudThreatDetectionHoneypotNodeUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	return resourceAlicloudThreatDetectionHoneypotNodeRead(d, meta)
+	return resourceAliCloudThreatDetectionHoneypotNodeRead(d, meta)
 }
 
-func resourceAlicloudThreatDetectionHoneypotNodeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionHoneypotNodeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	threatDetectionService := ThreatDetectionService{client}
 	var err error

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCloudFirewallVpcFirewallCens() *schema.Resource {
+func dataSourceAliCloudCloudFirewallVpcFirewallCens() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudFirewallVpcFirewallCensRead,
+		Read: dataSourceAliCloudCloudFirewallVpcFirewallCensRead,
 		Schema: map[string]*schema.Schema{
 			"cen_id": {
 				Optional: true,
@@ -225,7 +225,7 @@ func dataSourceAlicloudCloudFirewallVpcFirewallCens() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudFirewallVpcFirewallCensRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudFirewallVpcFirewallCensRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

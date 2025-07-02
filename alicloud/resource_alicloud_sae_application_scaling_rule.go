@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSaeApplicationScalingRule() *schema.Resource {
+func resourceAliCloudSaeApplicationScalingRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSaeApplicationScalingRuleCreate,
-		Read:   resourceAlicloudSaeApplicationScalingRuleRead,
-		Update: resourceAlicloudSaeApplicationScalingRuleUpdate,
-		Delete: resourceAlicloudSaeApplicationScalingRuleDelete,
+		Create: resourceAliCloudSaeApplicationScalingRuleCreate,
+		Read:   resourceAliCloudSaeApplicationScalingRuleRead,
+		Update: resourceAliCloudSaeApplicationScalingRuleUpdate,
+		Delete: resourceAliCloudSaeApplicationScalingRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -204,7 +204,7 @@ func resourceAlicloudSaeApplicationScalingRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSaeApplicationScalingRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeApplicationScalingRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "/pop/v1/sam/scale/applicationScalingRule"
@@ -323,10 +323,10 @@ func resourceAlicloudSaeApplicationScalingRuleCreate(d *schema.ResourceData, met
 	responseData := response["Data"].(map[string]interface{})
 	d.SetId(fmt.Sprint(*request["AppId"], ":", responseData["ScaleRuleName"]))
 
-	return resourceAlicloudSaeApplicationScalingRuleRead(d, meta)
+	return resourceAliCloudSaeApplicationScalingRuleRead(d, meta)
 }
 
-func resourceAlicloudSaeApplicationScalingRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeApplicationScalingRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	saeService := SaeService{client}
 	object, err := saeService.DescribeSaeApplicationScalingRule(d.Id())
@@ -435,7 +435,7 @@ func resourceAlicloudSaeApplicationScalingRuleRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceAlicloudSaeApplicationScalingRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeApplicationScalingRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -635,10 +635,10 @@ func resourceAlicloudSaeApplicationScalingRuleUpdate(d *schema.ResourceData, met
 	}
 	d.Partial(false)
 
-	return resourceAlicloudSaeApplicationScalingRuleRead(d, meta)
+	return resourceAliCloudSaeApplicationScalingRuleRead(d, meta)
 }
 
-func resourceAlicloudSaeApplicationScalingRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeApplicationScalingRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "/pop/v1/sam/scale/applicationScalingRule"
 	var response map[string]interface{}

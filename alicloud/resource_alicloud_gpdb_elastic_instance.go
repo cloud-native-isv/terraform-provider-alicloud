@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudGpdbElasticInstance() *schema.Resource {
+func resourceAliCloudGpdbElasticInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudGpdbElasticInstanceCreate,
-		Read:   resourceAlicloudGpdbElasticInstanceRead,
-		Update: resourceAlicloudGpdbElasticInstanceUpdate,
-		Delete: resourceAlicloudGpdbElasticInstanceDelete,
+		Create: resourceAliCloudGpdbElasticInstanceCreate,
+		Read:   resourceAliCloudGpdbElasticInstanceRead,
+		Update: resourceAliCloudGpdbElasticInstanceUpdate,
+		Delete: resourceAliCloudGpdbElasticInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -156,7 +156,7 @@ func resourceAlicloudGpdbElasticInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudGpdbElasticInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGpdbElasticInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gpdbService := GpdbService{client}
 	var response map[string]interface{}
@@ -228,10 +228,10 @@ func resourceAlicloudGpdbElasticInstanceCreate(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudGpdbElasticInstanceUpdate(d, meta)
+	return resourceAliCloudGpdbElasticInstanceUpdate(d, meta)
 }
 
-func resourceAlicloudGpdbElasticInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGpdbElasticInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gpdbService := GpdbService{client}
 	instance, err := gpdbService.DescribeGpdbElasticInstance(d.Id())
@@ -272,7 +272,7 @@ func resourceAlicloudGpdbElasticInstanceRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAlicloudGpdbElasticInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGpdbElasticInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gpdbService := GpdbService{client}
 	d.Partial(true)
@@ -322,10 +322,10 @@ func resourceAlicloudGpdbElasticInstanceUpdate(d *schema.ResourceData, meta inte
 	}
 
 	d.Partial(false)
-	return resourceAlicloudGpdbElasticInstanceRead(d, meta)
+	return resourceAliCloudGpdbElasticInstanceRead(d, meta)
 }
 
-func resourceAlicloudGpdbElasticInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGpdbElasticInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDBInstance"
 	var response map[string]interface{}

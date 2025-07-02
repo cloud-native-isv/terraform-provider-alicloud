@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudThreatDetectionHoneypotImages() *schema.Resource {
+func dataSourceAliCloudThreatDetectionHoneypotImages() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudThreatDetectionHoneypotImagesRead,
+		Read: dataSourceAliCloudThreatDetectionHoneypotImagesRead,
 		Schema: map[string]*schema.Schema{
 			"node_id": {
 				Optional: true,
@@ -98,7 +98,7 @@ func dataSourceAlicloudThreatDetectionHoneypotImages() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudThreatDetectionHoneypotImagesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudThreatDetectionHoneypotImagesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

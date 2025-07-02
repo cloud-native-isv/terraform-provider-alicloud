@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudServiceCatalogProvisionedProduct() *schema.Resource {
+func resourceAliCloudServiceCatalogProvisionedProduct() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudServiceCatalogProvisionedProductCreate,
-		Read:   resourceAlicloudServiceCatalogProvisionedProductRead,
-		Update: resourceAlicloudServiceCatalogProvisionedProductUpdate,
-		Delete: resourceAlicloudServiceCatalogProvisionedProductDelete,
+		Create: resourceAliCloudServiceCatalogProvisionedProductCreate,
+		Read:   resourceAliCloudServiceCatalogProvisionedProductRead,
+		Update: resourceAliCloudServiceCatalogProvisionedProductUpdate,
+		Delete: resourceAliCloudServiceCatalogProvisionedProductDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -146,7 +146,7 @@ func resourceAlicloudServiceCatalogProvisionedProduct() *schema.Resource {
 	}
 }
 
-func resourceAlicloudServiceCatalogProvisionedProductCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudServiceCatalogProvisionedProductCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	servicecatalogService := ServicecatalogService{client}
 	request := make(map[string]interface{})
@@ -212,10 +212,10 @@ func resourceAlicloudServiceCatalogProvisionedProductCreate(d *schema.ResourceDa
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudServiceCatalogProvisionedProductRead(d, meta)
+	return resourceAliCloudServiceCatalogProvisionedProductRead(d, meta)
 }
 
-func resourceAlicloudServiceCatalogProvisionedProductRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudServiceCatalogProvisionedProductRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	servicecatalogService := ServicecatalogService{client}
 
@@ -276,7 +276,7 @@ func resourceAlicloudServiceCatalogProvisionedProductRead(d *schema.ResourceData
 	return nil
 }
 
-func resourceAlicloudServiceCatalogProvisionedProductUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudServiceCatalogProvisionedProductUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	servicecatalogService := ServicecatalogService{client}
@@ -343,10 +343,10 @@ func resourceAlicloudServiceCatalogProvisionedProductUpdate(d *schema.ResourceDa
 		}
 	}
 
-	return resourceAlicloudServiceCatalogProvisionedProductRead(d, meta)
+	return resourceAliCloudServiceCatalogProvisionedProductRead(d, meta)
 }
 
-func resourceAlicloudServiceCatalogProvisionedProductDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudServiceCatalogProvisionedProductDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	servicecatalogService := ServicecatalogService{client}
 	var err error

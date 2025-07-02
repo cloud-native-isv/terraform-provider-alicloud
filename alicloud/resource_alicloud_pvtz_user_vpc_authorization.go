@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudPvtzUserVpcAuthorization() *schema.Resource {
+func resourceAliCloudPvtzUserVpcAuthorization() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPvtzUserVpcAuthorizationCreate,
-		Read:   resourceAlicloudPvtzUserVpcAuthorizationRead,
-		Update: resourceAlicloudPvtzUserVpcAuthorizationUpdate,
-		Delete: resourceAlicloudPvtzUserVpcAuthorizationDelete,
+		Create: resourceAliCloudPvtzUserVpcAuthorizationCreate,
+		Read:   resourceAliCloudPvtzUserVpcAuthorizationRead,
+		Update: resourceAliCloudPvtzUserVpcAuthorizationUpdate,
+		Delete: resourceAliCloudPvtzUserVpcAuthorizationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -45,7 +45,7 @@ func resourceAlicloudPvtzUserVpcAuthorization() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPvtzUserVpcAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzUserVpcAuthorizationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddUserVpcAuthorization"
@@ -77,9 +77,9 @@ func resourceAlicloudPvtzUserVpcAuthorizationCreate(d *schema.ResourceData, meta
 
 	d.SetId(fmt.Sprint(request["AuthorizedUserId"], ":", request["AuthType"]))
 
-	return resourceAlicloudPvtzUserVpcAuthorizationRead(d, meta)
+	return resourceAliCloudPvtzUserVpcAuthorizationRead(d, meta)
 }
-func resourceAlicloudPvtzUserVpcAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzUserVpcAuthorizationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	pvtzService := PvtzService{client}
 	_, err := pvtzService.DescribePvtzUserVpcAuthorization(d.Id())
@@ -99,11 +99,11 @@ func resourceAlicloudPvtzUserVpcAuthorizationRead(d *schema.ResourceData, meta i
 	d.Set("authorized_user_id", parts[0])
 	return nil
 }
-func resourceAlicloudPvtzUserVpcAuthorizationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzUserVpcAuthorizationUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudPvtzUserVpcAuthorizationRead(d, meta)
+	return resourceAliCloudPvtzUserVpcAuthorizationRead(d, meta)
 }
-func resourceAlicloudPvtzUserVpcAuthorizationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzUserVpcAuthorizationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

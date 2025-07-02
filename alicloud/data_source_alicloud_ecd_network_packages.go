@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdNetworkPackages() *schema.Resource {
+func dataSourceAliCloudEcdNetworkPackages() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdNetworkPackagesRead,
+		Read: dataSourceAliCloudEcdNetworkPackagesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -85,7 +85,7 @@ func dataSourceAlicloudEcdNetworkPackages() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdNetworkPackagesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdNetworkPackagesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeNetworkPackages"

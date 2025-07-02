@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDcdnService() *schema.Resource {
+func dataSourceAliCloudDcdnService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDcdnServiceRead,
+		Read: dataSourceAliCloudDcdnServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -29,7 +29,7 @@ func dataSourceAlicloudDcdnService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudDcdnServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDcdnServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("DcdnServiceHasNotBeenOpened")
 		d.Set("status", "")

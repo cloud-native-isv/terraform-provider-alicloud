@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudKmsKeyVersions() *schema.Resource {
+func dataSourceAliCloudKmsKeyVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKmsKeyVersionsRead,
+		Read: dataSourceAliCloudKmsKeyVersionsRead,
 		Schema: map[string]*schema.Schema{
 			"key_id": {
 				Type:     schema.TypeString,
@@ -63,7 +63,7 @@ func dataSourceAlicloudKmsKeyVersions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudKmsKeyVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKmsKeyVersionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListKeyVersions"

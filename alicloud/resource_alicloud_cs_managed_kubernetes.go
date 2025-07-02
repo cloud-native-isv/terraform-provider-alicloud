@@ -22,12 +22,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCSManagedKubernetes() *schema.Resource {
+func resourceAliCloudCSManagedKubernetes() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCSManagedKubernetesCreate,
-		Read:   resourceAlicloudCSManagedKubernetesRead,
-		Update: resourceAlicloudCSManagedKubernetesUpdate,
-		Delete: resourceAlicloudCSKubernetesDelete,
+		Create: resourceAliCloudCSManagedKubernetesCreate,
+		Read:   resourceAliCloudCSManagedKubernetesRead,
+		Update: resourceAliCloudCSManagedKubernetesUpdate,
+		Delete: resourceAliCloudCSKubernetesDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -833,7 +833,7 @@ func resourceAlicloudCSManagedKubernetes() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCSManagedKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSManagedKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	roa, _ := client.NewRoaCsClient()
 	csClient := CsClient{roa}
@@ -1067,10 +1067,10 @@ func resourceAlicloudCSManagedKubernetesCreate(d *schema.ResourceData, meta inte
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudCSManagedKubernetesRead(d, meta)
+	return resourceAliCloudCSManagedKubernetesRead(d, meta)
 }
 
-func resourceAlicloudCSManagedKubernetesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSManagedKubernetesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosClient, err := client.NewRoaCsClient()
 	if err != nil {
@@ -1283,7 +1283,7 @@ func resourceAlicloudCSManagedKubernetesRead(d *schema.ResourceData, meta interf
 
 }
 
-func resourceAlicloudCSManagedKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSManagedKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 	d.Partial(true)
 	invoker := NewInvoker()
 	// modifyCluster
@@ -1329,7 +1329,7 @@ func resourceAlicloudCSManagedKubernetesUpdate(d *schema.ResourceData, meta inte
 	}
 
 	d.Partial(false)
-	return resourceAlicloudCSManagedKubernetesRead(d, meta)
+	return resourceAliCloudCSManagedKubernetesRead(d, meta)
 }
 
 func UpgradeAlicloudKubernetesCluster(d *schema.ResourceData, meta interface{}) error {

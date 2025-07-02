@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDbauditInstances() *schema.Resource {
+func dataSourceAliCloudDbauditInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDbauditInstancesRead,
+		Read: dataSourceAliCloudDbauditInstancesRead,
 
 		Schema: map[string]*schema.Schema{
 			"description_regex": {
@@ -85,7 +85,7 @@ func dataSourceAlicloudDbauditInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDbauditInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDbauditInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := yundun_dbaudit.CreateDescribeInstancesRequest()

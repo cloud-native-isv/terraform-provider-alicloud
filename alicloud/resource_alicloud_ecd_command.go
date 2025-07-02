@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcdCommand() *schema.Resource {
+func resourceAliCloudEcdCommand() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdCommandCreate,
-		Read:   resourceAlicloudEcdCommandRead,
-		Update: resourceAlicloudEcdCommandUpdate,
-		Delete: resourceAlicloudEcdCommandDelete,
+		Create: resourceAliCloudEcdCommandCreate,
+		Read:   resourceAliCloudEcdCommandRead,
+		Update: resourceAliCloudEcdCommandUpdate,
+		Delete: resourceAliCloudEcdCommandDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +55,7 @@ func resourceAlicloudEcdCommand() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdCommandCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdCommandCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	var response map[string]interface{}
@@ -94,9 +94,9 @@ func resourceAlicloudEcdCommandCreate(d *schema.ResourceData, meta interface{}) 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudEcdCommandRead(d, meta)
+	return resourceAliCloudEcdCommandRead(d, meta)
 }
-func resourceAlicloudEcdCommandRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdCommandRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdCommand(d.Id())
@@ -125,11 +125,11 @@ func resourceAlicloudEcdCommandRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("desktop_id", temp1["desktop_id"])
 	return nil
 }
-func resourceAlicloudEcdCommandUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdCommandUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
 	return nil
 }
-func resourceAlicloudEcdCommandDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdCommandDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not delete operation."))
 	return nil
 

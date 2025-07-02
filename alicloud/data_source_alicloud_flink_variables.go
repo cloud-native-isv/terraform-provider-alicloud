@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudFlinkVariables() *schema.Resource {
+func dataSourceAliCloudFlinkVariables() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFlinkVariablesRead,
+		Read: dataSourceAliCloudFlinkVariablesRead,
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
 				Type:         schema.TypeString,
@@ -80,7 +80,7 @@ func dataSourceAlicloudFlinkVariables() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudFlinkVariablesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFlinkVariablesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {

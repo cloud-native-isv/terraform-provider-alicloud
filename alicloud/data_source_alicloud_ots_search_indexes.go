@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOtsSearchIndexes() *schema.Resource {
+func dataSourceAliCloudOtsSearchIndexes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOtsSearchIndexesRead,
+		Read: dataSourceAliCloudOtsSearchIndexesRead,
 
 		Schema: map[string]*schema.Schema{
 			"instance_name": {
@@ -166,7 +166,7 @@ func (s *SearchIndexDataSource) export(d *schema.ResourceData) error {
 	return nil
 }
 
-func dataSourceAlicloudOtsSearchIndexesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOtsSearchIndexesRead(d *schema.ResourceData, meta interface{}) error {
 	args := parseSearchIndexDataSourceArgs(d)
 
 	client := meta.(*connectivity.AliyunClient)

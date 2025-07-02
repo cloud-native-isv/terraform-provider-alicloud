@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRamRoles() *schema.Resource {
+func dataSourceAliCloudRamRoles() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRamRolesRead,
+		Read: dataSourceAliCloudRamRolesRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -96,7 +96,7 @@ func dataSourceAlicloudRamRoles() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRamRolesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRamRolesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	allRoles := []interface{}{}
 

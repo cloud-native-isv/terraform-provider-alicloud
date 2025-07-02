@@ -2,15 +2,16 @@ package alicloud
 
 import (
 	"fmt"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudQuotasQuotaApplications() *schema.Resource {
+func dataSourceAliCloudQuotasQuotaApplications() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudQuotasQuotaApplicationsRead,
+		Read: dataSourceAliCloudQuotasQuotaApplicationsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -162,7 +163,7 @@ func dataSourceAlicloudQuotasQuotaApplications() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudQuotasQuotaApplicationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudQuotasQuotaApplicationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListQuotaApplications"

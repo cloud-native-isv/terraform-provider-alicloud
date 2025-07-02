@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDcdnWafDomain() *schema.Resource {
+func resourceAliCloudDcdnWafDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDcdnWafDomainCreate,
-		Read:   resourceAlicloudDcdnWafDomainRead,
-		Update: resourceAlicloudDcdnWafDomainUpdate,
-		Delete: resourceAlicloudDcdnWafDomainDelete,
+		Create: resourceAliCloudDcdnWafDomainCreate,
+		Read:   resourceAliCloudDcdnWafDomainRead,
+		Update: resourceAliCloudDcdnWafDomainUpdate,
+		Delete: resourceAliCloudDcdnWafDomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -38,7 +38,7 @@ func resourceAlicloudDcdnWafDomain() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDcdnWafDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "BatchSetDcdnWafDomainConfigs"
@@ -68,9 +68,9 @@ func resourceAlicloudDcdnWafDomainCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(request["DomainNames"]))
 
-	return resourceAlicloudDcdnWafDomainRead(d, meta)
+	return resourceAliCloudDcdnWafDomainRead(d, meta)
 }
-func resourceAlicloudDcdnWafDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dcdnService := DcdnService{client}
 	object, err := dcdnService.DescribeDcdnWafDomain(d.Id())
@@ -87,7 +87,7 @@ func resourceAlicloudDcdnWafDomainRead(d *schema.ResourceData, meta interface{})
 	d.Set("client_ip_tag", object["ClientIpTag"])
 	return nil
 }
-func resourceAlicloudDcdnWafDomainUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafDomainUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -119,9 +119,9 @@ func resourceAlicloudDcdnWafDomainUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	return resourceAlicloudDcdnWafDomainRead(d, meta)
+	return resourceAliCloudDcdnWafDomainRead(d, meta)
 }
-func resourceAlicloudDcdnWafDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafDomainDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "BatchSetDcdnWafDomainConfigs"
 	var response map[string]interface{}

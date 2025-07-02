@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcNatIpCidrs() *schema.Resource {
+func dataSourceAliCloudVpcNatIpCidrs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcNatIpCidrsRead,
+		Read: dataSourceAliCloudVpcNatIpCidrsRead,
 		Schema: map[string]*schema.Schema{
 			"nat_gateway_id": {
 				Type:     schema.TypeString,
@@ -109,7 +109,7 @@ func dataSourceAlicloudVpcNatIpCidrs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcNatIpCidrsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcNatIpCidrsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListNatIpCidrs"

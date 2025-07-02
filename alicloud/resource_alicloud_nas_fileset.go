@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudNasFileset() *schema.Resource {
+func resourceAliCloudNasFileset() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudNasFilesetCreate,
-		Read:   resourceAlicloudNasFilesetRead,
-		Update: resourceAlicloudNasFilesetUpdate,
-		Delete: resourceAlicloudNasFilesetDelete,
+		Create: resourceAliCloudNasFilesetCreate,
+		Read:   resourceAliCloudNasFilesetRead,
+		Update: resourceAliCloudNasFilesetUpdate,
+		Delete: resourceAliCloudNasFilesetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceAlicloudNasFileset() *schema.Resource {
 	}
 }
 
-func resourceAlicloudNasFilesetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasFilesetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {
@@ -88,10 +88,10 @@ func resourceAlicloudNasFilesetCreate(d *schema.ResourceData, meta interface{}) 
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudNasFilesetRead(d, meta)
+	return resourceAliCloudNasFilesetRead(d, meta)
 }
 
-func resourceAlicloudNasFilesetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasFilesetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {
@@ -120,7 +120,7 @@ func resourceAlicloudNasFilesetRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAlicloudNasFilesetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasFilesetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {
@@ -165,10 +165,10 @@ func resourceAlicloudNasFilesetUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	return resourceAlicloudNasFilesetRead(d, meta)
+	return resourceAliCloudNasFilesetRead(d, meta)
 }
 
-func resourceAlicloudNasFilesetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasFilesetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {

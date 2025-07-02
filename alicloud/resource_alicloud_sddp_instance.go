@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudSddpInstance() *schema.Resource {
+func resourceAliCloudSddpInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSddpInstanceCreate,
-		Read:   resourceAlicloudSddpInstanceRead,
-		Update: resourceAlicloudSddpInstanceUpdate,
-		Delete: resourceAlicloudSddpInstanceDelete,
+		Create: resourceAliCloudSddpInstanceCreate,
+		Read:   resourceAliCloudSddpInstanceRead,
+		Update: resourceAliCloudSddpInstanceUpdate,
+		Delete: resourceAliCloudSddpInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -141,7 +141,7 @@ func resourceAlicloudSddpInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSddpInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSddpInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -237,9 +237,9 @@ func resourceAlicloudSddpInstanceCreate(d *schema.ResourceData, meta interface{}
 	}
 	responseData := response["Data"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseData["InstanceId"]))
-	return resourceAlicloudSddpInstanceRead(d, meta)
+	return resourceAliCloudSddpInstanceRead(d, meta)
 }
-func resourceAlicloudSddpInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSddpInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sddpService := SddpService{client}
 	object, err := sddpService.DescribeSddpInstance(d.Id())
@@ -266,7 +266,7 @@ func resourceAlicloudSddpInstanceRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("remain_days", object["RemainDays"])
 	return nil
 }
-func resourceAlicloudSddpInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSddpInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -388,10 +388,10 @@ func resourceAlicloudSddpInstanceUpdate(d *schema.ResourceData, meta interface{}
 			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
 		}
 	}
-	return resourceAlicloudSddpInstanceRead(d, meta)
+	return resourceAliCloudSddpInstanceRead(d, meta)
 }
-func resourceAlicloudSddpInstanceDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudSddpInstance. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudSddpInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudSddpInstance. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }
 

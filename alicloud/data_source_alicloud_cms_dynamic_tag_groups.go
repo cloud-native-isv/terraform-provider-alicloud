@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCmsDynamicTagGroups() *schema.Resource {
+func dataSourceAliCloudCmsDynamicTagGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsDynamicTagGroupsRead,
+		Read: dataSourceAliCloudCmsDynamicTagGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -85,7 +85,7 @@ func dataSourceAlicloudCmsDynamicTagGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsDynamicTagGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsDynamicTagGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDynamicTagRuleList"

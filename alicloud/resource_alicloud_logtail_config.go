@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudLogtailConfig() *schema.Resource {
+func resourceAliCloudLogtailConfig() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudLogtailConfigCreate,
-		Read:   resourceAlicloudLogtailConfigRead,
-		Update: resourceAlicloudLogtailConfigUpdate,
-		Delete: resourceAlicloudLogtailConfigDelete,
+		Create: resourceAliCloudLogtailConfigCreate,
+		Read:   resourceAliCloudLogtailConfigRead,
+		Update: resourceAliCloudLogtailConfigUpdate,
+		Delete: resourceAliCloudLogtailConfigDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -80,7 +80,7 @@ func resourceAlicloudLogtailConfig() *schema.Resource {
 	}
 }
 
-func resourceAlicloudLogtailConfigCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogtailConfigCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -156,10 +156,10 @@ func resourceAlicloudLogtailConfigCreate(d *schema.ResourceData, meta interface{
 	}
 
 	// Read the resource state to ensure all fields including output_detail are properly set
-	return resourceAlicloudLogtailConfigRead(d, meta)
+	return resourceAliCloudLogtailConfigRead(d, meta)
 }
 
-func resourceAlicloudLogtailConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogtailConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -214,7 +214,7 @@ func resourceAlicloudLogtailConfigRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudLogtailConfigUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogtailConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -266,10 +266,10 @@ func resourceAlicloudLogtailConfigUpdate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "UpdateLogtailConfig", AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudLogtailConfigRead(d, meta)
+	return resourceAliCloudLogtailConfigRead(d, meta)
 }
 
-func resourceAlicloudLogtailConfigDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogtailConfigDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {

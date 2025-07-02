@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOssService() *schema.Resource {
+func dataSourceAliCloudOssService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOssServiceRead,
+		Read: dataSourceAliCloudOssServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -28,7 +28,7 @@ func dataSourceAlicloudOssService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudOssServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOssServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("OssServiceHasNotBeenOpened")
 		d.Set("status", "")

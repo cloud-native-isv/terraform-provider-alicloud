@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDbfsServiceLinkedRole() *schema.Resource {
+func resourceAliCloudDbfsServiceLinkedRole() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDbfsServiceLinkedRoleCreate,
-		Read:   resourceAlicloudDbfsServiceLinkedRoleRead,
-		Delete: resourceAlicloudDbfsServiceLinkedRoleDelete,
+		Create: resourceAliCloudDbfsServiceLinkedRoleCreate,
+		Read:   resourceAliCloudDbfsServiceLinkedRoleRead,
+		Delete: resourceAliCloudDbfsServiceLinkedRoleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -35,7 +35,7 @@ func resourceAlicloudDbfsServiceLinkedRole() *schema.Resource {
 		},
 	}
 }
-func resourceAlicloudDbfsServiceLinkedRoleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbfsServiceLinkedRoleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateServiceLinkedRole"
@@ -58,14 +58,14 @@ func resourceAlicloudDbfsServiceLinkedRoleCreate(d *schema.ResourceData, meta in
 	d.SetId(d.Get("product_name").(string))
 	if err != nil {
 		if IsExpectedErrors(err, []string{"EntityAlreadyExist.Role"}) {
-			return resourceAlicloudDbfsServiceLinkedRoleRead(d, meta)
+			return resourceAliCloudDbfsServiceLinkedRoleRead(d, meta)
 		}
 		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_dbfs_service_linked_role", action, AlibabaCloudSdkGoERROR)
 	}
-	return resourceAlicloudDbfsServiceLinkedRoleRead(d, meta)
+	return resourceAliCloudDbfsServiceLinkedRoleRead(d, meta)
 }
 
-func resourceAlicloudDbfsServiceLinkedRoleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbfsServiceLinkedRoleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dbfsService := DbfsService{client}
 	object, err := dbfsService.DescribeDbfsServiceLinkedRole(d.Id())
@@ -82,7 +82,7 @@ func resourceAlicloudDbfsServiceLinkedRoleRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceAlicloudDbfsServiceLinkedRoleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbfsServiceLinkedRoleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteServiceLinkedRole"
 	var response map[string]interface{}

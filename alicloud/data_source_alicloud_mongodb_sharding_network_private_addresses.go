@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudMongodbShardingNetworkPrivateAddresses() *schema.Resource {
+func dataSourceAliCloudMongodbShardingNetworkPrivateAddresses() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMongodbShardingNetworkPrivateAddressesRead,
+		Read: dataSourceAliCloudMongodbShardingNetworkPrivateAddressesRead,
 		Schema: map[string]*schema.Schema{
 			"db_instance_id": {
 				Type:     schema.TypeString,
@@ -92,7 +92,7 @@ func dataSourceAlicloudMongodbShardingNetworkPrivateAddresses() *schema.Resource
 	}
 }
 
-func dataSourceAlicloudMongodbShardingNetworkPrivateAddressesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMongodbShardingNetworkPrivateAddressesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeShardingNetworkAddress"

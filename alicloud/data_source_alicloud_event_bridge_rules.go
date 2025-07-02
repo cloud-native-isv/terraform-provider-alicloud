@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEventBridgeRules() *schema.Resource {
+func dataSourceAliCloudEventBridgeRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEventBridgeRulesRead,
+		Read: dataSourceAliCloudEventBridgeRulesRead,
 		Schema: map[string]*schema.Schema{
 			"event_bus_name": {
 				Type:     schema.TypeString,
@@ -110,7 +110,7 @@ func dataSourceAlicloudEventBridgeRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEventBridgeRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEventBridgeRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListRules"

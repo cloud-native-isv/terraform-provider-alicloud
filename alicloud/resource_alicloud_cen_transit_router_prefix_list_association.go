@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCenTransitRouterPrefixListAssociation() *schema.Resource {
+func resourceAliCloudCenTransitRouterPrefixListAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenTransitRouterPrefixListAssociationCreate,
-		Read:   resourceAlicloudCenTransitRouterPrefixListAssociationRead,
-		Delete: resourceAlicloudCenTransitRouterPrefixListAssociationDelete,
+		Create: resourceAliCloudCenTransitRouterPrefixListAssociationCreate,
+		Read:   resourceAliCloudCenTransitRouterPrefixListAssociationRead,
+		Delete: resourceAliCloudCenTransitRouterPrefixListAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -64,7 +64,7 @@ func resourceAlicloudCenTransitRouterPrefixListAssociation() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenTransitRouterPrefixListAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterPrefixListAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	var response map[string]interface{}
@@ -111,10 +111,10 @@ func resourceAlicloudCenTransitRouterPrefixListAssociationCreate(d *schema.Resou
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCenTransitRouterPrefixListAssociationRead(d, meta)
+	return resourceAliCloudCenTransitRouterPrefixListAssociationRead(d, meta)
 }
 
-func resourceAlicloudCenTransitRouterPrefixListAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterPrefixListAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenTransitRouterPrefixListAssociation(d.Id())
@@ -137,7 +137,7 @@ func resourceAlicloudCenTransitRouterPrefixListAssociationRead(d *schema.Resourc
 	return nil
 }
 
-func resourceAlicloudCenTransitRouterPrefixListAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterPrefixListAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteTransitRouterPrefixListAssociation"
 	var response map[string]interface{}

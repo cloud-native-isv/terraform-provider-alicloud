@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcdAdConnectorOfficeSite() *schema.Resource {
+func resourceAliCloudEcdAdConnectorOfficeSite() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdAdConnectorOfficeSiteCreate,
-		Read:   resourceAlicloudEcdAdConnectorOfficeSiteRead,
-		Update: resourceAlicloudEcdAdConnectorOfficeSiteUpdate,
-		Delete: resourceAlicloudEcdAdConnectorOfficeSiteDelete,
+		Create: resourceAliCloudEcdAdConnectorOfficeSiteCreate,
+		Read:   resourceAliCloudEcdAdConnectorOfficeSiteRead,
+		Update: resourceAliCloudEcdAdConnectorOfficeSiteUpdate,
+		Delete: resourceAliCloudEcdAdConnectorOfficeSiteDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -126,7 +126,7 @@ func resourceAlicloudEcdAdConnectorOfficeSite() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdAdConnectorOfficeSiteCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdAdConnectorOfficeSiteCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateADConnectorOfficeSite"
@@ -204,9 +204,9 @@ func resourceAlicloudEcdAdConnectorOfficeSiteCreate(d *schema.ResourceData, meta
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEcdAdConnectorOfficeSiteRead(d, meta)
+	return resourceAliCloudEcdAdConnectorOfficeSiteRead(d, meta)
 }
-func resourceAlicloudEcdAdConnectorOfficeSiteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdAdConnectorOfficeSiteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdAdConnectorOfficeSite(d.Id())
@@ -236,11 +236,11 @@ func resourceAlicloudEcdAdConnectorOfficeSiteRead(d *schema.ResourceData, meta i
 	d.Set("sub_domain_name", object["SubDomainName"])
 	return nil
 }
-func resourceAlicloudEcdAdConnectorOfficeSiteUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdAdConnectorOfficeSiteUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudEcdAdConnectorOfficeSiteRead(d, meta)
+	return resourceAliCloudEcdAdConnectorOfficeSiteRead(d, meta)
 }
-func resourceAlicloudEcdAdConnectorOfficeSiteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdAdConnectorOfficeSiteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteOfficeSites"
 	var response map[string]interface{}

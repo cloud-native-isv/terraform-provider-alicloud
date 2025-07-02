@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudConfigDeliveryChannel() *schema.Resource {
+func resourceAliCloudConfigDeliveryChannel() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudConfigDeliveryChannelCreate,
-		Read:   resourceAlicloudConfigDeliveryChannelRead,
-		Update: resourceAlicloudConfigDeliveryChannelUpdate,
-		Delete: resourceAlicloudConfigDeliveryChannelDelete,
+		Create: resourceAliCloudConfigDeliveryChannelCreate,
+		Read:   resourceAliCloudConfigDeliveryChannelRead,
+		Update: resourceAliCloudConfigDeliveryChannelUpdate,
+		Delete: resourceAliCloudConfigDeliveryChannelDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -64,7 +64,7 @@ func resourceAlicloudConfigDeliveryChannel() *schema.Resource {
 	}
 }
 
-func resourceAlicloudConfigDeliveryChannelCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigDeliveryChannelCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -109,9 +109,9 @@ func resourceAlicloudConfigDeliveryChannelCreate(d *schema.ResourceData, meta in
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_config_delivery_channel", action, AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudConfigDeliveryChannelRead(d, meta)
+	return resourceAliCloudConfigDeliveryChannelRead(d, meta)
 }
-func resourceAlicloudConfigDeliveryChannelRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigDeliveryChannelRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	configService := ConfigService{client}
 	object, err := configService.DescribeConfigDeliveryChannel(d.Id())
@@ -132,7 +132,7 @@ func resourceAlicloudConfigDeliveryChannelRead(d *schema.ResourceData, meta inte
 	d.Set("status", formatInt(object["Status"]))
 	return nil
 }
-func resourceAlicloudConfigDeliveryChannelUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigDeliveryChannelUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	configService := ConfigService{client}
 	object, err := configService.DescribeConfigDeliveryChannel(d.Id())
@@ -188,9 +188,9 @@ func resourceAlicloudConfigDeliveryChannelUpdate(d *schema.ResourceData, meta in
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudConfigDeliveryChannelRead(d, meta)
+	return resourceAliCloudConfigDeliveryChannelRead(d, meta)
 }
-func resourceAlicloudConfigDeliveryChannelDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudConfigDeliveryChannel. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudConfigDeliveryChannelDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudConfigDeliveryChannel. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

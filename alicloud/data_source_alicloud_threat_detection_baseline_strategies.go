@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudThreatDetectionBaselineStrategies() *schema.Resource {
+func dataSourceAliCloudThreatDetectionBaselineStrategies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudThreatDetectionBaselineStrategiesRead,
+		Read: dataSourceAliCloudThreatDetectionBaselineStrategiesRead,
 		Schema: map[string]*schema.Schema{
 			"custom_type": {
 				Optional: true,
@@ -103,7 +103,7 @@ func dataSourceAlicloudThreatDetectionBaselineStrategies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudThreatDetectionBaselineStrategiesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudThreatDetectionBaselineStrategiesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

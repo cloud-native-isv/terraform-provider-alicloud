@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDdosbgpInstance() *schema.Resource {
+func resourceAliCloudDdosbgpInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDdosbgpInstanceCreate,
-		Read:   resourceAlicloudDdosbgpInstanceRead,
-		Update: resourceAlicloudDdosbgpInstanceUpdate,
-		Delete: resourceAlicloudDdosbgpInstanceDelete,
+		Create: resourceAliCloudDdosbgpInstanceCreate,
+		Read:   resourceAliCloudDdosbgpInstanceRead,
+		Update: resourceAliCloudDdosbgpInstanceUpdate,
+		Delete: resourceAliCloudDdosbgpInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -75,7 +75,7 @@ func resourceAlicloudDdosbgpInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDdosbgpInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdosbgpInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	ddosbgpInstanceType := "1"
@@ -173,10 +173,10 @@ func resourceAlicloudDdosbgpInstanceCreate(d *schema.ResourceData, meta interfac
 	response = response["Data"].(map[string]interface{})
 	d.SetId(fmt.Sprint(response["InstanceId"]))
 
-	return resourceAlicloudDdosbgpInstanceUpdate(d, meta)
+	return resourceAliCloudDdosbgpInstanceUpdate(d, meta)
 }
 
-func resourceAlicloudDdosbgpInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdosbgpInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ddosbgpService := DdosbgpService{client}
 	object, err := ddosbgpService.DescribeDdosbgpInstance(d.Id())
@@ -211,7 +211,7 @@ func resourceAlicloudDdosbgpInstanceRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudDdosbgpInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdosbgpInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -245,10 +245,10 @@ func resourceAlicloudDdosbgpInstanceUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	return resourceAlicloudDdosbgpInstanceRead(d, meta)
+	return resourceAliCloudDdosbgpInstanceRead(d, meta)
 }
 
-func resourceAlicloudDdosbgpInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdosbgpInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[WARN] Cannot destroy resource AlicloudDdosbgpInstance. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

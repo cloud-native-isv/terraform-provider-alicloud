@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-// dataSourceAlicloudFlinkConnectors provides the data source implementation for Alibaba Cloud Flink connectors
-func dataSourceAlicloudFlinkConnectors() *schema.Resource {
+// dataSourceAliCloudFlinkConnectors provides the data source implementation for Alibaba Cloud Flink connectors
+func dataSourceAliCloudFlinkConnectors() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFlinkConnectorsRead,
+		Read: dataSourceAliCloudFlinkConnectorsRead,
 
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
@@ -97,7 +97,7 @@ func dataSourceAlicloudFlinkConnectors() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudFlinkConnectorsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFlinkConnectorsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {

@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudHbrOtsBackupPlan() *schema.Resource {
+func resourceAliCloudHbrOtsBackupPlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudHbrOtsBackupPlanCreate,
-		Read:   resourceAlicloudHbrOtsBackupPlanRead,
-		Update: resourceAlicloudHbrOtsBackupPlanUpdate,
-		Delete: resourceAlicloudHbrOtsBackupPlanDelete,
+		Create: resourceAliCloudHbrOtsBackupPlanCreate,
+		Read:   resourceAliCloudHbrOtsBackupPlanRead,
+		Update: resourceAliCloudHbrOtsBackupPlanUpdate,
+		Delete: resourceAliCloudHbrOtsBackupPlanDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -120,7 +120,7 @@ func resourceAlicloudHbrOtsBackupPlan() *schema.Resource {
 	}
 }
 
-func resourceAlicloudHbrOtsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrOtsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateBackupPlan"
@@ -206,9 +206,9 @@ func resourceAlicloudHbrOtsBackupPlanCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(fmt.Sprint(response["PlanId"]))
 
-	return resourceAlicloudHbrOtsBackupPlanUpdate(d, meta)
+	return resourceAliCloudHbrOtsBackupPlanUpdate(d, meta)
 }
-func resourceAlicloudHbrOtsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrOtsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hbrService := HbrService{client}
 	object, err := hbrService.DescribeHbrOtsBackupPlan(d.Id())
@@ -259,7 +259,7 @@ func resourceAlicloudHbrOtsBackupPlanRead(d *schema.ResourceData, meta interface
 
 	return nil
 }
-func resourceAlicloudHbrOtsBackupPlanUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrOtsBackupPlanUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hbrService := HbrService{client}
 	var err error
@@ -402,10 +402,10 @@ func resourceAlicloudHbrOtsBackupPlanUpdate(d *schema.ResourceData, meta interfa
 	}
 	d.SetPartial("disabled")
 	d.Partial(false)
-	return resourceAlicloudHbrOtsBackupPlanRead(d, meta)
+	return resourceAliCloudHbrOtsBackupPlanRead(d, meta)
 }
 
-func resourceAlicloudHbrOtsBackupPlanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrOtsBackupPlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteBackupPlan"
 	var response map[string]interface{}

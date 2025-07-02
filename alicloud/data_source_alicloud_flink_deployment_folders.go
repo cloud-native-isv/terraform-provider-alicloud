@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudFlinkDeploymentFolders() *schema.Resource {
+func dataSourceAliCloudFlinkDeploymentFolders() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFlinkDeploymentFoldersRead,
+		Read: dataSourceAliCloudFlinkDeploymentFoldersRead,
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
 				Type:         schema.TypeString,
@@ -101,7 +101,7 @@ func dataSourceAlicloudFlinkDeploymentFolders() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudFlinkDeploymentFoldersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFlinkDeploymentFoldersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {

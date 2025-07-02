@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudKmsAlias() *schema.Resource {
+func resourceAliCloudKmsAlias() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudKmsAliasCreate,
-		Read:   resourceAlicloudKmsAliasRead,
-		Update: resourceAlicloudKmsAliasUpdate,
-		Delete: resourceAlicloudKmsAliasDelete,
+		Create: resourceAliCloudKmsAliasCreate,
+		Read:   resourceAliCloudKmsAliasRead,
+		Update: resourceAliCloudKmsAliasUpdate,
+		Delete: resourceAliCloudKmsAliasDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -33,7 +33,7 @@ func resourceAlicloudKmsAlias() *schema.Resource {
 	}
 }
 
-func resourceAlicloudKmsAliasCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKmsAliasCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateAlias"
@@ -60,9 +60,9 @@ func resourceAlicloudKmsAliasCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(fmt.Sprint(request["AliasName"]))
 
-	return resourceAlicloudKmsAliasRead(d, meta)
+	return resourceAliCloudKmsAliasRead(d, meta)
 }
-func resourceAlicloudKmsAliasRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKmsAliasRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	kmsService := KmsService{client}
 	object, err := kmsService.DescribeKmsAlias(d.Id())
@@ -79,7 +79,7 @@ func resourceAlicloudKmsAliasRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("key_id", object["KeyId"])
 	return nil
 }
-func resourceAlicloudKmsAliasUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKmsAliasUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -106,9 +106,9 @@ func resourceAlicloudKmsAliasUpdate(d *schema.ResourceData, meta interface{}) er
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudKmsAliasRead(d, meta)
+	return resourceAliCloudKmsAliasRead(d, meta)
 }
-func resourceAlicloudKmsAliasDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKmsAliasDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteAlias"
 	var response map[string]interface{}

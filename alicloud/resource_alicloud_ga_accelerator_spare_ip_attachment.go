@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudGaAcceleratorSpareIpAttachment() *schema.Resource {
+func resourceAliCloudGaAcceleratorSpareIpAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudGaAcceleratorSpareIpAttachmentCreate,
-		Read:   resourceAlicloudGaAcceleratorSpareIpAttachmentRead,
-		Update: resourceAlicloudGaAcceleratorSpareIpAttachmentUpdate,
-		Delete: resourceAlicloudGaAcceleratorSpareIpAttachmentDelete,
+		Create: resourceAliCloudGaAcceleratorSpareIpAttachmentCreate,
+		Read:   resourceAliCloudGaAcceleratorSpareIpAttachmentRead,
+		Update: resourceAliCloudGaAcceleratorSpareIpAttachmentUpdate,
+		Delete: resourceAliCloudGaAcceleratorSpareIpAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudGaAcceleratorSpareIpAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudGaAcceleratorSpareIpAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaAcceleratorSpareIpAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateSpareIps"
@@ -83,9 +83,9 @@ func resourceAlicloudGaAcceleratorSpareIpAttachmentCreate(d *schema.ResourceData
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudGaAcceleratorSpareIpAttachmentRead(d, meta)
+	return resourceAliCloudGaAcceleratorSpareIpAttachmentRead(d, meta)
 }
-func resourceAlicloudGaAcceleratorSpareIpAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaAcceleratorSpareIpAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gaService := GaService{client}
 	object, err := gaService.DescribeGaAcceleratorSpareIpAttachment(d.Id())
@@ -106,11 +106,11 @@ func resourceAlicloudGaAcceleratorSpareIpAttachmentRead(d *schema.ResourceData, 
 	d.Set("status", object["State"])
 	return nil
 }
-func resourceAlicloudGaAcceleratorSpareIpAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaAcceleratorSpareIpAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudGaAcceleratorSpareIpAttachmentRead(d, meta)
+	return resourceAliCloudGaAcceleratorSpareIpAttachmentRead(d, meta)
 }
-func resourceAlicloudGaAcceleratorSpareIpAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaAcceleratorSpareIpAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	parts, err := ParseResourceId(d.Id(), 2)

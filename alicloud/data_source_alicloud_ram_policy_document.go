@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRamPolicyDocument() *schema.Resource {
+func dataSourceAliCloudRamPolicyDocument() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRamPolicyDocumentRead,
+		Read: dataSourceAliCloudRamPolicyDocumentRead,
 		Schema: map[string]*schema.Schema{
 			"version": {
 				Type:         schema.TypeString,
@@ -103,7 +103,7 @@ func dataSourceAlicloudRamPolicyDocument() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRamPolicyDocumentRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRamPolicyDocumentRead(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("statement"); ok {
 		doc, err := AssembleDataSourcePolicyDocument(v.([]interface{}), d.Get("version").(string))

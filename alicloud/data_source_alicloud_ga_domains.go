@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudGaDomains() *schema.Resource {
+func dataSourceAliCloudGaDomains() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGaDomainsRead,
+		Read: dataSourceAliCloudGaDomainsRead,
 		Schema: map[string]*schema.Schema{
 			"accelerator_id": {
 				Optional: true,
@@ -80,7 +80,7 @@ func dataSourceAlicloudGaDomains() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGaDomainsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGaDomainsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

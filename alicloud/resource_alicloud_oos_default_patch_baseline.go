@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOosDefaultPatchBaseline() *schema.Resource {
+func resourceAliCloudOosDefaultPatchBaseline() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOosDefaultPatchBaselineCreate,
-		Read:   resourceAlicloudOosDefaultPatchBaselineRead,
-		Delete: resourceAlicloudOosDefaultPatchBaselineDelete,
+		Create: resourceAliCloudOosDefaultPatchBaselineCreate,
+		Read:   resourceAliCloudOosDefaultPatchBaselineRead,
+		Delete: resourceAliCloudOosDefaultPatchBaselineDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -37,7 +37,7 @@ func resourceAlicloudOosDefaultPatchBaseline() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOosDefaultPatchBaselineCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosDefaultPatchBaselineCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"RegionId": client.RegionId,
@@ -74,10 +74,10 @@ func resourceAlicloudOosDefaultPatchBaselineCreate(d *schema.ResourceData, meta 
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudOosDefaultPatchBaselineRead(d, meta)
+	return resourceAliCloudOosDefaultPatchBaselineRead(d, meta)
 }
 
-func resourceAlicloudOosDefaultPatchBaselineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosDefaultPatchBaselineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	oosService := OosService{client}
 
@@ -96,7 +96,7 @@ func resourceAlicloudOosDefaultPatchBaselineRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceAlicloudOosDefaultPatchBaselineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosDefaultPatchBaselineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 

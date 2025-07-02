@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudFnfFlow() *schema.Resource {
+func resourceAliCloudFnfFlow() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudFnfFlowCreate,
-		Read:   resourceAlicloudFnfFlowRead,
-		Update: resourceAlicloudFnfFlowUpdate,
-		Delete: resourceAlicloudFnfFlowDelete,
+		Create: resourceAliCloudFnfFlowCreate,
+		Read:   resourceAliCloudFnfFlowRead,
+		Update: resourceAliCloudFnfFlowUpdate,
+		Delete: resourceAliCloudFnfFlowDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -60,7 +60,7 @@ func resourceAlicloudFnfFlow() *schema.Resource {
 	}
 }
 
-func resourceAlicloudFnfFlowCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFnfFlowCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateFlow"
@@ -93,9 +93,9 @@ func resourceAlicloudFnfFlowCreate(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId(fmt.Sprint(response["Name"]))
 
-	return resourceAlicloudFnfFlowRead(d, meta)
+	return resourceAliCloudFnfFlowRead(d, meta)
 }
-func resourceAlicloudFnfFlowRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFnfFlowRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fnfService := FnfService{client}
 	object, err := fnfService.DescribeFnfFlow(d.Id())
@@ -117,7 +117,7 @@ func resourceAlicloudFnfFlowRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("type", object["Type"])
 	return nil
 }
-func resourceAlicloudFnfFlowUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFnfFlowUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -160,9 +160,9 @@ func resourceAlicloudFnfFlowUpdate(d *schema.ResourceData, meta interface{}) err
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudFnfFlowRead(d, meta)
+	return resourceAliCloudFnfFlowRead(d, meta)
 }
-func resourceAlicloudFnfFlowDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFnfFlowDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteFlow"
 	var response map[string]interface{}

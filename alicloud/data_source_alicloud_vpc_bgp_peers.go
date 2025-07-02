@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcBgpPeers() *schema.Resource {
+func dataSourceAliCloudVpcBgpPeers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcBgpPeersRead,
+		Read: dataSourceAliCloudVpcBgpPeersRead,
 		Schema: map[string]*schema.Schema{
 			"bgp_group_id": {
 				Type:     schema.TypeString,
@@ -130,7 +130,7 @@ func dataSourceAlicloudVpcBgpPeers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcBgpPeersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcBgpPeersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeBgpPeers"

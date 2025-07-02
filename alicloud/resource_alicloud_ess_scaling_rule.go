@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEssScalingRule() *schema.Resource {
+func resourceAliCloudEssScalingRule() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunEssScalingRuleCreate,
 		Read:   resourceAliyunEssScalingRuleRead,

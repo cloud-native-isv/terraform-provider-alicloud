@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudResourceManagerPolicyAttachments() *schema.Resource {
+func dataSourceAliCloudResourceManagerPolicyAttachments() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudResourceManagerPolicyAttachmentsRead,
+		Read: dataSourceAliCloudResourceManagerPolicyAttachmentsRead,
 		Schema: map[string]*schema.Schema{
 			"language": {
 				Type:     schema.TypeString,
@@ -98,7 +98,7 @@ func dataSourceAlicloudResourceManagerPolicyAttachments() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudResourceManagerPolicyAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudResourceManagerPolicyAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListPolicyAttachments"

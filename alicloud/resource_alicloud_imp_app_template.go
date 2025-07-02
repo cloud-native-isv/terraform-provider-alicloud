@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudImpAppTemplate() *schema.Resource {
+func resourceAliCloudImpAppTemplate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudImpAppTemplateCreate,
-		Read:   resourceAlicloudImpAppTemplateRead,
-		Update: resourceAlicloudImpAppTemplateUpdate,
-		Delete: resourceAlicloudImpAppTemplateDelete,
+		Create: resourceAliCloudImpAppTemplateCreate,
+		Read:   resourceAliCloudImpAppTemplateRead,
+		Update: resourceAliCloudImpAppTemplateUpdate,
+		Delete: resourceAliCloudImpAppTemplateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -73,7 +73,7 @@ func resourceAlicloudImpAppTemplate() *schema.Resource {
 	}
 }
 
-func resourceAlicloudImpAppTemplateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudImpAppTemplateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -108,9 +108,9 @@ func resourceAlicloudImpAppTemplateCreate(d *schema.ResourceData, meta interface
 	responseResult := response["Result"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseResult["AppTemplateId"]))
 
-	return resourceAlicloudImpAppTemplateRead(d, meta)
+	return resourceAliCloudImpAppTemplateRead(d, meta)
 }
-func resourceAlicloudImpAppTemplateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudImpAppTemplateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	impService := ImpService{client}
 	object, err := impService.DescribeImpAppTemplate(d.Id())
@@ -143,7 +143,7 @@ func resourceAlicloudImpAppTemplateRead(d *schema.ResourceData, meta interface{}
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudImpAppTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudImpAppTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	d.Partial(true)
 	var err error
@@ -221,9 +221,9 @@ func resourceAlicloudImpAppTemplateUpdate(d *schema.ResourceData, meta interface
 		d.SetPartial("value")
 	}
 	d.Partial(false)
-	return resourceAlicloudImpAppTemplateRead(d, meta)
+	return resourceAliCloudImpAppTemplateRead(d, meta)
 }
-func resourceAlicloudImpAppTemplateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudImpAppTemplateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	request := map[string]interface{}{

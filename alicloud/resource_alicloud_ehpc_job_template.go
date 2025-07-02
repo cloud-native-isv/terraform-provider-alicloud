@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEhpcJobTemplate() *schema.Resource {
+func resourceAliCloudEhpcJobTemplate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEhpcJobTemplateCreate,
-		Read:   resourceAlicloudEhpcJobTemplateRead,
-		Update: resourceAlicloudEhpcJobTemplateUpdate,
-		Delete: resourceAlicloudEhpcJobTemplateDelete,
+		Create: resourceAliCloudEhpcJobTemplateCreate,
+		Read:   resourceAliCloudEhpcJobTemplateRead,
+		Update: resourceAliCloudEhpcJobTemplateUpdate,
+		Delete: resourceAliCloudEhpcJobTemplateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -94,7 +94,7 @@ func resourceAlicloudEhpcJobTemplate() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEhpcJobTemplateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEhpcJobTemplateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateJobTemplate"
@@ -166,9 +166,9 @@ func resourceAlicloudEhpcJobTemplateCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(fmt.Sprint(response["TemplateId"]))
 
-	return resourceAlicloudEhpcJobTemplateRead(d, meta)
+	return resourceAliCloudEhpcJobTemplateRead(d, meta)
 }
-func resourceAlicloudEhpcJobTemplateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEhpcJobTemplateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ehpcService := EhpcService{client}
 	object, err := ehpcService.DescribeEhpcJobTemplate(d.Id())
@@ -214,7 +214,7 @@ func resourceAlicloudEhpcJobTemplateRead(d *schema.ResourceData, meta interface{
 	d.Set("variables", object["Variables"])
 	return nil
 }
-func resourceAlicloudEhpcJobTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEhpcJobTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	request := map[string]interface{}{
@@ -304,9 +304,9 @@ func resourceAlicloudEhpcJobTemplateUpdate(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudEhpcJobTemplateRead(d, meta)
+	return resourceAliCloudEhpcJobTemplateRead(d, meta)
 }
-func resourceAlicloudEhpcJobTemplateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEhpcJobTemplateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteJobTemplates"
 	var response map[string]interface{}

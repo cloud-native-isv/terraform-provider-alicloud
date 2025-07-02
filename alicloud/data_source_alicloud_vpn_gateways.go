@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpnGateways() *schema.Resource {
+func dataSourceAliCloudVpnGateways() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpnGatewaysRead,
+		Read: dataSourceAliCloudVpnGatewaysRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -194,7 +194,7 @@ func dataSourceAlicloudVpnGateways() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpnGatewaysRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpnGatewaysRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeVpnGateways"

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenInterRegionTrafficQosQueues() *schema.Resource {
+func dataSourceAliCloudCenInterRegionTrafficQosQueues() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenInterRegionTrafficQosQueuesRead,
+		Read: dataSourceAliCloudCenInterRegionTrafficQosQueuesRead,
 		Schema: map[string]*schema.Schema{
 			"traffic_qos_policy_id": {
 				Required: true,
@@ -93,7 +93,7 @@ func dataSourceAlicloudCenInterRegionTrafficQosQueues() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenInterRegionTrafficQosQueuesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenInterRegionTrafficQosQueuesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

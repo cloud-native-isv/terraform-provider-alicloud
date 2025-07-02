@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudOosExecution() *schema.Resource {
+func resourceAliCloudOosExecution() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOosExecutionCreate,
-		Read:   resourceAlicloudOosExecutionRead,
-		Delete: resourceAlicloudOosExecutionDelete,
+		Create: resourceAliCloudOosExecutionCreate,
+		Read:   resourceAliCloudOosExecutionRead,
+		Delete: resourceAliCloudOosExecutionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -129,7 +129,7 @@ func resourceAlicloudOosExecution() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOosExecutionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosExecutionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "StartExecution"
@@ -193,9 +193,9 @@ func resourceAlicloudOosExecutionCreate(d *schema.ResourceData, meta interface{}
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudOosExecutionRead(d, meta)
+	return resourceAliCloudOosExecutionRead(d, meta)
 }
-func resourceAlicloudOosExecutionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosExecutionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	oosService := OosService{client}
 	object, err := oosService.DescribeOosExecution(d.Id())
@@ -226,7 +226,7 @@ func resourceAlicloudOosExecutionRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("update_date", object["UpdateDate"])
 	return nil
 }
-func resourceAlicloudOosExecutionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosExecutionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteExecutions"
 	var response map[string]interface{}

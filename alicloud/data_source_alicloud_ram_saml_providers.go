@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudRamSamlProviders() *schema.Resource {
+func dataSourceAliCloudRamSamlProviders() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRamSamlProvidersRead,
+		Read: dataSourceAliCloudRamSamlProvidersRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -79,7 +79,7 @@ func dataSourceAlicloudRamSamlProviders() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRamSamlProvidersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRamSamlProvidersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListSAMLProviders"

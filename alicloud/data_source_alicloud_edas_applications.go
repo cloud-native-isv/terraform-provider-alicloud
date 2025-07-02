@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEdasApplications() *schema.Resource {
+func dataSourceAliCloudEdasApplications() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEdasApplicationsRead,
+		Read: dataSourceAliCloudEdasApplicationsRead,
 		Schema: map[string]*schema.Schema{
 			"output_file": {
 				Type:     schema.TypeString,
@@ -76,7 +76,7 @@ func dataSourceAlicloudEdasApplications() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEdasApplicationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEdasApplicationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 

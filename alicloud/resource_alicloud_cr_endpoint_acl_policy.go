@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCrEndpointAclPolicy() *schema.Resource {
+func resourceAliCloudCrEndpointAclPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCrEndpointAclPolicyCreate,
-		Read:   resourceAlicloudCrEndpointAclPolicyRead,
-		Delete: resourceAlicloudCrEndpointAclPolicyDelete,
+		Create: resourceAliCloudCrEndpointAclPolicyCreate,
+		Read:   resourceAliCloudCrEndpointAclPolicyRead,
+		Delete: resourceAliCloudCrEndpointAclPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +55,7 @@ func resourceAlicloudCrEndpointAclPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCrEndpointAclPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrEndpointAclPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateInstanceEndpointAclPolicy"
@@ -94,9 +94,9 @@ func resourceAlicloudCrEndpointAclPolicyCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["EndpointType"], ":", request["Entry"]))
 
-	return resourceAlicloudCrEndpointAclPolicyRead(d, meta)
+	return resourceAliCloudCrEndpointAclPolicyRead(d, meta)
 }
-func resourceAlicloudCrEndpointAclPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrEndpointAclPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := CrService{client}
 	object, err := crService.DescribeCrEndpointAclPolicy(d.Id())
@@ -118,7 +118,7 @@ func resourceAlicloudCrEndpointAclPolicyRead(d *schema.ResourceData, meta interf
 	d.Set("description", object["Comment"])
 	return nil
 }
-func resourceAlicloudCrEndpointAclPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrEndpointAclPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {

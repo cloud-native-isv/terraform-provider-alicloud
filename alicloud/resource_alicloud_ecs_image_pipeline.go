@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcsImagePipeline() *schema.Resource {
+func resourceAliCloudEcsImagePipeline() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsImagePipelineCreate,
-		Read:   resourceAlicloudEcsImagePipelineRead,
-		Delete: resourceAlicloudEcsImagePipelineDelete,
+		Create: resourceAliCloudEcsImagePipelineCreate,
+		Read:   resourceAliCloudEcsImagePipelineRead,
+		Delete: resourceAliCloudEcsImagePipelineDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -116,7 +116,7 @@ func resourceAlicloudEcsImagePipeline() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsImagePipelineCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsImagePipelineCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateImagePipeline"
@@ -190,9 +190,9 @@ func resourceAlicloudEcsImagePipelineCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(fmt.Sprint(response["ImagePipelineId"]))
 
-	return resourceAlicloudEcsImagePipelineRead(d, meta)
+	return resourceAliCloudEcsImagePipelineRead(d, meta)
 }
-func resourceAlicloudEcsImagePipelineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsImagePipelineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsImagePipeline(d.Id())
@@ -246,7 +246,7 @@ func resourceAlicloudEcsImagePipelineRead(d *schema.ResourceData, meta interface
 	}
 	return nil
 }
-func resourceAlicloudEcsImagePipelineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsImagePipelineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteImagePipeline"
 	var response map[string]interface{}

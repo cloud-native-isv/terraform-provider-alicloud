@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCenVbrHealthChecks() *schema.Resource {
+func dataSourceAliCloudCenVbrHealthChecks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenVbrHealthChecksRead,
+		Read: dataSourceAliCloudCenVbrHealthChecksRead,
 		Schema: map[string]*schema.Schema{
 			"cen_id": {
 				Type:     schema.TypeString,
@@ -86,7 +86,7 @@ func dataSourceAlicloudCenVbrHealthChecks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenVbrHealthChecksRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenVbrHealthChecksRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := cbn.CreateDescribeCenVbrHealthCheckRequest()

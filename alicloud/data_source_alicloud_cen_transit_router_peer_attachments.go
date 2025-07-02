@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenTransitRouterPeerAttachments() *schema.Resource {
+func dataSourceAliCloudCenTransitRouterPeerAttachments() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenTransitRouterPeerAttachmentsRead,
+		Read: dataSourceAliCloudCenTransitRouterPeerAttachmentsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -127,7 +127,7 @@ func dataSourceAlicloudCenTransitRouterPeerAttachments() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenTransitRouterPeerAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenTransitRouterPeerAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTransitRouterPeerAttachments"

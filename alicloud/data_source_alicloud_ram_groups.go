@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRamGroups() *schema.Resource {
+func dataSourceAliCloudRamGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRamGroupsRead,
+		Read: dataSourceAliCloudRamGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:     schema.TypeString,
@@ -70,7 +70,7 @@ func dataSourceAlicloudRamGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRamGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRamGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ramService := RamService{client}
 	var allGroups []interface{}

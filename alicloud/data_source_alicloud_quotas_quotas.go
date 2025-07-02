@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudQuotasQuotas() *schema.Resource {
+func dataSourceAliCloudQuotasQuotas() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudQuotasQuotasRead,
+		Read: dataSourceAliCloudQuotasQuotasRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -156,7 +156,7 @@ func dataSourceAlicloudQuotasQuotas() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudQuotasQuotasRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudQuotasQuotasRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListProductQuotas"

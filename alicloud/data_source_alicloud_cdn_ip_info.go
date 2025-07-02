@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCdnIpInfo() *schema.Resource {
+func dataSourceAliCloudCdnIpInfo() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCdnIpInfoRead,
+		Read: dataSourceAliCloudCdnIpInfoRead,
 		Schema: map[string]*schema.Schema{
 			"ip": {
 				Type:     schema.TypeString,
@@ -42,7 +42,7 @@ func dataSourceAlicloudCdnIpInfo() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCdnIpInfoRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCdnIpInfoRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeIpInfo"

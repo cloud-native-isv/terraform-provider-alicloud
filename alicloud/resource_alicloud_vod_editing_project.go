@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudVodEditingProject() *schema.Resource {
+func resourceAliCloudVodEditingProject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVodEditingProjectCreate,
-		Read:   resourceAlicloudVodEditingProjectRead,
-		Update: resourceAlicloudVodEditingProjectUpdate,
-		Delete: resourceAlicloudVodEditingProjectDelete,
+		Create: resourceAliCloudVodEditingProjectCreate,
+		Read:   resourceAliCloudVodEditingProjectRead,
+		Update: resourceAliCloudVodEditingProjectUpdate,
+		Delete: resourceAliCloudVodEditingProjectDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +55,7 @@ func resourceAlicloudVodEditingProject() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVodEditingProjectCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVodEditingProjectCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddEditingProject"
@@ -93,9 +93,9 @@ func resourceAlicloudVodEditingProjectCreate(d *schema.ResourceData, meta interf
 	responseProject := response["Project"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseProject["ProjectId"]))
 
-	return resourceAlicloudVodEditingProjectRead(d, meta)
+	return resourceAliCloudVodEditingProjectRead(d, meta)
 }
-func resourceAlicloudVodEditingProjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVodEditingProjectRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vodService := VodService{client}
 	object, err := vodService.DescribeVodEditingProject(d.Id())
@@ -114,7 +114,7 @@ func resourceAlicloudVodEditingProjectRead(d *schema.ResourceData, meta interfac
 	d.Set("cover_url", object["CoverURL"])
 	return nil
 }
-func resourceAlicloudVodEditingProjectUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVodEditingProjectUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -163,9 +163,9 @@ func resourceAlicloudVodEditingProjectUpdate(d *schema.ResourceData, meta interf
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudVodEditingProjectRead(d, meta)
+	return resourceAliCloudVodEditingProjectRead(d, meta)
 }
-func resourceAlicloudVodEditingProjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVodEditingProjectDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteEditingProject"
 	var response map[string]interface{}

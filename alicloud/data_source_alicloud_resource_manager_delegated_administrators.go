@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudResourceManagerDelegatedAdministrators() *schema.Resource {
+func dataSourceAliCloudResourceManagerDelegatedAdministrators() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudResourceManagerDelegatedAdministratorsRead,
+		Read: dataSourceAliCloudResourceManagerDelegatedAdministratorsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -67,7 +67,7 @@ func dataSourceAlicloudResourceManagerDelegatedAdministrators() *schema.Resource
 	}
 }
 
-func dataSourceAlicloudResourceManagerDelegatedAdministratorsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudResourceManagerDelegatedAdministratorsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListDelegatedAdministrators"

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudHbrService() *schema.Resource {
+func dataSourceAliCloudHbrService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudHbrServiceRead,
+		Read: dataSourceAliCloudHbrServiceRead,
 		Schema: map[string]*schema.Schema{
 			"enable": {
 				Type:         schema.TypeString,
@@ -28,7 +28,7 @@ func dataSourceAlicloudHbrService() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudHbrServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudHbrServiceRead(d *schema.ResourceData, meta interface{}) error {
 	action := "OpenHbrService"
 	request := map[string]interface{}{}
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {

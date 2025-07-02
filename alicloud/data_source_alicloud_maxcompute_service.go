@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudMaxcomputeService() *schema.Resource {
+func dataSourceAliCloudMaxcomputeService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMaxcomputeServiceRead,
+		Read: dataSourceAliCloudMaxcomputeServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -29,7 +29,7 @@ func dataSourceAlicloudMaxcomputeService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudMaxcomputeServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMaxcomputeServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("MaxcomputeServiceHasNotBeenOpened")
 		d.Set("status", "")

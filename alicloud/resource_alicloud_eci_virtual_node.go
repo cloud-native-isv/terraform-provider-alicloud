@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEciVirtualNode() *schema.Resource {
+func resourceAliCloudEciVirtualNode() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEciVirtualNodeCreate,
-		Read:   resourceAlicloudEciVirtualNodeRead,
-		Update: resourceAlicloudEciVirtualNodeUpdate,
-		Delete: resourceAlicloudEciVirtualNodeDelete,
+		Create: resourceAliCloudEciVirtualNodeCreate,
+		Read:   resourceAliCloudEciVirtualNodeRead,
+		Update: resourceAliCloudEciVirtualNodeUpdate,
+		Delete: resourceAliCloudEciVirtualNodeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -102,7 +102,7 @@ func resourceAlicloudEciVirtualNode() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEciVirtualNodeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEciVirtualNodeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateVirtualNode"
@@ -169,9 +169,9 @@ func resourceAlicloudEciVirtualNodeCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEciVirtualNodeRead(d, meta)
+	return resourceAliCloudEciVirtualNodeRead(d, meta)
 }
-func resourceAlicloudEciVirtualNodeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEciVirtualNodeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	eciService := EciService{client}
 	object, err := eciService.DescribeEciVirtualNode(d.Id())
@@ -192,11 +192,11 @@ func resourceAlicloudEciVirtualNodeRead(d *schema.ResourceData, meta interface{}
 	d.Set("tags", tagsToMap(object["Tags"]))
 	return nil
 }
-func resourceAlicloudEciVirtualNodeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEciVirtualNodeUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudEciVirtualNodeRead(d, meta)
+	return resourceAliCloudEciVirtualNodeRead(d, meta)
 }
-func resourceAlicloudEciVirtualNodeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEciVirtualNodeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteVirtualNode"
 	var response map[string]interface{}

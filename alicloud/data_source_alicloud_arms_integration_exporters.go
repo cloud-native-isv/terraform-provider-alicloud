@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudArmsIntegrationExporters() *schema.Resource {
+func dataSourceAliCloudArmsIntegrationExporters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudArmsIntegrationExportersRead,
+		Read: dataSourceAliCloudArmsIntegrationExportersRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -83,7 +83,7 @@ func dataSourceAlicloudArmsIntegrationExporters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudArmsIntegrationExportersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsIntegrationExportersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListPrometheusIntegration"

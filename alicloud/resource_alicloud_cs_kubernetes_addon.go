@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-const ResourceAlicloudCSKubernetesAddon = "resourceAlicloudCSKubernetesAddon"
+const ResourceAlicloudCSKubernetesAddon = "resourceAliCloudCSKubernetesAddon"
 
-func resourceAlicloudCSKubernetesAddon() *schema.Resource {
+func resourceAliCloudCSKubernetesAddon() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCSKubernetesAddonCreate,
-		Read:   resourceAlicloudCSKubernetesAddonRead,
-		Update: resourceAlicloudCSKubernetesAddonUpdate,
-		Delete: resourceAlicloudCSKubernetesAddonDelete,
+		Create: resourceAliCloudCSKubernetesAddonCreate,
+		Read:   resourceAliCloudCSKubernetesAddonRead,
+		Update: resourceAliCloudCSKubernetesAddonUpdate,
+		Delete: resourceAliCloudCSKubernetesAddonDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -70,7 +70,7 @@ func resourceAlicloudCSKubernetesAddon() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCSKubernetesAddonRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesAddonRead(d *schema.ResourceData, meta interface{}) error {
 	client, err := meta.(*connectivity.AliyunClient).NewRoaCsClient()
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "InitializeClient", err)
@@ -125,7 +125,7 @@ func resourceAlicloudCSKubernetesAddonRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceAlicloudCSKubernetesAddonCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesAddonCreate(d *schema.ResourceData, meta interface{}) error {
 	clusterId := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
 
@@ -168,10 +168,10 @@ func resourceAlicloudCSKubernetesAddonCreate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return resourceAlicloudCSKubernetesAddonRead(d, meta)
+	return resourceAliCloudCSKubernetesAddonRead(d, meta)
 }
 
-func resourceAlicloudCSKubernetesAddonUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesAddonUpdate(d *schema.ResourceData, meta interface{}) error {
 	client, err := meta.(*connectivity.AliyunClient).NewRoaCsClient()
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "InitializeClient", err)
@@ -190,10 +190,10 @@ func resourceAlicloudCSKubernetesAddonUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return resourceAlicloudCSKubernetesAddonRead(d, meta)
+	return resourceAliCloudCSKubernetesAddonRead(d, meta)
 }
 
-func resourceAlicloudCSKubernetesAddonDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesAddonDelete(d *schema.ResourceData, meta interface{}) error {
 	clusterId := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
 

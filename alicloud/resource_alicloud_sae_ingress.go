@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSaeIngress() *schema.Resource {
+func resourceAliCloudSaeIngress() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSaeIngressCreate,
-		Read:   resourceAlicloudSaeIngressRead,
-		Update: resourceAlicloudSaeIngressUpdate,
-		Delete: resourceAlicloudSaeIngressDelete,
+		Create: resourceAliCloudSaeIngressCreate,
+		Read:   resourceAliCloudSaeIngressRead,
+		Update: resourceAliCloudSaeIngressUpdate,
+		Delete: resourceAliCloudSaeIngressDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -118,7 +118,7 @@ func resourceAlicloudSaeIngress() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSaeIngressCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeIngressCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "/pop/v1/sam/ingress/Ingress"
@@ -211,10 +211,10 @@ func resourceAlicloudSaeIngressCreate(d *schema.ResourceData, meta interface{}) 
 	responseData := response["Data"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseData["IngressId"]))
 
-	return resourceAlicloudSaeIngressRead(d, meta)
+	return resourceAliCloudSaeIngressRead(d, meta)
 }
 
-func resourceAlicloudSaeIngressRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeIngressRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	saeService := SaeService{client}
 	object, err := saeService.DescribeSaeIngress(d.Id())
@@ -284,7 +284,7 @@ func resourceAlicloudSaeIngressRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAlicloudSaeIngressUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeIngressUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -398,10 +398,10 @@ func resourceAlicloudSaeIngressUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	return resourceAlicloudSaeIngressRead(d, meta)
+	return resourceAliCloudSaeIngressRead(d, meta)
 }
 
-func resourceAlicloudSaeIngressDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeIngressDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "/pop/v1/sam/ingress/Ingress"
 	var response map[string]interface{}

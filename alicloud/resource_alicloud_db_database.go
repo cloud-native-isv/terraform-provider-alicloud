@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDBDatabase() *schema.Resource {
+func resourceAliCloudDBDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDBDatabaseCreate,
-		Read:   resourceAlicloudDBDatabaseRead,
-		Update: resourceAlicloudDBDatabaseUpdate,
-		Delete: resourceAlicloudDBDatabaseDelete,
+		Create: resourceAliCloudDBDatabaseCreate,
+		Read:   resourceAliCloudDBDatabaseRead,
+		Update: resourceAliCloudDBDatabaseUpdate,
+		Delete: resourceAliCloudDBDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -69,7 +69,7 @@ func resourceAlicloudDBDatabase() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDBDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	action := "CreateDatabase"
@@ -102,10 +102,10 @@ func resourceAlicloudDBDatabaseCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(fmt.Sprintf("%v%s%v", request["DBInstanceId"], COLON_SEPARATED, request["DBName"]))
 
-	return resourceAlicloudDBDatabaseRead(d, meta)
+	return resourceAliCloudDBDatabaseRead(d, meta)
 }
 
-func resourceAlicloudDBDatabaseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rsdService := RdsService{client}
 	object, err := rsdService.DescribeDBDatabase(d.Id())
@@ -131,7 +131,7 @@ func resourceAlicloudDBDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAlicloudDBDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	if d.HasChange("description") && !d.IsNewResource() {
 		parts, err := ParseResourceId(d.Id(), 2)
@@ -153,10 +153,10 @@ func resourceAlicloudDBDatabaseUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 		addDebug(action, response, request)
 	}
-	return resourceAlicloudDBDatabaseRead(d, meta)
+	return resourceAliCloudDBDatabaseRead(d, meta)
 }
 
-func resourceAlicloudDBDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

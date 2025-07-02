@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCdnFcTrigger() *schema.Resource {
+func resourceAliCloudCdnFcTrigger() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCdnFcTriggerCreate,
-		Read:   resourceAlicloudCdnFcTriggerRead,
-		Update: resourceAlicloudCdnFcTriggerUpdate,
-		Delete: resourceAlicloudCdnFcTriggerDelete,
+		Create: resourceAliCloudCdnFcTriggerCreate,
+		Read:   resourceAliCloudCdnFcTriggerRead,
+		Update: resourceAliCloudCdnFcTriggerUpdate,
+		Delete: resourceAliCloudCdnFcTriggerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -60,7 +60,7 @@ func resourceAlicloudCdnFcTrigger() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCdnFcTriggerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCdnFcTriggerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddFCTrigger"
@@ -94,9 +94,9 @@ func resourceAlicloudCdnFcTriggerCreate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(fmt.Sprint(request["TriggerARN"]))
 
-	return resourceAlicloudCdnFcTriggerRead(d, meta)
+	return resourceAliCloudCdnFcTriggerRead(d, meta)
 }
-func resourceAlicloudCdnFcTriggerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCdnFcTriggerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cdnService := CdnService{client}
 	object, err := cdnService.DescribeCdnFcTrigger(d.Id())
@@ -117,7 +117,7 @@ func resourceAlicloudCdnFcTriggerRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("source_arn", object["SourceArn"])
 	return nil
 }
-func resourceAlicloudCdnFcTriggerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCdnFcTriggerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -159,9 +159,9 @@ func resourceAlicloudCdnFcTriggerUpdate(d *schema.ResourceData, meta interface{}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCdnFcTriggerRead(d, meta)
+	return resourceAliCloudCdnFcTriggerRead(d, meta)
 }
-func resourceAlicloudCdnFcTriggerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCdnFcTriggerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteFCTrigger"
 	var response map[string]interface{}

@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudServiceMeshVersions() *schema.Resource {
+func dataSourceAliCloudServiceMeshVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudServiceMeshVersionsRead,
+		Read: dataSourceAliCloudServiceMeshVersionsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -54,7 +54,7 @@ func dataSourceAlicloudServiceMeshVersions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudServiceMeshVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudServiceMeshVersionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeVersions"

@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudGaForwardingRules() *schema.Resource {
+func dataSourceAliCloudGaForwardingRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGaForwardingRulesRead,
+		Read: dataSourceAliCloudGaForwardingRulesRead,
 		Schema: map[string]*schema.Schema{
 			"accelerator_id": {
 				Type:     schema.TypeString,
@@ -154,7 +154,7 @@ func dataSourceAlicloudGaForwardingRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGaForwardingRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGaForwardingRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListForwardingRules"

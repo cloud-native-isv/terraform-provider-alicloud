@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSlbCaCertificate() *schema.Resource {
+func resourceAliCloudSlbCaCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSlbCaCertificateCreate,
-		Read:   resourceAlicloudSlbCaCertificateRead,
-		Update: resourceAlicloudSlbCaCertificateUpdate,
-		Delete: resourceAlicloudSlbCaCertificateDelete,
+		Create: resourceAliCloudSlbCaCertificateCreate,
+		Read:   resourceAliCloudSlbCaCertificateRead,
+		Update: resourceAliCloudSlbCaCertificateUpdate,
+		Delete: resourceAliCloudSlbCaCertificateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +52,7 @@ func resourceAlicloudSlbCaCertificate() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSlbCaCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbCaCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "UploadCACertificate"
@@ -89,9 +89,9 @@ func resourceAlicloudSlbCaCertificateCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(fmt.Sprint(response["CACertificateId"]))
 
-	return resourceAlicloudSlbCaCertificateUpdate(d, meta)
+	return resourceAliCloudSlbCaCertificateUpdate(d, meta)
 }
-func resourceAlicloudSlbCaCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbCaCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slbService := SlbService{client}
 	object, err := slbService.DescribeSlbCaCertificate(d.Id())
@@ -111,7 +111,7 @@ func resourceAlicloudSlbCaCertificateRead(d *schema.ResourceData, meta interface
 	}
 	return nil
 }
-func resourceAlicloudSlbCaCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbCaCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slbService := SlbService{client}
 	var err error
@@ -158,9 +158,9 @@ func resourceAlicloudSlbCaCertificateUpdate(d *schema.ResourceData, meta interfa
 		d.SetPartial("ca_certificate_name")
 	}
 	d.Partial(false)
-	return resourceAlicloudSlbCaCertificateRead(d, meta)
+	return resourceAliCloudSlbCaCertificateRead(d, meta)
 }
-func resourceAlicloudSlbCaCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbCaCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteCACertificate"
 	var response map[string]interface{}

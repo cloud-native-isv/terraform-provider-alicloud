@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCSSwarm() *schema.Resource {
+func resourceAliCloudCSSwarm() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCSSwarmCreate,
-		Read:   resourceAlicloudCSSwarmRead,
-		Update: resourceAlicloudCSSwarmUpdate,
-		Delete: resourceAlicloudCSSwarmDelete,
+		Create: resourceAliCloudCSSwarmCreate,
+		Read:   resourceAliCloudCSSwarmRead,
+		Update: resourceAliCloudCSSwarmUpdate,
+		Delete: resourceAliCloudCSSwarmDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -165,7 +165,7 @@ func resourceAlicloudCSSwarm() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCSSwarmCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSSwarmCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	vpcService := VpcService{client}
@@ -242,10 +242,10 @@ func resourceAlicloudCSSwarmCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Waitting for container Cluster %#v got an error: %#v", cs.Running, err)
 	}
 
-	return resourceAlicloudCSSwarmUpdate(d, meta)
+	return resourceAliCloudCSSwarmUpdate(d, meta)
 }
 
-func resourceAlicloudCSSwarmUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSSwarmUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	d.Partial(true)
 	if d.HasChange("node_number") && !d.IsNewResource() {
@@ -303,10 +303,10 @@ func resourceAlicloudCSSwarmUpdate(d *schema.ResourceData, meta interface{}) err
 
 	d.Partial(false)
 
-	return resourceAlicloudCSSwarmRead(d, meta)
+	return resourceAliCloudCSSwarmRead(d, meta)
 }
 
-func resourceAlicloudCSSwarmRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSSwarmRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	csService := CsService{client}
 	ecsService := EcsService{client}
@@ -382,7 +382,7 @@ func resourceAlicloudCSSwarmRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceAlicloudCSSwarmDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSSwarmDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	return resource.Retry(3*time.Minute, func() *resource.RetryError {

@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudRdsParameterGroups() *schema.Resource {
+func dataSourceAliCloudRdsParameterGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRdsParameterGroupsRead,
+		Read: dataSourceAliCloudRdsParameterGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -106,7 +106,7 @@ func dataSourceAlicloudRdsParameterGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRdsParameterGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRdsParameterGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeParameterGroups"

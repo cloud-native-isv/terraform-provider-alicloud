@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEfloVpd() *schema.Resource {
+func resourceAliCloudEfloVpd() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEfloVpdCreate,
-		Read:   resourceAlicloudEfloVpdRead,
-		Update: resourceAlicloudEfloVpdUpdate,
-		Delete: resourceAlicloudEfloVpdDelete,
+		Create: resourceAliCloudEfloVpdCreate,
+		Read:   resourceAliCloudEfloVpdRead,
+		Update: resourceAliCloudEfloVpdUpdate,
+		Delete: resourceAliCloudEfloVpdDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -56,7 +56,7 @@ func resourceAlicloudEfloVpd() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEfloVpdCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEfloVpdCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	efloService := EfloService{client}
 	request := make(map[string]interface{})
@@ -97,10 +97,10 @@ func resourceAlicloudEfloVpdCreate(d *schema.ResourceData, meta interface{}) err
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudEfloVpdRead(d, meta)
+	return resourceAliCloudEfloVpdRead(d, meta)
 }
 
-func resourceAlicloudEfloVpdRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEfloVpdRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	efloService := EfloService{client}
 
@@ -124,7 +124,7 @@ func resourceAlicloudEfloVpdRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceAlicloudEfloVpdUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEfloVpdUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -161,10 +161,10 @@ func resourceAlicloudEfloVpdUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	return resourceAlicloudEfloVpdRead(d, meta)
+	return resourceAliCloudEfloVpdRead(d, meta)
 }
 
-func resourceAlicloudEfloVpdDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEfloVpdDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	efloService := EfloService{client}
 	var response map[string]interface{}

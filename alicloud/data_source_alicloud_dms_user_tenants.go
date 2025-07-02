@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDmsUserTenants() *schema.Resource {
+func dataSourceAliCloudDmsUserTenants() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDmsUserTenantsRead,
+		Read: dataSourceAliCloudDmsUserTenantsRead,
 		Schema: map[string]*schema.Schema{
 			"status": {
 				Type:         schema.TypeString,
@@ -62,7 +62,7 @@ func dataSourceAlicloudDmsUserTenants() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDmsUserTenantsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDmsUserTenantsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListUserTenants"

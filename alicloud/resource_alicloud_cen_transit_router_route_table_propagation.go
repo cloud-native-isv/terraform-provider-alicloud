@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCenTransitRouterRouteTablePropagation() *schema.Resource {
+func resourceAliCloudCenTransitRouterRouteTablePropagation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenTransitRouterRouteTablePropagationCreate,
-		Read:   resourceAlicloudCenTransitRouterRouteTablePropagationRead,
-		Update: resourceAlicloudCenTransitRouterRouteTablePropagationUpdate,
-		Delete: resourceAlicloudCenTransitRouterRouteTablePropagationDelete,
+		Create: resourceAliCloudCenTransitRouterRouteTablePropagationCreate,
+		Read:   resourceAliCloudCenTransitRouterRouteTablePropagationRead,
+		Update: resourceAliCloudCenTransitRouterRouteTablePropagationUpdate,
+		Delete: resourceAliCloudCenTransitRouterRouteTablePropagationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudCenTransitRouterRouteTablePropagation() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenTransitRouterRouteTablePropagationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterRouteTablePropagationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	var response map[string]interface{}
@@ -82,10 +82,10 @@ func resourceAlicloudCenTransitRouterRouteTablePropagationCreate(d *schema.Resou
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCenTransitRouterRouteTablePropagationRead(d, meta)
+	return resourceAliCloudCenTransitRouterRouteTablePropagationRead(d, meta)
 }
 
-func resourceAlicloudCenTransitRouterRouteTablePropagationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterRouteTablePropagationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenTransitRouterRouteTablePropagation(d.Id())
@@ -107,12 +107,12 @@ func resourceAlicloudCenTransitRouterRouteTablePropagationRead(d *schema.Resourc
 	return nil
 }
 
-func resourceAlicloudCenTransitRouterRouteTablePropagationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterRouteTablePropagationUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudCenTransitRouterRouteTablePropagationRead(d, meta)
+	return resourceAliCloudCenTransitRouterRouteTablePropagationRead(d, meta)
 }
 
-func resourceAlicloudCenTransitRouterRouteTablePropagationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterRouteTablePropagationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

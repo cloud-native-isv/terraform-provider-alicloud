@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAdbDbClusterLakeVersions() *schema.Resource {
+func dataSourceAliCloudAdbDbClusterLakeVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAdbDbClusterLakeVersionsRead,
+		Read: dataSourceAliCloudAdbDbClusterLakeVersionsRead,
 		Schema: map[string]*schema.Schema{
 			"resource_group_id": {
 				Optional: true,
@@ -147,7 +147,7 @@ func dataSourceAlicloudAdbDbClusterLakeVersions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAdbDbClusterLakeVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAdbDbClusterLakeVersionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

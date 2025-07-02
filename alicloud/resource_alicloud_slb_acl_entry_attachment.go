@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSlbAclEntryAttachment() *schema.Resource {
+func resourceAliCloudSlbAclEntryAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSlbAclEntryAttachmentCreate,
-		Read:   resourceAlicloudSlbAclEntryAttachmentRead,
-		Delete: resourceAlicloudSlbAclEntryAttachmentDelete,
+		Create: resourceAliCloudSlbAclEntryAttachmentCreate,
+		Read:   resourceAliCloudSlbAclEntryAttachmentRead,
+		Delete: resourceAliCloudSlbAclEntryAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -43,7 +43,7 @@ func resourceAlicloudSlbAclEntryAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSlbAclEntryAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbAclEntryAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddAccessControlListEntry"
@@ -84,10 +84,10 @@ func resourceAlicloudSlbAclEntryAttachmentCreate(d *schema.ResourceData, meta in
 	}
 
 	d.SetId(fmt.Sprint(request["AclId"], ":", aclEntry["entry"]))
-	return resourceAlicloudSlbAclEntryAttachmentRead(d, meta)
+	return resourceAliCloudSlbAclEntryAttachmentRead(d, meta)
 }
 
-func resourceAlicloudSlbAclEntryAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbAclEntryAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slbService := SlbService{client}
 	object, err := slbService.DescribeSlbAclEntryAttachment(d.Id())
@@ -111,7 +111,7 @@ func resourceAlicloudSlbAclEntryAttachmentRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceAlicloudSlbAclEntryAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbAclEntryAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "RemoveAccessControlListEntry"
 	var response map[string]interface{}

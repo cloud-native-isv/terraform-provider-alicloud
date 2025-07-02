@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudDmsEnterpriseProxies() *schema.Resource {
+func dataSourceAliCloudDmsEnterpriseProxies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDmsEnterpriseProxiesRead,
+		Read: dataSourceAliCloudDmsEnterpriseProxiesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -90,7 +90,7 @@ func dataSourceAlicloudDmsEnterpriseProxies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDmsEnterpriseProxiesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDmsEnterpriseProxiesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListProxies"

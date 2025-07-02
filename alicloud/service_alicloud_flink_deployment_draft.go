@@ -39,17 +39,17 @@ func (s *FlinkService) FlinkDeploymentDraftStateRefreshFunc(workspaceId string, 
 		}
 
 		// For deployment drafts, if we can get it successfully, it means it's available
+		// Since Status field is removed, we use a simple available state
 		status := "Available"
-		if draft.Status != "" {
-			status = draft.Status
+
+		// Check if draft has required fields to determine if it's properly created
+		if draft.Name == "" {
+			status = "Creating"
 		}
 
-		for _, failState := range failStates {
-			// Check if draft is in a failed state (if any fail states are defined)
-			if status == failState {
-				return draft, status, WrapError(Error(FailedToReachTargetStatus, status))
-			}
-		}
+		// Note: failStates parameter is kept for interface compatibility
+		// but deployment drafts typically don't have complex failure states
+		// since they are just configuration templates
 
 		return draft, status, nil
 	}

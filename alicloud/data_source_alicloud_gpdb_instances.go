@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudGpdbInstances() *schema.Resource {
+func dataSourceAliCloudGpdbInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGpdbInstancesRead,
+		Read: dataSourceAliCloudGpdbInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -229,7 +229,7 @@ func dataSourceAlicloudGpdbInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGpdbInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGpdbInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDBInstances"

@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcsSnapshotGroup() *schema.Resource {
+func resourceAliCloudEcsSnapshotGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsSnapshotGroupCreate,
-		Read:   resourceAlicloudEcsSnapshotGroupRead,
-		Update: resourceAlicloudEcsSnapshotGroupUpdate,
-		Delete: resourceAlicloudEcsSnapshotGroupDelete,
+		Create: resourceAliCloudEcsSnapshotGroupCreate,
+		Read:   resourceAliCloudEcsSnapshotGroupRead,
+		Update: resourceAliCloudEcsSnapshotGroupUpdate,
+		Delete: resourceAliCloudEcsSnapshotGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -80,7 +80,7 @@ func resourceAlicloudEcsSnapshotGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsSnapshotGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsSnapshotGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateSnapshotGroup"
@@ -143,9 +143,9 @@ func resourceAlicloudEcsSnapshotGroupCreate(d *schema.ResourceData, meta interfa
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEcsSnapshotGroupRead(d, meta)
+	return resourceAliCloudEcsSnapshotGroupRead(d, meta)
 }
-func resourceAlicloudEcsSnapshotGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsSnapshotGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsSnapshotGroup(d.Id())
@@ -168,7 +168,7 @@ func resourceAlicloudEcsSnapshotGroupRead(d *schema.ResourceData, meta interface
 
 	return nil
 }
-func resourceAlicloudEcsSnapshotGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsSnapshotGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	ecsService := EcsService{client}
@@ -219,9 +219,9 @@ func resourceAlicloudEcsSnapshotGroupUpdate(d *schema.ResourceData, meta interfa
 		d.SetPartial("tags")
 	}
 	d.Partial(false)
-	return resourceAlicloudEcsSnapshotGroupRead(d, meta)
+	return resourceAliCloudEcsSnapshotGroupRead(d, meta)
 }
-func resourceAlicloudEcsSnapshotGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsSnapshotGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteSnapshotGroup"
 	var response map[string]interface{}

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudHbrHanaBackupClient() *schema.Resource {
+func resourceAliCloudHbrHanaBackupClient() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudHbrHanaBackupClientCreate,
-		Read:   resourceAlicloudHbrHanaBackupClientRead,
-		Update: resourceAlicloudHbrHanaBackupClientUpdate,
-		Delete: resourceAlicloudHbrHanaBackupClientDelete,
+		Create: resourceAliCloudHbrHanaBackupClientCreate,
+		Read:   resourceAliCloudHbrHanaBackupClientRead,
+		Update: resourceAliCloudHbrHanaBackupClientUpdate,
+		Delete: resourceAliCloudHbrHanaBackupClientDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +66,7 @@ func resourceAlicloudHbrHanaBackupClient() *schema.Resource {
 	}
 }
 
-func resourceAlicloudHbrHanaBackupClientCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrHanaBackupClientCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hbrService := HbrService{client}
 	var response map[string]interface{}
@@ -128,10 +128,10 @@ func resourceAlicloudHbrHanaBackupClientCreate(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudHbrHanaBackupClientRead(d, meta)
+	return resourceAliCloudHbrHanaBackupClientRead(d, meta)
 }
 
-func resourceAlicloudHbrHanaBackupClientRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrHanaBackupClientRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hbrService := HbrService{client}
 
@@ -155,12 +155,12 @@ func resourceAlicloudHbrHanaBackupClientRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAlicloudHbrHanaBackupClientUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrHanaBackupClientUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudHbrHanaBackupClientRead(d, meta)
+	return resourceAliCloudHbrHanaBackupClientRead(d, meta)
 }
 
-func resourceAlicloudHbrHanaBackupClientDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrHanaBackupClientDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hbrService := HbrService{client}
 	action := "DeleteClient"

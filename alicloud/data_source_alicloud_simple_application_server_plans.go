@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudSimpleApplicationServerPlans() *schema.Resource {
+func dataSourceAliCloudSimpleApplicationServerPlans() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSimpleApplicationServerPlansRead,
+		Read: dataSourceAliCloudSimpleApplicationServerPlansRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -98,7 +98,7 @@ func dataSourceAlicloudSimpleApplicationServerPlans() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSimpleApplicationServerPlansRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSimpleApplicationServerPlansRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListPlans"

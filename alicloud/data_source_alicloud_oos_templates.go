@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOosTemplates() *schema.Resource {
+func dataSourceAliCloudOosTemplates() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOosTemplatesRead,
+		Read: dataSourceAliCloudOosTemplatesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -165,7 +165,7 @@ func dataSourceAlicloudOosTemplates() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudOosTemplatesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOosTemplatesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTemplates"

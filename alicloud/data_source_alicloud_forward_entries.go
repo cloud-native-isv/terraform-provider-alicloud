@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudForwardEntries() *schema.Resource {
+func dataSourceAliCloudForwardEntries() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudForwardEntriesRead,
+		Read: dataSourceAliCloudForwardEntriesRead,
 		Schema: map[string]*schema.Schema{
 			"external_ip": {
 				Type:     schema.TypeString,
@@ -130,7 +130,7 @@ func dataSourceAlicloudForwardEntries() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudForwardEntriesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudForwardEntriesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeForwardTableEntries"

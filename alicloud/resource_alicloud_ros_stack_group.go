@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudRosStackGroup() *schema.Resource {
+func resourceAliCloudRosStackGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRosStackGroupCreate,
-		Read:   resourceAlicloudRosStackGroupRead,
-		Update: resourceAlicloudRosStackGroupUpdate,
-		Delete: resourceAlicloudRosStackGroupDelete,
+		Create: resourceAliCloudRosStackGroupCreate,
+		Read:   resourceAliCloudRosStackGroupRead,
+		Update: resourceAliCloudRosStackGroupUpdate,
+		Delete: resourceAliCloudRosStackGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -106,7 +106,7 @@ func resourceAlicloudRosStackGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRosStackGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	var response map[string]interface{}
@@ -176,9 +176,9 @@ func resourceAlicloudRosStackGroupCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudRosStackGroupRead(d, meta)
+	return resourceAliCloudRosStackGroupRead(d, meta)
 }
-func resourceAlicloudRosStackGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	object, err := rosService.DescribeRosStackGroup(d.Id())
@@ -217,7 +217,7 @@ func resourceAlicloudRosStackGroupRead(d *schema.ResourceData, meta interface{})
 	d.Set("template_body", object["TemplateBody"])
 	return nil
 }
-func resourceAlicloudRosStackGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	var err error
@@ -298,9 +298,9 @@ func resourceAlicloudRosStackGroupUpdate(d *schema.ResourceData, meta interface{
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudRosStackGroupRead(d, meta)
+	return resourceAliCloudRosStackGroupRead(d, meta)
 }
-func resourceAlicloudRosStackGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteStackGroup"
 	var response map[string]interface{}

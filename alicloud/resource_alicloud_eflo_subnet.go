@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEfloSubnet() *schema.Resource {
+func resourceAliCloudEfloSubnet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEfloSubnetCreate,
-		Read:   resourceAlicloudEfloSubnetRead,
-		Update: resourceAlicloudEfloSubnetUpdate,
-		Delete: resourceAlicloudEfloSubnetDelete,
+		Create: resourceAliCloudEfloSubnetCreate,
+		Read:   resourceAliCloudEfloSubnetRead,
+		Update: resourceAliCloudEfloSubnetUpdate,
+		Delete: resourceAliCloudEfloSubnetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -81,7 +81,7 @@ func resourceAlicloudEfloSubnet() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEfloSubnetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEfloSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	efloService := EfloService{client}
 	request := make(map[string]interface{})
@@ -129,10 +129,10 @@ func resourceAlicloudEfloSubnetCreate(d *schema.ResourceData, meta interface{}) 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudEfloSubnetRead(d, meta)
+	return resourceAliCloudEfloSubnetRead(d, meta)
 }
 
-func resourceAlicloudEfloSubnetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEfloSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	efloService := EfloService{client}
 
@@ -164,7 +164,7 @@ func resourceAlicloudEfloSubnetRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAlicloudEfloSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEfloSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -205,10 +205,10 @@ func resourceAlicloudEfloSubnetUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	return resourceAlicloudEfloSubnetRead(d, meta)
+	return resourceAliCloudEfloSubnetRead(d, meta)
 }
 
-func resourceAlicloudEfloSubnetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEfloSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	efloService := EfloService{client}
 	var response map[string]interface{}

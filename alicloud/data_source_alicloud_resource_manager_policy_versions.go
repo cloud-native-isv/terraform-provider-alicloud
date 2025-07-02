@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudResourceManagerPolicyVersions() *schema.Resource {
+func dataSourceAliCloudResourceManagerPolicyVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudResourceManagerPolicyVersionsRead,
+		Read: dataSourceAliCloudResourceManagerPolicyVersionsRead,
 		Schema: map[string]*schema.Schema{
 			"policy_name": {
 				Type:     schema.TypeString,
@@ -68,7 +68,7 @@ func dataSourceAlicloudResourceManagerPolicyVersions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudResourceManagerPolicyVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudResourceManagerPolicyVersionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListPolicyVersions"

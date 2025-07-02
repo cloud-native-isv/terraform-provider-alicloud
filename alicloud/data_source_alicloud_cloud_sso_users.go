@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudSsoUsers() *schema.Resource {
+func dataSourceAliCloudCloudSsoUsers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudSsoUsersRead,
+		Read: dataSourceAliCloudCloudSsoUsersRead,
 		Schema: map[string]*schema.Schema{
 			"directory_id": {
 				Type:     schema.TypeString,
@@ -144,7 +144,7 @@ func dataSourceAlicloudCloudSsoUsers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudSsoUsersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudSsoUsersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListUsers"

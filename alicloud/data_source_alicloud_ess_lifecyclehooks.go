@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEssLifecycleHooks() *schema.Resource {
+func dataSourceAliCloudEssLifecycleHooks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEssLifecycleHooksRead,
+		Read: dataSourceAliCloudEssLifecycleHooksRead,
 		Schema: map[string]*schema.Schema{
 			"scaling_group_id": {
 				Type:     schema.TypeString,
@@ -82,7 +82,7 @@ func dataSourceAlicloudEssLifecycleHooks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEssLifecycleHooksRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEssLifecycleHooksRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := ess.CreateDescribeLifecycleHooksRequest()
 	request.RegionId = client.RegionId

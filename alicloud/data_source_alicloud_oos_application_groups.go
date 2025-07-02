@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOosApplicationGroups() *schema.Resource {
+func dataSourceAliCloudOosApplicationGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOosApplicationGroupsRead,
+		Read: dataSourceAliCloudOosApplicationGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -100,7 +100,7 @@ func dataSourceAlicloudOosApplicationGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudOosApplicationGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOosApplicationGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListApplicationGroups"

@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCenRouteService() *schema.Resource {
+func resourceAliCloudCenRouteService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenRouteServiceCreate,
-		Read:   resourceAlicloudCenRouteServiceRead,
-		Delete: resourceAlicloudCenRouteServiceDelete,
+		Create: resourceAliCloudCenRouteServiceCreate,
+		Read:   resourceAliCloudCenRouteServiceRead,
+		Delete: resourceAliCloudCenRouteServiceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,7 +62,7 @@ func resourceAlicloudCenRouteService() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenRouteServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenRouteServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 
@@ -101,9 +101,9 @@ func resourceAlicloudCenRouteServiceCreate(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCenRouteServiceRead(d, meta)
+	return resourceAliCloudCenRouteServiceRead(d, meta)
 }
-func resourceAlicloudCenRouteServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenRouteServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenRouteService(d.Id())
@@ -128,7 +128,7 @@ func resourceAlicloudCenRouteServiceRead(d *schema.ResourceData, meta interface{
 	d.Set("status", object.Status)
 	return nil
 }
-func resourceAlicloudCenRouteServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenRouteServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 4)
 	if err != nil {

@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudDirectMailMailAddress() *schema.Resource {
+func resourceAliCloudDirectMailMailAddress() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDirectMailMailAddressCreate,
-		Read:   resourceAlicloudDirectMailMailAddressRead,
-		Update: resourceAlicloudDirectMailMailAddressUpdate,
-		Delete: resourceAlicloudDirectMailMailAddressDelete,
+		Create: resourceAliCloudDirectMailMailAddressCreate,
+		Read:   resourceAliCloudDirectMailMailAddressRead,
+		Update: resourceAliCloudDirectMailMailAddressUpdate,
+		Delete: resourceAliCloudDirectMailMailAddressDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,7 +51,7 @@ func resourceAlicloudDirectMailMailAddress() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDirectMailMailAddressCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailMailAddressCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateMailAddress"
@@ -81,9 +81,9 @@ func resourceAlicloudDirectMailMailAddressCreate(d *schema.ResourceData, meta in
 
 	d.SetId(fmt.Sprint(response["MailAddressId"]))
 
-	return resourceAlicloudDirectMailMailAddressUpdate(d, meta)
+	return resourceAliCloudDirectMailMailAddressUpdate(d, meta)
 }
-func resourceAlicloudDirectMailMailAddressRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailMailAddressRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dmService := DmService{client}
 	object, err := dmService.DescribeDirectMailMailAddress(d.Id())
@@ -101,7 +101,7 @@ func resourceAlicloudDirectMailMailAddressRead(d *schema.ResourceData, meta inte
 	d.Set("status", object["AccountStatus"])
 	return nil
 }
-func resourceAlicloudDirectMailMailAddressUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailMailAddressUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -140,9 +140,9 @@ func resourceAlicloudDirectMailMailAddressUpdate(d *schema.ResourceData, meta in
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudDirectMailMailAddressRead(d, meta)
+	return resourceAliCloudDirectMailMailAddressRead(d, meta)
 }
-func resourceAlicloudDirectMailMailAddressDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailMailAddressDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteMailAddress"
 	var response map[string]interface{}

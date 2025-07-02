@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-// resourceAlicloudOtsTunnel Tablestore tunnel not support update
-func resourceAlicloudOtsTunnel() *schema.Resource {
+// resourceAliCloudOtsTunnel Tablestore tunnel not support update
+func resourceAliCloudOtsTunnel() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunOtsTunnelCreate,
 		Read:   resourceAliyunOtsTunnelRead,

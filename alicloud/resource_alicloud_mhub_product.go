@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudMhubProduct() *schema.Resource {
+func resourceAliCloudMhubProduct() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMhubProductCreate,
-		Read:   resourceAlicloudMhubProductRead,
-		Update: resourceAlicloudMhubProductUpdate,
-		Delete: resourceAlicloudMhubProductDelete,
+		Create: resourceAliCloudMhubProductCreate,
+		Read:   resourceAliCloudMhubProductRead,
+		Update: resourceAliCloudMhubProductUpdate,
+		Delete: resourceAliCloudMhubProductDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -28,7 +28,7 @@ func resourceAlicloudMhubProduct() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMhubProductCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMhubProductCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateProduct"
@@ -54,9 +54,9 @@ func resourceAlicloudMhubProductCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(fmt.Sprint(response["ProductId"]))
 
-	return resourceAlicloudMhubProductRead(d, meta)
+	return resourceAliCloudMhubProductRead(d, meta)
 }
-func resourceAlicloudMhubProductRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMhubProductRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mhubService := MhubService{client}
 	object, err := mhubService.DescribeMhubProduct(d.Id())
@@ -71,7 +71,7 @@ func resourceAlicloudMhubProductRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("product_name", object["Name"])
 	return nil
 }
-func resourceAlicloudMhubProductUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMhubProductUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	request := map[string]interface{}{
@@ -98,9 +98,9 @@ func resourceAlicloudMhubProductUpdate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
-	return resourceAlicloudMhubProductRead(d, meta)
+	return resourceAliCloudMhubProductRead(d, meta)
 }
-func resourceAlicloudMhubProductDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMhubProductDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteProduct"
 	var response map[string]interface{}

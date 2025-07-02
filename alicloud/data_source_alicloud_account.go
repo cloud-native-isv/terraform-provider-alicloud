@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudAccount() *schema.Resource {
+func dataSourceAliCloudAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAccountRead,
+		Read: dataSourceAliCloudAccountRead,
 
 		Schema: map[string]*schema.Schema{
 			// Computed values
@@ -21,7 +21,7 @@ func dataSourceAlicloudAccount() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAccountRead(d *schema.ResourceData, meta interface{}) error {
 	accountId, err := meta.(*connectivity.AliyunClient).AccountId()
 
 	if err != nil {

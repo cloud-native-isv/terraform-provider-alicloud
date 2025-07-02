@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCrVpcEndpointLinkedVpcs() *schema.Resource {
+func dataSourceAliCloudCrVpcEndpointLinkedVpcs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCrVpcEndpointLinkedVpcsRead,
+		Read: dataSourceAliCloudCrVpcEndpointLinkedVpcsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -87,7 +87,7 @@ func dataSourceAlicloudCrVpcEndpointLinkedVpcs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCrVpcEndpointLinkedVpcsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCrVpcEndpointLinkedVpcsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "GetInstanceVpcEndpoint"

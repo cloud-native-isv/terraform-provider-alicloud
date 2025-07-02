@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDRDSInstance() *schema.Resource {
+func resourceAliCloudDRDSInstance() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudDRDSInstanceCreate,
 		Read:   resourceAliCloudDRDSInstanceRead,

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdBundles() *schema.Resource {
+func dataSourceAliCloudEcdBundles() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdBundlesRead,
+		Read: dataSourceAliCloudEcdBundlesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -135,7 +135,7 @@ func dataSourceAlicloudEcdBundles() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdBundlesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdBundlesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeBundles"

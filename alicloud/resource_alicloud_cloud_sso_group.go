@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCloudSsoGroup() *schema.Resource {
+func resourceAliCloudCloudSsoGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudSsoGroupCreate,
-		Read:   resourceAlicloudCloudSsoGroupRead,
-		Update: resourceAlicloudCloudSsoGroupUpdate,
-		Delete: resourceAlicloudCloudSsoGroupDelete,
+		Create: resourceAliCloudCloudSsoGroupCreate,
+		Read:   resourceAliCloudCloudSsoGroupRead,
+		Update: resourceAliCloudCloudSsoGroupUpdate,
+		Delete: resourceAliCloudCloudSsoGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -45,7 +45,7 @@ func resourceAlicloudCloudSsoGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudSsoGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -76,9 +76,9 @@ func resourceAlicloudCloudSsoGroupCreate(d *schema.ResourceData, meta interface{
 	responseGroup := response["Group"].(map[string]interface{})
 	d.SetId(fmt.Sprint(request["DirectoryId"], ":", responseGroup["GroupId"]))
 
-	return resourceAlicloudCloudSsoGroupRead(d, meta)
+	return resourceAliCloudCloudSsoGroupRead(d, meta)
 }
-func resourceAlicloudCloudSsoGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudssoService := CloudssoService{client}
 	object, err := cloudssoService.DescribeCloudSsoGroup(d.Id())
@@ -100,7 +100,7 @@ func resourceAlicloudCloudSsoGroupRead(d *schema.ResourceData, meta interface{})
 	d.Set("group_name", object["GroupName"])
 	return nil
 }
-func resourceAlicloudCloudSsoGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -144,9 +144,9 @@ func resourceAlicloudCloudSsoGroupUpdate(d *schema.ResourceData, meta interface{
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCloudSsoGroupRead(d, meta)
+	return resourceAliCloudCloudSsoGroupRead(d, meta)
 }
-func resourceAlicloudCloudSsoGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

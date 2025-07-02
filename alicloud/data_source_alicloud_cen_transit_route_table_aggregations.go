@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenTransitRouteTableAggregations() *schema.Resource {
+func dataSourceAliCloudCenTransitRouteTableAggregations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenTransitRouteTableAggregationsRead,
+		Read: dataSourceAliCloudCenTransitRouteTableAggregationsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -98,7 +98,7 @@ func dataSourceAlicloudCenTransitRouteTableAggregations() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenTransitRouteTableAggregationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenTransitRouteTableAggregationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeTransitRouteTableAggregation"

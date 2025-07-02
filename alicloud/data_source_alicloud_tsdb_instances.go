@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudTsdbInstances() *schema.Resource {
+func dataSourceAliCloudTsdbInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudTsdbInstancesRead,
+		Read: dataSourceAliCloudTsdbInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"app_key": {
 				Type:     schema.TypeString,
@@ -140,7 +140,7 @@ func dataSourceAlicloudTsdbInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudTsdbInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudTsdbInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeHiTSDBInstanceList"

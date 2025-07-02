@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudProduct() *schema.Resource {
+func dataSourceAliCloudProduct() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudProductRead,
+		Read: dataSourceAliCloudProductRead,
 
 		Schema: map[string]*schema.Schema{
 			"product_code": {
@@ -99,7 +99,7 @@ func dataSourceAlicloudProduct() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudProductRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudProductRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := market.CreateDescribeProductRequest()
 	request.Code = d.Get("product_code").(string)

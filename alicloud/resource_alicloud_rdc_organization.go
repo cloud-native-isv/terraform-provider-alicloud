@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRdcOrganization() *schema.Resource {
+func resourceAliCloudRdcOrganization() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdcOrganizationCreate,
-		Read:   resourceAlicloudRdcOrganizationRead,
-		Update: resourceAlicloudRdcOrganizationUpdate,
-		Delete: resourceAlicloudRdcOrganizationDelete,
+		Create: resourceAliCloudRdcOrganizationCreate,
+		Read:   resourceAliCloudRdcOrganizationRead,
+		Update: resourceAliCloudRdcOrganizationUpdate,
+		Delete: resourceAliCloudRdcOrganizationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +41,7 @@ func resourceAlicloudRdcOrganization() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRdcOrganizationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdcOrganizationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDevopsOrganization"
@@ -74,9 +74,9 @@ func resourceAlicloudRdcOrganizationCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(fmt.Sprint(response["Object"]))
 
-	return resourceAlicloudRdcOrganizationRead(d, meta)
+	return resourceAliCloudRdcOrganizationRead(d, meta)
 }
-func resourceAlicloudRdcOrganizationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdcOrganizationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	devopsRdcService := DevopsRdcService{client}
 	object, err := devopsRdcService.DescribeRdcOrganization(d.Id())
@@ -91,11 +91,11 @@ func resourceAlicloudRdcOrganizationRead(d *schema.ResourceData, meta interface{
 	d.Set("organization_name", object["Name"])
 	return nil
 }
-func resourceAlicloudRdcOrganizationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdcOrganizationUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudRdcOrganizationRead(d, meta)
+	return resourceAliCloudRdcOrganizationRead(d, meta)
 }
-func resourceAlicloudRdcOrganizationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdcOrganizationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDevopsOrganization"
 	var response map[string]interface{}

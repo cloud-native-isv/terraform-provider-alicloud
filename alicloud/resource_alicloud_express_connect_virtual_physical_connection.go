@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudExpressConnectVirtualPhysicalConnection() *schema.Resource {
+func resourceAliCloudExpressConnectVirtualPhysicalConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudExpressConnectVirtualPhysicalConnectionCreate,
-		Read:   resourceAlicloudExpressConnectVirtualPhysicalConnectionRead,
-		Update: resourceAlicloudExpressConnectVirtualPhysicalConnectionUpdate,
-		Delete: resourceAlicloudExpressConnectVirtualPhysicalConnectionDelete,
+		Create: resourceAliCloudExpressConnectVirtualPhysicalConnectionCreate,
+		Read:   resourceAliCloudExpressConnectVirtualPhysicalConnectionRead,
+		Update: resourceAliCloudExpressConnectVirtualPhysicalConnectionUpdate,
+		Delete: resourceAliCloudExpressConnectVirtualPhysicalConnectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -150,7 +150,7 @@ func resourceAlicloudExpressConnectVirtualPhysicalConnection() *schema.Resource 
 	}
 }
 
-func resourceAlicloudExpressConnectVirtualPhysicalConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectVirtualPhysicalConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"RegionId": client.RegionId,
@@ -211,10 +211,10 @@ func resourceAlicloudExpressConnectVirtualPhysicalConnectionCreate(d *schema.Res
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudExpressConnectVirtualPhysicalConnectionUpdate(d, meta)
+	return resourceAliCloudExpressConnectVirtualPhysicalConnectionUpdate(d, meta)
 }
 
-func resourceAlicloudExpressConnectVirtualPhysicalConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectVirtualPhysicalConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	expressConnectService := ExpressConnectService{client}
 
@@ -257,7 +257,7 @@ func resourceAlicloudExpressConnectVirtualPhysicalConnectionRead(d *schema.Resou
 	return nil
 }
 
-func resourceAlicloudExpressConnectVirtualPhysicalConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectVirtualPhysicalConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -301,10 +301,10 @@ func resourceAlicloudExpressConnectVirtualPhysicalConnectionUpdate(d *schema.Res
 		}
 	}
 
-	return resourceAlicloudExpressConnectVirtualPhysicalConnectionRead(d, meta)
+	return resourceAliCloudExpressConnectVirtualPhysicalConnectionRead(d, meta)
 }
 
-func resourceAlicloudExpressConnectVirtualPhysicalConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectVirtualPhysicalConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 

@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSagSnatEntry() *schema.Resource {
+func resourceAliCloudSagSnatEntry() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSagSnatCreate,
-		Read:   resourceAlicloudSagSnatRead,
-		Delete: resourceAlicloudSagSnatDelete,
+		Create: resourceAliCloudSagSnatCreate,
+		Read:   resourceAliCloudSagSnatRead,
+		Delete: resourceAliCloudSagSnatDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +41,7 @@ func resourceAlicloudSagSnatEntry() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSagSnatCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagSnatCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := smartag.CreateAddSnatEntryRequest()
 
@@ -60,10 +60,10 @@ func resourceAlicloudSagSnatCreate(d *schema.ResourceData, meta interface{}) err
 	response, _ := raw.(*smartag.AddSnatEntryResponse)
 	d.SetId(fmt.Sprintf("%s%s%s", request.SmartAGId, COLON_SEPARATED, response.InstanceId))
 
-	return resourceAlicloudSagSnatRead(d, meta)
+	return resourceAliCloudSagSnatRead(d, meta)
 }
 
-func resourceAlicloudSagSnatRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagSnatRead(d *schema.ResourceData, meta interface{}) error {
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeSagSnatEntry(d.Id())
 	if err != nil {
@@ -82,7 +82,7 @@ func resourceAlicloudSagSnatRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceAlicloudSagSnatDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagSnatDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sagService := SagService{client}
 	request := smartag.CreateDeleteSnatEntryRequest()

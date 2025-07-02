@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEdasSlbAttachment() *schema.Resource {
+func resourceAliCloudEdasSlbAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEdasSlbAttachmentCreate,
-		Read:   resourceAlicloudEdasSlbAttachmentRead,
-		Delete: resourceAlicloudEdasSlbAttachmentDelete,
+		Create: resourceAliCloudEdasSlbAttachmentCreate,
+		Read:   resourceAliCloudEdasSlbAttachmentRead,
+		Delete: resourceAliCloudEdasSlbAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -64,7 +64,7 @@ func resourceAlicloudEdasSlbAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEdasSlbAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasSlbAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -102,10 +102,10 @@ func resourceAlicloudEdasSlbAttachmentCreate(d *schema.ResourceData, meta interf
 		return WrapError(Error("bind slb failed for %s", response.Message))
 	}
 	d.SetId(appId + ":" + slbId)
-	return resourceAlicloudEdasSlbAttachmentRead(d, meta)
+	return resourceAliCloudEdasSlbAttachmentRead(d, meta)
 }
 
-func resourceAlicloudEdasSlbAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasSlbAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -165,7 +165,7 @@ func resourceAlicloudEdasSlbAttachmentRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceAlicloudEdasSlbAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasSlbAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 

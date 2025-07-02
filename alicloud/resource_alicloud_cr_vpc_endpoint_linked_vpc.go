@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCrVpcEndpointLinkedVpc() *schema.Resource {
+func resourceAliCloudCrVpcEndpointLinkedVpc() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCrVpcEndpointLinkedVpcCreate,
-		Read:   resourceAlicloudCrVpcEndpointLinkedVpcRead,
-		Update: resourceAlicloudCrVpcEndpointLinkedVpcUpdate,
-		Delete: resourceAlicloudCrVpcEndpointLinkedVpcDelete,
+		Create: resourceAliCloudCrVpcEndpointLinkedVpcCreate,
+		Read:   resourceAliCloudCrVpcEndpointLinkedVpcRead,
+		Update: resourceAliCloudCrVpcEndpointLinkedVpcUpdate,
+		Delete: resourceAliCloudCrVpcEndpointLinkedVpcDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceAlicloudCrVpcEndpointLinkedVpc() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCrVpcEndpointLinkedVpcCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrVpcEndpointLinkedVpcCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := CrService{client}
 	var response map[string]interface{}
@@ -104,10 +104,10 @@ func resourceAlicloudCrVpcEndpointLinkedVpcCreate(d *schema.ResourceData, meta i
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCrVpcEndpointLinkedVpcRead(d, meta)
+	return resourceAliCloudCrVpcEndpointLinkedVpcRead(d, meta)
 }
 
-func resourceAlicloudCrVpcEndpointLinkedVpcRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrVpcEndpointLinkedVpcRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := CrService{client}
 
@@ -134,12 +134,12 @@ func resourceAlicloudCrVpcEndpointLinkedVpcRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceAlicloudCrVpcEndpointLinkedVpcUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrVpcEndpointLinkedVpcUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudHbrHanaBackupClientRead(d, meta)
+	return resourceAliCloudHbrHanaBackupClientRead(d, meta)
 }
 
-func resourceAlicloudCrVpcEndpointLinkedVpcDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrVpcEndpointLinkedVpcDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := CrService{client}
 	action := "DeleteInstanceVpcEndpointLinkedVpc"

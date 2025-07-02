@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudRouteTables() *schema.Resource {
+func dataSourceAliCloudRouteTables() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRouteTablesRead,
+		Read: dataSourceAliCloudRouteTablesRead,
 		Schema: map[string]*schema.Schema{
 			"resource_group_id": {
 				Type:     schema.TypeString,
@@ -155,7 +155,7 @@ func dataSourceAlicloudRouteTables() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRouteTablesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRouteTablesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeRouteTableList"

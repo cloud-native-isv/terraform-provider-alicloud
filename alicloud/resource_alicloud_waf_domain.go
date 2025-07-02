@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudWafDomain() *schema.Resource {
+func resourceAliCloudWafDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudWafDomainCreate,
-		Read:   resourceAlicloudWafDomainRead,
-		Update: resourceAlicloudWafDomainUpdate,
-		Delete: resourceAlicloudWafDomainDelete,
+		Create: resourceAliCloudWafDomainCreate,
+		Read:   resourceAliCloudWafDomainRead,
+		Update: resourceAliCloudWafDomainUpdate,
+		Delete: resourceAliCloudWafDomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -144,7 +144,7 @@ func resourceAlicloudWafDomain() *schema.Resource {
 	}
 }
 
-func resourceAlicloudWafDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	wafOpenapiService := WafOpenapiService{client}
 	var response map[string]interface{}
@@ -238,9 +238,9 @@ func resourceAlicloudWafDomainCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["Domain"]))
 
-	return resourceAlicloudWafDomainRead(d, meta)
+	return resourceAliCloudWafDomainRead(d, meta)
 }
-func resourceAlicloudWafDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	wafOpenapiService := WafOpenapiService{client}
 	object, err := wafOpenapiService.DescribeWafDomain(d.Id())
@@ -288,7 +288,7 @@ func resourceAlicloudWafDomainRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("write_time", formatInt(object["WriteTime"]))
 	return nil
 }
-func resourceAlicloudWafDomainUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafDomainUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	wafOpenapiService := WafOpenapiService{client}
 	var response map[string]interface{}
@@ -412,9 +412,9 @@ func resourceAlicloudWafDomainUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("write_time")
 	}
 	d.Partial(false)
-	return resourceAlicloudWafDomainRead(d, meta)
+	return resourceAliCloudWafDomainRead(d, meta)
 }
-func resourceAlicloudWafDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafDomainDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

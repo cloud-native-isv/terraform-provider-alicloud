@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudDdoscooSchedulerRule() *schema.Resource {
+func resourceAliCloudDdoscooSchedulerRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDdoscooSchedulerRuleCreate,
-		Read:   resourceAlicloudDdoscooSchedulerRuleRead,
-		Update: resourceAlicloudDdoscooSchedulerRuleUpdate,
-		Delete: resourceAlicloudDdoscooSchedulerRuleDelete,
+		Create: resourceAliCloudDdoscooSchedulerRuleCreate,
+		Read:   resourceAliCloudDdoscooSchedulerRuleRead,
+		Update: resourceAliCloudDdoscooSchedulerRuleUpdate,
+		Delete: resourceAliCloudDdoscooSchedulerRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -87,7 +87,7 @@ func resourceAlicloudDdoscooSchedulerRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDdoscooSchedulerRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdoscooSchedulerRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateSchedulerRule"
@@ -141,9 +141,9 @@ func resourceAlicloudDdoscooSchedulerRuleCreate(d *schema.ResourceData, meta int
 
 	d.SetId(fmt.Sprint(request["RuleName"]))
 
-	return resourceAlicloudDdoscooSchedulerRuleRead(d, meta)
+	return resourceAliCloudDdoscooSchedulerRuleRead(d, meta)
 }
-func resourceAlicloudDdoscooSchedulerRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdoscooSchedulerRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ddoscooService := DdoscooService{client}
 	object, err := ddoscooService.DescribeDdoscooSchedulerRule(d.Id())
@@ -176,7 +176,7 @@ func resourceAlicloudDdoscooSchedulerRuleRead(d *schema.ResourceData, meta inter
 	d.Set("rules", ruleMaps)
 	return nil
 }
-func resourceAlicloudDdoscooSchedulerRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdoscooSchedulerRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -242,9 +242,9 @@ func resourceAlicloudDdoscooSchedulerRuleUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	return resourceAlicloudDdoscooSchedulerRuleRead(d, meta)
+	return resourceAliCloudDdoscooSchedulerRuleRead(d, meta)
 }
-func resourceAlicloudDdoscooSchedulerRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdoscooSchedulerRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	action := "DeleteSchedulerRule"

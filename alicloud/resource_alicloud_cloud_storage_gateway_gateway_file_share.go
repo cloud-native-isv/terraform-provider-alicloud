@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCloudStorageGatewayGatewayFileShare() *schema.Resource {
+func resourceAliCloudCloudStorageGatewayGatewayFileShare() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudStorageGatewayGatewayFileShareCreate,
-		Read:   resourceAlicloudCloudStorageGatewayGatewayFileShareRead,
-		Update: resourceAlicloudCloudStorageGatewayGatewayFileShareUpdate,
-		Delete: resourceAlicloudCloudStorageGatewayGatewayFileShareDelete,
+		Create: resourceAliCloudCloudStorageGatewayGatewayFileShareCreate,
+		Read:   resourceAliCloudCloudStorageGatewayGatewayFileShareRead,
+		Update: resourceAliCloudCloudStorageGatewayGatewayFileShareUpdate,
+		Delete: resourceAliCloudCloudStorageGatewayGatewayFileShareDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -278,7 +278,7 @@ func resourceAlicloudCloudStorageGatewayGatewayFileShare() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudStorageGatewayGatewayFileShareCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayFileShareCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	var response map[string]interface{}
@@ -404,9 +404,9 @@ func resourceAlicloudCloudStorageGatewayGatewayFileShareCreate(d *schema.Resourc
 
 	d.SetId(fmt.Sprint(request["GatewayId"], ":", object["RelatedResourceId"]))
 
-	return resourceAlicloudCloudStorageGatewayGatewayFileShareRead(d, meta)
+	return resourceAliCloudCloudStorageGatewayGatewayFileShareRead(d, meta)
 }
-func resourceAlicloudCloudStorageGatewayGatewayFileShareRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayFileShareRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	object, err := sgwService.DescribeCloudStorageGatewayGatewayFileShare(d.Id())
@@ -460,7 +460,7 @@ func resourceAlicloudCloudStorageGatewayGatewayFileShareRead(d *schema.ResourceD
 	d.Set("windows_acl", object["WindowsAcl"])
 	return nil
 }
-func resourceAlicloudCloudStorageGatewayGatewayFileShareUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayFileShareUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	var err error
@@ -627,9 +627,9 @@ func resourceAlicloudCloudStorageGatewayGatewayFileShareUpdate(d *schema.Resourc
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudCloudStorageGatewayGatewayFileShareRead(d, meta)
+	return resourceAliCloudCloudStorageGatewayGatewayFileShareRead(d, meta)
 }
-func resourceAlicloudCloudStorageGatewayGatewayFileShareDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayFileShareDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

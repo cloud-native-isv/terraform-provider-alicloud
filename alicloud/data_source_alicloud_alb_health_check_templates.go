@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAlbHealthCheckTemplates() *schema.Resource {
+func dataSourceAliCloudAlbHealthCheckTemplates() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAlbHealthCheckTemplatesRead,
+		Read: dataSourceAliCloudAlbHealthCheckTemplatesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -121,7 +121,7 @@ func dataSourceAlicloudAlbHealthCheckTemplates() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAlbHealthCheckTemplatesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAlbHealthCheckTemplatesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListHealthCheckTemplates"

@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudResourceManagerHandshakes() *schema.Resource {
+func dataSourceAliCloudResourceManagerHandshakes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudResourceManagerHandshakesRead,
+		Read: dataSourceAliCloudResourceManagerHandshakesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -99,7 +99,7 @@ func dataSourceAlicloudResourceManagerHandshakes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudResourceManagerHandshakesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudResourceManagerHandshakesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListHandshakesForResourceDirectory"

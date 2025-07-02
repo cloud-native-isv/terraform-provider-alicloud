@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOosParameter() *schema.Resource {
+func resourceAliCloudOosParameter() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOosParameterCreate,
-		Read:   resourceAlicloudOosParameterRead,
-		Update: resourceAlicloudOosParameterUpdate,
-		Delete: resourceAlicloudOosParameterDelete,
+		Create: resourceAliCloudOosParameterCreate,
+		Read:   resourceAliCloudOosParameterRead,
+		Update: resourceAliCloudOosParameterUpdate,
+		Delete: resourceAliCloudOosParameterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +66,7 @@ func resourceAlicloudOosParameter() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOosParameterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosParameterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateParameter"
@@ -111,9 +111,9 @@ func resourceAlicloudOosParameterCreate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(fmt.Sprint(request["Name"]))
 
-	return resourceAlicloudOosParameterRead(d, meta)
+	return resourceAliCloudOosParameterRead(d, meta)
 }
-func resourceAlicloudOosParameterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosParameterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	oosService := OosService{client}
 	object, err := oosService.DescribeOosParameter(d.Id())
@@ -135,7 +135,7 @@ func resourceAlicloudOosParameterRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("value", object["Value"])
 	return nil
 }
-func resourceAlicloudOosParameterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosParameterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -188,9 +188,9 @@ func resourceAlicloudOosParameterUpdate(d *schema.ResourceData, meta interface{}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudOosParameterRead(d, meta)
+	return resourceAliCloudOosParameterRead(d, meta)
 }
-func resourceAlicloudOosParameterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosParameterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteParameter"
 	var response map[string]interface{}

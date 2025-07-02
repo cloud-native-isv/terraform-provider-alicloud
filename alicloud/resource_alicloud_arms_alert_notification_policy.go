@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudArmsAlertNotificationPolicy() *schema.Resource {
+func resourceAliCloudArmsAlertNotificationPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudArmsAlertNotificationPolicyCreate,
-		Read:   resourceAlicloudArmsAlertNotificationPolicyRead,
-		Update: resourceAlicloudArmsAlertNotificationPolicyUpdate,
-		Delete: resourceAlicloudArmsAlertNotificationPolicyDelete,
+		Create: resourceAliCloudArmsAlertNotificationPolicyCreate,
+		Read:   resourceAliCloudArmsAlertNotificationPolicyRead,
+		Update: resourceAliCloudArmsAlertNotificationPolicyUpdate,
+		Delete: resourceAliCloudArmsAlertNotificationPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +55,7 @@ func resourceAlicloudArmsAlertNotificationPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudArmsAlertNotificationPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertNotificationPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateNotificationPolicy"
@@ -96,10 +96,10 @@ func resourceAlicloudArmsAlertNotificationPolicyCreate(d *schema.ResourceData, m
 
 	d.SetId(fmt.Sprint(response["Id"]))
 
-	return resourceAlicloudArmsAlertNotificationPolicyRead(d, meta)
+	return resourceAliCloudArmsAlertNotificationPolicyRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertNotificationPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertNotificationPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	armsService := NewArmsService(client)
 	object, err := armsService.DescribeArmsAlertNotificationPolicy(d.Id())
@@ -123,7 +123,7 @@ func resourceAlicloudArmsAlertNotificationPolicyRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceAlicloudArmsAlertNotificationPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertNotificationPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -187,10 +187,10 @@ func resourceAlicloudArmsAlertNotificationPolicyUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	return resourceAlicloudArmsAlertNotificationPolicyRead(d, meta)
+	return resourceAliCloudArmsAlertNotificationPolicyRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertNotificationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertNotificationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteNotificationPolicy"
 	var response map[string]interface{}

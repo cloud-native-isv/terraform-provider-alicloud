@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudFCTrigger() *schema.Resource {
+func resourceAliCloudFCTrigger() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudFCTriggerCreate,
-		Read:   resourceAlicloudFCTriggerRead,
-		Update: resourceAlicloudFCTriggerUpdate,
-		Delete: resourceAlicloudFCTriggerDelete,
+		Create: resourceAliCloudFCTriggerCreate,
+		Read:   resourceAliCloudFCTriggerRead,
+		Update: resourceAliCloudFCTriggerUpdate,
+		Delete: resourceAliCloudFCTriggerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -128,7 +128,7 @@ func resourceAlicloudFCTrigger() *schema.Resource {
 	}
 }
 
-func resourceAlicloudFCTriggerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCTriggerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	serviceName := d.Get("service").(string)
@@ -195,10 +195,10 @@ func resourceAlicloudFCTriggerCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(fmt.Sprintf("%s%s%s%s%s", serviceName, COLON_SEPARATED, fcName, COLON_SEPARATED, *response.TriggerName))
 
-	return resourceAlicloudFCTriggerRead(d, meta)
+	return resourceAliCloudFCTriggerRead(d, meta)
 }
 
-func resourceAlicloudFCTriggerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCTriggerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fcService := FcService{client}
 
@@ -243,7 +243,7 @@ func resourceAlicloudFCTriggerRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceAlicloudFCTriggerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCTriggerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
@@ -275,10 +275,10 @@ func resourceAlicloudFCTriggerUpdate(d *schema.ResourceData, meta interface{}) e
 		addDebug("UpdateTrigger", raw, requestInfo, updateInput)
 	}
 
-	return resourceAlicloudFCTriggerRead(d, meta)
+	return resourceAliCloudFCTriggerRead(d, meta)
 }
 
-func resourceAlicloudFCTriggerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCTriggerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fcService := FcService{client}
 

@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudExpressConnectVirtualBorderRouter() *schema.Resource {
+func resourceAliCloudExpressConnectVirtualBorderRouter() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudExpressConnectVirtualBorderRouterCreate,
-		Read:   resourceAlicloudExpressConnectVirtualBorderRouterRead,
-		Update: resourceAlicloudExpressConnectVirtualBorderRouterUpdate,
-		Delete: resourceAlicloudExpressConnectVirtualBorderRouterDelete,
+		Create: resourceAliCloudExpressConnectVirtualBorderRouterCreate,
+		Read:   resourceAliCloudExpressConnectVirtualBorderRouterRead,
+		Update: resourceAliCloudExpressConnectVirtualBorderRouterUpdate,
+		Delete: resourceAliCloudExpressConnectVirtualBorderRouterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -124,7 +124,7 @@ func resourceAlicloudExpressConnectVirtualBorderRouter() *schema.Resource {
 	}
 }
 
-func resourceAlicloudExpressConnectVirtualBorderRouterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectVirtualBorderRouterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateVirtualBorderRouter"
@@ -183,9 +183,9 @@ func resourceAlicloudExpressConnectVirtualBorderRouterCreate(d *schema.ResourceD
 
 	d.SetId(fmt.Sprint(response["VbrId"]))
 
-	return resourceAlicloudExpressConnectVirtualBorderRouterUpdate(d, meta)
+	return resourceAliCloudExpressConnectVirtualBorderRouterUpdate(d, meta)
 }
-func resourceAlicloudExpressConnectVirtualBorderRouterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectVirtualBorderRouterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	includeCrossAccountVbr := true
@@ -227,7 +227,7 @@ func resourceAlicloudExpressConnectVirtualBorderRouterRead(d *schema.ResourceDat
 	d.Set("bandwidth", formatInt(object["Bandwidth"]))
 	return nil
 }
-func resourceAlicloudExpressConnectVirtualBorderRouterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectVirtualBorderRouterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	var err error
@@ -452,9 +452,9 @@ func resourceAlicloudExpressConnectVirtualBorderRouterUpdate(d *schema.ResourceD
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudExpressConnectVirtualBorderRouterRead(d, meta)
+	return resourceAliCloudExpressConnectVirtualBorderRouterRead(d, meta)
 }
-func resourceAlicloudExpressConnectVirtualBorderRouterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectVirtualBorderRouterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteVirtualBorderRouter"
 	var response map[string]interface{}

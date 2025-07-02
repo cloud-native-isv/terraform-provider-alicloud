@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudArmsAlertContactGroups() *schema.Resource {
+func dataSourceAliCloudArmsAlertContactGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudArmsAlertContactGroupsRead,
+		Read: dataSourceAliCloudArmsAlertContactGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -86,7 +86,7 @@ func dataSourceAlicloudArmsAlertContactGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudArmsAlertContactGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsAlertContactGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "SearchAlertContactGroup"
@@ -161,10 +161,10 @@ func dataSourceAlicloudArmsAlertContactGroupsRead(d *schema.ResourceData, meta i
 	s := make([]map[string]interface{}, 0)
 	for _, object := range objects {
 		mapping := map[string]interface{}{
-			"id":                       fmt.Sprint(object["ContactGroupId"]),
-			"alert_contact_group_id":   fmt.Sprint(object["ContactGroupId"]),
-			"contact_group_name": object["ContactGroupName"],
-			"create_time":              fmt.Sprint(object["CreateTime"]),
+			"id":                     fmt.Sprint(object["ContactGroupId"]),
+			"alert_contact_group_id": fmt.Sprint(object["ContactGroupId"]),
+			"contact_group_name":     object["ContactGroupName"],
+			"create_time":            fmt.Sprint(object["CreateTime"]),
 		}
 		contactIdsItems := make([]string, 0)
 		if contacts, ok := object["Contacts"]; ok && contacts != nil {

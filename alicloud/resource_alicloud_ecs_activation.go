@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcsActivation() *schema.Resource {
+func resourceAliCloudEcsActivation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsActivationCreate,
-		Read:   resourceAlicloudEcsActivationRead,
-		Delete: resourceAlicloudEcsActivationDelete,
+		Create: resourceAliCloudEcsActivationCreate,
+		Read:   resourceAliCloudEcsActivationRead,
+		Delete: resourceAliCloudEcsActivationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,7 +62,7 @@ func resourceAlicloudEcsActivation() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsActivationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsActivationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateActivation"
@@ -103,9 +103,9 @@ func resourceAlicloudEcsActivationCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(response["ActivationId"]))
 
-	return resourceAlicloudEcsActivationRead(d, meta)
+	return resourceAliCloudEcsActivationRead(d, meta)
 }
-func resourceAlicloudEcsActivationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsActivationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsActivation(d.Id())
@@ -127,7 +127,7 @@ func resourceAlicloudEcsActivationRead(d *schema.ResourceData, meta interface{})
 
 	return nil
 }
-func resourceAlicloudEcsActivationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsActivationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteActivation"
 	var response map[string]interface{}

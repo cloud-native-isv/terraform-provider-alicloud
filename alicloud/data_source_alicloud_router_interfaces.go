@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudRouterInterfaces() *schema.Resource {
+func dataSourceAliCloudRouterInterfaces() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRouterInterfacesRead,
+		Read: dataSourceAliCloudRouterInterfacesRead,
 
 		Schema: map[string]*schema.Schema{
 			"status": {
@@ -159,7 +159,7 @@ func dataSourceAlicloudRouterInterfaces() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudRouterInterfacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRouterInterfacesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := vpc.CreateDescribeRouterInterfacesRequest()

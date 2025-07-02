@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEventBridgeService() *schema.Resource {
+func dataSourceAliCloudEventBridgeService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEventBridgeServiceRead,
+		Read: dataSourceAliCloudEventBridgeServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -31,7 +31,7 @@ func dataSourceAlicloudEventBridgeService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudEventBridgeServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEventBridgeServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("EventBridgeServiceHasNotBeenOpened")
 		d.Set("status", "")

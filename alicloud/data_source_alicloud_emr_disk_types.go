@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEmrDiskTypes() *schema.Resource {
+func dataSourceAliCloudEmrDiskTypes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEmrDiskTypesRead,
+		Read: dataSourceAliCloudEmrDiskTypesRead,
 
 		Schema: map[string]*schema.Schema{
 			"destination_resource": {
@@ -78,7 +78,7 @@ func dataSourceAlicloudEmrDiskTypes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEmrDiskTypesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEmrDiskTypesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := emr.CreateListEmrAvailableResourceRequest()

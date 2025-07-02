@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudThreatDetectionHoneyPot() *schema.Resource {
+func resourceAliCloudThreatDetectionHoneyPot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudThreatDetectionHoneyPotCreate,
-		Read:   resourceAlicloudThreatDetectionHoneyPotRead,
-		Update: resourceAlicloudThreatDetectionHoneyPotUpdate,
-		Delete: resourceAlicloudThreatDetectionHoneyPotDelete,
+		Create: resourceAliCloudThreatDetectionHoneyPotCreate,
+		Read:   resourceAliCloudThreatDetectionHoneyPotRead,
+		Update: resourceAliCloudThreatDetectionHoneyPotUpdate,
+		Delete: resourceAliCloudThreatDetectionHoneyPotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +66,7 @@ func resourceAlicloudThreatDetectionHoneyPot() *schema.Resource {
 	}
 }
 
-func resourceAlicloudThreatDetectionHoneyPotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionHoneyPotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -110,10 +110,10 @@ func resourceAlicloudThreatDetectionHoneyPotCreate(d *schema.ResourceData, meta 
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudThreatDetectionHoneyPotRead(d, meta)
+	return resourceAliCloudThreatDetectionHoneyPotRead(d, meta)
 }
 
-func resourceAlicloudThreatDetectionHoneyPotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionHoneyPotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sasService := SasService{client}
 
@@ -138,7 +138,7 @@ func resourceAlicloudThreatDetectionHoneyPotRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceAlicloudThreatDetectionHoneyPotUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionHoneyPotUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -174,10 +174,10 @@ func resourceAlicloudThreatDetectionHoneyPotUpdate(d *schema.ResourceData, meta 
 		}
 	}
 
-	return resourceAlicloudThreatDetectionHoneyPotRead(d, meta)
+	return resourceAliCloudThreatDetectionHoneyPotRead(d, meta)
 }
 
-func resourceAlicloudThreatDetectionHoneyPotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionHoneyPotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sasService := SasService{client}
 	var err error

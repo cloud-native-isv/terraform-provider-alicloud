@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDtsSubscriptionJobs() *schema.Resource {
+func dataSourceAliCloudDtsSubscriptionJobs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDtsSubscriptionJobsRead,
+		Read: dataSourceAliCloudDtsSubscriptionJobsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -192,7 +192,7 @@ func dataSourceAlicloudDtsSubscriptionJobs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDtsSubscriptionJobsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDtsSubscriptionJobsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDtsJobs"

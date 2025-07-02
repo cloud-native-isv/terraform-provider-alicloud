@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCdnRealTimeLogDeliveries() *schema.Resource {
+func dataSourceAliCloudCdnRealTimeLogDeliveries() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCdnRealTimeLogDeliveriesRead,
+		Read: dataSourceAliCloudCdnRealTimeLogDeliveriesRead,
 		Schema: map[string]*schema.Schema{
 			"domain": {
 				Type:     schema.TypeString,
@@ -65,7 +65,7 @@ func dataSourceAlicloudCdnRealTimeLogDeliveries() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCdnRealTimeLogDeliveriesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCdnRealTimeLogDeliveriesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDomainRealtimeLogDelivery"

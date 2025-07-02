@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCSKubernetesVersion() *schema.Resource {
+func dataSourceAliCloudCSKubernetesVersion() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCSKubernetesVersionRead,
+		Read: dataSourceAliCloudCSKubernetesVersionRead,
 		Schema: map[string]*schema.Schema{
 			"cluster_type": {
 				Type:         schema.TypeString,
@@ -64,7 +64,7 @@ func dataSourceAlicloudCSKubernetesVersion() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCSKubernetesVersionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCSKubernetesVersionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var resp []*cs.DescribeKubernetesVersionMetadataResponseBody

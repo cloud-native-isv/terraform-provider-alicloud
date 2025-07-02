@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudLogETL() *schema.Resource {
+func resourceAliCloudLogETL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudLogETLCreate,
-		Read:   resourceAlicloudLogETLRead,
-		Update: resourceAlicloudLogETLUpdate,
-		Delete: resourceAlicloudLogETLDelete,
+		Create: resourceAliCloudLogETLCreate,
+		Read:   resourceAliCloudLogETLRead,
+		Update: resourceAliCloudLogETLUpdate,
+		Delete: resourceAliCloudLogETLDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -207,7 +207,7 @@ func resourceAlicloudLogETL() *schema.Resource {
 	}
 }
 
-func resourceAlicloudLogETLCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogETLCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -250,10 +250,10 @@ func resourceAlicloudLogETLCreate(d *schema.ResourceData, meta interface{}) erro
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudLogETLRead(d, meta)
+	return resourceAliCloudLogETLRead(d, meta)
 }
 
-func resourceAlicloudLogETLRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogETLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	logService, err := NewSlsService(client)
 	if err != nil {
@@ -344,7 +344,7 @@ func resourceAlicloudLogETLRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceAlicloudLogETLUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogETLUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -400,7 +400,7 @@ func resourceAlicloudLogETLUpdate(d *schema.ResourceData, meta interface{}) erro
 			}
 
 		}
-		return resourceAlicloudLogETLRead(d, meta)
+		return resourceAliCloudLogETLRead(d, meta)
 	}
 
 	if err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
@@ -443,10 +443,10 @@ func resourceAlicloudLogETLUpdate(d *schema.ResourceData, meta interface{}) erro
 	}); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateLogETL", AliyunLogGoSdkERROR)
 	}
-	return resourceAlicloudLogETLRead(d, meta)
+	return resourceAliCloudLogETLRead(d, meta)
 }
 
-func resourceAlicloudLogETLDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogETLDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {

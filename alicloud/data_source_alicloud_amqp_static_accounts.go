@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudAmqpStaticAccounts() *schema.Resource {
+func dataSourceAliCloudAmqpStaticAccounts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAmqpStaticAccountsRead,
+		Read: dataSourceAliCloudAmqpStaticAccountsRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Optional: true,
@@ -72,7 +72,7 @@ func dataSourceAlicloudAmqpStaticAccounts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAmqpStaticAccountsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAmqpStaticAccountsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

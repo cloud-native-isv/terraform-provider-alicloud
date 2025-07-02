@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEmrMainVersions() *schema.Resource {
+func dataSourceAliCloudEmrMainVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEmrMainVersionsRead,
+		Read: dataSourceAliCloudEmrMainVersionsRead,
 
 		Schema: map[string]*schema.Schema{
 			"emr_version": {
@@ -59,7 +59,7 @@ func dataSourceAlicloudEmrMainVersions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEmrMainVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEmrMainVersionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	emrService := EmrService{client}
 	action := "ListEmrMainVersion"

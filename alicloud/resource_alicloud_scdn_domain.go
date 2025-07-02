@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudScdnDomain() *schema.Resource {
+func resourceAliCloudScdnDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudScdnDomainCreate,
-		Read:   resourceAlicloudScdnDomainRead,
-		Update: resourceAlicloudScdnDomainUpdate,
-		Delete: resourceAlicloudScdnDomainDelete,
+		Create: resourceAliCloudScdnDomainCreate,
+		Read:   resourceAliCloudScdnDomainRead,
+		Update: resourceAliCloudScdnDomainUpdate,
+		Delete: resourceAliCloudScdnDomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -120,7 +120,7 @@ func resourceAlicloudScdnDomain() *schema.Resource {
 	}
 }
 
-func resourceAlicloudScdnDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudScdnDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddScdnDomain"
@@ -173,9 +173,9 @@ func resourceAlicloudScdnDomainCreate(d *schema.ResourceData, meta interface{}) 
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudScdnDomainUpdate(d, meta)
+	return resourceAliCloudScdnDomainUpdate(d, meta)
 }
-func resourceAlicloudScdnDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudScdnDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	scdnService := ScdnService{client}
 	object, err := scdnService.DescribeScdnDomain(d.Id())
@@ -233,7 +233,7 @@ func resourceAlicloudScdnDomainRead(d *schema.ResourceData, meta interface{}) er
 
 	return nil
 }
-func resourceAlicloudScdnDomainUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudScdnDomainUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	scdnService := ScdnService{client}
 	var response map[string]interface{}
@@ -422,9 +422,9 @@ func resourceAlicloudScdnDomainUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudScdnDomainRead(d, meta)
+	return resourceAliCloudScdnDomainRead(d, meta)
 }
-func resourceAlicloudScdnDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudScdnDomainDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	scdnService := ScdnService{client}
 	action := "DeleteScdnDomain"

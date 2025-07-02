@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudPrivatelinkVpcEndpointZones() *schema.Resource {
+func dataSourceAliCloudPrivatelinkVpcEndpointZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPrivatelinkVpcEndpointZonesRead,
+		Read: dataSourceAliCloudPrivatelinkVpcEndpointZonesRead,
 		Schema: map[string]*schema.Schema{
 			"endpoint_id": {
 				Type:     schema.TypeString,
@@ -73,7 +73,7 @@ func dataSourceAlicloudPrivatelinkVpcEndpointZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudPrivatelinkVpcEndpointZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPrivatelinkVpcEndpointZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListVpcEndpointZones"

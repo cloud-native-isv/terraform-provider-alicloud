@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDBAccountPrivilege() *schema.Resource {
+func resourceAliCloudDBAccountPrivilege() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDBAccountPrivilegeCreate,
-		Read:   resourceAlicloudDBAccountPrivilegeRead,
-		Update: resourceAlicloudDBAccountPrivilegeUpdate,
-		Delete: resourceAlicloudDBAccountPrivilegeDelete,
+		Create: resourceAliCloudDBAccountPrivilegeCreate,
+		Read:   resourceAliCloudDBAccountPrivilegeRead,
+		Update: resourceAliCloudDBAccountPrivilegeUpdate,
+		Delete: resourceAliCloudDBAccountPrivilegeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -54,7 +54,7 @@ func resourceAlicloudDBAccountPrivilege() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDBAccountPrivilegeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBAccountPrivilegeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	instanceId := d.Get("instance_id").(string)
@@ -83,10 +83,10 @@ func resourceAlicloudDBAccountPrivilegeCreate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	return resourceAlicloudDBAccountPrivilegeRead(d, meta)
+	return resourceAliCloudDBAccountPrivilegeRead(d, meta)
 }
 
-func resourceAlicloudDBAccountPrivilegeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBAccountPrivilegeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rsdService := RdsService{client}
 	parts, err := ParseResourceId(d.Id(), 3)
@@ -166,7 +166,7 @@ func resourceAlicloudDBAccountPrivilegeRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceAlicloudDBAccountPrivilegeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBAccountPrivilegeUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	d.Partial(true)
@@ -210,10 +210,10 @@ func resourceAlicloudDBAccountPrivilegeUpdate(d *schema.ResourceData, meta inter
 	}
 
 	d.Partial(false)
-	return resourceAlicloudDBAccountPrivilegeRead(d, meta)
+	return resourceAliCloudDBAccountPrivilegeRead(d, meta)
 }
 
-func resourceAlicloudDBAccountPrivilegeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBAccountPrivilegeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	parts, err := ParseResourceId(d.Id(), 3)

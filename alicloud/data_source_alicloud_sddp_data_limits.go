@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSddpDataLimits() *schema.Resource {
+func dataSourceAliCloudSddpDataLimits() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSddpDataLimitsRead,
+		Read: dataSourceAliCloudSddpDataLimitsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -93,7 +93,7 @@ func dataSourceAlicloudSddpDataLimits() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSddpDataLimitsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSddpDataLimitsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDataLimits"

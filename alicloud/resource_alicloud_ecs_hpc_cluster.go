@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcsHpcCluster() *schema.Resource {
+func resourceAliCloudEcsHpcCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsHpcClusterCreate,
-		Read:   resourceAlicloudEcsHpcClusterRead,
-		Update: resourceAlicloudEcsHpcClusterUpdate,
-		Delete: resourceAlicloudEcsHpcClusterDelete,
+		Create: resourceAliCloudEcsHpcClusterCreate,
+		Read:   resourceAliCloudEcsHpcClusterRead,
+		Update: resourceAliCloudEcsHpcClusterUpdate,
+		Delete: resourceAliCloudEcsHpcClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -30,7 +30,7 @@ func resourceAlicloudEcsHpcCluster() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsHpcClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsHpcClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateHpcCluster"
@@ -51,9 +51,9 @@ func resourceAlicloudEcsHpcClusterCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(response["HpcClusterId"]))
 
-	return resourceAlicloudEcsHpcClusterRead(d, meta)
+	return resourceAliCloudEcsHpcClusterRead(d, meta)
 }
-func resourceAlicloudEcsHpcClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsHpcClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsHpcCluster(d.Id())
@@ -69,7 +69,7 @@ func resourceAlicloudEcsHpcClusterRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", object["Name"])
 	return nil
 }
-func resourceAlicloudEcsHpcClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsHpcClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -95,9 +95,9 @@ func resourceAlicloudEcsHpcClusterUpdate(d *schema.ResourceData, meta interface{
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudEcsHpcClusterRead(d, meta)
+	return resourceAliCloudEcsHpcClusterRead(d, meta)
 }
-func resourceAlicloudEcsHpcClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsHpcClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteHpcCluster"
 	var response map[string]interface{}

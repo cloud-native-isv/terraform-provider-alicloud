@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDBReadonlyInstance() *schema.Resource {
+func resourceAliCloudDBReadonlyInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDBReadonlyInstanceCreate,
-		Read:   resourceAlicloudDBReadonlyInstanceRead,
-		Update: resourceAlicloudDBReadonlyInstanceUpdate,
-		Delete: resourceAlicloudDBReadonlyInstanceDelete,
+		Create: resourceAliCloudDBReadonlyInstanceCreate,
+		Read:   resourceAliCloudDBReadonlyInstanceRead,
+		Update: resourceAliCloudDBReadonlyInstanceUpdate,
+		Delete: resourceAliCloudDBReadonlyInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -281,7 +281,7 @@ func resourceAlicloudDBReadonlyInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDBReadonlyInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBReadonlyInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 
@@ -319,10 +319,10 @@ func resourceAlicloudDBReadonlyInstanceCreate(d *schema.ResourceData, meta inter
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudDBReadonlyInstanceUpdate(d, meta)
+	return resourceAliCloudDBReadonlyInstanceUpdate(d, meta)
 }
 
-func resourceAlicloudDBReadonlyInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBReadonlyInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	d.Partial(true)
@@ -504,7 +504,7 @@ func resourceAlicloudDBReadonlyInstanceUpdate(d *schema.ResourceData, meta inter
 
 	if d.IsNewResource() {
 		d.Partial(false)
-		return resourceAlicloudDBReadonlyInstanceRead(d, meta)
+		return resourceAliCloudDBReadonlyInstanceRead(d, meta)
 	}
 
 	if d.HasChange("instance_name") {
@@ -716,10 +716,10 @@ func resourceAlicloudDBReadonlyInstanceUpdate(d *schema.ResourceData, meta inter
 	}
 
 	d.Partial(false)
-	return resourceAlicloudDBReadonlyInstanceRead(d, meta)
+	return resourceAliCloudDBReadonlyInstanceRead(d, meta)
 }
 
-func resourceAlicloudDBReadonlyInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBReadonlyInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 
@@ -826,7 +826,7 @@ func resourceAlicloudDBReadonlyInstanceRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceAlicloudDBReadonlyInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBReadonlyInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 

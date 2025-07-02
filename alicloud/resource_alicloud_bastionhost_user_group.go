@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudBastionhostUserGroup() *schema.Resource {
+func resourceAliCloudBastionhostUserGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudBastionhostUserGroupCreate,
-		Read:   resourceAlicloudBastionhostUserGroupRead,
-		Update: resourceAlicloudBastionhostUserGroupUpdate,
-		Delete: resourceAlicloudBastionhostUserGroupDelete,
+		Create: resourceAliCloudBastionhostUserGroupCreate,
+		Read:   resourceAliCloudBastionhostUserGroupRead,
+		Update: resourceAliCloudBastionhostUserGroupUpdate,
+		Delete: resourceAliCloudBastionhostUserGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +41,7 @@ func resourceAlicloudBastionhostUserGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudBastionhostUserGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostUserGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateUserGroup"
@@ -72,9 +72,9 @@ func resourceAlicloudBastionhostUserGroupCreate(d *schema.ResourceData, meta int
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", response["UserGroupId"]))
 
-	return resourceAlicloudBastionhostUserGroupRead(d, meta)
+	return resourceAliCloudBastionhostUserGroupRead(d, meta)
 }
-func resourceAlicloudBastionhostUserGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostUserGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	yundunBastionhostService := YundunBastionhostService{client}
 	object, err := yundunBastionhostService.DescribeBastionhostUserGroup(d.Id())
@@ -96,7 +96,7 @@ func resourceAlicloudBastionhostUserGroupRead(d *schema.ResourceData, meta inter
 	d.Set("user_group_name", object["UserGroupName"])
 	return nil
 }
-func resourceAlicloudBastionhostUserGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostUserGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -139,9 +139,9 @@ func resourceAlicloudBastionhostUserGroupUpdate(d *schema.ResourceData, meta int
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudBastionhostUserGroupRead(d, meta)
+	return resourceAliCloudBastionhostUserGroupRead(d, meta)
 }
-func resourceAlicloudBastionhostUserGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostUserGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCSServerlessKubernetes() *schema.Resource {
+func resourceAliCloudCSServerlessKubernetes() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCSServerlessKubernetesCreate,
-		Read:   resourceAlicloudCSServerlessKubernetesRead,
-		Update: resourceAlicloudCSServerlessKubernetesUpdate,
-		Delete: resourceAlicloudCSServerlessKubernetesDelete,
+		Create: resourceAliCloudCSServerlessKubernetesCreate,
+		Read:   resourceAliCloudCSServerlessKubernetesRead,
+		Update: resourceAliCloudCSServerlessKubernetesUpdate,
+		Delete: resourceAliCloudCSServerlessKubernetesDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -334,7 +334,7 @@ func resourceAlicloudCSServerlessKubernetes() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCSServerlessKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSServerlessKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	roa, _ := client.NewRoaCsClient()
 	csClient := CsClient{roa}
@@ -527,10 +527,10 @@ func resourceAlicloudCSServerlessKubernetesCreate(d *schema.ResourceData, meta i
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudCSServerlessKubernetesRead(d, meta)
+	return resourceAliCloudCSServerlessKubernetesRead(d, meta)
 }
 
-func resourceAlicloudCSServerlessKubernetesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSServerlessKubernetesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosClient, err := client.NewRoaCsClient()
 	if err != nil {
@@ -637,7 +637,7 @@ func resourceAlicloudCSServerlessKubernetesRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceAlicloudCSServerlessKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSServerlessKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 	invoker := NewInvoker()
 	// modifyCluster
 	if !d.IsNewResource() && d.HasChanges("resource_group_id", "name", "name_prefix", "deletion_protection", "custom_san", "maintenance_window", "operation_policy", "enable_rrsa") {
@@ -667,9 +667,9 @@ func resourceAlicloudCSServerlessKubernetesUpdate(d *schema.ResourceData, meta i
 		return WrapError(err)
 	}
 
-	return resourceAlicloudCSServerlessKubernetesRead(d, meta)
+	return resourceAliCloudCSServerlessKubernetesRead(d, meta)
 }
 
-func resourceAlicloudCSServerlessKubernetesDelete(d *schema.ResourceData, meta interface{}) error {
-	return resourceAlicloudCSKubernetesDelete(d, meta)
+func resourceAliCloudCSServerlessKubernetesDelete(d *schema.ResourceData, meta interface{}) error {
+	return resourceAliCloudCSKubernetesDelete(d, meta)
 }

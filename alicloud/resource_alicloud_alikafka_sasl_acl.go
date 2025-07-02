@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudAlikafkaSaslAcl() *schema.Resource {
+func resourceAliCloudAlikafkaSaslAcl() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlikafkaSaslAclCreate,
-		Read:   resourceAlicloudAlikafkaSaslAclRead,
-		Delete: resourceAlicloudAlikafkaSaslAclDelete,
+		Create: resourceAliCloudAlikafkaSaslAclCreate,
+		Read:   resourceAliCloudAlikafkaSaslAclRead,
+		Delete: resourceAliCloudAlikafkaSaslAclDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -65,7 +65,7 @@ func resourceAlicloudAlikafkaSaslAcl() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlikafkaSaslAclCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlikafkaSaslAclCreate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	alikafkaService := AlikafkaService{client}
@@ -109,10 +109,10 @@ func resourceAlicloudAlikafkaSaslAclCreate(d *schema.ResourceData, meta interfac
 	// Server may have cache, sleep a while.
 	time.Sleep(60 * time.Second)
 	d.SetId(fmt.Sprintf("%s:%s:%s:%s:%s:%s", instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType))
-	return resourceAlicloudAlikafkaSaslAclRead(d, meta)
+	return resourceAliCloudAlikafkaSaslAclRead(d, meta)
 }
 
-func resourceAlicloudAlikafkaSaslAclRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlikafkaSaslAclRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	alikafkaService := AlikafkaService{client}
@@ -143,7 +143,7 @@ func resourceAlicloudAlikafkaSaslAclRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudAlikafkaSaslAclDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlikafkaSaslAclDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	alikafkaService := AlikafkaService{client}

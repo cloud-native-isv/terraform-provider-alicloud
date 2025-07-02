@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEipAddresses() *schema.Resource {
+func dataSourceAliCloudEipAddresses() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEipAddressesRead,
+		Read: dataSourceAliCloudEipAddressesRead,
 		Schema: map[string]*schema.Schema{
 			"ip_addresses": {
 				Type:       schema.TypeList,
@@ -303,7 +303,7 @@ func dataSourceAlicloudEipAddresses() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEipAddressesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEipAddressesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeEipAddresses"

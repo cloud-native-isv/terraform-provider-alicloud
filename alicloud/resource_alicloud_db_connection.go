@@ -17,12 +17,12 @@ const dbConnectionIdWithSuffixRegex = "^([a-zA-Z0-9\\-_]+:[a-zA-Z0-9\\-_]+)" + d
 
 var dbConnectionIdWithSuffixRegexp = regexp.MustCompile(dbConnectionIdWithSuffixRegex)
 
-func resourceAlicloudDBConnection() *schema.Resource {
+func resourceAliCloudDBConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDBConnectionCreate,
-		Read:   resourceAlicloudDBConnectionRead,
-		Update: resourceAlicloudDBConnectionUpdate,
-		Delete: resourceAlicloudDBConnectionDelete,
+		Create: resourceAliCloudDBConnectionCreate,
+		Read:   resourceAliCloudDBConnectionRead,
+		Update: resourceAliCloudDBConnectionUpdate,
+		Delete: resourceAliCloudDBConnectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,7 +62,7 @@ func resourceAlicloudDBConnection() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDBConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	instanceId := d.Get("instance_id").(string)
@@ -110,10 +110,10 @@ func resourceAlicloudDBConnectionCreate(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	return resourceAlicloudDBConnectionRead(d, meta)
+	return resourceAliCloudDBConnectionRead(d, meta)
 }
 
-func resourceAlicloudDBConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	submatch := dbConnectionIdWithSuffixRegexp.FindStringSubmatch(d.Id())
 	if len(submatch) > 1 {
 		d.SetId(submatch[1])
@@ -145,7 +145,7 @@ func resourceAlicloudDBConnectionRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAlicloudDBConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 
@@ -195,10 +195,10 @@ func resourceAlicloudDBConnectionUpdate(d *schema.ResourceData, meta interface{}
 			return WrapError(err)
 		}
 	}
-	return resourceAlicloudDBConnectionRead(d, meta)
+	return resourceAliCloudDBConnectionRead(d, meta)
 }
 
-func resourceAlicloudDBConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 

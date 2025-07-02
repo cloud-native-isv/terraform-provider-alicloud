@@ -7,9 +7,9 @@ import (
 )
 
 // https://help.aliyun.com/document_detail/69017.html
-func dataSourceAlicloudDnsResolutionLines() *schema.Resource {
+func dataSourceAliCloudDnsResolutionLines() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDnsResolutionLinesRead,
+		Read: dataSourceAliCloudDnsResolutionLinesRead,
 
 		Schema: map[string]*schema.Schema{
 			"line_codes": {
@@ -76,7 +76,7 @@ func dataSourceAlicloudDnsResolutionLines() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDnsResolutionLinesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDnsResolutionLinesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := alidns.CreateDescribeSupportLinesRequest()
 

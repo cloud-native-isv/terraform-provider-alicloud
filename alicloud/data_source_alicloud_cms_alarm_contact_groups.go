@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCmsAlarmContactGroups() *schema.Resource {
+func dataSourceAliCloudCmsAlarmContactGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsAlarmContactGroupsRead,
+		Read: dataSourceAliCloudCmsAlarmContactGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -69,7 +69,7 @@ func dataSourceAlicloudCmsAlarmContactGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsAlarmContactGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsAlarmContactGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := cms.CreateDescribeContactGroupListRequest()
 	request.PageSize = requests.NewInteger(PageSizeLarge)

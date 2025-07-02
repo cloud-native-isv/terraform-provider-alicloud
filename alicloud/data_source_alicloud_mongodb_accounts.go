@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudMongodbAccounts() *schema.Resource {
+func dataSourceAliCloudMongodbAccounts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMongodbAccountsRead,
+		Read: dataSourceAliCloudMongodbAccountsRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Type:     schema.TypeString,
@@ -68,7 +68,7 @@ func dataSourceAlicloudMongodbAccounts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMongodbAccountsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMongodbAccountsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeAccounts"

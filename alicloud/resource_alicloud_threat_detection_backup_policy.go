@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudThreatDetectionBackupPolicy() *schema.Resource {
+func resourceAliCloudThreatDetectionBackupPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudThreatDetectionBackupPolicyCreate,
-		Read:   resourceAlicloudThreatDetectionBackupPolicyRead,
-		Update: resourceAlicloudThreatDetectionBackupPolicyUpdate,
-		Delete: resourceAlicloudThreatDetectionBackupPolicyDelete,
+		Create: resourceAliCloudThreatDetectionBackupPolicyCreate,
+		Read:   resourceAliCloudThreatDetectionBackupPolicyRead,
+		Update: resourceAliCloudThreatDetectionBackupPolicyUpdate,
+		Delete: resourceAliCloudThreatDetectionBackupPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -57,7 +57,7 @@ func resourceAlicloudThreatDetectionBackupPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudThreatDetectionBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	threatDetectionService := ThreatDetectionService{client}
 	var response map[string]interface{}
@@ -103,10 +103,10 @@ func resourceAlicloudThreatDetectionBackupPolicyCreate(d *schema.ResourceData, m
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudThreatDetectionBackupPolicyRead(d, meta)
+	return resourceAliCloudThreatDetectionBackupPolicyRead(d, meta)
 }
 
-func resourceAlicloudThreatDetectionBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	threatDetectionService := ThreatDetectionService{client}
 
@@ -132,7 +132,7 @@ func resourceAlicloudThreatDetectionBackupPolicyRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceAlicloudThreatDetectionBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	threatDetectionService := ThreatDetectionService{client}
 	var response map[string]interface{}
@@ -191,10 +191,10 @@ func resourceAlicloudThreatDetectionBackupPolicyUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	return resourceAlicloudThreatDetectionBackupPolicyRead(d, meta)
+	return resourceAliCloudThreatDetectionBackupPolicyRead(d, meta)
 }
 
-func resourceAlicloudThreatDetectionBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	threatDetectionService := ThreatDetectionService{client}
 	action := "DeleteBackupPolicy"

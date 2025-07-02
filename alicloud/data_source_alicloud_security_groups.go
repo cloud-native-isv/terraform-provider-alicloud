@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudSecurityGroups() *schema.Resource {
+func dataSourceAliCloudSecurityGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSecurityGroupsRead,
+		Read: dataSourceAliCloudSecurityGroupsRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -111,7 +111,7 @@ func dataSourceAlicloudSecurityGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSecurityGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSecurityGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeSecurityGroups"

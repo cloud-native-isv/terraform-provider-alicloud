@@ -15,12 +15,12 @@ import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 )
 
-func resourceAlicloudCmsSiteMonitor() *schema.Resource {
+func resourceAliCloudCmsSiteMonitor() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCmsSiteMonitorCreate,
-		Read:   resourceAlicloudCmsSiteMonitorRead,
-		Update: resourceAlicloudCmsSiteMonitorUpdate,
-		Delete: resourceAlicloudCmsSiteMonitorDelete,
+		Create: resourceAliCloudCmsSiteMonitorCreate,
+		Read:   resourceAliCloudCmsSiteMonitorRead,
+		Update: resourceAliCloudCmsSiteMonitorUpdate,
+		Delete: resourceAliCloudCmsSiteMonitorDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -92,7 +92,7 @@ func resourceAlicloudCmsSiteMonitor() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCmsSiteMonitorCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsSiteMonitorCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	taskName := d.Get("task_name").(string)
@@ -143,10 +143,10 @@ func resourceAlicloudCmsSiteMonitorCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_cms_site_monitor", request.GetActionName(), AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudCmsSiteMonitorRead(d, meta)
+	return resourceAliCloudCmsSiteMonitorRead(d, meta)
 }
 
-func resourceAlicloudCmsSiteMonitorRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsSiteMonitorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cmsService := CmsService{client}
 
@@ -182,7 +182,7 @@ func resourceAlicloudCmsSiteMonitorRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceAlicloudCmsSiteMonitorUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsSiteMonitorUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := cms.CreateModifySiteMonitorRequest()
@@ -229,10 +229,10 @@ func resourceAlicloudCmsSiteMonitorUpdate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	return resourceAlicloudCmsSiteMonitorRead(d, meta)
+	return resourceAliCloudCmsSiteMonitorRead(d, meta)
 }
 
-func resourceAlicloudCmsSiteMonitorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsSiteMonitorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cmsService := CmsService{client}
 	request := cms.CreateDeleteSiteMonitorsRequest()

@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudThreatDetectionHoneyPots() *schema.Resource {
+func dataSourceAliCloudThreatDetectionHoneyPots() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudThreatDetectionHoneyPotsRead,
+		Read: dataSourceAliCloudThreatDetectionHoneyPotsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Optional:     true,
@@ -106,7 +106,7 @@ func dataSourceAlicloudThreatDetectionHoneyPots() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudThreatDetectionHoneyPotsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudThreatDetectionHoneyPotsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

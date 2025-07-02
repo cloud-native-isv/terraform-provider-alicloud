@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEssAlarm() *schema.Resource {
+func resourceAliCloudEssAlarm() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunEssAlarmCreate,
 		Read:   resourceAliyunEssAlarmRead,

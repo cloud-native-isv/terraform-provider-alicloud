@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudResourceManagerFolder() *schema.Resource {
+func resourceAliCloudResourceManagerFolder() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudResourceManagerFolderCreate,
-		Read:   resourceAlicloudResourceManagerFolderRead,
-		Update: resourceAlicloudResourceManagerFolderUpdate,
-		Delete: resourceAlicloudResourceManagerFolderDelete,
+		Create: resourceAliCloudResourceManagerFolderCreate,
+		Read:   resourceAliCloudResourceManagerFolderRead,
+		Update: resourceAliCloudResourceManagerFolderUpdate,
+		Delete: resourceAliCloudResourceManagerFolderDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -34,7 +34,7 @@ func resourceAlicloudResourceManagerFolder() *schema.Resource {
 	}
 }
 
-func resourceAlicloudResourceManagerFolderCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerFolderCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -68,9 +68,9 @@ func resourceAlicloudResourceManagerFolderCreate(d *schema.ResourceData, meta in
 	responseFolder := response["Folder"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseFolder["FolderId"]))
 
-	return resourceAlicloudResourceManagerFolderRead(d, meta)
+	return resourceAliCloudResourceManagerFolderRead(d, meta)
 }
-func resourceAlicloudResourceManagerFolderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerFolderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resourcemanagerService := ResourcemanagerService{client}
 	object, err := resourcemanagerService.DescribeResourceManagerFolder(d.Id())
@@ -86,7 +86,7 @@ func resourceAlicloudResourceManagerFolderRead(d *schema.ResourceData, meta inte
 	d.Set("parent_folder_id", object["ParentFolderId"])
 	return nil
 }
-func resourceAlicloudResourceManagerFolderUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerFolderUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	update := false
@@ -116,9 +116,9 @@ func resourceAlicloudResourceManagerFolderUpdate(d *schema.ResourceData, meta in
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudResourceManagerFolderRead(d, meta)
+	return resourceAliCloudResourceManagerFolderRead(d, meta)
 }
-func resourceAlicloudResourceManagerFolderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerFolderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	request := map[string]interface{}{

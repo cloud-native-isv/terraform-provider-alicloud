@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRdsCrossRegionBackups() *schema.Resource {
+func dataSourceAliCloudRdsCrossRegionBackups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRdsCrossRegionBackupsRead,
+		Read: dataSourceAliCloudRdsCrossRegionBackupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -162,7 +162,7 @@ func dataSourceAlicloudRdsCrossRegionBackups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRdsCrossRegionBackupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRdsCrossRegionBackupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeCrossRegionBackups"

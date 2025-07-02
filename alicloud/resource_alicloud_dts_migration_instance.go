@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudDtsMigrationInstance() *schema.Resource {
+func resourceAliCloudDtsMigrationInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDtsMigrationInstanceCreate,
-		Read:   resourceAlicloudDtsMigrationInstanceRead,
-		Update: resourceAlicloudDtsMigrationInstanceUpdate,
-		Delete: resourceAlicloudDtsMigrationInstanceDelete,
+		Create: resourceAliCloudDtsMigrationInstanceCreate,
+		Read:   resourceAliCloudDtsMigrationInstanceRead,
+		Update: resourceAliCloudDtsMigrationInstanceUpdate,
+		Delete: resourceAliCloudDtsMigrationInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -82,7 +82,7 @@ func resourceAlicloudDtsMigrationInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDtsMigrationInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsMigrationInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDtsInstance"
@@ -142,9 +142,9 @@ func resourceAlicloudDtsMigrationInstanceCreate(d *schema.ResourceData, meta int
 
 	d.SetId(fmt.Sprint(response["InstanceId"]))
 
-	return resourceAlicloudDtsMigrationInstanceUpdate(d, meta)
+	return resourceAliCloudDtsMigrationInstanceUpdate(d, meta)
 }
-func resourceAlicloudDtsMigrationInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsMigrationInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dtsService := DtsService{client}
 	object, err := dtsService.DescribeDtsMigrationInstance(d.Id())
@@ -175,7 +175,7 @@ func resourceAlicloudDtsMigrationInstanceRead(d *schema.ResourceData, meta inter
 	d.Set("tags", tagsToMap(listTagResourcesObject))
 	return nil
 }
-func resourceAlicloudDtsMigrationInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsMigrationInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dtsService := DtsService{client}
 	d.Partial(false)
@@ -186,9 +186,9 @@ func resourceAlicloudDtsMigrationInstanceUpdate(d *schema.ResourceData, meta int
 		}
 		d.SetPartial("tags")
 	}
-	return resourceAlicloudDtsMigrationInstanceRead(d, meta)
+	return resourceAliCloudDtsMigrationInstanceRead(d, meta)
 }
-func resourceAlicloudDtsMigrationInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsMigrationInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteMigrationJob"
 	var response map[string]interface{}

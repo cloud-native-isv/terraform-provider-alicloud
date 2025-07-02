@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCloudStorageGatewayExpressSyncShareAttachment() *schema.Resource {
+func resourceAliCloudCloudStorageGatewayExpressSyncShareAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudStorageGatewayExpressSyncShareAttachmentCreate,
-		Read:   resourceAlicloudCloudStorageGatewayExpressSyncShareAttachmentRead,
-		Delete: resourceAlicloudCloudStorageGatewayExpressSyncShareAttachmentDelete,
+		Create: resourceAliCloudCloudStorageGatewayExpressSyncShareAttachmentCreate,
+		Read:   resourceAliCloudCloudStorageGatewayExpressSyncShareAttachmentRead,
+		Delete: resourceAliCloudCloudStorageGatewayExpressSyncShareAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -42,7 +42,7 @@ func resourceAlicloudCloudStorageGatewayExpressSyncShareAttachment() *schema.Res
 	}
 }
 
-func resourceAlicloudCloudStorageGatewayExpressSyncShareAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayExpressSyncShareAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	var response map[string]interface{}
@@ -85,9 +85,9 @@ func resourceAlicloudCloudStorageGatewayExpressSyncShareAttachmentCreate(d *sche
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 	d.SetId(fmt.Sprint(request["ExpressSyncId"], ":", gatewayId, ":", shareName))
-	return resourceAlicloudCloudStorageGatewayExpressSyncShareAttachmentRead(d, meta)
+	return resourceAliCloudCloudStorageGatewayExpressSyncShareAttachmentRead(d, meta)
 }
-func resourceAlicloudCloudStorageGatewayExpressSyncShareAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayExpressSyncShareAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	object, err := sgwService.DescribeExpressSyncShares(d.Id())
@@ -105,7 +105,7 @@ func resourceAlicloudCloudStorageGatewayExpressSyncShareAttachmentRead(d *schema
 	d.Set("share_name", object["ShareName"])
 	return nil
 }
-func resourceAlicloudCloudStorageGatewayExpressSyncShareAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayExpressSyncShareAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	var response map[string]interface{}

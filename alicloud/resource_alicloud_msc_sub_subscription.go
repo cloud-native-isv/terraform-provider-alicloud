@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudMscSubSubscription() *schema.Resource {
+func resourceAliCloudMscSubSubscription() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMscSubSubscriptionCreate,
-		Read:   resourceAlicloudMscSubSubscriptionRead,
-		Update: resourceAlicloudMscSubSubscriptionUpdate,
-		Delete: resourceAlicloudMscSubSubscriptionDelete,
+		Create: resourceAliCloudMscSubSubscriptionCreate,
+		Read:   resourceAliCloudMscSubSubscriptionRead,
+		Update: resourceAliCloudMscSubSubscriptionUpdate,
+		Delete: resourceAliCloudMscSubSubscriptionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -74,7 +74,7 @@ func resourceAlicloudMscSubSubscription() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMscSubSubscriptionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMscSubSubscriptionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateSubscriptionItem"
@@ -107,9 +107,9 @@ func resourceAlicloudMscSubSubscriptionCreate(d *schema.ResourceData, meta inter
 	}
 	d.SetId(fmt.Sprint(responseSubscriptionItem["ItemId"]))
 
-	return resourceAlicloudMscSubSubscriptionUpdate(d, meta)
+	return resourceAliCloudMscSubSubscriptionUpdate(d, meta)
 }
-func resourceAlicloudMscSubSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMscSubSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mscOpenSubscriptionService := MscOpenSubscriptionService{client}
 	object, err := mscOpenSubscriptionService.DescribeMscSubSubscription(d.Id())
@@ -149,7 +149,7 @@ func resourceAlicloudMscSubSubscriptionRead(d *schema.ResourceData, meta interfa
 	}
 	return nil
 }
-func resourceAlicloudMscSubSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMscSubSubscriptionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -223,9 +223,9 @@ func resourceAlicloudMscSubSubscriptionUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	return resourceAlicloudMscSubSubscriptionRead(d, meta)
+	return resourceAliCloudMscSubSubscriptionRead(d, meta)
 }
-func resourceAlicloudMscSubSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudMscSubSubscription. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudMscSubSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudMscSubSubscription. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

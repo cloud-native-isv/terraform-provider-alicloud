@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudStorageGatewayStocks() *schema.Resource {
+func dataSourceAliCloudCloudStorageGatewayStocks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudStorageGatewayStocksRead,
+		Read: dataSourceAliCloudCloudStorageGatewayStocksRead,
 		Schema: map[string]*schema.Schema{
 			"gateway_class": {
 				Type:         schema.TypeString,
@@ -47,7 +47,7 @@ func dataSourceAlicloudCloudStorageGatewayStocks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudStorageGatewayStocksRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudStorageGatewayStocksRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeGatewayStock"
 	request := make(map[string]interface{})

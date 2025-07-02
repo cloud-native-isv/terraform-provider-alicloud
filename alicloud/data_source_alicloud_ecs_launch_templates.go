@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcsLaunchTemplates() *schema.Resource {
+func dataSourceAliCloudEcsLaunchTemplates() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcsLaunchTemplatesRead,
+		Read: dataSourceAliCloudEcsLaunchTemplatesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -341,7 +341,7 @@ func dataSourceAlicloudEcsLaunchTemplates() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcsLaunchTemplatesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcsLaunchTemplatesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeLaunchTemplates"

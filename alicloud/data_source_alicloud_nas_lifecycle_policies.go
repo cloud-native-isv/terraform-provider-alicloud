@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudNasLifecyclePolicies() *schema.Resource {
+func dataSourceAliCloudNasLifecyclePolicies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNasLifecyclePoliciesRead,
+		Read: dataSourceAliCloudNasLifecyclePoliciesRead,
 		Schema: map[string]*schema.Schema{
 			"file_system_id": {
 				Type:     schema.TypeString,
@@ -84,7 +84,7 @@ func dataSourceAlicloudNasLifecyclePolicies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNasLifecyclePoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNasLifecyclePoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeLifecyclePolicies"

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudStorageGatewayStorageBundles() *schema.Resource {
+func dataSourceAliCloudCloudStorageGatewayStorageBundles() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudStorageGatewayStorageBundlesRead,
+		Read: dataSourceAliCloudCloudStorageGatewayStorageBundlesRead,
 		Schema: map[string]*schema.Schema{
 			"backend_bucket_region_id": {
 				Type:     schema.TypeString,
@@ -90,7 +90,7 @@ func dataSourceAlicloudCloudStorageGatewayStorageBundles() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudStorageGatewayStorageBundlesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudStorageGatewayStorageBundlesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeStorageBundles"

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudArmsPrometheusAlertRules() *schema.Resource {
+func dataSourceAliCloudArmsPrometheusAlertRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudArmsPrometheusAlertRulesRead,
+		Read: dataSourceAliCloudArmsPrometheusAlertRulesRead,
 		Schema: map[string]*schema.Schema{
 			"cluster_id": {
 				Type:     schema.TypeString,
@@ -147,7 +147,7 @@ func dataSourceAlicloudArmsPrometheusAlertRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudArmsPrometheusAlertRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsPrometheusAlertRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListPrometheusAlertRules"

@@ -7,12 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudMNSQueue() *schema.Resource {
+func resourceAliCloudMNSQueue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMNSQueueCreate,
-		Read:   resourceAlicloudMNSQueueRead,
-		Update: resourceAlicloudMNSQueueUpdate,
-		Delete: resourceAlicloudMNSQueueDelete,
+		Create: resourceAliCloudMNSQueueCreate,
+		Read:   resourceAliCloudMNSQueueRead,
+		Update: resourceAliCloudMNSQueueUpdate,
+		Delete: resourceAliCloudMNSQueueDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceAlicloudMNSQueue() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMNSQueueCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSQueueCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	name := d.Get("name").(string)
 	var delaySeconds, maximumMessageSize, messageRetentionPeriod, visibilityTimeout, pollingWaitSeconds int
@@ -86,10 +86,10 @@ func resourceAlicloudMNSQueueCreate(d *schema.ResourceData, meta interface{}) er
 	}
 	addDebug("CreateQueue", raw)
 	d.SetId(name)
-	return resourceAlicloudMNSQueueRead(d, meta)
+	return resourceAliCloudMNSQueueRead(d, meta)
 }
 
-func resourceAlicloudMNSQueueRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSQueueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mnsService := MnsService{client}
 
@@ -112,7 +112,7 @@ func resourceAlicloudMNSQueueRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceAlicloudMNSQueueUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSQueueUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	attributeUpdate := false
 	var delaySeconds, maximumMessageSize, messageRetentionPeriod, visibilityTimeouts, pollingWaitSeconds int
@@ -149,10 +149,10 @@ func resourceAlicloudMNSQueueUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 		addDebug("SetQueueAttributes", raw)
 	}
-	return resourceAlicloudMNSQueueRead(d, meta)
+	return resourceAliCloudMNSQueueRead(d, meta)
 }
 
-func resourceAlicloudMNSQueueDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSQueueDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mnsService := MnsService{client}
 	name := d.Id()

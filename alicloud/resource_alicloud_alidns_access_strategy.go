@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAlidnsAccessStrategy() *schema.Resource {
+func resourceAliCloudAlidnsAccessStrategy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlidnsAccessStrategyCreate,
-		Read:   resourceAlicloudAlidnsAccessStrategyRead,
-		Update: resourceAlicloudAlidnsAccessStrategyUpdate,
-		Delete: resourceAlicloudAlidnsAccessStrategyDelete,
+		Create: resourceAliCloudAlidnsAccessStrategyCreate,
+		Read:   resourceAliCloudAlidnsAccessStrategyRead,
+		Update: resourceAliCloudAlidnsAccessStrategyUpdate,
+		Delete: resourceAliCloudAlidnsAccessStrategyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -175,7 +175,7 @@ func resourceAlicloudAlidnsAccessStrategy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlidnsAccessStrategyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsAccessStrategyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddDnsGtmAccessStrategy"
@@ -269,9 +269,9 @@ func resourceAlicloudAlidnsAccessStrategyCreate(d *schema.ResourceData, meta int
 
 	d.SetId(fmt.Sprint(response["StrategyId"]))
 
-	return resourceAlicloudAlidnsAccessStrategyRead(d, meta)
+	return resourceAliCloudAlidnsAccessStrategyRead(d, meta)
 }
-func resourceAlicloudAlidnsAccessStrategyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsAccessStrategyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsAccessStrategy(d.Id())
@@ -350,7 +350,7 @@ func resourceAlicloudAlidnsAccessStrategyRead(d *schema.ResourceData, meta inter
 	d.Set("access_mode", object["AccessMode"])
 	return nil
 }
-func resourceAlicloudAlidnsAccessStrategyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsAccessStrategyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -494,9 +494,9 @@ func resourceAlicloudAlidnsAccessStrategyUpdate(d *schema.ResourceData, meta int
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudAlidnsAccessStrategyRead(d, meta)
+	return resourceAliCloudAlidnsAccessStrategyRead(d, meta)
 }
-func resourceAlicloudAlidnsAccessStrategyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsAccessStrategyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDnsGtmAccessStrategy"
 	var response map[string]interface{}

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudBrainIndustrialService() *schema.Resource {
+func dataSourceAliCloudBrainIndustrialService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudBrainIndustrialServiceRead,
+		Read: dataSourceAliCloudBrainIndustrialServiceRead,
 		Schema: map[string]*schema.Schema{
 			"enable": {
 				Type:         schema.TypeString,
@@ -27,7 +27,7 @@ func dataSourceAlicloudBrainIndustrialService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudBrainIndustrialServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudBrainIndustrialServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("BrainIndustrialServiceHasNotBeenOpened")
 		d.Set("status", "")

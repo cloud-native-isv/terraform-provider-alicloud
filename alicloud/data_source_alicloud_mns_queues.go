@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudMNSQueues() *schema.Resource {
+func dataSourceAliCloudMNSQueues() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMNSQueueRead,
+		Read: dataSourceAliCloudMNSQueueRead,
 		Schema: map[string]*schema.Schema{
 			"name_prefix": {
 				Type:     schema.TypeString,
@@ -65,7 +65,7 @@ func dataSourceAlicloudMNSQueues() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMNSQueueRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMNSQueueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var namePrefix string

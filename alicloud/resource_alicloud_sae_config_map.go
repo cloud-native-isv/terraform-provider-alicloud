@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSaeConfigMap() *schema.Resource {
+func resourceAliCloudSaeConfigMap() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSaeConfigMapCreate,
-		Read:   resourceAlicloudSaeConfigMapRead,
-		Update: resourceAlicloudSaeConfigMapUpdate,
-		Delete: resourceAlicloudSaeConfigMapDelete,
+		Create: resourceAliCloudSaeConfigMapCreate,
+		Read:   resourceAliCloudSaeConfigMapRead,
+		Update: resourceAliCloudSaeConfigMapUpdate,
+		Delete: resourceAliCloudSaeConfigMapDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -43,7 +43,7 @@ func resourceAlicloudSaeConfigMap() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSaeConfigMapCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeConfigMapCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "/pop/v1/sam/configmap/configMap"
@@ -73,9 +73,9 @@ func resourceAlicloudSaeConfigMapCreate(d *schema.ResourceData, meta interface{}
 	responseData := response["Data"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseData["ConfigMapId"]))
 
-	return resourceAlicloudSaeConfigMapRead(d, meta)
+	return resourceAliCloudSaeConfigMapRead(d, meta)
 }
-func resourceAlicloudSaeConfigMapRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeConfigMapRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	saeService := SaeService{client}
 	object, err := saeService.DescribeSaeConfigMap(d.Id())
@@ -97,7 +97,7 @@ func resourceAlicloudSaeConfigMapRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("namespace_id", object["NamespaceId"])
 	return nil
 }
-func resourceAlicloudSaeConfigMapUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeConfigMapUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -137,9 +137,9 @@ func resourceAlicloudSaeConfigMapUpdate(d *schema.ResourceData, meta interface{}
 		}
 		addDebug(action, response, request)
 	}
-	return resourceAlicloudSaeConfigMapRead(d, meta)
+	return resourceAliCloudSaeConfigMapRead(d, meta)
 }
-func resourceAlicloudSaeConfigMapDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeConfigMapDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "/pop/v1/sam/configmap/configMap"
 	var response map[string]interface{}

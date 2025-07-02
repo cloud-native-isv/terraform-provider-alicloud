@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCmsHybridMonitorFcTask() *schema.Resource {
+func resourceAliCloudCmsHybridMonitorFcTask() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCmsHybridMonitorFcTaskCreate,
-		Read:   resourceAlicloudCmsHybridMonitorFcTaskRead,
-		Update: resourceAlicloudCmsHybridMonitorFcTaskUpdate,
-		Delete: resourceAlicloudCmsHybridMonitorFcTaskDelete,
+		Create: resourceAliCloudCmsHybridMonitorFcTaskCreate,
+		Read:   resourceAliCloudCmsHybridMonitorFcTaskRead,
+		Update: resourceAliCloudCmsHybridMonitorFcTaskUpdate,
+		Delete: resourceAliCloudCmsHybridMonitorFcTaskDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -57,7 +57,7 @@ func resourceAlicloudCmsHybridMonitorFcTask() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCmsHybridMonitorFcTaskCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsHybridMonitorFcTaskCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateHybridMonitorTask"
@@ -92,9 +92,9 @@ func resourceAlicloudCmsHybridMonitorFcTaskCreate(d *schema.ResourceData, meta i
 
 	d.SetId(fmt.Sprintf("%s:%s", response["TaskId"], request["Namespace"]))
 
-	return resourceAlicloudCmsHybridMonitorFcTaskRead(d, meta)
+	return resourceAliCloudCmsHybridMonitorFcTaskRead(d, meta)
 }
-func resourceAlicloudCmsHybridMonitorFcTaskRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsHybridMonitorFcTaskRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cmsService := CmsService{client}
 	object, err := cmsService.DescribeCmsHybridMonitorFcTask(d.Id())
@@ -116,7 +116,7 @@ func resourceAlicloudCmsHybridMonitorFcTaskRead(d *schema.ResourceData, meta int
 	d.Set("yarm_config", object["YARMConfig"])
 	return nil
 }
-func resourceAlicloudCmsHybridMonitorFcTaskUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsHybridMonitorFcTaskUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -155,9 +155,9 @@ func resourceAlicloudCmsHybridMonitorFcTaskUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	return resourceAlicloudCmsHybridMonitorFcTaskRead(d, meta)
+	return resourceAliCloudCmsHybridMonitorFcTaskRead(d, meta)
 }
-func resourceAlicloudCmsHybridMonitorFcTaskDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsHybridMonitorFcTaskDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

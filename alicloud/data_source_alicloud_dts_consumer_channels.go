@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudDtsConsumerChannels() *schema.Resource {
+func dataSourceAliCloudDtsConsumerChannels() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDtsConsumerChannelsRead,
+		Read: dataSourceAliCloudDtsConsumerChannelsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -70,7 +70,7 @@ func dataSourceAlicloudDtsConsumerChannels() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDtsConsumerChannelsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDtsConsumerChannelsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeConsumerChannel"

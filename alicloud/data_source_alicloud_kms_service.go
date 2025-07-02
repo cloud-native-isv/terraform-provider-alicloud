@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudKmsService() *schema.Resource {
+func dataSourceAliCloudKmsService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKmsServiceRead,
+		Read: dataSourceAliCloudKmsServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -28,7 +28,7 @@ func dataSourceAlicloudKmsService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudKmsServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKmsServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("KmsServiceHasNotBeenOpened")
 		d.Set("status", "")

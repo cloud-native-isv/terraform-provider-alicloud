@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudInstanceTypeFamilies() *schema.Resource {
+func dataSourceAliCloudInstanceTypeFamilies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudInstanceTypeFamiliesRead,
+		Read: dataSourceAliCloudInstanceTypeFamiliesRead,
 
 		Schema: map[string]*schema.Schema{
 			"generation": {
@@ -77,7 +77,7 @@ func dataSourceAlicloudInstanceTypeFamilies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudInstanceTypeFamiliesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudInstanceTypeFamiliesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	request := ecs.CreateDescribeInstanceTypeFamiliesRequest()

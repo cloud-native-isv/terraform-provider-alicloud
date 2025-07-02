@@ -14,10 +14,10 @@ import (
 
 func resourceAliCloudVpcVswitchCidrReservation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpcVswitchCidrReservationCreate,
-		Read:   resourceAlicloudVpcVswitchCidrReservationRead,
-		Update: resourceAlicloudVpcVswitchCidrReservationUpdate,
-		Delete: resourceAlicloudVpcVswitchCidrReservationDelete,
+		Create: resourceAliCloudVpcVswitchCidrReservationCreate,
+		Read:   resourceAliCloudVpcVswitchCidrReservationRead,
+		Update: resourceAliCloudVpcVswitchCidrReservationUpdate,
+		Delete: resourceAliCloudVpcVswitchCidrReservationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -86,7 +86,7 @@ func resourceAliCloudVpcVswitchCidrReservation() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpcVswitchCidrReservationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcVswitchCidrReservationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "CreateVSwitchCidrReservation"
@@ -150,10 +150,10 @@ func resourceAlicloudVpcVswitchCidrReservationCreate(d *schema.ResourceData, met
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudVpcVswitchCidrReservationRead(d, meta)
+	return resourceAliCloudVpcVswitchCidrReservationRead(d, meta)
 }
 
-func resourceAlicloudVpcVswitchCidrReservationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcVswitchCidrReservationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcServiceV2 := VpcServiceV2{client}
 
@@ -181,7 +181,7 @@ func resourceAlicloudVpcVswitchCidrReservationRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceAlicloudVpcVswitchCidrReservationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcVswitchCidrReservationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var request map[string]interface{}
 	var response map[string]interface{}
@@ -231,10 +231,10 @@ func resourceAlicloudVpcVswitchCidrReservationUpdate(d *schema.ResourceData, met
 		d.SetPartial("vswitch_cidr_reservation_name")
 	}
 
-	return resourceAlicloudVpcVswitchCidrReservationRead(d, meta)
+	return resourceAliCloudVpcVswitchCidrReservationRead(d, meta)
 }
 
-func resourceAlicloudVpcVswitchCidrReservationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcVswitchCidrReservationDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 

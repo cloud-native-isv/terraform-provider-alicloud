@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudFlinkWorkspaces() *schema.Resource {
+func dataSourceAliCloudFlinkWorkspaces() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFlinkWorkspacesRead,
+		Read: dataSourceAliCloudFlinkWorkspacesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -113,7 +113,7 @@ func dataSourceAlicloudFlinkWorkspaces() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudFlinkWorkspacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFlinkWorkspacesRead(d *schema.ResourceData, meta interface{}) error {
 	// 1. 初始化Flink服务客户端
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)

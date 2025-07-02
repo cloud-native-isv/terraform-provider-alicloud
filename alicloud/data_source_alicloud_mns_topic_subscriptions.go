@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudMNSTopicSubscriptions() *schema.Resource {
+func dataSourceAliCloudMNSTopicSubscriptions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMNSTopicSubscriptionRead,
+		Read: dataSourceAliCloudMNSTopicSubscriptionRead,
 		Schema: map[string]*schema.Schema{
 			"topic_name": {
 				Type:     schema.TypeString,
@@ -72,7 +72,7 @@ func dataSourceAlicloudMNSTopicSubscriptions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMNSTopicSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMNSTopicSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	topicName := d.Get("topic_name").(string)
 	var namePrefix string

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDirectMailMailAddresses() *schema.Resource {
+func dataSourceAliCloudDirectMailMailAddresses() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDirectMailMailAddressesRead,
+		Read: dataSourceAliCloudDirectMailMailAddressesRead,
 		Schema: map[string]*schema.Schema{
 			"key_word": {
 				Type:     schema.TypeString,
@@ -108,7 +108,7 @@ func dataSourceAlicloudDirectMailMailAddresses() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDirectMailMailAddressesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDirectMailMailAddressesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "QueryMailAddressByParam"

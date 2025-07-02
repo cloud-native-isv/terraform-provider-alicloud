@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAlidnsCustomLines() *schema.Resource {
+func dataSourceAliCloudAlidnsCustomLines() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAlidnsCustomLinesRead,
+		Read: dataSourceAliCloudAlidnsCustomLinesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -101,7 +101,7 @@ func dataSourceAlicloudAlidnsCustomLines() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAlidnsCustomLinesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAlidnsCustomLinesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeCustomLines"

@@ -26,12 +26,12 @@ var (
 	default_max_login_attempts           = 5
 )
 
-func resourceAlicloudRamAccountPasswordPolicy() *schema.Resource {
+func resourceAliCloudRamAccountPasswordPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRamAccountPasswordPolicyUpdate,
-		Read:   resourceAlicloudRamAccountPasswordPolicyRead,
-		Update: resourceAlicloudRamAccountPasswordPolicyUpdate,
-		Delete: resourceAlicloudRamAccountPasswordPolicyDelete,
+		Create: resourceAliCloudRamAccountPasswordPolicyUpdate,
+		Read:   resourceAliCloudRamAccountPasswordPolicyRead,
+		Update: resourceAliCloudRamAccountPasswordPolicyUpdate,
+		Delete: resourceAliCloudRamAccountPasswordPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -90,7 +90,7 @@ func resourceAlicloudRamAccountPasswordPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRamAccountPasswordPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRamAccountPasswordPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := ram.CreateSetPasswordPolicyRequest()
@@ -127,10 +127,10 @@ func resourceAlicloudRamAccountPasswordPolicyUpdate(d *schema.ResourceData, meta
 	}
 	d.SetId("ram-account-password-policy")
 
-	return resourceAlicloudRamAccountPasswordPolicyRead(d, meta)
+	return resourceAliCloudRamAccountPasswordPolicyRead(d, meta)
 }
 
-func resourceAlicloudRamAccountPasswordPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRamAccountPasswordPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ramService := RamService{client}
 	object, err := ramService.DescribeRamAccountPasswordPolicy(d.Id())
@@ -150,7 +150,7 @@ func resourceAlicloudRamAccountPasswordPolicyRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceAlicloudRamAccountPasswordPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRamAccountPasswordPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := ram.CreateSetPasswordPolicyRequest()

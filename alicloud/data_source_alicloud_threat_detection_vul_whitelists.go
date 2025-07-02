@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudThreatDetectionVulWhitelists() *schema.Resource {
+func dataSourceAliCloudThreatDetectionVulWhitelists() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudThreatDetectionVulWhitelistsRead,
+		Read: dataSourceAliCloudThreatDetectionVulWhitelistsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -66,7 +66,7 @@ func dataSourceAlicloudThreatDetectionVulWhitelists() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudThreatDetectionVulWhitelistsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudThreatDetectionVulWhitelistsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeVulWhitelist"

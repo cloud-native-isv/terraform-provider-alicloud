@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudHbrOtsSnapshots() *schema.Resource {
+func dataSourceAliCloudHbrOtsSnapshots() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudHbrOtsSnapshotsRead,
+		Read: dataSourceAliCloudHbrOtsSnapshotsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -131,7 +131,7 @@ func dataSourceAlicloudHbrOtsSnapshots() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudHbrOtsSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudHbrOtsSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeOtsTableSnapshots"

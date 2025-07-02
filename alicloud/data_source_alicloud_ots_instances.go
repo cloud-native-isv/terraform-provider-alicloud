@@ -1,15 +1,16 @@
 package alicloud
 
 import (
+	"regexp"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"regexp"
 )
 
-func dataSourceAlicloudOtsInstances() *schema.Resource {
+func dataSourceAliCloudOtsInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOtsInstancesRead,
+		Read: dataSourceAliCloudOtsInstancesRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -118,7 +119,7 @@ func dataSourceAlicloudOtsInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudOtsInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOtsInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	otsService := OtsService{client}
 

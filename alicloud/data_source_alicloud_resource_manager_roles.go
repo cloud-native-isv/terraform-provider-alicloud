@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudResourceManagerRoles() *schema.Resource {
+func dataSourceAliCloudResourceManagerRoles() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudResourceManagerRolesRead,
+		Read: dataSourceAliCloudResourceManagerRolesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -85,7 +85,7 @@ func dataSourceAlicloudResourceManagerRoles() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudResourceManagerRolesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudResourceManagerRolesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListRoles"

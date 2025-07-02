@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudRosTemplates() *schema.Resource {
+func dataSourceAliCloudRosTemplates() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRosTemplatesRead,
+		Read: dataSourceAliCloudRosTemplatesRead,
 		Schema: map[string]*schema.Schema{
 			"share_type": {
 				Type:         schema.TypeString,
@@ -110,7 +110,7 @@ func dataSourceAlicloudRosTemplates() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRosTemplatesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRosTemplatesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTemplates"

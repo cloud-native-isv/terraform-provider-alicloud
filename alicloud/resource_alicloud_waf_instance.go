@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudWafInstance() *schema.Resource {
+func resourceAliCloudWafInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudWafInstanceCreate,
-		Read:   resourceAlicloudWafInstanceRead,
-		Update: resourceAlicloudWafInstanceUpdate,
-		Delete: resourceAlicloudWafInstanceDelete,
+		Create: resourceAliCloudWafInstanceCreate,
+		Read:   resourceAliCloudWafInstanceRead,
+		Update: resourceAliCloudWafInstanceUpdate,
+		Delete: resourceAliCloudWafInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -96,7 +96,7 @@ func resourceAlicloudWafInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudWafInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -187,9 +187,9 @@ func resourceAlicloudWafInstanceCreate(d *schema.ResourceData, meta interface{})
 	response = response["Data"].(map[string]interface{})
 	d.SetId(fmt.Sprint(response["InstanceId"]))
 
-	return resourceAlicloudWafInstanceUpdate(d, meta)
+	return resourceAliCloudWafInstanceUpdate(d, meta)
 }
-func resourceAlicloudWafInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	waf_openapiService := WafOpenapiService{client}
 	object, err := waf_openapiService.DescribeWafInstance(d.Id())
@@ -205,7 +205,7 @@ func resourceAlicloudWafInstanceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("subscription_type", object["SubscriptionType"])
 	return nil
 }
-func resourceAlicloudWafInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -282,9 +282,9 @@ func resourceAlicloudWafInstanceUpdate(d *schema.ResourceData, meta interface{})
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudWafInstanceRead(d, meta)
+	return resourceAliCloudWafInstanceRead(d, meta)
 }
-func resourceAlicloudWafInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteInstance"
 	var response map[string]interface{}

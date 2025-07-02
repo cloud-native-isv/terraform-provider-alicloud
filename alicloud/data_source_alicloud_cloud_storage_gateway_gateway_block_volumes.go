@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudStorageGatewayGatewayBlockVolumes() *schema.Resource {
+func dataSourceAliCloudCloudStorageGatewayGatewayBlockVolumes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudStorageGatewayGatewayBlockVolumesRead,
+		Read: dataSourceAliCloudCloudStorageGatewayGatewayBlockVolumesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -165,7 +165,7 @@ func dataSourceAlicloudCloudStorageGatewayGatewayBlockVolumes() *schema.Resource
 	}
 }
 
-func dataSourceAlicloudCloudStorageGatewayGatewayBlockVolumesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudStorageGatewayGatewayBlockVolumesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeGatewayBlockVolumes"

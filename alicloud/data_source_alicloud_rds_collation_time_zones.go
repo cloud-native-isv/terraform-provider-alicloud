@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRdsCollationTimeZones() *schema.Resource {
+func dataSourceAliCloudRdsCollationTimeZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRdsCollationTimeZonesRead,
+		Read: dataSourceAliCloudRdsCollationTimeZonesRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -49,7 +49,7 @@ func dataSourceAlicloudRdsCollationTimeZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRdsCollationTimeZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRdsCollationTimeZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeCollationTimeZones"
 	request := map[string]interface{}{

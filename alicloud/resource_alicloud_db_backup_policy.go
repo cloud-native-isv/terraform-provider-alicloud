@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDBBackupPolicy() *schema.Resource {
+func resourceAliCloudDBBackupPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDBBackupPolicyCreate,
-		Read:   resourceAlicloudDBBackupPolicyRead,
-		Update: resourceAlicloudDBBackupPolicyUpdate,
-		Delete: resourceAlicloudDBBackupPolicyDelete,
+		Create: resourceAliCloudDBBackupPolicyCreate,
+		Read:   resourceAliCloudDBBackupPolicyRead,
+		Update: resourceAliCloudDBBackupPolicyUpdate,
+		Delete: resourceAliCloudDBBackupPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -205,14 +205,14 @@ func resourceAlicloudDBBackupPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDBBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(d.Get("instance_id").(string))
 
-	return resourceAlicloudDBBackupPolicyUpdate(d, meta)
+	return resourceAliCloudDBBackupPolicyUpdate(d, meta)
 }
 
-func resourceAlicloudDBBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeBackupPolicy(d.Id())
@@ -267,7 +267,7 @@ func resourceAlicloudDBBackupPolicyRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceAlicloudDBBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	updateForData := false
@@ -306,10 +306,10 @@ func resourceAlicloudDBBackupPolicyUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	return resourceAlicloudDBBackupPolicyRead(d, meta)
+	return resourceAliCloudDBBackupPolicyRead(d, meta)
 }
 
-func resourceAlicloudDBBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 

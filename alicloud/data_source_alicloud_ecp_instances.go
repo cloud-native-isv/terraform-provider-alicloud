@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcpInstances() *schema.Resource {
+func dataSourceAliCloudEcpInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcpInstancesRead,
+		Read: dataSourceAliCloudEcpInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"payment_type": {
 				Type:         schema.TypeString,
@@ -153,7 +153,7 @@ func dataSourceAlicloudEcpInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcpInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcpInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListInstances"

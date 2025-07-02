@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcdNetworkPackage() *schema.Resource {
+func resourceAliCloudEcdNetworkPackage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdNetworkPackageCreate,
-		Read:   resourceAlicloudEcdNetworkPackageRead,
-		Update: resourceAlicloudEcdNetworkPackageUpdate,
-		Delete: resourceAlicloudEcdNetworkPackageDelete,
+		Create: resourceAliCloudEcdNetworkPackageCreate,
+		Read:   resourceAliCloudEcdNetworkPackageRead,
+		Update: resourceAliCloudEcdNetworkPackageUpdate,
+		Delete: resourceAliCloudEcdNetworkPackageDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +41,7 @@ func resourceAlicloudEcdNetworkPackage() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdNetworkPackageCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdNetworkPackageCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateNetworkPackage"
@@ -77,9 +77,9 @@ func resourceAlicloudEcdNetworkPackageCreate(d *schema.ResourceData, meta interf
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudEcdNetworkPackageRead(d, meta)
+	return resourceAliCloudEcdNetworkPackageRead(d, meta)
 }
-func resourceAlicloudEcdNetworkPackageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdNetworkPackageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdNetworkPackage(d.Id())
@@ -99,7 +99,7 @@ func resourceAlicloudEcdNetworkPackageRead(d *schema.ResourceData, meta interfac
 	d.Set("status", object["NetworkPackageStatus"])
 	return nil
 }
-func resourceAlicloudEcdNetworkPackageUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdNetworkPackageUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	request := map[string]interface{}{
@@ -132,9 +132,9 @@ func resourceAlicloudEcdNetworkPackageUpdate(d *schema.ResourceData, meta interf
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudEcdNetworkPackageRead(d, meta)
+	return resourceAliCloudEcdNetworkPackageRead(d, meta)
 }
-func resourceAlicloudEcdNetworkPackageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdNetworkPackageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteNetworkPackages"
 	var response map[string]interface{}

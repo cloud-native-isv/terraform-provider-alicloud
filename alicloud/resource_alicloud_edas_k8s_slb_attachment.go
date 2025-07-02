@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEdasK8sSlbAttachment() *schema.Resource {
+func resourceAliCloudEdasK8sSlbAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEdasK8sSlbAttachmentCreate,
-		Read:   resourceAlicloudEdasK8sSlbAttachmentRead,
-		Update: resourceAlicloudEdasK8sSlbAttachmentUpdate,
-		Delete: resourceAlicloudEdasK8sSlbAttachmentDelete,
+		Create: resourceAliCloudEdasK8sSlbAttachmentCreate,
+		Read:   resourceAliCloudEdasK8sSlbAttachmentRead,
+		Update: resourceAliCloudEdasK8sSlbAttachmentUpdate,
+		Delete: resourceAliCloudEdasK8sSlbAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -113,7 +113,7 @@ func resourceAlicloudEdasK8sSlbAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEdasK8sSlbAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasK8sSlbAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -141,10 +141,10 @@ func resourceAlicloudEdasK8sSlbAttachmentCreate(d *schema.ResourceData, meta int
 		}
 	}
 	d.SetId(appId)
-	return resourceAlicloudEdasK8sSlbAttachmentRead(d, meta)
+	return resourceAliCloudEdasK8sSlbAttachmentRead(d, meta)
 }
 
-func resourceAlicloudEdasK8sSlbAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasK8sSlbAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 	slbConfigs, err := edasService.DescribeEdasK8sSlbAttachment(d.Id())
@@ -222,7 +222,7 @@ func filterSlbInfo(slbInfo string) (*[]map[string]interface{}, error) {
 	return &filteredSlbInfo, nil
 }
 
-func resourceAlicloudEdasK8sSlbAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasK8sSlbAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -247,10 +247,10 @@ func resourceAlicloudEdasK8sSlbAttachmentUpdate(d *schema.ResourceData, meta int
 		d.SetPartial("slb_configs")
 	}
 	d.Partial(false)
-	return resourceAlicloudEdasK8sSlbAttachmentRead(d, meta)
+	return resourceAliCloudEdasK8sSlbAttachmentRead(d, meta)
 }
 
-func resourceAlicloudEdasK8sSlbAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasK8sSlbAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 	if v, ok := d.GetOk("slb_configs"); ok {

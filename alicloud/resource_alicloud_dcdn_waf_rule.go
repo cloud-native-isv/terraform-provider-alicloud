@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDcdnWafRule() *schema.Resource {
+func resourceAliCloudDcdnWafRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDcdnWafRuleCreate,
-		Read:   resourceAlicloudDcdnWafRuleRead,
-		Update: resourceAlicloudDcdnWafRuleUpdate,
-		Delete: resourceAlicloudDcdnWafRuleDelete,
+		Create: resourceAliCloudDcdnWafRuleCreate,
+		Read:   resourceAliCloudDcdnWafRuleRead,
+		Update: resourceAliCloudDcdnWafRuleUpdate,
+		Delete: resourceAliCloudDcdnWafRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -191,7 +191,7 @@ func resourceAlicloudDcdnWafRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDcdnWafRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -302,10 +302,10 @@ func resourceAlicloudDcdnWafRuleCreate(d *schema.ResourceData, meta interface{})
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudDcdnWafRuleRead(d, meta)
+	return resourceAliCloudDcdnWafRuleRead(d, meta)
 }
 
-func resourceAlicloudDcdnWafRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dcdnService := DcdnService{client}
 
@@ -381,7 +381,7 @@ func resourceAlicloudDcdnWafRuleRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAlicloudDcdnWafRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -532,10 +532,10 @@ func resourceAlicloudDcdnWafRuleUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	return resourceAlicloudDcdnWafRuleRead(d, meta)
+	return resourceAliCloudDcdnWafRuleRead(d, meta)
 }
 
-func resourceAlicloudDcdnWafRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 

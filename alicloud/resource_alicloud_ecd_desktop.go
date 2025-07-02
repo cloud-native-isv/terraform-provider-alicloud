@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcdDesktop() *schema.Resource {
+func resourceAliCloudEcdDesktop() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdDesktopCreate,
-		Read:   resourceAlicloudEcdDesktopRead,
-		Update: resourceAlicloudEcdDesktopUpdate,
-		Delete: resourceAlicloudEcdDesktopDelete,
+		Create: resourceAliCloudEcdDesktopCreate,
+		Read:   resourceAliCloudEcdDesktopRead,
+		Update: resourceAliCloudEcdDesktopUpdate,
+		Delete: resourceAliCloudEcdDesktopDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -159,7 +159,7 @@ func resourceAlicloudEcdDesktop() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdDesktopCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdDesktopCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	var response map[string]interface{}
@@ -237,9 +237,9 @@ func resourceAlicloudEcdDesktopCreate(d *schema.ResourceData, meta interface{}) 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudEcdDesktopUpdate(d, meta)
+	return resourceAliCloudEcdDesktopUpdate(d, meta)
 }
-func resourceAlicloudEcdDesktopRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdDesktopRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdDesktop(d.Id())
@@ -261,7 +261,7 @@ func resourceAlicloudEcdDesktopRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("tags", tagsToMap(object["Tags"]))
 	return nil
 }
-func resourceAlicloudEcdDesktopUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdDesktopUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	var response map[string]interface{}
@@ -512,9 +512,9 @@ func resourceAlicloudEcdDesktopUpdate(d *schema.ResourceData, meta interface{}) 
 		d.SetPartial("payment_type")
 	}
 	d.Partial(false)
-	return resourceAlicloudEcdDesktopRead(d, meta)
+	return resourceAliCloudEcdDesktopRead(d, meta)
 }
-func resourceAlicloudEcdDesktopDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdDesktopDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	action := "DeleteDesktops"

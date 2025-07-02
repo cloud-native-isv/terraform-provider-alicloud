@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudLogMachineGroup() *schema.Resource {
+func resourceAliCloudLogMachineGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudLogMachineGroupCreate,
-		Read:   resourceAlicloudLogMachineGroupRead,
-		Update: resourceAlicloudLogMachineGroupUpdate,
-		Delete: resourceAlicloudLogMachineGroupDelete,
+		Create: resourceAliCloudLogMachineGroupCreate,
+		Read:   resourceAliCloudLogMachineGroupRead,
+		Update: resourceAliCloudLogMachineGroupUpdate,
+		Delete: resourceAliCloudLogMachineGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +49,7 @@ func resourceAlicloudLogMachineGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudLogMachineGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogMachineGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -88,10 +88,10 @@ func resourceAlicloudLogMachineGroupCreate(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudLogMachineGroupRead(d, meta)
+	return resourceAliCloudLogMachineGroupRead(d, meta)
 }
 
-func resourceAlicloudLogMachineGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogMachineGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -128,7 +128,7 @@ func resourceAlicloudLogMachineGroupRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudLogMachineGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogMachineGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -168,10 +168,10 @@ func resourceAlicloudLogMachineGroupUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	return resourceAlicloudLogMachineGroupRead(d, meta)
+	return resourceAliCloudLogMachineGroupRead(d, meta)
 }
 
-func resourceAlicloudLogMachineGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogMachineGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {

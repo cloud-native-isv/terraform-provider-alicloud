@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOosApplication() *schema.Resource {
+func resourceAliCloudOosApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOosApplicationCreate,
-		Read:   resourceAlicloudOosApplicationRead,
-		Update: resourceAlicloudOosApplicationUpdate,
-		Delete: resourceAlicloudOosApplicationDelete,
+		Create: resourceAliCloudOosApplicationCreate,
+		Read:   resourceAliCloudOosApplicationRead,
+		Update: resourceAliCloudOosApplicationUpdate,
+		Delete: resourceAliCloudOosApplicationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -39,7 +39,7 @@ func resourceAlicloudOosApplication() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOosApplicationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateApplication"
@@ -80,9 +80,9 @@ func resourceAlicloudOosApplicationCreate(d *schema.ResourceData, meta interface
 	responseApplication := response["Application"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseApplication["Name"]))
 
-	return resourceAlicloudOosApplicationRead(d, meta)
+	return resourceAliCloudOosApplicationRead(d, meta)
 }
-func resourceAlicloudOosApplicationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	oosService := OosService{client}
 	object, err := oosService.DescribeOosApplication(d.Id())
@@ -100,7 +100,7 @@ func resourceAlicloudOosApplicationRead(d *schema.ResourceData, meta interface{}
 	d.Set("tags", tagsToMap(object["Tags"]))
 	return nil
 }
-func resourceAlicloudOosApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -144,9 +144,9 @@ func resourceAlicloudOosApplicationUpdate(d *schema.ResourceData, meta interface
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudOosApplicationRead(d, meta)
+	return resourceAliCloudOosApplicationRead(d, meta)
 }
-func resourceAlicloudOosApplicationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosApplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteApplication"
 	var response map[string]interface{}

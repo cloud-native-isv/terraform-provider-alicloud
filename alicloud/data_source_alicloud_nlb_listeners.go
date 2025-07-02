@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudNlbListeners() *schema.Resource {
+func dataSourceAliCloudNlbListeners() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNlbListenersRead,
+		Read: dataSourceAliCloudNlbListenersRead,
 		Schema: map[string]*schema.Schema{
 			"listener_protocol": {
 				Optional:     true,
@@ -144,7 +144,7 @@ func dataSourceAlicloudNlbListeners() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNlbListenersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNlbListenersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

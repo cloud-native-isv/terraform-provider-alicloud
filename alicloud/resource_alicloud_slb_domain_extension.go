@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSlbDomainExtension() *schema.Resource {
+func resourceAliCloudSlbDomainExtension() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunSlbDomainExtensionCreate,
 		Read:   resourceAliyunSlbDomainExtensionRead,

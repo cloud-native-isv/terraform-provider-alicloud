@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudThreatDetectionBaselineStrategy() *schema.Resource {
+func resourceAliCloudThreatDetectionBaselineStrategy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudThreatDetectionBaselineStrategyCreate,
-		Read:   resourceAlicloudThreatDetectionBaselineStrategyRead,
-		Update: resourceAlicloudThreatDetectionBaselineStrategyUpdate,
-		Delete: resourceAlicloudThreatDetectionBaselineStrategyDelete,
+		Create: resourceAliCloudThreatDetectionBaselineStrategyCreate,
+		Read:   resourceAliCloudThreatDetectionBaselineStrategyRead,
+		Update: resourceAliCloudThreatDetectionBaselineStrategyUpdate,
+		Delete: resourceAliCloudThreatDetectionBaselineStrategyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -68,7 +68,7 @@ func resourceAlicloudThreatDetectionBaselineStrategy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudThreatDetectionBaselineStrategyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionBaselineStrategyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -128,10 +128,10 @@ func resourceAlicloudThreatDetectionBaselineStrategyCreate(d *schema.ResourceDat
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudThreatDetectionBaselineStrategyRead(d, meta)
+	return resourceAliCloudThreatDetectionBaselineStrategyRead(d, meta)
 }
 
-func resourceAlicloudThreatDetectionBaselineStrategyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionBaselineStrategyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sasService := SasService{client}
 	objectFromList, err := sasService.DescribeStrategy(d.Id())
@@ -166,7 +166,7 @@ func resourceAlicloudThreatDetectionBaselineStrategyRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceAlicloudThreatDetectionBaselineStrategyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionBaselineStrategyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -244,10 +244,10 @@ func resourceAlicloudThreatDetectionBaselineStrategyUpdate(d *schema.ResourceDat
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudThreatDetectionBaselineStrategyRead(d, meta)
+	return resourceAliCloudThreatDetectionBaselineStrategyRead(d, meta)
 }
 
-func resourceAlicloudThreatDetectionBaselineStrategyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionBaselineStrategyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 

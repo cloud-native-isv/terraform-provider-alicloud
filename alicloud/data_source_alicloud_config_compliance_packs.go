@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudConfigCompliancePacks() *schema.Resource {
+func dataSourceAliCloudConfigCompliancePacks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudConfigCompliancePacksRead,
+		Read: dataSourceAliCloudConfigCompliancePacksRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -129,7 +129,7 @@ func dataSourceAlicloudConfigCompliancePacks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudConfigCompliancePacksRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudConfigCompliancePacksRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListCompliancePacks"

@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudBastionhostHostShareKey() *schema.Resource {
+func resourceAliCloudBastionhostHostShareKey() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudBastionhostHostShareKeyCreate,
-		Read:   resourceAlicloudBastionhostHostShareKeyRead,
-		Update: resourceAlicloudBastionhostHostShareKeyUpdate,
-		Delete: resourceAlicloudBastionhostHostShareKeyDelete,
+		Create: resourceAliCloudBastionhostHostShareKeyCreate,
+		Read:   resourceAliCloudBastionhostHostShareKeyRead,
+		Update: resourceAliCloudBastionhostHostShareKeyUpdate,
+		Delete: resourceAliCloudBastionhostHostShareKeyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -59,7 +59,7 @@ func resourceAlicloudBastionhostHostShareKey() *schema.Resource {
 	}
 }
 
-func resourceAlicloudBastionhostHostShareKeyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostShareKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateHostShareKey"
@@ -90,9 +90,9 @@ func resourceAlicloudBastionhostHostShareKeyCreate(d *schema.ResourceData, meta 
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", response["HostShareKeyId"]))
 
-	return resourceAlicloudBastionhostHostShareKeyUpdate(d, meta)
+	return resourceAliCloudBastionhostHostShareKeyUpdate(d, meta)
 }
-func resourceAlicloudBastionhostHostShareKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostShareKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	yundunBastionhostService := YundunBastionhostService{client}
 	object, err := yundunBastionhostService.DescribeBastionhostHostShareKey(d.Id())
@@ -114,7 +114,7 @@ func resourceAlicloudBastionhostHostShareKeyRead(d *schema.ResourceData, meta in
 	d.Set("private_key_finger_print", object["PrivateKeyFingerPrint"])
 	return nil
 }
-func resourceAlicloudBastionhostHostShareKeyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostShareKeyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -158,9 +158,9 @@ func resourceAlicloudBastionhostHostShareKeyUpdate(d *schema.ResourceData, meta 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudBastionhostHostShareKeyRead(d, meta)
+	return resourceAliCloudBastionhostHostShareKeyRead(d, meta)
 }
-func resourceAlicloudBastionhostHostShareKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostShareKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

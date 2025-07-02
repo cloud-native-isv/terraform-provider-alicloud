@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudPrivateLinkService() *schema.Resource {
+func dataSourceAliCloudPrivateLinkService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPrivateLinkServiceRead,
+		Read: dataSourceAliCloudPrivateLinkServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -29,7 +29,7 @@ func dataSourceAlicloudPrivateLinkService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudPrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("PrivateLinkServiceHasNotBeenOpened")
 		d.Set("status", "")

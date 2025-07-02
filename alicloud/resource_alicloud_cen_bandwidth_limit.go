@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCenBandwidthLimit() *schema.Resource {
+func resourceAliCloudCenBandwidthLimit() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenBandwidthLimitCreate,
-		Read:   resourceAlicloudCenBandwidthLimitRead,
-		Update: resourceAlicloudCenBandwidthLimitUpdate,
-		Delete: resourceAlicloudCenBandwidthLimitDelete,
+		Create: resourceAliCloudCenBandwidthLimitCreate,
+		Read:   resourceAliCloudCenBandwidthLimitRead,
+		Update: resourceAliCloudCenBandwidthLimitUpdate,
+		Delete: resourceAliCloudCenBandwidthLimitDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +52,7 @@ func resourceAlicloudCenBandwidthLimit() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenBandwidthLimitCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenBandwidthLimitCreate(d *schema.ResourceData, meta interface{}) error {
 	cenId := d.Get("instance_id").(string)
 	regionIds := d.Get("region_ids").(*schema.Set).List()
 	if len(regionIds) != 2 {
@@ -68,10 +68,10 @@ func resourceAlicloudCenBandwidthLimitCreate(d *schema.ResourceData, meta interf
 		d.SetId(cenId + COLON_SEPARATED + oppositeRegionId + COLON_SEPARATED + localRegionId)
 	}
 
-	return resourceAlicloudCenBandwidthLimitUpdate(d, meta)
+	return resourceAliCloudCenBandwidthLimitUpdate(d, meta)
 }
 
-func resourceAlicloudCenBandwidthLimitRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenBandwidthLimitRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cenService := CenService{client}
 
@@ -94,7 +94,7 @@ func resourceAlicloudCenBandwidthLimitRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceAlicloudCenBandwidthLimitUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenBandwidthLimitUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cenService := CenService{client}
 	cenId := d.Get("instance_id").(string)
@@ -146,10 +146,10 @@ func resourceAlicloudCenBandwidthLimitUpdate(d *schema.ResourceData, meta interf
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudCenBandwidthLimitRead(d, meta)
+	return resourceAliCloudCenBandwidthLimitRead(d, meta)
 }
 
-func resourceAlicloudCenBandwidthLimitDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenBandwidthLimitDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cenService := CenService{client}
 	cenId := d.Get("instance_id").(string)

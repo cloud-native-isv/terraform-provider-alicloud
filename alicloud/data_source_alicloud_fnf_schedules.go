@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudFnfSchedules() *schema.Resource {
+func dataSourceAliCloudFnfSchedules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFnfSchedulesRead,
+		Read: dataSourceAliCloudFnfSchedulesRead,
 		Schema: map[string]*schema.Schema{
 			"flow_name": {
 				Type:     schema.TypeString,
@@ -90,7 +90,7 @@ func dataSourceAlicloudFnfSchedules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudFnfSchedulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFnfSchedulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListSchedules"

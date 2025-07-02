@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudKmsKeyVersion() *schema.Resource {
+func resourceAliCloudKmsKeyVersion() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudKmsKeyVersionCreate,
-		Read:   resourceAlicloudKmsKeyVersionRead,
-		Delete: resourceAlicloudKmsKeyVersionDelete,
+		Create: resourceAliCloudKmsKeyVersionCreate,
+		Read:   resourceAliCloudKmsKeyVersionRead,
+		Delete: resourceAliCloudKmsKeyVersionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -32,7 +32,7 @@ func resourceAlicloudKmsKeyVersion() *schema.Resource {
 	}
 }
 
-func resourceAlicloudKmsKeyVersionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKmsKeyVersionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateKeyVersion"
@@ -58,9 +58,9 @@ func resourceAlicloudKmsKeyVersionCreate(d *schema.ResourceData, meta interface{
 	responseKeyVersion := response["KeyVersion"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseKeyVersion["KeyId"], ":", responseKeyVersion["KeyVersionId"]))
 
-	return resourceAlicloudKmsKeyVersionRead(d, meta)
+	return resourceAliCloudKmsKeyVersionRead(d, meta)
 }
-func resourceAlicloudKmsKeyVersionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKmsKeyVersionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	kmsService := KmsService{client}
 	_, err := kmsService.DescribeKmsKeyVersion(d.Id())
@@ -80,7 +80,7 @@ func resourceAlicloudKmsKeyVersionRead(d *schema.ResourceData, meta interface{})
 	d.Set("key_version_id", parts[1])
 	return nil
 }
-func resourceAlicloudKmsKeyVersionDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudKmsKeyVersion. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudKmsKeyVersionDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudKmsKeyVersion. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

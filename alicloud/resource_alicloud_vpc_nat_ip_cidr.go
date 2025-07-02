@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudVpcNatIpCidr() *schema.Resource {
+func resourceAliCloudVpcNatIpCidr() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpcNatIpCidrCreate,
-		Read:   resourceAlicloudVpcNatIpCidrRead,
-		Update: resourceAlicloudVpcNatIpCidrUpdate,
-		Delete: resourceAlicloudVpcNatIpCidrDelete,
+		Create: resourceAliCloudVpcNatIpCidrCreate,
+		Read:   resourceAliCloudVpcNatIpCidrRead,
+		Update: resourceAliCloudVpcNatIpCidrUpdate,
+		Delete: resourceAliCloudVpcNatIpCidrDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,7 +51,7 @@ func resourceAlicloudVpcNatIpCidr() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpcNatIpCidrCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcNatIpCidrCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateNatIpCidr"
@@ -91,9 +91,9 @@ func resourceAlicloudVpcNatIpCidrCreate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(fmt.Sprint(request["NatGatewayId"], ":", request["NatIpCidr"]))
 
-	return resourceAlicloudVpcNatIpCidrRead(d, meta)
+	return resourceAliCloudVpcNatIpCidrRead(d, meta)
 }
-func resourceAlicloudVpcNatIpCidrRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcNatIpCidrRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpcNatIpCidr(d.Id())
@@ -116,7 +116,7 @@ func resourceAlicloudVpcNatIpCidrRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("status", object["NatIpCidrStatus"])
 	return nil
 }
-func resourceAlicloudVpcNatIpCidrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcNatIpCidrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -167,9 +167,9 @@ func resourceAlicloudVpcNatIpCidrUpdate(d *schema.ResourceData, meta interface{}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudVpcNatIpCidrRead(d, meta)
+	return resourceAliCloudVpcNatIpCidrRead(d, meta)
 }
-func resourceAlicloudVpcNatIpCidrDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcNatIpCidrDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

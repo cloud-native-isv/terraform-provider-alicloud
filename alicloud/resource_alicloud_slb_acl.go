@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSlbAcl() *schema.Resource {
+func resourceAliCloudSlbAcl() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSlbAclCreate,
-		Read:   resourceAlicloudSlbAclRead,
-		Update: resourceAlicloudSlbAclUpdate,
-		Delete: resourceAlicloudSlbAclDelete,
+		Create: resourceAliCloudSlbAclCreate,
+		Read:   resourceAliCloudSlbAclRead,
+		Update: resourceAliCloudSlbAclUpdate,
+		Delete: resourceAliCloudSlbAclDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -68,7 +68,7 @@ func resourceAlicloudSlbAcl() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSlbAclCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbAclCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateAccessControlList"
@@ -102,10 +102,10 @@ func resourceAlicloudSlbAclCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(fmt.Sprint(response["AclId"]))
-	return resourceAlicloudSlbAclUpdate(d, meta)
+	return resourceAliCloudSlbAclUpdate(d, meta)
 }
 
-func resourceAlicloudSlbAclRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbAclRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slbService := SlbService{client}
 
@@ -147,7 +147,7 @@ func resourceAlicloudSlbAclRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceAlicloudSlbAclUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbAclUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	slbService := SlbService{client}
@@ -263,10 +263,10 @@ func resourceAlicloudSlbAclUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 	d.Partial(false)
 
-	return resourceAlicloudSlbAclRead(d, meta)
+	return resourceAliCloudSlbAclRead(d, meta)
 }
 
-func resourceAlicloudSlbAclDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbAclDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteAccessControlList"
 	var response map[string]interface{}

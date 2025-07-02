@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudExpressConnectVbrPconnAssociation() *schema.Resource {
+func resourceAliCloudExpressConnectVbrPconnAssociation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudExpressConnectVbrPconnAssociationCreate,
-		Read:   resourceAlicloudExpressConnectVbrPconnAssociationRead,
-		Delete: resourceAlicloudExpressConnectVbrPconnAssociationDelete,
+		Create: resourceAliCloudExpressConnectVbrPconnAssociationCreate,
+		Read:   resourceAliCloudExpressConnectVbrPconnAssociationRead,
+		Delete: resourceAliCloudExpressConnectVbrPconnAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -89,7 +89,7 @@ func resourceAlicloudExpressConnectVbrPconnAssociation() *schema.Resource {
 	}
 }
 
-func resourceAlicloudExpressConnectVbrPconnAssociationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectVbrPconnAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	expressConnectService := ExpressConnectService{client}
 	request := map[string]interface{}{
@@ -153,10 +153,10 @@ func resourceAlicloudExpressConnectVbrPconnAssociationCreate(d *schema.ResourceD
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudExpressConnectVbrPconnAssociationRead(d, meta)
+	return resourceAliCloudExpressConnectVbrPconnAssociationRead(d, meta)
 }
 
-func resourceAlicloudExpressConnectVbrPconnAssociationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectVbrPconnAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	expressConnectService := ExpressConnectService{client}
 
@@ -189,7 +189,7 @@ func resourceAlicloudExpressConnectVbrPconnAssociationRead(d *schema.ResourceDat
 	return nil
 }
 
-func resourceAlicloudExpressConnectVbrPconnAssociationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectVbrPconnAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	expressConnectService := ExpressConnectService{client}
 	var err error

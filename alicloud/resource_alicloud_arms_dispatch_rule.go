@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudArmsDispatchRule() *schema.Resource {
+func resourceAliCloudArmsDispatchRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudArmsDispatchRuleCreate,
-		Read:   resourceAlicloudArmsDispatchRuleRead,
-		Update: resourceAlicloudArmsDispatchRuleUpdate,
-		Delete: resourceAlicloudArmsDispatchRuleDelete,
+		Create: resourceAliCloudArmsDispatchRuleCreate,
+		Read:   resourceAliCloudArmsDispatchRuleRead,
+		Update: resourceAliCloudArmsDispatchRuleUpdate,
+		Delete: resourceAliCloudArmsDispatchRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -201,7 +201,7 @@ func resourceAlicloudArmsDispatchRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudArmsDispatchRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsDispatchRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDispatchRule"
@@ -327,10 +327,10 @@ func resourceAlicloudArmsDispatchRuleCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(fmt.Sprint(response["DispatchRuleId"]))
 
-	return resourceAlicloudArmsDispatchRuleRead(d, meta)
+	return resourceAliCloudArmsDispatchRuleRead(d, meta)
 }
 
-func resourceAlicloudArmsDispatchRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsDispatchRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	armsService := NewArmsService(client)
 	object, err := armsService.DescribeArmsDispatchRule(d.Id())
@@ -448,7 +448,7 @@ func resourceAlicloudArmsDispatchRuleRead(d *schema.ResourceData, meta interface
 	d.Set("dispatch_rule_name", object["Name"])
 	return nil
 }
-func resourceAlicloudArmsDispatchRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsDispatchRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "UpdateDispatchRule"
@@ -580,9 +580,9 @@ func resourceAlicloudArmsDispatchRuleUpdate(d *schema.ResourceData, meta interfa
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_dispatch_rule", action, AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudArmsDispatchRuleRead(d, meta)
+	return resourceAliCloudArmsDispatchRuleRead(d, meta)
 }
-func resourceAlicloudArmsDispatchRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsDispatchRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDispatchRule"
 	var response map[string]interface{}

@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCloudFirewallInstanceMember() *schema.Resource {
+func resourceAliCloudCloudFirewallInstanceMember() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudFirewallInstanceMemberCreate,
-		Read:   resourceAlicloudCloudFirewallInstanceMemberRead,
-		Update: resourceAlicloudCloudFirewallInstanceMemberUpdate,
-		Delete: resourceAlicloudCloudFirewallInstanceMemberDelete,
+		Create: resourceAliCloudCloudFirewallInstanceMemberCreate,
+		Read:   resourceAliCloudCloudFirewallInstanceMemberRead,
+		Update: resourceAliCloudCloudFirewallInstanceMemberUpdate,
+		Delete: resourceAliCloudCloudFirewallInstanceMemberDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceAlicloudCloudFirewallInstanceMember() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudFirewallInstanceMemberCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudFirewallInstanceMemberCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudfwService := CloudfwService{client}
 	request := make(map[string]interface{})
@@ -95,10 +95,10 @@ func resourceAlicloudCloudFirewallInstanceMemberCreate(d *schema.ResourceData, m
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudCloudFirewallInstanceMemberRead(d, meta)
+	return resourceAliCloudCloudFirewallInstanceMemberRead(d, meta)
 }
 
-func resourceAlicloudCloudFirewallInstanceMemberRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudFirewallInstanceMemberRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudfwService := CloudfwService{client}
 
@@ -121,7 +121,7 @@ func resourceAlicloudCloudFirewallInstanceMemberRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceAlicloudCloudFirewallInstanceMemberUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudFirewallInstanceMemberUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -159,10 +159,10 @@ func resourceAlicloudCloudFirewallInstanceMemberUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	return resourceAlicloudCloudFirewallInstanceMemberRead(d, meta)
+	return resourceAliCloudCloudFirewallInstanceMemberRead(d, meta)
 }
 
-func resourceAlicloudCloudFirewallInstanceMemberDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudFirewallInstanceMemberDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudfwService := CloudfwService{client}
 	var err error

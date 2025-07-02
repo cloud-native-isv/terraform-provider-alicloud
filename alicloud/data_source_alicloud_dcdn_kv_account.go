@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDcdnKvAccount() *schema.Resource {
+func dataSourceAliCloudDcdnKvAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDcdnKvAccountRead,
+		Read: dataSourceAliCloudDcdnKvAccountRead,
 
 		Schema: map[string]*schema.Schema{
 			"status": {
@@ -27,7 +27,7 @@ func dataSourceAlicloudDcdnKvAccount() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudDcdnKvAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDcdnKvAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dcdnService := DcdnService{client}
 	object, err := dcdnService.DescribeDcdnKvAccountStatus()

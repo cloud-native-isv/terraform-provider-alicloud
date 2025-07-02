@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcTrafficMirrorFilters() *schema.Resource {
+func dataSourceAliCloudVpcTrafficMirrorFilters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcTrafficMirrorFiltersRead,
+		Read: dataSourceAliCloudVpcTrafficMirrorFiltersRead,
 		Schema: map[string]*schema.Schema{
 			"status": {
 				Type:         schema.TypeString,
@@ -82,7 +82,7 @@ func dataSourceAlicloudVpcTrafficMirrorFilters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcTrafficMirrorFiltersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcTrafficMirrorFiltersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTrafficMirrorFilters"

@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRegions() *schema.Resource {
+func dataSourceAliCloudRegions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRegionsRead,
+		Read: dataSourceAliCloudRegionsRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -59,7 +59,7 @@ func dataSourceAlicloudRegions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRegionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRegionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := ecs.CreateDescribeRegionsRequest()
 	request.RegionId = client.RegionId

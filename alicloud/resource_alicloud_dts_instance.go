@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudDtsInstance() *schema.Resource {
+func resourceAliCloudDtsInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDtsInstanceCreate,
-		Read:   resourceAlicloudDtsInstanceRead,
-		Update: resourceAlicloudDtsInstanceUpdate,
-		Delete: resourceAlicloudDtsInstanceDelete,
+		Create: resourceAliCloudDtsInstanceCreate,
+		Read:   resourceAliCloudDtsInstanceRead,
+		Update: resourceAliCloudDtsInstanceUpdate,
+		Delete: resourceAliCloudDtsInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -154,7 +154,7 @@ func resourceAlicloudDtsInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDtsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"RegionId": client.RegionId,
@@ -242,10 +242,10 @@ func resourceAlicloudDtsInstanceCreate(d *schema.ResourceData, meta interface{})
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudDtsInstanceUpdate(d, meta)
+	return resourceAliCloudDtsInstanceUpdate(d, meta)
 }
 
-func resourceAlicloudDtsInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dtsService := DtsService{client}
 
@@ -289,7 +289,7 @@ func resourceAlicloudDtsInstanceRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAlicloudDtsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -335,10 +335,10 @@ func resourceAlicloudDtsInstanceUpdate(d *schema.ResourceData, meta interface{})
 		d.SetPartial("tags")
 	}
 	d.Partial(false)
-	return resourceAlicloudDtsInstanceRead(d, meta)
+	return resourceAliCloudDtsInstanceRead(d, meta)
 }
 
-func resourceAlicloudDtsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	if d.Get("payment_type").(string) == "Subscription" {
 		log.Printf("[WARN] Cannot destroy resource Alicloud Resource DTS Instance. Terraform will remove this resource from the state file, however resources may remain.")
 		return nil

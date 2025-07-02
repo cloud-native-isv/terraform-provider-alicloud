@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudPvtzRule() *schema.Resource {
+func resourceAliCloudPvtzRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPvtzRuleCreate,
-		Read:   resourceAlicloudPvtzRuleRead,
-		Update: resourceAlicloudPvtzRuleUpdate,
-		Delete: resourceAlicloudPvtzRuleDelete,
+		Create: resourceAliCloudPvtzRuleCreate,
+		Read:   resourceAliCloudPvtzRuleRead,
+		Update: resourceAliCloudPvtzRuleUpdate,
+		Delete: resourceAliCloudPvtzRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,7 +62,7 @@ func resourceAlicloudPvtzRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPvtzRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddResolverRule"
@@ -100,9 +100,9 @@ func resourceAlicloudPvtzRuleCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(fmt.Sprint(response["RuleId"]))
 
-	return resourceAlicloudPvtzRuleRead(d, meta)
+	return resourceAliCloudPvtzRuleRead(d, meta)
 }
-func resourceAlicloudPvtzRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	pvtzService := PvtzService{client}
 	object, err := pvtzService.DescribePvtzRule(d.Id())
@@ -131,7 +131,7 @@ func resourceAlicloudPvtzRuleRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("zone_name", object["ZoneName"])
 	return nil
 }
-func resourceAlicloudPvtzRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -174,9 +174,9 @@ func resourceAlicloudPvtzRuleUpdate(d *schema.ResourceData, meta interface{}) er
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudPvtzRuleRead(d, meta)
+	return resourceAliCloudPvtzRuleRead(d, meta)
 }
-func resourceAlicloudPvtzRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteResolverRule"
 	var response map[string]interface{}

@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCddcDedicatedHosts() *schema.Resource {
+func dataSourceAliCloudCddcDedicatedHosts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCddcDedicatedHostsRead,
+		Read: dataSourceAliCloudCddcDedicatedHostsRead,
 		Schema: map[string]*schema.Schema{
 			"allocation_status": {
 				Type:         schema.TypeString,
@@ -197,7 +197,7 @@ func dataSourceAlicloudCddcDedicatedHosts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCddcDedicatedHostsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCddcDedicatedHostsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDedicatedHosts"

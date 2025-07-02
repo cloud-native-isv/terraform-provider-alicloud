@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudRosChangeSets() *schema.Resource {
+func dataSourceAliCloudRosChangeSets() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRosChangeSetsRead,
+		Read: dataSourceAliCloudRosChangeSetsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -133,7 +133,7 @@ func dataSourceAlicloudRosChangeSets() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRosChangeSetsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRosChangeSetsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListChangeSets"

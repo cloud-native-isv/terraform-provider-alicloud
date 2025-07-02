@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudVpcBgpGroup() *schema.Resource {
+func resourceAliCloudVpcBgpGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpcBgpGroupCreate,
-		Read:   resourceAlicloudVpcBgpGroupRead,
-		Update: resourceAlicloudVpcBgpGroupUpdate,
-		Delete: resourceAlicloudVpcBgpGroupDelete,
+		Create: resourceAliCloudVpcBgpGroupCreate,
+		Read:   resourceAliCloudVpcBgpGroupRead,
+		Update: resourceAliCloudVpcBgpGroupUpdate,
+		Delete: resourceAliCloudVpcBgpGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -70,7 +70,7 @@ func resourceAlicloudVpcBgpGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpcBgpGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcBgpGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateBgpGroup"
@@ -121,9 +121,9 @@ func resourceAlicloudVpcBgpGroupCreate(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudVpcBgpGroupRead(d, meta)
+	return resourceAliCloudVpcBgpGroupRead(d, meta)
 }
-func resourceAlicloudVpcBgpGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcBgpGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpcBgpGroup(d.Id())
@@ -145,7 +145,7 @@ func resourceAlicloudVpcBgpGroupRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudVpcBgpGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcBgpGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	var err error
@@ -212,9 +212,9 @@ func resourceAlicloudVpcBgpGroupUpdate(d *schema.ResourceData, meta interface{})
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudVpcBgpGroupRead(d, meta)
+	return resourceAliCloudVpcBgpGroupRead(d, meta)
 }
-func resourceAlicloudVpcBgpGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcBgpGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	action := "DeleteBgpGroup"

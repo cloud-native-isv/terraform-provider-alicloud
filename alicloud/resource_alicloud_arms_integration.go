@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudArmsIntegration() *schema.Resource {
+func resourceAliCloudArmsIntegration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudArmsIntegrationCreate,
-		Read:   resourceAlicloudArmsIntegrationRead,
-		Update: resourceAlicloudArmsIntegrationUpdate,
-		Delete: resourceAlicloudArmsIntegrationDelete,
+		Create: resourceAliCloudArmsIntegrationCreate,
+		Read:   resourceAliCloudArmsIntegrationRead,
+		Update: resourceAliCloudArmsIntegrationUpdate,
+		Delete: resourceAliCloudArmsIntegrationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -64,7 +64,7 @@ func resourceAlicloudArmsIntegration() *schema.Resource {
 	}
 }
 
-func resourceAlicloudArmsIntegrationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsIntegrationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "CreateIntegration"
 	request := make(map[string]interface{})
@@ -116,10 +116,10 @@ func resourceAlicloudArmsIntegrationCreate(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudArmsIntegrationRead(d, meta)
+	return resourceAliCloudArmsIntegrationRead(d, meta)
 }
 
-func resourceAlicloudArmsIntegrationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsIntegrationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	armsService := NewArmsService(client)
 
@@ -144,7 +144,7 @@ func resourceAlicloudArmsIntegrationRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudArmsIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	update := false
 
@@ -199,10 +199,10 @@ func resourceAlicloudArmsIntegrationUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	return resourceAlicloudArmsIntegrationRead(d, meta)
+	return resourceAliCloudArmsIntegrationRead(d, meta)
 }
 
-func resourceAlicloudArmsIntegrationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsIntegrationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteIntegration"
 

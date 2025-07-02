@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCRNamespace() *schema.Resource {
+func resourceAliCloudCRNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCRNamespaceCreate,
-		Read:   resourceAlicloudCRNamespaceRead,
-		Update: resourceAlicloudCRNamespaceUpdate,
-		Delete: resourceAlicloudCRNamespaceDelete,
+		Create: resourceAliCloudCRNamespaceCreate,
+		Read:   resourceAliCloudCRNamespaceRead,
+		Update: resourceAliCloudCRNamespaceUpdate,
+		Delete: resourceAliCloudCRNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -40,7 +40,7 @@ func resourceAlicloudCRNamespace() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCRNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCRNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	namespaceName := d.Get("name").(string)
@@ -65,10 +65,10 @@ func resourceAlicloudCRNamespaceCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(namespaceName)
 
-	return resourceAlicloudCRNamespaceUpdate(d, meta)
+	return resourceAliCloudCRNamespaceUpdate(d, meta)
 }
 
-func resourceAlicloudCRNamespaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCRNamespaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	if d.HasChange("auto_create") || d.HasChange("default_visibility") {
@@ -93,10 +93,10 @@ func resourceAlicloudCRNamespaceUpdate(d *schema.ResourceData, meta interface{})
 		}
 		addDebug(request.GetActionName(), raw, request.RoaRequest, request)
 	}
-	return resourceAlicloudCRNamespaceRead(d, meta)
+	return resourceAliCloudCRNamespaceRead(d, meta)
 }
 
-func resourceAlicloudCRNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCRNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := CrService{client}
 
@@ -122,7 +122,7 @@ func resourceAlicloudCRNamespaceRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAlicloudCRNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCRNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := CrService{client}
 

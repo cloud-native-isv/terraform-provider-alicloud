@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudHbrRestoreJobs() *schema.Resource {
+func dataSourceAliCloudHbrRestoreJobs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudHbrRestoreJobsRead,
+		Read: dataSourceAliCloudHbrRestoreJobsRead,
 		Schema: map[string]*schema.Schema{
 			"restore_type": {
 				Type:         schema.TypeString,
@@ -212,7 +212,7 @@ func dataSourceAlicloudHbrRestoreJobs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudHbrRestoreJobsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudHbrRestoreJobsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeRestoreJobs2"

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCloudStorageGatewayGatewayLogging() *schema.Resource {
+func resourceAliCloudCloudStorageGatewayGatewayLogging() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudStorageGatewayGatewayLoggingCreate,
-		Read:   resourceAlicloudCloudStorageGatewayGatewayLoggingRead,
-		Update: resourceAlicloudCloudStorageGatewayGatewayLoggingUpdate,
-		Delete: resourceAlicloudCloudStorageGatewayGatewayLoggingDelete,
+		Create: resourceAliCloudCloudStorageGatewayGatewayLoggingCreate,
+		Read:   resourceAliCloudCloudStorageGatewayGatewayLoggingRead,
+		Update: resourceAliCloudCloudStorageGatewayGatewayLoggingUpdate,
+		Delete: resourceAliCloudCloudStorageGatewayGatewayLoggingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudCloudStorageGatewayGatewayLogging() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudStorageGatewayGatewayLoggingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayLoggingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateGatewayLogging"
@@ -77,9 +77,9 @@ func resourceAlicloudCloudStorageGatewayGatewayLoggingCreate(d *schema.ResourceD
 
 	d.SetId(fmt.Sprint(request["GatewayId"]))
 
-	return resourceAlicloudCloudStorageGatewayGatewayLoggingUpdate(d, meta)
+	return resourceAliCloudCloudStorageGatewayGatewayLoggingUpdate(d, meta)
 }
-func resourceAlicloudCloudStorageGatewayGatewayLoggingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayLoggingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	object, err := sgwService.DescribeCloudStorageGatewayGatewayLogging(d.Id())
@@ -98,7 +98,7 @@ func resourceAlicloudCloudStorageGatewayGatewayLoggingRead(d *schema.ResourceDat
 	d.Set("status", object["GatewayLoggingStatus"])
 	return nil
 }
-func resourceAlicloudCloudStorageGatewayGatewayLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	var response map[string]interface{}
@@ -171,9 +171,9 @@ func resourceAlicloudCloudStorageGatewayGatewayLoggingUpdate(d *schema.ResourceD
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudCloudStorageGatewayGatewayLoggingRead(d, meta)
+	return resourceAliCloudCloudStorageGatewayGatewayLoggingRead(d, meta)
 }
-func resourceAlicloudCloudStorageGatewayGatewayLoggingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayLoggingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteGatewayLogging"
 	var response map[string]interface{}

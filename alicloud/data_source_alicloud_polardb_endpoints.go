@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudPolarDBEndpoints() *schema.Resource {
+func dataSourceAliCloudPolarDBEndpoints() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPolarDBEndpointsRead,
+		Read: dataSourceAliCloudPolarDBEndpointsRead,
 
 		Schema: map[string]*schema.Schema{
 			"db_cluster_id": {
@@ -89,7 +89,7 @@ func dataSourceAlicloudPolarDBEndpoints() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudPolarDBEndpointsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPolarDBEndpointsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := polardb.CreateDescribeDBClusterEndpointsRequest()
 

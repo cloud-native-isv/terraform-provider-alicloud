@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudArmsAlertSilencePolicies() *schema.Resource {
+func dataSourceAliCloudArmsAlertSilencePolicies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudArmsAlertSilencePoliciesRead,
+		Read: dataSourceAliCloudArmsAlertSilencePoliciesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -112,7 +112,7 @@ func dataSourceAlicloudArmsAlertSilencePolicies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudArmsAlertSilencePoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsAlertSilencePoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListSilencePolicies"

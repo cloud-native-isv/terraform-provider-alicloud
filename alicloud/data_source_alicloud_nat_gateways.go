@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudNatGateways() *schema.Resource {
+func dataSourceAliCloudNatGateways() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNatGatewaysRead,
+		Read: dataSourceAliCloudNatGatewaysRead,
 		Schema: map[string]*schema.Schema{
 			"dry_run": {
 				Type:     schema.TypeBool,
@@ -206,7 +206,7 @@ func dataSourceAlicloudNatGateways() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNatGatewaysRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNatGatewaysRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeNatGateways"

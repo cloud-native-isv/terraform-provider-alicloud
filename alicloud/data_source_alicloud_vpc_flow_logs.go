@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcFlowLogs() *schema.Resource {
+func dataSourceAliCloudVpcFlowLogs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcFlowLogsRead,
+		Read: dataSourceAliCloudVpcFlowLogsRead,
 		Schema: map[string]*schema.Schema{
 			"description": {
 				Type:     schema.TypeString,
@@ -133,7 +133,7 @@ func dataSourceAlicloudVpcFlowLogs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcFlowLogsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcFlowLogsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeFlowLogs"

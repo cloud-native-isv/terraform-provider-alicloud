@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudWafv3Instances() *schema.Resource {
+func dataSourceAliCloudWafv3Instances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudWafv3InstancesRead,
+		Read: dataSourceAliCloudWafv3InstancesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Optional: true,
@@ -55,7 +55,7 @@ func dataSourceAlicloudWafv3Instances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudWafv3InstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudWafv3InstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	idsMap := make(map[string]string)
 	if v, ok := d.GetOk("ids"); ok {

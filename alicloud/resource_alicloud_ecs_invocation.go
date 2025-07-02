@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcsInvocation() *schema.Resource {
+func resourceAliCloudEcsInvocation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsInvocationCreate,
-		Read:   resourceAlicloudEcsInvocationRead,
-		Delete: resourceAlicloudEcsInvocationDelete,
+		Create: resourceAliCloudEcsInvocationCreate,
+		Read:   resourceAliCloudEcsInvocationRead,
+		Delete: resourceAliCloudEcsInvocationDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 			Delete: schema.DefaultTimeout(1 * time.Minute),
@@ -82,7 +82,7 @@ func resourceAlicloudEcsInvocation() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsInvocationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsInvocationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "InvokeCommand"
@@ -138,9 +138,9 @@ func resourceAlicloudEcsInvocationCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEcsInvocationRead(d, meta)
+	return resourceAliCloudEcsInvocationRead(d, meta)
 }
-func resourceAlicloudEcsInvocationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsInvocationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsInvocation(d.Id())
@@ -180,7 +180,7 @@ func resourceAlicloudEcsInvocationRead(d *schema.ResourceData, meta interface{})
 	d.Set("instance_id", instanceIdItems)
 	return nil
 }
-func resourceAlicloudEcsInvocationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsInvocationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "StopInvocation"
@@ -205,6 +205,6 @@ func resourceAlicloudEcsInvocationDelete(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ecs_invocation", action, AlibabaCloudSdkGoERROR)
 	}
 
-	log.Printf("[WARN] Cannot destroy resourceAlicloudEcsInvocation. Terraform will remove this resource from the state file, however resources may remain.")
+	log.Printf("[WARN] Cannot destroy resourceAliCloudEcsInvocation. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

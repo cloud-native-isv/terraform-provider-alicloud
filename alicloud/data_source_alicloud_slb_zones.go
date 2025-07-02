@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSlbZones() *schema.Resource {
+func dataSourceAliCloudSlbZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSlbZonesRead,
+		Read: dataSourceAliCloudSlbZonesRead,
 		Schema: map[string]*schema.Schema{
 			"available_slb_address_type": {
 				Type:         schema.TypeString,
@@ -99,7 +99,7 @@ func dataSourceAlicloudSlbZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSlbZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSlbZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := slb.CreateDescribeAvailableResourceRequest()
 	request.RegionId = client.RegionId

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOnsInstances() *schema.Resource {
+func dataSourceAliCloudOnsInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOnsInstancesRead,
+		Read: dataSourceAliCloudOnsInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -116,7 +116,7 @@ func dataSourceAlicloudOnsInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudOnsInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOnsInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "OnsInstanceInServiceList"

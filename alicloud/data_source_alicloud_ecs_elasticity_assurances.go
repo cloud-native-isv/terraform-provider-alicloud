@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEcsElasticityAssurances() *schema.Resource {
+func dataSourceAliCloudEcsElasticityAssurances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcsElasticityAssurancesRead,
+		Read: dataSourceAliCloudEcsElasticityAssurancesRead,
 		Schema: map[string]*schema.Schema{
 			"private_pool_options_ids": {
 				Optional: true,
@@ -141,7 +141,7 @@ func dataSourceAlicloudEcsElasticityAssurances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcsElasticityAssurancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcsElasticityAssurancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

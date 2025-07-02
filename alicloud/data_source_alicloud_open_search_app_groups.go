@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOpenSearchAppGroups() *schema.Resource {
+func dataSourceAliCloudOpenSearchAppGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOpenSearchAppGroupsRead,
+		Read: dataSourceAliCloudOpenSearchAppGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -198,7 +198,7 @@ func dataSourceAlicloudOpenSearchAppGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudOpenSearchAppGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOpenSearchAppGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "/v4/openapi/app-groups"

@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudHBaseZones() *schema.Resource {
+func dataSourceAliCloudHBaseZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudHBaseZonesRead,
+		Read: dataSourceAliCloudHBaseZonesRead,
 
 		Schema: map[string]*schema.Schema{
 			"multi": {
@@ -51,7 +51,7 @@ func dataSourceAlicloudHBaseZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudHBaseZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudHBaseZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var zoneIds []string
 

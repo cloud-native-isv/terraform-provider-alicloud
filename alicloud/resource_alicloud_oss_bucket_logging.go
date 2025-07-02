@@ -13,10 +13,10 @@ import (
 
 func resourceAliCloudOssBucketLogging() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOssBucketLoggingCreate,
-		Read:   resourceAlicloudOssBucketLoggingRead,
-		Update: resourceAlicloudOssBucketLoggingUpdate,
-		Delete: resourceAlicloudOssBucketLoggingDelete,
+		Create: resourceAliCloudOssBucketLoggingCreate,
+		Read:   resourceAliCloudOssBucketLoggingRead,
+		Update: resourceAliCloudOssBucketLoggingUpdate,
+		Delete: resourceAliCloudOssBucketLoggingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -57,7 +57,7 @@ func resourceAliCloudOssBucketLogging() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOssBucketLoggingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketLoggingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ossService := NewOssService(client)
 	bucket := d.Get("bucket").(string)
@@ -84,10 +84,10 @@ func resourceAlicloudOssBucketLoggingCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(bucket)
 
-	return resourceAlicloudOssBucketLoggingRead(d, meta)
+	return resourceAliCloudOssBucketLoggingRead(d, meta)
 }
 
-func resourceAlicloudOssBucketLoggingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketLoggingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ossService := NewOssService(client)
 	bucket := d.Id()
@@ -138,7 +138,7 @@ func resourceAlicloudOssBucketLoggingRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceAlicloudOssBucketLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ossService := NewOssService(client)
 	bucket := d.Id()
@@ -181,10 +181,10 @@ func resourceAlicloudOssBucketLoggingUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	d.Partial(false)
-	return resourceAlicloudOssBucketLoggingRead(d, meta)
+	return resourceAliCloudOssBucketLoggingRead(d, meta)
 }
 
-func resourceAlicloudOssBucketLoggingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketLoggingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ossService := NewOssService(client)
 	bucket := d.Id()

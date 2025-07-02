@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEhpcJobTemplates() *schema.Resource {
+func dataSourceAliCloudEhpcJobTemplates() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEhpcJobTemplatesRead,
+		Read: dataSourceAliCloudEhpcJobTemplatesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -113,7 +113,7 @@ func dataSourceAlicloudEhpcJobTemplates() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEhpcJobTemplatesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEhpcJobTemplatesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListJobTemplates"

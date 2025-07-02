@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEdasNamespace() *schema.Resource {
+func resourceAliCloudEdasNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEdasNamespaceCreate,
-		Read:   resourceAlicloudEdasNamespaceRead,
-		Update: resourceAlicloudEdasNamespaceUpdate,
-		Delete: resourceAlicloudEdasNamespaceDelete,
+		Create: resourceAliCloudEdasNamespaceCreate,
+		Read:   resourceAliCloudEdasNamespaceRead,
+		Update: resourceAliCloudEdasNamespaceUpdate,
+		Delete: resourceAliCloudEdasNamespaceDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 			Update: schema.DefaultTimeout(1 * time.Minute),
@@ -52,7 +52,7 @@ func resourceAlicloudEdasNamespace() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEdasNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "/pop/v5/user_region_def"
@@ -85,9 +85,9 @@ func resourceAlicloudEdasNamespaceCreate(d *schema.ResourceData, meta interface{
 	responseUserDefineRegionEntity := response["UserDefineRegionEntity"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseUserDefineRegionEntity["Id"]))
 
-	return resourceAlicloudEdasNamespaceRead(d, meta)
+	return resourceAliCloudEdasNamespaceRead(d, meta)
 }
-func resourceAlicloudEdasNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 	object, err := edasService.DescribeEdasNamespace(d.Id())
@@ -105,7 +105,7 @@ func resourceAlicloudEdasNamespaceRead(d *schema.ResourceData, meta interface{})
 	d.Set("namespace_name", object["RegionName"])
 	return nil
 }
-func resourceAlicloudEdasNamespaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasNamespaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -150,9 +150,9 @@ func resourceAlicloudEdasNamespaceUpdate(d *schema.ResourceData, meta interface{
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudEdasNamespaceRead(d, meta)
+	return resourceAliCloudEdasNamespaceRead(d, meta)
 }
-func resourceAlicloudEdasNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "/pop/v5/user_region_def"
 	var response map[string]interface{}

@@ -2,9 +2,10 @@ package alicloud
 
 import (
 	"encoding/json"
-	"github.com/PaesslerAG/jsonpath"
 	"regexp"
 	"strings"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
@@ -13,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpnConnections() *schema.Resource {
+func dataSourceAliCloudVpnConnections() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpnConnectionsRead,
+		Read: dataSourceAliCloudVpnConnectionsRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -405,7 +406,7 @@ func dataSourceAlicloudVpnConnections() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpnConnectionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpnConnectionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := vpc.CreateDescribeVpnConnectionsRequest()

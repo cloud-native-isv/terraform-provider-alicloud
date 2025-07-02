@@ -14,10 +14,10 @@ import (
 
 func resourceAliCloudVpcPrefixList() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpcPrefixListCreate,
-		Read:   resourceAlicloudVpcPrefixListRead,
-		Update: resourceAlicloudVpcPrefixListUpdate,
-		Delete: resourceAlicloudVpcPrefixListDelete,
+		Create: resourceAliCloudVpcPrefixListCreate,
+		Read:   resourceAliCloudVpcPrefixListRead,
+		Update: resourceAliCloudVpcPrefixListUpdate,
+		Delete: resourceAliCloudVpcPrefixListDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -132,7 +132,7 @@ func resourceAliCloudVpcPrefixList() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpcPrefixListCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcPrefixListCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "CreateVpcPrefixList"
@@ -204,10 +204,10 @@ func resourceAlicloudVpcPrefixListCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudVpcPrefixListUpdate(d, meta)
+	return resourceAliCloudVpcPrefixListUpdate(d, meta)
 }
 
-func resourceAlicloudVpcPrefixListRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcPrefixListRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcServiceV2 := VpcServiceV2{client}
 
@@ -278,7 +278,7 @@ func resourceAlicloudVpcPrefixListRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudVpcPrefixListUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcPrefixListUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var request map[string]interface{}
 	var response map[string]interface{}
@@ -474,10 +474,10 @@ func resourceAlicloudVpcPrefixListUpdate(d *schema.ResourceData, meta interface{
 		d.SetPartial("tags")
 	}
 	d.Partial(false)
-	return resourceAlicloudVpcPrefixListRead(d, meta)
+	return resourceAliCloudVpcPrefixListRead(d, meta)
 }
 
-func resourceAlicloudVpcPrefixListDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcPrefixListDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 

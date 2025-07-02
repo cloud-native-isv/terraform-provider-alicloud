@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudGaBasicAccelerateIpEndpointRelations() *schema.Resource {
+func dataSourceAliCloudGaBasicAccelerateIpEndpointRelations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGaBasicAccelerateIpEndpointRelationsRead,
+		Read: dataSourceAliCloudGaBasicAccelerateIpEndpointRelationsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -107,7 +107,7 @@ func dataSourceAlicloudGaBasicAccelerateIpEndpointRelations() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGaBasicAccelerateIpEndpointRelationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGaBasicAccelerateIpEndpointRelationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListBasicAccelerateIpEndpointRelations"

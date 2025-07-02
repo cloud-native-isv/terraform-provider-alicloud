@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCloudStorageGatewayExpressSync() *schema.Resource {
+func resourceAliCloudCloudStorageGatewayExpressSync() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudStorageGatewayExpressSyncCreate,
-		Read:   resourceAlicloudCloudStorageGatewayExpressSyncRead,
-		Delete: resourceAlicloudCloudStorageGatewayExpressSyncDelete,
+		Create: resourceAliCloudCloudStorageGatewayExpressSyncCreate,
+		Read:   resourceAliCloudCloudStorageGatewayExpressSyncRead,
+		Delete: resourceAliCloudCloudStorageGatewayExpressSyncDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -56,7 +56,7 @@ func resourceAlicloudCloudStorageGatewayExpressSync() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudStorageGatewayExpressSyncCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayExpressSyncCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateExpressSync"
@@ -93,9 +93,9 @@ func resourceAlicloudCloudStorageGatewayExpressSyncCreate(d *schema.ResourceData
 	}
 
 	d.SetId(fmt.Sprint(response["ExpressSyncId"]))
-	return resourceAlicloudCloudStorageGatewayExpressSyncRead(d, meta)
+	return resourceAliCloudCloudStorageGatewayExpressSyncRead(d, meta)
 }
-func resourceAlicloudCloudStorageGatewayExpressSyncRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayExpressSyncRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	object, err := sgwService.DescribeExpressSyncs(d.Id())
@@ -116,7 +116,7 @@ func resourceAlicloudCloudStorageGatewayExpressSyncRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceAlicloudCloudStorageGatewayExpressSyncDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayExpressSyncDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	action := "DeleteExpressSync"

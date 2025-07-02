@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudSlbDomainExtensions() *schema.Resource {
+func dataSourceAliCloudSlbDomainExtensions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSlbDomainExtensionsRead,
+		Read: dataSourceAliCloudSlbDomainExtensionsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -55,7 +55,7 @@ func dataSourceAlicloudSlbDomainExtensions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSlbDomainExtensionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSlbDomainExtensionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := slb.CreateDescribeDomainExtensionsRequest()

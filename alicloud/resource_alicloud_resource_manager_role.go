@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudResourceManagerRole() *schema.Resource {
+func resourceAliCloudResourceManagerRole() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudResourceManagerRoleCreate,
-		Read:   resourceAlicloudResourceManagerRoleRead,
-		Update: resourceAlicloudResourceManagerRoleUpdate,
-		Delete: resourceAlicloudResourceManagerRoleDelete,
+		Create: resourceAliCloudResourceManagerRoleCreate,
+		Read:   resourceAliCloudResourceManagerRoleRead,
+		Update: resourceAliCloudResourceManagerRoleUpdate,
+		Delete: resourceAliCloudResourceManagerRoleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +66,7 @@ func resourceAlicloudResourceManagerRole() *schema.Resource {
 	}
 }
 
-func resourceAlicloudResourceManagerRoleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerRoleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateRole"
@@ -101,9 +101,9 @@ func resourceAlicloudResourceManagerRoleCreate(d *schema.ResourceData, meta inte
 	responseRole := response["Role"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseRole["RoleName"]))
 
-	return resourceAlicloudResourceManagerRoleRead(d, meta)
+	return resourceAliCloudResourceManagerRoleRead(d, meta)
 }
-func resourceAlicloudResourceManagerRoleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerRoleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resourcemanagerService := ResourcemanagerService{client}
 	object, err := resourcemanagerService.DescribeResourceManagerRole(d.Id())
@@ -125,7 +125,7 @@ func resourceAlicloudResourceManagerRoleRead(d *schema.ResourceData, meta interf
 	d.Set("update_date", object["UpdateDate"])
 	return nil
 }
-func resourceAlicloudResourceManagerRoleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerRoleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -160,9 +160,9 @@ func resourceAlicloudResourceManagerRoleUpdate(d *schema.ResourceData, meta inte
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudResourceManagerRoleRead(d, meta)
+	return resourceAliCloudResourceManagerRoleRead(d, meta)
 }
-func resourceAlicloudResourceManagerRoleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerRoleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteRole"
 	var response map[string]interface{}

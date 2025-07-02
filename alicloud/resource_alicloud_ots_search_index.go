@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOtsSearchIndex() *schema.Resource {
+func resourceAliCloudOtsSearchIndex() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunOtsSearchIndexCreate,
 		Read:   resourceAliyunOtsSearchIndexRead,

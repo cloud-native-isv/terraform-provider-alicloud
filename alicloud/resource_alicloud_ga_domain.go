@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudGaDomain() *schema.Resource {
+func resourceAliCloudGaDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudGaDomainCreate,
-		Read:   resourceAlicloudGaDomainRead,
-		Delete: resourceAlicloudGaDomainDelete,
+		Create: resourceAliCloudGaDomainCreate,
+		Read:   resourceAliCloudGaDomainRead,
+		Delete: resourceAliCloudGaDomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +41,7 @@ func resourceAlicloudGaDomain() *schema.Resource {
 	}
 }
 
-func resourceAlicloudGaDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -74,10 +74,10 @@ func resourceAlicloudGaDomainCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(fmt.Sprint(request["AcceleratorIds.1"], ":", request["Domain"]))
 
-	return resourceAlicloudGaDomainRead(d, meta)
+	return resourceAliCloudGaDomainRead(d, meta)
 }
 
-func resourceAlicloudGaDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gaService := GaService{client}
 
@@ -101,7 +101,7 @@ func resourceAlicloudGaDomainRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceAlicloudGaDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaDomainDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	parts, err := ParseResourceId(d.Id(), 2)

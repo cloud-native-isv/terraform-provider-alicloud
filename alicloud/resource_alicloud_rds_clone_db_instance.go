@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRdsCloneDbInstance() *schema.Resource {
+func resourceAliCloudRdsCloneDbInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdsCloneDbInstanceCreate,
-		Read:   resourceAlicloudRdsCloneDbInstanceRead,
-		Update: resourceAlicloudRdsCloneDbInstanceUpdate,
-		Delete: resourceAlicloudRdsCloneDbInstanceDelete,
+		Create: resourceAliCloudRdsCloneDbInstanceCreate,
+		Read:   resourceAliCloudRdsCloneDbInstanceRead,
+		Update: resourceAliCloudRdsCloneDbInstanceUpdate,
+		Delete: resourceAliCloudRdsCloneDbInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -447,7 +447,7 @@ func resourceAlicloudRdsCloneDbInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRdsCloneDbInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsCloneDbInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	var response map[string]interface{}
@@ -581,9 +581,9 @@ func resourceAlicloudRdsCloneDbInstanceCreate(d *schema.ResourceData, meta inter
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudRdsCloneDbInstanceUpdate(d, meta)
+	return resourceAliCloudRdsCloneDbInstanceUpdate(d, meta)
 }
-func resourceAlicloudRdsCloneDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsCloneDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeRdsCloneDbInstance(d.Id())
@@ -707,7 +707,7 @@ func resourceAlicloudRdsCloneDbInstanceRead(d *schema.ResourceData, meta interfa
 	d.Set("tcp_connection_type", res["TcpConnectionType"])
 	return nil
 }
-func resourceAlicloudRdsCloneDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsCloneDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	var response map[string]interface{}
@@ -1291,9 +1291,9 @@ func resourceAlicloudRdsCloneDbInstanceUpdate(d *schema.ResourceData, meta inter
 		d.SetPartial("zone_id")
 	}
 	d.Partial(false)
-	return resourceAlicloudRdsCloneDbInstanceRead(d, meta)
+	return resourceAliCloudRdsCloneDbInstanceRead(d, meta)
 }
-func resourceAlicloudRdsCloneDbInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsCloneDbInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDBInstance"
 	var response map[string]interface{}

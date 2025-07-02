@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudImmProject() *schema.Resource {
+func resourceAliCloudImmProject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudImmProjectCreate,
-		Read:   resourceAlicloudImmProjectRead,
-		Update: resourceAlicloudImmProjectUpdate,
-		Delete: resourceAlicloudImmProjectDelete,
+		Create: resourceAliCloudImmProjectCreate,
+		Read:   resourceAliCloudImmProjectRead,
+		Update: resourceAliCloudImmProjectUpdate,
+		Delete: resourceAliCloudImmProjectDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -37,7 +37,7 @@ func resourceAlicloudImmProject() *schema.Resource {
 	}
 }
 
-func resourceAlicloudImmProjectCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudImmProjectCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -66,9 +66,9 @@ func resourceAlicloudImmProjectCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(fmt.Sprint(request["Project"]))
 
-	return resourceAlicloudImmProjectUpdate(d, meta)
+	return resourceAliCloudImmProjectUpdate(d, meta)
 }
-func resourceAlicloudImmProjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudImmProjectRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	immService := ImmService{client}
 	object, err := immService.DescribeImmProject(d.Id())
@@ -89,7 +89,7 @@ func resourceAlicloudImmProjectRead(d *schema.ResourceData, meta interface{}) er
 
 	return nil
 }
-func resourceAlicloudImmProjectUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudImmProjectUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 
@@ -122,9 +122,9 @@ func resourceAlicloudImmProjectUpdate(d *schema.ResourceData, meta interface{}) 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudImmProjectRead(d, meta)
+	return resourceAliCloudImmProjectRead(d, meta)
 }
-func resourceAlicloudImmProjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudImmProjectDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	request := map[string]interface{}{

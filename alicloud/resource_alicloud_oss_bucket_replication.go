@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOssBucketReplication() *schema.Resource {
+func resourceAliCloudOssBucketReplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOssBucketReplicationCreate,
-		Read:   resourceAlicloudOssBucketReplicationRead,
-		Delete: resourceAlicloudOssBucketReplicationDelete,
+		Create: resourceAliCloudOssBucketReplicationCreate,
+		Read:   resourceAliCloudOssBucketReplicationRead,
+		Delete: resourceAliCloudOssBucketReplicationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -485,7 +485,7 @@ func hasProgressBlock(d *schema.ResourceData) bool {
 	return true
 }
 
-func resourceAlicloudOssBucketReplicationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketReplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	bucket := d.Get("bucket").(string)
 
@@ -537,10 +537,10 @@ func resourceAlicloudOssBucketReplicationCreate(d *schema.ResourceData, meta int
 	}
 
 	d.SetId(fmt.Sprintf("%s%s%s", bucket, COLON_SEPARATED, ruleId))
-	return resourceAlicloudOssBucketReplicationRead(d, meta)
+	return resourceAliCloudOssBucketReplicationRead(d, meta)
 }
 
-func resourceAlicloudOssBucketReplicationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketReplicationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -579,7 +579,7 @@ func resourceAlicloudOssBucketReplicationRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceAlicloudOssBucketReplicationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketReplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

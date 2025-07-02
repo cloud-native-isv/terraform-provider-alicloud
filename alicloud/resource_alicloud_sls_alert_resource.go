@@ -26,7 +26,7 @@ type AlertGlobalConfig struct {
 	} `json:"config_detail"`
 }
 
-func resourceAlicloudLogAlertResource() *schema.Resource {
+func resourceAliCloudLogAlertResource() *schema.Resource {
 	return &schema.Resource{
 		Create: resourcelicloudLogAlertResourceCreate,
 		Read:   resourcelicloudLogAlertResourceRead,

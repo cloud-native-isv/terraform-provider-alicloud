@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudTsdbInstance() *schema.Resource {
+func resourceAliCloudTsdbInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudTsdbInstanceCreate,
-		Read:   resourceAlicloudTsdbInstanceRead,
-		Update: resourceAlicloudTsdbInstanceUpdate,
-		Delete: resourceAlicloudTsdbInstanceDelete,
+		Create: resourceAliCloudTsdbInstanceCreate,
+		Read:   resourceAliCloudTsdbInstanceRead,
+		Update: resourceAliCloudTsdbInstanceUpdate,
+		Delete: resourceAliCloudTsdbInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -87,7 +87,7 @@ func resourceAlicloudTsdbInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudTsdbInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudTsdbInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hitsdbService := HitsdbService{client}
 	var response map[string]interface{}
@@ -151,9 +151,9 @@ func resourceAlicloudTsdbInstanceCreate(d *schema.ResourceData, meta interface{}
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudTsdbInstanceRead(d, meta)
+	return resourceAliCloudTsdbInstanceRead(d, meta)
 }
-func resourceAlicloudTsdbInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudTsdbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hitsdbService := HitsdbService{client}
 	object, err := hitsdbService.DescribeTsdbInstance(d.Id())
@@ -176,7 +176,7 @@ func resourceAlicloudTsdbInstanceRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("zone_id", object["ZoneId"])
 	return nil
 }
-func resourceAlicloudTsdbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudTsdbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hitsdbService := HitsdbService{client}
 	var response map[string]interface{}
@@ -255,9 +255,9 @@ func resourceAlicloudTsdbInstanceUpdate(d *schema.ResourceData, meta interface{}
 		d.SetPartial("instance_storage")
 	}
 	d.Partial(false)
-	return resourceAlicloudTsdbInstanceRead(d, meta)
+	return resourceAliCloudTsdbInstanceRead(d, meta)
 }
-func resourceAlicloudTsdbInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudTsdbInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteHiTSDBInstance"
 	var response map[string]interface{}

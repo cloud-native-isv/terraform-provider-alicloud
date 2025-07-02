@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCloudStorageGatewayGatewaySmbUser() *schema.Resource {
+func resourceAliCloudCloudStorageGatewayGatewaySmbUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudStorageGatewayGatewaySmbUserCreate,
-		Read:   resourceAlicloudCloudStorageGatewayGatewaySmbUserRead,
-		Delete: resourceAlicloudCloudStorageGatewayGatewaySmbUserDelete,
+		Create: resourceAliCloudCloudStorageGatewayGatewaySmbUserCreate,
+		Read:   resourceAliCloudCloudStorageGatewayGatewaySmbUserRead,
+		Delete: resourceAliCloudCloudStorageGatewayGatewaySmbUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -43,7 +43,7 @@ func resourceAlicloudCloudStorageGatewayGatewaySmbUser() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudStorageGatewayGatewaySmbUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewaySmbUserCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	var response map[string]interface{}
@@ -80,10 +80,10 @@ func resourceAlicloudCloudStorageGatewayGatewaySmbUserCreate(d *schema.ResourceD
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCloudStorageGatewayGatewaySmbUserRead(d, meta)
+	return resourceAliCloudCloudStorageGatewayGatewaySmbUserRead(d, meta)
 }
 
-func resourceAlicloudCloudStorageGatewayGatewaySmbUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewaySmbUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	_, err := sgwService.DescribeCloudStorageGatewayGatewaySmbUser(d.Id())
@@ -104,7 +104,7 @@ func resourceAlicloudCloudStorageGatewayGatewaySmbUserRead(d *schema.ResourceDat
 	return nil
 }
 
-func resourceAlicloudCloudStorageGatewayGatewaySmbUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewaySmbUserDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

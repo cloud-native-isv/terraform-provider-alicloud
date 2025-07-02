@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudBastionhostInstances() *schema.Resource {
+func dataSourceAliCloudBastionhostInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudBastionhostInstancesRead,
+		Read: dataSourceAliCloudBastionhostInstancesRead,
 
 		Schema: map[string]*schema.Schema{
 			"description_regex": {
@@ -104,7 +104,7 @@ func dataSourceAlicloudBastionhostInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudBastionhostInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudBastionhostInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeInstances"

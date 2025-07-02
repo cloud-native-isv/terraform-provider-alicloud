@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSlbTlsCipherPolicy() *schema.Resource {
+func resourceAliCloudSlbTlsCipherPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSlbTlsCipherPolicyCreate,
-		Read:   resourceAlicloudSlbTlsCipherPolicyRead,
-		Update: resourceAlicloudSlbTlsCipherPolicyUpdate,
-		Delete: resourceAlicloudSlbTlsCipherPolicyDelete,
+		Create: resourceAliCloudSlbTlsCipherPolicyCreate,
+		Read:   resourceAliCloudSlbTlsCipherPolicyRead,
+		Update: resourceAliCloudSlbTlsCipherPolicyUpdate,
+		Delete: resourceAliCloudSlbTlsCipherPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -42,7 +42,7 @@ func resourceAlicloudSlbTlsCipherPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSlbTlsCipherPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbTlsCipherPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateTLSCipherPolicy"
@@ -71,9 +71,9 @@ func resourceAlicloudSlbTlsCipherPolicyCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(fmt.Sprint(response["TLSCipherPolicyId"]))
 
-	return resourceAlicloudSlbTlsCipherPolicyRead(d, meta)
+	return resourceAliCloudSlbTlsCipherPolicyRead(d, meta)
 }
-func resourceAlicloudSlbTlsCipherPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbTlsCipherPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slbService := SlbService{client}
 	object, err := slbService.DescribeSlbTlsCipherPolicy(d.Id())
@@ -91,7 +91,7 @@ func resourceAlicloudSlbTlsCipherPolicyRead(d *schema.ResourceData, meta interfa
 	d.Set("tls_versions", object["TLSVersions"])
 	return nil
 }
-func resourceAlicloudSlbTlsCipherPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbTlsCipherPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -131,9 +131,9 @@ func resourceAlicloudSlbTlsCipherPolicyUpdate(d *schema.ResourceData, meta inter
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudSlbTlsCipherPolicyRead(d, meta)
+	return resourceAliCloudSlbTlsCipherPolicyRead(d, meta)
 }
-func resourceAlicloudSlbTlsCipherPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbTlsCipherPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteTLSCipherPolicy"
 	var response map[string]interface{}

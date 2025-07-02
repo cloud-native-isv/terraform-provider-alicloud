@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAlikafkaConsumerGroup() *schema.Resource {
+func resourceAliCloudAlikafkaConsumerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlikafkaConsumerGroupCreate,
-		Update: resourceAlicloudAlikafkaConsumerGroupUpdate,
-		Read:   resourceAlicloudAlikafkaConsumerGroupRead,
-		Delete: resourceAlicloudAlikafkaConsumerGroupDelete,
+		Create: resourceAliCloudAlikafkaConsumerGroupCreate,
+		Update: resourceAliCloudAlikafkaConsumerGroupUpdate,
+		Read:   resourceAliCloudAlikafkaConsumerGroupRead,
+		Delete: resourceAliCloudAlikafkaConsumerGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -42,7 +42,7 @@ func resourceAlicloudAlikafkaConsumerGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlikafkaConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlikafkaConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateConsumerGroup"
@@ -76,10 +76,10 @@ func resourceAlicloudAlikafkaConsumerGroupCreate(d *schema.ResourceData, meta in
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["ConsumerId"]))
 
-	return resourceAlicloudAlikafkaConsumerGroupUpdate(d, meta)
+	return resourceAliCloudAlikafkaConsumerGroupUpdate(d, meta)
 }
 
-func resourceAlicloudAlikafkaConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlikafkaConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	alikafkaService := AlikafkaService{client}
 	object, err := alikafkaService.DescribeAliKafkaConsumerGroup(d.Id())
@@ -105,7 +105,7 @@ func resourceAlicloudAlikafkaConsumerGroupRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceAlicloudAlikafkaConsumerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlikafkaConsumerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	alikafkaService := AlikafkaService{client}
 	if d.HasChange("tags") {
@@ -114,10 +114,10 @@ func resourceAlicloudAlikafkaConsumerGroupUpdate(d *schema.ResourceData, meta in
 		}
 		d.SetPartial("tags")
 	}
-	return resourceAlicloudAlikafkaConsumerGroupRead(d, meta)
+	return resourceAliCloudAlikafkaConsumerGroupRead(d, meta)
 }
 
-func resourceAlicloudAlikafkaConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlikafkaConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	alikafkaService := AlikafkaService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

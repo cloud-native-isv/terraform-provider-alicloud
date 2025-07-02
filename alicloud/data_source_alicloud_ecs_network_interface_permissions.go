@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcsNetworkInterfacePermissions() *schema.Resource {
+func dataSourceAliCloudEcsNetworkInterfacePermissions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcsNetworkInterfacePermissionsRead,
+		Read: dataSourceAliCloudEcsNetworkInterfacePermissionsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -90,7 +90,7 @@ func dataSourceAlicloudEcsNetworkInterfacePermissions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcsNetworkInterfacePermissionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcsNetworkInterfacePermissionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeNetworkInterfacePermissions"

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudDfsAccessRules() *schema.Resource {
+func dataSourceAliCloudDfsAccessRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDfsAccessRulesRead,
+		Read: dataSourceAliCloudDfsAccessRulesRead,
 		Schema: map[string]*schema.Schema{
 			"access_group_id": {
 				Type:     schema.TypeString,
@@ -74,7 +74,7 @@ func dataSourceAlicloudDfsAccessRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDfsAccessRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDfsAccessRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListAccessRules"

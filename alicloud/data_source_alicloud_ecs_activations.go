@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEcsActivations() *schema.Resource {
+func dataSourceAliCloudEcsActivations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcsActivationsRead,
+		Read: dataSourceAliCloudEcsActivationsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -99,7 +99,7 @@ func dataSourceAlicloudEcsActivations() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcsActivationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcsActivationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeActivations"

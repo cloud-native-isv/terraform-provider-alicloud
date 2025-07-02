@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCenTransitRouterGrantAttachment() *schema.Resource {
+func resourceAliCloudCenTransitRouterGrantAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenTransitRouterGrantAttachmentCreate,
-		Read:   resourceAlicloudCenTransitRouterGrantAttachmentRead,
-		Delete: resourceAlicloudCenTransitRouterGrantAttachmentDelete,
+		Create: resourceAliCloudCenTransitRouterGrantAttachmentCreate,
+		Read:   resourceAliCloudCenTransitRouterGrantAttachmentRead,
+		Delete: resourceAliCloudCenTransitRouterGrantAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -56,7 +56,7 @@ func resourceAlicloudCenTransitRouterGrantAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenTransitRouterGrantAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterGrantAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"RegionId": client.RegionId,
@@ -101,10 +101,10 @@ func resourceAlicloudCenTransitRouterGrantAttachmentCreate(d *schema.ResourceDat
 
 	d.SetId(fmt.Sprint(request["InstanceType"], ":", request["InstanceId"], ":", request["CenOwnerId"], ":", request["CenId"]))
 
-	return resourceAlicloudCenTransitRouterGrantAttachmentRead(d, meta)
+	return resourceAliCloudCenTransitRouterGrantAttachmentRead(d, meta)
 }
 
-func resourceAlicloudCenTransitRouterGrantAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterGrantAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 
@@ -130,7 +130,7 @@ func resourceAlicloudCenTransitRouterGrantAttachmentRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceAlicloudCenTransitRouterGrantAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterGrantAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	parts, err := ParseResourceId(d.Id(), 4)

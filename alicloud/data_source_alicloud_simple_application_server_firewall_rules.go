@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudSimpleApplicationServerFirewallRules() *schema.Resource {
+func dataSourceAliCloudSimpleApplicationServerFirewallRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSimpleApplicationServerFirewallRulesRead,
+		Read: dataSourceAliCloudSimpleApplicationServerFirewallRulesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -66,7 +66,7 @@ func dataSourceAlicloudSimpleApplicationServerFirewallRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSimpleApplicationServerFirewallRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSimpleApplicationServerFirewallRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListFirewallRules"

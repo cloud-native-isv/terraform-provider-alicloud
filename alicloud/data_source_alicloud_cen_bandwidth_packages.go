@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenBandwidthPackages() *schema.Resource {
+func dataSourceAliCloudCenBandwidthPackages() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenBandwidthPackagesRead,
+		Read: dataSourceAliCloudCenBandwidthPackagesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -155,7 +155,7 @@ func dataSourceAlicloudCenBandwidthPackages() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenBandwidthPackagesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenBandwidthPackagesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := cbn.CreateDescribeCenBandwidthPackagesRequest()

@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudArmsAlertContactGroup() *schema.Resource {
+func resourceAliCloudArmsAlertContactGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudArmsAlertContactGroupCreate,
-		Read:   resourceAlicloudArmsAlertContactGroupRead,
-		Update: resourceAlicloudArmsAlertContactGroupUpdate,
-		Delete: resourceAlicloudArmsAlertContactGroupDelete,
+		Create: resourceAliCloudArmsAlertContactGroupCreate,
+		Read:   resourceAliCloudArmsAlertContactGroupRead,
+		Update: resourceAliCloudArmsAlertContactGroupUpdate,
+		Delete: resourceAliCloudArmsAlertContactGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -36,7 +36,7 @@ func resourceAlicloudArmsAlertContactGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudArmsAlertContactGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertContactGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Create ARMS API client
@@ -79,10 +79,10 @@ func resourceAlicloudArmsAlertContactGroupCreate(d *schema.ResourceData, meta in
 
 	d.SetId(contactGroup.ContactGroupId)
 
-	return resourceAlicloudArmsAlertContactGroupRead(d, meta)
+	return resourceAliCloudArmsAlertContactGroupRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertContactGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertContactGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Create ARMS API client
@@ -130,7 +130,7 @@ func resourceAlicloudArmsAlertContactGroupRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceAlicloudArmsAlertContactGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertContactGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	update := false
 
@@ -181,10 +181,10 @@ func resourceAlicloudArmsAlertContactGroupUpdate(d *schema.ResourceData, meta in
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateAlertContactGroup", AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudArmsAlertContactGroupRead(d, meta)
+	return resourceAliCloudArmsAlertContactGroupRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertContactGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertContactGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Create ARMS API client

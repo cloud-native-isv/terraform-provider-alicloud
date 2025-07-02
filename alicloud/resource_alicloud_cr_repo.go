@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCRRepo() *schema.Resource {
+func resourceAliCloudCRRepo() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCRRepoCreate,
-		Read:   resourceAlicloudCRRepoRead,
-		Update: resourceAlicloudCRRepoUpdate,
-		Delete: resourceAlicloudCRRepoDelete,
+		Create: resourceAliCloudCRRepoCreate,
+		Read:   resourceAliCloudCRRepoRead,
+		Update: resourceAliCloudCRRepoUpdate,
+		Delete: resourceAliCloudCRRepoDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -75,7 +75,7 @@ func resourceAlicloudCRRepo() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCRRepoCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCRRepoCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	repoNamespace := d.Get("namespace").(string)
@@ -105,10 +105,10 @@ func resourceAlicloudCRRepoCreate(d *schema.ResourceData, meta interface{}) erro
 	addDebug(request.GetActionName(), raw, request.RoaRequest, request)
 	d.SetId(fmt.Sprintf("%s%s%s", repoNamespace, SLASH_SEPARATED, repoName))
 
-	return resourceAlicloudCRRepoRead(d, meta)
+	return resourceAliCloudCRRepoRead(d, meta)
 }
 
-func resourceAlicloudCRRepoUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCRRepoUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	if d.HasChange("summary") || d.HasChange("detail") || d.HasChange("repo_type") {
@@ -135,10 +135,10 @@ func resourceAlicloudCRRepoUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 		addDebug(request.GetActionName(), raw, request.RoaRequest, request)
 	}
-	return resourceAlicloudCRRepoRead(d, meta)
+	return resourceAliCloudCRRepoRead(d, meta)
 }
 
-func resourceAlicloudCRRepoRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCRRepoRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := CrService{client}
 
@@ -173,7 +173,7 @@ func resourceAlicloudCRRepoRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceAlicloudCRRepoDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCRRepoDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := CrService{client}
 

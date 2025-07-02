@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudThreatDetectionWebLockConfig() *schema.Resource {
+func resourceAliCloudThreatDetectionWebLockConfig() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudThreatDetectionWebLockConfigCreate,
-		Read:   resourceAlicloudThreatDetectionWebLockConfigRead,
-		Delete: resourceAlicloudThreatDetectionWebLockConfigDelete,
+		Create: resourceAliCloudThreatDetectionWebLockConfigCreate,
+		Read:   resourceAliCloudThreatDetectionWebLockConfigRead,
+		Delete: resourceAliCloudThreatDetectionWebLockConfigDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -72,7 +72,7 @@ func resourceAlicloudThreatDetectionWebLockConfig() *schema.Resource {
 	}
 }
 
-func resourceAlicloudThreatDetectionWebLockConfigCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionWebLockConfigCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -118,10 +118,10 @@ func resourceAlicloudThreatDetectionWebLockConfigCreate(d *schema.ResourceData, 
 
 	d.SetId(fmt.Sprint(request["Uuid"]))
 
-	return resourceAlicloudThreatDetectionWebLockConfigRead(d, meta)
+	return resourceAliCloudThreatDetectionWebLockConfigRead(d, meta)
 }
 
-func resourceAlicloudThreatDetectionWebLockConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionWebLockConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sasService := SasService{client}
 
@@ -147,7 +147,7 @@ func resourceAlicloudThreatDetectionWebLockConfigRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceAlicloudThreatDetectionWebLockConfigDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionWebLockConfigDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 

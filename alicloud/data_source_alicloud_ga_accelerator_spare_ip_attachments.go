@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudGaAcceleratorSpareIpAttachments() *schema.Resource {
+func dataSourceAliCloudGaAcceleratorSpareIpAttachments() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGaAcceleratorSpareIpAttachmentsRead,
+		Read: dataSourceAliCloudGaAcceleratorSpareIpAttachmentsRead,
 		Schema: map[string]*schema.Schema{
 			"accelerator_id": {
 				Type:     schema.TypeString,
@@ -65,7 +65,7 @@ func dataSourceAlicloudGaAcceleratorSpareIpAttachments() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGaAcceleratorSpareIpAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGaAcceleratorSpareIpAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListSpareIps"

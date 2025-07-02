@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudOnsTopic() *schema.Resource {
+func resourceAliCloudOnsTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOnsTopicCreate,
-		Read:   resourceAlicloudOnsTopicRead,
-		Update: resourceAlicloudOnsTopicUpdate,
-		Delete: resourceAlicloudOnsTopicDelete,
+		Create: resourceAliCloudOnsTopicCreate,
+		Read:   resourceAliCloudOnsTopicRead,
+		Update: resourceAliCloudOnsTopicUpdate,
+		Delete: resourceAliCloudOnsTopicDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -71,7 +71,7 @@ func resourceAlicloudOnsTopic() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOnsTopicCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsTopicCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "OnsTopicCreate"
@@ -116,9 +116,9 @@ func resourceAlicloudOnsTopicCreate(d *schema.ResourceData, meta interface{}) er
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudOnsTopicUpdate(d, meta)
+	return resourceAliCloudOnsTopicUpdate(d, meta)
 }
-func resourceAlicloudOnsTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	onsService := OnsService{client}
 	object, err := onsService.DescribeOnsTopic(d.Id())
@@ -148,7 +148,7 @@ func resourceAlicloudOnsTopicRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("perm", formatInt(onsTopicStatusObject["Perm"]))
 	return nil
 }
-func resourceAlicloudOnsTopicUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsTopicUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	onsService := OnsService{client}
 	if d.HasChange("tags") {
@@ -156,9 +156,9 @@ func resourceAlicloudOnsTopicUpdate(d *schema.ResourceData, meta interface{}) er
 			return WrapError(err)
 		}
 	}
-	return resourceAlicloudOnsTopicRead(d, meta)
+	return resourceAliCloudOnsTopicRead(d, meta)
 }
-func resourceAlicloudOnsTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

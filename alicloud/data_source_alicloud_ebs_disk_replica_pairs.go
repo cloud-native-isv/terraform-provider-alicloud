@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEbsDiskReplicaPairs() *schema.Resource {
+func dataSourceAliCloudEbsDiskReplicaPairs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEbsDiskReplicaPairsRead,
+		Read: dataSourceAliCloudEbsDiskReplicaPairsRead,
 		Schema: map[string]*schema.Schema{
 			"replica_group_id": {
 				Optional: true,
@@ -104,7 +104,7 @@ func dataSourceAlicloudEbsDiskReplicaPairs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEbsDiskReplicaPairsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEbsDiskReplicaPairsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

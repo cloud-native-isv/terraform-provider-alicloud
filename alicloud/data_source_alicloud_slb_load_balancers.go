@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSlbLoadBalancers() *schema.Resource {
+func dataSourceAliCloudSlbLoadBalancers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSlbLoadBalancersRead,
+		Read: dataSourceAliCloudSlbLoadBalancersRead,
 		Schema: map[string]*schema.Schema{
 			"master_availability_zone": {
 				Type:     schema.TypeString,
@@ -408,7 +408,7 @@ func dataSourceAlicloudSlbLoadBalancers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSlbLoadBalancersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSlbLoadBalancersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeLoadBalancers"

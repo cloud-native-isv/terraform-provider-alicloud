@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCloudauthFaceConfig() *schema.Resource {
+func resourceAliCloudCloudauthFaceConfig() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudauthFaceConfigCreate,
-		Read:   resourceAlicloudCloudauthFaceConfigRead,
-		Update: resourceAlicloudCloudauthFaceConfigUpdate,
-		Delete: resourceAlicloudCloudauthFaceConfigDelete,
+		Create: resourceAliCloudCloudauthFaceConfigCreate,
+		Read:   resourceAliCloudCloudauthFaceConfigRead,
+		Update: resourceAliCloudCloudauthFaceConfigUpdate,
+		Delete: resourceAliCloudCloudauthFaceConfigDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -36,7 +36,7 @@ func resourceAlicloudCloudauthFaceConfig() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudauthFaceConfigCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudauthFaceConfigCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateFaceConfig"
@@ -64,9 +64,9 @@ func resourceAlicloudCloudauthFaceConfigCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(fmt.Sprint(request["BizType"]))
 
-	return resourceAlicloudCloudauthFaceConfigRead(d, meta)
+	return resourceAliCloudCloudauthFaceConfigRead(d, meta)
 }
-func resourceAlicloudCloudauthFaceConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudauthFaceConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudauthService := CloudauthService{client}
 	object, err := cloudauthService.DescribeCloudauthFaceConfig(d.Id())
@@ -84,7 +84,7 @@ func resourceAlicloudCloudauthFaceConfigRead(d *schema.ResourceData, meta interf
 	d.Set("gmt_modified", object["GmtUpdated"])
 	return nil
 }
-func resourceAlicloudCloudauthFaceConfigUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudauthFaceConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -116,9 +116,9 @@ func resourceAlicloudCloudauthFaceConfigUpdate(d *schema.ResourceData, meta inte
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCloudauthFaceConfigRead(d, meta)
+	return resourceAliCloudCloudauthFaceConfigRead(d, meta)
 }
-func resourceAlicloudCloudauthFaceConfigDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudCloudauthFaceConfig. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudCloudauthFaceConfigDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudCloudauthFaceConfig. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

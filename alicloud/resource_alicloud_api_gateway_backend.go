@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudApiGatewayBackend() *schema.Resource {
+func resourceAliCloudApiGatewayBackend() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudApiGatewayBackendCreate,
-		Read:   resourceAlicloudApiGatewayBackendRead,
-		Update: resourceAlicloudApiGatewayBackendUpdate,
-		Delete: resourceAlicloudApiGatewayBackendDelete,
+		Create: resourceAliCloudApiGatewayBackendCreate,
+		Read:   resourceAliCloudApiGatewayBackendRead,
+		Update: resourceAliCloudApiGatewayBackendUpdate,
+		Delete: resourceAliCloudApiGatewayBackendDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudApiGatewayBackend() *schema.Resource {
 	}
 }
 
-func resourceAlicloudApiGatewayBackendCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayBackendCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -90,10 +90,10 @@ func resourceAlicloudApiGatewayBackendCreate(d *schema.ResourceData, meta interf
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudApiGatewayBackendRead(d, meta)
+	return resourceAliCloudApiGatewayBackendRead(d, meta)
 }
 
-func resourceAlicloudApiGatewayBackendRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayBackendRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudApiService := CloudApiService{client}
 
@@ -112,7 +112,7 @@ func resourceAlicloudApiGatewayBackendRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceAlicloudApiGatewayBackendUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayBackendUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	update := false
@@ -152,10 +152,10 @@ func resourceAlicloudApiGatewayBackendUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return resourceAlicloudApiGatewayBackendRead(d, meta)
+	return resourceAliCloudApiGatewayBackendRead(d, meta)
 }
 
-func resourceAlicloudApiGatewayBackendDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayBackendDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 

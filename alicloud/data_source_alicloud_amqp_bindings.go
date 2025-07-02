@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudAmqpBindings() *schema.Resource {
+func dataSourceAliCloudAmqpBindings() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAmqpBindingsRead,
+		Read: dataSourceAliCloudAmqpBindingsRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Type:     schema.TypeString,
@@ -77,7 +77,7 @@ func dataSourceAlicloudAmqpBindings() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAmqpBindingsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAmqpBindingsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListBindings"

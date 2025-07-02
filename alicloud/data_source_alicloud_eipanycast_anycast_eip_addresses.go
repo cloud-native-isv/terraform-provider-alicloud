@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEipanycastAnycastEipAddresses() *schema.Resource {
+func dataSourceAliCloudEipanycastAnycastEipAddresses() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEipanycastAnycastEipAddressesRead,
+		Read: dataSourceAliCloudEipanycastAnycastEipAddressesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -169,7 +169,7 @@ func dataSourceAlicloudEipanycastAnycastEipAddresses() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEipanycastAnycastEipAddressesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEipanycastAnycastEipAddressesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListAnycastEipAddresses"

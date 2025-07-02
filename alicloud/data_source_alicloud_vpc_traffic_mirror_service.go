@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcTrafficMirrorService() *schema.Resource {
+func dataSourceAliCloudVpcTrafficMirrorService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcTrafficMirrorServiceRead,
+		Read: dataSourceAliCloudVpcTrafficMirrorServiceRead,
 		Schema: map[string]*schema.Schema{
 			"enable": {
 				Type:         schema.TypeString,
@@ -27,7 +27,7 @@ func dataSourceAlicloudVpcTrafficMirrorService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudVpcTrafficMirrorServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcTrafficMirrorServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("VpcTrafficMirrorServiceHasNotBeenOpened")
 		d.Set("status", "")

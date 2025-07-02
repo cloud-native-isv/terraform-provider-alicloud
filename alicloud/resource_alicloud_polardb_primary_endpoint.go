@@ -2,21 +2,22 @@ package alicloud
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+	"time"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/polardb"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"regexp"
-	"strings"
-	"time"
 )
 
-func resourceAlicloudPolarDBPrimaryEndpoint() *schema.Resource {
+func resourceAliCloudPolarDBPrimaryEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPolarDBPrimaryEndpointCreate,
-		Read:   resourceAlicloudPolarDBPrimaryEndpointRead,
-		Update: resourceAlicloudPolarDBPrimaryEndpointUpdate,
-		Delete: resourceAlicloudPolarDBPrimaryEndpointDelete,
+		Create: resourceAliCloudPolarDBPrimaryEndpointCreate,
+		Read:   resourceAliCloudPolarDBPrimaryEndpointRead,
+		Update: resourceAliCloudPolarDBPrimaryEndpointUpdate,
+		Delete: resourceAliCloudPolarDBPrimaryEndpointDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -81,7 +82,7 @@ func resourceAlicloudPolarDBPrimaryEndpoint() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPolarDBPrimaryEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBPrimaryEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	clusterId := d.Get("db_cluster_id").(string)
 	request := polardb.CreateDescribeDBClusterEndpointsRequest()
@@ -112,10 +113,10 @@ func resourceAlicloudPolarDBPrimaryEndpointCreate(d *schema.ResourceData, meta i
 
 	d.SetId(fmt.Sprintf("%s%s%s", clusterId, COLON_SEPARATED, endpoints[0].DBEndpointId))
 
-	return resourceAlicloudPolarDBPrimaryEndpointUpdate(d, meta)
+	return resourceAliCloudPolarDBPrimaryEndpointUpdate(d, meta)
 }
 
-func resourceAlicloudPolarDBPrimaryEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBPrimaryEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 	parts, errParse := ParseResourceId(d.Id(), 2)
@@ -193,7 +194,7 @@ func resourceAlicloudPolarDBPrimaryEndpointRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceAlicloudPolarDBPrimaryEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBPrimaryEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 
@@ -307,10 +308,10 @@ func resourceAlicloudPolarDBPrimaryEndpointUpdate(d *schema.ResourceData, meta i
 
 		}
 	}
-	return resourceAlicloudPolarDBPrimaryEndpointRead(d, meta)
+	return resourceAliCloudPolarDBPrimaryEndpointRead(d, meta)
 }
 
-func resourceAlicloudPolarDBPrimaryEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBPrimaryEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	//  Terraform can not destroy it..
 	return nil
 }

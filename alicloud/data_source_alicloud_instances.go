@@ -1,10 +1,11 @@
 package alicloud
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
@@ -13,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudInstances() *schema.Resource {
+func dataSourceAliCloudInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudInstancesRead,
+		Read: dataSourceAliCloudInstancesRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -248,7 +249,7 @@ func dataSourceAlicloudInstances() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := ecs.CreateDescribeInstancesRequest()

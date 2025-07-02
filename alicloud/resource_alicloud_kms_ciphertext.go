@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudKmsCiphertext() *schema.Resource {
+func resourceAliCloudKmsCiphertext() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudKmsCiphertextCreate,
+		Create: resourceAliCloudKmsCiphertextCreate,
 		Read:   schema.Noop,
-		Delete: resourceAlicloudKmsCiphertextDelete,
+		Delete: resourceAliCloudKmsCiphertextDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -49,7 +49,7 @@ func resourceAlicloudKmsCiphertext() *schema.Resource {
 	}
 }
 
-func resourceAlicloudKmsCiphertextCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKmsCiphertextCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Since a ciphertext has no ID, we create an ID based on
@@ -98,6 +98,6 @@ func resourceAlicloudKmsCiphertextCreate(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudKmsCiphertextDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKmsCiphertextDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }

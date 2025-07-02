@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEbsDedicatedBlockStorageClusters() *schema.Resource {
+func dataSourceAliCloudEbsDedicatedBlockStorageClusters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEbsDedicatedBlockStorageClustersRead,
+		Read: dataSourceAliCloudEbsDedicatedBlockStorageClustersRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Optional: true,
@@ -121,7 +121,7 @@ func dataSourceAlicloudEbsDedicatedBlockStorageClusters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEbsDedicatedBlockStorageClustersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEbsDedicatedBlockStorageClustersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDcdnKv() *schema.Resource {
+func resourceAliCloudDcdnKv() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDcdnKvCreate,
-		Read:   resourceAlicloudDcdnKvRead,
-		Update: resourceAlicloudDcdnKvUpdate,
-		Delete: resourceAlicloudDcdnKvDelete,
+		Create: resourceAliCloudDcdnKvCreate,
+		Read:   resourceAliCloudDcdnKvRead,
+		Update: resourceAliCloudDcdnKvUpdate,
+		Delete: resourceAliCloudDcdnKvDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudDcdnKv() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDcdnKvCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnKvCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -82,10 +82,10 @@ func resourceAlicloudDcdnKvCreate(d *schema.ResourceData, meta interface{}) erro
 
 	d.SetId(fmt.Sprint(request["Namespace"], ":", request["Key"]))
 
-	return resourceAlicloudDcdnKvRead(d, meta)
+	return resourceAliCloudDcdnKvRead(d, meta)
 }
 
-func resourceAlicloudDcdnKvRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnKvRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dcdnService := DcdnService{client}
 
@@ -110,7 +110,7 @@ func resourceAlicloudDcdnKvRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceAlicloudDcdnKvUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnKvUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -149,10 +149,10 @@ func resourceAlicloudDcdnKvUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	return resourceAlicloudDcdnKvRead(d, meta)
+	return resourceAliCloudDcdnKvRead(d, meta)
 }
 
-func resourceAlicloudDcdnKvDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnKvDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	parts, err := ParseResourceId(d.Id(), 2)

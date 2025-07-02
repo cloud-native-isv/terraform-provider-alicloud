@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEssScheduledTasks() *schema.Resource {
+func dataSourceAliCloudEssScheduledTasks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEssScheduledTasksRead,
+		Read: dataSourceAliCloudEssScheduledTasksRead,
 		Schema: map[string]*schema.Schema{
 			"scheduled_task_id": {
 				Type:     schema.TypeString,
@@ -102,7 +102,7 @@ func dataSourceAlicloudEssScheduledTasks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEssScheduledTasksRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEssScheduledTasksRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := ess.CreateDescribeScheduledTasksRequest()
 	request.RegionId = client.RegionId

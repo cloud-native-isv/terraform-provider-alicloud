@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudExpressConnectAccessPoints() *schema.Resource {
+func dataSourceAliCloudExpressConnectAccessPoints() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudExpressConnectAccessPointsRead,
+		Read: dataSourceAliCloudExpressConnectAccessPointsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -108,7 +108,7 @@ func dataSourceAlicloudExpressConnectAccessPoints() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudExpressConnectAccessPointsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudExpressConnectAccessPointsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeAccessPoints"

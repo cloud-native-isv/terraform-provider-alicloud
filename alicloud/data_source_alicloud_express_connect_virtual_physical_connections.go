@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudExpressConnectVirtualPhysicalConnections() *schema.Resource {
+func dataSourceAliCloudExpressConnectVirtualPhysicalConnections() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudExpressConnectVirtualPhysicalConnectionsRead,
+		Read: dataSourceAliCloudExpressConnectVirtualPhysicalConnectionsRead,
 		Schema: map[string]*schema.Schema{
 			"business_status": {
 				Optional:     true,
@@ -208,7 +208,7 @@ func dataSourceAlicloudExpressConnectVirtualPhysicalConnections() *schema.Resour
 	}
 }
 
-func dataSourceAlicloudExpressConnectVirtualPhysicalConnectionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudExpressConnectVirtualPhysicalConnectionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

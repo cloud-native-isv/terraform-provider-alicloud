@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAmqpInstances() *schema.Resource {
+func dataSourceAliCloudAmqpInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAmqpInstancesRead,
+		Read: dataSourceAliCloudAmqpInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -117,7 +117,7 @@ func dataSourceAlicloudAmqpInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAmqpInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAmqpInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListInstances"

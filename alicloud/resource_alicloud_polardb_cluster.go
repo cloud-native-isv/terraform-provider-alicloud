@@ -17,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudPolarDBCluster() *schema.Resource {
+func resourceAliCloudPolarDBCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPolarDBClusterCreate,
-		Read:   resourceAlicloudPolarDBClusterRead,
-		Update: resourceAlicloudPolarDBClusterUpdate,
-		Delete: resourceAlicloudPolarDBClusterDelete,
+		Create: resourceAliCloudPolarDBClusterCreate,
+		Read:   resourceAliCloudPolarDBClusterRead,
+		Update: resourceAliCloudPolarDBClusterUpdate,
+		Delete: resourceAliCloudPolarDBClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -541,7 +541,7 @@ func resourceAlicloudPolarDBCluster() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPolarDBClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBClusterCreate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
@@ -597,10 +597,10 @@ func resourceAlicloudPolarDBClusterCreate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	return resourceAlicloudPolarDBClusterUpdate(d, meta)
+	return resourceAliCloudPolarDBClusterUpdate(d, meta)
 }
 
-func resourceAlicloudPolarDBClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 	d.Partial(true)
@@ -1262,7 +1262,7 @@ func resourceAlicloudPolarDBClusterUpdate(d *schema.ResourceData, meta interface
 
 	if d.IsNewResource() {
 		d.Partial(false)
-		return resourceAlicloudPolarDBClusterRead(d, meta)
+		return resourceAliCloudPolarDBClusterRead(d, meta)
 	}
 
 	if v, ok := d.GetOk("creation_category"); !ok || v.(string) != "Basic" {
@@ -1537,10 +1537,10 @@ func resourceAlicloudPolarDBClusterUpdate(d *schema.ResourceData, meta interface
 	}
 
 	d.Partial(false)
-	return resourceAlicloudPolarDBClusterRead(d, meta)
+	return resourceAliCloudPolarDBClusterRead(d, meta)
 }
 
-func resourceAlicloudPolarDBClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 
@@ -1824,7 +1824,7 @@ func resourceAlicloudPolarDBClusterRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceAlicloudPolarDBClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 

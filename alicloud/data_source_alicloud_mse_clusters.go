@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudMseClusters() *schema.Resource {
+func dataSourceAliCloudMseClusters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMseClustersRead,
+		Read: dataSourceAliCloudMseClustersRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -190,7 +190,7 @@ func dataSourceAlicloudMseClusters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMseClustersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMseClustersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListClusters"

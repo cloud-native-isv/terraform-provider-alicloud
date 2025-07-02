@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcdAdConnectorDirectory() *schema.Resource {
+func resourceAliCloudEcdAdConnectorDirectory() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdAdConnectorDirectoryCreate,
-		Read:   resourceAlicloudEcdAdConnectorDirectoryRead,
-		Update: resourceAlicloudEcdAdConnectorDirectoryUpdate,
-		Delete: resourceAlicloudEcdAdConnectorDirectoryDelete,
+		Create: resourceAliCloudEcdAdConnectorDirectoryCreate,
+		Read:   resourceAliCloudEcdAdConnectorDirectoryRead,
+		Update: resourceAliCloudEcdAdConnectorDirectoryUpdate,
+		Delete: resourceAliCloudEcdAdConnectorDirectoryDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -105,7 +105,7 @@ func resourceAlicloudEcdAdConnectorDirectory() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdAdConnectorDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdAdConnectorDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateADConnectorDirectory"
@@ -155,9 +155,9 @@ func resourceAlicloudEcdAdConnectorDirectoryCreate(d *schema.ResourceData, meta 
 
 	d.SetId(fmt.Sprint(response["DirectoryId"]))
 
-	return resourceAlicloudEcdAdConnectorDirectoryRead(d, meta)
+	return resourceAliCloudEcdAdConnectorDirectoryRead(d, meta)
 }
-func resourceAlicloudEcdAdConnectorDirectoryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdAdConnectorDirectoryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdAdConnectorDirectory(d.Id())
@@ -182,11 +182,11 @@ func resourceAlicloudEcdAdConnectorDirectoryRead(d *schema.ResourceData, meta in
 	d.Set("vswitch_ids", object["VSwitchIds"])
 	return nil
 }
-func resourceAlicloudEcdAdConnectorDirectoryUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdAdConnectorDirectoryUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudEcdAdConnectorDirectoryRead(d, meta)
+	return resourceAliCloudEcdAdConnectorDirectoryRead(d, meta)
 }
-func resourceAlicloudEcdAdConnectorDirectoryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdAdConnectorDirectoryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDirectories"
 	var response map[string]interface{}

@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudFCFunctionAsyncInvokeConfig() *schema.Resource {
+func resourceAliCloudFCFunctionAsyncInvokeConfig() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudFCAsyncInvokeConfigCreate,
-		Read:   resourceAlicloudFCAsyncInvokeConfigRead,
-		Update: resourceAlicloudFCAsyncInvokeConfigUpdate,
-		Delete: resourceAlicloudFCAsyncInvokeConfigDelete,
+		Create: resourceAliCloudFCAsyncInvokeConfigCreate,
+		Read:   resourceAliCloudFCAsyncInvokeConfigRead,
+		Update: resourceAliCloudFCAsyncInvokeConfigUpdate,
+		Delete: resourceAliCloudFCAsyncInvokeConfigDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -109,7 +109,7 @@ func resourceAlicloudFCFunctionAsyncInvokeConfig() *schema.Resource {
 	}
 }
 
-func resourceAlicloudFCAsyncInvokeConfigCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCAsyncInvokeConfigCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	serviceName := d.Get("service_name").(string)
@@ -167,10 +167,10 @@ func resourceAlicloudFCAsyncInvokeConfigCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(id)
 
-	return resourceAlicloudFCAsyncInvokeConfigRead(d, meta)
+	return resourceAliCloudFCAsyncInvokeConfigRead(d, meta)
 }
 
-func resourceAlicloudFCAsyncInvokeConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCAsyncInvokeConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fcService := FcService{client}
 
@@ -200,7 +200,7 @@ func resourceAlicloudFCAsyncInvokeConfigRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAlicloudFCAsyncInvokeConfigUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCAsyncInvokeConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	serviceName, functionName, qualifier, err := parseFCDestinationConfigId(d.Id())
@@ -249,10 +249,10 @@ func resourceAlicloudFCAsyncInvokeConfigUpdate(d *schema.ResourceData, meta inte
 		return WrapError(Error("Putting function async invoke config got an empty response"))
 	}
 
-	return resourceAlicloudFCAsyncInvokeConfigRead(d, meta)
+	return resourceAliCloudFCAsyncInvokeConfigRead(d, meta)
 }
 
-func resourceAlicloudFCAsyncInvokeConfigDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCAsyncInvokeConfigDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fcService := FcService{client}
 	serviceName, functionName, qualifier, err := parseFCDestinationConfigId(d.Id())

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudOnsInstance() *schema.Resource {
+func resourceAliCloudOnsInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOnsInstanceCreate,
-		Read:   resourceAlicloudOnsInstanceRead,
-		Update: resourceAlicloudOnsInstanceUpdate,
-		Delete: resourceAlicloudOnsInstanceDelete,
+		Create: resourceAliCloudOnsInstanceCreate,
+		Read:   resourceAliCloudOnsInstanceRead,
+		Update: resourceAliCloudOnsInstanceUpdate,
+		Delete: resourceAliCloudOnsInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +66,7 @@ func resourceAlicloudOnsInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOnsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "OnsInstanceCreate"
@@ -103,9 +103,9 @@ func resourceAlicloudOnsInstanceCreate(d *schema.ResourceData, meta interface{})
 	responseData := response["Data"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseData["InstanceId"]))
 
-	return resourceAlicloudOnsInstanceUpdate(d, meta)
+	return resourceAliCloudOnsInstanceUpdate(d, meta)
 }
-func resourceAlicloudOnsInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	onsService := OnsService{client}
 	object, err := onsService.DescribeOnsInstance(d.Id())
@@ -132,7 +132,7 @@ func resourceAlicloudOnsInstanceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("tags", tagsToMap(listTagResourcesObject))
 	return nil
 }
-func resourceAlicloudOnsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	onsService := OnsService{client}
 	var err error
@@ -184,9 +184,9 @@ func resourceAlicloudOnsInstanceUpdate(d *schema.ResourceData, meta interface{})
 		d.SetPartial("remark")
 	}
 	d.Partial(false)
-	return resourceAlicloudOnsInstanceRead(d, meta)
+	return resourceAliCloudOnsInstanceRead(d, meta)
 }
-func resourceAlicloudOnsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "OnsInstanceDelete"
 	var response map[string]interface{}

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCddcHostEcsLevelInfos() *schema.Resource {
+func dataSourceAliCloudCddcHostEcsLevelInfos() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCddcHostEcsLevelInfosRead,
+		Read: dataSourceAliCloudCddcHostEcsLevelInfosRead,
 		Schema: map[string]*schema.Schema{
 			"db_type": {
 				Type:         schema.TypeString,
@@ -71,7 +71,7 @@ func dataSourceAlicloudCddcHostEcsLevelInfos() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCddcHostEcsLevelInfosRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCddcHostEcsLevelInfosRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeHostEcsLevelInfo"
 	request := make(map[string]interface{})

@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcdRamDirectory() *schema.Resource {
+func resourceAliCloudEcdRamDirectory() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdRamDirectoryCreate,
-		Read:   resourceAlicloudEcdRamDirectoryRead,
-		Delete: resourceAlicloudEcdRamDirectoryDelete,
+		Create: resourceAliCloudEcdRamDirectoryCreate,
+		Read:   resourceAliCloudEcdRamDirectoryRead,
+		Delete: resourceAliCloudEcdRamDirectoryDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -65,7 +65,7 @@ func resourceAlicloudEcdRamDirectory() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdRamDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdRamDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateRAMDirectory"
@@ -102,9 +102,9 @@ func resourceAlicloudEcdRamDirectoryCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(fmt.Sprint(response["DirectoryId"]))
 
-	return resourceAlicloudEcdRamDirectoryRead(d, meta)
+	return resourceAliCloudEcdRamDirectoryRead(d, meta)
 }
-func resourceAlicloudEcdRamDirectoryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdRamDirectoryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdRamDirectory(d.Id())
@@ -124,7 +124,7 @@ func resourceAlicloudEcdRamDirectoryRead(d *schema.ResourceData, meta interface{
 	d.Set("vswitch_ids", object["VSwitchIds"])
 	return nil
 }
-func resourceAlicloudEcdRamDirectoryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdRamDirectoryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDirectories"
 	var response map[string]interface{}

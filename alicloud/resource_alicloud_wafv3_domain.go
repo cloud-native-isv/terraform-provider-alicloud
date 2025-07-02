@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudWafv3Domain() *schema.Resource {
+func resourceAliCloudWafv3Domain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudWafv3DomainCreate,
-		Read:   resourceAlicloudWafv3DomainRead,
-		Update: resourceAlicloudWafv3DomainUpdate,
-		Delete: resourceAlicloudWafv3DomainDelete,
+		Create: resourceAliCloudWafv3DomainCreate,
+		Read:   resourceAliCloudWafv3DomainRead,
+		Update: resourceAliCloudWafv3DomainUpdate,
+		Delete: resourceAliCloudWafv3DomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -212,7 +212,7 @@ func resourceAlicloudWafv3Domain() *schema.Resource {
 	}
 }
 
-func resourceAlicloudWafv3DomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafv3DomainCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	wafOpenapiService := WafOpenapiService{client}
 
@@ -312,10 +312,10 @@ func resourceAlicloudWafv3DomainCreate(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudWafv3DomainRead(d, meta)
+	return resourceAliCloudWafv3DomainRead(d, meta)
 }
 
-func resourceAlicloudWafv3DomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafv3DomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	wafOpenapiService := WafOpenapiService{client}
 
@@ -399,7 +399,7 @@ func resourceAlicloudWafv3DomainRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAlicloudWafv3DomainUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafv3DomainUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	wafOpenapiService := WafOpenapiService{client}
 	var response map[string]interface{}
@@ -491,10 +491,10 @@ func resourceAlicloudWafv3DomainUpdate(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudWafv3DomainRead(d, meta)
+	return resourceAliCloudWafv3DomainRead(d, meta)
 }
 
-func resourceAlicloudWafv3DomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafv3DomainDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	wafOpenapiService := WafOpenapiService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudMscSubWebhook() *schema.Resource {
+func resourceAliCloudMscSubWebhook() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMscSubWebhookCreate,
-		Read:   resourceAlicloudMscSubWebhookRead,
-		Update: resourceAlicloudMscSubWebhookUpdate,
-		Delete: resourceAlicloudMscSubWebhookDelete,
+		Create: resourceAliCloudMscSubWebhookCreate,
+		Read:   resourceAliCloudMscSubWebhookRead,
+		Update: resourceAliCloudMscSubWebhookUpdate,
+		Delete: resourceAliCloudMscSubWebhookDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -36,7 +36,7 @@ func resourceAlicloudMscSubWebhook() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMscSubWebhookCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMscSubWebhookCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	request["Locale"] = "en"
@@ -68,9 +68,9 @@ func resourceAlicloudMscSubWebhookCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(response["WebhookId"]))
 
-	return resourceAlicloudMscSubWebhookRead(d, meta)
+	return resourceAliCloudMscSubWebhookRead(d, meta)
 }
-func resourceAlicloudMscSubWebhookRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMscSubWebhookRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mscOpenSubscriptionService := MscOpenSubscriptionService{client}
 	object, err := mscOpenSubscriptionService.DescribeMscSubWebhook(d.Id())
@@ -87,7 +87,7 @@ func resourceAlicloudMscSubWebhookRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudMscSubWebhookUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMscSubWebhookUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -124,10 +124,10 @@ func resourceAlicloudMscSubWebhookUpdate(d *schema.ResourceData, meta interface{
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudMscSubWebhookRead(d, meta)
+	return resourceAliCloudMscSubWebhookRead(d, meta)
 }
 
-func resourceAlicloudMscSubWebhookDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMscSubWebhookDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCrChains() *schema.Resource {
+func dataSourceAliCloudCrChains() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCrChainsRead,
+		Read: dataSourceAliCloudCrChainsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -194,7 +194,7 @@ func dataSourceAlicloudCrChains() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCrChainsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCrChainsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListChain"

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudArmsAlertContactSchedules() *schema.Resource {
+func dataSourceAliCloudArmsAlertContactSchedules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudArmsAlertContactSchedulesRead,
+		Read: dataSourceAliCloudArmsAlertContactSchedulesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -96,7 +96,7 @@ func dataSourceAlicloudArmsAlertContactSchedules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudArmsAlertContactSchedulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsAlertContactSchedulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListContactSchedules"

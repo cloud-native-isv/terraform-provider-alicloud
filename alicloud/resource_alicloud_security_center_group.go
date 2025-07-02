@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSecurityCenterGroup() *schema.Resource {
+func resourceAliCloudSecurityCenterGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSecurityCenterGroupCreate,
-		Read:   resourceAlicloudSecurityCenterGroupRead,
-		Update: resourceAlicloudSecurityCenterGroupUpdate,
-		Delete: resourceAlicloudSecurityCenterGroupDelete,
+		Create: resourceAliCloudSecurityCenterGroupCreate,
+		Read:   resourceAliCloudSecurityCenterGroupRead,
+		Update: resourceAliCloudSecurityCenterGroupUpdate,
+		Delete: resourceAliCloudSecurityCenterGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -37,7 +37,7 @@ func resourceAlicloudSecurityCenterGroup() *schema.Resource {
 		},
 	}
 }
-func resourceAlicloudSecurityCenterGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSecurityCenterGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateOrUpdateAssetGroup"
@@ -67,9 +67,9 @@ func resourceAlicloudSecurityCenterGroupCreate(d *schema.ResourceData, meta inte
 	}
 
 	d.SetId(fmt.Sprint(response["GroupId"]))
-	return resourceAlicloudSecurityCenterGroupRead(d, meta)
+	return resourceAliCloudSecurityCenterGroupRead(d, meta)
 }
-func resourceAlicloudSecurityCenterGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSecurityCenterGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sasService := SasService{client}
 	describeAllGroupsObject, err := sasService.DescribeAllGroups(d.Id())
@@ -80,7 +80,7 @@ func resourceAlicloudSecurityCenterGroupRead(d *schema.ResourceData, meta interf
 	d.Set("group_id", describeAllGroupsObject["GroupId"])
 	return nil
 }
-func resourceAlicloudSecurityCenterGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSecurityCenterGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var response map[string]interface{}
@@ -109,9 +109,9 @@ func resourceAlicloudSecurityCenterGroupUpdate(d *schema.ResourceData, meta inte
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
-	return resourceAlicloudSecurityCenterGroupRead(d, meta)
+	return resourceAliCloudSecurityCenterGroupRead(d, meta)
 }
-func resourceAlicloudSecurityCenterGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSecurityCenterGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteGroup"
 	var response map[string]interface{}

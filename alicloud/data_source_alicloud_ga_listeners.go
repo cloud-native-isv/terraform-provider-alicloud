@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudGaListeners() *schema.Resource {
+func dataSourceAliCloudGaListeners() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGaListenersRead,
+		Read: dataSourceAliCloudGaListenersRead,
 		Schema: map[string]*schema.Schema{
 			"accelerator_id": {
 				Type:     schema.TypeString,
@@ -119,7 +119,7 @@ func dataSourceAlicloudGaListeners() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGaListenersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGaListenersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListListeners"

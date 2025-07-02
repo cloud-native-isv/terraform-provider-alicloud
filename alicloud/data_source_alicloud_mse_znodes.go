@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudMseZnodes() *schema.Resource {
+func dataSourceAliCloudMseZnodes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMseZnodesRead,
+		Read: dataSourceAliCloudMseZnodesRead,
 		Schema: map[string]*schema.Schema{
 			"cluster_id": {
 				Type:     schema.TypeString,
@@ -90,7 +90,7 @@ func dataSourceAlicloudMseZnodes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMseZnodesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMseZnodesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListZnodeChildren"

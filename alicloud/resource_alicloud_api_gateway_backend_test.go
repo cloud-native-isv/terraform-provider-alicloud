@@ -270,7 +270,7 @@ func TestUnitAlicloudApiGatewayBackend(t *testing.T) {
 			Message: String("loadEndpoint error"),
 		}
 	})
-	err = resourceAlicloudApiGatewayBackendCreate(dInit, rawClient)
+	err = resourceAliCloudApiGatewayBackendCreate(dInit, rawClient)
 	patches.Reset()
 	assert.NotNil(t, err)
 	ReadMockResponseDiff = map[string]interface{}{
@@ -300,7 +300,7 @@ func TestUnitAlicloudApiGatewayBackend(t *testing.T) {
 			}
 			return ReadMockResponse, nil
 		})
-		err := resourceAlicloudApiGatewayBackendCreate(dInit, rawClient)
+		err := resourceAliCloudApiGatewayBackendCreate(dInit, rawClient)
 		patches.Reset()
 		switch errorCode {
 		case "NonRetryableError":
@@ -326,7 +326,7 @@ func TestUnitAlicloudApiGatewayBackend(t *testing.T) {
 			Message: String("loadEndpoint error"),
 		}
 	})
-	err = resourceAlicloudApiGatewayBackendUpdate(dExisted, rawClient)
+	err = resourceAliCloudApiGatewayBackendUpdate(dExisted, rawClient)
 	patches.Reset()
 	assert.NotNil(t, err)
 	// ModifyBackend
@@ -364,7 +364,7 @@ func TestUnitAlicloudApiGatewayBackend(t *testing.T) {
 			}
 			return ReadMockResponse, nil
 		})
-		err := resourceAlicloudApiGatewayBackendUpdate(dExisted, rawClient)
+		err := resourceAliCloudApiGatewayBackendUpdate(dExisted, rawClient)
 		patches.Reset()
 		switch errorCode {
 		case "NonRetryableError":
@@ -403,7 +403,7 @@ func TestUnitAlicloudApiGatewayBackend(t *testing.T) {
 			}
 			return ReadMockResponse, nil
 		})
-		err := resourceAlicloudApiGatewayBackendRead(dExisted, rawClient)
+		err := resourceAliCloudApiGatewayBackendRead(dExisted, rawClient)
 		patches.Reset()
 		switch errorCode {
 		case "NonRetryableError":
@@ -421,7 +421,7 @@ func TestUnitAlicloudApiGatewayBackend(t *testing.T) {
 			Message: String("loadEndpoint error"),
 		}
 	})
-	err = resourceAlicloudApiGatewayBackendDelete(dExisted, rawClient)
+	err = resourceAliCloudApiGatewayBackendDelete(dExisted, rawClient)
 	patches.Reset()
 	assert.NotNil(t, err)
 	errorCodes = []string{"NonRetryableError", "Throttling", "nil", "NotFoundBackend"}
@@ -443,7 +443,7 @@ func TestUnitAlicloudApiGatewayBackend(t *testing.T) {
 			}
 			return ReadMockResponse, nil
 		})
-		err := resourceAlicloudApiGatewayBackendDelete(dExisted, rawClient)
+		err := resourceAliCloudApiGatewayBackendDelete(dExisted, rawClient)
 		patches.Reset()
 		switch errorCode {
 		case "NonRetryableError":

@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcsDiskAttachment() *schema.Resource {
+func resourceAliCloudEcsDiskAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsDiskAttachmentCreate,
-		Read:   resourceAlicloudEcsDiskAttachmentRead,
-		Update: resourceAlicloudEcsDiskAttachmentUpdate,
-		Delete: resourceAlicloudEcsDiskAttachmentDelete,
+		Create: resourceAliCloudEcsDiskAttachmentCreate,
+		Read:   resourceAliCloudEcsDiskAttachmentRead,
+		Update: resourceAliCloudEcsDiskAttachmentUpdate,
+		Delete: resourceAliCloudEcsDiskAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -63,7 +63,7 @@ func resourceAlicloudEcsDiskAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsDiskAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDiskAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AttachDisk"
@@ -145,9 +145,9 @@ func resourceAlicloudEcsDiskAttachmentCreate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return resourceAlicloudEcsDiskAttachmentRead(d, meta)
+	return resourceAliCloudEcsDiskAttachmentRead(d, meta)
 }
-func resourceAlicloudEcsDiskAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDiskAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	disk, err := ecsService.DescribeEcsDiskAttachment(d.Id())
@@ -166,11 +166,11 @@ func resourceAlicloudEcsDiskAttachmentRead(d *schema.ResourceData, meta interfac
 
 	return nil
 }
-func resourceAlicloudEcsDiskAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDiskAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudEcsDiskAttachmentRead(d, meta)
+	return resourceAliCloudEcsDiskAttachmentRead(d, meta)
 }
-func resourceAlicloudEcsDiskAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDiskAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

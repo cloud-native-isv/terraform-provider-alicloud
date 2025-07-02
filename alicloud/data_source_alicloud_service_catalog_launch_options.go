@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudServiceCatalogLaunchOptions() *schema.Resource {
+func dataSourceAliCloudServiceCatalogLaunchOptions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudServiceCatalogLaunchOptionsRead,
+		Read: dataSourceAliCloudServiceCatalogLaunchOptionsRead,
 		Schema: map[string]*schema.Schema{
 			"product_id": {
 				Required: true,
@@ -117,7 +117,7 @@ func dataSourceAlicloudServiceCatalogLaunchOptions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudServiceCatalogLaunchOptionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudServiceCatalogLaunchOptionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

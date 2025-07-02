@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcsStorageCapacityUnits() *schema.Resource {
+func dataSourceAliCloudEcsStorageCapacityUnits() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcsStorageCapacityUnitsRead,
+		Read: dataSourceAliCloudEcsStorageCapacityUnitsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -96,7 +96,7 @@ func dataSourceAlicloudEcsStorageCapacityUnits() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcsStorageCapacityUnitsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcsStorageCapacityUnitsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeStorageCapacityUnits"

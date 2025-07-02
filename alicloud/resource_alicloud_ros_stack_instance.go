@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRosStackInstance() *schema.Resource {
+func resourceAliCloudRosStackInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRosStackInstanceCreate,
-		Read:   resourceAlicloudRosStackInstanceRead,
-		Update: resourceAlicloudRosStackInstanceUpdate,
-		Delete: resourceAlicloudRosStackInstanceDelete,
+		Create: resourceAliCloudRosStackInstanceCreate,
+		Read:   resourceAliCloudRosStackInstanceRead,
+		Update: resourceAliCloudRosStackInstanceUpdate,
+		Delete: resourceAliCloudRosStackInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -86,7 +86,7 @@ func resourceAlicloudRosStackInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRosStackInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateStackInstances"
@@ -133,9 +133,9 @@ func resourceAlicloudRosStackInstanceCreate(d *schema.ResourceData, meta interfa
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudRosStackInstanceRead(d, meta)
+	return resourceAliCloudRosStackInstanceRead(d, meta)
 }
-func resourceAlicloudRosStackInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	object, err := rosService.DescribeRosStackInstance(d.Id())
@@ -170,7 +170,7 @@ func resourceAlicloudRosStackInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudRosStackInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	parts, err := ParseResourceId(d.Id(), 3)
@@ -233,9 +233,9 @@ func resourceAlicloudRosStackInstanceUpdate(d *schema.ResourceData, meta interfa
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudRosStackInstanceRead(d, meta)
+	return resourceAliCloudRosStackInstanceRead(d, meta)
 }
-func resourceAlicloudRosStackInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosStackInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	parts, err := ParseResourceId(d.Id(), 3)

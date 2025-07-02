@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcdPolicyGroup() *schema.Resource {
+func resourceAliCloudEcdPolicyGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdPolicyGroupCreate,
-		Read:   resourceAlicloudEcdPolicyGroupRead,
-		Update: resourceAlicloudEcdPolicyGroupUpdate,
-		Delete: resourceAlicloudEcdPolicyGroupDelete,
+		Create: resourceAliCloudEcdPolicyGroupCreate,
+		Read:   resourceAliCloudEcdPolicyGroupRead,
+		Update: resourceAliCloudEcdPolicyGroupUpdate,
+		Delete: resourceAliCloudEcdPolicyGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -187,7 +187,7 @@ func resourceAlicloudEcdPolicyGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdPolicyGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdPolicyGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreatePolicyGroup"
@@ -283,9 +283,9 @@ func resourceAlicloudEcdPolicyGroupCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprint(response["PolicyGroupId"]))
 
-	return resourceAlicloudEcdPolicyGroupRead(d, meta)
+	return resourceAliCloudEcdPolicyGroupRead(d, meta)
 }
-func resourceAlicloudEcdPolicyGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdPolicyGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdPolicyGroup(d.Id())
@@ -347,7 +347,7 @@ func resourceAlicloudEcdPolicyGroupRead(d *schema.ResourceData, meta interface{}
 	d.Set("recording_expires", formatInt(object["RecordingExpires"]))
 	return nil
 }
-func resourceAlicloudEcdPolicyGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdPolicyGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	var err error
@@ -536,9 +536,9 @@ func resourceAlicloudEcdPolicyGroupUpdate(d *schema.ResourceData, meta interface
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudEcdPolicyGroupRead(d, meta)
+	return resourceAliCloudEcdPolicyGroupRead(d, meta)
 }
-func resourceAlicloudEcdPolicyGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdPolicyGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeletePolicyGroups"
 	var response map[string]interface{}

@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEventBridgeEventBus() *schema.Resource {
+func resourceAliCloudEventBridgeEventBus() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEventBridgeEventBusCreate,
-		Read:   resourceAlicloudEventBridgeEventBusRead,
-		Update: resourceAlicloudEventBridgeEventBusUpdate,
-		Delete: resourceAlicloudEventBridgeEventBusDelete,
+		Create: resourceAliCloudEventBridgeEventBusCreate,
+		Read:   resourceAliCloudEventBridgeEventBusRead,
+		Update: resourceAliCloudEventBridgeEventBusUpdate,
+		Delete: resourceAliCloudEventBridgeEventBusDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -34,7 +34,7 @@ func resourceAlicloudEventBridgeEventBus() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEventBridgeEventBusCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEventBridgeEventBusCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateEventBus"
@@ -67,9 +67,9 @@ func resourceAlicloudEventBridgeEventBusCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(fmt.Sprint(request["EventBusName"]))
 
-	return resourceAlicloudEventBridgeEventBusRead(d, meta)
+	return resourceAliCloudEventBridgeEventBusRead(d, meta)
 }
-func resourceAlicloudEventBridgeEventBusRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEventBridgeEventBusRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	eventbridgeService := EventbridgeService{client}
 	object, err := eventbridgeService.DescribeEventBridgeEventBus(d.Id())
@@ -86,7 +86,7 @@ func resourceAlicloudEventBridgeEventBusRead(d *schema.ResourceData, meta interf
 	d.Set("description", object["Description"])
 	return nil
 }
-func resourceAlicloudEventBridgeEventBusUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEventBridgeEventBusUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -116,9 +116,9 @@ func resourceAlicloudEventBridgeEventBusUpdate(d *schema.ResourceData, meta inte
 			return WrapError(fmt.Errorf("UpdateEventBus failed, response: %v", response))
 		}
 	}
-	return resourceAlicloudEventBridgeEventBusRead(d, meta)
+	return resourceAliCloudEventBridgeEventBusRead(d, meta)
 }
-func resourceAlicloudEventBridgeEventBusDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEventBridgeEventBusDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteEventBus"
 	var response map[string]interface{}

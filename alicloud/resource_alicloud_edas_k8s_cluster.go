@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEdasK8sCluster() *schema.Resource {
+func resourceAliCloudEdasK8sCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEdasK8sClusterCreate,
-		Read:   resourceAlicloudEdasK8sClusterRead,
-		Delete: resourceAlicloudEdasK8sClusterDelete,
+		Create: resourceAliCloudEdasK8sClusterCreate,
+		Read:   resourceAliCloudEdasK8sClusterRead,
+		Delete: resourceAliCloudEdasK8sClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -57,7 +57,7 @@ func resourceAlicloudEdasK8sCluster() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEdasK8sClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasK8sClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -118,10 +118,10 @@ func resourceAlicloudEdasK8sClusterCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudEdasK8sClusterRead(d, meta)
+	return resourceAliCloudEdasK8sClusterRead(d, meta)
 }
 
-func resourceAlicloudEdasK8sClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasK8sClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -145,7 +145,7 @@ func resourceAlicloudEdasK8sClusterRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceAlicloudEdasK8sClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasK8sClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 

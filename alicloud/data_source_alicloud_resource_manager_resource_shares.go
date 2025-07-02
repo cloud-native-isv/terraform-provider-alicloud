@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudResourceManagerResourceShares() *schema.Resource {
+func dataSourceAliCloudResourceManagerResourceShares() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudResourceManagerResourceSharesRead,
+		Read: dataSourceAliCloudResourceManagerResourceSharesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -85,7 +85,7 @@ func dataSourceAlicloudResourceManagerResourceShares() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudResourceManagerResourceSharesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudResourceManagerResourceSharesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListResourceShares"

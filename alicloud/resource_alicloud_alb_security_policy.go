@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAlbSecurityPolicy() *schema.Resource {
+func resourceAliCloudAlbSecurityPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlbSecurityPolicyCreate,
-		Read:   resourceAlicloudAlbSecurityPolicyRead,
-		Update: resourceAlicloudAlbSecurityPolicyUpdate,
-		Delete: resourceAlicloudAlbSecurityPolicyDelete,
+		Create: resourceAliCloudAlbSecurityPolicyCreate,
+		Read:   resourceAliCloudAlbSecurityPolicyRead,
+		Update: resourceAliCloudAlbSecurityPolicyUpdate,
+		Delete: resourceAliCloudAlbSecurityPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +55,7 @@ func resourceAlicloudAlbSecurityPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlbSecurityPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbSecurityPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateSecurityPolicy"
@@ -90,9 +90,9 @@ func resourceAlicloudAlbSecurityPolicyCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(fmt.Sprint(response["SecurityPolicyId"]))
 
-	return resourceAlicloudAlbSecurityPolicyRead(d, meta)
+	return resourceAliCloudAlbSecurityPolicyRead(d, meta)
 }
-func resourceAlicloudAlbSecurityPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbSecurityPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	albService := AlbService{client}
 	object, err := albService.DescribeAlbSecurityPolicy(d.Id())
@@ -115,7 +115,7 @@ func resourceAlicloudAlbSecurityPolicyRead(d *schema.ResourceData, meta interfac
 
 	return nil
 }
-func resourceAlicloudAlbSecurityPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbSecurityPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	albService := AlbService{client}
 	var err error
@@ -212,9 +212,9 @@ func resourceAlicloudAlbSecurityPolicyUpdate(d *schema.ResourceData, meta interf
 		d.SetPartial("tls_versions")
 	}
 	d.Partial(false)
-	return resourceAlicloudAlbSecurityPolicyRead(d, meta)
+	return resourceAliCloudAlbSecurityPolicyRead(d, meta)
 }
-func resourceAlicloudAlbSecurityPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbSecurityPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteSecurityPolicy"
 	var response map[string]interface{}

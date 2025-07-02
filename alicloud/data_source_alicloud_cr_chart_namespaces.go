@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCrChartNamespaces() *schema.Resource {
+func dataSourceAliCloudCrChartNamespaces() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCrChartNamespacesRead,
+		Read: dataSourceAliCloudCrChartNamespacesRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Type:     schema.TypeString,
@@ -79,7 +79,7 @@ func dataSourceAlicloudCrChartNamespaces() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCrChartNamespacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCrChartNamespacesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListChartNamespace"

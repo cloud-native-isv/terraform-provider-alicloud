@@ -7,12 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudSagQos() *schema.Resource {
+func resourceAliCloudSagQos() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSagQosCreate,
-		Read:   resourceAlicloudSagQosRead,
-		Update: resourceAlicloudSagQosUpdate,
-		Delete: resourceAlicloudSagQosDelete,
+		Create: resourceAliCloudSagQosCreate,
+		Read:   resourceAliCloudSagQosRead,
+		Update: resourceAliCloudSagQosUpdate,
+		Delete: resourceAliCloudSagQosDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -27,7 +27,7 @@ func resourceAlicloudSagQos() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSagQosCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := smartag.CreateCreateQosRequest()
 
@@ -43,10 +43,10 @@ func resourceAlicloudSagQosCreate(d *schema.ResourceData, meta interface{}) erro
 	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 	response, _ := raw.(*smartag.CreateQosResponse)
 	d.SetId(response.QosId)
-	return resourceAlicloudSagQosRead(d, meta)
+	return resourceAliCloudSagQosRead(d, meta)
 }
 
-func resourceAlicloudSagQosRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosRead(d *schema.ResourceData, meta interface{}) error {
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeSagQos(d.Id())
 	if err != nil {
@@ -61,7 +61,7 @@ func resourceAlicloudSagQosRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func resourceAlicloudSagQosUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	if d.HasChange("name") {
@@ -76,10 +76,10 @@ func resourceAlicloudSagQosUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 	}
-	return resourceAlicloudSagQosRead(d, meta)
+	return resourceAliCloudSagQosRead(d, meta)
 }
 
-func resourceAlicloudSagQosDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sagService := SagService{client}
 	request := smartag.CreateDeleteQosRequest()

@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudLogDashboard() *schema.Resource {
+func resourceAliCloudLogDashboard() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudLogDashboardCreate,
-		Read:   resourceAlicloudLogDashboardRead,
-		Update: resourceAlicloudLogDashboardUpdate,
-		Delete: resourceAlicloudLogDashboardDelete,
+		Create: resourceAliCloudLogDashboardCreate,
+		Read:   resourceAliCloudLogDashboardRead,
+		Update: resourceAliCloudLogDashboardUpdate,
+		Delete: resourceAliCloudLogDashboardDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -59,7 +59,7 @@ func resourceAlicloudLogDashboard() *schema.Resource {
 	}
 }
 
-func resourceAlicloudLogDashboardCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogDashboardCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	dashboard := map[string]interface{}{
@@ -108,10 +108,10 @@ func resourceAlicloudLogDashboardCreate(d *schema.ResourceData, meta interface{}
 	}); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_dashboard", "CreateDashboard", AliyunLogGoSdkERROR)
 	}
-	return resourceAlicloudLogDashboardRead(d, meta)
+	return resourceAliCloudLogDashboardRead(d, meta)
 }
 
-func resourceAlicloudLogDashboardRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogDashboardRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	logService, err := NewSlsService(client)
 	if err != nil {
@@ -186,7 +186,7 @@ func resourceAlicloudLogDashboardRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAlicloudLogDashboardUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogDashboardUpdate(d *schema.ResourceData, meta interface{}) error {
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
@@ -237,10 +237,10 @@ func resourceAlicloudLogDashboardUpdate(d *schema.ResourceData, meta interface{}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateDashboard", AliyunLogGoSdkERROR)
 		}
 	}
-	return resourceAlicloudLogDashboardRead(d, meta)
+	return resourceAliCloudLogDashboardRead(d, meta)
 }
 
-func resourceAlicloudLogDashboardDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogDashboardDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	logService, err := NewSlsService(client)
 	if err != nil {

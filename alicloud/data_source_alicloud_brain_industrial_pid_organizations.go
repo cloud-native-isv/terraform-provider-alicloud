@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudBrainIndustrialPidOrganizations() *schema.Resource {
+func dataSourceAliCloudBrainIndustrialPidOrganizations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudBrainIndustrialPidOrganizationsRead,
+		Read: dataSourceAliCloudBrainIndustrialPidOrganizationsRead,
 		Schema: map[string]*schema.Schema{
 			"parent_organization_id": {
 				Type:     schema.TypeString,
@@ -73,7 +73,7 @@ func dataSourceAlicloudBrainIndustrialPidOrganizations() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudBrainIndustrialPidOrganizationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudBrainIndustrialPidOrganizationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListPidOrganizations"

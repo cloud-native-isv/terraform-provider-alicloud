@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDmsEnterpriseProxyAccess() *schema.Resource {
+func resourceAliCloudDmsEnterpriseProxyAccess() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDmsEnterpriseProxyAccessCreate,
-		Read:   resourceAlicloudDmsEnterpriseProxyAccessRead,
-		Delete: resourceAlicloudDmsEnterpriseProxyAccessDelete,
+		Create: resourceAliCloudDmsEnterpriseProxyAccessCreate,
+		Read:   resourceAliCloudDmsEnterpriseProxyAccessRead,
+		Delete: resourceAliCloudDmsEnterpriseProxyAccessDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -79,7 +79,7 @@ func resourceAlicloudDmsEnterpriseProxyAccess() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDmsEnterpriseProxyAccessCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseProxyAccessCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"RegionId": client.RegionId,
@@ -125,10 +125,10 @@ func resourceAlicloudDmsEnterpriseProxyAccessCreate(d *schema.ResourceData, meta
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudDmsEnterpriseProxyAccessRead(d, meta)
+	return resourceAliCloudDmsEnterpriseProxyAccessRead(d, meta)
 }
 
-func resourceAlicloudDmsEnterpriseProxyAccessRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseProxyAccessRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dmsEnterpriseService := DmsEnterpriseService{client}
 
@@ -160,7 +160,7 @@ func resourceAlicloudDmsEnterpriseProxyAccessRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceAlicloudDmsEnterpriseProxyAccessDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseProxyAccessDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 

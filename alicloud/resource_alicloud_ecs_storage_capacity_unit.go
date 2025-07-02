@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcsStorageCapacityUnit() *schema.Resource {
+func resourceAliCloudEcsStorageCapacityUnit() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsStorageCapacityUnitCreate,
-		Read:   resourceAlicloudEcsStorageCapacityUnitRead,
-		Update: resourceAlicloudEcsStorageCapacityUnitUpdate,
-		Delete: resourceAlicloudEcsStorageCapacityUnitDelete,
+		Create: resourceAliCloudEcsStorageCapacityUnitCreate,
+		Read:   resourceAliCloudEcsStorageCapacityUnitRead,
+		Update: resourceAliCloudEcsStorageCapacityUnitUpdate,
+		Delete: resourceAliCloudEcsStorageCapacityUnitDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -69,7 +69,7 @@ func resourceAlicloudEcsStorageCapacityUnit() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsStorageCapacityUnitCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsStorageCapacityUnitCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "PurchaseStorageCapacityUnit"
@@ -118,9 +118,9 @@ func resourceAlicloudEcsStorageCapacityUnitCreate(d *schema.ResourceData, meta i
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEcsStorageCapacityUnitRead(d, meta)
+	return resourceAliCloudEcsStorageCapacityUnitRead(d, meta)
 }
-func resourceAlicloudEcsStorageCapacityUnitRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsStorageCapacityUnitRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsStorageCapacityUnit(d.Id())
@@ -141,7 +141,7 @@ func resourceAlicloudEcsStorageCapacityUnitRead(d *schema.ResourceData, meta int
 	d.Set("storage_capacity_unit_name", object["Name"])
 	return nil
 }
-func resourceAlicloudEcsStorageCapacityUnitUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsStorageCapacityUnitUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -181,9 +181,9 @@ func resourceAlicloudEcsStorageCapacityUnitUpdate(d *schema.ResourceData, meta i
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudEcsStorageCapacityUnitRead(d, meta)
+	return resourceAliCloudEcsStorageCapacityUnitRead(d, meta)
 }
-func resourceAlicloudEcsStorageCapacityUnitDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudEcsStorageCapacityUnit. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudEcsStorageCapacityUnitDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudEcsStorageCapacityUnit. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

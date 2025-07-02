@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudSlsAlert() *schema.Resource {
+func resourceAliCloudSlsAlert() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSlsAlertCreate,
-		Read:   resourceAlicloudSlsAlertRead,
-		Update: resourceAlicloudSlsAlertUpdate,
-		Delete: resourceAlicloudSlsAlertDelete,
+		Create: resourceAliCloudSlsAlertCreate,
+		Read:   resourceAliCloudSlsAlertRead,
+		Update: resourceAliCloudSlsAlertUpdate,
+		Delete: resourceAliCloudSlsAlertDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -481,7 +481,7 @@ func resourceAlicloudSlsAlert() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSlsAlertCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlsAlertCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -512,10 +512,10 @@ func resourceAlicloudSlsAlertCreate(d *schema.ResourceData, meta interface{}) er
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudSlsAlertRead(d, meta)
+	return resourceAliCloudSlsAlertRead(d, meta)
 }
 
-func resourceAlicloudSlsAlertRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlsAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -565,7 +565,7 @@ func resourceAlicloudSlsAlertRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceAlicloudSlsAlertUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlsAlertUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -599,10 +599,10 @@ func resourceAlicloudSlsAlertUpdate(d *schema.ResourceData, meta interface{}) er
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudSlsAlertRead(d, meta)
+	return resourceAliCloudSlsAlertRead(d, meta)
 }
 
-func resourceAlicloudSlsAlertDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlsAlertDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {

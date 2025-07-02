@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudPvtzRules() *schema.Resource {
+func dataSourceAliCloudPvtzRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPvtzRulesRead,
+		Read: dataSourceAliCloudPvtzRulesRead,
 		Schema: map[string]*schema.Schema{
 			"endpoint_id": {
 				Type:     schema.TypeString,
@@ -127,7 +127,7 @@ func dataSourceAlicloudPvtzRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudPvtzRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPvtzRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeResolverRules"

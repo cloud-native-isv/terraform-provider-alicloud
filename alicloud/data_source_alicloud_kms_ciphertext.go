@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudKmsCiphertext() *schema.Resource {
+func dataSourceAliCloudKmsCiphertext() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKmsCiphertextRead,
+		Read: dataSourceAliCloudKmsCiphertextRead,
 
 		Schema: map[string]*schema.Schema{
 			"plaintext": {
@@ -43,7 +43,7 @@ func dataSourceAlicloudKmsCiphertext() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudKmsCiphertextRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKmsCiphertextRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Since a ciphertext has no ID, we create an ID based on

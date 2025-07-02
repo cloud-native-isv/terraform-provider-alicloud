@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudOosStateConfiguration() *schema.Resource {
+func resourceAliCloudOosStateConfiguration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOosStateConfigurationCreate,
-		Read:   resourceAlicloudOosStateConfigurationRead,
-		Update: resourceAlicloudOosStateConfigurationUpdate,
-		Delete: resourceAlicloudOosStateConfigurationDelete,
+		Create: resourceAliCloudOosStateConfigurationCreate,
+		Read:   resourceAliCloudOosStateConfigurationRead,
+		Update: resourceAliCloudOosStateConfigurationUpdate,
+		Delete: resourceAliCloudOosStateConfigurationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -78,7 +78,7 @@ func resourceAlicloudOosStateConfiguration() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOosStateConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosStateConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateStateConfiguration"
@@ -131,9 +131,9 @@ func resourceAlicloudOosStateConfigurationCreate(d *schema.ResourceData, meta in
 	responseStateConfiguration := response["StateConfiguration"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseStateConfiguration["StateConfigurationId"]))
 
-	return resourceAlicloudOosStateConfigurationRead(d, meta)
+	return resourceAliCloudOosStateConfigurationRead(d, meta)
 }
-func resourceAlicloudOosStateConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosStateConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	oosService := OosService{client}
 	object, err := oosService.DescribeOosStateConfiguration(d.Id())
@@ -157,7 +157,7 @@ func resourceAlicloudOosStateConfigurationRead(d *schema.ResourceData, meta inte
 	d.Set("template_version", object["TemplateVersion"])
 	return nil
 }
-func resourceAlicloudOosStateConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosStateConfigurationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -232,9 +232,9 @@ func resourceAlicloudOosStateConfigurationUpdate(d *schema.ResourceData, meta in
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudOosStateConfigurationRead(d, meta)
+	return resourceAliCloudOosStateConfigurationRead(d, meta)
 }
-func resourceAlicloudOosStateConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosStateConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteStateConfigurations"
 	var response map[string]interface{}

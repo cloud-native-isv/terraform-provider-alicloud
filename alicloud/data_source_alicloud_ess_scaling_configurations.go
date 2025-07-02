@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEssScalingConfigurations() *schema.Resource {
+func dataSourceAliCloudEssScalingConfigurations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEssScalingConfigurationsRead,
+		Read: dataSourceAliCloudEssScalingConfigurationsRead,
 		Schema: map[string]*schema.Schema{
 			"scaling_group_id": {
 				Type:     schema.TypeString,
@@ -214,7 +214,7 @@ func dataSourceAlicloudEssScalingConfigurations() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEssScalingConfigurationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEssScalingConfigurationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := ess.CreateDescribeScalingConfigurationsRequest()
 	request.RegionId = client.RegionId

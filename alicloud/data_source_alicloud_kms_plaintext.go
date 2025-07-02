@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudKmsPlaintext() *schema.Resource {
+func dataSourceAliCloudKmsPlaintext() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKmsPlaintextRead,
+		Read: dataSourceAliCloudKmsPlaintextRead,
 
 		Schema: map[string]*schema.Schema{
 			"plaintext": {
@@ -42,7 +42,7 @@ func dataSourceAlicloudKmsPlaintext() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudKmsPlaintextRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKmsPlaintextRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Since a plaintext has no ID, we create an ID based on

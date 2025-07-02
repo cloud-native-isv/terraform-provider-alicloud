@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudPvtzZoneAttachment() *schema.Resource {
+func resourceAliCloudPvtzZoneAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPvtzZoneAttachmentCreate,
-		Read:   resourceAlicloudPvtzZoneAttachmentRead,
-		Update: resourceAlicloudPvtzZoneAttachmentUpdate,
-		Delete: resourceAlicloudPvtzZoneAttachmentDelete,
+		Create: resourceAliCloudPvtzZoneAttachmentCreate,
+		Read:   resourceAliCloudPvtzZoneAttachmentRead,
+		Update: resourceAliCloudPvtzZoneAttachmentUpdate,
+		Delete: resourceAliCloudPvtzZoneAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -78,7 +78,7 @@ func resourceAlicloudPvtzZoneAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPvtzZoneAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzZoneAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "BindZoneVpc"
@@ -143,9 +143,9 @@ func resourceAlicloudPvtzZoneAttachmentCreate(d *schema.ResourceData, meta inter
 		return WrapError(err)
 	}
 
-	return resourceAlicloudPvtzZoneAttachmentRead(d, meta)
+	return resourceAliCloudPvtzZoneAttachmentRead(d, meta)
 }
-func resourceAlicloudPvtzZoneAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzZoneAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	pvtzService := PvtzService{client}
 	object, err := pvtzService.DescribePvtzZoneAttachment(d.Id())
@@ -183,7 +183,7 @@ func resourceAlicloudPvtzZoneAttachmentRead(d *schema.ResourceData, meta interfa
 	}
 	return nil
 }
-func resourceAlicloudPvtzZoneAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzZoneAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -242,9 +242,9 @@ func resourceAlicloudPvtzZoneAttachmentUpdate(d *schema.ResourceData, meta inter
 			return WrapError(err)
 		}
 	}
-	return resourceAlicloudPvtzZoneAttachmentRead(d, meta)
+	return resourceAliCloudPvtzZoneAttachmentRead(d, meta)
 }
-func resourceAlicloudPvtzZoneAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzZoneAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "BindZoneVpc"
 	var response map[string]interface{}

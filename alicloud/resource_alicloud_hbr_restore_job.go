@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudHbrRestoreJob() *schema.Resource {
+func resourceAliCloudHbrRestoreJob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudHbrRestoreJobCreate,
-		Read:   resourceAlicloudHbrRestoreJobRead,
-		Update: resourceAlicloudHbrRestoreJobUpdate,
-		Delete: resourceAlicloudHbrRestoreJobDelete,
+		Create: resourceAliCloudHbrRestoreJobCreate,
+		Read:   resourceAliCloudHbrRestoreJobRead,
+		Update: resourceAliCloudHbrRestoreJobUpdate,
+		Delete: resourceAliCloudHbrRestoreJobDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -171,7 +171,7 @@ func resourceAlicloudHbrRestoreJob() *schema.Resource {
 	}
 }
 
-func resourceAlicloudHbrRestoreJobCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrRestoreJobCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateRestoreJob"
@@ -285,10 +285,10 @@ func resourceAlicloudHbrRestoreJobCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudHbrRestoreJobRead(d, meta)
+	return resourceAliCloudHbrRestoreJobRead(d, meta)
 }
 
-func resourceAlicloudHbrRestoreJobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrRestoreJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hbrService := HbrService{client}
 	object, err := hbrService.DescribeHbrRestoreJob(d.Id())
@@ -348,12 +348,12 @@ func resourceAlicloudHbrRestoreJobRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudHbrRestoreJobUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrRestoreJobUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudHbrRestoreJobRead(d, meta)
+	return resourceAliCloudHbrRestoreJobRead(d, meta)
 }
 
-func resourceAlicloudHbrRestoreJobDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudHbrRestoreJob. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudHbrRestoreJobDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudHbrRestoreJob. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

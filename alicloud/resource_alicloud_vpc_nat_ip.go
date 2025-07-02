@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudVpcNatIp() *schema.Resource {
+func resourceAliCloudVpcNatIp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpcNatIpCreate,
-		Read:   resourceAlicloudVpcNatIpRead,
-		Update: resourceAlicloudVpcNatIpUpdate,
-		Delete: resourceAlicloudVpcNatIpDelete,
+		Create: resourceAliCloudVpcNatIpCreate,
+		Read:   resourceAliCloudVpcNatIpRead,
+		Update: resourceAliCloudVpcNatIpUpdate,
+		Delete: resourceAliCloudVpcNatIpDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -69,7 +69,7 @@ func resourceAlicloudVpcNatIp() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpcNatIpCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcNatIpCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateNatIp"
@@ -120,9 +120,9 @@ func resourceAlicloudVpcNatIpCreate(d *schema.ResourceData, meta interface{}) er
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudVpcNatIpRead(d, meta)
+	return resourceAliCloudVpcNatIpRead(d, meta)
 }
-func resourceAlicloudVpcNatIpRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcNatIpRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 
@@ -144,7 +144,7 @@ func resourceAlicloudVpcNatIpRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("status", object["NatIpStatus"])
 	return nil
 }
-func resourceAlicloudVpcNatIpUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcNatIpUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	update := false
@@ -195,9 +195,9 @@ func resourceAlicloudVpcNatIpUpdate(d *schema.ResourceData, meta interface{}) er
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudVpcNatIpRead(d, meta)
+	return resourceAliCloudVpcNatIpRead(d, meta)
 }
-func resourceAlicloudVpcNatIpDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcNatIpDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	action := "DeleteNatIp"

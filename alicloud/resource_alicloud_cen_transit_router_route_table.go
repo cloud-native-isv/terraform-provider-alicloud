@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCenTransitRouterRouteTable() *schema.Resource {
+func resourceAliCloudCenTransitRouterRouteTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenTransitRouterRouteTableCreate,
-		Read:   resourceAlicloudCenTransitRouterRouteTableRead,
-		Update: resourceAlicloudCenTransitRouterRouteTableUpdate,
-		Delete: resourceAlicloudCenTransitRouterRouteTableDelete,
+		Create: resourceAliCloudCenTransitRouterRouteTableCreate,
+		Read:   resourceAliCloudCenTransitRouterRouteTableRead,
+		Update: resourceAliCloudCenTransitRouterRouteTableUpdate,
+		Delete: resourceAliCloudCenTransitRouterRouteTableDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -60,7 +60,7 @@ func resourceAlicloudCenTransitRouterRouteTable() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenTransitRouterRouteTableCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterRouteTableCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	var response map[string]interface{}
@@ -103,10 +103,10 @@ func resourceAlicloudCenTransitRouterRouteTableCreate(d *schema.ResourceData, me
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCenTransitRouterRouteTableUpdate(d, meta)
+	return resourceAliCloudCenTransitRouterRouteTableUpdate(d, meta)
 }
 
-func resourceAlicloudCenTransitRouterRouteTableRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenTransitRouterRouteTable(d.Id())
@@ -141,7 +141,7 @@ func resourceAlicloudCenTransitRouterRouteTableRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceAlicloudCenTransitRouterRouteTableUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterRouteTableUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	var err error
@@ -200,10 +200,10 @@ func resourceAlicloudCenTransitRouterRouteTableUpdate(d *schema.ResourceData, me
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudCenTransitRouterRouteTableRead(d, meta)
+	return resourceAliCloudCenTransitRouterRouteTableRead(d, meta)
 }
 
-func resourceAlicloudCenTransitRouterRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenTransitRouterRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	action := "DeleteTransitRouterRouteTable"

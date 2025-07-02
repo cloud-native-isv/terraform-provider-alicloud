@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudQuickBiUsers() *schema.Resource {
+func dataSourceAliCloudQuickBiUsers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudQuickBiUsersRead,
+		Read: dataSourceAliCloudQuickBiUsersRead,
 		Schema: map[string]*schema.Schema{
 			"keyword": {
 				Type:     schema.TypeString,
@@ -87,7 +87,7 @@ func dataSourceAlicloudQuickBiUsers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudQuickBiUsersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudQuickBiUsersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "QueryUserList"

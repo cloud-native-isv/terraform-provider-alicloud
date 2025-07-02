@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCassandraClusters() *schema.Resource {
+func dataSourceAliCloudCassandraClusters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCassandraClustersRead,
+		Read: dataSourceAliCloudCassandraClustersRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -94,7 +94,7 @@ func dataSourceAlicloudCassandraClusters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCassandraClustersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCassandraClustersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cassandraService := CassandraService{client}
 

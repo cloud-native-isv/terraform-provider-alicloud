@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCmsMetricRuleBlackList() *schema.Resource {
+func resourceAliCloudCmsMetricRuleBlackList() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCmsMetricRuleBlackListCreate,
-		Read:   resourceAlicloudCmsMetricRuleBlackListRead,
-		Update: resourceAlicloudCmsMetricRuleBlackListUpdate,
-		Delete: resourceAlicloudCmsMetricRuleBlackListDelete,
+		Create: resourceAliCloudCmsMetricRuleBlackListCreate,
+		Read:   resourceAliCloudCmsMetricRuleBlackListRead,
+		Update: resourceAliCloudCmsMetricRuleBlackListUpdate,
+		Delete: resourceAliCloudCmsMetricRuleBlackListDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -104,7 +104,7 @@ func resourceAlicloudCmsMetricRuleBlackList() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCmsMetricRuleBlackListCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMetricRuleBlackListCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -174,10 +174,10 @@ func resourceAlicloudCmsMetricRuleBlackListCreate(d *schema.ResourceData, meta i
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudCmsMetricRuleBlackListUpdate(d, meta)
+	return resourceAliCloudCmsMetricRuleBlackListUpdate(d, meta)
 }
 
-func resourceAlicloudCmsMetricRuleBlackListRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMetricRuleBlackListRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cmsService := CmsService{client}
 
@@ -230,7 +230,7 @@ func resourceAlicloudCmsMetricRuleBlackListRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceAlicloudCmsMetricRuleBlackListUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMetricRuleBlackListUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -370,10 +370,10 @@ func resourceAlicloudCmsMetricRuleBlackListUpdate(d *schema.ResourceData, meta i
 	}
 
 	d.Partial(false)
-	return resourceAlicloudCmsMetricRuleBlackListRead(d, meta)
+	return resourceAliCloudCmsMetricRuleBlackListRead(d, meta)
 }
 
-func resourceAlicloudCmsMetricRuleBlackListDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMetricRuleBlackListDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 

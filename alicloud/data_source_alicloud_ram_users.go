@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRamUsers() *schema.Resource {
+func dataSourceAliCloudRamUsers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRamUsersRead,
+		Read: dataSourceAliCloudRamUsersRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:     schema.TypeString,
@@ -85,7 +85,7 @@ func dataSourceAlicloudRamUsers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRamUsersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRamUsersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ramService := RamService{client}
 	var allUsers []interface{}

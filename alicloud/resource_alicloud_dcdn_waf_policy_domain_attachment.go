@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDcdnWafPolicyDomainAttachment() *schema.Resource {
+func resourceAliCloudDcdnWafPolicyDomainAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDcdnWafPolicyDomainAttachmentCreate,
-		Read:   resourceAlicloudDcdnWafPolicyDomainAttachmentRead,
-		Delete: resourceAlicloudDcdnWafPolicyDomainAttachmentDelete,
+		Create: resourceAliCloudDcdnWafPolicyDomainAttachmentCreate,
+		Read:   resourceAliCloudDcdnWafPolicyDomainAttachmentRead,
+		Delete: resourceAliCloudDcdnWafPolicyDomainAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -37,7 +37,7 @@ func resourceAlicloudDcdnWafPolicyDomainAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDcdnWafPolicyDomainAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafPolicyDomainAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "ModifyDcdnWafPolicyDomains"
@@ -64,9 +64,9 @@ func resourceAlicloudDcdnWafPolicyDomainAttachmentCreate(d *schema.ResourceData,
 
 	d.SetId(fmt.Sprint(request["PolicyId"], ":", request["BindDomains"]))
 
-	return resourceAlicloudDcdnWafPolicyDomainAttachmentRead(d, meta)
+	return resourceAliCloudDcdnWafPolicyDomainAttachmentRead(d, meta)
 }
-func resourceAlicloudDcdnWafPolicyDomainAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafPolicyDomainAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dcdnService := DcdnService{client}
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -87,7 +87,7 @@ func resourceAlicloudDcdnWafPolicyDomainAttachmentRead(d *schema.ResourceData, m
 	d.Set("domain_name", object["DomainName"])
 	return nil
 }
-func resourceAlicloudDcdnWafPolicyDomainAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafPolicyDomainAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "ModifyDcdnWafPolicyDomains"
 	parts, err := ParseResourceId(d.Id(), 2)

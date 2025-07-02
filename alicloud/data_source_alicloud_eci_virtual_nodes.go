@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEciVirtualNodes() *schema.Resource {
+func dataSourceAliCloudEciVirtualNodes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEciVirtualNodesRead,
+		Read: dataSourceAliCloudEciVirtualNodesRead,
 		Schema: map[string]*schema.Schema{
 			"resource_group_id": {
 				Type:     schema.TypeString,
@@ -181,7 +181,7 @@ func dataSourceAlicloudEciVirtualNodes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEciVirtualNodesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEciVirtualNodesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeVirtualNodes"

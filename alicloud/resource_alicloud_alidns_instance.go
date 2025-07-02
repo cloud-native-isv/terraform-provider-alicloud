@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudAlidnsInstance() *schema.Resource {
+func resourceAliCloudAlidnsInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlidnsInstanceCreate,
-		Read:   resourceAlicloudAlidnsInstanceRead,
-		Update: resourceAlicloudAlidnsInstanceUpdate,
-		Delete: resourceAlicloudAlidnsInstanceDelete,
+		Create: resourceAliCloudAlidnsInstanceCreate,
+		Read:   resourceAliCloudAlidnsInstanceRead,
+		Update: resourceAliCloudAlidnsInstanceUpdate,
+		Delete: resourceAliCloudAlidnsInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -76,7 +76,7 @@ func resourceAlicloudAlidnsInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlidnsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var endpoint string
@@ -139,9 +139,9 @@ func resourceAlicloudAlidnsInstanceCreate(d *schema.ResourceData, meta interface
 	responseData := response["Data"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseData["InstanceId"]))
 
-	return resourceAlicloudAlidnsInstanceRead(d, meta)
+	return resourceAliCloudAlidnsInstanceRead(d, meta)
 }
-func resourceAlicloudAlidnsInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsInstance(d.Id())
@@ -175,12 +175,12 @@ func resourceAlicloudAlidnsInstanceRead(d *schema.ResourceData, meta interface{}
 
 	return nil
 }
-func resourceAlicloudAlidnsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudAlidnsInstanceRead(d, meta)
+	return resourceAliCloudAlidnsInstanceRead(d, meta)
 }
-func resourceAlicloudAlidnsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudAlidnsInstance. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudAlidnsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudAlidnsInstance. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }
 func convertDnsSecurityResponse(source interface{}) interface{} {

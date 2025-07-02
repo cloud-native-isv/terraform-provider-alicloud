@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDBZones() *schema.Resource {
+func dataSourceAliCloudDBZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDBZonesRead,
+		Read: dataSourceAliCloudDBZonesRead,
 
 		Schema: map[string]*schema.Schema{
 			"multi": {
@@ -89,7 +89,7 @@ func dataSourceAlicloudDBZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDBZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDBZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	engines := make([]string, 0)
 	if v, ok := d.GetOk("engine"); ok && v.(string) != "" {

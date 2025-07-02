@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOtsSecondaryIndexes() *schema.Resource {
+func dataSourceAliCloudOtsSecondaryIndexes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOtsSecondaryIndexesRead,
+		Read: dataSourceAliCloudOtsSecondaryIndexesRead,
 
 		Schema: map[string]*schema.Schema{
 			"instance_name": {
@@ -148,7 +148,7 @@ func (s *SecIndexDataSource) export(d *schema.ResourceData) error {
 	return nil
 }
 
-func dataSourceAlicloudOtsSecondaryIndexesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOtsSecondaryIndexesRead(d *schema.ResourceData, meta interface{}) error {
 	args := parseSecIndexDataSourceArgs(d)
 
 	client := meta.(*connectivity.AliyunClient)

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudFcLayerVersion() *schema.Resource {
+func resourceAliCloudFcLayerVersion() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudFcLayerVersionCreate,
-		Read:   resourceAlicloudFcLayerVersionRead,
-		Update: resourceAlicloudFcLayerVersionUpdate,
-		Delete: resourceAlicloudFcLayerVersionDelete,
+		Create: resourceAliCloudFcLayerVersionCreate,
+		Read:   resourceAliCloudFcLayerVersionRead,
+		Update: resourceAliCloudFcLayerVersionUpdate,
+		Delete: resourceAliCloudFcLayerVersionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -85,7 +85,7 @@ func resourceAlicloudFcLayerVersion() *schema.Resource {
 	}
 }
 
-func resourceAlicloudFcLayerVersionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFcLayerVersionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	layerName := d.Get("layer_name")
 	action := fmt.Sprintf("/2021-04-06/layers/%s/versions", layerName)
@@ -138,10 +138,10 @@ func resourceAlicloudFcLayerVersionCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprint(layerName, ":", response["version"]))
 
-	return resourceAlicloudFcLayerVersionRead(d, meta)
+	return resourceAliCloudFcLayerVersionRead(d, meta)
 }
 
-func resourceAlicloudFcLayerVersionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFcLayerVersionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fcOpenService := FcOpenService{client}
 
@@ -168,12 +168,12 @@ func resourceAlicloudFcLayerVersionRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceAlicloudFcLayerVersionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFcLayerVersionUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] The property in this resource cannot be updated.")
 	return nil
 }
 
-func resourceAlicloudFcLayerVersionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFcLayerVersionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	if v, ok := d.GetOkExists("skip_destroy"); ok && v.(bool) {

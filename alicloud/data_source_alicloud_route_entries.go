@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRouteEntries() *schema.Resource {
+func dataSourceAliCloudRouteEntries() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRouteEntriesRead,
+		Read: dataSourceAliCloudRouteEntriesRead,
 
 		Schema: map[string]*schema.Schema{
 			"route_table_id": {
@@ -70,7 +70,7 @@ func dataSourceAlicloudRouteEntries() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudRouteEntriesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRouteEntriesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := vpc.CreateDescribeRouteTablesRequest()
 	request.RegionId = string(client.Region)

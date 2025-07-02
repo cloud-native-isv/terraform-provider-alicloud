@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCenChildInstanceRouteEntryToAttachments() *schema.Resource {
+func dataSourceAliCloudCenChildInstanceRouteEntryToAttachments() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenChildInstanceRouteEntryToAttachmentsRead,
+		Read: dataSourceAliCloudCenChildInstanceRouteEntryToAttachmentsRead,
 		Schema: map[string]*schema.Schema{
 			"child_instance_route_table_id": {
 				Required: true,
@@ -86,7 +86,7 @@ func dataSourceAlicloudCenChildInstanceRouteEntryToAttachments() *schema.Resourc
 	}
 }
 
-func dataSourceAlicloudCenChildInstanceRouteEntryToAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenChildInstanceRouteEntryToAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

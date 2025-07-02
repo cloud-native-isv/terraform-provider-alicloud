@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCmsHybridMonitorFcTasks() *schema.Resource {
+func dataSourceAliCloudCmsHybridMonitorFcTasks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsHybridMonitorFcTasksRead,
+		Read: dataSourceAliCloudCmsHybridMonitorFcTasksRead,
 		Schema: map[string]*schema.Schema{
 			"namespace": {
 				Type:     schema.TypeString,
@@ -75,7 +75,7 @@ func dataSourceAlicloudCmsHybridMonitorFcTasks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsHybridMonitorFcTasksRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsHybridMonitorFcTasksRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeHybridMonitorTaskList"

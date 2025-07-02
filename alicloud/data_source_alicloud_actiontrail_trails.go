@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudActiontrailTrails() *schema.Resource {
+func dataSourceAliCloudActiontrailTrails() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudActiontrailTrailsRead,
+		Read: dataSourceAliCloudActiontrailTrailsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -163,7 +163,7 @@ func dataSourceAlicloudActiontrailTrails() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudActiontrailTrailsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudActiontrailTrailsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeTrails"

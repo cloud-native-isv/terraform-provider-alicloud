@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcTrafficMirrorFilterEgressRules() *schema.Resource {
+func dataSourceAliCloudVpcTrafficMirrorFilterEgressRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcTrafficMirrorFilterEgressRulesRead,
+		Read: dataSourceAliCloudVpcTrafficMirrorFilterEgressRulesRead,
 		Schema: map[string]*schema.Schema{
 			"status": {
 				Type:         schema.TypeString,
@@ -93,7 +93,7 @@ func dataSourceAlicloudVpcTrafficMirrorFilterEgressRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcTrafficMirrorFilterEgressRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcTrafficMirrorFilterEgressRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTrafficMirrorFilters"

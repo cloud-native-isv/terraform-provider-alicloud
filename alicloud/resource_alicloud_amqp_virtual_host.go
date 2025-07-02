@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAmqpVirtualHost() *schema.Resource {
+func resourceAliCloudAmqpVirtualHost() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAmqpVirtualHostCreate,
-		Read:   resourceAlicloudAmqpVirtualHostRead,
-		Delete: resourceAlicloudAmqpVirtualHostDelete,
+		Create: resourceAliCloudAmqpVirtualHostCreate,
+		Read:   resourceAliCloudAmqpVirtualHostRead,
+		Delete: resourceAliCloudAmqpVirtualHostDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -33,7 +33,7 @@ func resourceAlicloudAmqpVirtualHost() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAmqpVirtualHostCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAmqpVirtualHostCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateVirtualHost"
@@ -60,9 +60,9 @@ func resourceAlicloudAmqpVirtualHostCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["VirtualHost"]))
 
-	return resourceAlicloudAmqpVirtualHostRead(d, meta)
+	return resourceAliCloudAmqpVirtualHostRead(d, meta)
 }
-func resourceAlicloudAmqpVirtualHostRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAmqpVirtualHostRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	amqpOpenService := AmqpOpenService{client}
 	_, err := amqpOpenService.DescribeAmqpVirtualHost(d.Id())
@@ -82,7 +82,7 @@ func resourceAlicloudAmqpVirtualHostRead(d *schema.ResourceData, meta interface{
 	d.Set("virtual_host_name", parts[1])
 	return nil
 }
-func resourceAlicloudAmqpVirtualHostDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAmqpVirtualHostDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

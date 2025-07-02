@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudPolarDBAccountPrivilege() *schema.Resource {
+func resourceAliCloudPolarDBAccountPrivilege() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPolarDBAccountPrivilegeCreate,
-		Read:   resourceAlicloudPolarDBAccountPrivilegeRead,
-		Update: resourceAlicloudPolarDBAccountPrivilegeUpdate,
-		Delete: resourceAlicloudPolarDBAccountPrivilegeDelete,
+		Create: resourceAliCloudPolarDBAccountPrivilegeCreate,
+		Read:   resourceAliCloudPolarDBAccountPrivilegeRead,
+		Update: resourceAliCloudPolarDBAccountPrivilegeUpdate,
+		Delete: resourceAliCloudPolarDBAccountPrivilegeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +52,7 @@ func resourceAlicloudPolarDBAccountPrivilege() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPolarDBAccountPrivilegeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBAccountPrivilegeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 	clusterId := d.Get("db_cluster_id").(string)
@@ -81,10 +81,10 @@ func resourceAlicloudPolarDBAccountPrivilegeCreate(d *schema.ResourceData, meta 
 		}
 	}
 
-	return resourceAlicloudPolarDBAccountPrivilegeRead(d, meta)
+	return resourceAliCloudPolarDBAccountPrivilegeRead(d, meta)
 }
 
-func resourceAlicloudPolarDBAccountPrivilegeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBAccountPrivilegeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 	parts, err := ParseResourceId(d.Id(), 3)
@@ -114,7 +114,7 @@ func resourceAlicloudPolarDBAccountPrivilegeRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceAlicloudPolarDBAccountPrivilegeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBAccountPrivilegeUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	PolarDBService := PolarDBService{client}
 	d.Partial(true)
@@ -155,10 +155,10 @@ func resourceAlicloudPolarDBAccountPrivilegeUpdate(d *schema.ResourceData, meta 
 	}
 
 	d.Partial(false)
-	return resourceAlicloudPolarDBAccountPrivilegeRead(d, meta)
+	return resourceAliCloudPolarDBAccountPrivilegeRead(d, meta)
 }
 
-func resourceAlicloudPolarDBAccountPrivilegeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBAccountPrivilegeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	PolarDBService := PolarDBService{client}
 	parts, err := ParseResourceId(d.Id(), 3)

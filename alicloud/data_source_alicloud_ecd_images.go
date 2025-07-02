@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdImages() *schema.Resource {
+func dataSourceAliCloudEcdImages() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdImagesRead,
+		Read: dataSourceAliCloudEcdImagesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -121,7 +121,7 @@ func dataSourceAlicloudEcdImages() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdImagesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdImagesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeImages"

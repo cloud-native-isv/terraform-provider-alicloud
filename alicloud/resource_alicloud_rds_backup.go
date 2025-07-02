@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRdsBackup() *schema.Resource {
+func resourceAliCloudRdsBackup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdsBackupCreate,
-		Read:   resourceAlicloudRdsBackupRead,
-		Update: resourceAlicloudRdsBackupUpdate,
-		Delete: resourceAlicloudRdsBackupDelete,
+		Create: resourceAliCloudRdsBackupCreate,
+		Read:   resourceAliCloudRdsBackupRead,
+		Update: resourceAliCloudRdsBackupUpdate,
+		Delete: resourceAliCloudRdsBackupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -65,7 +65,7 @@ func resourceAlicloudRdsBackup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRdsBackupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsBackupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	var response map[string]interface{}
@@ -110,10 +110,10 @@ func resourceAlicloudRdsBackupCreate(d *schema.ResourceData, meta interface{}) e
 	time.Sleep(1 * time.Minute)
 	object, err := rdsService.DescribeBackupTasks(d.Get("db_instance_id").(string), response["BackupJobId"].(string))
 	d.SetId(fmt.Sprint(request["DBInstanceId"], ":", object["BackupId"].(string)))
-	return resourceAlicloudRdsBackupRead(d, meta)
+	return resourceAliCloudRdsBackupRead(d, meta)
 }
 
-func resourceAlicloudRdsBackupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsBackupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeRdsBackup(d.Id())
@@ -133,11 +133,11 @@ func resourceAlicloudRdsBackupRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("store_status", object["StoreStatus"])
 	return nil
 }
-func resourceAlicloudRdsBackupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsBackupUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudRdsBackupRead(d, meta)
+	return resourceAliCloudRdsBackupRead(d, meta)
 }
-func resourceAlicloudRdsBackupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsBackupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteBackup"
 	parts, err := ParseResourceId(d.Id(), 2)

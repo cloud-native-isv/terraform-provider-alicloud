@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudArmsAlertIntegration() *schema.Resource {
+func resourceAliCloudArmsAlertIntegration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudArmsAlertIntegrationCreate,
-		Read:   resourceAlicloudArmsAlertIntegrationRead,
-		Update: resourceAlicloudArmsAlertIntegrationUpdate,
-		Delete: resourceAlicloudArmsAlertIntegrationDelete,
+		Create: resourceAliCloudArmsAlertIntegrationCreate,
+		Read:   resourceAliCloudArmsAlertIntegrationRead,
+		Update: resourceAliCloudArmsAlertIntegrationUpdate,
+		Delete: resourceAliCloudArmsAlertIntegrationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -74,7 +74,7 @@ func resourceAlicloudArmsAlertIntegration() *schema.Resource {
 	}
 }
 
-func resourceAlicloudArmsAlertIntegrationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertIntegrationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Initialize ARMS API client
@@ -115,10 +115,10 @@ func resourceAlicloudArmsAlertIntegrationCreate(d *schema.ResourceData, meta int
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_integration", "CreateIntegration", AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudArmsAlertIntegrationRead(d, meta)
+	return resourceAliCloudArmsAlertIntegrationRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertIntegrationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertIntegrationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Initialize ARMS API client
@@ -168,7 +168,7 @@ func resourceAlicloudArmsAlertIntegrationRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceAlicloudArmsAlertIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Initialize ARMS API client
@@ -217,10 +217,10 @@ func resourceAlicloudArmsAlertIntegrationUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	return resourceAlicloudArmsAlertIntegrationRead(d, meta)
+	return resourceAliCloudArmsAlertIntegrationRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertIntegrationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertIntegrationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Initialize ARMS API client

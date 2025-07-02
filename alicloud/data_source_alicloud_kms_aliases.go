@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudKmsAliases() *schema.Resource {
+func dataSourceAliCloudKmsAliases() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKmsAliasesRead,
+		Read: dataSourceAliCloudKmsAliasesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -62,7 +62,7 @@ func dataSourceAlicloudKmsAliases() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudKmsAliasesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKmsAliasesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListAliases"

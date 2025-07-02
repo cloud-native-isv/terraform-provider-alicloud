@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudResourceManagerAccounts() *schema.Resource {
+func dataSourceAliCloudResourceManagerAccounts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudResourceManagerAccountsRead,
+		Read: dataSourceAliCloudResourceManagerAccountsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -97,7 +97,7 @@ func dataSourceAlicloudResourceManagerAccounts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudResourceManagerAccountsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudResourceManagerAccountsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListAccounts"

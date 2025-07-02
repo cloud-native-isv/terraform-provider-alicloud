@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudConfigAggregateConfigRule() *schema.Resource {
+func resourceAliCloudConfigAggregateConfigRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudConfigAggregateConfigRuleCreate,
-		Read:   resourceAlicloudConfigAggregateConfigRuleRead,
-		Update: resourceAlicloudConfigAggregateConfigRuleUpdate,
-		Delete: resourceAlicloudConfigAggregateConfigRuleDelete,
+		Create: resourceAliCloudConfigAggregateConfigRuleCreate,
+		Read:   resourceAliCloudConfigAggregateConfigRuleRead,
+		Update: resourceAliCloudConfigAggregateConfigRuleUpdate,
+		Delete: resourceAliCloudConfigAggregateConfigRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -115,7 +115,7 @@ func resourceAlicloudConfigAggregateConfigRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudConfigAggregateConfigRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigAggregateConfigRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -177,9 +177,9 @@ func resourceAlicloudConfigAggregateConfigRuleCreate(d *schema.ResourceData, met
 
 	d.SetId(fmt.Sprint(request["AggregatorId"], ":", response["ConfigRuleId"]))
 
-	return resourceAlicloudConfigAggregateConfigRuleUpdate(d, meta)
+	return resourceAliCloudConfigAggregateConfigRuleUpdate(d, meta)
 }
-func resourceAlicloudConfigAggregateConfigRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigAggregateConfigRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	configService := ConfigService{client}
 	object, err := configService.DescribeConfigAggregateConfigRule(d.Id())
@@ -214,7 +214,7 @@ func resourceAlicloudConfigAggregateConfigRuleRead(d *schema.ResourceData, meta 
 	d.Set("tag_value_scope", object["TagValueScope"])
 	return nil
 }
-func resourceAlicloudConfigAggregateConfigRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigAggregateConfigRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	configService := ConfigService{client}
@@ -331,9 +331,9 @@ func resourceAlicloudConfigAggregateConfigRuleUpdate(d *schema.ResourceData, met
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudConfigAggregateConfigRuleRead(d, meta)
+	return resourceAliCloudConfigAggregateConfigRuleRead(d, meta)
 }
-func resourceAlicloudConfigAggregateConfigRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigAggregateConfigRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

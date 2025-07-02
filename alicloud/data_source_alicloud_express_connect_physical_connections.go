@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudExpressConnectPhysicalConnections() *schema.Resource {
+func dataSourceAliCloudExpressConnectPhysicalConnections() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudExpressConnectPhysicalConnectionsRead,
+		Read: dataSourceAliCloudExpressConnectPhysicalConnectionsRead,
 		Schema: map[string]*schema.Schema{
 			"include_reservation_data": {
 				Type:     schema.TypeBool,
@@ -165,7 +165,7 @@ func dataSourceAlicloudExpressConnectPhysicalConnections() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudExpressConnectPhysicalConnectionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudExpressConnectPhysicalConnectionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribePhysicalConnections"

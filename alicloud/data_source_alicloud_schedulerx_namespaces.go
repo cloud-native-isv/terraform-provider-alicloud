@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSchedulerxNamespaces() *schema.Resource {
+func dataSourceAliCloudSchedulerxNamespaces() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSchedulerxNamespacesRead,
+		Read: dataSourceAliCloudSchedulerxNamespacesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Optional: true,
@@ -69,7 +69,7 @@ func dataSourceAlicloudSchedulerxNamespaces() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSchedulerxNamespacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSchedulerxNamespacesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

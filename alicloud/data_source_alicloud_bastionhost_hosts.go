@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudBastionhostHosts() *schema.Resource {
+func dataSourceAliCloudBastionhostHosts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudBastionhostHostsRead,
+		Read: dataSourceAliCloudBastionhostHostsRead,
 		Schema: map[string]*schema.Schema{
 			"host_address": {
 				Type:     schema.TypeString,
@@ -156,7 +156,7 @@ func dataSourceAlicloudBastionhostHosts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudBastionhostHostsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudBastionhostHostsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListHosts"

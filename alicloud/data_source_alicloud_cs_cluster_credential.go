@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCSClusterCredential() *schema.Resource {
+func dataSourceAliCloudCSClusterCredential() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCSClusterCredentialRead,
+		Read: dataSourceAliCloudCSClusterCredentialRead,
 
 		Schema: map[string]*schema.Schema{
 			"cluster_id": {
@@ -70,7 +70,7 @@ func dataSourceAlicloudCSClusterCredential() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCSClusterCredentialRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCSClusterCredentialRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	roaClient, err := client.NewRoaCsClient()
 	if err != nil {

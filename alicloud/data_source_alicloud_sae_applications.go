@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSaeApplications() *schema.Resource {
+func dataSourceAliCloudSaeApplications() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSaeApplicationsRead,
+		Read: dataSourceAliCloudSaeApplicationsRead,
 		Schema: map[string]*schema.Schema{
 			"app_name": {
 				Type:     schema.TypeString,
@@ -330,7 +330,7 @@ func dataSourceAlicloudSaeApplications() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSaeApplicationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSaeApplicationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "/pop/v1/sam/app/listApplications"

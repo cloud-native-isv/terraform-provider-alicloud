@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpnGatewayVcoRoutes() *schema.Resource {
+func dataSourceAliCloudVpnGatewayVcoRoutes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpnGatewayVcoRoutesRead,
+		Read: dataSourceAliCloudVpnGatewayVcoRoutesRead,
 		Schema: map[string]*schema.Schema{
 			"route_entry_type": {
 				Type:         schema.TypeString,
@@ -100,7 +100,7 @@ func dataSourceAlicloudVpnGatewayVcoRoutes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpnGatewayVcoRoutesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpnGatewayVcoRoutesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeVcoRouteEntries"

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudLogProjectLogging() *schema.Resource {
+func resourceAliCloudLogProjectLogging() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudLogProjectLoggingCreate,
-		Read:   resourceAlicloudLogProjectLoggingRead,
-		Update: resourceAlicloudLogProjectLoggingUpdate,
-		Delete: resourceAlicloudLogProjectLoggingDelete,
+		Create: resourceAliCloudLogProjectLoggingCreate,
+		Read:   resourceAliCloudLogProjectLoggingRead,
+		Update: resourceAliCloudLogProjectLoggingUpdate,
+		Delete: resourceAliCloudLogProjectLoggingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -112,7 +112,7 @@ func projectLoggingStateRefreshFunc(d *schema.ResourceData, meta interface{}, pr
 	}
 }
 
-func resourceAlicloudLogProjectLoggingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogProjectLoggingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	projectName := d.Get("project_name").(string)
 
@@ -131,7 +131,7 @@ func resourceAlicloudLogProjectLoggingCreate(d *schema.ResourceData, meta interf
 
 	if existingLogging != nil {
 		d.SetId(projectName)
-		return resourceAlicloudLogProjectLoggingRead(d, meta)
+		return resourceAliCloudLogProjectLoggingRead(d, meta)
 	}
 
 	// Try to create the project logging
@@ -152,7 +152,7 @@ func resourceAlicloudLogProjectLoggingCreate(d *schema.ResourceData, meta interf
 					(updateErr != nil && (strings.Contains(updateErr.Error(), "LogStoreAlreadyExist") ||
 						strings.Contains(updateErr.Error(), "logstore") && strings.Contains(updateErr.Error(), "already exists"))) {
 
-					return resourceAlicloudLogProjectLoggingRead(d, meta)
+					return resourceAliCloudLogProjectLoggingRead(d, meta)
 				}
 
 				return WrapErrorf(updateErr, DefaultErrorMsg, "alicloud_log_project_logging", "UpdateProjectLogging", AlibabaCloudSdkGoERROR)
@@ -170,10 +170,10 @@ func resourceAlicloudLogProjectLoggingCreate(d *schema.ResourceData, meta interf
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudLogProjectLoggingRead(d, meta)
+	return resourceAliCloudLogProjectLoggingRead(d, meta)
 }
 
-func resourceAlicloudLogProjectLoggingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	projectName := d.Id()
 
@@ -242,7 +242,7 @@ func resourceAlicloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceAlicloudLogProjectLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogProjectLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	projectName := d.Id()
 
@@ -266,10 +266,10 @@ func resourceAlicloudLogProjectLoggingUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return resourceAlicloudLogProjectLoggingRead(d, meta)
+	return resourceAliCloudLogProjectLoggingRead(d, meta)
 }
 
-func resourceAlicloudLogProjectLoggingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogProjectLoggingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	projectName := d.Id()
 

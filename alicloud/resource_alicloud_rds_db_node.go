@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRdsDBNode() *schema.Resource {
+func resourceAliCloudRdsDBNode() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdsDBNodeCreate,
-		Read:   resourceAlicloudRdsDBNodeRead,
-		Delete: resourceAlicloudRdsDBNodeDelete,
+		Create: resourceAliCloudRdsDBNodeCreate,
+		Read:   resourceAliCloudRdsDBNodeRead,
+		Delete: resourceAliCloudRdsDBNodeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +55,7 @@ func resourceAlicloudRdsDBNode() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRdsDBNodeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBNodeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	var response map[string]interface{}
@@ -97,10 +97,10 @@ func resourceAlicloudRdsDBNodeCreate(d *schema.ResourceData, meta interface{}) e
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudRdsDBNodeRead(d, meta)
+	return resourceAliCloudRdsDBNodeRead(d, meta)
 }
 
-func resourceAlicloudRdsDBNodeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBNodeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	dbNode, nodeErr := rdsService.DescribeRdsNode(d.Id())
@@ -120,7 +120,7 @@ func resourceAlicloudRdsDBNodeRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceAlicloudRdsDBNodeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBNodeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

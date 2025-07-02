@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRdsSlots() *schema.Resource {
+func dataSourceAliCloudRdsSlots() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRdsRdsSlotsRead,
+		Read: dataSourceAliCloudRdsRdsSlotsRead,
 
 		Schema: map[string]*schema.Schema{
 			"db_instance_id": {
@@ -69,7 +69,7 @@ func dataSourceAlicloudRdsSlots() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRdsRdsSlotsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRdsRdsSlotsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeSlots"
 	request := map[string]interface{}{

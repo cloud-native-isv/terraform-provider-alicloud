@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudNasLifecyclePolicy() *schema.Resource {
+func resourceAliCloudNasLifecyclePolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudNasLifecyclePolicyCreate,
-		Read:   resourceAlicloudNasLifecyclePolicyRead,
-		Update: resourceAlicloudNasLifecyclePolicyUpdate,
-		Delete: resourceAlicloudNasLifecyclePolicyDelete,
+		Create: resourceAliCloudNasLifecyclePolicyCreate,
+		Read:   resourceAliCloudNasLifecyclePolicyRead,
+		Update: resourceAliCloudNasLifecyclePolicyUpdate,
+		Delete: resourceAliCloudNasLifecyclePolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceAlicloudNasLifecyclePolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudNasLifecyclePolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasLifecyclePolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateLifecyclePolicy"
@@ -83,9 +83,9 @@ func resourceAlicloudNasLifecyclePolicyCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(fmt.Sprint(request["FileSystemId"], ":", request["LifecyclePolicyName"]))
 
-	return resourceAlicloudNasLifecyclePolicyRead(d, meta)
+	return resourceAliCloudNasLifecyclePolicyRead(d, meta)
 }
-func resourceAlicloudNasLifecyclePolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasLifecyclePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {
@@ -108,7 +108,7 @@ func resourceAlicloudNasLifecyclePolicyRead(d *schema.ResourceData, meta interfa
 	d.Set("storage_type", object["StorageType"])
 	return nil
 }
-func resourceAlicloudNasLifecyclePolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasLifecyclePolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -145,9 +145,9 @@ func resourceAlicloudNasLifecyclePolicyUpdate(d *schema.ResourceData, meta inter
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudNasLifecyclePolicyRead(d, meta)
+	return resourceAliCloudNasLifecyclePolicyRead(d, meta)
 }
-func resourceAlicloudNasLifecyclePolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasLifecyclePolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

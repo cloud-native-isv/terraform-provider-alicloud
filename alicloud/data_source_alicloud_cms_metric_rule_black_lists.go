@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCmsMetricRuleBlackLists() *schema.Resource {
+func dataSourceAliCloudCmsMetricRuleBlackLists() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsMetricRuleBlackListsRead,
+		Read: dataSourceAliCloudCmsMetricRuleBlackListsRead,
 		Schema: map[string]*schema.Schema{
 			"category": {
 				Optional: true,
@@ -157,7 +157,7 @@ func dataSourceAlicloudCmsMetricRuleBlackLists() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsMetricRuleBlackListsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsMetricRuleBlackListsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEnsKeyPair() *schema.Resource {
+func resourceAliCloudEnsKeyPair() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEnsKeyPairCreate,
-		Read:   resourceAlicloudEnsKeyPairRead,
-		Delete: resourceAlicloudEnsKeyPairDelete,
+		Create: resourceAliCloudEnsKeyPairCreate,
+		Read:   resourceAliCloudEnsKeyPairRead,
+		Delete: resourceAliCloudEnsKeyPairDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -33,7 +33,7 @@ func resourceAlicloudEnsKeyPair() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEnsKeyPairCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEnsKeyPairCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateKeyPair"
@@ -60,9 +60,9 @@ func resourceAlicloudEnsKeyPairCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(fmt.Sprint(request["KeyPairName"], ":", request["Version"]))
 
-	return resourceAlicloudEnsKeyPairRead(d, meta)
+	return resourceAliCloudEnsKeyPairRead(d, meta)
 }
-func resourceAlicloudEnsKeyPairRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEnsKeyPairRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ensService := EnsService{client}
 	_, err := ensService.DescribeEnsKeyPair(d.Id())
@@ -82,7 +82,7 @@ func resourceAlicloudEnsKeyPairRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("version", parts[1])
 	return nil
 }
-func resourceAlicloudEnsKeyPairDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEnsKeyPairDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

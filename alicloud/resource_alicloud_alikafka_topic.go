@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAlikafkaTopic() *schema.Resource {
+func resourceAliCloudAlikafkaTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlikafkaTopicCreate,
-		Update: resourceAlicloudAlikafkaTopicUpdate,
-		Read:   resourceAlicloudAlikafkaTopicRead,
-		Delete: resourceAlicloudAlikafkaTopicDelete,
+		Create: resourceAliCloudAlikafkaTopicCreate,
+		Update: resourceAliCloudAlikafkaTopicUpdate,
+		Read:   resourceAliCloudAlikafkaTopicRead,
+		Delete: resourceAliCloudAlikafkaTopicDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +66,7 @@ func resourceAlicloudAlikafkaTopic() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	alikafkaService := AlikafkaService{client}
@@ -120,10 +120,10 @@ func resourceAlicloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudAlikafkaTopicUpdate(d, meta)
+	return resourceAliCloudAlikafkaTopicUpdate(d, meta)
 }
 
-func resourceAlicloudAlikafkaTopicUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlikafkaTopicUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	alikafkaService := AlikafkaService{client}
@@ -133,7 +133,7 @@ func resourceAlicloudAlikafkaTopicUpdate(d *schema.ResourceData, meta interface{
 	}
 	if d.IsNewResource() {
 		d.Partial(false)
-		return resourceAlicloudAlikafkaTopicRead(d, meta)
+		return resourceAliCloudAlikafkaTopicRead(d, meta)
 	}
 
 	instanceId := d.Get("instance_id").(string)
@@ -203,10 +203,10 @@ func resourceAlicloudAlikafkaTopicUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	d.Partial(false)
-	return resourceAlicloudAlikafkaTopicRead(d, meta)
+	return resourceAliCloudAlikafkaTopicRead(d, meta)
 }
 
-func resourceAlicloudAlikafkaTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlikafkaTopicRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	alikafkaService := AlikafkaService{client}
@@ -237,7 +237,7 @@ func resourceAlicloudAlikafkaTopicRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudAlikafkaTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlikafkaTopicDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	alikafkaService := AlikafkaService{client}

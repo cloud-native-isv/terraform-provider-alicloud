@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudDmsEnterpriseInstance() *schema.Resource {
+func resourceAliCloudDmsEnterpriseInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDmsEnterpriseInstanceCreate,
-		Read:   resourceAlicloudDmsEnterpriseInstanceRead,
-		Update: resourceAlicloudDmsEnterpriseInstanceUpdate,
-		Delete: resourceAlicloudDmsEnterpriseInstanceDelete,
+		Create: resourceAliCloudDmsEnterpriseInstanceCreate,
+		Read:   resourceAliCloudDmsEnterpriseInstanceRead,
+		Update: resourceAliCloudDmsEnterpriseInstanceUpdate,
+		Delete: resourceAliCloudDmsEnterpriseInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -164,7 +164,7 @@ func resourceAlicloudDmsEnterpriseInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDmsEnterpriseInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "RegisterInstance"
@@ -245,9 +245,9 @@ func resourceAlicloudDmsEnterpriseInstanceCreate(d *schema.ResourceData, meta in
 
 	d.SetId(fmt.Sprint(request["Host"], ":", request["Port"]))
 
-	return resourceAlicloudDmsEnterpriseInstanceUpdate(d, meta)
+	return resourceAliCloudDmsEnterpriseInstanceUpdate(d, meta)
 }
-func resourceAlicloudDmsEnterpriseInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dmsEnterpriseService := DmsEnterpriseService{client}
 	object, err := dmsEnterpriseService.DescribeDmsEnterpriseInstance(d.Id())
@@ -289,7 +289,7 @@ func resourceAlicloudDmsEnterpriseInstanceRead(d *schema.ResourceData, meta inte
 
 	return nil
 }
-func resourceAlicloudDmsEnterpriseInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -406,9 +406,9 @@ func resourceAlicloudDmsEnterpriseInstanceUpdate(d *schema.ResourceData, meta in
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudDmsEnterpriseInstanceRead(d, meta)
+	return resourceAliCloudDmsEnterpriseInstanceRead(d, meta)
 }
-func resourceAlicloudDmsEnterpriseInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

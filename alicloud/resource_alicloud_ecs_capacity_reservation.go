@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcsCapacityReservation() *schema.Resource {
+func resourceAliCloudEcsCapacityReservation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsCapacityReservationCreate,
-		Read:   resourceAlicloudEcsCapacityReservationRead,
-		Update: resourceAlicloudEcsCapacityReservationUpdate,
-		Delete: resourceAlicloudEcsCapacityReservationDelete,
+		Create: resourceAliCloudEcsCapacityReservationCreate,
+		Read:   resourceAliCloudEcsCapacityReservationRead,
+		Update: resourceAliCloudEcsCapacityReservationUpdate,
+		Delete: resourceAliCloudEcsCapacityReservationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -123,7 +123,7 @@ func resourceAlicloudEcsCapacityReservation() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsCapacityReservationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsCapacityReservationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	request := map[string]interface{}{
@@ -200,10 +200,10 @@ func resourceAlicloudEcsCapacityReservationCreate(d *schema.ResourceData, meta i
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudEcsCapacityReservationRead(d, meta)
+	return resourceAliCloudEcsCapacityReservationRead(d, meta)
 }
 
-func resourceAlicloudEcsCapacityReservationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsCapacityReservationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 
@@ -246,7 +246,7 @@ func resourceAlicloudEcsCapacityReservationRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceAlicloudEcsCapacityReservationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsCapacityReservationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	ecsService := EcsService{client}
@@ -326,10 +326,10 @@ func resourceAlicloudEcsCapacityReservationUpdate(d *schema.ResourceData, meta i
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEcsCapacityReservationRead(d, meta)
+	return resourceAliCloudEcsCapacityReservationRead(d, meta)
 }
 
-func resourceAlicloudEcsCapacityReservationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsCapacityReservationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 

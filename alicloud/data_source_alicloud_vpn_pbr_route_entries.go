@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudVpnPbrRouteEntries() *schema.Resource {
+func dataSourceAliCloudVpnPbrRouteEntries() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpnPbrRouteEntriesRead,
+		Read: dataSourceAliCloudVpnPbrRouteEntriesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -74,7 +74,7 @@ func dataSourceAlicloudVpnPbrRouteEntries() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpnPbrRouteEntriesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpnPbrRouteEntriesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeVpnPbrRouteEntries"

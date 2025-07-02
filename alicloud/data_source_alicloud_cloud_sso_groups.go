@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudSsoGroups() *schema.Resource {
+func dataSourceAliCloudCloudSsoGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudSsoGroupsRead,
+		Read: dataSourceAliCloudCloudSsoGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"directory_id": {
 				Type:     schema.TypeString,
@@ -89,7 +89,7 @@ func dataSourceAlicloudCloudSsoGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudSsoGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudSsoGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListGroups"

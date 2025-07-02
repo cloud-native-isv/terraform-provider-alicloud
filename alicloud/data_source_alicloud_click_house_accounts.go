@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudClickHouseAccounts() *schema.Resource {
+func dataSourceAliCloudClickHouseAccounts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudClickHouseAccountsRead,
+		Read: dataSourceAliCloudClickHouseAccountsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -85,7 +85,7 @@ func dataSourceAlicloudClickHouseAccounts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudClickHouseAccountsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudClickHouseAccountsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeAccounts"

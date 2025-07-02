@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudSmartagFlowLog() *schema.Resource {
+func resourceAliCloudSmartagFlowLog() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSmartagFlowLogCreate,
-		Read:   resourceAlicloudSmartagFlowLogRead,
-		Update: resourceAlicloudSmartagFlowLogUpdate,
-		Delete: resourceAlicloudSmartagFlowLogDelete,
+		Create: resourceAliCloudSmartagFlowLogCreate,
+		Read:   resourceAliCloudSmartagFlowLogRead,
+		Update: resourceAliCloudSmartagFlowLogUpdate,
+		Delete: resourceAliCloudSmartagFlowLogDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -88,7 +88,7 @@ func resourceAlicloudSmartagFlowLog() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSmartagFlowLogCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSmartagFlowLogCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateFlowLog"
@@ -148,9 +148,9 @@ func resourceAlicloudSmartagFlowLogCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprint(response["FlowLogId"]))
 
-	return resourceAlicloudSmartagFlowLogUpdate(d, meta)
+	return resourceAliCloudSmartagFlowLogUpdate(d, meta)
 }
-func resourceAlicloudSmartagFlowLogRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSmartagFlowLogRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	SagService := SagService{client}
 	object, err := SagService.DescribeSmartagFlowLog(d.Id())
@@ -182,7 +182,7 @@ func resourceAlicloudSmartagFlowLogRead(d *schema.ResourceData, meta interface{}
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudSmartagFlowLogUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSmartagFlowLogUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	SagService := SagService{client}
 	var err error
@@ -343,9 +343,9 @@ func resourceAlicloudSmartagFlowLogUpdate(d *schema.ResourceData, meta interface
 		d.SetPartial("status")
 	}
 	d.Partial(false)
-	return resourceAlicloudSmartagFlowLogRead(d, meta)
+	return resourceAliCloudSmartagFlowLogRead(d, meta)
 }
-func resourceAlicloudSmartagFlowLogDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSmartagFlowLogDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteFlowLog"
 	var response map[string]interface{}

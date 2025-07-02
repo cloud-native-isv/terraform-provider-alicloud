@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcIpv6InternetBandwidths() *schema.Resource {
+func dataSourceAliCloudVpcIpv6InternetBandwidths() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcIpv6InternetBandwidthsRead,
+		Read: dataSourceAliCloudVpcIpv6InternetBandwidthsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -86,7 +86,7 @@ func dataSourceAlicloudVpcIpv6InternetBandwidths() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcIpv6InternetBandwidthsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcIpv6InternetBandwidthsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeIpv6Addresses"

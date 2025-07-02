@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudSimpleApplicationServerCustomImage() *schema.Resource {
+func resourceAliCloudSimpleApplicationServerCustomImage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSimpleApplicationServerCustomImageCreate,
-		Read:   resourceAlicloudSimpleApplicationServerCustomImageRead,
-		Update: resourceAlicloudSimpleApplicationServerCustomImageUpdate,
-		Delete: resourceAlicloudSimpleApplicationServerCustomImageDelete,
+		Create: resourceAliCloudSimpleApplicationServerCustomImageCreate,
+		Read:   resourceAliCloudSimpleApplicationServerCustomImageRead,
+		Update: resourceAliCloudSimpleApplicationServerCustomImageUpdate,
+		Delete: resourceAliCloudSimpleApplicationServerCustomImageDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,7 +51,7 @@ func resourceAlicloudSimpleApplicationServerCustomImage() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSimpleApplicationServerCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerCustomImageCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateCustomImage"
@@ -84,9 +84,9 @@ func resourceAlicloudSimpleApplicationServerCustomImageCreate(d *schema.Resource
 
 	d.SetId(fmt.Sprint(response["ImageId"]))
 
-	return resourceAlicloudSimpleApplicationServerCustomImageUpdate(d, meta)
+	return resourceAliCloudSimpleApplicationServerCustomImageUpdate(d, meta)
 }
-func resourceAlicloudSimpleApplicationServerCustomImageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerCustomImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	swasOpenService := SwasOpenService{client}
 	object, err := swasOpenService.DescribeSimpleApplicationServerCustomImage(d.Id())
@@ -102,7 +102,7 @@ func resourceAlicloudSimpleApplicationServerCustomImageRead(d *schema.ResourceDa
 	d.Set("description", object["Description"])
 	return nil
 }
-func resourceAlicloudSimpleApplicationServerCustomImageUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerCustomImageUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -136,9 +136,9 @@ func resourceAlicloudSimpleApplicationServerCustomImageUpdate(d *schema.Resource
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudSimpleApplicationServerCustomImageRead(d, meta)
+	return resourceAliCloudSimpleApplicationServerCustomImageRead(d, meta)
 }
-func resourceAlicloudSimpleApplicationServerCustomImageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerCustomImageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	if v := d.Get("status"); v.(string) == "Share" {
 		var response map[string]interface{}

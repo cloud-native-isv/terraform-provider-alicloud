@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudOosStateConfigurations() *schema.Resource {
+func dataSourceAliCloudOosStateConfigurations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOosStateConfigurationsRead,
+		Read: dataSourceAliCloudOosStateConfigurationsRead,
 		Schema: map[string]*schema.Schema{
 			"resource_group_id": {
 				Type:     schema.TypeString,
@@ -103,7 +103,7 @@ func dataSourceAlicloudOosStateConfigurations() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudOosStateConfigurationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOosStateConfigurationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListStateConfigurations"

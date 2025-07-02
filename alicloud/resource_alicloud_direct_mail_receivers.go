@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDirectMailReceivers() *schema.Resource {
+func resourceAliCloudDirectMailReceivers() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDirectMailReceiversCreate,
-		Read:   resourceAlicloudDirectMailReceiversRead,
-		Delete: resourceAlicloudDirectMailReceiversDelete,
+		Create: resourceAliCloudDirectMailReceiversCreate,
+		Read:   resourceAliCloudDirectMailReceiversRead,
+		Delete: resourceAliCloudDirectMailReceiversDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -47,7 +47,7 @@ func resourceAlicloudDirectMailReceivers() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDirectMailReceiversCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailReceiversCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateReceiver"
@@ -77,9 +77,9 @@ func resourceAlicloudDirectMailReceiversCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(fmt.Sprint(response["ReceiverId"]))
 
-	return resourceAlicloudDirectMailReceiversRead(d, meta)
+	return resourceAliCloudDirectMailReceiversRead(d, meta)
 }
-func resourceAlicloudDirectMailReceiversRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailReceiversRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dmService := DmService{client}
 	object, err := dmService.DescribeDirectMailReceivers(d.Id())
@@ -97,7 +97,7 @@ func resourceAlicloudDirectMailReceiversRead(d *schema.ResourceData, meta interf
 	d.Set("status", formatInt(object["ReceiversStatus"]))
 	return nil
 }
-func resourceAlicloudDirectMailReceiversDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailReceiversDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteReceiver"
 	var response map[string]interface{}

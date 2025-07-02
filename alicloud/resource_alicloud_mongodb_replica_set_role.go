@@ -10,12 +10,12 @@ import (
 	"github.com/samber/lo"
 )
 
-func resourceAlicloudMongoDBReplicaSetRole() *schema.Resource {
+func resourceAliCloudMongoDBReplicaSetRole() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMongoDBReplicaSetRoleCreate,
-		Read:   resourceAlicloudMongoDBReplicaSetRoleRead,
-		Update: resourceAlicloudMongoDBReplicaSetRoleUpdate,
-		Delete: resourceAlicloudMongoDBReplicaSetRoleDelete,
+		Create: resourceAliCloudMongoDBReplicaSetRoleCreate,
+		Read:   resourceAliCloudMongoDBReplicaSetRoleRead,
+		Update: resourceAliCloudMongoDBReplicaSetRoleUpdate,
+		Delete: resourceAliCloudMongoDBReplicaSetRoleDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -78,11 +78,11 @@ func makeSecondaryIndexOfMongoReplica(roleId, networkType string) string {
 	return fmt.Sprintf("%s:%s", roleId, networkType)
 }
 
-func resourceAlicloudMongoDBReplicaSetRoleCreate(d *schema.ResourceData, meta interface{}) error {
-	return resourceAlicloudMongoDBReplicaSetRoleUpdate(d, meta)
+func resourceAliCloudMongoDBReplicaSetRoleCreate(d *schema.ResourceData, meta interface{}) error {
+	return resourceAliCloudMongoDBReplicaSetRoleUpdate(d, meta)
 }
 
-func resourceAlicloudMongoDBReplicaSetRoleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongoDBReplicaSetRoleUpdate(d *schema.ResourceData, meta interface{}) error {
 	instanceId := d.Get("db_instance_id").(string)
 
 	client := meta.(*connectivity.AliyunClient)
@@ -150,10 +150,10 @@ func resourceAlicloudMongoDBReplicaSetRoleUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	return resourceAlicloudMongoDBReplicaSetRoleRead(d, meta)
+	return resourceAliCloudMongoDBReplicaSetRoleRead(d, meta)
 }
 
-func resourceAlicloudMongoDBReplicaSetRoleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongoDBReplicaSetRoleRead(d *schema.ResourceData, meta interface{}) error {
 	instanceId, networkType, roleId := parseKeyOfMongoReplica(d.Id())
 	client := meta.(*connectivity.AliyunClient)
 	ddsService := MongoDBService{client}
@@ -202,7 +202,7 @@ func resourceAlicloudMongoDBReplicaSetRoleRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceAlicloudMongoDBReplicaSetRoleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongoDBReplicaSetRoleDelete(d *schema.ResourceData, meta interface{}) error {
 	// dont do anything.
 	return nil
 }

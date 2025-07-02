@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudHbrSnapshots() *schema.Resource {
+func dataSourceAliCloudHbrSnapshots() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudHbrSnapshotsRead,
+		Read: dataSourceAliCloudHbrSnapshotsRead,
 		Schema: map[string]*schema.Schema{
 			"limit": {
 				Type:     schema.TypeInt,
@@ -212,7 +212,7 @@ type QueryField struct {
 	Operation string `json:"operation"`
 }
 
-func dataSourceAlicloudHbrSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudHbrSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "SearchHistoricalSnapshots"

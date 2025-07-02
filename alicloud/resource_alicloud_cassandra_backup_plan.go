@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCassandraBackupPlan() *schema.Resource {
+func resourceAliCloudCassandraBackupPlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCassandraBackupPlanCreate,
-		Read:   resourceAlicloudCassandraBackupPlanRead,
-		Update: resourceAlicloudCassandraBackupPlanUpdate,
-		Delete: resourceAlicloudCassandraBackupPlanDelete,
+		Create: resourceAliCloudCassandraBackupPlanCreate,
+		Read:   resourceAliCloudCassandraBackupPlanRead,
+		Update: resourceAliCloudCassandraBackupPlanUpdate,
+		Delete: resourceAliCloudCassandraBackupPlanDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +55,7 @@ func resourceAlicloudCassandraBackupPlan() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCassandraBackupPlanCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraBackupPlanCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateBackupPlan"
@@ -93,9 +93,9 @@ func resourceAlicloudCassandraBackupPlanCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(fmt.Sprint(request["ClusterId"], ":", request["DataCenterId"]))
 
-	return resourceAlicloudCassandraBackupPlanRead(d, meta)
+	return resourceAliCloudCassandraBackupPlanRead(d, meta)
 }
-func resourceAlicloudCassandraBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cassandraService := CassandraService{client}
 	object, err := cassandraService.DescribeCassandraBackupPlan(d.Id())
@@ -119,7 +119,7 @@ func resourceAlicloudCassandraBackupPlanRead(d *schema.ResourceData, meta interf
 	d.Set("retention_period", formatInt(object["RetentionPeriod"]))
 	return nil
 }
-func resourceAlicloudCassandraBackupPlanUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraBackupPlanUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -168,9 +168,9 @@ func resourceAlicloudCassandraBackupPlanUpdate(d *schema.ResourceData, meta inte
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCassandraBackupPlanRead(d, meta)
+	return resourceAliCloudCassandraBackupPlanRead(d, meta)
 }
-func resourceAlicloudCassandraBackupPlanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraBackupPlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

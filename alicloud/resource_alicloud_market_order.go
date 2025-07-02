@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudMarketOrder() *schema.Resource {
+func resourceAliCloudMarketOrder() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMarketOrderCreate,
-		Read:   resourceAlicloudMarketOrderRead,
-		Delete: resourceAlicloudMarketOrderDelete,
+		Create: resourceAliCloudMarketOrderCreate,
+		Read:   resourceAliCloudMarketOrderRead,
+		Delete: resourceAliCloudMarketOrderDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -73,7 +73,7 @@ func resourceAlicloudMarketOrder() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMarketOrderCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMarketOrderCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request, err := buildAliyunMarketOrderArgs(d, meta)
 	if err != nil {
@@ -90,10 +90,10 @@ func resourceAlicloudMarketOrderCreate(d *schema.ResourceData, meta interface{})
 
 	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 	d.SetId(response.OrderId)
-	return resourceAlicloudMarketOrderRead(d, meta)
+	return resourceAliCloudMarketOrderRead(d, meta)
 }
 
-func resourceAlicloudMarketOrderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMarketOrderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	marketService := MarketService{client}
 
@@ -125,7 +125,7 @@ func resourceAlicloudMarketOrderRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAlicloudMarketOrderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMarketOrderDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudConfigDeliveryChannels() *schema.Resource {
+func dataSourceAliCloudConfigDeliveryChannels() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudConfigDeliveryChannelsRead,
+		Read: dataSourceAliCloudConfigDeliveryChannelsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -90,7 +90,7 @@ func dataSourceAlicloudConfigDeliveryChannels() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudConfigDeliveryChannelsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudConfigDeliveryChannelsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDeliveryChannels"

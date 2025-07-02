@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCassandraBackupPlans() *schema.Resource {
+func dataSourceAliCloudCassandraBackupPlans() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCassandraBackupPlansRead,
+		Read: dataSourceAliCloudCassandraBackupPlansRead,
 		Schema: map[string]*schema.Schema{
 			"cluster_id": {
 				Type:     schema.TypeString,
@@ -72,7 +72,7 @@ func dataSourceAlicloudCassandraBackupPlans() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCassandraBackupPlansRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCassandraBackupPlansRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeBackupPlans"

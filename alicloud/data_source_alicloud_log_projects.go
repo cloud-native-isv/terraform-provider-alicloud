@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudLogProjects() *schema.Resource {
+func dataSourceAliCloudLogProjects() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudLogProjectsRead,
+		Read: dataSourceAliCloudLogProjectsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -93,7 +93,7 @@ func dataSourceAlicloudLogProjects() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudLogProjectsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudLogProjectsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Check if disable parameter is set to true

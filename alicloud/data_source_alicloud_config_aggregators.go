@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudConfigAggregators() *schema.Resource {
+func dataSourceAliCloudConfigAggregators() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudConfigAggregatorsRead,
+		Read: dataSourceAliCloudConfigAggregatorsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -109,7 +109,7 @@ func dataSourceAlicloudConfigAggregators() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudConfigAggregatorsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudConfigAggregatorsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListAggregators"

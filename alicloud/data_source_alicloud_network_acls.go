@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudNetworkAcls() *schema.Resource {
+func dataSourceAliCloudNetworkAcls() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNetworkAclsRead,
+		Read: dataSourceAliCloudNetworkAclsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -184,7 +184,7 @@ func dataSourceAlicloudNetworkAcls() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNetworkAclsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeNetworkAcls"

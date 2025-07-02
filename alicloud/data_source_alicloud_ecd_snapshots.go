@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdSnapshots() *schema.Resource {
+func dataSourceAliCloudEcdSnapshots() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdSnapshotsRead,
+		Read: dataSourceAliCloudEcdSnapshotsRead,
 		Schema: map[string]*schema.Schema{
 			"desktop_id": {
 				Optional: true,
@@ -111,7 +111,7 @@ func dataSourceAlicloudEcdSnapshots() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"RegionId": client.RegionId,

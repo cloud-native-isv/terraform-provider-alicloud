@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOssBucket() *schema.Resource {
+func resourceAliCloudOssBucket() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOssBucketCreate,
-		Read:   resourceAlicloudOssBucketRead,
-		Update: resourceAlicloudOssBucketUpdate,
-		Delete: resourceAlicloudOssBucketDelete,
+		Create: resourceAliCloudOssBucketCreate,
+		Read:   resourceAliCloudOssBucketRead,
+		Update: resourceAliCloudOssBucketUpdate,
+		Delete: resourceAliCloudOssBucketDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -89,7 +89,7 @@ func resourceAlicloudOssBucket() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOssBucketCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var bucketName string
 	if v, ok := d.GetOk("bucket"); ok && v != "" {
@@ -156,10 +156,10 @@ func resourceAlicloudOssBucketCreate(d *schema.ResourceData, meta interface{}) e
 	// Assign the bucket name as the resource ID
 	d.SetId(request["bucketName"])
 
-	return resourceAlicloudOssBucketRead(d, meta)
+	return resourceAliCloudOssBucketRead(d, meta)
 }
 
-func resourceAlicloudOssBucketRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ossService := NewOssService(client)
 	object, err := ossService.DescribeOssBucket(d.Id())
@@ -221,13 +221,13 @@ func resourceAlicloudOssBucketRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceAlicloudOssBucketUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	d.Partial(true)
 
 	if d.HasChange("tags") {
-		if err := resourceAlicloudOssBucketTaggingUpdate(client, d); err != nil {
+		if err := resourceAliCloudOssBucketTaggingUpdate(client, d); err != nil {
 			return WrapError(err)
 		}
 		d.SetPartial("tags")
@@ -251,10 +251,10 @@ func resourceAlicloudOssBucketUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Partial(false)
-	return resourceAlicloudOssBucketRead(d, meta)
+	return resourceAliCloudOssBucketRead(d, meta)
 }
 
-func resourceAlicloudOssBucketDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ossService := NewOssService(client)
 	var requestInfo *oss.Client
@@ -320,7 +320,7 @@ func resourceAlicloudOssBucketDelete(d *schema.ResourceData, meta interface{}) e
 	return WrapError(ossService.WaitForOssBucket(d.Id(), Deleted, DefaultTimeoutMedium))
 }
 
-func resourceAlicloudOssBucketTaggingUpdate(client *connectivity.AliyunClient, d *schema.ResourceData) error {
+func resourceAliCloudOssBucketTaggingUpdate(client *connectivity.AliyunClient, d *schema.ResourceData) error {
 	tagsMap := d.Get("tags").(map[string]interface{})
 	var requestInfo *oss.Client
 	if tagsMap == nil || len(tagsMap) == 0 {

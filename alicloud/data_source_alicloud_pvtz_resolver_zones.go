@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudPvtzResolverZones() *schema.Resource {
+func dataSourceAliCloudPvtzResolverZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPvtzResolverZonesRead,
+		Read: dataSourceAliCloudPvtzResolverZonesRead,
 		Schema: map[string]*schema.Schema{
 			"status": {
 				Type:         schema.TypeString,
@@ -44,7 +44,7 @@ func dataSourceAlicloudPvtzResolverZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudPvtzResolverZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPvtzResolverZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeResolverAvailableZones"

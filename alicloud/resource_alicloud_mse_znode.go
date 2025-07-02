@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudMseZnode() *schema.Resource {
+func resourceAliCloudMseZnode() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMseZnodeCreate,
-		Read:   resourceAlicloudMseZnodeRead,
-		Update: resourceAlicloudMseZnodeUpdate,
-		Delete: resourceAlicloudMseZnodeDelete,
+		Create: resourceAliCloudMseZnodeCreate,
+		Read:   resourceAliCloudMseZnodeRead,
+		Update: resourceAliCloudMseZnodeUpdate,
+		Delete: resourceAliCloudMseZnodeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +52,7 @@ func resourceAlicloudMseZnode() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMseZnodeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseZnodeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateZnode"
@@ -88,9 +88,9 @@ func resourceAlicloudMseZnodeCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(fmt.Sprint(request["ClusterId"], ":", request["Path"]))
 
-	return resourceAlicloudMseZnodeRead(d, meta)
+	return resourceAliCloudMseZnodeRead(d, meta)
 }
-func resourceAlicloudMseZnodeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseZnodeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mseService := MseService{client}
 	object, err := mseService.DescribeMseZnode(d.Id())
@@ -111,7 +111,7 @@ func resourceAlicloudMseZnodeRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("data", object["Data"])
 	return nil
 }
-func resourceAlicloudMseZnodeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseZnodeUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -152,9 +152,9 @@ func resourceAlicloudMseZnodeUpdate(d *schema.ResourceData, meta interface{}) er
 	if fmt.Sprint(response["Success"]) == "false" {
 		return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
 	}
-	return resourceAlicloudMseZnodeRead(d, meta)
+	return resourceAliCloudMseZnodeRead(d, meta)
 }
-func resourceAlicloudMseZnodeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseZnodeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

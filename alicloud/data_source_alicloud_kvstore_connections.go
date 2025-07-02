@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudKvstoreConnections() *schema.Resource {
+func dataSourceAliCloudKvstoreConnections() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKvstoreConnectionsRead,
+		Read: dataSourceAliCloudKvstoreConnectionsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -78,7 +78,7 @@ func dataSourceAlicloudKvstoreConnections() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudKvstoreConnectionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKvstoreConnectionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := r_kvstore.CreateDescribeDBInstanceNetInfoRequest()

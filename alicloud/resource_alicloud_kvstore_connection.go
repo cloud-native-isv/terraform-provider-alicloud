@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudKvstoreConnection() *schema.Resource {
+func resourceAliCloudKvstoreConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudKvstoreConnectionCreate,
-		Read:   resourceAlicloudKvstoreConnectionRead,
-		Update: resourceAlicloudKvstoreConnectionUpdate,
-		Delete: resourceAlicloudKvstoreConnectionDelete,
+		Create: resourceAliCloudKvstoreConnectionCreate,
+		Read:   resourceAliCloudKvstoreConnectionRead,
+		Update: resourceAliCloudKvstoreConnectionUpdate,
+		Delete: resourceAliCloudKvstoreConnectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudKvstoreConnection() *schema.Resource {
 	}
 }
 
-func resourceAlicloudKvstoreConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKvstoreConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	r_kvstoreService := R_kvstoreService{client}
 
@@ -69,9 +69,9 @@ func resourceAlicloudKvstoreConnectionCreate(d *schema.ResourceData, meta interf
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudKvstoreConnectionUpdate(d, meta)
+	return resourceAliCloudKvstoreConnectionUpdate(d, meta)
 }
-func resourceAlicloudKvstoreConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKvstoreConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	r_kvstoreService := R_kvstoreService{client}
 	object, err := r_kvstoreService.DescribeKvstoreConnection(d.Id())
@@ -93,7 +93,7 @@ func resourceAlicloudKvstoreConnectionRead(d *schema.ResourceData, meta interfac
 	}
 	return nil
 }
-func resourceAlicloudKvstoreConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKvstoreConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	r_kvstoreService := R_kvstoreService{client}
 	update := false
@@ -123,9 +123,9 @@ func resourceAlicloudKvstoreConnectionUpdate(d *schema.ResourceData, meta interf
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudKvstoreConnectionRead(d, meta)
+	return resourceAliCloudKvstoreConnectionRead(d, meta)
 }
-func resourceAlicloudKvstoreConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudKvstoreConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	r_kvstoreService := R_kvstoreService{client}
 	request := r_kvstore.CreateReleaseInstancePublicConnectionRequest()

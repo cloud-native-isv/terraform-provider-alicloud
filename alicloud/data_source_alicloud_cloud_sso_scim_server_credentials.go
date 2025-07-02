@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudSsoScimServerCredentials() *schema.Resource {
+func dataSourceAliCloudCloudSsoScimServerCredentials() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudSsoScimServerCredentialsRead,
+		Read: dataSourceAliCloudCloudSsoScimServerCredentialsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -81,7 +81,7 @@ func dataSourceAlicloudCloudSsoScimServerCredentials() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudSsoScimServerCredentialsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudSsoScimServerCredentialsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListSCIMServerCredentials"

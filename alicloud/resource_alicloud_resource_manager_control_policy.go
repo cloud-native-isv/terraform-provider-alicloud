@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudResourceManagerControlPolicy() *schema.Resource {
+func resourceAliCloudResourceManagerControlPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudResourceManagerControlPolicyCreate,
-		Read:   resourceAlicloudResourceManagerControlPolicyRead,
-		Update: resourceAlicloudResourceManagerControlPolicyUpdate,
-		Delete: resourceAlicloudResourceManagerControlPolicyDelete,
+		Create: resourceAliCloudResourceManagerControlPolicyCreate,
+		Read:   resourceAliCloudResourceManagerControlPolicyRead,
+		Update: resourceAliCloudResourceManagerControlPolicyUpdate,
+		Delete: resourceAliCloudResourceManagerControlPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -48,7 +48,7 @@ func resourceAlicloudResourceManagerControlPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudResourceManagerControlPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerControlPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateControlPolicy"
@@ -81,9 +81,9 @@ func resourceAlicloudResourceManagerControlPolicyCreate(d *schema.ResourceData, 
 	responseControlPolicy := response["ControlPolicy"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseControlPolicy["PolicyId"]))
 
-	return resourceAlicloudResourceManagerControlPolicyRead(d, meta)
+	return resourceAliCloudResourceManagerControlPolicyRead(d, meta)
 }
-func resourceAlicloudResourceManagerControlPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerControlPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resourcemanagerService := ResourcemanagerService{client}
 	object, err := resourcemanagerService.DescribeResourceManagerControlPolicy(d.Id())
@@ -101,7 +101,7 @@ func resourceAlicloudResourceManagerControlPolicyRead(d *schema.ResourceData, me
 	d.Set("policy_document", object["PolicyDocument"])
 	return nil
 }
-func resourceAlicloudResourceManagerControlPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerControlPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -140,9 +140,9 @@ func resourceAlicloudResourceManagerControlPolicyUpdate(d *schema.ResourceData, 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudResourceManagerControlPolicyRead(d, meta)
+	return resourceAliCloudResourceManagerControlPolicyRead(d, meta)
 }
-func resourceAlicloudResourceManagerControlPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerControlPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteControlPolicy"
 	var response map[string]interface{}

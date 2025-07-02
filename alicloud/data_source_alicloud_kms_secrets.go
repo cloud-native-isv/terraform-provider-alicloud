@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudKmsSecrets() *schema.Resource {
+func dataSourceAliCloudKmsSecrets() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKmsSecretsRead,
+		Read: dataSourceAliCloudKmsSecretsRead,
 		Schema: map[string]*schema.Schema{
 			"fetch_tags": {
 				Type:     schema.TypeBool,
@@ -115,7 +115,7 @@ func dataSourceAlicloudKmsSecrets() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudKmsSecretsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKmsSecretsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListSecrets"

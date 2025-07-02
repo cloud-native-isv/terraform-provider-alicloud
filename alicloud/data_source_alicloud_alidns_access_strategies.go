@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudAlidnsAccessStrategies() *schema.Resource {
+func dataSourceAliCloudAlidnsAccessStrategies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAlidnsAccessStrategiesRead,
+		Read: dataSourceAliCloudAlidnsAccessStrategiesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -228,7 +228,7 @@ func dataSourceAlicloudAlidnsAccessStrategies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAlidnsAccessStrategiesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAlidnsAccessStrategiesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDnsGtmAccessStrategies"

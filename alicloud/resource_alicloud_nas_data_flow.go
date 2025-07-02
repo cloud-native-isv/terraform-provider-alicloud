@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudNasDataFlow() *schema.Resource {
+func resourceAliCloudNasDataFlow() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudNasDataFlowCreate,
-		Read:   resourceAlicloudNasDataFlowRead,
-		Update: resourceAlicloudNasDataFlowUpdate,
-		Delete: resourceAlicloudNasDataFlowDelete,
+		Create: resourceAliCloudNasDataFlowCreate,
+		Read:   resourceAliCloudNasDataFlowRead,
+		Update: resourceAliCloudNasDataFlowUpdate,
+		Delete: resourceAliCloudNasDataFlowDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -77,7 +77,7 @@ func resourceAlicloudNasDataFlow() *schema.Resource {
 	}
 }
 
-func resourceAlicloudNasDataFlowCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasDataFlowCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDataFlow"
@@ -125,9 +125,9 @@ func resourceAlicloudNasDataFlowCreate(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudNasDataFlowRead(d, meta)
+	return resourceAliCloudNasDataFlowRead(d, meta)
 }
-func resourceAlicloudNasDataFlowRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasDataFlowRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {
@@ -153,7 +153,7 @@ func resourceAlicloudNasDataFlowRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("throughput", formatInt(object["Throughput"]))
 	return nil
 }
-func resourceAlicloudNasDataFlowUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasDataFlowUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {
@@ -285,9 +285,9 @@ func resourceAlicloudNasDataFlowUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudNasDataFlowRead(d, meta)
+	return resourceAliCloudNasDataFlowRead(d, meta)
 }
-func resourceAlicloudNasDataFlowDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasDataFlowDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

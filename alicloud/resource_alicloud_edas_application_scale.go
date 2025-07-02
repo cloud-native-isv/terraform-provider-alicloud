@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEdasApplicationScale() *schema.Resource {
+func resourceAliCloudEdasApplicationScale() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEdasApplicationScaleCreate,
-		Read:   resourceAlicloudEdasApplicationScaleRead,
-		Update: resourceAlicloudEdasApplicationScaleUpdate,
-		Delete: resourceAlicloudEdasApplicationScaleDelete,
+		Create: resourceAliCloudEdasApplicationScaleCreate,
+		Read:   resourceAliCloudEdasApplicationScaleRead,
+		Update: resourceAliCloudEdasApplicationScaleUpdate,
+		Delete: resourceAliCloudEdasApplicationScaleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +49,7 @@ func resourceAlicloudEdasApplicationScale() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEdasApplicationScaleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasApplicationScaleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -91,10 +91,10 @@ func resourceAlicloudEdasApplicationScaleCreate(d *schema.ResourceData, meta int
 		}
 	}
 
-	return resourceAlicloudEdasApplicationScaleRead(d, meta)
+	return resourceAliCloudEdasApplicationScaleRead(d, meta)
 }
 
-func resourceAlicloudEdasApplicationScaleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasApplicationScaleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -136,11 +136,11 @@ func resourceAlicloudEdasApplicationScaleRead(d *schema.ResourceData, meta inter
 	d.Set("ecc_info", strings.Join(eccs, ","))
 	return nil
 }
-func resourceAlicloudEdasApplicationScaleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasApplicationScaleUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce does not have update operation."))
-	return resourceAlicloudEdasApplicationScaleRead(d, meta)
+	return resourceAliCloudEdasApplicationScaleRead(d, meta)
 }
-func resourceAlicloudEdasApplicationScaleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasApplicationScaleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 

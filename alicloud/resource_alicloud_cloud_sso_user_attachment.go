@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCloudSsoUserAttachment() *schema.Resource {
+func resourceAliCloudCloudSsoUserAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudSsoUserAttachmentCreate,
-		Read:   resourceAlicloudCloudSsoUserAttachmentRead,
-		Delete: resourceAlicloudCloudSsoUserAttachmentDelete,
+		Create: resourceAliCloudCloudSsoUserAttachmentCreate,
+		Read:   resourceAliCloudCloudSsoUserAttachmentRead,
+		Delete: resourceAliCloudCloudSsoUserAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -38,7 +38,7 @@ func resourceAlicloudCloudSsoUserAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudSsoUserAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoUserAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddUserToGroup"
@@ -70,9 +70,9 @@ func resourceAlicloudCloudSsoUserAttachmentCreate(d *schema.ResourceData, meta i
 
 	d.SetId(fmt.Sprint(request["DirectoryId"], ":", request["GroupId"], ":", request["UserId"]))
 
-	return resourceAlicloudCloudSsoUserAttachmentRead(d, meta)
+	return resourceAliCloudCloudSsoUserAttachmentRead(d, meta)
 }
-func resourceAlicloudCloudSsoUserAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoUserAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudssoService := CloudssoService{client}
 	_, err := cloudssoService.DescribeCloudSsoUserAttachment(d.Id())
@@ -93,7 +93,7 @@ func resourceAlicloudCloudSsoUserAttachmentRead(d *schema.ResourceData, meta int
 	d.Set("user_id", parts[2])
 	return nil
 }
-func resourceAlicloudCloudSsoUserAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoUserAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {

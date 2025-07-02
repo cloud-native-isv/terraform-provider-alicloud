@@ -4,18 +4,19 @@ import (
 	"fmt"
 	"log"
 
+	"time"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"time"
 )
 
-func resourceAlicloudApiGatewayPluginAttachment() *schema.Resource {
+func resourceAliCloudApiGatewayPluginAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudApiGatewayPluginAttachmentCreate,
-		Read:   resourceAlicloudApiGatewayPluginAttachmentRead,
-		Delete: resourceAlicloudApiGatewayPluginAttachmentDelete,
+		Create: resourceAliCloudApiGatewayPluginAttachmentCreate,
+		Read:   resourceAliCloudApiGatewayPluginAttachmentRead,
+		Delete: resourceAliCloudApiGatewayPluginAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +50,7 @@ func resourceAlicloudApiGatewayPluginAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudApiGatewayPluginAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayPluginAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AttachPlugin"
@@ -79,10 +80,10 @@ func resourceAlicloudApiGatewayPluginAttachmentCreate(d *schema.ResourceData, me
 
 	d.SetId(fmt.Sprint(request["GroupId"], ":", request["ApiId"], ":", request["PluginId"], ":", request["StageName"]))
 
-	return resourceAlicloudApiGatewayPluginAttachmentRead(d, meta)
+	return resourceAliCloudApiGatewayPluginAttachmentRead(d, meta)
 }
 
-func resourceAlicloudApiGatewayPluginAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayPluginAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudApiService := CloudApiService{client}
 
@@ -108,7 +109,7 @@ func resourceAlicloudApiGatewayPluginAttachmentRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceAlicloudApiGatewayPluginAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayPluginAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 4)
 	if err != nil {

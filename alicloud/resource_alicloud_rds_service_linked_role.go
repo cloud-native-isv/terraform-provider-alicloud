@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudRdsServiceLinkedRole() *schema.Resource {
+func resourceAliCloudRdsServiceLinkedRole() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdsServiceLinkedRoleCreate,
-		Read:   resourceAlicloudRdsServiceLinkedRoleRead,
-		Delete: resourceAlicloudRdsServiceLinkedRoleDelete,
+		Create: resourceAliCloudRdsServiceLinkedRoleCreate,
+		Read:   resourceAliCloudRdsServiceLinkedRoleRead,
+		Delete: resourceAliCloudRdsServiceLinkedRoleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -44,7 +44,7 @@ func resourceAlicloudRdsServiceLinkedRole() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRdsServiceLinkedRoleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsServiceLinkedRoleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateServiceLinkedRole"
@@ -70,9 +70,9 @@ func resourceAlicloudRdsServiceLinkedRoleCreate(d *schema.ResourceData, meta int
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_rds_service_linked_role", action, AlibabaCloudSdkGoERROR)
 	}
 	d.SetId(fmt.Sprint(request["ServiceLinkedRole"]))
-	return resourceAlicloudRdsServiceLinkedRoleRead(d, meta)
+	return resourceAliCloudRdsServiceLinkedRoleRead(d, meta)
 }
-func resourceAlicloudRdsServiceLinkedRoleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsServiceLinkedRoleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeRdsServiceLinkedRole(d.Id())
@@ -91,7 +91,7 @@ func resourceAlicloudRdsServiceLinkedRoleRead(d *schema.ResourceData, meta inter
 
 }
 
-func resourceAlicloudRdsServiceLinkedRoleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsServiceLinkedRoleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "DeleteServiceLinkedRole"

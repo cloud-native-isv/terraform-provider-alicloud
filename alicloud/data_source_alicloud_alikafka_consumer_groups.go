@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAlikafkaConsumerGroups() *schema.Resource {
+func dataSourceAliCloudAlikafkaConsumerGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAlikafkaConsumerGroupsRead,
+		Read: dataSourceAliCloudAlikafkaConsumerGroupsRead,
 
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
@@ -79,7 +79,7 @@ func dataSourceAlicloudAlikafkaConsumerGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAlikafkaConsumerGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAlikafkaConsumerGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	alikafkaService := AlikafkaService{client}
 

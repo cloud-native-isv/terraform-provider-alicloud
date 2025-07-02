@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOssBuckets() *schema.Resource {
+func dataSourceAliCloudOssBuckets() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOssBucketsRead,
+		Read: dataSourceAliCloudOssBucketsRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -249,7 +249,7 @@ func dataSourceAlicloudOssBuckets() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudOssBucketsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOssBucketsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var requestInfo *oss.Client
 	var allBuckets []oss.BucketProperties

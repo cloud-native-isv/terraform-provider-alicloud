@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudAlidnsGtmInstance() *schema.Resource {
+func resourceAliCloudAlidnsGtmInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlidnsGtmInstanceCreate,
-		Read:   resourceAlicloudAlidnsGtmInstanceRead,
-		Update: resourceAlicloudAlidnsGtmInstanceUpdate,
-		Delete: resourceAlicloudAlidnsGtmInstanceDelete,
+		Create: resourceAliCloudAlidnsGtmInstanceCreate,
+		Read:   resourceAliCloudAlidnsGtmInstanceRead,
+		Update: resourceAliCloudAlidnsGtmInstanceUpdate,
+		Delete: resourceAliCloudAlidnsGtmInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -160,7 +160,7 @@ func resourceAlicloudAlidnsGtmInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlidnsGtmInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsGtmInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var endpoint string
@@ -223,9 +223,9 @@ func resourceAlicloudAlidnsGtmInstanceCreate(d *schema.ResourceData, meta interf
 
 	responseData := response["Data"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseData["InstanceId"]))
-	return resourceAlicloudAlidnsGtmInstanceUpdate(d, meta)
+	return resourceAliCloudAlidnsGtmInstanceUpdate(d, meta)
 }
-func resourceAlicloudAlidnsGtmInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsGtmInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsGtmInstance(d.Id())
@@ -282,7 +282,7 @@ func resourceAlicloudAlidnsGtmInstanceRead(d *schema.ResourceData, meta interfac
 	}
 	return nil
 }
-func resourceAlicloudAlidnsGtmInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsGtmInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -458,9 +458,9 @@ func resourceAlicloudAlidnsGtmInstanceUpdate(d *schema.ResourceData, meta interf
 		d.SetPartial("ttl")
 	}
 	d.Partial(false)
-	return resourceAlicloudAlidnsGtmInstanceRead(d, meta)
+	return resourceAliCloudAlidnsGtmInstanceRead(d, meta)
 }
-func resourceAlicloudAlidnsGtmInstanceDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudAlidnsGtmInstance. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudAlidnsGtmInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudAlidnsGtmInstance. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

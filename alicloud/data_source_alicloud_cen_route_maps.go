@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenRouteMaps() *schema.Resource {
+func dataSourceAliCloudCenRouteMaps() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenRouteMapsRead,
+		Read: dataSourceAliCloudCenRouteMapsRead,
 		Schema: map[string]*schema.Schema{
 			"cen_id": {
 				Type:     schema.TypeString,
@@ -199,7 +199,7 @@ func dataSourceAlicloudCenRouteMaps() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenRouteMapsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenRouteMapsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := cbn.CreateDescribeCenRouteMapsRequest()

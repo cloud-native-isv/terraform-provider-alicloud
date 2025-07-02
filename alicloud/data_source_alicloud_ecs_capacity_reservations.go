@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcsCapacityReservations() *schema.Resource {
+func dataSourceAliCloudEcsCapacityReservations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcsCapacityReservationsRead,
+		Read: dataSourceAliCloudEcsCapacityReservationsRead,
 		Schema: map[string]*schema.Schema{
 			"capacity_reservation_ids": {
 				Optional: true,
@@ -162,7 +162,7 @@ func dataSourceAlicloudEcsCapacityReservations() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcsCapacityReservationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcsCapacityReservationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

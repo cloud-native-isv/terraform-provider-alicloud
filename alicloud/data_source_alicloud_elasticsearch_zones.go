@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudElaticsearchZones() *schema.Resource {
+func dataSourceAliCloudElaticsearchZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudElaticsearchZonesRead,
+		Read: dataSourceAliCloudElaticsearchZonesRead,
 
 		Schema: map[string]*schema.Schema{
 			"multi": {
@@ -52,7 +52,7 @@ func dataSourceAlicloudElaticsearchZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudElaticsearchZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudElaticsearchZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	multi := d.Get("multi").(bool)
 	var zoneIds []string

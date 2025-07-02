@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudGpdbConnection() *schema.Resource {
+func resourceAliCloudGpdbConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudGpdbConnectionCreate,
-		Read:   resourceAlicloudGpdbConnectionRead,
-		Update: resourceAlicloudGpdbConnectionUpdate,
-		Delete: resourceAlicloudGpdbConnectionDelete,
+		Create: resourceAliCloudGpdbConnectionCreate,
+		Read:   resourceAliCloudGpdbConnectionRead,
+		Update: resourceAliCloudGpdbConnectionUpdate,
+		Delete: resourceAliCloudGpdbConnectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -60,7 +60,7 @@ func resourceAlicloudGpdbConnection() *schema.Resource {
 	}
 }
 
-func resourceAlicloudGpdbConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGpdbConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gpdbService := GpdbService{client}
 	instanceId := d.Get("instance_id").(string)
@@ -100,10 +100,10 @@ func resourceAlicloudGpdbConnectionCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudGpdbConnectionRead(d, meta)
+	return resourceAliCloudGpdbConnectionRead(d, meta)
 }
 
-func resourceAlicloudGpdbConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGpdbConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
@@ -129,7 +129,7 @@ func resourceAlicloudGpdbConnectionRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceAlicloudGpdbConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGpdbConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
@@ -173,10 +173,10 @@ func resourceAlicloudGpdbConnectionUpdate(d *schema.ResourceData, meta interface
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudGpdbConnectionRead(d, meta)
+	return resourceAliCloudGpdbConnectionRead(d, meta)
 }
 
-func resourceAlicloudGpdbConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGpdbConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)

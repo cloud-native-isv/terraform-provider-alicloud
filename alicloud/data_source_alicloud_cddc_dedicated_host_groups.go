@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCddcDedicatedHostGroups() *schema.Resource {
+func dataSourceAliCloudCddcDedicatedHostGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCddcDedicatedHostGroupsRead,
+		Read: dataSourceAliCloudCddcDedicatedHostGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -186,7 +186,7 @@ func dataSourceAlicloudCddcDedicatedHostGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCddcDedicatedHostGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCddcDedicatedHostGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDedicatedHostGroups"

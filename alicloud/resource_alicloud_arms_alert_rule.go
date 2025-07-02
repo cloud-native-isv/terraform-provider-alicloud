@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudArmsAlertRule() *schema.Resource {
+func resourceAliCloudArmsAlertRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudArmsAlertRuleCreate,
-		Read:   resourceAlicloudArmsAlertRuleRead,
-		Update: resourceAlicloudArmsAlertRuleUpdate,
-		Delete: resourceAlicloudArmsAlertRuleDelete,
+		Create: resourceAliCloudArmsAlertRuleCreate,
+		Read:   resourceAliCloudArmsAlertRuleRead,
+		Update: resourceAliCloudArmsAlertRuleUpdate,
+		Delete: resourceAliCloudArmsAlertRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -134,7 +134,7 @@ func resourceAlicloudArmsAlertRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudArmsAlertRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	armsService := NewArmsService(client)
 
@@ -186,10 +186,10 @@ func resourceAlicloudArmsAlertRuleCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(alertId))
 
-	return resourceAlicloudArmsAlertRuleRead(d, meta)
+	return resourceAliCloudArmsAlertRuleRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	armsService := NewArmsService(client)
 
@@ -232,7 +232,7 @@ func resourceAlicloudArmsAlertRuleRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudArmsAlertRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 
@@ -334,10 +334,10 @@ func resourceAlicloudArmsAlertRuleUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	return resourceAlicloudArmsAlertRuleRead(d, meta)
+	return resourceAliCloudArmsAlertRuleRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteAlertRule"
 	var response map[string]interface{}

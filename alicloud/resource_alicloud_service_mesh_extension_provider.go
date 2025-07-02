@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudServiceMeshExtensionProvider() *schema.Resource {
+func resourceAliCloudServiceMeshExtensionProvider() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudServiceMeshExtensionProviderCreate,
-		Read:   resourceAlicloudServiceMeshExtensionProviderRead,
-		Update: resourceAlicloudServiceMeshExtensionProviderUpdate,
-		Delete: resourceAlicloudServiceMeshExtensionProviderDelete,
+		Create: resourceAliCloudServiceMeshExtensionProviderCreate,
+		Read:   resourceAliCloudServiceMeshExtensionProviderRead,
+		Update: resourceAliCloudServiceMeshExtensionProviderUpdate,
+		Delete: resourceAliCloudServiceMeshExtensionProviderDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +49,7 @@ func resourceAlicloudServiceMeshExtensionProvider() *schema.Resource {
 	}
 }
 
-func resourceAlicloudServiceMeshExtensionProviderCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudServiceMeshExtensionProviderCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateExtensionProvider"
@@ -81,10 +81,10 @@ func resourceAlicloudServiceMeshExtensionProviderCreate(d *schema.ResourceData, 
 
 	d.SetId(fmt.Sprintf("%v:%v:%v", request["ServiceMeshId"], request["Type"], request["Name"]))
 
-	return resourceAlicloudServiceMeshExtensionProviderRead(d, meta)
+	return resourceAliCloudServiceMeshExtensionProviderRead(d, meta)
 }
 
-func resourceAlicloudServiceMeshExtensionProviderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudServiceMeshExtensionProviderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	servicemeshService := ServicemeshService{client}
 	object, err := servicemeshService.DescribeServiceMeshExtensionProvider(d.Id())
@@ -109,7 +109,7 @@ func resourceAlicloudServiceMeshExtensionProviderRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceAlicloudServiceMeshExtensionProviderUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudServiceMeshExtensionProviderUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	update := false
@@ -152,10 +152,10 @@ func resourceAlicloudServiceMeshExtensionProviderUpdate(d *schema.ResourceData, 
 
 	}
 
-	return resourceAlicloudServiceMeshExtensionProviderRead(d, meta)
+	return resourceAliCloudServiceMeshExtensionProviderRead(d, meta)
 }
 
-func resourceAlicloudServiceMeshExtensionProviderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudServiceMeshExtensionProviderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteExtensionProvider"
 	var response map[string]interface{}

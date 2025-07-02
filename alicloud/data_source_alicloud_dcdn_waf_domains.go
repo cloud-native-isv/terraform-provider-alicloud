@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudDcdnWafDomains() *schema.Resource {
+func dataSourceAliCloudDcdnWafDomains() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDcdnWafDomainsRead,
+		Read: dataSourceAliCloudDcdnWafDomainsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -75,7 +75,7 @@ func dataSourceAlicloudDcdnWafDomains() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDcdnWafDomainsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDcdnWafDomainsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDcdnWafDomains"

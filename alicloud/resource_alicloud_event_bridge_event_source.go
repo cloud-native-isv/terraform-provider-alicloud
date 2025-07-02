@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEventBridgeEventSource() *schema.Resource {
+func resourceAliCloudEventBridgeEventSource() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEventBridgeEventSourceCreate,
-		Read:   resourceAlicloudEventBridgeEventSourceRead,
-		Update: resourceAlicloudEventBridgeEventSourceUpdate,
-		Delete: resourceAlicloudEventBridgeEventSourceDelete,
+		Create: resourceAliCloudEventBridgeEventSourceCreate,
+		Read:   resourceAliCloudEventBridgeEventSourceRead,
+		Update: resourceAliCloudEventBridgeEventSourceUpdate,
+		Delete: resourceAliCloudEventBridgeEventSourceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,7 +51,7 @@ func resourceAlicloudEventBridgeEventSource() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEventBridgeEventSourceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEventBridgeEventSourceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateEventSource"
@@ -97,9 +97,9 @@ func resourceAlicloudEventBridgeEventSourceCreate(d *schema.ResourceData, meta i
 
 	d.SetId(fmt.Sprint(request["EventSourceName"]))
 
-	return resourceAlicloudEventBridgeEventSourceRead(d, meta)
+	return resourceAliCloudEventBridgeEventSourceRead(d, meta)
 }
-func resourceAlicloudEventBridgeEventSourceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEventBridgeEventSourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	eventbridgeService := EventbridgeService{client}
 	object, err := eventbridgeService.DescribeEventBridgeEventSource(d.Id())
@@ -123,7 +123,7 @@ func resourceAlicloudEventBridgeEventSourceRead(d *schema.ResourceData, meta int
 	}
 	return nil
 }
-func resourceAlicloudEventBridgeEventSourceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEventBridgeEventSourceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -178,9 +178,9 @@ func resourceAlicloudEventBridgeEventSourceUpdate(d *schema.ResourceData, meta i
 			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
 		}
 	}
-	return resourceAlicloudEventBridgeEventSourceRead(d, meta)
+	return resourceAliCloudEventBridgeEventSourceRead(d, meta)
 }
-func resourceAlicloudEventBridgeEventSourceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEventBridgeEventSourceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteEventSource"
 	var response map[string]interface{}

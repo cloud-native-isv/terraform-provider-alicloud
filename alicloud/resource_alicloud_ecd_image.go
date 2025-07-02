@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcdImage() *schema.Resource {
+func resourceAliCloudEcdImage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdImageCreate,
-		Read:   resourceAlicloudEcdImageRead,
-		Update: resourceAlicloudEcdImageUpdate,
-		Delete: resourceAlicloudEcdImageDelete,
+		Create: resourceAliCloudEcdImageCreate,
+		Read:   resourceAliCloudEcdImageRead,
+		Update: resourceAliCloudEcdImageUpdate,
+		Delete: resourceAliCloudEcdImageDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -45,7 +45,7 @@ func resourceAlicloudEcdImage() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdImageCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdImageCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateImage"
@@ -83,9 +83,9 @@ func resourceAlicloudEcdImageCreate(d *schema.ResourceData, meta interface{}) er
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEcdImageRead(d, meta)
+	return resourceAliCloudEcdImageRead(d, meta)
 }
-func resourceAlicloudEcdImageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdImage(d.Id())
@@ -102,7 +102,7 @@ func resourceAlicloudEcdImageRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudEcdImageUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdImageUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -147,9 +147,9 @@ func resourceAlicloudEcdImageUpdate(d *schema.ResourceData, meta interface{}) er
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudEcdImageRead(d, meta)
+	return resourceAliCloudEcdImageRead(d, meta)
 }
-func resourceAlicloudEcdImageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdImageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	action := "DeleteImages"

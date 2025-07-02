@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenInstanceAttachments() *schema.Resource {
+func dataSourceAliCloudCenInstanceAttachments() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenInstanceAttachmentsRead,
+		Read: dataSourceAliCloudCenInstanceAttachmentsRead,
 		Schema: map[string]*schema.Schema{
 			"child_instance_region_id": {
 				Type:     schema.TypeString,
@@ -89,7 +89,7 @@ func dataSourceAlicloudCenInstanceAttachments() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenInstanceAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenInstanceAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := cbn.CreateDescribeCenAttachedChildInstancesRequest()

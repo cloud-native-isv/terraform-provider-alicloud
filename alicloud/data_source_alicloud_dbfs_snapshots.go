@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDbfsSnapshots() *schema.Resource {
+func dataSourceAliCloudDbfsSnapshots() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDbfsSnapshotsRead,
+		Read: dataSourceAliCloudDbfsSnapshotsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -112,7 +112,7 @@ func dataSourceAlicloudDbfsSnapshots() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDbfsSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDbfsSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "ListSnapshot"
 	request := make(map[string]interface{})

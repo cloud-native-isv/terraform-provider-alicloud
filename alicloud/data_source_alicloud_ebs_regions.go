@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEbsRegions() *schema.Resource {
+func dataSourceAliCloudEbsRegions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEbsRegionsRead,
+		Read: dataSourceAliCloudEbsRegionsRead,
 		Schema: map[string]*schema.Schema{
 			"region_id": {
 				Type:     schema.TypeString,
@@ -48,7 +48,7 @@ func dataSourceAlicloudEbsRegions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEbsRegionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEbsRegionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeRegions"

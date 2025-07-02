@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudArmsAlertContactSchedule() *schema.Resource {
+func resourceAliCloudArmsAlertContactSchedule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudArmsAlertContactScheduleCreate,
-		Read:   resourceAlicloudArmsAlertContactScheduleRead,
-		Update: resourceAlicloudArmsAlertContactScheduleUpdate,
-		Delete: resourceAlicloudArmsAlertContactScheduleDelete,
+		Create: resourceAliCloudArmsAlertContactScheduleCreate,
+		Read:   resourceAliCloudArmsAlertContactScheduleRead,
+		Update: resourceAliCloudArmsAlertContactScheduleUpdate,
+		Delete: resourceAliCloudArmsAlertContactScheduleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceAlicloudArmsAlertContactSchedule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudArmsAlertContactScheduleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertContactScheduleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateContactSchedule"
@@ -102,10 +102,10 @@ func resourceAlicloudArmsAlertContactScheduleCreate(d *schema.ResourceData, meta
 
 	d.SetId(fmt.Sprint(response["ScheduleId"]))
 
-	return resourceAlicloudArmsAlertContactScheduleRead(d, meta)
+	return resourceAliCloudArmsAlertContactScheduleRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertContactScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertContactScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	armsService := NewArmsService(client)
 	contactSchedule, err := armsService.DescribeArmsAlertContactSchedule(d.Id())
@@ -136,7 +136,7 @@ func resourceAlicloudArmsAlertContactScheduleRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceAlicloudArmsAlertContactScheduleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertContactScheduleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -207,10 +207,10 @@ func resourceAlicloudArmsAlertContactScheduleUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	return resourceAlicloudArmsAlertContactScheduleRead(d, meta)
+	return resourceAliCloudArmsAlertContactScheduleRead(d, meta)
 }
 
-func resourceAlicloudArmsAlertContactScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsAlertContactScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteContactSchedule"
 	var response map[string]interface{}

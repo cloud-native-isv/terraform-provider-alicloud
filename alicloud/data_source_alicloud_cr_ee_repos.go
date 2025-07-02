@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCrEERepos() *schema.Resource {
+func dataSourceAliCloudCrEERepos() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCrEEReposRead,
+		Read: dataSourceAliCloudCrEEReposRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Type:     schema.TypeString,
@@ -126,7 +126,7 @@ func dataSourceAlicloudCrEERepos() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCrEEReposRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCrEEReposRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := &CrService{client}
 	pageNo := 1

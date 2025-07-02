@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudHbrReplicationVaultRegions() *schema.Resource {
+func dataSourceAliCloudHbrReplicationVaultRegions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudHbrReplicationVaultRegionsRead,
+		Read: dataSourceAliCloudHbrReplicationVaultRegionsRead,
 		Schema: map[string]*schema.Schema{
 			"output_file": {
 				Type:     schema.TypeString,
@@ -35,7 +35,7 @@ func dataSourceAlicloudHbrReplicationVaultRegions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudHbrReplicationVaultRegionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudHbrReplicationVaultRegionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeVaultReplicationRegions"
 	request := make(map[string]interface{})

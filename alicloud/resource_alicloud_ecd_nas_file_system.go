@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcdNasFileSystem() *schema.Resource {
+func resourceAliCloudEcdNasFileSystem() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdNasFileSystemCreate,
-		Read:   resourceAlicloudEcdNasFileSystemRead,
-		Update: resourceAlicloudEcdNasFileSystemUpdate,
-		Delete: resourceAlicloudEcdNasFileSystemDelete,
+		Create: resourceAliCloudEcdNasFileSystemCreate,
+		Read:   resourceAliCloudEcdNasFileSystemRead,
+		Update: resourceAliCloudEcdNasFileSystemUpdate,
+		Delete: resourceAliCloudEcdNasFileSystemDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -63,7 +63,7 @@ func resourceAlicloudEcdNasFileSystem() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdNasFileSystemCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdNasFileSystemCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateNASFileSystem"
@@ -101,9 +101,9 @@ func resourceAlicloudEcdNasFileSystemCreate(d *schema.ResourceData, meta interfa
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEcdNasFileSystemUpdate(d, meta)
+	return resourceAliCloudEcdNasFileSystemUpdate(d, meta)
 }
-func resourceAlicloudEcdNasFileSystemRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdNasFileSystemRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdNasFileSystem(d.Id())
@@ -123,7 +123,7 @@ func resourceAlicloudEcdNasFileSystemRead(d *schema.ResourceData, meta interface
 	d.Set("file_system_id", object["FileSystemId"])
 	return nil
 }
-func resourceAlicloudEcdNasFileSystemUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdNasFileSystemUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	var err error
@@ -161,9 +161,9 @@ func resourceAlicloudEcdNasFileSystemUpdate(d *schema.ResourceData, meta interfa
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudEcdNasFileSystemRead(d, meta)
+	return resourceAliCloudEcdNasFileSystemRead(d, meta)
 }
-func resourceAlicloudEcdNasFileSystemDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdNasFileSystemDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	action := "DeleteNASFileSystems"

@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSmsShortUrl() *schema.Resource {
+func resourceAliCloudSmsShortUrl() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSmsShortUrlCreate,
-		Read:   resourceAlicloudSmsShortUrlRead,
-		Delete: resourceAlicloudSmsShortUrlDelete,
+		Create: resourceAliCloudSmsShortUrlCreate,
+		Read:   resourceAliCloudSmsShortUrlRead,
+		Delete: resourceAliCloudSmsShortUrlDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +49,7 @@ func resourceAlicloudSmsShortUrl() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSmsShortUrlCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSmsShortUrlCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -77,9 +77,9 @@ func resourceAlicloudSmsShortUrlCreate(d *schema.ResourceData, meta interface{})
 	responseData := response["Data"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseData["ShortUrl"]))
 
-	return resourceAlicloudSmsShortUrlRead(d, meta)
+	return resourceAliCloudSmsShortUrlRead(d, meta)
 }
-func resourceAlicloudSmsShortUrlRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSmsShortUrlRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dysmsapiService := DysmsapiService{client}
 	object, err := dysmsapiService.DescribeSmsShortUrl(d.Id())
@@ -102,7 +102,7 @@ func resourceAlicloudSmsShortUrlRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("status", object["ShortUrlStatus"])
 	return nil
 }
-func resourceAlicloudSmsShortUrlDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSmsShortUrlDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error

@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudGraphDatabaseDbInstance() *schema.Resource {
+func resourceAliCloudGraphDatabaseDbInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudGraphDatabaseDbInstanceCreate,
-		Read:   resourceAlicloudGraphDatabaseDbInstanceRead,
-		Update: resourceAlicloudGraphDatabaseDbInstanceUpdate,
-		Delete: resourceAlicloudGraphDatabaseDbInstanceDelete,
+		Create: resourceAliCloudGraphDatabaseDbInstanceCreate,
+		Read:   resourceAliCloudGraphDatabaseDbInstanceRead,
+		Update: resourceAliCloudGraphDatabaseDbInstanceUpdate,
+		Delete: resourceAliCloudGraphDatabaseDbInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -126,7 +126,7 @@ func resourceAlicloudGraphDatabaseDbInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudGraphDatabaseDbInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGraphDatabaseDbInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDBInstance"
@@ -177,9 +177,9 @@ func resourceAlicloudGraphDatabaseDbInstanceCreate(d *schema.ResourceData, meta 
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudGraphDatabaseDbInstanceUpdate(d, meta)
+	return resourceAliCloudGraphDatabaseDbInstanceUpdate(d, meta)
 }
-func resourceAlicloudGraphDatabaseDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGraphDatabaseDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gdbService := GdbService{client}
 	object, err := gdbService.DescribeGraphDatabaseDbInstance(d.Id())
@@ -223,7 +223,7 @@ func resourceAlicloudGraphDatabaseDbInstanceRead(d *schema.ResourceData, meta in
 	}
 	return nil
 }
-func resourceAlicloudGraphDatabaseDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGraphDatabaseDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gdbService := GdbService{client}
 	var err error
@@ -379,9 +379,9 @@ func resourceAlicloudGraphDatabaseDbInstanceUpdate(d *schema.ResourceData, meta 
 		d.SetPartial("db_node_storage")
 	}
 	d.Partial(false)
-	return resourceAlicloudGraphDatabaseDbInstanceRead(d, meta)
+	return resourceAliCloudGraphDatabaseDbInstanceRead(d, meta)
 }
-func resourceAlicloudGraphDatabaseDbInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGraphDatabaseDbInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gdbService := GdbService{client}
 	action := "DeleteDBInstance"

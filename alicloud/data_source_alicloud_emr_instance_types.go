@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEmrInstanceTypes() *schema.Resource {
+func dataSourceAliCloudEmrInstanceTypes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEmrInstanceTypesRead,
+		Read: dataSourceAliCloudEmrInstanceTypesRead,
 
 		Schema: map[string]*schema.Schema{
 			"destination_resource": {
@@ -89,7 +89,7 @@ func dataSourceAlicloudEmrInstanceTypes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEmrInstanceTypesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEmrInstanceTypesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := emr.CreateListEmrAvailableResourceRequest()

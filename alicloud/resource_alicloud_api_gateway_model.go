@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudApiGatewayModel() *schema.Resource {
+func resourceAliCloudApiGatewayModel() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudApiGatewayModelCreate,
-		Read:   resourceAlicloudApiGatewayModelRead,
-		Update: resourceAlicloudApiGatewayModelUpdate,
-		Delete: resourceAlicloudApiGatewayModelDelete,
+		Create: resourceAliCloudApiGatewayModelCreate,
+		Read:   resourceAliCloudApiGatewayModelRead,
+		Update: resourceAliCloudApiGatewayModelUpdate,
+		Delete: resourceAliCloudApiGatewayModelDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudApiGatewayModel() *schema.Resource {
 	}
 }
 
-func resourceAlicloudApiGatewayModelCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayModelCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateModel"
@@ -80,10 +80,10 @@ func resourceAlicloudApiGatewayModelCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(fmt.Sprint(response["GroupId"], ":", response["ModelName"]))
 
-	return resourceAlicloudApiGatewayModelRead(d, meta)
+	return resourceAliCloudApiGatewayModelRead(d, meta)
 }
 
-func resourceAlicloudApiGatewayModelRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayModelRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudApiService := CloudApiService{client}
 	object, err := cloudApiService.DescribeApiGatewayModel(d.Id())
@@ -103,7 +103,7 @@ func resourceAlicloudApiGatewayModelRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudApiGatewayModelUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayModelUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	update := false
@@ -151,10 +151,10 @@ func resourceAlicloudApiGatewayModelUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	return resourceAlicloudApiGatewayModelRead(d, meta)
+	return resourceAliCloudApiGatewayModelRead(d, meta)
 }
 
-func resourceAlicloudApiGatewayModelDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayModelDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "DeleteModel"

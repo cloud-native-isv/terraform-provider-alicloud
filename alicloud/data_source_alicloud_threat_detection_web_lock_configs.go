@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudThreatDetectionWebLockConfigs() *schema.Resource {
+func dataSourceAliCloudThreatDetectionWebLockConfigs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudThreatDetectionWebLockConfigsRead,
+		Read: dataSourceAliCloudThreatDetectionWebLockConfigsRead,
 		Schema: map[string]*schema.Schema{
 			"lang": {
 				Optional: true,
@@ -111,7 +111,7 @@ func dataSourceAlicloudThreatDetectionWebLockConfigs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudThreatDetectionWebLockConfigsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudThreatDetectionWebLockConfigsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

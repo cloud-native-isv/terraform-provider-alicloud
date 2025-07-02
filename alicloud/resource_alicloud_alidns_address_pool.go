@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudAlidnsAddressPool() *schema.Resource {
+func resourceAliCloudAlidnsAddressPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlidnsAddressPoolCreate,
-		Read:   resourceAlicloudAlidnsAddressPoolRead,
-		Update: resourceAlicloudAlidnsAddressPoolUpdate,
-		Delete: resourceAlicloudAlidnsAddressPoolDelete,
+		Create: resourceAliCloudAlidnsAddressPoolCreate,
+		Read:   resourceAliCloudAlidnsAddressPoolRead,
+		Update: resourceAliCloudAlidnsAddressPoolUpdate,
+		Delete: resourceAliCloudAlidnsAddressPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -77,7 +77,7 @@ func resourceAlicloudAlidnsAddressPool() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlidnsAddressPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsAddressPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddDnsGtmAddressPool"
@@ -125,9 +125,9 @@ func resourceAlicloudAlidnsAddressPoolCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(fmt.Sprint(response["AddrPoolId"]))
 
-	return resourceAlicloudAlidnsAddressPoolRead(d, meta)
+	return resourceAliCloudAlidnsAddressPoolRead(d, meta)
 }
-func resourceAlicloudAlidnsAddressPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsAddressPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsAddressPool(d.Id())
@@ -145,7 +145,7 @@ func resourceAlicloudAlidnsAddressPoolRead(d *schema.ResourceData, meta interfac
 
 	return nil
 }
-func resourceAlicloudAlidnsAddressPoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsAddressPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -201,9 +201,9 @@ func resourceAlicloudAlidnsAddressPoolUpdate(d *schema.ResourceData, meta interf
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudAlidnsAddressPoolRead(d, meta)
+	return resourceAliCloudAlidnsAddressPoolRead(d, meta)
 }
-func resourceAlicloudAlidnsAddressPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsAddressPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDnsGtmAddressPool"
 	var response map[string]interface{}

@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachment() *schema.Resource {
+func resourceAliCloudAlbLoadBalancerCommonBandwidthPackageAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentCreate,
-		Read:   resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentRead,
-		Update: resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentUpdate,
-		Delete: resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentDelete,
+		Create: resourceAliCloudAlbLoadBalancerCommonBandwidthPackageAttachmentCreate,
+		Read:   resourceAliCloudAlbLoadBalancerCommonBandwidthPackageAttachmentRead,
+		Update: resourceAliCloudAlbLoadBalancerCommonBandwidthPackageAttachmentUpdate,
+		Delete: resourceAliCloudAlbLoadBalancerCommonBandwidthPackageAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachment() *schema.R
 	}
 }
 
-func resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbLoadBalancerCommonBandwidthPackageAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	albService := AlbService{client}
 	request := map[string]interface{}{
@@ -90,10 +90,10 @@ func resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentCreate(d *sc
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentRead(d, meta)
+	return resourceAliCloudAlbLoadBalancerCommonBandwidthPackageAttachmentRead(d, meta)
 }
 
-func resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbLoadBalancerCommonBandwidthPackageAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	albService := AlbService{client}
 
@@ -118,11 +118,11 @@ func resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentRead(d *sche
 
 	return nil
 }
-func resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentRead(d, meta)
+func resourceAliCloudAlbLoadBalancerCommonBandwidthPackageAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceAliCloudAlbLoadBalancerCommonBandwidthPackageAttachmentRead(d, meta)
 }
 
-func resourceAlicloudAlbLoadBalancerCommonBandwidthPackageAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbLoadBalancerCommonBandwidthPackageAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	albService := AlbService{client}
 	var err error

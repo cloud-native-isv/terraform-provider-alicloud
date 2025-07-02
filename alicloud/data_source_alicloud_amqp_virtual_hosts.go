@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAmqpVirtualHosts() *schema.Resource {
+func dataSourceAliCloudAmqpVirtualHosts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAmqpVirtualHostsRead,
+		Read: dataSourceAliCloudAmqpVirtualHostsRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Type:     schema.TypeString,
@@ -67,7 +67,7 @@ func dataSourceAlicloudAmqpVirtualHosts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAmqpVirtualHostsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAmqpVirtualHostsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListVirtualHosts"

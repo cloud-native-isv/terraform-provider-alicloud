@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSagQosPolicy() *schema.Resource {
+func resourceAliCloudSagQosPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSagQosPolicyCreate,
-		Read:   resourceAlicloudSagQosPolicyRead,
-		Update: resourceAlicloudSagQosPolicyUpdate,
-		Delete: resourceAlicloudSagQosPolicyDelete,
+		Create: resourceAliCloudSagQosPolicyCreate,
+		Read:   resourceAliCloudSagQosPolicyRead,
+		Update: resourceAliCloudSagQosPolicyUpdate,
+		Delete: resourceAliCloudSagQosPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -75,7 +75,7 @@ func resourceAlicloudSagQosPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSagQosPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := smartag.CreateCreateQosPolicyRequest()
 
@@ -122,10 +122,10 @@ func resourceAlicloudSagQosPolicyCreate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(fmt.Sprintf("%s%s%s", response.QosId, COLON_SEPARATED, response.QosPolicyId))
 
-	return resourceAlicloudSagQosPolicyRead(d, meta)
+	return resourceAliCloudSagQosPolicyRead(d, meta)
 }
 
-func resourceAlicloudSagQosPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeSagQosPolicy(d.Id())
 	if err != nil {
@@ -151,7 +151,7 @@ func resourceAlicloudSagQosPolicyRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAlicloudSagQosPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	update := false
@@ -213,10 +213,10 @@ func resourceAlicloudSagQosPolicyUpdate(d *schema.ResourceData, meta interface{}
 		}
 		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 	}
-	return resourceAlicloudSagQosPolicyRead(d, meta)
+	return resourceAliCloudSagQosPolicyRead(d, meta)
 }
 
-func resourceAlicloudSagQosPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sagService := SagService{client}
 	request := smartag.CreateDeleteQosPolicyRequest()

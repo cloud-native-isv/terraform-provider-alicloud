@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudMessageServiceSubscriptions() *schema.Resource {
+func dataSourceAliCloudMessageServiceSubscriptions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMessageServiceSubscriptionsRead,
+		Read: dataSourceAliCloudMessageServiceSubscriptionsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -113,7 +113,7 @@ func dataSourceAlicloudMessageServiceSubscriptions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMessageServiceSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMessageServiceSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListSubscriptionByTopic"

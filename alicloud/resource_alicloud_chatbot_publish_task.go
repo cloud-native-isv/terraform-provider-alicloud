@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudChatbotPublishTask() *schema.Resource {
+func resourceAliCloudChatbotPublishTask() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudChatbotPublishTaskCreate,
-		Read:   resourceAlicloudChatbotPublishTaskRead,
-		Update: resourceAlicloudChatbotPublishTaskUpdate,
-		Delete: resourceAlicloudChatbotPublishTaskDelete,
+		Create: resourceAliCloudChatbotPublishTaskCreate,
+		Read:   resourceAliCloudChatbotPublishTaskRead,
+		Update: resourceAliCloudChatbotPublishTaskUpdate,
+		Delete: resourceAliCloudChatbotPublishTaskDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -57,7 +57,7 @@ func resourceAlicloudChatbotPublishTask() *schema.Resource {
 	}
 }
 
-func resourceAlicloudChatbotPublishTaskCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudChatbotPublishTaskCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -95,10 +95,10 @@ func resourceAlicloudChatbotPublishTaskCreate(d *schema.ResourceData, meta inter
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudChatbotPublishTaskRead(d, meta)
+	return resourceAliCloudChatbotPublishTaskRead(d, meta)
 }
 
-func resourceAlicloudChatbotPublishTaskRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudChatbotPublishTaskRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	chatbotService := ChatbotService{client}
 
@@ -121,12 +121,12 @@ func resourceAlicloudChatbotPublishTaskRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceAlicloudChatbotPublishTaskUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudChatbotPublishTaskUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudChatbotPublishTaskRead(d, meta)
+	return resourceAliCloudChatbotPublishTaskRead(d, meta)
 }
 
-func resourceAlicloudChatbotPublishTaskDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudChatbotPublishTask. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudChatbotPublishTaskDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudChatbotPublishTask. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

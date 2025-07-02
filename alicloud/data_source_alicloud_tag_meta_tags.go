@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudTagMetaTags() *schema.Resource {
+func dataSourceAliCloudTagMetaTags() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudTagMetaTagsRead,
+		Read: dataSourceAliCloudTagMetaTagsRead,
 		Schema: map[string]*schema.Schema{
 			"key_name": {
 				Type:     schema.TypeString,
@@ -48,7 +48,7 @@ func dataSourceAlicloudTagMetaTags() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudTagMetaTagsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudTagMetaTagsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTagKeys"

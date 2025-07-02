@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudKVStoreInstanceEngines() *schema.Resource {
+func dataSourceAliCloudKVStoreInstanceEngines() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKVStoreInstanceEnginesRead,
+		Read: dataSourceAliCloudKVStoreInstanceEnginesRead,
 		Schema: map[string]*schema.Schema{
 			"zone_id": {
 				Type:     schema.TypeString,
@@ -71,7 +71,7 @@ func dataSourceAlicloudKVStoreInstanceEngines() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudKVStoreInstanceEnginesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKVStoreInstanceEnginesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := r_kvstore.CreateDescribeAvailableResourceRequest()

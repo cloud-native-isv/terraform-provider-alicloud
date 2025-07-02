@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudMhubApps() *schema.Resource {
+func dataSourceAliCloudMhubApps() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMhubAppsRead,
+		Read: dataSourceAliCloudMhubAppsRead,
 		Schema: map[string]*schema.Schema{
 			"product_id": {
 				Type:     schema.TypeString,
@@ -106,7 +106,7 @@ func dataSourceAlicloudMhubApps() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMhubAppsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMhubAppsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListApps"

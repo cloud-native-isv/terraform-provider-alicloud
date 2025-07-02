@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDfsMountPoints() *schema.Resource {
+func dataSourceAliCloudDfsMountPoints() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDfsMountPointsRead,
+		Read: dataSourceAliCloudDfsMountPointsRead,
 		Schema: map[string]*schema.Schema{
 			"file_system_id": {
 				Type:     schema.TypeString,
@@ -93,7 +93,7 @@ func dataSourceAlicloudDfsMountPoints() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDfsMountPointsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDfsMountPointsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListMountPoints"

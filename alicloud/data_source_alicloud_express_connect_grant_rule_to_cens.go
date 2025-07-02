@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudExpressConnectGrantRuleToCens() *schema.Resource {
+func dataSourceAliCloudExpressConnectGrantRuleToCens() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudExpressConnectGrantRuleToCensRead,
+		Read: dataSourceAliCloudExpressConnectGrantRuleToCensRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -67,7 +67,7 @@ func dataSourceAlicloudExpressConnectGrantRuleToCens() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudExpressConnectGrantRuleToCensRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudExpressConnectGrantRuleToCensRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeGrantRulesToCen"

@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudResourceManagerPolicyVersion() *schema.Resource {
+func resourceAliCloudResourceManagerPolicyVersion() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudResourceManagerPolicyVersionCreate,
-		Read:   resourceAlicloudResourceManagerPolicyVersionRead,
-		Update: resourceAlicloudResourceManagerPolicyVersionUpdate,
-		Delete: resourceAlicloudResourceManagerPolicyVersionDelete,
+		Create: resourceAliCloudResourceManagerPolicyVersionCreate,
+		Read:   resourceAliCloudResourceManagerPolicyVersionRead,
+		Update: resourceAliCloudResourceManagerPolicyVersionUpdate,
+		Delete: resourceAliCloudResourceManagerPolicyVersionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceAlicloudResourceManagerPolicyVersion() *schema.Resource {
 	}
 }
 
-func resourceAlicloudResourceManagerPolicyVersionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerPolicyVersionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreatePolicyVersion"
@@ -89,9 +89,9 @@ func resourceAlicloudResourceManagerPolicyVersionCreate(d *schema.ResourceData, 
 	responsePolicyVersion := response["PolicyVersion"].(map[string]interface{})
 	d.SetId(fmt.Sprint(request["PolicyName"], ":", responsePolicyVersion["VersionId"]))
 
-	return resourceAlicloudResourceManagerPolicyVersionRead(d, meta)
+	return resourceAliCloudResourceManagerPolicyVersionRead(d, meta)
 }
-func resourceAlicloudResourceManagerPolicyVersionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerPolicyVersionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resourcemanagerService := ResourcemanagerService{client}
 	object, err := resourcemanagerService.DescribeResourceManagerPolicyVersion(d.Id())
@@ -112,7 +112,7 @@ func resourceAlicloudResourceManagerPolicyVersionRead(d *schema.ResourceData, me
 	d.Set("policy_document", object["PolicyDocument"])
 	return nil
 }
-func resourceAlicloudResourceManagerPolicyVersionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerPolicyVersionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resourcemanagerService := ResourcemanagerService{client}
 	var err error
@@ -153,9 +153,9 @@ func resourceAlicloudResourceManagerPolicyVersionUpdate(d *schema.ResourceData, 
 			}
 		}
 	}
-	return resourceAlicloudResourceManagerPolicyVersionRead(d, meta)
+	return resourceAliCloudResourceManagerPolicyVersionRead(d, meta)
 }
-func resourceAlicloudResourceManagerPolicyVersionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerPolicyVersionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

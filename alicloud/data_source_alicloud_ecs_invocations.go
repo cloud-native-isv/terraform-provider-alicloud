@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEcsInvocations() *schema.Resource {
+func dataSourceAliCloudEcsInvocations() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcsInvocationsRead,
+		Read: dataSourceAliCloudEcsInvocationsRead,
 		Schema: map[string]*schema.Schema{
 			"command_id": {
 				Type:     schema.TypeString,
@@ -189,7 +189,7 @@ func dataSourceAlicloudEcsInvocations() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcsInvocationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcsInvocationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeInvocations"

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdNasFileSystems() *schema.Resource {
+func dataSourceAliCloudEcdNasFileSystems() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdNasFileSystemsRead,
+		Read: dataSourceAliCloudEcdNasFileSystemsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -125,7 +125,7 @@ func dataSourceAlicloudEcdNasFileSystems() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdNasFileSystemsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdNasFileSystemsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeNASFileSystems"

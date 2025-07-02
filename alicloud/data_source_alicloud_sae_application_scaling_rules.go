@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudSaeApplicationScalingRules() *schema.Resource {
+func dataSourceAliCloudSaeApplicationScalingRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSaeApplicationScalingRulesRead,
+		Read: dataSourceAliCloudSaeApplicationScalingRulesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -254,7 +254,7 @@ func dataSourceAlicloudSaeApplicationScalingRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSaeApplicationScalingRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSaeApplicationScalingRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "/pop/v1/sam/scale/applicationScalingRules"

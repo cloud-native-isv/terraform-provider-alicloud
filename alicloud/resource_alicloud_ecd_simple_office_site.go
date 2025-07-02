@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcdSimpleOfficeSite() *schema.Resource {
+func resourceAliCloudEcdSimpleOfficeSite() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdSimpleOfficeSiteCreate,
-		Read:   resourceAlicloudEcdSimpleOfficeSiteRead,
-		Update: resourceAlicloudEcdSimpleOfficeSiteUpdate,
-		Delete: resourceAlicloudEcdSimpleOfficeSiteDelete,
+		Create: resourceAliCloudEcdSimpleOfficeSiteCreate,
+		Read:   resourceAliCloudEcdSimpleOfficeSiteRead,
+		Update: resourceAliCloudEcdSimpleOfficeSiteUpdate,
+		Delete: resourceAliCloudEcdSimpleOfficeSiteDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -87,7 +87,7 @@ func resourceAlicloudEcdSimpleOfficeSite() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdSimpleOfficeSiteCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdSimpleOfficeSiteCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateSimpleOfficeSite"
@@ -143,9 +143,9 @@ func resourceAlicloudEcdSimpleOfficeSiteCreate(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEcdSimpleOfficeSiteUpdate(d, meta)
+	return resourceAliCloudEcdSimpleOfficeSiteUpdate(d, meta)
 }
-func resourceAlicloudEcdSimpleOfficeSiteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdSimpleOfficeSiteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdSimpleOfficeSite(d.Id())
@@ -173,7 +173,7 @@ func resourceAlicloudEcdSimpleOfficeSiteRead(d *schema.ResourceData, meta interf
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudEcdSimpleOfficeSiteUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdSimpleOfficeSiteUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -313,9 +313,9 @@ func resourceAlicloudEcdSimpleOfficeSiteUpdate(d *schema.ResourceData, meta inte
 		d.SetPartial("office_site_name")
 	}
 	d.Partial(false)
-	return resourceAlicloudEcdSimpleOfficeSiteRead(d, meta)
+	return resourceAliCloudEcdSimpleOfficeSiteRead(d, meta)
 }
-func resourceAlicloudEcdSimpleOfficeSiteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdSimpleOfficeSiteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdSimpleOfficeSite(d.Id())

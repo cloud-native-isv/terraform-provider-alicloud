@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcIpv6EgressRules() *schema.Resource {
+func dataSourceAliCloudVpcIpv6EgressRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcIpv6EgressRulesRead,
+		Read: dataSourceAliCloudVpcIpv6EgressRulesRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Type:     schema.TypeString,
@@ -103,7 +103,7 @@ func dataSourceAlicloudVpcIpv6EgressRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcIpv6EgressRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcIpv6EgressRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeIpv6EgressOnlyRules"

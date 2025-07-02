@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudKVStorePermission() *schema.Resource {
+func dataSourceAliCloudKVStorePermission() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKVStorePermissionRead,
+		Read: dataSourceAliCloudKVStorePermissionRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -26,7 +26,7 @@ func dataSourceAlicloudKVStorePermission() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudKVStorePermissionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKVStorePermissionRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("KVStorePermissionHasNotBeenInitialize")
 		d.Set("status", "")

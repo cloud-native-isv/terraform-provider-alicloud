@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcdCustomProperty() *schema.Resource {
+func resourceAliCloudEcdCustomProperty() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdCustomPropertyCreate,
-		Read:   resourceAlicloudEcdCustomPropertyRead,
-		Update: resourceAlicloudEcdCustomPropertyUpdate,
-		Delete: resourceAlicloudEcdCustomPropertyDelete,
+		Create: resourceAliCloudEcdCustomPropertyCreate,
+		Read:   resourceAliCloudEcdCustomPropertyRead,
+		Update: resourceAliCloudEcdCustomPropertyUpdate,
+		Delete: resourceAliCloudEcdCustomPropertyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -50,7 +50,7 @@ func resourceAlicloudEcdCustomProperty() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdCustomPropertyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdCustomPropertyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateProperty"
@@ -86,9 +86,9 @@ func resourceAlicloudEcdCustomPropertyCreate(d *schema.ResourceData, meta interf
 	responseCreateResult := response["CreateResult"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseCreateResult["PropertyId"]))
 
-	return resourceAlicloudEcdCustomPropertyRead(d, meta)
+	return resourceAliCloudEcdCustomPropertyRead(d, meta)
 }
-func resourceAlicloudEcdCustomPropertyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdCustomPropertyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edsUserService := EdsUserService{client}
 	object, err := edsUserService.DescribeEcdCustomProperty(d.Id())
@@ -116,7 +116,7 @@ func resourceAlicloudEcdCustomPropertyRead(d *schema.ResourceData, meta interfac
 
 	return nil
 }
-func resourceAlicloudEcdCustomPropertyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdCustomPropertyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -157,9 +157,9 @@ func resourceAlicloudEcdCustomPropertyUpdate(d *schema.ResourceData, meta interf
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudEcdCustomPropertyRead(d, meta)
+	return resourceAliCloudEcdCustomPropertyRead(d, meta)
 }
-func resourceAlicloudEcdCustomPropertyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdCustomPropertyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "RemoveProperty"
 	var response map[string]interface{}

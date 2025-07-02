@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudChatbotAgents() *schema.Resource {
+func dataSourceAliCloudChatbotAgents() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudChatbotAgentsRead,
+		Read: dataSourceAliCloudChatbotAgentsRead,
 
 		Schema: map[string]*schema.Schema{
 			"agent_name": {
@@ -80,7 +80,7 @@ func dataSourceAlicloudChatbotAgents() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudChatbotAgentsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudChatbotAgentsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "ListAgent"
 	request := make(map[string]interface{})

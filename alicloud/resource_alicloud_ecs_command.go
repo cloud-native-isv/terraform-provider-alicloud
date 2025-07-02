@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcsCommand() *schema.Resource {
+func resourceAliCloudEcsCommand() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsCommandCreate,
-		Read:   resourceAlicloudEcsCommandRead,
-		Delete: resourceAlicloudEcsCommandDelete,
+		Create: resourceAliCloudEcsCommandCreate,
+		Read:   resourceAliCloudEcsCommandRead,
+		Delete: resourceAliCloudEcsCommandDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,7 +62,7 @@ func resourceAlicloudEcsCommand() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsCommandCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsCommandCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateCommand"
@@ -107,9 +107,9 @@ func resourceAlicloudEcsCommandCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(fmt.Sprint(response["CommandId"]))
 
-	return resourceAlicloudEcsCommandRead(d, meta)
+	return resourceAliCloudEcsCommandRead(d, meta)
 }
-func resourceAlicloudEcsCommandRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsCommandRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsCommand(d.Id())
@@ -130,7 +130,7 @@ func resourceAlicloudEcsCommandRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("working_dir", object["WorkingDir"])
 	return nil
 }
-func resourceAlicloudEcsCommandDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsCommandDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteCommand"
 	var response map[string]interface{}

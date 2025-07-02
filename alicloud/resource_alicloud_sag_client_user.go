@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudSagClientUser() *schema.Resource {
+func resourceAliCloudSagClientUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSagClientUserCreate,
-		Read:   resourceAlicloudSagClientUserRead,
-		Update: resourceAlicloudSagClientUserUpdate,
-		Delete: resourceAlicloudSagClientUserDelete,
+		Create: resourceAliCloudSagClientUserCreate,
+		Read:   resourceAliCloudSagClientUserRead,
+		Update: resourceAliCloudSagClientUserUpdate,
+		Delete: resourceAliCloudSagClientUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -72,7 +72,7 @@ func resourceAlicloudSagClientUser() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSagClientUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagClientUserCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := smartag.CreateCreateSmartAccessGatewayClientUserRequest()
 
@@ -114,10 +114,10 @@ func resourceAlicloudSagClientUserCreate(d *schema.ResourceData, meta interface{
 	response, _ := raw.(*smartag.CreateSmartAccessGatewayClientUserResponse)
 	d.SetId(fmt.Sprintf("%s%s%s", d.Get("sag_id").(string), COLON_SEPARATED, response.UserName))
 
-	return resourceAlicloudSagClientUserRead(d, meta)
+	return resourceAliCloudSagClientUserRead(d, meta)
 }
 
-func resourceAlicloudSagClientUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagClientUserRead(d *schema.ResourceData, meta interface{}) error {
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeSagClientUser(d.Id())
 	if err != nil {
@@ -139,7 +139,7 @@ func resourceAlicloudSagClientUserRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudSagClientUserUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagClientUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -159,10 +159,10 @@ func resourceAlicloudSagClientUserUpdate(d *schema.ResourceData, meta interface{
 		}
 		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 	}
-	return resourceAlicloudSagClientUserRead(d, meta)
+	return resourceAliCloudSagClientUserRead(d, meta)
 }
 
-func resourceAlicloudSagClientUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagClientUserDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sagService := SagService{client}
 	request := smartag.CreateDeleteSmartAccessGatewayClientUserRequest()

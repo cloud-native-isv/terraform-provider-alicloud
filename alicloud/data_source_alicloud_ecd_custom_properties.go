@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEcdCustomProperties() *schema.Resource {
+func dataSourceAliCloudEcdCustomProperties() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdCustomPropertiesRead,
+		Read: dataSourceAliCloudEcdCustomPropertiesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -66,7 +66,7 @@ func dataSourceAlicloudEcdCustomProperties() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdCustomPropertiesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdCustomPropertiesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListProperty"

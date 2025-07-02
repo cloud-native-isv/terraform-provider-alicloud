@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDtsConsumerChannel() *schema.Resource {
+func resourceAliCloudDtsConsumerChannel() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDtsConsumerChannelCreate,
-		Read:   resourceAlicloudDtsConsumerChannelRead,
-		Update: resourceAlicloudDtsConsumerChannelUpdate,
-		Delete: resourceAlicloudDtsConsumerChannelDelete,
+		Create: resourceAliCloudDtsConsumerChannelCreate,
+		Read:   resourceAliCloudDtsConsumerChannelRead,
+		Update: resourceAliCloudDtsConsumerChannelUpdate,
+		Delete: resourceAliCloudDtsConsumerChannelDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -54,7 +54,7 @@ func resourceAlicloudDtsConsumerChannel() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDtsConsumerChannelCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsConsumerChannelCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateConsumerChannel"
@@ -85,9 +85,9 @@ func resourceAlicloudDtsConsumerChannelCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(fmt.Sprint(request["DtsInstanceId"], ":", response["ConsumerGroupID"]))
 
-	return resourceAlicloudDtsConsumerChannelRead(d, meta)
+	return resourceAliCloudDtsConsumerChannelRead(d, meta)
 }
-func resourceAlicloudDtsConsumerChannelRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsConsumerChannelRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dtsService := DtsService{client}
 	object, err := dtsService.DescribeDtsConsumerChannel(d.Id())
@@ -109,7 +109,7 @@ func resourceAlicloudDtsConsumerChannelRead(d *schema.ResourceData, meta interfa
 	d.Set("consumer_group_user_name", object["ConsumerGroupUserName"])
 	return nil
 }
-func resourceAlicloudDtsConsumerChannelUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsConsumerChannelUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -146,9 +146,9 @@ func resourceAlicloudDtsConsumerChannelUpdate(d *schema.ResourceData, meta inter
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudDtsConsumerChannelRead(d, meta)
+	return resourceAliCloudDtsConsumerChannelRead(d, meta)
 }
-func resourceAlicloudDtsConsumerChannelDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsConsumerChannelDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

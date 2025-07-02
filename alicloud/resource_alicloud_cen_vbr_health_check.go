@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCenVbrHealthCheck() *schema.Resource {
+func resourceAliCloudCenVbrHealthCheck() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenVbrHealthCheckCreate,
-		Read:   resourceAlicloudCenVbrHealthCheckRead,
-		Update: resourceAlicloudCenVbrHealthCheckUpdate,
-		Delete: resourceAlicloudCenVbrHealthCheckDelete,
+		Create: resourceAliCloudCenVbrHealthCheckCreate,
+		Read:   resourceAliCloudCenVbrHealthCheckRead,
+		Update: resourceAliCloudCenVbrHealthCheckUpdate,
+		Delete: resourceAliCloudCenVbrHealthCheckDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -69,7 +69,7 @@ func resourceAlicloudCenVbrHealthCheck() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenVbrHealthCheckCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenVbrHealthCheckCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := cbn.CreateEnableCenVbrHealthCheckRequest()
@@ -113,9 +113,9 @@ func resourceAlicloudCenVbrHealthCheckCreate(d *schema.ResourceData, meta interf
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_cen_vbr_health_check", request.GetActionName(), AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudCenVbrHealthCheckRead(d, meta)
+	return resourceAliCloudCenVbrHealthCheckRead(d, meta)
 }
-func resourceAlicloudCenVbrHealthCheckRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenVbrHealthCheckRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenVbrHealthCheck(d.Id())
@@ -140,7 +140,7 @@ func resourceAlicloudCenVbrHealthCheckRead(d *schema.ResourceData, meta interfac
 	d.Set("healthy_threshold", object.HealthyThreshold)
 	return nil
 }
-func resourceAlicloudCenVbrHealthCheckUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenVbrHealthCheckUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -191,9 +191,9 @@ func resourceAlicloudCenVbrHealthCheckUpdate(d *schema.ResourceData, meta interf
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCenVbrHealthCheckRead(d, meta)
+	return resourceAliCloudCenVbrHealthCheckRead(d, meta)
 }
-func resourceAlicloudCenVbrHealthCheckDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenVbrHealthCheckDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

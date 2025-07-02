@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCSKubernetesAddons() *schema.Resource {
+func dataSourceAliCloudCSKubernetesAddons() *schema.Resource {
 	return &schema.Resource{
 		Read: dataAlicloudCSKubernetesAddonsRead,
 

@@ -15,12 +15,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudHBaseInstance() *schema.Resource {
+func resourceAliCloudHBaseInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudHBaseInstanceCreate,
-		Read:   resourceAlicloudHBaseInstanceRead,
-		Update: resourceAlicloudHBaseInstanceUpdate,
-		Delete: resourceAlicloudHBaseInstanceDelete,
+		Create: resourceAliCloudHBaseInstanceCreate,
+		Read:   resourceAliCloudHBaseInstanceRead,
+		Update: resourceAliCloudHBaseInstanceUpdate,
+		Delete: resourceAliCloudHBaseInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -305,7 +305,7 @@ func buildHBaseCreateRequest(d *schema.ResourceData, meta interface{}) (*hbase.C
 	return request, checkParams(request)
 }
 
-func resourceAlicloudHBaseInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHBaseInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hBaseService := HBaseService{client}
 
@@ -333,10 +333,10 @@ func resourceAlicloudHBaseInstanceCreate(d *schema.ResourceData, meta interface{
 		return WrapError(err)
 	}
 
-	return resourceAlicloudHBaseInstanceUpdate(d, meta)
+	return resourceAliCloudHBaseInstanceUpdate(d, meta)
 }
 
-func resourceAlicloudHBaseInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHBaseInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hbaseService := HBaseService{client}
 
@@ -436,7 +436,7 @@ func resourceAlicloudHBaseInstanceRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudHBaseInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHBaseInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hBaseService := HBaseService{client}
 	d.Partial(true)
@@ -560,7 +560,7 @@ func resourceAlicloudHBaseInstanceUpdate(d *schema.ResourceData, meta interface{
 
 	if d.IsNewResource() {
 		d.Partial(false)
-		return resourceAlicloudHBaseInstanceRead(d, meta)
+		return resourceAliCloudHBaseInstanceRead(d, meta)
 	}
 
 	if d.HasChange("name") {
@@ -680,10 +680,10 @@ func resourceAlicloudHBaseInstanceUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	d.Partial(false)
-	return resourceAlicloudHBaseInstanceRead(d, meta)
+	return resourceAliCloudHBaseInstanceRead(d, meta)
 }
 
-func resourceAlicloudHBaseInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHBaseInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hbaseService := HBaseService{client}
 

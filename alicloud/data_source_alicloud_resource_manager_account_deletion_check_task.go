@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudResourceManagerAccountDeletionCheckTask() *schema.Resource {
+func dataSourceAliCloudResourceManagerAccountDeletionCheckTask() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudResourceManagerAccountDeletionCheckTaskRead,
+		Read: dataSourceAliCloudResourceManagerAccountDeletionCheckTaskRead,
 		Schema: map[string]*schema.Schema{
 			"account_id": {
 				Type:     schema.TypeString,
@@ -70,7 +70,7 @@ func dataSourceAlicloudResourceManagerAccountDeletionCheckTask() *schema.Resourc
 	}
 }
 
-func dataSourceAlicloudResourceManagerAccountDeletionCheckTaskRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudResourceManagerAccountDeletionCheckTaskRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resourceManagerService := ResourcemanagerService{client}
 	var response map[string]interface{}

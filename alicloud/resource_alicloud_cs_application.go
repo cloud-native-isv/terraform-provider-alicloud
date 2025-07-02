@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCSApplication() *schema.Resource {
+func resourceAliCloudCSApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCSApplicationCreate,
-		Read:   resourceAlicloudCSApplicationRead,
-		Update: resourceAlicloudCSApplicationUpdate,
-		Delete: resourceAlicloudCSApplicationDelete,
+		Create: resourceAliCloudCSApplicationCreate,
+		Read:   resourceAliCloudCSApplicationRead,
+		Update: resourceAliCloudCSApplicationUpdate,
+		Delete: resourceAliCloudCSApplicationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -130,7 +130,7 @@ func resourceAlicloudCSApplication() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCSApplicationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	csService := CsService{client}
 	clusterName := Trim(d.Get("cluster_name").(string))
@@ -168,10 +168,10 @@ func resourceAlicloudCSApplicationCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Waitting for container application %#v got an error: %#v", cs.Running, err)
 	}
 
-	return resourceAlicloudCSApplicationRead(d, meta)
+	return resourceAliCloudCSApplicationRead(d, meta)
 }
 
-func resourceAlicloudCSApplicationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	parts := strings.Split(d.Id(), COLON_SEPARATED)
 
 	client := meta.(*connectivity.AliyunClient)
@@ -233,7 +233,7 @@ func resourceAlicloudCSApplicationRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudCSApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	csService := CsService{client}
 	parts := strings.Split(d.Id(), COLON_SEPARATED)
@@ -358,10 +358,10 @@ func resourceAlicloudCSApplicationUpdate(d *schema.ResourceData, meta interface{
 
 	d.Partial(false)
 
-	return resourceAlicloudCSApplicationRead(d, meta)
+	return resourceAliCloudCSApplicationRead(d, meta)
 }
 
-func resourceAlicloudCSApplicationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSApplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	csService := CsService{client}
 	parts := strings.Split(d.Id(), COLON_SEPARATED)

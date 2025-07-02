@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRdsDBInstanceEndpoint() *schema.Resource {
+func resourceAliCloudRdsDBInstanceEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdsDBInstanceEndpointCreate,
-		Read:   resourceAlicloudRdsDBInstanceEndpointRead,
-		Update: resourceAlicloudRdsDBInstanceEndpointUpdate,
-		Delete: resourceAlicloudRdsDBInstanceEndpointDelete,
+		Create: resourceAliCloudRdsDBInstanceEndpointCreate,
+		Read:   resourceAliCloudRdsDBInstanceEndpointRead,
+		Update: resourceAliCloudRdsDBInstanceEndpointUpdate,
+		Delete: resourceAliCloudRdsDBInstanceEndpointDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -95,7 +95,7 @@ func resourceAlicloudRdsDBInstanceEndpoint() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRdsDBInstanceEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBInstanceEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	var response map[string]interface{}
@@ -159,10 +159,10 @@ func resourceAlicloudRdsDBInstanceEndpointCreate(d *schema.ResourceData, meta in
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudRdsDBInstanceEndpointUpdate(d, meta)
+	return resourceAliCloudRdsDBInstanceEndpointUpdate(d, meta)
 }
 
-func resourceAlicloudRdsDBInstanceEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBInstanceEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -293,10 +293,10 @@ func resourceAlicloudRdsDBInstanceEndpointUpdate(d *schema.ResourceData, meta in
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudRdsDBInstanceEndpointRead(d, meta)
+	return resourceAliCloudRdsDBInstanceEndpointRead(d, meta)
 }
 
-func resourceAlicloudRdsDBInstanceEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBInstanceEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	object, endpointErr := rdsService.DescribeDBInstanceEndpoints(d.Id())
@@ -323,7 +323,7 @@ func resourceAlicloudRdsDBInstanceEndpointRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceAlicloudRdsDBInstanceEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBInstanceEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudMscSubContact() *schema.Resource {
+func resourceAliCloudMscSubContact() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMscSubContactCreate,
-		Read:   resourceAlicloudMscSubContactRead,
-		Update: resourceAlicloudMscSubContactUpdate,
-		Delete: resourceAlicloudMscSubContactDelete,
+		Create: resourceAliCloudMscSubContactCreate,
+		Read:   resourceAliCloudMscSubContactRead,
+		Update: resourceAliCloudMscSubContactUpdate,
+		Delete: resourceAliCloudMscSubContactDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -47,7 +47,7 @@ func resourceAlicloudMscSubContact() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMscSubContactCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMscSubContactCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	request["ContactName"] = d.Get("contact_name")
@@ -78,9 +78,9 @@ func resourceAlicloudMscSubContactCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(formatInt(response["ContactId"])))
 
-	return resourceAlicloudMscSubContactRead(d, meta)
+	return resourceAliCloudMscSubContactRead(d, meta)
 }
-func resourceAlicloudMscSubContactRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMscSubContactRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mscOpenSubscriptionService := MscOpenSubscriptionService{client}
 	object, err := mscOpenSubscriptionService.DescribeMscSubContact(d.Id())
@@ -98,7 +98,7 @@ func resourceAlicloudMscSubContactRead(d *schema.ResourceData, meta interface{})
 	d.Set("position", convertMscSubContactPositionResponse(fmt.Sprint(object["Position"])))
 	return nil
 }
-func resourceAlicloudMscSubContactUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMscSubContactUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -139,9 +139,9 @@ func resourceAlicloudMscSubContactUpdate(d *schema.ResourceData, meta interface{
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudMscSubContactRead(d, meta)
+	return resourceAliCloudMscSubContactRead(d, meta)
 }
-func resourceAlicloudMscSubContactDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMscSubContactDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error

@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCenBandwidthPackage() *schema.Resource {
+func resourceAliCloudCenBandwidthPackage() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenBandwidthPackageCreate,
-		Read:   resourceAlicloudCenBandwidthPackageRead,
-		Update: resourceAlicloudCenBandwidthPackageUpdate,
-		Delete: resourceAlicloudCenBandwidthPackageDelete,
+		Create: resourceAliCloudCenBandwidthPackageCreate,
+		Read:   resourceAliCloudCenBandwidthPackageRead,
+		Update: resourceAliCloudCenBandwidthPackageUpdate,
+		Delete: resourceAliCloudCenBandwidthPackageDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -119,7 +119,7 @@ func resourceAlicloudCenBandwidthPackage() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenBandwidthPackageCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenBandwidthPackageCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 
@@ -203,9 +203,9 @@ func resourceAlicloudCenBandwidthPackageCreate(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCenBandwidthPackageRead(d, meta)
+	return resourceAliCloudCenBandwidthPackageRead(d, meta)
 }
-func resourceAlicloudCenBandwidthPackageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenBandwidthPackageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenBandwidthPackage(d.Id())
@@ -240,7 +240,7 @@ func resourceAlicloudCenBandwidthPackageRead(d *schema.ResourceData, meta interf
 	d.Set("status", object.Status)
 	return nil
 }
-func resourceAlicloudCenBandwidthPackageUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenBandwidthPackageUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cenService := CenService{client}
 	d.Partial(true)
@@ -311,9 +311,9 @@ func resourceAlicloudCenBandwidthPackageUpdate(d *schema.ResourceData, meta inte
 		d.SetPartial("description")
 	}
 	d.Partial(false)
-	return resourceAlicloudCenBandwidthPackageRead(d, meta)
+	return resourceAliCloudCenBandwidthPackageRead(d, meta)
 }
-func resourceAlicloudCenBandwidthPackageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenBandwidthPackageDelete(d *schema.ResourceData, meta interface{}) error {
 	if d.Get("payment_type").(string) == "PrePaid" {
 		log.Printf("[WARN] Cannot destroy resource Alicloud Resource Cen BandwidthPackage. Terraform will remove this resource from the state file, however resources may remain.")
 		return nil

@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDirectMailDomain() *schema.Resource {
+func resourceAliCloudDirectMailDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDirectMailDomainCreate,
-		Read:   resourceAlicloudDirectMailDomainRead,
-		Delete: resourceAlicloudDirectMailDomainDelete,
+		Create: resourceAliCloudDirectMailDomainCreate,
+		Read:   resourceAliCloudDirectMailDomainRead,
+		Delete: resourceAliCloudDirectMailDomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -35,7 +35,7 @@ func resourceAlicloudDirectMailDomain() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDirectMailDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDomain"
@@ -61,9 +61,9 @@ func resourceAlicloudDirectMailDomainCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(fmt.Sprint(response["DomainId"]))
 
-	return resourceAlicloudDirectMailDomainRead(d, meta)
+	return resourceAliCloudDirectMailDomainRead(d, meta)
 }
-func resourceAlicloudDirectMailDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dmService := DmService{client}
 	object, err := dmService.DescribeDirectMailDomain(d.Id())
@@ -79,7 +79,7 @@ func resourceAlicloudDirectMailDomainRead(d *schema.ResourceData, meta interface
 	d.Set("status", object["DomainStatus"])
 	return nil
 }
-func resourceAlicloudDirectMailDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailDomainDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDomain"
 	var response map[string]interface{}

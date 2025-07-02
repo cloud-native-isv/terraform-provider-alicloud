@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudClickHouseAccount() *schema.Resource {
+func resourceAliCloudClickHouseAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudClickHouseAccountCreate,
-		Read:   resourceAlicloudClickHouseAccountRead,
-		Update: resourceAlicloudClickHouseAccountUpdate,
-		Delete: resourceAlicloudClickHouseAccountDelete,
+		Create: resourceAliCloudClickHouseAccountCreate,
+		Read:   resourceAliCloudClickHouseAccountRead,
+		Update: resourceAliCloudClickHouseAccountUpdate,
+		Delete: resourceAliCloudClickHouseAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -93,7 +93,7 @@ func resourceAlicloudClickHouseAccount() *schema.Resource {
 	}
 }
 
-func resourceAlicloudClickHouseAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudClickHouseAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateAccount"
@@ -128,9 +128,9 @@ func resourceAlicloudClickHouseAccountCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(fmt.Sprint(request["DBClusterId"], ":", request["AccountName"]))
 
-	return resourceAlicloudClickHouseAccountUpdate(d, meta)
+	return resourceAliCloudClickHouseAccountUpdate(d, meta)
 }
-func resourceAlicloudClickHouseAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudClickHouseAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	clickhouseService := ClickhouseService{client}
 	object, err := clickhouseService.DescribeClickHouseAccount(d.Id())
@@ -166,7 +166,7 @@ func resourceAlicloudClickHouseAccountRead(d *schema.ResourceData, meta interfac
 
 	return nil
 }
-func resourceAlicloudClickHouseAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudClickHouseAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -306,9 +306,9 @@ func resourceAlicloudClickHouseAccountUpdate(d *schema.ResourceData, meta interf
 	}
 	d.Partial(false)
 
-	return resourceAlicloudClickHouseAccountRead(d, meta)
+	return resourceAliCloudClickHouseAccountRead(d, meta)
 }
-func resourceAlicloudClickHouseAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudClickHouseAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	clickhouseService := ClickhouseService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

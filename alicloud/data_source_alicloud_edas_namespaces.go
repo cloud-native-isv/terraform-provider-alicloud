@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEdasNamespaces() *schema.Resource {
+func dataSourceAliCloudEdasNamespaces() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEdasNamespacesRead,
+		Read: dataSourceAliCloudEdasNamespacesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -82,7 +82,7 @@ func dataSourceAlicloudEdasNamespaces() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEdasNamespacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEdasNamespacesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "/pop/v5/user_region_defs"

@@ -7,12 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudMNSTopic() *schema.Resource {
+func resourceAliCloudMNSTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMNSTopicCreate,
-		Read:   resourceAlicloudMNSTopicRead,
-		Update: resourceAlicloudMNSTopicUpdate,
-		Delete: resourceAlicloudMNSTopicDelete,
+		Create: resourceAliCloudMNSTopicCreate,
+		Read:   resourceAliCloudMNSTopicRead,
+		Update: resourceAliCloudMNSTopicUpdate,
+		Delete: resourceAliCloudMNSTopicDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -40,7 +40,7 @@ func resourceAlicloudMNSTopic() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMNSTopicCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSTopicCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	name := d.Get("name").(string)
 	maximumMessageSize := d.Get("maximum_message_size").(int)
@@ -53,10 +53,10 @@ func resourceAlicloudMNSTopicCreate(d *schema.ResourceData, meta interface{}) er
 	}
 	addDebug("CreateTopic", raw)
 	d.SetId(name)
-	return resourceAlicloudMNSTopicRead(d, meta)
+	return resourceAliCloudMNSTopicRead(d, meta)
 }
 
-func resourceAlicloudMNSTopicRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mnsService := MnsService{client}
 	object, err := mnsService.DescribeMnsTopic(d.Id())
@@ -73,7 +73,7 @@ func resourceAlicloudMNSTopicRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceAlicloudMNSTopicUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSTopicUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	attributeUpdate := false
 	maximumMessageSize := d.Get("maximum_message_size").(int)
@@ -95,10 +95,10 @@ func resourceAlicloudMNSTopicUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 		addDebug("SetTopicAttributes", raw)
 	}
-	return resourceAlicloudMNSTopicRead(d, meta)
+	return resourceAliCloudMNSTopicRead(d, meta)
 }
 
-func resourceAlicloudMNSTopicDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMNSTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mnsService := MnsService{client}
 	raw, err := client.WithMnsTopicManager(func(topicManager ali_mns.AliTopicManager) (interface{}, error) {

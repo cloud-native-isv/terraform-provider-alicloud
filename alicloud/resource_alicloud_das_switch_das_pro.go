@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudDasSwitchDasPro() *schema.Resource {
+func resourceAliCloudDasSwitchDasPro() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDasSwitchDasProCreate,
-		Read:   resourceAlicloudDasSwitchDasProRead,
-		Delete: resourceAlicloudDasSwitchDasProDelete,
+		Create: resourceAliCloudDasSwitchDasProCreate,
+		Read:   resourceAliCloudDasSwitchDasProRead,
+		Delete: resourceAliCloudDasSwitchDasProDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +49,7 @@ func resourceAlicloudDasSwitchDasPro() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDasSwitchDasProCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDasSwitchDasProCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dasService := DasService{client}
 	var response map[string]interface{}
@@ -95,10 +95,10 @@ func resourceAlicloudDasSwitchDasProCreate(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudDasSwitchDasProRead(d, meta)
+	return resourceAliCloudDasSwitchDasProRead(d, meta)
 }
 
-func resourceAlicloudDasSwitchDasProRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDasSwitchDasProRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dasService := DasService{client}
 
@@ -125,7 +125,7 @@ func resourceAlicloudDasSwitchDasProRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudDasSwitchDasProDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDasSwitchDasProDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DisableDasPro"
 	var response map[string]interface{}

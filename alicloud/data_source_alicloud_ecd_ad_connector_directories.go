@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdAdConnectorDirectories() *schema.Resource {
+func dataSourceAliCloudEcdAdConnectorDirectories() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdAdConnectorDirectoriesRead,
+		Read: dataSourceAliCloudEcdAdConnectorDirectoriesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -163,7 +163,7 @@ func dataSourceAlicloudEcdAdConnectorDirectories() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdAdConnectorDirectoriesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdAdConnectorDirectoriesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDirectories"

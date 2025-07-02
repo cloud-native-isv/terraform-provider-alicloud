@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudArmsPrometheusAlertRule() *schema.Resource {
+func resourceAliCloudArmsPrometheusAlertRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudArmsPrometheusAlertRuleCreate,
-		Read:   resourceAlicloudArmsPrometheusAlertRuleRead,
-		Update: resourceAlicloudArmsPrometheusAlertRuleUpdate,
-		Delete: resourceAlicloudArmsPrometheusAlertRuleDelete,
+		Create: resourceAliCloudArmsPrometheusAlertRuleCreate,
+		Read:   resourceAliCloudArmsPrometheusAlertRuleRead,
+		Update: resourceAliCloudArmsPrometheusAlertRuleUpdate,
+		Delete: resourceAliCloudArmsPrometheusAlertRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -112,7 +112,7 @@ func resourceAlicloudArmsPrometheusAlertRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudArmsPrometheusAlertRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsPrometheusAlertRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreatePrometheusAlertRule"
@@ -176,9 +176,9 @@ func resourceAlicloudArmsPrometheusAlertRuleCreate(d *schema.ResourceData, meta 
 	responsePrometheusAlertRule := response["PrometheusAlertRule"].(map[string]interface{})
 	d.SetId(fmt.Sprint(request["ClusterId"], ":", responsePrometheusAlertRule["AlertId"]))
 
-	return resourceAlicloudArmsPrometheusAlertRuleRead(d, meta)
+	return resourceAliCloudArmsPrometheusAlertRuleRead(d, meta)
 }
-func resourceAlicloudArmsPrometheusAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsPrometheusAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	armsService := NewArmsService(client)
 	object, err := armsService.DescribeArmsPrometheusAlertRule(d.Id())
@@ -240,7 +240,7 @@ func resourceAlicloudArmsPrometheusAlertRuleRead(d *schema.ResourceData, meta in
 	d.Set("type", object["Type"])
 	return nil
 }
-func resourceAlicloudArmsPrometheusAlertRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsPrometheusAlertRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -333,9 +333,9 @@ func resourceAlicloudArmsPrometheusAlertRuleUpdate(d *schema.ResourceData, meta 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudArmsPrometheusAlertRuleRead(d, meta)
+	return resourceAliCloudArmsPrometheusAlertRuleRead(d, meta)
 }
-func resourceAlicloudArmsPrometheusAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsPrometheusAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

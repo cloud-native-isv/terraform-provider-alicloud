@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCmsMonitorGroupInstances() *schema.Resource {
+func dataSourceAliCloudCmsMonitorGroupInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsMonitorGroupInstancesRead,
+		Read: dataSourceAliCloudCmsMonitorGroupInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -65,7 +65,7 @@ func dataSourceAlicloudCmsMonitorGroupInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsMonitorGroupInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsMonitorGroupInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeMonitorGroupInstances"

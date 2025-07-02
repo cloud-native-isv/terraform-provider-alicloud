@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVideoSurveillanceSystemGroups() *schema.Resource {
+func dataSourceAliCloudVideoSurveillanceSystemGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVideoSurveillanceSystemGroupsRead,
+		Read: dataSourceAliCloudVideoSurveillanceSystemGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -147,7 +147,7 @@ func dataSourceAlicloudVideoSurveillanceSystemGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVideoSurveillanceSystemGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVideoSurveillanceSystemGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeGroups"

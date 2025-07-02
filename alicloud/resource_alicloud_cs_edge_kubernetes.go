@@ -23,12 +23,12 @@ const (
 	EdgeProfile                           = "Edge"
 )
 
-func resourceAlicloudCSEdgeKubernetes() *schema.Resource {
+func resourceAliCloudCSEdgeKubernetes() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCSEdgeKubernetesCreate,
-		Read:   resourceAlicloudCSKubernetesRead,
-		Update: resourceAlicloudCSEdgeKubernetesUpdate,
-		Delete: resourceAlicloudCSKubernetesDelete,
+		Create: resourceAliCloudCSEdgeKubernetesCreate,
+		Read:   resourceAliCloudCSKubernetesRead,
+		Update: resourceAliCloudCSEdgeKubernetesUpdate,
+		Delete: resourceAliCloudCSKubernetesDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -447,7 +447,7 @@ func resourceAlicloudCSEdgeKubernetes() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCSEdgeKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSEdgeKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	invoker := NewInvoker()
 	csService := CsService{client}
@@ -487,10 +487,10 @@ func resourceAlicloudCSEdgeKubernetesCreate(d *schema.ResourceData, meta interfa
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudCSKubernetesRead(d, meta)
+	return resourceAliCloudCSKubernetesRead(d, meta)
 }
 
-func resourceAlicloudCSEdgeKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSEdgeKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	csService := CsService{client}
 	d.Partial(true)
@@ -685,5 +685,5 @@ func resourceAlicloudCSEdgeKubernetesUpdate(d *schema.ResourceData, meta interfa
 		return WrapError(err)
 	}
 	d.Partial(false)
-	return resourceAlicloudCSKubernetesRead(d, meta)
+	return resourceAliCloudCSKubernetesRead(d, meta)
 }

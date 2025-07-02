@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEfloVpds() *schema.Resource {
+func dataSourceAliCloudEfloVpds() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEfloVpdsRead,
+		Read: dataSourceAliCloudEfloVpdsRead,
 		Schema: map[string]*schema.Schema{
 			"resource_group_id": {
 				Optional: true,
@@ -120,7 +120,7 @@ func dataSourceAlicloudEfloVpds() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEfloVpdsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEfloVpdsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

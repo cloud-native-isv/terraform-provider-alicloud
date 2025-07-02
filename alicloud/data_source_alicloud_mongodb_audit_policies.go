@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudMongodbAuditPolicies() *schema.Resource {
+func dataSourceAliCloudMongodbAuditPolicies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMongodbAuditPoliciesRead,
+		Read: dataSourceAliCloudMongodbAuditPoliciesRead,
 		Schema: map[string]*schema.Schema{
 			"db_instance_id": {
 				Type:     schema.TypeString,
@@ -46,7 +46,7 @@ func dataSourceAlicloudMongodbAuditPolicies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMongodbAuditPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMongodbAuditPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	MongoDBService := MongoDBService{client}

@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCSManagerKubernetesClusters() *schema.Resource {
+func dataSourceAliCloudCSManagerKubernetesClusters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCSManagerKubernetesClustersRead,
+		Read: dataSourceAliCloudCSManagerKubernetesClustersRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -282,7 +282,7 @@ func dataSourceAlicloudCSManagerKubernetesClusters() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudCSManagerKubernetesClustersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCSManagerKubernetesClustersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var allClusterTypes []cs.ClusterType

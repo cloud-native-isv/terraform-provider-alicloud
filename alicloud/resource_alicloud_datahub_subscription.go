@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDatahubSubscription() *schema.Resource {
+func resourceAliCloudDatahubSubscription() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunDatahubSubscriptionCreate,
 		Read:   resourceAliyunDatahubSubscriptionRead,

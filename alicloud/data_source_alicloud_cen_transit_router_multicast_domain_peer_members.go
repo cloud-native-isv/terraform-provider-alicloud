@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCenTransitRouterMulticastDomainPeerMembers() *schema.Resource {
+func dataSourceAliCloudCenTransitRouterMulticastDomainPeerMembers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenTransitRouterMulticastDomainPeerMembersRead,
+		Read: dataSourceAliCloudCenTransitRouterMulticastDomainPeerMembersRead,
 		Schema: map[string]*schema.Schema{
 			"peer_transit_router_multicast_domains": {
 				Optional: true,
@@ -86,7 +86,7 @@ func dataSourceAlicloudCenTransitRouterMulticastDomainPeerMembers() *schema.Reso
 	}
 }
 
-func dataSourceAlicloudCenTransitRouterMulticastDomainPeerMembersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenTransitRouterMulticastDomainPeerMembersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

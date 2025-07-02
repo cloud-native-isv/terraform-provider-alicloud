@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEfloSubnets() *schema.Resource {
+func dataSourceAliCloudEfloSubnets() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEfloSubnetsRead,
+		Read: dataSourceAliCloudEfloSubnetsRead,
 		Schema: map[string]*schema.Schema{
 			"resource_group_id": {
 				Optional: true,
@@ -147,7 +147,7 @@ func dataSourceAlicloudEfloSubnets() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEfloSubnetsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEfloSubnetsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

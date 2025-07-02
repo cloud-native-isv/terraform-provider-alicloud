@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudImpAppTemplates() *schema.Resource {
+func dataSourceAliCloudImpAppTemplates() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudImpAppTemplatesRead,
+		Read: dataSourceAliCloudImpAppTemplatesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -118,7 +118,7 @@ func dataSourceAlicloudImpAppTemplates() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudImpAppTemplatesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudImpAppTemplatesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListAppTemplates"

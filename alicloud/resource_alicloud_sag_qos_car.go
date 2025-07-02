@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSagQosCar() *schema.Resource {
+func resourceAliCloudSagQosCar() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSagQosCarCreate,
-		Read:   resourceAlicloudSagQosCarRead,
-		Update: resourceAlicloudSagQosCarUpdate,
-		Delete: resourceAlicloudSagQosCarDelete,
+		Create: resourceAliCloudSagQosCarCreate,
+		Read:   resourceAliCloudSagQosCarRead,
+		Update: resourceAliCloudSagQosCarUpdate,
+		Delete: resourceAliCloudSagQosCarDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -74,7 +74,7 @@ func resourceAlicloudSagQosCar() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSagQosCarCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosCarCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := smartag.CreateCreateQosCarRequest()
 
@@ -118,10 +118,10 @@ func resourceAlicloudSagQosCarCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(fmt.Sprintf("%s%s%s", response.QosId, COLON_SEPARATED, response.QosCarId))
 
-	return resourceAlicloudSagQosCarRead(d, meta)
+	return resourceAliCloudSagQosCarRead(d, meta)
 }
 
-func resourceAlicloudSagQosCarRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosCarRead(d *schema.ResourceData, meta interface{}) error {
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeSagQosCar(d.Id())
 	if err != nil {
@@ -146,7 +146,7 @@ func resourceAlicloudSagQosCarRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceAlicloudSagQosCarUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosCarUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	update := false
@@ -204,10 +204,10 @@ func resourceAlicloudSagQosCarUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 	}
-	return resourceAlicloudSagQosCarRead(d, meta)
+	return resourceAliCloudSagQosCarRead(d, meta)
 }
 
-func resourceAlicloudSagQosCarDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSagQosCarDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sagService := SagService{client}
 	request := smartag.CreateDeleteQosCarRequest()

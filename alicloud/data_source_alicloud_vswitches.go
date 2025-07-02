@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVswitches() *schema.Resource {
+func dataSourceAliCloudVswitches() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVswitchesRead,
+		Read: dataSourceAliCloudVswitchesRead,
 		Schema: map[string]*schema.Schema{
 			"cidr_block": {
 				Type:     schema.TypeString,
@@ -164,7 +164,7 @@ func dataSourceAlicloudVswitches() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVswitchesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVswitchesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeVSwitches"

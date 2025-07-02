@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudKvstoreAccounts() *schema.Resource {
+func dataSourceAliCloudKvstoreAccounts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKvstoreAccountsRead,
+		Read: dataSourceAliCloudKvstoreAccountsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -90,7 +90,7 @@ func dataSourceAlicloudKvstoreAccounts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudKvstoreAccountsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKvstoreAccountsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := r_kvstore.CreateDescribeAccountsRequest()

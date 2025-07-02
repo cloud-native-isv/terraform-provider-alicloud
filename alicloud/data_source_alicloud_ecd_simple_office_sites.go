@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdSimpleOfficeSites() *schema.Resource {
+func dataSourceAliCloudEcdSimpleOfficeSites() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdSimpleOfficeSitesRead,
+		Read: dataSourceAliCloudEcdSimpleOfficeSitesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -182,7 +182,7 @@ func dataSourceAlicloudEcdSimpleOfficeSites() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdSimpleOfficeSitesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdSimpleOfficeSitesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeOfficeSites"

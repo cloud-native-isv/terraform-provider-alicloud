@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudVideoSurveillanceSystemGroup() *schema.Resource {
+func resourceAliCloudVideoSurveillanceSystemGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVideoSurveillanceSystemGroupCreate,
-		Read:   resourceAlicloudVideoSurveillanceSystemGroupRead,
-		Update: resourceAlicloudVideoSurveillanceSystemGroupUpdate,
-		Delete: resourceAlicloudVideoSurveillanceSystemGroupDelete,
+		Create: resourceAliCloudVideoSurveillanceSystemGroupCreate,
+		Read:   resourceAliCloudVideoSurveillanceSystemGroupRead,
+		Update: resourceAliCloudVideoSurveillanceSystemGroupUpdate,
+		Delete: resourceAliCloudVideoSurveillanceSystemGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -89,7 +89,7 @@ func resourceAlicloudVideoSurveillanceSystemGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVideoSurveillanceSystemGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVideoSurveillanceSystemGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateGroup"
@@ -121,9 +121,9 @@ func resourceAlicloudVideoSurveillanceSystemGroupCreate(d *schema.ResourceData, 
 
 	d.SetId(fmt.Sprint(response["Id"]))
 
-	return resourceAlicloudVideoSurveillanceSystemGroupUpdate(d, meta)
+	return resourceAliCloudVideoSurveillanceSystemGroupUpdate(d, meta)
 }
-func resourceAlicloudVideoSurveillanceSystemGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVideoSurveillanceSystemGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vsService := VsService{client}
 	object, err := vsService.DescribeVideoSurveillanceSystemGroup(d.Id())
@@ -151,7 +151,7 @@ func resourceAlicloudVideoSurveillanceSystemGroupRead(d *schema.ResourceData, me
 	d.Set("capture_interval", object["CaptureInterval"])
 	return nil
 }
-func resourceAlicloudVideoSurveillanceSystemGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVideoSurveillanceSystemGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -214,9 +214,9 @@ func resourceAlicloudVideoSurveillanceSystemGroupUpdate(d *schema.ResourceData, 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudVideoSurveillanceSystemGroupRead(d, meta)
+	return resourceAliCloudVideoSurveillanceSystemGroupRead(d, meta)
 }
-func resourceAlicloudVideoSurveillanceSystemGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVideoSurveillanceSystemGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error

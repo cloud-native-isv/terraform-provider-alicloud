@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAlikafkaInstances() *schema.Resource {
+func dataSourceAliCloudAlikafkaInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAlikafkaInstancesRead,
+		Read: dataSourceAliCloudAlikafkaInstancesRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -222,7 +222,7 @@ func dataSourceAlicloudAlikafkaInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAlikafkaInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAlikafkaInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "GetInstanceList"

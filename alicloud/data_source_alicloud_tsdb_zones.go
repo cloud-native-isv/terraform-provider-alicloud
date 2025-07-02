@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudTsdbZones() *schema.Resource {
+func dataSourceAliCloudTsdbZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudTsdbZonesRead,
+		Read: dataSourceAliCloudTsdbZonesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -45,7 +45,7 @@ func dataSourceAlicloudTsdbZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudTsdbZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudTsdbZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeZones"

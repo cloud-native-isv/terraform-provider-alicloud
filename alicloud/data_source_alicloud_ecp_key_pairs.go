@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcpKeyPairs() *schema.Resource {
+func dataSourceAliCloudEcpKeyPairs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcpKeyPairsRead,
+		Read: dataSourceAliCloudEcpKeyPairsRead,
 		Schema: map[string]*schema.Schema{
 			"key_pair_finger_print": {
 				Type:     schema.TypeString,
@@ -67,7 +67,7 @@ func dataSourceAlicloudEcpKeyPairs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcpKeyPairsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcpKeyPairsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListKeyPairs"

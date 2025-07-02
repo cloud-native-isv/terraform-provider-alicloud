@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudMseEngineNamespaces() *schema.Resource {
+func dataSourceAliCloudMseEngineNamespaces() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMseEngineNamespacesRead,
+		Read: dataSourceAliCloudMseEngineNamespacesRead,
 		Schema: map[string]*schema.Schema{
 			"accept_language": {
 				Type:         schema.TypeString,
@@ -86,7 +86,7 @@ func dataSourceAlicloudMseEngineNamespaces() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMseEngineNamespacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMseEngineNamespacesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListEngineNamespaces"

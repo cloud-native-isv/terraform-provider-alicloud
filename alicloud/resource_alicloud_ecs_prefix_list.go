@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcsPrefixList() *schema.Resource {
+func resourceAliCloudEcsPrefixList() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsPrefixListCreate,
-		Read:   resourceAlicloudEcsPrefixListRead,
-		Update: resourceAlicloudEcsPrefixListUpdate,
-		Delete: resourceAlicloudEcsPrefixListDelete,
+		Create: resourceAliCloudEcsPrefixListCreate,
+		Read:   resourceAliCloudEcsPrefixListRead,
+		Update: resourceAliCloudEcsPrefixListUpdate,
+		Delete: resourceAliCloudEcsPrefixListDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -62,7 +62,7 @@ func resourceAlicloudEcsPrefixList() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsPrefixListCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsPrefixListCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreatePrefixList"
@@ -106,9 +106,9 @@ func resourceAlicloudEcsPrefixListCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(response["PrefixListId"]))
 
-	return resourceAlicloudEcsPrefixListRead(d, meta)
+	return resourceAliCloudEcsPrefixListRead(d, meta)
 }
-func resourceAlicloudEcsPrefixListRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsPrefixListRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsPrefixList(d.Id())
@@ -143,7 +143,7 @@ func resourceAlicloudEcsPrefixListRead(d *schema.ResourceData, meta interface{})
 	d.Set("prefix_list_name", object["PrefixListName"])
 	return nil
 }
-func resourceAlicloudEcsPrefixListUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsPrefixListUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -204,9 +204,9 @@ func resourceAlicloudEcsPrefixListUpdate(d *schema.ResourceData, meta interface{
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudEcsPrefixListRead(d, meta)
+	return resourceAliCloudEcsPrefixListRead(d, meta)
 }
-func resourceAlicloudEcsPrefixListDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsPrefixListDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeletePrefixList"
 	var response map[string]interface{}

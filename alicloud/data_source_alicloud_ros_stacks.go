@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudRosStacks() *schema.Resource {
+func dataSourceAliCloudRosStacks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRosStacksRead,
+		Read: dataSourceAliCloudRosStacksRead,
 		Schema: map[string]*schema.Schema{
 			"parent_stack_id": {
 				Type:     schema.TypeString,
@@ -160,7 +160,7 @@ func dataSourceAlicloudRosStacks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRosStacksRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRosStacksRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListStacks"

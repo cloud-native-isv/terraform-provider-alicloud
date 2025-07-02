@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudServiceCatalogEndUserProducts() *schema.Resource {
+func dataSourceAliCloudServiceCatalogEndUserProducts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudServiceCatalogEndUserProductsRead,
+		Read: dataSourceAliCloudServiceCatalogEndUserProductsRead,
 		Schema: map[string]*schema.Schema{
 			"sort_by": {
 				Optional: true,
@@ -103,7 +103,7 @@ func dataSourceAlicloudServiceCatalogEndUserProducts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudServiceCatalogEndUserProductsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudServiceCatalogEndUserProductsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

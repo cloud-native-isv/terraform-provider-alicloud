@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAdbDbClusters() *schema.Resource {
+func dataSourceAliCloudAdbDbClusters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAdbDbClustersRead,
+		Read: dataSourceAliCloudAdbDbClustersRead,
 		Schema: map[string]*schema.Schema{
 			"description_regex": {
 				Type:         schema.TypeString,
@@ -281,7 +281,7 @@ func dataSourceAlicloudAdbDbClusters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAdbDbClustersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAdbDbClustersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDBClusters"

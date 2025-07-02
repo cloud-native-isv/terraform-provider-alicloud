@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDcdnKvNamespace() *schema.Resource {
+func resourceAliCloudDcdnKvNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDcdnKvNamespaceCreate,
-		Read:   resourceAlicloudDcdnKvNamespaceRead,
-		Delete: resourceAlicloudDcdnKvNamespaceDelete,
+		Create: resourceAliCloudDcdnKvNamespaceCreate,
+		Read:   resourceAliCloudDcdnKvNamespaceRead,
+		Delete: resourceAliCloudDcdnKvNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudDcdnKvNamespace() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDcdnKvNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnKvNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	var err error
@@ -83,10 +83,10 @@ func resourceAlicloudDcdnKvNamespaceCreate(d *schema.ResourceData, meta interfac
 		d.SetId(fmt.Sprint(v))
 	}
 
-	return resourceAlicloudDcdnKvNamespaceRead(d, meta)
+	return resourceAliCloudDcdnKvNamespaceRead(d, meta)
 }
 
-func resourceAlicloudDcdnKvNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnKvNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dcdnService := DcdnService{client}
 
@@ -106,7 +106,7 @@ func resourceAlicloudDcdnKvNamespaceRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudDcdnKvNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnKvNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	dcdnService := DcdnService{client}

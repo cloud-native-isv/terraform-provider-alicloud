@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudMseNacosConfigs() *schema.Resource {
+func dataSourceAliCloudMseNacosConfigs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMseNacosConfigsRead,
+		Read: dataSourceAliCloudMseNacosConfigsRead,
 		Schema: map[string]*schema.Schema{
 			"accept_language": {
 				Type:         schema.TypeString,
@@ -124,7 +124,7 @@ func dataSourceAlicloudMseNacosConfigs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMseNacosConfigsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMseNacosConfigsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListNacosConfigs"

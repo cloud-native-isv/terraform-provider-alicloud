@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcDhcpOptionsSets() *schema.Resource {
+func dataSourceAliCloudVpcDhcpOptionsSets() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcDhcpOptionsSetsRead,
+		Read: dataSourceAliCloudVpcDhcpOptionsSetsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -102,7 +102,7 @@ func dataSourceAlicloudVpcDhcpOptionsSets() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcDhcpOptionsSetsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcDhcpOptionsSetsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListDhcpOptionsSets"

@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudIotDeviceGroups() *schema.Resource {
+func dataSourceAliCloudIotDeviceGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudIotDeviceGroupsRead,
+		Read: dataSourceAliCloudIotDeviceGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -106,7 +106,7 @@ func dataSourceAlicloudIotDeviceGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudIotDeviceGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudIotDeviceGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "QueryDeviceGroupList"

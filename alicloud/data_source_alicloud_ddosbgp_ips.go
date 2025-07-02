@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDdosbgpIps() *schema.Resource {
+func dataSourceAliCloudDdosbgpIps() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDdosbgpIpsRead,
+		Read: dataSourceAliCloudDdosbgpIpsRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Type:     schema.TypeString,
@@ -84,7 +84,7 @@ func dataSourceAlicloudDdosbgpIps() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDdosbgpIpsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDdosbgpIpsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribePackIpList"

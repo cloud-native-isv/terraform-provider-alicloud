@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudNasProtocols() *schema.Resource {
+func dataSourceAliCloudNasProtocols() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNasProtocolsRead,
+		Read: dataSourceAliCloudNasProtocolsRead,
 
 		Schema: map[string]*schema.Schema{
 			"type": {
@@ -40,7 +40,7 @@ func dataSourceAlicloudNasProtocols() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNasProtocolsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNasProtocolsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeZones"
 	var response map[string]interface{}

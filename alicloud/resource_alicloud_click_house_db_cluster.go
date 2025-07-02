@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudClickHouseDbCluster() *schema.Resource {
+func resourceAliCloudClickHouseDbCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudClickHouseDbClusterCreate,
-		Read:   resourceAlicloudClickHouseDbClusterRead,
-		Update: resourceAlicloudClickHouseDbClusterUpdate,
-		Delete: resourceAlicloudClickHouseDbClusterDelete,
+		Create: resourceAliCloudClickHouseDbClusterCreate,
+		Read:   resourceAliCloudClickHouseDbClusterRead,
+		Update: resourceAliCloudClickHouseDbClusterUpdate,
+		Delete: resourceAliCloudClickHouseDbClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -208,7 +208,7 @@ func resourceAlicloudClickHouseDbCluster() *schema.Resource {
 	}
 }
 
-func resourceAlicloudClickHouseDbClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudClickHouseDbClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	clickhouseService := ClickhouseService{client}
 	var response map[string]interface{}
@@ -342,9 +342,9 @@ func resourceAlicloudClickHouseDbClusterCreate(d *schema.ResourceData, meta inte
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudClickHouseDbClusterUpdate(d, meta)
+	return resourceAliCloudClickHouseDbClusterUpdate(d, meta)
 }
-func resourceAlicloudClickHouseDbClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudClickHouseDbClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	clickhouseService := ClickhouseService{client}
 	object, err := clickhouseService.DescribeClickHouseDbCluster(d.Id())
@@ -441,7 +441,7 @@ func resourceAlicloudClickHouseDbClusterRead(d *schema.ResourceData, meta interf
 
 	return nil
 }
-func resourceAlicloudClickHouseDbClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudClickHouseDbClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -827,9 +827,9 @@ func resourceAlicloudClickHouseDbClusterUpdate(d *schema.ResourceData, meta inte
 	}
 
 	d.Partial(false)
-	return resourceAlicloudClickHouseDbClusterRead(d, meta)
+	return resourceAliCloudClickHouseDbClusterRead(d, meta)
 }
-func resourceAlicloudClickHouseDbClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudClickHouseDbClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDBCluster"
 	var response map[string]interface{}

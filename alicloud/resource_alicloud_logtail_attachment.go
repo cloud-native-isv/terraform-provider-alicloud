@@ -8,11 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudLogtailAttachment() *schema.Resource {
+func resourceAliCloudLogtailAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudLogtailAttachmentCreate,
-		Read:   resourceAlicloudLogtailAttachmentRead,
-		Delete: resourceAlicloudLogtailAttachmentDelete,
+		Create: resourceAliCloudLogtailAttachmentCreate,
+		Read:   resourceAliCloudLogtailAttachmentRead,
+		Delete: resourceAliCloudLogtailAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +52,7 @@ func resourceAlicloudLogtailAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudLogtailAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogtailAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -84,10 +84,10 @@ func resourceAlicloudLogtailAttachmentCreate(d *schema.ResourceData, meta interf
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudLogtailAttachmentRead(d, meta)
+	return resourceAliCloudLogtailAttachmentRead(d, meta)
 }
 
-func resourceAlicloudLogtailAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogtailAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -126,7 +126,7 @@ func resourceAlicloudLogtailAttachmentRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceAlicloudLogtailAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogtailAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {

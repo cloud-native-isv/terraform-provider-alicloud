@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudArmsRemoteWrites() *schema.Resource {
+func dataSourceAliCloudArmsRemoteWrites() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudArmsRemoteWritesRead,
+		Read: dataSourceAliCloudArmsRemoteWritesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -71,7 +71,7 @@ func dataSourceAlicloudArmsRemoteWrites() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudArmsRemoteWritesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsRemoteWritesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListPrometheusRemoteWrites"

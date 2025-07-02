@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDataWorksFolder() *schema.Resource {
+func resourceAliCloudDataWorksFolder() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDataWorksFolderCreate,
-		Read:   resourceAlicloudDataWorksFolderRead,
-		Update: resourceAlicloudDataWorksFolderUpdate,
-		Delete: resourceAlicloudDataWorksFolderDelete,
+		Create: resourceAliCloudDataWorksFolderCreate,
+		Read:   resourceAliCloudDataWorksFolderRead,
+		Update: resourceAliCloudDataWorksFolderUpdate,
+		Delete: resourceAliCloudDataWorksFolderDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -44,7 +44,7 @@ func resourceAlicloudDataWorksFolder() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDataWorksFolderCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDataWorksFolderCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateFolder"
@@ -77,9 +77,9 @@ func resourceAlicloudDataWorksFolderCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(fmt.Sprint(response["Data"], ":", request["ProjectId"]))
 
-	return resourceAlicloudDataWorksFolderRead(d, meta)
+	return resourceAliCloudDataWorksFolderRead(d, meta)
 }
-func resourceAlicloudDataWorksFolderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDataWorksFolderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dataworksPublicService := DataworksPublicService{client}
 	object, err := dataworksPublicService.DescribeDataWorksFolder(d.Id())
@@ -100,7 +100,7 @@ func resourceAlicloudDataWorksFolderRead(d *schema.ResourceData, meta interface{
 	d.Set("folder_path", object["FolderPath"].(string))
 	return nil
 }
-func resourceAlicloudDataWorksFolderUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDataWorksFolderUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -137,9 +137,9 @@ func resourceAlicloudDataWorksFolderUpdate(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
-	return resourceAlicloudDataWorksFolderRead(d, meta)
+	return resourceAliCloudDataWorksFolderRead(d, meta)
 }
-func resourceAlicloudDataWorksFolderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDataWorksFolderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

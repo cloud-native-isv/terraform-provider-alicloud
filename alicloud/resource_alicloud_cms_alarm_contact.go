@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCmsAlarmContact() *schema.Resource {
+func resourceAliCloudCmsAlarmContact() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCmsAlarmContactCreate,
-		Read:   resourceAlicloudCmsAlarmContactRead,
-		Update: resourceAlicloudCmsAlarmContactUpdate,
-		Delete: resourceAlicloudCmsAlarmContactDelete,
+		Create: resourceAliCloudCmsAlarmContactCreate,
+		Read:   resourceAliCloudCmsAlarmContactRead,
+		Update: resourceAliCloudCmsAlarmContactUpdate,
+		Delete: resourceAliCloudCmsAlarmContactDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -54,7 +54,7 @@ func resourceAlicloudCmsAlarmContact() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCmsAlarmContactCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsAlarmContactCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := cms.CreatePutContactRequest()
@@ -94,9 +94,9 @@ func resourceAlicloudCmsAlarmContactCreate(d *schema.ResourceData, meta interfac
 	}
 	d.SetId(fmt.Sprintf("%v", request.ContactName))
 
-	return resourceAlicloudCmsAlarmContactRead(d, meta)
+	return resourceAliCloudCmsAlarmContactRead(d, meta)
 }
-func resourceAlicloudCmsAlarmContactRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsAlarmContactRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cmsService := CmsService{client}
 	object, err := cmsService.DescribeCmsAlarmContact(d.Id())
@@ -118,7 +118,7 @@ func resourceAlicloudCmsAlarmContactRead(d *schema.ResourceData, meta interface{
 	d.Set("lang", object.Lang)
 	return nil
 }
-func resourceAlicloudCmsAlarmContactUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsAlarmContactUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	update := false
 	request := cms.CreatePutContactRequest()
@@ -161,9 +161,9 @@ func resourceAlicloudCmsAlarmContactUpdate(d *schema.ResourceData, meta interfac
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCmsAlarmContactRead(d, meta)
+	return resourceAliCloudCmsAlarmContactRead(d, meta)
 }
-func resourceAlicloudCmsAlarmContactDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsAlarmContactDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := cms.CreateDeleteContactRequest()
 	request.ContactName = d.Id()

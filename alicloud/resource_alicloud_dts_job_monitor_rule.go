@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDtsJobMonitorRule() *schema.Resource {
+func resourceAliCloudDtsJobMonitorRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDtsJobMonitorRuleCreate,
-		Read:   resourceAlicloudDtsJobMonitorRuleRead,
-		Update: resourceAlicloudDtsJobMonitorRuleUpdate,
-		Delete: resourceAlicloudDtsJobMonitorRuleDelete,
+		Create: resourceAliCloudDtsJobMonitorRuleCreate,
+		Read:   resourceAliCloudDtsJobMonitorRuleRead,
+		Update: resourceAliCloudDtsJobMonitorRuleUpdate,
+		Delete: resourceAliCloudDtsJobMonitorRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -50,7 +50,7 @@ func resourceAlicloudDtsJobMonitorRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDtsJobMonitorRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsJobMonitorRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateJobMonitorRule"
@@ -92,9 +92,9 @@ func resourceAlicloudDtsJobMonitorRuleCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(fmt.Sprint(request["DtsJobId"]))
 
-	return resourceAlicloudDtsJobMonitorRuleRead(d, meta)
+	return resourceAliCloudDtsJobMonitorRuleRead(d, meta)
 }
-func resourceAlicloudDtsJobMonitorRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsJobMonitorRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dtsService := DtsService{client}
 	object, err := dtsService.DescribeDtsJobMonitorRule(d.Id())
@@ -116,7 +116,7 @@ func resourceAlicloudDtsJobMonitorRuleRead(d *schema.ResourceData, meta interfac
 	}
 	return nil
 }
-func resourceAlicloudDtsJobMonitorRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsJobMonitorRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -168,9 +168,9 @@ func resourceAlicloudDtsJobMonitorRuleUpdate(d *schema.ResourceData, meta interf
 			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
 		}
 	}
-	return resourceAlicloudDtsJobMonitorRuleRead(d, meta)
+	return resourceAliCloudDtsJobMonitorRuleRead(d, meta)
 }
-func resourceAlicloudDtsJobMonitorRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudDtsJobMonitorRule. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudDtsJobMonitorRuleDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudDtsJobMonitorRule. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

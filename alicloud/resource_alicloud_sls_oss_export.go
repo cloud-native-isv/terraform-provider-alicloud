@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudLogOssExport() *schema.Resource {
+func resourceAliCloudLogOssExport() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudLogOssExportCreate,
-		Read:   resourceAlicloudLogOssExportRead,
-		Update: resourceAlicloudLogOssExportUpdate,
-		Delete: resourceAlicloudLogOssExportDelete,
+		Create: resourceAliCloudLogOssExportCreate,
+		Read:   resourceAliCloudLogOssExportRead,
+		Update: resourceAliCloudLogOssExportUpdate,
+		Delete: resourceAliCloudLogOssExportDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -151,7 +151,7 @@ func resourceAlicloudLogOssExport() *schema.Resource {
 	}
 }
 
-func resourceAlicloudLogOssExportCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogOssExportCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -179,10 +179,10 @@ func resourceAlicloudLogOssExportCreate(d *schema.ResourceData, meta interface{}
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudLogOssExportRead(d, meta)
+	return resourceAliCloudLogOssExportRead(d, meta)
 }
 
-func resourceAlicloudLogOssExportRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogOssExportRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -251,7 +251,7 @@ func resourceAlicloudLogOssExportRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAlicloudLogOssExportUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogOssExportUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -280,10 +280,10 @@ func resourceAlicloudLogOssExportUpdate(d *schema.ResourceData, meta interface{}
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudLogOssExportRead(d, meta)
+	return resourceAliCloudLogOssExportRead(d, meta)
 }
 
-func resourceAlicloudLogOssExportDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogOssExportDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudLogOssIngestion() *schema.Resource {
+func resourceAliCloudLogOssIngestion() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudLogOssIngestionCreate,
-		Read:   resourceAlicloudLogOssIngestionRead,
-		Update: resourceAlicloudLogOssIngestionUpdate,
-		Delete: resourceAlicloudLogOssIngestionDelete,
+		Create: resourceAliCloudLogOssIngestionCreate,
+		Read:   resourceAliCloudLogOssIngestionRead,
+		Update: resourceAliCloudLogOssIngestionUpdate,
+		Delete: resourceAliCloudLogOssIngestionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -156,7 +156,7 @@ func resourceAlicloudLogOssIngestion() *schema.Resource {
 	}
 }
 
-func resourceAlicloudLogOssIngestionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogOssIngestionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -258,10 +258,10 @@ func resourceAlicloudLogOssIngestionCreate(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudLogOssIngestionRead(d, meta)
+	return resourceAliCloudLogOssIngestionRead(d, meta)
 }
 
-func resourceAlicloudLogOssIngestionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogOssIngestionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -366,7 +366,7 @@ func resourceAlicloudLogOssIngestionRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudLogOssIngestionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogOssIngestionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -465,10 +465,10 @@ func resourceAlicloudLogOssIngestionUpdate(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateOSSIngestion", AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudLogOssIngestionRead(d, meta)
+	return resourceAliCloudLogOssIngestionRead(d, meta)
 }
 
-func resourceAlicloudLogOssIngestionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogOssIngestionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {

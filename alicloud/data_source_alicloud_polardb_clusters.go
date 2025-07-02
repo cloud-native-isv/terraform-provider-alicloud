@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudPolarDBClusters() *schema.Resource {
+func dataSourceAliCloudPolarDBClusters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPolarDBClustersRead,
+		Read: dataSourceAliCloudPolarDBClustersRead,
 
 		Schema: map[string]*schema.Schema{
 			"description_regex": {
@@ -186,7 +186,7 @@ func dataSourceAlicloudPolarDBClusters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudPolarDBClustersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPolarDBClustersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := polardb.CreateDescribeDBClustersRequest()

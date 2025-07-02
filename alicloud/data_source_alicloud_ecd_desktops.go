@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdDesktops() *schema.Resource {
+func dataSourceAliCloudEcdDesktops() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdDesktopsRead,
+		Read: dataSourceAliCloudEcdDesktopsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -144,7 +144,7 @@ func dataSourceAlicloudEcdDesktops() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdDesktopsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdDesktopsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDesktops"

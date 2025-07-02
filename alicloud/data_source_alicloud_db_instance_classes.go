@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDBInstanceClasses() *schema.Resource {
+func dataSourceAliCloudDBInstanceClasses() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDBInstanceClassesRead,
+		Read: dataSourceAliCloudDBInstanceClassesRead,
 
 		Schema: map[string]*schema.Schema{
 			"zone_id": {
@@ -148,7 +148,7 @@ func dataSourceAlicloudDBInstanceClasses() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDBInstanceClassesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDBInstanceClassesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Get common parameters from schema

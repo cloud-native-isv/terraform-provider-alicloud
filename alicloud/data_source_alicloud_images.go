@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudImages() *schema.Resource {
+func dataSourceAliCloudImages() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudImagesRead,
+		Read: dataSourceAliCloudImagesRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -242,8 +242,8 @@ func dataSourceAlicloudImages() *schema.Resource {
 	}
 }
 
-// dataSourceAlicloudImagesDescriptionRead performs the Alicloud Image lookup.
-func dataSourceAlicloudImagesRead(d *schema.ResourceData, meta interface{}) error {
+// dataSourceAliCloudImagesDescriptionRead performs the Alicloud Image lookup.
+func dataSourceAliCloudImagesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	nameRegex, nameRegexOk := d.GetOk("name_regex")

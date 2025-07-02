@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCmsAlarmContactGroup() *schema.Resource {
+func resourceAliCloudCmsAlarmContactGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCmsAlarmContactGroupCreate,
-		Read:   resourceAlicloudCmsAlarmContactGroupRead,
-		Update: resourceAlicloudCmsAlarmContactGroupUpdate,
-		Delete: resourceAlicloudCmsAlarmContactGroupDelete,
+		Create: resourceAliCloudCmsAlarmContactGroupCreate,
+		Read:   resourceAliCloudCmsAlarmContactGroupRead,
+		Update: resourceAliCloudCmsAlarmContactGroupUpdate,
+		Delete: resourceAliCloudCmsAlarmContactGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -48,7 +48,7 @@ func resourceAlicloudCmsAlarmContactGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCmsAlarmContactGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsAlarmContactGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := cms.CreatePutContactGroupRequest()
@@ -91,9 +91,9 @@ func resourceAlicloudCmsAlarmContactGroupCreate(d *schema.ResourceData, meta int
 	}
 	d.SetId(fmt.Sprintf("%v", request.ContactGroupName))
 
-	return resourceAlicloudCmsAlarmContactGroupRead(d, meta)
+	return resourceAliCloudCmsAlarmContactGroupRead(d, meta)
 }
-func resourceAlicloudCmsAlarmContactGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsAlarmContactGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cmsService := CmsService{client}
 	object, err := cmsService.DescribeCmsAlarmContactGroup(d.Id())
@@ -112,7 +112,7 @@ func resourceAlicloudCmsAlarmContactGroupRead(d *schema.ResourceData, meta inter
 	d.Set("enable_subscribed", object.EnableSubscribed)
 	return nil
 }
-func resourceAlicloudCmsAlarmContactGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsAlarmContactGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	update := false
 	request := cms.CreatePutContactGroupRequest()
@@ -157,9 +157,9 @@ func resourceAlicloudCmsAlarmContactGroupUpdate(d *schema.ResourceData, meta int
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCmsAlarmContactGroupRead(d, meta)
+	return resourceAliCloudCmsAlarmContactGroupRead(d, meta)
 }
-func resourceAlicloudCmsAlarmContactGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsAlarmContactGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := cms.CreateDeleteContactGroupRequest()
 	request.ContactGroupName = d.Id()

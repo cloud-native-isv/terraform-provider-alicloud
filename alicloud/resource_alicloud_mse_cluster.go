@@ -2,21 +2,22 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"log"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudMseCluster() *schema.Resource {
+func resourceAliCloudMseCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMseClusterCreate,
-		Read:   resourceAlicloudMseClusterRead,
-		Update: resourceAlicloudMseClusterUpdate,
-		Delete: resourceAlicloudMseClusterDelete,
+		Create: resourceAliCloudMseClusterCreate,
+		Read:   resourceAliCloudMseClusterRead,
+		Update: resourceAliCloudMseClusterUpdate,
+		Delete: resourceAliCloudMseClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -142,7 +143,7 @@ func resourceAlicloudMseCluster() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMseClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mseService := MseService{client}
 	var response map[string]interface{}
@@ -224,10 +225,10 @@ func resourceAlicloudMseClusterCreate(d *schema.ResourceData, meta interface{}) 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudMseClusterUpdate(d, meta)
+	return resourceAliCloudMseClusterUpdate(d, meta)
 }
 
-func resourceAlicloudMseClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mseService := MseService{client}
 	object, err := mseService.DescribeMseCluster(d.Id())
@@ -262,7 +263,7 @@ func resourceAlicloudMseClusterRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAlicloudMseClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mseService := MseService{client}
 	var response map[string]interface{}
@@ -498,10 +499,10 @@ func resourceAlicloudMseClusterUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Partial(false)
-	return resourceAlicloudMseClusterRead(d, meta)
+	return resourceAliCloudMseClusterRead(d, meta)
 }
 
-func resourceAlicloudMseClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseClusterDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("payment_type"); ok {
 		if v == "Subscription" {

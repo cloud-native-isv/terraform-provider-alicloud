@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudDnsGroups() *schema.Resource {
+func dataSourceAliCloudDnsGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDnsGroupsRead,
+		Read: dataSourceAliCloudDnsGroupsRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -56,7 +56,7 @@ func dataSourceAlicloudDnsGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDnsGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDnsGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := alidns.CreateDescribeDomainGroupsRequest()

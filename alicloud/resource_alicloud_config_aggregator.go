@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudConfigAggregator() *schema.Resource {
+func resourceAliCloudConfigAggregator() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudConfigAggregatorCreate,
-		Read:   resourceAlicloudConfigAggregatorRead,
-		Update: resourceAlicloudConfigAggregatorUpdate,
-		Delete: resourceAlicloudConfigAggregatorDelete,
+		Create: resourceAliCloudConfigAggregatorCreate,
+		Read:   resourceAliCloudConfigAggregatorRead,
+		Update: resourceAliCloudConfigAggregatorUpdate,
+		Delete: resourceAliCloudConfigAggregatorDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -69,7 +69,7 @@ func resourceAlicloudConfigAggregator() *schema.Resource {
 	}
 }
 
-func resourceAlicloudConfigAggregatorCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigAggregatorCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	configService := ConfigService{client}
 	request := make(map[string]interface{})
@@ -127,9 +127,9 @@ func resourceAlicloudConfigAggregatorCreate(d *schema.ResourceData, meta interfa
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudConfigAggregatorRead(d, meta)
+	return resourceAliCloudConfigAggregatorRead(d, meta)
 }
-func resourceAlicloudConfigAggregatorRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigAggregatorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	configService := ConfigService{client}
 	object, err := configService.DescribeConfigAggregator(d.Id())
@@ -164,7 +164,7 @@ func resourceAlicloudConfigAggregatorRead(d *schema.ResourceData, meta interface
 	d.Set("status", convertConfigAggregatorStatusResponse(formatInt(object["AggregatorStatus"])))
 	return nil
 }
-func resourceAlicloudConfigAggregatorUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigAggregatorUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	update := false
 	request := map[string]interface{}{
@@ -220,9 +220,9 @@ func resourceAlicloudConfigAggregatorUpdate(d *schema.ResourceData, meta interfa
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudConfigAggregatorRead(d, meta)
+	return resourceAliCloudConfigAggregatorRead(d, meta)
 }
-func resourceAlicloudConfigAggregatorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigAggregatorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

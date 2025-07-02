@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDtsSynchronizationJob() *schema.Resource {
+func resourceAliCloudDtsSynchronizationJob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDtsSynchronizationJobCreate,
-		Read:   resourceAlicloudDtsSynchronizationJobRead,
-		Update: resourceAlicloudDtsSynchronizationJobUpdate,
-		Delete: resourceAlicloudDtsSynchronizationJobDelete,
+		Create: resourceAliCloudDtsSynchronizationJobCreate,
+		Read:   resourceAliCloudDtsSynchronizationJobRead,
+		Update: resourceAliCloudDtsSynchronizationJobUpdate,
+		Delete: resourceAliCloudDtsSynchronizationJobDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -256,7 +256,7 @@ func resourceAlicloudDtsSynchronizationJob() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDtsSynchronizationJobCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsSynchronizationJobCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "ConfigureDtsJob"
@@ -399,9 +399,9 @@ func resourceAlicloudDtsSynchronizationJobCreate(d *schema.ResourceData, meta in
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudDtsSynchronizationJobUpdate(d, meta)
+	return resourceAliCloudDtsSynchronizationJobUpdate(d, meta)
 }
-func resourceAlicloudDtsSynchronizationJobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsSynchronizationJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dtsService := DtsService{client}
 	object, err := dtsService.DescribeDtsSynchronizationJob(d.Id())
@@ -448,7 +448,7 @@ func resourceAlicloudDtsSynchronizationJobRead(d *schema.ResourceData, meta inte
 
 	return nil
 }
-func resourceAlicloudDtsSynchronizationJobUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsSynchronizationJobUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -525,7 +525,7 @@ func resourceAlicloudDtsSynchronizationJobUpdate(d *schema.ResourceData, meta in
 		d.SetPartial("source_endpoint_user_name")
 
 		target := d.Get("status").(string)
-		err = resourceAlicloudDtsSynchronizationJobStatusFlow(d, meta, target)
+		err = resourceAliCloudDtsSynchronizationJobStatusFlow(d, meta, target)
 		if err != nil {
 			return WrapError(Error(FailedToReachTargetStatus, d.Get("status")))
 		}
@@ -565,7 +565,7 @@ func resourceAlicloudDtsSynchronizationJobUpdate(d *schema.ResourceData, meta in
 		d.SetPartial("destination_endpoint_user_name")
 
 		target := d.Get("status").(string)
-		err = resourceAlicloudDtsSynchronizationJobStatusFlow(d, meta, target)
+		err = resourceAliCloudDtsSynchronizationJobStatusFlow(d, meta, target)
 		if err != nil {
 			return WrapError(Error(FailedToReachTargetStatus, d.Get("status")))
 		}
@@ -609,7 +609,7 @@ func resourceAlicloudDtsSynchronizationJobUpdate(d *schema.ResourceData, meta in
 
 	if d.HasChange("status") {
 		target := d.Get("status").(string)
-		err := resourceAlicloudDtsSynchronizationJobStatusFlow(d, meta, target)
+		err := resourceAliCloudDtsSynchronizationJobStatusFlow(d, meta, target)
 		if err != nil {
 			return WrapError(err)
 		}
@@ -649,15 +649,15 @@ func resourceAlicloudDtsSynchronizationJobUpdate(d *schema.ResourceData, meta in
 		d.SetPartial("db_list")
 
 		target := d.Get("status").(string)
-		err = resourceAlicloudDtsSynchronizationJobStatusFlow(d, meta, target)
+		err = resourceAliCloudDtsSynchronizationJobStatusFlow(d, meta, target)
 		if err != nil {
 			return WrapError(Error(FailedToReachTargetStatus, d.Get("status")))
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudDtsSynchronizationJobRead(d, meta)
+	return resourceAliCloudDtsSynchronizationJobRead(d, meta)
 }
-func resourceAlicloudDtsSynchronizationJobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsSynchronizationJobDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDtsJob"
 	var response map[string]interface{}
@@ -692,7 +692,7 @@ func resourceAlicloudDtsSynchronizationJobDelete(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceAlicloudDtsSynchronizationJobStatusFlow(d *schema.ResourceData, meta interface{}, target string) error {
+func resourceAliCloudDtsSynchronizationJobStatusFlow(d *schema.ResourceData, meta interface{}, target string) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	dtsService := DtsService{client}

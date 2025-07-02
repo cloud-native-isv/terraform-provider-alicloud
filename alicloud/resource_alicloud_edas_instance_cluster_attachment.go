@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEdasInstanceClusterAttachment() *schema.Resource {
+func resourceAliCloudEdasInstanceClusterAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEdasInstanceClusterAttachmentCreate,
-		Read:   resourceAlicloudEdasInstanceClusterAttachmentRead,
-		Delete: resourceAlicloudEdasInstanceClusterAttachmentDelete,
+		Create: resourceAliCloudEdasInstanceClusterAttachmentCreate,
+		Read:   resourceAliCloudEdasInstanceClusterAttachmentRead,
+		Delete: resourceAliCloudEdasInstanceClusterAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -56,7 +56,7 @@ func resourceAlicloudEdasInstanceClusterAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEdasInstanceClusterAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasInstanceClusterAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -116,10 +116,10 @@ func resourceAlicloudEdasInstanceClusterAttachmentCreate(d *schema.ResourceData,
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_edas_instance_cluster_attachment", request.GetActionName(), AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudEdasInstanceClusterAttachmentRead(d, meta)
+	return resourceAliCloudEdasInstanceClusterAttachmentRead(d, meta)
 }
 
-func resourceAlicloudEdasInstanceClusterAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasInstanceClusterAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -166,7 +166,7 @@ func resourceAlicloudEdasInstanceClusterAttachmentRead(d *schema.ResourceData, m
 }
 
 // 有问题 单个实例删除失败会影响整个过程
-func resourceAlicloudEdasInstanceClusterAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasInstanceClusterAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEmrV2ClusterInstances() *schema.Resource {
+func dataSourceAliCloudEmrV2ClusterInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEmrV2ClusterInstancesRead,
+		Read: dataSourceAliCloudEmrV2ClusterInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -137,7 +137,7 @@ func dataSourceAlicloudEmrV2ClusterInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEmrV2ClusterInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEmrV2ClusterInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	emrService := EmrService{client}
 	action := "ListNodes"

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudConfigConfigurationRecorder() *schema.Resource {
+func resourceAliCloudConfigConfigurationRecorder() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudConfigConfigurationRecorderCreate,
-		Read:   resourceAlicloudConfigConfigurationRecorderRead,
-		Update: resourceAlicloudConfigConfigurationRecorderUpdate,
-		Delete: resourceAlicloudConfigConfigurationRecorderDelete,
+		Create: resourceAliCloudConfigConfigurationRecorderCreate,
+		Read:   resourceAliCloudConfigConfigurationRecorderRead,
+		Update: resourceAliCloudConfigConfigurationRecorderUpdate,
+		Delete: resourceAliCloudConfigConfigurationRecorderDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -54,7 +54,7 @@ func resourceAlicloudConfigConfigurationRecorder() *schema.Resource {
 	}
 }
 
-func resourceAlicloudConfigConfigurationRecorderCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigConfigurationRecorderCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -84,9 +84,9 @@ func resourceAlicloudConfigConfigurationRecorderCreate(d *schema.ResourceData, m
 	response = response["ConfigurationRecorder"].(map[string]interface{})
 	d.SetId(fmt.Sprint(formatInt(response["AccountId"])))
 
-	return resourceAlicloudConfigConfigurationRecorderUpdate(d, meta)
+	return resourceAliCloudConfigConfigurationRecorderUpdate(d, meta)
 }
-func resourceAlicloudConfigConfigurationRecorderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigConfigurationRecorderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	configService := ConfigService{client}
 	object, err := configService.DescribeConfigConfigurationRecorder(d.Id())
@@ -104,7 +104,7 @@ func resourceAlicloudConfigConfigurationRecorderRead(d *schema.ResourceData, met
 	d.Set("status", object["ConfigurationRecorderStatus"])
 	return nil
 }
-func resourceAlicloudConfigConfigurationRecorderUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigConfigurationRecorderUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	configService := ConfigService{client}
 	var response map[string]interface{}
@@ -138,9 +138,9 @@ func resourceAlicloudConfigConfigurationRecorderUpdate(d *schema.ResourceData, m
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudConfigConfigurationRecorderRead(d, meta)
+	return resourceAliCloudConfigConfigurationRecorderRead(d, meta)
 }
-func resourceAlicloudConfigConfigurationRecorderDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudConfigConfigurationRecorder. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudConfigConfigurationRecorderDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudConfigConfigurationRecorder. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

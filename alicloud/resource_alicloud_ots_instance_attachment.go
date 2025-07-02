@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOtsInstanceAttachment() *schema.Resource {
+func resourceAliCloudOtsInstanceAttachment() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunOtsInstanceAttachmentCreate,
 		Read:   resourceAliyunOtsInstanceAttachmentRead,

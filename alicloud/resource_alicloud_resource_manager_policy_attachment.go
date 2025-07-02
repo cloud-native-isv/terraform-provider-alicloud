@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudResourceManagerPolicyAttachment() *schema.Resource {
+func resourceAliCloudResourceManagerPolicyAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudResourceManagerPolicyAttachmentCreate,
-		Read:   resourceAlicloudResourceManagerPolicyAttachmentRead,
-		Delete: resourceAlicloudResourceManagerPolicyAttachmentDelete,
+		Create: resourceAliCloudResourceManagerPolicyAttachmentCreate,
+		Read:   resourceAliCloudResourceManagerPolicyAttachmentRead,
+		Delete: resourceAliCloudResourceManagerPolicyAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +52,7 @@ func resourceAlicloudResourceManagerPolicyAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudResourceManagerPolicyAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerPolicyAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AttachPolicy"
@@ -82,9 +82,9 @@ func resourceAlicloudResourceManagerPolicyAttachmentCreate(d *schema.ResourceDat
 
 	d.SetId(fmt.Sprint(request["PolicyName"], ":", request["PolicyType"], ":", request["PrincipalName"], ":", request["PrincipalType"], ":", request["ResourceGroupId"]))
 
-	return resourceAlicloudResourceManagerPolicyAttachmentRead(d, meta)
+	return resourceAliCloudResourceManagerPolicyAttachmentRead(d, meta)
 }
-func resourceAlicloudResourceManagerPolicyAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerPolicyAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resourcemanagerService := ResourcemanagerService{client}
 	if len(strings.Split(d.Id(), ":")) != 5 {
@@ -110,7 +110,7 @@ func resourceAlicloudResourceManagerPolicyAttachmentRead(d *schema.ResourceData,
 	d.Set("resource_group_id", parts[4])
 	return nil
 }
-func resourceAlicloudResourceManagerPolicyAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerPolicyAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	if len(strings.Split(d.Id(), ":")) != 5 {
 		d.SetId(fmt.Sprintf("%v:%v", d.Id(), d.Get("resource_group_id").(string)))

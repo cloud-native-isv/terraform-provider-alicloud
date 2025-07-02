@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudGaAcls() *schema.Resource {
+func dataSourceAliCloudGaAcls() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGaAclsRead,
+		Read: dataSourceAliCloudGaAclsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -102,7 +102,7 @@ func dataSourceAlicloudGaAcls() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGaAclsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGaAclsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListAcls"

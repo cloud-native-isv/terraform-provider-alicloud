@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudNasAutoSnapshotPolicies() *schema.Resource {
+func dataSourceAliCloudNasAutoSnapshotPolicies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNasAutoSnapshotPoliciesRead,
+		Read: dataSourceAliCloudNasAutoSnapshotPoliciesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -99,7 +99,7 @@ func dataSourceAlicloudNasAutoSnapshotPolicies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNasAutoSnapshotPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNasAutoSnapshotPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeAutoSnapshotPolicies"

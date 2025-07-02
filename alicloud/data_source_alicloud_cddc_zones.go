@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCddcZones() *schema.Resource {
+func dataSourceAliCloudCddcZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCddcZonesRead,
+		Read: dataSourceAliCloudCddcZonesRead,
 		Schema: map[string]*schema.Schema{
 			"output_file": {
 				Type:     schema.TypeString,
@@ -48,7 +48,7 @@ func dataSourceAlicloudCddcZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCddcZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCddcZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ids := make([]string, 0)
 	action := "DescribeRegions"

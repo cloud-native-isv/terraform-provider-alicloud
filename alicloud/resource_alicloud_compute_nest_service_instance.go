@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudComputeNestServiceInstance() *schema.Resource {
+func resourceAliCloudComputeNestServiceInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudComputeNestServiceInstanceCreate,
-		Read:   resourceAlicloudComputeNestServiceInstanceRead,
-		Update: resourceAlicloudComputeNestServiceInstanceUpdate,
-		Delete: resourceAlicloudComputeNestServiceInstanceDelete,
+		Create: resourceAliCloudComputeNestServiceInstanceCreate,
+		Read:   resourceAliCloudComputeNestServiceInstanceRead,
+		Update: resourceAliCloudComputeNestServiceInstanceUpdate,
+		Delete: resourceAliCloudComputeNestServiceInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -138,7 +138,7 @@ func resourceAlicloudComputeNestServiceInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudComputeNestServiceInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudComputeNestServiceInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	computeNestService := ComputeNestService{client}
 	var response map[string]interface{}
@@ -259,10 +259,10 @@ func resourceAlicloudComputeNestServiceInstanceCreate(d *schema.ResourceData, me
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudComputeNestServiceInstanceUpdate(d, meta)
+	return resourceAliCloudComputeNestServiceInstanceUpdate(d, meta)
 }
 
-func resourceAlicloudComputeNestServiceInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudComputeNestServiceInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	computeNestService := ComputeNestService{client}
 
@@ -340,7 +340,7 @@ func resourceAlicloudComputeNestServiceInstanceRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceAlicloudComputeNestServiceInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudComputeNestServiceInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	computeNestService := ComputeNestService{client}
 	var response map[string]interface{}
@@ -393,10 +393,10 @@ func resourceAlicloudComputeNestServiceInstanceUpdate(d *schema.ResourceData, me
 
 	d.Partial(false)
 
-	return resourceAlicloudComputeNestServiceInstanceRead(d, meta)
+	return resourceAliCloudComputeNestServiceInstanceRead(d, meta)
 }
 
-func resourceAlicloudComputeNestServiceInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudComputeNestServiceInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	computeNestService := ComputeNestService{client}
 	action := "DeleteServiceInstances"

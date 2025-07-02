@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCenTransitRouterMulticastDomainMembers() *schema.Resource {
+func dataSourceAliCloudCenTransitRouterMulticastDomainMembers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenTransitRouterMulticastDomainMembersRead,
+		Read: dataSourceAliCloudCenTransitRouterMulticastDomainMembersRead,
 		Schema: map[string]*schema.Schema{
 			"transit_router_multicast_domain_id": {
 				Required: true,
@@ -72,7 +72,7 @@ func dataSourceAlicloudCenTransitRouterMulticastDomainMembers() *schema.Resource
 	}
 }
 
-func dataSourceAlicloudCenTransitRouterMulticastDomainMembersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenTransitRouterMulticastDomainMembersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

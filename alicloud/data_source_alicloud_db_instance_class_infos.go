@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDBInstanceClassInfos() *schema.Resource {
+func dataSourceAliCloudDBInstanceClassInfos() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDBInstanceClassInfosRead,
+		Read: dataSourceAliCloudDBInstanceClassInfosRead,
 
 		Schema: map[string]*schema.Schema{
 			"commodity_code": {
@@ -90,7 +90,7 @@ func dataSourceAlicloudDBInstanceClassInfos() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDBInstanceClassInfosRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDBInstanceClassInfosRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "ListClasses"
 	request := map[string]interface{}{

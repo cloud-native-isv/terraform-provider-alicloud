@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDirectMailTag() *schema.Resource {
+func resourceAliCloudDirectMailTag() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDirectMailTagCreate,
-		Read:   resourceAlicloudDirectMailTagRead,
-		Update: resourceAlicloudDirectMailTagUpdate,
-		Delete: resourceAlicloudDirectMailTagDelete,
+		Create: resourceAliCloudDirectMailTagCreate,
+		Read:   resourceAliCloudDirectMailTagRead,
+		Update: resourceAliCloudDirectMailTagUpdate,
+		Delete: resourceAliCloudDirectMailTagDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -32,7 +32,7 @@ func resourceAlicloudDirectMailTag() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDirectMailTagCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailTagCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateTag"
@@ -58,9 +58,9 @@ func resourceAlicloudDirectMailTagCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(response["TagId"]))
 
-	return resourceAlicloudDirectMailTagRead(d, meta)
+	return resourceAliCloudDirectMailTagRead(d, meta)
 }
-func resourceAlicloudDirectMailTagRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailTagRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dmService := DmService{client}
 	object, err := dmService.DescribeDirectMailTag(d.Id())
@@ -75,7 +75,7 @@ func resourceAlicloudDirectMailTagRead(d *schema.ResourceData, meta interface{})
 	d.Set("tag_name", object["TagName"])
 	return nil
 }
-func resourceAlicloudDirectMailTagUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailTagUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -106,9 +106,9 @@ func resourceAlicloudDirectMailTagUpdate(d *schema.ResourceData, meta interface{
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudDirectMailTagRead(d, meta)
+	return resourceAliCloudDirectMailTagRead(d, meta)
 }
-func resourceAlicloudDirectMailTagDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDirectMailTagDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteTag"
 	var response map[string]interface{}

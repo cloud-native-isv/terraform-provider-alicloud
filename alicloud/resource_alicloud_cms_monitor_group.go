@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCmsMonitorGroup() *schema.Resource {
+func resourceAliCloudCmsMonitorGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCmsMonitorGroupCreate,
-		Read:   resourceAlicloudCmsMonitorGroupRead,
-		Update: resourceAlicloudCmsMonitorGroupUpdate,
-		Delete: resourceAlicloudCmsMonitorGroupDelete,
+		Create: resourceAliCloudCmsMonitorGroupCreate,
+		Read:   resourceAliCloudCmsMonitorGroupRead,
+		Update: resourceAliCloudCmsMonitorGroupUpdate,
+		Delete: resourceAliCloudCmsMonitorGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -45,7 +45,7 @@ func resourceAlicloudCmsMonitorGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCmsMonitorGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMonitorGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -75,7 +75,7 @@ func resourceAlicloudCmsMonitorGroupCreate(d *schema.ResourceData, meta interfac
 			return WrapErrorf(err, DefaultErrorMsg, "alicloud_cms_monitor_group", action, AlibabaCloudSdkGoERROR)
 		}
 		d.SetId(fmt.Sprint(response["Id"]))
-		return resourceAlicloudCmsMonitorGroupUpdate(d, meta)
+		return resourceAliCloudCmsMonitorGroupUpdate(d, meta)
 	}
 
 	action := "CreateMonitorGroup"
@@ -108,9 +108,9 @@ func resourceAlicloudCmsMonitorGroupCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(fmt.Sprint(formatInt(response["GroupId"])))
 
-	return resourceAlicloudCmsMonitorGroupUpdate(d, meta)
+	return resourceAliCloudCmsMonitorGroupUpdate(d, meta)
 }
-func resourceAlicloudCmsMonitorGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMonitorGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cmsService := CmsService{client}
 	object, err := cmsService.DescribeCmsMonitorGroup(d.Id())
@@ -133,7 +133,7 @@ func resourceAlicloudCmsMonitorGroupRead(d *schema.ResourceData, meta interface{
 	d.Set("tags", tagsToMap(object["Tags"].(map[string]interface{})["Tag"]))
 	return nil
 }
-func resourceAlicloudCmsMonitorGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMonitorGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cmsService := CmsService{client}
 	var err error
@@ -180,9 +180,9 @@ func resourceAlicloudCmsMonitorGroupUpdate(d *schema.ResourceData, meta interfac
 		d.SetPartial("tags")
 	}
 	d.Partial(false)
-	return resourceAlicloudCmsMonitorGroupRead(d, meta)
+	return resourceAliCloudCmsMonitorGroupRead(d, meta)
 }
-func resourceAlicloudCmsMonitorGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMonitorGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteMonitorGroup"
 	var response map[string]interface{}

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEssLifecycleHook() *schema.Resource {
+func resourceAliCloudEssLifecycleHook() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunEssLifeCycleHookCreate,
 		Read:   resourceAliyunEssLifeCycleHookRead,

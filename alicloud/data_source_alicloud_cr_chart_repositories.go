@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCrChartRepositories() *schema.Resource {
+func dataSourceAliCloudCrChartRepositories() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCrChartRepositoriesRead,
+		Read: dataSourceAliCloudCrChartRepositoriesRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Type:     schema.TypeString,
@@ -87,7 +87,7 @@ func dataSourceAlicloudCrChartRepositories() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCrChartRepositoriesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCrChartRepositoriesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListChartRepository"

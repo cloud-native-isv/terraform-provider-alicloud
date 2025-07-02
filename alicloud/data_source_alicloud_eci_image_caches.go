@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEciImageCaches() *schema.Resource {
+func dataSourceAliCloudEciImageCaches() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEciImageCachesRead,
+		Read: dataSourceAliCloudEciImageCachesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -137,7 +137,7 @@ func dataSourceAlicloudEciImageCaches() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEciImageCachesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEciImageCachesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := eci.CreateDescribeImageCachesRequest()

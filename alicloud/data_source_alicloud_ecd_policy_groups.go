@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdPolicyGroups() *schema.Resource {
+func dataSourceAliCloudEcdPolicyGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdPolicyGroupsRead,
+		Read: dataSourceAliCloudEcdPolicyGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -192,7 +192,7 @@ func dataSourceAlicloudEcdPolicyGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdPolicyGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdPolicyGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribePolicyGroups"

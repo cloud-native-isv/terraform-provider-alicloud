@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudKVStoreZones() *schema.Resource {
+func dataSourceAliCloudKVStoreZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKVStoreZoneRead,
+		Read: dataSourceAliCloudKVStoreZoneRead,
 
 		Schema: map[string]*schema.Schema{
 			"multi": {
@@ -74,7 +74,7 @@ func dataSourceAlicloudKVStoreZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudKVStoreZoneRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKVStoreZoneRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	multi := d.Get("multi").(bool)
 	var zoneIds []string

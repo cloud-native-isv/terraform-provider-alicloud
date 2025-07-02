@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAdbBackupPolicy() *schema.Resource {
+func resourceAliCloudAdbBackupPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAdbBackupPolicyCreate,
-		Read:   resourceAlicloudAdbBackupPolicyRead,
-		Update: resourceAlicloudAdbBackupPolicyUpdate,
-		Delete: resourceAlicloudAdbBackupPolicyDelete,
+		Create: resourceAliCloudAdbBackupPolicyCreate,
+		Read:   resourceAliCloudAdbBackupPolicyRead,
+		Update: resourceAliCloudAdbBackupPolicyUpdate,
+		Delete: resourceAliCloudAdbBackupPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,14 +52,14 @@ func resourceAlicloudAdbBackupPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAdbBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAdbBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(d.Get("db_cluster_id").(string))
 
-	return resourceAlicloudAdbBackupPolicyUpdate(d, meta)
+	return resourceAliCloudAdbBackupPolicyUpdate(d, meta)
 }
 
-func resourceAlicloudAdbBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAdbBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	adbService := AdbService{client}
 	object, err := adbService.DescribeAdbBackupPolicy(d.Id())
@@ -79,7 +79,7 @@ func resourceAlicloudAdbBackupPolicyRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudAdbBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAdbBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	adbService := AdbService{client}
@@ -106,10 +106,10 @@ func resourceAlicloudAdbBackupPolicyUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	return resourceAlicloudAdbBackupPolicyRead(d, meta)
+	return resourceAliCloudAdbBackupPolicyRead(d, meta)
 }
 
-func resourceAlicloudAdbBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAdbBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	// In case of a delete we are resetting to default values which is Tuesday,Friday each 1am-2am
 	client := meta.(*connectivity.AliyunClient)
 	request := adb.CreateModifyBackupPolicyRequest()

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOtsSecondaryIndex() *schema.Resource {
+func resourceAliCloudOtsSecondaryIndex() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunOtsSecondaryIndexCreate,
 		Read:   resourceAliyunOtsSecondaryIndexRead,

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcPeerConnections() *schema.Resource {
+func dataSourceAliCloudVpcPeerConnections() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcPeerConnectionsRead,
+		Read: dataSourceAliCloudVpcPeerConnectionsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -110,7 +110,7 @@ func dataSourceAlicloudVpcPeerConnections() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcPeerConnectionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcPeerConnectionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListVpcPeerConnections"

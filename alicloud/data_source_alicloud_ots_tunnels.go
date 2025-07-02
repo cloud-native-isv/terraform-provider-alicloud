@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOtsTunnels() *schema.Resource {
+func dataSourceAliCloudOtsTunnels() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOtsTunnelsRead,
+		Read: dataSourceAliCloudOtsTunnelsRead,
 
 		Schema: map[string]*schema.Schema{
 			"instance_name": {
@@ -142,7 +142,7 @@ type OtsTunnelInfo struct {
 	channels     []*otsTunnel.ChannelInfo
 }
 
-func dataSourceAlicloudOtsTunnelsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOtsTunnelsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	otsService := OtsService{client}
 	instanceName := d.Get("instance_name").(string)

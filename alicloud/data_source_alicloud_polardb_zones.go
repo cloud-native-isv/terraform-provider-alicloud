@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudPolarDBZones() *schema.Resource {
+func dataSourceAliCloudPolarDBZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudZonesPolarDBRead,
+		Read: dataSourceAliCloudZonesPolarDBRead,
 		Schema: map[string]*schema.Schema{
 			"multi": {
 				Type:     schema.TypeBool,
@@ -49,7 +49,7 @@ func dataSourceAlicloudPolarDBZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudZonesPolarDBRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudZonesPolarDBRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	multi := d.Get("multi").(bool)
 	var zoneIds []string

@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudPrivatelinkVpcEndpointServiceUsers() *schema.Resource {
+func dataSourceAliCloudPrivatelinkVpcEndpointServiceUsers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPrivatelinkVpcEndpointServiceUsersRead,
+		Read: dataSourceAliCloudPrivatelinkVpcEndpointServiceUsersRead,
 		Schema: map[string]*schema.Schema{
 			"service_id": {
 				Type:     schema.TypeString,
@@ -52,7 +52,7 @@ func dataSourceAlicloudPrivatelinkVpcEndpointServiceUsers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudPrivatelinkVpcEndpointServiceUsersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPrivatelinkVpcEndpointServiceUsersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListVpcEndpointServiceUsers"

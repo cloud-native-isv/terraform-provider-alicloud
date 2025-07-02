@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudFnfSchedule() *schema.Resource {
+func resourceAliCloudFnfSchedule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudFnfScheduleCreate,
-		Read:   resourceAlicloudFnfScheduleRead,
-		Update: resourceAlicloudFnfScheduleUpdate,
-		Delete: resourceAlicloudFnfScheduleDelete,
+		Create: resourceAliCloudFnfScheduleCreate,
+		Read:   resourceAliCloudFnfScheduleRead,
+		Update: resourceAliCloudFnfScheduleUpdate,
+		Delete: resourceAliCloudFnfScheduleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -64,7 +64,7 @@ func resourceAlicloudFnfSchedule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudFnfScheduleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFnfScheduleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateSchedule"
@@ -104,9 +104,9 @@ func resourceAlicloudFnfScheduleCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(fmt.Sprint(request["FlowName"], ":", response["ScheduleName"]))
 
-	return resourceAlicloudFnfScheduleRead(d, meta)
+	return resourceAliCloudFnfScheduleRead(d, meta)
 }
-func resourceAlicloudFnfScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFnfScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fnfService := FnfService{client}
 	object, err := fnfService.DescribeFnfSchedule(d.Id())
@@ -132,7 +132,7 @@ func resourceAlicloudFnfScheduleRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("schedule_id", object["ScheduleId"])
 	return nil
 }
-func resourceAlicloudFnfScheduleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFnfScheduleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -180,9 +180,9 @@ func resourceAlicloudFnfScheduleUpdate(d *schema.ResourceData, meta interface{})
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudFnfScheduleRead(d, meta)
+	return resourceAliCloudFnfScheduleRead(d, meta)
 }
-func resourceAlicloudFnfScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFnfScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

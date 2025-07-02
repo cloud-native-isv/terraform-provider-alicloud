@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSaeNamespaces() *schema.Resource {
+func dataSourceAliCloudSaeNamespaces() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSaeNamespacesRead,
+		Read: dataSourceAliCloudSaeNamespacesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -67,7 +67,7 @@ func dataSourceAlicloudSaeNamespaces() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSaeNamespacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSaeNamespacesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "/pop/v1/paas/namespaces"

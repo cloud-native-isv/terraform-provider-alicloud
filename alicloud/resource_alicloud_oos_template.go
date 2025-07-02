@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOosTemplate() *schema.Resource {
+func resourceAliCloudOosTemplate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOosTemplateCreate,
-		Read:   resourceAlicloudOosTemplateRead,
-		Update: resourceAlicloudOosTemplateUpdate,
-		Delete: resourceAlicloudOosTemplateDelete,
+		Create: resourceAliCloudOosTemplateCreate,
+		Read:   resourceAliCloudOosTemplateRead,
+		Update: resourceAliCloudOosTemplateUpdate,
+		Delete: resourceAliCloudOosTemplateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -92,7 +92,7 @@ func resourceAlicloudOosTemplate() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOosTemplateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosTemplateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateTemplate"
@@ -134,10 +134,10 @@ func resourceAlicloudOosTemplateCreate(d *schema.ResourceData, meta interface{})
 	responseTemplate := response["Template"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseTemplate["TemplateName"]))
 
-	return resourceAlicloudOosTemplateRead(d, meta)
+	return resourceAliCloudOosTemplateRead(d, meta)
 }
 
-func resourceAlicloudOosTemplateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosTemplateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	oosService := OosService{client}
 	object, err := oosService.DescribeOosTemplate(d.Id())
@@ -169,7 +169,7 @@ func resourceAlicloudOosTemplateRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAlicloudOosTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -217,10 +217,10 @@ func resourceAlicloudOosTemplateUpdate(d *schema.ResourceData, meta interface{})
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudOosTemplateRead(d, meta)
+	return resourceAliCloudOosTemplateRead(d, meta)
 }
 
-func resourceAlicloudOosTemplateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosTemplateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteTemplate"
 	var response map[string]interface{}

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSnatEntries() *schema.Resource {
+func dataSourceAliCloudSnatEntries() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSnatEntriesRead,
+		Read: dataSourceAliCloudSnatEntriesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -107,7 +107,7 @@ func dataSourceAlicloudSnatEntries() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSnatEntriesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSnatEntriesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeSnatTableEntries"

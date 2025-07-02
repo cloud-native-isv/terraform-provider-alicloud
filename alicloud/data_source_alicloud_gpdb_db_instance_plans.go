@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudGpdbDbInstancePlans() *schema.Resource {
+func dataSourceAliCloudGpdbDbInstancePlans() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGpdbDbInstancePlansRead,
+		Read: dataSourceAliCloudGpdbDbInstancePlansRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -205,7 +205,7 @@ func dataSourceAlicloudGpdbDbInstancePlans() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGpdbDbInstancePlansRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGpdbDbInstancePlansRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDBInstancePlans"

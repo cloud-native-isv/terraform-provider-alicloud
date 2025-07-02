@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCloudauthFaceConfigs() *schema.Resource {
+func dataSourceAliCloudCloudauthFaceConfigs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudauthFaceConfigsRead,
+		Read: dataSourceAliCloudCloudauthFaceConfigsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -63,7 +63,7 @@ func dataSourceAlicloudCloudauthFaceConfigs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudauthFaceConfigsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudauthFaceConfigsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeFaceConfig"

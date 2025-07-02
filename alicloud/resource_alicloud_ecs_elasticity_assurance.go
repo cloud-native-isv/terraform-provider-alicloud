@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcsElasticityAssurance() *schema.Resource {
+func resourceAliCloudEcsElasticityAssurance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsElasticityAssuranceCreate,
-		Read:   resourceAlicloudEcsElasticityAssuranceRead,
-		Update: resourceAlicloudEcsElasticityAssuranceUpdate,
-		Delete: resourceAlicloudEcsElasticityAssuranceDelete,
+		Create: resourceAliCloudEcsElasticityAssuranceCreate,
+		Read:   resourceAliCloudEcsElasticityAssuranceRead,
+		Update: resourceAliCloudEcsElasticityAssuranceUpdate,
+		Delete: resourceAliCloudEcsElasticityAssuranceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -127,7 +127,7 @@ func resourceAlicloudEcsElasticityAssurance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsElasticityAssuranceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsElasticityAssuranceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	request := map[string]interface{}{
@@ -207,10 +207,10 @@ func resourceAlicloudEcsElasticityAssuranceCreate(d *schema.ResourceData, meta i
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudEcsElasticityAssuranceRead(d, meta)
+	return resourceAliCloudEcsElasticityAssuranceRead(d, meta)
 }
 
-func resourceAlicloudEcsElasticityAssuranceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsElasticityAssuranceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 
@@ -252,7 +252,7 @@ func resourceAlicloudEcsElasticityAssuranceRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceAlicloudEcsElasticityAssuranceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsElasticityAssuranceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	ecsService := EcsService{client}
@@ -304,9 +304,9 @@ func resourceAlicloudEcsElasticityAssuranceUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	return resourceAlicloudEcsElasticityAssuranceRead(d, meta)
+	return resourceAliCloudEcsElasticityAssuranceRead(d, meta)
 }
 
-func resourceAlicloudEcsElasticityAssuranceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsElasticityAssuranceDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }

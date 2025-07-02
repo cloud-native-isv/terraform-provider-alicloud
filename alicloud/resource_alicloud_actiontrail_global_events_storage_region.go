@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudActiontrailGlobalEventsStorageRegion() *schema.Resource {
+func resourceAliCloudActiontrailGlobalEventsStorageRegion() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudActiontrailGlobalEventsStorageRegionCreate,
-		Read:   resourceAlicloudActiontrailGlobalEventsStorageRegionRead,
-		Update: resourceAlicloudActiontrailGlobalEventsStorageRegionUpdate,
-		Delete: resourceAlicloudActiontrailGlobalEventsStorageRegionDelete,
+		Create: resourceAliCloudActiontrailGlobalEventsStorageRegionCreate,
+		Read:   resourceAliCloudActiontrailGlobalEventsStorageRegionRead,
+		Update: resourceAliCloudActiontrailGlobalEventsStorageRegionUpdate,
+		Delete: resourceAliCloudActiontrailGlobalEventsStorageRegionDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Update: schema.DefaultTimeout(1 * time.Minute),
 		},
@@ -29,14 +29,14 @@ func resourceAlicloudActiontrailGlobalEventsStorageRegion() *schema.Resource {
 	}
 }
 
-func resourceAlicloudActiontrailGlobalEventsStorageRegionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudActiontrailGlobalEventsStorageRegionCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(fmt.Sprint("GlobalEventsStorageRegion"))
 
-	return resourceAlicloudActiontrailGlobalEventsStorageRegionUpdate(d, meta)
+	return resourceAliCloudActiontrailGlobalEventsStorageRegionUpdate(d, meta)
 }
 
-func resourceAlicloudActiontrailGlobalEventsStorageRegionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudActiontrailGlobalEventsStorageRegionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	actiontrailService := ActiontrailService{client}
 
@@ -54,7 +54,7 @@ func resourceAlicloudActiontrailGlobalEventsStorageRegionRead(d *schema.Resource
 	return nil
 }
 
-func resourceAlicloudActiontrailGlobalEventsStorageRegionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudActiontrailGlobalEventsStorageRegionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -87,10 +87,10 @@ func resourceAlicloudActiontrailGlobalEventsStorageRegionUpdate(d *schema.Resour
 		}
 	}
 
-	return resourceAlicloudActiontrailGlobalEventsStorageRegionRead(d, meta)
+	return resourceAliCloudActiontrailGlobalEventsStorageRegionRead(d, meta)
 }
 
-func resourceAlicloudActiontrailGlobalEventsStorageRegionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudActiontrailGlobalEventsStorageRegionDelete(d *schema.ResourceData, meta interface{}) error {
 
 	return nil
 }

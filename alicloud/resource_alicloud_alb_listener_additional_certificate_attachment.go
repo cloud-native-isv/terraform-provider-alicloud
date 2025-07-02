@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAlbListenerAdditionalCertificateAttachment() *schema.Resource {
+func resourceAliCloudAlbListenerAdditionalCertificateAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlbListenerAdditionalCertificateAttachmentCreate,
-		Read:   resourceAlicloudAlbListenerAdditionalCertificateAttachmentRead,
-		Delete: resourceAlicloudAlbListenerAdditionalCertificateAttachmentDelete,
+		Create: resourceAliCloudAlbListenerAdditionalCertificateAttachmentCreate,
+		Read:   resourceAliCloudAlbListenerAdditionalCertificateAttachmentRead,
+		Delete: resourceAliCloudAlbListenerAdditionalCertificateAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -45,7 +45,7 @@ func resourceAlicloudAlbListenerAdditionalCertificateAttachment() *schema.Resour
 	}
 }
 
-func resourceAlicloudAlbListenerAdditionalCertificateAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbListenerAdditionalCertificateAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AssociateAdditionalCertificatesWithListener"
@@ -80,9 +80,9 @@ func resourceAlicloudAlbListenerAdditionalCertificateAttachmentCreate(d *schema.
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudAlbListenerAdditionalCertificateAttachmentRead(d, meta)
+	return resourceAliCloudAlbListenerAdditionalCertificateAttachmentRead(d, meta)
 }
-func resourceAlicloudAlbListenerAdditionalCertificateAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbListenerAdditionalCertificateAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	albService := AlbService{client}
 	object, err := albService.DescribeAlbListenerAdditionalCertificateAttachment(d.Id())
@@ -105,7 +105,7 @@ func resourceAlicloudAlbListenerAdditionalCertificateAttachmentRead(d *schema.Re
 	d.Set("certificate_type", object["CertificateType"])
 	return nil
 }
-func resourceAlicloudAlbListenerAdditionalCertificateAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbListenerAdditionalCertificateAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

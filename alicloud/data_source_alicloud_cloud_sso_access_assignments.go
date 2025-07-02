@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudSsoAccessAssignments() *schema.Resource {
+func dataSourceAliCloudCloudSsoAccessAssignments() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudSsoAccessAssignmentsRead,
+		Read: dataSourceAliCloudCloudSsoAccessAssignmentsRead,
 		Schema: map[string]*schema.Schema{
 			"access_configuration_id": {
 				Type:     schema.TypeString,
@@ -109,7 +109,7 @@ func dataSourceAlicloudCloudSsoAccessAssignments() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudSsoAccessAssignmentsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudSsoAccessAssignmentsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListAccessAssignments"

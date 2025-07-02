@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudAdbResourceGroups() *schema.Resource {
+func dataSourceAliCloudAdbResourceGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAdbResourceGroupsRead,
+		Read: dataSourceAliCloudAdbResourceGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"db_cluster_id": {
 				Required: true,
@@ -76,7 +76,7 @@ func dataSourceAlicloudAdbResourceGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAdbResourceGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAdbResourceGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

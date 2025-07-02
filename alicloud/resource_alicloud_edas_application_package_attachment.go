@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEdasApplicationPackageAttachment() *schema.Resource {
+func resourceAliCloudEdasApplicationPackageAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEdasApplicationPackageAttachmentCreate,
-		Read:   resourceAlicloudEdasApplicationPackageAttachmentRead,
-		Delete: resourceAlicloudEdasApplicationPackageAttachmentDelete,
+		Create: resourceAliCloudEdasApplicationPackageAttachmentCreate,
+		Read:   resourceAliCloudEdasApplicationPackageAttachmentRead,
+		Delete: resourceAliCloudEdasApplicationPackageAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -50,7 +50,7 @@ func resourceAlicloudEdasApplicationPackageAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEdasApplicationPackageAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasApplicationPackageAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -99,10 +99,10 @@ func resourceAlicloudEdasApplicationPackageAttachmentCreate(d *schema.ResourceDa
 	}
 	d.SetId(appId + ":" + packageVersion)
 
-	return resourceAlicloudEdasApplicationPackageAttachmentRead(d, meta)
+	return resourceAliCloudEdasApplicationPackageAttachmentRead(d, meta)
 }
 
-func resourceAlicloudEdasApplicationPackageAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasApplicationPackageAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -136,7 +136,7 @@ func resourceAlicloudEdasApplicationPackageAttachmentRead(d *schema.ResourceData
 	return nil
 }
 
-func resourceAlicloudEdasApplicationPackageAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasApplicationPackageAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 

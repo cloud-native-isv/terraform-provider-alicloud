@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudFirewallVpcFirewalls() *schema.Resource {
+func dataSourceAliCloudCloudFirewallVpcFirewalls() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudFirewallVpcFirewallsRead,
+		Read: dataSourceAliCloudCloudFirewallVpcFirewallsRead,
 		Schema: map[string]*schema.Schema{
 			"lang": {
 				Optional: true,
@@ -236,7 +236,7 @@ func dataSourceAlicloudCloudFirewallVpcFirewalls() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudFirewallVpcFirewallsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudFirewallVpcFirewallsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

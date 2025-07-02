@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudResourceManagerHandshake() *schema.Resource {
+func resourceAliCloudResourceManagerHandshake() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudResourceManagerHandshakeCreate,
-		Read:   resourceAlicloudResourceManagerHandshakeRead,
-		Delete: resourceAlicloudResourceManagerHandshakeDelete,
+		Create: resourceAliCloudResourceManagerHandshakeCreate,
+		Read:   resourceAliCloudResourceManagerHandshakeRead,
+		Delete: resourceAliCloudResourceManagerHandshakeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -64,7 +64,7 @@ func resourceAlicloudResourceManagerHandshake() *schema.Resource {
 	}
 }
 
-func resourceAlicloudResourceManagerHandshakeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerHandshakeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "InviteAccountToResourceDirectory"
@@ -95,9 +95,9 @@ func resourceAlicloudResourceManagerHandshakeCreate(d *schema.ResourceData, meta
 	responseHandshake := response["Handshake"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseHandshake["HandshakeId"]))
 
-	return resourceAlicloudResourceManagerHandshakeRead(d, meta)
+	return resourceAliCloudResourceManagerHandshakeRead(d, meta)
 }
-func resourceAlicloudResourceManagerHandshakeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerHandshakeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resourcemanagerService := ResourcemanagerService{client}
 	object, err := resourcemanagerService.DescribeResourceManagerHandshake(d.Id())
@@ -120,7 +120,7 @@ func resourceAlicloudResourceManagerHandshakeRead(d *schema.ResourceData, meta i
 	d.Set("target_type", object["TargetType"])
 	return nil
 }
-func resourceAlicloudResourceManagerHandshakeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerHandshakeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "CancelHandshake"
 	var response map[string]interface{}

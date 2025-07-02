@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudLogStoreIndex() *schema.Resource {
+func resourceAliCloudLogStoreIndex() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudLogStoreIndexCreate,
-		Read:   resourceAlicloudLogStoreIndexRead,
-		Update: resourceAlicloudLogStoreIndexUpdate,
-		Delete: resourceAlicloudLogStoreIndexDelete,
+		Create: resourceAliCloudLogStoreIndexCreate,
+		Read:   resourceAliCloudLogStoreIndexRead,
+		Update: resourceAliCloudLogStoreIndexUpdate,
+		Delete: resourceAliCloudLogStoreIndexDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -132,7 +132,7 @@ func resourceAlicloudLogStoreIndex() *schema.Resource {
 	}
 }
 
-func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -188,7 +188,7 @@ func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 		// Auto-import existing index instead of failing
 		log.Printf("[INFO] Index already exists in logstore %s, importing existing resource", logstore)
 		d.SetId(id)
-		return resourceAlicloudLogStoreIndexRead(d, meta)
+		return resourceAliCloudLogStoreIndexRead(d, meta)
 	}
 
 	var index aliyunSlsAPI.LogStoreIndex
@@ -225,10 +225,10 @@ func resourceAlicloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudLogStoreIndexRead(d, meta)
+	return resourceAliCloudLogStoreIndexRead(d, meta)
 }
 
-func resourceAlicloudLogStoreIndexRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogStoreIndexRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -375,7 +375,7 @@ func resourceAlicloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -494,10 +494,10 @@ func resourceAlicloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	return resourceAlicloudLogStoreIndexRead(d, meta)
+	return resourceAliCloudLogStoreIndexRead(d, meta)
 }
 
-func resourceAlicloudLogStoreIndexDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogStoreIndexDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {

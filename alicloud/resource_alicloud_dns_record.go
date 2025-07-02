@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDnsRecord() *schema.Resource {
+func resourceAliCloudDnsRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDnsRecordCreate,
-		Read:   resourceAlicloudDnsRecordRead,
-		Update: resourceAlicloudDnsRecordUpdate,
-		Delete: resourceAlicloudDnsRecordDelete,
+		Create: resourceAliCloudDnsRecordCreate,
+		Read:   resourceAliCloudDnsRecordRead,
+		Update: resourceAliCloudDnsRecordUpdate,
+		Delete: resourceAliCloudDnsRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -70,7 +70,7 @@ func resourceAlicloudDnsRecord() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDnsRecordCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDnsRecordCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := alidns.CreateAddDomainRecordRequest()
 	request.RegionId = client.RegionId
@@ -112,10 +112,10 @@ func resourceAlicloudDnsRecordCreate(d *schema.ResourceData, meta interface{}) e
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_dns_record", request.GetActionName(), AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudDnsRecordRead(d, meta)
+	return resourceAliCloudDnsRecordRead(d, meta)
 }
 
-func resourceAlicloudDnsRecordUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDnsRecordUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := alidns.CreateUpdateDomainRecordRequest()
@@ -147,10 +147,10 @@ func resourceAlicloudDnsRecordUpdate(d *schema.ResourceData, meta interface{}) e
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudDnsRecordRead(d, meta)
+	return resourceAliCloudDnsRecordRead(d, meta)
 }
 
-func resourceAlicloudDnsRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDnsRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	dnsService := &DnsService{client: client}
@@ -175,7 +175,7 @@ func resourceAlicloudDnsRecordRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceAlicloudDnsRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDnsRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dnsService := &DnsService{client: client}
 	request := alidns.CreateDeleteDomainRecordRequest()

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudBrainIndustrialPidLoops() *schema.Resource {
+func dataSourceAliCloudBrainIndustrialPidLoops() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudBrainIndustrialPidLoopsRead,
+		Read: dataSourceAliCloudBrainIndustrialPidLoopsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -109,7 +109,7 @@ func dataSourceAlicloudBrainIndustrialPidLoops() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudBrainIndustrialPidLoopsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudBrainIndustrialPidLoopsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListPidLoops"

@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCenBandwidthLimits() *schema.Resource {
+func dataSourceAliCloudCenBandwidthLimits() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenBandwidthLimitsRead,
+		Read: dataSourceAliCloudCenBandwidthLimitsRead,
 
 		Schema: map[string]*schema.Schema{
 			"instance_ids": {
@@ -59,7 +59,7 @@ func dataSourceAlicloudCenBandwidthLimits() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenBandwidthLimitsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenBandwidthLimitsRead(d *schema.ResourceData, meta interface{}) error {
 	var allCenBwLimits []cbn.CenInterRegionBandwidthLimit
 
 	instanceIds := make([]string, 0)

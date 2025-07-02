@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudSddpConfigs() *schema.Resource {
+func dataSourceAliCloudSddpConfigs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSddpConfigsRead,
+		Read: dataSourceAliCloudSddpConfigsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -69,7 +69,7 @@ func dataSourceAlicloudSddpConfigs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSddpConfigsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSddpConfigsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeConfigs"
 	request := make(map[string]interface{})

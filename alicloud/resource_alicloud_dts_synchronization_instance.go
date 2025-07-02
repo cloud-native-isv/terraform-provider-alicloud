@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudDtsSynchronizationInstance() *schema.Resource {
+func resourceAliCloudDtsSynchronizationInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDtsSynchronizationInstanceCreate,
-		Read:   resourceAlicloudDtsSynchronizationInstanceRead,
-		Update: resourceAlicloudDtsSynchronizationInstanceUpdate,
-		Delete: resourceAlicloudDtsSynchronizationInstanceDelete,
+		Create: resourceAliCloudDtsSynchronizationInstanceCreate,
+		Read:   resourceAliCloudDtsSynchronizationInstanceRead,
+		Update: resourceAliCloudDtsSynchronizationInstanceUpdate,
+		Delete: resourceAliCloudDtsSynchronizationInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -101,7 +101,7 @@ func resourceAlicloudDtsSynchronizationInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDtsSynchronizationInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsSynchronizationInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDtsInstance"
@@ -174,9 +174,9 @@ func resourceAlicloudDtsSynchronizationInstanceCreate(d *schema.ResourceData, me
 
 	d.SetId(fmt.Sprint(response["InstanceId"]))
 
-	return resourceAlicloudDtsSynchronizationInstanceRead(d, meta)
+	return resourceAliCloudDtsSynchronizationInstanceRead(d, meta)
 }
-func resourceAlicloudDtsSynchronizationInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsSynchronizationInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dtsService := DtsService{client}
 	object, err := dtsService.DescribeDtsSynchronizationInstance(d.Id())
@@ -201,11 +201,11 @@ func resourceAlicloudDtsSynchronizationInstanceRead(d *schema.ResourceData, meta
 	}
 	return nil
 }
-func resourceAlicloudDtsSynchronizationInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsSynchronizationInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudDtsSynchronizationInstanceRead(d, meta)
+	return resourceAliCloudDtsSynchronizationInstanceRead(d, meta)
 }
-func resourceAlicloudDtsSynchronizationInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDtsSynchronizationInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("payment_type"); ok {
 		if v.(string) == "Subscription" {

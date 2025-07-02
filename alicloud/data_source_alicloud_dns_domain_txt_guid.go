@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDnsDomainTxtGuid() *schema.Resource {
+func dataSourceAliCloudDnsDomainTxtGuid() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDnsDomainTxtGuidRead,
+		Read: dataSourceAliCloudDnsDomainTxtGuidRead,
 
 		Schema: map[string]*schema.Schema{
 			"domain_name": {
@@ -42,7 +42,7 @@ func dataSourceAlicloudDnsDomainTxtGuid() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDnsDomainTxtGuidRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDnsDomainTxtGuidRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := alidns.CreateGetTxtRecordForVerifyRequest()

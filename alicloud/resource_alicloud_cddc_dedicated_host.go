@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCddcDedicatedHost() *schema.Resource {
+func resourceAliCloudCddcDedicatedHost() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCddcDedicatedHostCreate,
-		Read:   resourceAlicloudCddcDedicatedHostRead,
-		Update: resourceAlicloudCddcDedicatedHostUpdate,
-		Delete: resourceAlicloudCddcDedicatedHostDelete,
+		Create: resourceAliCloudCddcDedicatedHostCreate,
+		Read:   resourceAliCloudCddcDedicatedHostRead,
+		Update: resourceAliCloudCddcDedicatedHostUpdate,
+		Delete: resourceAliCloudCddcDedicatedHostDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -100,7 +100,7 @@ func resourceAlicloudCddcDedicatedHost() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCddcDedicatedHostCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDedicatedHost"
@@ -157,9 +157,9 @@ func resourceAlicloudCddcDedicatedHostCreate(d *schema.ResourceData, meta interf
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCddcDedicatedHostUpdate(d, meta)
+	return resourceAliCloudCddcDedicatedHostUpdate(d, meta)
 }
-func resourceAlicloudCddcDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cddcService := CddcService{client}
 	object, err := cddcService.DescribeCddcDedicatedHost(d.Id())
@@ -186,7 +186,7 @@ func resourceAlicloudCddcDedicatedHostRead(d *schema.ResourceData, meta interfac
 	d.Set("tags", tagsToMap(listTagResourcesObject))
 	return nil
 }
-func resourceAlicloudCddcDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cddcService := CddcService{client}
 	var err error
@@ -268,9 +268,9 @@ func resourceAlicloudCddcDedicatedHostUpdate(d *schema.ResourceData, meta interf
 		d.SetPartial("host_class")
 	}
 	d.Partial(false)
-	return resourceAlicloudCddcDedicatedHostRead(d, meta)
+	return resourceAliCloudCddcDedicatedHostRead(d, meta)
 }
-func resourceAlicloudCddcDedicatedHostDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[WARN] Cannot destroy resource AlicloudResourceCddcDedicatedHost. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

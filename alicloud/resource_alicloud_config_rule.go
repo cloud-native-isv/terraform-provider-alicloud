@@ -14,10 +14,10 @@ import (
 
 func resourceAliCloudConfigRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudConfigRuleCreate,
-		Read:   resourceAlicloudConfigRuleRead,
-		Update: resourceAlicloudConfigRuleUpdate,
-		Delete: resourceAlicloudConfigRuleDelete,
+		Create: resourceAliCloudConfigRuleCreate,
+		Read:   resourceAliCloudConfigRuleRead,
+		Update: resourceAliCloudConfigRuleUpdate,
+		Delete: resourceAliCloudConfigRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -177,7 +177,7 @@ func resourceAliCloudConfigRule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudConfigRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "CreateConfigRule"
@@ -265,10 +265,10 @@ func resourceAlicloudConfigRuleCreate(d *schema.ResourceData, meta interface{}) 
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudConfigRuleUpdate(d, meta)
+	return resourceAliCloudConfigRuleUpdate(d, meta)
 }
 
-func resourceAlicloudConfigRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	configServiceV2 := ConfigServiceV2{client}
 
@@ -343,7 +343,7 @@ func resourceAlicloudConfigRuleRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAlicloudConfigRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var request map[string]interface{}
 	var response map[string]interface{}
@@ -538,10 +538,10 @@ func resourceAlicloudConfigRuleUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Partial(false)
-	return resourceAlicloudConfigRuleRead(d, meta)
+	return resourceAliCloudConfigRuleRead(d, meta)
 }
 
-func resourceAlicloudConfigRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigRuleDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 

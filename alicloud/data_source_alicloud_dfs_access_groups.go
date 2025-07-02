@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDfsAccessGroups() *schema.Resource {
+func dataSourceAliCloudDfsAccessGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDfsAccessGroupsRead,
+		Read: dataSourceAliCloudDfsAccessGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -104,7 +104,7 @@ func dataSourceAlicloudDfsAccessGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDfsAccessGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDfsAccessGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListAccessGroups"

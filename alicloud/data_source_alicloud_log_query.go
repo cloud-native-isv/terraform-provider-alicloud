@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudLogQuery() *schema.Resource {
+func dataSourceAliCloudLogQuery() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudLogQueryRead,
+		Read: dataSourceAliCloudLogQueryRead,
 		Schema: map[string]*schema.Schema{
 			"project_name": {
 				Type:     schema.TypeString,
@@ -45,9 +45,9 @@ func dataSourceAlicloudLogQuery() *schema.Resource {
 			"line_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Default:      10,
-				ValidateFunc: validation.IntBetween(1, 100),
-				Description:  "Maximum number of log lines to return. Range: 1-100.",
+				Default:      100,
+				ValidateFunc: validation.IntBetween(1, 10000),
+				Description:  "Maximum number of log lines to return. Range: 1-10000.",
 			},
 			"output_file": {
 				Type:        schema.TypeString,
@@ -119,7 +119,7 @@ func dataSourceAlicloudLogQuery() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudLogQueryRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudLogQueryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService := SlsService{client: client}
 

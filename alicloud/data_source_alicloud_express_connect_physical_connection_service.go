@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudExpressConnectPhysicalConnectionService() *schema.Resource {
+func dataSourceAliCloudExpressConnectPhysicalConnectionService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPhysicalConnectionServiceRead,
+		Read: dataSourceAliCloudPhysicalConnectionServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -28,7 +28,7 @@ func dataSourceAlicloudExpressConnectPhysicalConnectionService() *schema.Resourc
 		},
 	}
 }
-func dataSourceAlicloudPhysicalConnectionServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPhysicalConnectionServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("PhysicalConnectionServiceHasNotBeenOpened")
 		d.Set("status", "")

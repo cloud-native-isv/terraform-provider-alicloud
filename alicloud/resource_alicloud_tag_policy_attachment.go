@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudTagPolicyAttachment() *schema.Resource {
+func resourceAliCloudTagPolicyAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudTagPolicyAttachmentCreate,
-		Read:   resourceAlicloudTagPolicyAttachmentRead,
-		Delete: resourceAlicloudTagPolicyAttachmentDelete,
+		Create: resourceAliCloudTagPolicyAttachmentCreate,
+		Read:   resourceAliCloudTagPolicyAttachmentRead,
+		Delete: resourceAliCloudTagPolicyAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -39,7 +39,7 @@ func resourceAlicloudTagPolicyAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudTagPolicyAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudTagPolicyAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AttachPolicy"
@@ -67,10 +67,10 @@ func resourceAlicloudTagPolicyAttachmentCreate(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_tag_policy_attachment", action, AlibabaCloudSdkGoERROR)
 	}
 	d.SetId(fmt.Sprintf("%v:%v:%v", request["PolicyId"], request["TargetId"], request["TargetType"]))
-	return resourceAlicloudTagPolicyAttachmentRead(d, meta)
+	return resourceAliCloudTagPolicyAttachmentRead(d, meta)
 }
 
-func resourceAlicloudTagPolicyAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudTagPolicyAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	tagService := TagService{client}
 	parts, err := ParseResourceId(d.Id(), 3)
@@ -91,7 +91,7 @@ func resourceAlicloudTagPolicyAttachmentRead(d *schema.ResourceData, meta interf
 	d.Set("target_type", object["TargetType"])
 	return nil
 }
-func resourceAlicloudTagPolicyAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudTagPolicyAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DetachPolicy"
 	var response map[string]interface{}

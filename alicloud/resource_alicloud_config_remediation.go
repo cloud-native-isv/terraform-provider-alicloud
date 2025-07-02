@@ -14,10 +14,10 @@ import (
 
 func resourceAliCloudConfigRemediation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudConfigRemediationCreate,
-		Read:   resourceAlicloudConfigRemediationRead,
-		Update: resourceAlicloudConfigRemediationUpdate,
-		Delete: resourceAlicloudConfigRemediationDelete,
+		Create: resourceAliCloudConfigRemediationCreate,
+		Read:   resourceAliCloudConfigRemediationRead,
+		Update: resourceAliCloudConfigRemediationUpdate,
+		Delete: resourceAliCloudConfigRemediationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -67,7 +67,7 @@ func resourceAliCloudConfigRemediation() *schema.Resource {
 	}
 }
 
-func resourceAlicloudConfigRemediationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigRemediationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "CreateRemediation"
@@ -118,10 +118,10 @@ func resourceAlicloudConfigRemediationCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(fmt.Sprint(response["RemediationId"]))
 
-	return resourceAlicloudConfigRemediationRead(d, meta)
+	return resourceAliCloudConfigRemediationRead(d, meta)
 }
 
-func resourceAlicloudConfigRemediationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigRemediationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	configServiceV2 := ConfigServiceV2{client}
 
@@ -146,7 +146,7 @@ func resourceAlicloudConfigRemediationRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceAlicloudConfigRemediationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigRemediationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var request map[string]interface{}
 	update := false
@@ -201,10 +201,10 @@ func resourceAlicloudConfigRemediationUpdate(d *schema.ResourceData, meta interf
 		d.SetPartial("remediation_template_id")
 	}
 
-	return resourceAlicloudConfigRemediationRead(d, meta)
+	return resourceAliCloudConfigRemediationRead(d, meta)
 }
 
-func resourceAlicloudConfigRemediationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudConfigRemediationDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 

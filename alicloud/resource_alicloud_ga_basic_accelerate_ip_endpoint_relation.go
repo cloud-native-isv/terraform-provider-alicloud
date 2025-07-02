@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudGaBasicAccelerateIpEndpointRelation() *schema.Resource {
+func resourceAliCloudGaBasicAccelerateIpEndpointRelation() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudGaBasicAccelerateIpEndpointRelationCreate,
-		Read:   resourceAlicloudGaBasicAccelerateIpEndpointRelationRead,
-		Delete: resourceAlicloudGaBasicAccelerateIpEndpointRelationDelete,
+		Create: resourceAliCloudGaBasicAccelerateIpEndpointRelationCreate,
+		Read:   resourceAliCloudGaBasicAccelerateIpEndpointRelationRead,
+		Delete: resourceAliCloudGaBasicAccelerateIpEndpointRelationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -45,7 +45,7 @@ func resourceAlicloudGaBasicAccelerateIpEndpointRelation() *schema.Resource {
 	}
 }
 
-func resourceAlicloudGaBasicAccelerateIpEndpointRelationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaBasicAccelerateIpEndpointRelationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gaService := GaService{client}
 	var response map[string]interface{}
@@ -84,10 +84,10 @@ func resourceAlicloudGaBasicAccelerateIpEndpointRelationCreate(d *schema.Resourc
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudGaBasicAccelerateIpEndpointRelationRead(d, meta)
+	return resourceAliCloudGaBasicAccelerateIpEndpointRelationRead(d, meta)
 }
 
-func resourceAlicloudGaBasicAccelerateIpEndpointRelationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaBasicAccelerateIpEndpointRelationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gaService := GaService{client}
 
@@ -108,7 +108,7 @@ func resourceAlicloudGaBasicAccelerateIpEndpointRelationRead(d *schema.ResourceD
 	return nil
 }
 
-func resourceAlicloudGaBasicAccelerateIpEndpointRelationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaBasicAccelerateIpEndpointRelationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gaService := GaService{client}
 	action := "DeleteBasicAccelerateIpEndpointRelation"

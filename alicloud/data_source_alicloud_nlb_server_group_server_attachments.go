@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudNlbServerGroupServerAttachments() *schema.Resource {
+func dataSourceAliCloudNlbServerGroupServerAttachments() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNlbServerGroupServerAttachmentsRead,
+		Read: dataSourceAliCloudNlbServerGroupServerAttachmentsRead,
 		Schema: map[string]*schema.Schema{
 			"server_group_id": {
 				Optional: true,
@@ -99,7 +99,7 @@ func dataSourceAlicloudNlbServerGroupServerAttachments() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNlbServerGroupServerAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNlbServerGroupServerAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

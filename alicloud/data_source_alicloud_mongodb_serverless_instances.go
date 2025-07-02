@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudMongodbServerlessInstances() *schema.Resource {
+func dataSourceAliCloudMongodbServerlessInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMongodbServerlessInstancesRead,
+		Read: dataSourceAliCloudMongodbServerlessInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"db_instance_class": {
 				Type:     schema.TypeString,
@@ -214,7 +214,7 @@ func dataSourceAlicloudMongodbServerlessInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMongodbServerlessInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMongodbServerlessInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDBInstances"

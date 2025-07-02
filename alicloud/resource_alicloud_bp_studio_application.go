@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudBpStudioApplication() *schema.Resource {
+func resourceAliCloudBpStudioApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudBpStudioApplicationCreate,
-		Read:   resourceAlicloudBpStudioApplicationRead,
-		Delete: resourceAlicloudBpStudioApplicationDelete,
+		Create: resourceAliCloudBpStudioApplicationCreate,
+		Read:   resourceAliCloudBpStudioApplicationRead,
+		Delete: resourceAliCloudBpStudioApplicationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -85,7 +85,7 @@ func resourceAlicloudBpStudioApplication() *schema.Resource {
 	}
 }
 
-func resourceAlicloudBpStudioApplicationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBpStudioApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	bpStudioService := BpStudioService{client}
 
@@ -257,10 +257,10 @@ func resourceAlicloudBpStudioApplicationCreate(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudBpStudioApplicationRead(d, meta)
+	return resourceAliCloudBpStudioApplicationRead(d, meta)
 }
 
-func resourceAlicloudBpStudioApplicationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBpStudioApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	bpStudioService := BpStudioService{client}
 
@@ -281,7 +281,7 @@ func resourceAlicloudBpStudioApplicationRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAlicloudBpStudioApplicationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBpStudioApplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	bpStudioService := BpStudioService{client}
 	var err error

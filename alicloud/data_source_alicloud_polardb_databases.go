@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudPolarDBDatabases() *schema.Resource {
+func dataSourceAliCloudPolarDBDatabases() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPolarDBDatabasesRead,
+		Read: dataSourceAliCloudPolarDBDatabasesRead,
 
 		Schema: map[string]*schema.Schema{
 			"db_cluster_id": {
@@ -82,7 +82,7 @@ func dataSourceAlicloudPolarDBDatabases() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudPolarDBDatabasesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPolarDBDatabasesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := polardb.CreateDescribeDatabasesRequest()
 

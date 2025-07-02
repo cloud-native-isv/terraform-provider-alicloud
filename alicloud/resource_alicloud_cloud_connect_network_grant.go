@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCloudConnectNetworkGrant() *schema.Resource {
+func resourceAliCloudCloudConnectNetworkGrant() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudConnectNetworkGrantCreate,
-		Read:   resourceAlicloudCloudConnectNetworkGrantRead,
-		Delete: resourceAlicloudCloudConnectNetworkGrantDelete,
+		Create: resourceAliCloudCloudConnectNetworkGrantCreate,
+		Read:   resourceAliCloudCloudConnectNetworkGrantRead,
+		Delete: resourceAliCloudCloudConnectNetworkGrantDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +41,7 @@ func resourceAlicloudCloudConnectNetworkGrant() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudConnectNetworkGrantCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudConnectNetworkGrantCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := smartag.CreateGrantInstanceToCbnRequest()
 
@@ -73,10 +73,10 @@ func resourceAlicloudCloudConnectNetworkGrantCreate(d *schema.ResourceData, meta
 
 	d.SetId(fmt.Sprintf("%s%s%s", request.CcnInstanceId, COLON_SEPARATED, request.CenInstanceId))
 
-	return resourceAlicloudCloudConnectNetworkGrantRead(d, meta)
+	return resourceAliCloudCloudConnectNetworkGrantRead(d, meta)
 }
 
-func resourceAlicloudCloudConnectNetworkGrantRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudConnectNetworkGrantRead(d *schema.ResourceData, meta interface{}) error {
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeCloudConnectNetworkGrant(d.Id())
 	if err != nil {
@@ -94,7 +94,7 @@ func resourceAlicloudCloudConnectNetworkGrantRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceAlicloudCloudConnectNetworkGrantDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudConnectNetworkGrantDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sagService := SagService{client}
 

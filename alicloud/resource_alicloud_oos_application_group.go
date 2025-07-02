@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOosApplicationGroup() *schema.Resource {
+func resourceAliCloudOosApplicationGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOosApplicationGroupCreate,
-		Read:   resourceAlicloudOosApplicationGroupRead,
-		Delete: resourceAlicloudOosApplicationGroupDelete,
+		Create: resourceAliCloudOosApplicationGroupCreate,
+		Read:   resourceAliCloudOosApplicationGroupRead,
+		Delete: resourceAliCloudOosApplicationGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +55,7 @@ func resourceAlicloudOosApplicationGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOosApplicationGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosApplicationGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateApplicationGroup"
@@ -100,9 +100,9 @@ func resourceAlicloudOosApplicationGroupCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(fmt.Sprint(request["ApplicationName"], ":", request["Name"]))
 
-	return resourceAlicloudOosApplicationGroupRead(d, meta)
+	return resourceAliCloudOosApplicationGroupRead(d, meta)
 }
-func resourceAlicloudOosApplicationGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosApplicationGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	oosService := OosService{client}
 	object, err := oosService.DescribeOosApplicationGroup(d.Id())
@@ -126,7 +126,7 @@ func resourceAlicloudOosApplicationGroupRead(d *schema.ResourceData, meta interf
 	d.Set("import_tag_value", object["ImportTagValue"])
 	return nil
 }
-func resourceAlicloudOosApplicationGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosApplicationGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

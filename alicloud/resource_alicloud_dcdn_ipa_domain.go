@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudDcdnIpaDomain() *schema.Resource {
+func resourceAliCloudDcdnIpaDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDcdnIpaDomainCreate,
-		Read:   resourceAlicloudDcdnIpaDomainRead,
-		Update: resourceAlicloudDcdnIpaDomainUpdate,
-		Delete: resourceAlicloudDcdnIpaDomainDelete,
+		Create: resourceAliCloudDcdnIpaDomainCreate,
+		Read:   resourceAliCloudDcdnIpaDomainRead,
+		Update: resourceAliCloudDcdnIpaDomainUpdate,
+		Delete: resourceAliCloudDcdnIpaDomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -85,7 +85,7 @@ func resourceAlicloudDcdnIpaDomain() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDcdnIpaDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnIpaDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dcdnService := DcdnService{client}
 	var response map[string]interface{}
@@ -127,9 +127,9 @@ func resourceAlicloudDcdnIpaDomainCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudDcdnIpaDomainRead(d, meta)
+	return resourceAliCloudDcdnIpaDomainRead(d, meta)
 }
-func resourceAlicloudDcdnIpaDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnIpaDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dcdnService := DcdnService{client}
 	object, err := dcdnService.DescribeDcdnIpaDomain(d.Id())
@@ -167,7 +167,7 @@ func resourceAlicloudDcdnIpaDomainRead(d *schema.ResourceData, meta interface{})
 	d.Set("status", object["DomainStatus"])
 	return nil
 }
-func resourceAlicloudDcdnIpaDomainUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnIpaDomainUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dcdnService := DcdnService{client}
 	var err error
@@ -280,9 +280,9 @@ func resourceAlicloudDcdnIpaDomainUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudDcdnIpaDomainRead(d, meta)
+	return resourceAliCloudDcdnIpaDomainRead(d, meta)
 }
-func resourceAlicloudDcdnIpaDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnIpaDomainDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dcdnService := DcdnService{client}
 	action := "DeleteDcdnIpaDomain"

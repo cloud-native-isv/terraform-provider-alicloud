@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAutoProvisioningGroup() *schema.Resource {
+func resourceAliCloudAutoProvisioningGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAutoProvisioningGroupCreate,
-		Read:   resourceAlicloudAutoProvisioningGroupRead,
-		Update: resourceAlicloudAutoProvisioningGroupUpdate,
-		Delete: resourceAlicloudAutoProvisioningGroupDelete,
+		Create: resourceAliCloudAutoProvisioningGroupCreate,
+		Read:   resourceAliCloudAutoProvisioningGroupRead,
+		Update: resourceAliCloudAutoProvisioningGroupUpdate,
+		Delete: resourceAliCloudAutoProvisioningGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -166,7 +166,7 @@ func resourceAlicloudAutoProvisioningGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAutoProvisioningGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAutoProvisioningGroupCreate(d *schema.ResourceData, meta interface{}) error {
 
 	request, err := buildAlicloudAutoProvisioningGroupArgs(d, meta)
 	if err != nil {
@@ -190,10 +190,10 @@ func resourceAlicloudAutoProvisioningGroupCreate(d *schema.ResourceData, meta in
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_auto_provisioning_group", request.GetActionName(), AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAlicloudAutoProvisioningGroupRead(d, meta)
+	return resourceAliCloudAutoProvisioningGroupRead(d, meta)
 }
 
-func resourceAlicloudAutoProvisioningGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAutoProvisioningGroupRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
@@ -245,7 +245,7 @@ func resourceAlicloudAutoProvisioningGroupRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceAlicloudAutoProvisioningGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAutoProvisioningGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	request := ecs.CreateModifyAutoProvisioningGroupRequest()
@@ -305,10 +305,10 @@ func resourceAlicloudAutoProvisioningGroupUpdate(d *schema.ResourceData, meta in
 
 	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 
-	return resourceAlicloudAutoProvisioningGroupRead(d, meta)
+	return resourceAliCloudAutoProvisioningGroupRead(d, meta)
 }
 
-func resourceAlicloudAutoProvisioningGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAutoProvisioningGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 

@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudClickHouseRegions() *schema.Resource {
+func dataSourceAliCloudClickHouseRegions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudClickHouseRegionsRead,
+		Read: dataSourceAliCloudClickHouseRegionsRead,
 		Schema: map[string]*schema.Schema{
 			"region_id": {
 				Type:          schema.TypeString,
@@ -61,7 +61,7 @@ func dataSourceAlicloudClickHouseRegions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudClickHouseRegionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudClickHouseRegionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeRegions"
 	request := make(map[string]interface{})

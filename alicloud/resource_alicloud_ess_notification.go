@@ -2,22 +2,23 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"strings"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ess"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEssNotification() *schema.Resource {
+func resourceAliCloudEssNotification() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEssNotificationCreate,
-		Read:   resourceAlicloudEssNotificationRead,
-		Update: resourceAlicloudEssNotificationUpdate,
-		Delete: resourceAlicloudEssNotificationDelete,
+		Create: resourceAliCloudEssNotificationCreate,
+		Read:   resourceAliCloudEssNotificationRead,
+		Update: resourceAliCloudEssNotificationUpdate,
+		Delete: resourceAliCloudEssNotificationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +47,7 @@ func resourceAlicloudEssNotification() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEssNotificationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEssNotificationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateNotificationConfiguration"
@@ -84,10 +85,10 @@ func resourceAlicloudEssNotificationCreate(d *schema.ResourceData, meta interfac
 	})
 	addDebug(action, response, request)
 	d.SetId(fmt.Sprintf("%s:%s", request["ScalingGroupId"], request["NotificationArn"]))
-	return resourceAlicloudEssNotificationRead(d, meta)
+	return resourceAliCloudEssNotificationRead(d, meta)
 }
 
-func resourceAlicloudEssNotificationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEssNotificationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	essService := EssService{client}
 	object, err := essService.DescribeEssNotification(d.Id())
@@ -107,7 +108,7 @@ func resourceAlicloudEssNotificationRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudEssNotificationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEssNotificationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "ModifyNotificationConfiguration"
@@ -147,10 +148,10 @@ func resourceAlicloudEssNotificationUpdate(d *schema.ResourceData, meta interfac
 		return nil
 	})
 	addDebug(action, response, request)
-	return resourceAlicloudEssNotificationRead(d, meta)
+	return resourceAliCloudEssNotificationRead(d, meta)
 }
 
-func resourceAlicloudEssNotificationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEssNotificationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	essService := EssService{client}
 	request := ess.CreateDeleteNotificationConfigurationRequest()

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCenTransitRouters() *schema.Resource {
+func dataSourceAliCloudCenTransitRouters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCenTransitRoutersRead,
+		Read: dataSourceAliCloudCenTransitRoutersRead,
 		Schema: map[string]*schema.Schema{
 			"cen_id": {
 				Type:     schema.TypeString,
@@ -107,7 +107,7 @@ func dataSourceAlicloudCenTransitRouters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCenTransitRoutersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCenTransitRoutersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTransitRouters"

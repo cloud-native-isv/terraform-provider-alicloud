@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudPolarDBParameterGroups() *schema.Resource {
+func dataSourceAliCloudPolarDBParameterGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPolarDBParameterGroupsRead,
+		Read: dataSourceAliCloudPolarDBParameterGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -102,7 +102,7 @@ func dataSourceAlicloudPolarDBParameterGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudPolarDBParameterGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPolarDBParameterGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeParameterGroups"

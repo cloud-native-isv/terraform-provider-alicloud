@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCmsEventRules() *schema.Resource {
+func dataSourceAliCloudCmsEventRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsEventRulesRead,
+		Read: dataSourceAliCloudCmsEventRulesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -147,7 +147,7 @@ func dataSourceAlicloudCmsEventRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsEventRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsEventRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeEventRuleList"

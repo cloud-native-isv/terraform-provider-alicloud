@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudGaAccessLog() *schema.Resource {
+func resourceAliCloudGaAccessLog() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudGaAccessLogCreate,
-		Read:   resourceAlicloudGaAccessLogRead,
-		Delete: resourceAlicloudGaAccessLogDelete,
+		Create: resourceAliCloudGaAccessLogCreate,
+		Read:   resourceAliCloudGaAccessLogRead,
+		Delete: resourceAliCloudGaAccessLogDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -60,7 +60,7 @@ func resourceAlicloudGaAccessLog() *schema.Resource {
 	}
 }
 
-func resourceAlicloudGaAccessLogCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaAccessLogCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gaService := GaService{client}
 	var response map[string]interface{}
@@ -101,10 +101,10 @@ func resourceAlicloudGaAccessLogCreate(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudGaAccessLogRead(d, meta)
+	return resourceAliCloudGaAccessLogRead(d, meta)
 }
 
-func resourceAlicloudGaAccessLogRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaAccessLogRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gaService := GaService{client}
 	object, err := gaService.DescribeGaAccessLog(d.Id())
@@ -127,7 +127,7 @@ func resourceAlicloudGaAccessLogRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAlicloudGaAccessLogDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudGaAccessLogDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	gaService := GaService{client}
 	var response map[string]interface{}

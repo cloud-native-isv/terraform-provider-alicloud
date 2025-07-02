@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCassandraDataCenter() *schema.Resource {
+func resourceAliCloudCassandraDataCenter() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCassandraDataCenterCreate,
-		Read:   resourceAlicloudCassandraDataCenterRead,
-		Update: resourceAlicloudCassandraDataCenterUpdate,
-		Delete: resourceAlicloudCassandraDataCenterDelete,
+		Create: resourceAliCloudCassandraDataCenterCreate,
+		Read:   resourceAliCloudCassandraDataCenterRead,
+		Update: resourceAliCloudCassandraDataCenterUpdate,
+		Delete: resourceAliCloudCassandraDataCenterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -115,7 +115,7 @@ func resourceAlicloudCassandraDataCenter() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCassandraDataCenterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraDataCenterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cassandraService := CassandraService{client}
 
@@ -178,9 +178,9 @@ func resourceAlicloudCassandraDataCenterCreate(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCassandraDataCenterUpdate(d, meta)
+	return resourceAliCloudCassandraDataCenterUpdate(d, meta)
 }
-func resourceAlicloudCassandraDataCenterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraDataCenterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cassandraService := CassandraService{client}
 	object, err := cassandraService.DescribeCassandraDataCenter(d.Id())
@@ -228,7 +228,7 @@ func resourceAlicloudCassandraDataCenterRead(d *schema.ResourceData, meta interf
 	}
 	return nil
 }
-func resourceAlicloudCassandraDataCenterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraDataCenterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cassandraService := CassandraService{client}
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -272,7 +272,7 @@ func resourceAlicloudCassandraDataCenterUpdate(d *schema.ResourceData, meta inte
 	}
 	if d.IsNewResource() {
 		d.Partial(false)
-		return resourceAlicloudCassandraDataCenterRead(d, meta)
+		return resourceAliCloudCassandraDataCenterRead(d, meta)
 	}
 
 	if d.HasChange("data_center_name") {
@@ -344,9 +344,9 @@ func resourceAlicloudCassandraDataCenterUpdate(d *schema.ResourceData, meta inte
 		d.SetPartial("node_count")
 	}
 	d.Partial(false)
-	return resourceAlicloudCassandraDataCenterRead(d, meta)
+	return resourceAliCloudCassandraDataCenterRead(d, meta)
 }
-func resourceAlicloudCassandraDataCenterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraDataCenterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

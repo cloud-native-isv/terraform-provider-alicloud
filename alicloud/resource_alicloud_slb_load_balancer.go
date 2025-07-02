@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudSlbLoadBalancer() *schema.Resource {
+func resourceAliCloudSlbLoadBalancer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSlbLoadBalancerCreate,
-		Read:   resourceAlicloudSlbLoadBalancerRead,
-		Update: resourceAlicloudSlbLoadBalancerUpdate,
-		Delete: resourceAlicloudSlbLoadBalancerDelete,
+		Create: resourceAliCloudSlbLoadBalancerCreate,
+		Read:   resourceAliCloudSlbLoadBalancerRead,
+		Update: resourceAliCloudSlbLoadBalancerUpdate,
+		Delete: resourceAliCloudSlbLoadBalancerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -220,7 +220,7 @@ func resourceAlicloudSlbLoadBalancer() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSlbLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slbService := SlbService{client}
 	var response map[string]interface{}
@@ -337,9 +337,9 @@ func resourceAlicloudSlbLoadBalancerCreate(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudSlbLoadBalancerUpdate(d, meta)
+	return resourceAliCloudSlbLoadBalancerUpdate(d, meta)
 }
-func resourceAlicloudSlbLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slbService := SlbService{client}
 	object, err := slbService.DescribeSlbLoadBalancer(d.Id())
@@ -378,7 +378,7 @@ func resourceAlicloudSlbLoadBalancerRead(d *schema.ResourceData, meta interface{
 	d.Set("tags", tagsToMap(listTagResourcesObject))
 	return nil
 }
-func resourceAlicloudSlbLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbLoadBalancerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slbService := SlbService{client}
 	var response map[string]interface{}
@@ -646,9 +646,9 @@ func resourceAlicloudSlbLoadBalancerUpdate(d *schema.ResourceData, meta interfac
 		d.SetPartial("payment_type")
 	}
 	d.Partial(false)
-	return resourceAlicloudSlbLoadBalancerRead(d, meta)
+	return resourceAliCloudSlbLoadBalancerRead(d, meta)
 }
-func resourceAlicloudSlbLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
 	if d.Get("payment_type").(string) == "Subscription" || d.Get("instance_charge_type").(string) == "Prepaid" {
 		log.Printf("[WARN] Cannot destroy Subscription resource: alicloud_slb_load_balancer. Terraform will remove this resource from the state file, however resources may remain.")
 		return nil

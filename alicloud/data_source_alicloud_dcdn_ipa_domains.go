@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDcdnIpaDomains() *schema.Resource {
+func dataSourceAliCloudDcdnIpaDomains() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDcdnIpaDomainsRead,
+		Read: dataSourceAliCloudDcdnIpaDomainsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -131,7 +131,7 @@ func dataSourceAlicloudDcdnIpaDomains() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDcdnIpaDomainsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDcdnIpaDomainsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDcdnIpaUserDomains"

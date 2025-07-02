@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudDmsEnterpriseUser() *schema.Resource {
+func resourceAliCloudDmsEnterpriseUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDmsEnterpriseUserCreate,
-		Read:   resourceAlicloudDmsEnterpriseUserRead,
-		Update: resourceAlicloudDmsEnterpriseUserUpdate,
-		Delete: resourceAlicloudDmsEnterpriseUserDelete,
+		Create: resourceAliCloudDmsEnterpriseUserCreate,
+		Read:   resourceAliCloudDmsEnterpriseUserRead,
+		Update: resourceAliCloudDmsEnterpriseUserUpdate,
+		Delete: resourceAliCloudDmsEnterpriseUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -72,7 +72,7 @@ func resourceAlicloudDmsEnterpriseUser() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDmsEnterpriseUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseUserCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "RegisterUser"
@@ -116,9 +116,9 @@ func resourceAlicloudDmsEnterpriseUserCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(fmt.Sprint(request["Uid"]))
 
-	return resourceAlicloudDmsEnterpriseUserUpdate(d, meta)
+	return resourceAliCloudDmsEnterpriseUserUpdate(d, meta)
 }
-func resourceAlicloudDmsEnterpriseUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dmsEnterpriseService := DmsEnterpriseService{client}
 	object, err := dmsEnterpriseService.DescribeDmsEnterpriseUser(d.Id())
@@ -139,7 +139,7 @@ func resourceAlicloudDmsEnterpriseUserRead(d *schema.ResourceData, meta interfac
 	d.Set("nick_name", object["NickName"])
 	return nil
 }
-func resourceAlicloudDmsEnterpriseUserUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dmsEnterpriseService := DmsEnterpriseService{client}
 	var err error
@@ -259,9 +259,9 @@ func resourceAlicloudDmsEnterpriseUserUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudDmsEnterpriseUserRead(d, meta)
+	return resourceAliCloudDmsEnterpriseUserRead(d, meta)
 }
-func resourceAlicloudDmsEnterpriseUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDmsEnterpriseUserDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteUser"
 	var response map[string]interface{}

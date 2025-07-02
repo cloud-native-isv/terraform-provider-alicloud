@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEciZones() *schema.Resource {
+func dataSourceAliCloudEciZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEciZonesRead,
+		Read: dataSourceAliCloudEciZonesRead,
 		Schema: map[string]*schema.Schema{
 			"output_file": {
 				Type:     schema.TypeString,
@@ -37,7 +37,7 @@ func dataSourceAlicloudEciZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEciZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEciZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeRegions"
 	request := make(map[string]interface{})

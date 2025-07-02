@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCrService() *schema.Resource {
+func dataSourceAliCloudCrService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCrServiceRead,
+		Read: dataSourceAliCloudCrServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -34,7 +34,7 @@ func dataSourceAlicloudCrService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudCrServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCrServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("CrServiceHasNotBeenOpened")
 		d.Set("status", "")

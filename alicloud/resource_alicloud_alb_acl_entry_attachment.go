@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAlbAclEntryAttachment() *schema.Resource {
+func resourceAliCloudAlbAclEntryAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlbAclEntryAttachmentCreate,
-		Read:   resourceAlicloudAlbAclEntryAttachmentRead,
-		Delete: resourceAlicloudAlbAclEntryAttachmentDelete,
+		Create: resourceAliCloudAlbAclEntryAttachmentCreate,
+		Read:   resourceAliCloudAlbAclEntryAttachmentRead,
+		Delete: resourceAliCloudAlbAclEntryAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -50,7 +50,7 @@ func resourceAlicloudAlbAclEntryAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlbAclEntryAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbAclEntryAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	albService := AlbService{client}
 	var response map[string]interface{}
@@ -91,10 +91,10 @@ func resourceAlicloudAlbAclEntryAttachmentCreate(d *schema.ResourceData, meta in
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudAlbAclEntryAttachmentRead(d, meta)
+	return resourceAliCloudAlbAclEntryAttachmentRead(d, meta)
 }
 
-func resourceAlicloudAlbAclEntryAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbAclEntryAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	albService := AlbService{client}
 	object, err := albService.DescribeAlbAclEntryAttachment(d.Id())
@@ -119,7 +119,7 @@ func resourceAlicloudAlbAclEntryAttachmentRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceAlicloudAlbAclEntryAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlbAclEntryAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	albService := AlbService{client}
 	action := "RemoveEntriesFromAcl"

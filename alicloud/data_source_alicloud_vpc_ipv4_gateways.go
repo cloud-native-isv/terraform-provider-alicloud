@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcIpv4Gateways() *schema.Resource {
+func dataSourceAliCloudVpcIpv4Gateways() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcIpv4GatewaysRead,
+		Read: dataSourceAliCloudVpcIpv4GatewaysRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -102,7 +102,7 @@ func dataSourceAlicloudVpcIpv4Gateways() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcIpv4GatewaysRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcIpv4GatewaysRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListIpv4Gateways"

@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudRosChangeSet() *schema.Resource {
+func resourceAliCloudRosChangeSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRosChangeSetCreate,
-		Read:   resourceAlicloudRosChangeSetRead,
-		Delete: resourceAlicloudRosChangeSetDelete,
+		Create: resourceAliCloudRosChangeSetCreate,
+		Read:   resourceAliCloudRosChangeSetRead,
+		Delete: resourceAliCloudRosChangeSetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -151,7 +151,7 @@ func resourceAlicloudRosChangeSet() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRosChangeSetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosChangeSetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	var response map[string]interface{}
@@ -258,9 +258,9 @@ func resourceAlicloudRosChangeSetCreate(d *schema.ResourceData, meta interface{}
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudRosChangeSetRead(d, meta)
+	return resourceAliCloudRosChangeSetRead(d, meta)
 }
-func resourceAlicloudRosChangeSetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosChangeSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	object, err := rosService.DescribeRosChangeSet(d.Id())
@@ -294,7 +294,7 @@ func resourceAlicloudRosChangeSetRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("timeout_in_minutes", formatInt(object["TimeoutInMinutes"]))
 	return nil
 }
-func resourceAlicloudRosChangeSetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosChangeSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteChangeSet"
 	var response map[string]interface{}

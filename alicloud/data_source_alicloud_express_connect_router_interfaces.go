@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudExpressConnectRouterInterfaces() *schema.Resource {
+func dataSourceAliCloudExpressConnectRouterInterfaces() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudExpressConnectRouterInterfacesRead,
+		Read: dataSourceAliCloudExpressConnectRouterInterfacesRead,
 		Schema: map[string]*schema.Schema{
 			"filter": {
 				Optional: true,
@@ -241,7 +241,7 @@ func dataSourceAlicloudExpressConnectRouterInterfaces() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudExpressConnectRouterInterfacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudExpressConnectRouterInterfacesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

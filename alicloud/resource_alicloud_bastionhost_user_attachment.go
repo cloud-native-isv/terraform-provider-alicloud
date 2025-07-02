@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudBastionhostUserAttachment() *schema.Resource {
+func resourceAliCloudBastionhostUserAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudBastionhostUserAttachmentCreate,
-		Read:   resourceAlicloudBastionhostUserAttachmentRead,
-		Delete: resourceAlicloudBastionhostUserAttachmentDelete,
+		Create: resourceAliCloudBastionhostUserAttachmentCreate,
+		Read:   resourceAliCloudBastionhostUserAttachmentRead,
+		Delete: resourceAliCloudBastionhostUserAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -38,7 +38,7 @@ func resourceAlicloudBastionhostUserAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudBastionhostUserAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostUserAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddUsersToGroup"
@@ -67,9 +67,9 @@ func resourceAlicloudBastionhostUserAttachmentCreate(d *schema.ResourceData, met
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["UserGroupId"], ":", d.Get("user_id")))
 
-	return resourceAlicloudBastionhostUserAttachmentRead(d, meta)
+	return resourceAliCloudBastionhostUserAttachmentRead(d, meta)
 }
-func resourceAlicloudBastionhostUserAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostUserAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	yundunBastionhostService := YundunBastionhostService{client}
 	_, err := yundunBastionhostService.DescribeBastionhostUserAttachment(d.Id())
@@ -90,7 +90,7 @@ func resourceAlicloudBastionhostUserAttachmentRead(d *schema.ResourceData, meta 
 	d.Set("user_id", parts[2])
 	return nil
 }
-func resourceAlicloudBastionhostUserAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostUserAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {

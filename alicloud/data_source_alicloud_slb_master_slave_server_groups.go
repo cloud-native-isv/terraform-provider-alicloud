@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSlbMasterSlaveServerGroups() *schema.Resource {
+func dataSourceAliCloudSlbMasterSlaveServerGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSlbMasterSlaveServerGroupsRead,
+		Read: dataSourceAliCloudSlbMasterSlaveServerGroupsRead,
 
 		Schema: map[string]*schema.Schema{
 			"load_balancer_id": {
@@ -91,7 +91,7 @@ func dataSourceAlicloudSlbMasterSlaveServerGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSlbMasterSlaveServerGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSlbMasterSlaveServerGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := slb.CreateDescribeMasterSlaveServerGroupsRequest()

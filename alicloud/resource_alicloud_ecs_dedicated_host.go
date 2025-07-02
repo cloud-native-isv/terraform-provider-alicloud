@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcsDedicatedHost() *schema.Resource {
+func resourceAliCloudEcsDedicatedHost() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsDedicatedHostCreate,
-		Read:   resourceAlicloudEcsDedicatedHostRead,
-		Update: resourceAlicloudEcsDedicatedHostUpdate,
-		Delete: resourceAlicloudEcsDedicatedHostDelete,
+		Create: resourceAliCloudEcsDedicatedHostCreate,
+		Read:   resourceAliCloudEcsDedicatedHostRead,
+		Update: resourceAliCloudEcsDedicatedHostUpdate,
+		Delete: resourceAliCloudEcsDedicatedHostDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -140,7 +140,7 @@ func resourceAlicloudEcsDedicatedHost() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDedicatedHostCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	var response map[string]interface{}
@@ -251,9 +251,9 @@ func resourceAlicloudEcsDedicatedHostCreate(d *schema.ResourceData, meta interfa
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEcsDedicatedHostRead(d, meta)
+	return resourceAliCloudEcsDedicatedHostRead(d, meta)
 }
-func resourceAlicloudEcsDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsDedicatedHost(d.Id())
@@ -292,7 +292,7 @@ func resourceAlicloudEcsDedicatedHostRead(d *schema.ResourceData, meta interface
 	d.Set("zone_id", object["ZoneId"])
 	return nil
 }
-func resourceAlicloudEcsDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDedicatedHostUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	var err error
@@ -519,9 +519,9 @@ func resourceAlicloudEcsDedicatedHostUpdate(d *schema.ResourceData, meta interfa
 		d.SetPartial("network_attributes")
 	}
 	d.Partial(false)
-	return resourceAlicloudEcsDedicatedHostRead(d, meta)
+	return resourceAliCloudEcsDedicatedHostRead(d, meta)
 }
-func resourceAlicloudEcsDedicatedHostDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDedicatedHostDelete(d *schema.ResourceData, meta interface{}) error {
 	if d.Get("payment_type").(string) == "PrePaid" {
 		log.Printf("[WARN] Cannot destroy Subscription resource: alicloud_ecs_dedicated_host. Terraform will remove this resource from the state file, however resources may remain.")
 		return nil

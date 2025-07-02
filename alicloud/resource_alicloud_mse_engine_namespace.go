@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudMseEngineNamespace() *schema.Resource {
+func resourceAliCloudMseEngineNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMseEngineNamespaceCreate,
-		Read:   resourceAlicloudMseEngineNamespaceRead,
-		Update: resourceAlicloudMseEngineNamespaceUpdate,
-		Delete: resourceAlicloudMseEngineNamespaceDelete,
+		Create: resourceAliCloudMseEngineNamespaceCreate,
+		Read:   resourceAliCloudMseEngineNamespaceRead,
+		Update: resourceAliCloudMseEngineNamespaceUpdate,
+		Delete: resourceAliCloudMseEngineNamespaceDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 			Delete: schema.DefaultTimeout(1 * time.Minute),
@@ -63,7 +63,7 @@ func resourceAlicloudMseEngineNamespace() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMseEngineNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseEngineNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mseService := MseService{client}
 	var response map[string]interface{}
@@ -114,9 +114,9 @@ func resourceAlicloudMseEngineNamespaceCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["Id"]))
 
-	return resourceAlicloudMseEngineNamespaceRead(d, meta)
+	return resourceAliCloudMseEngineNamespaceRead(d, meta)
 }
-func resourceAlicloudMseEngineNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseEngineNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mseService := MseService{client}
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -153,7 +153,7 @@ func resourceAlicloudMseEngineNamespaceRead(d *schema.ResourceData, meta interfa
 	d.Set("type", object["Type"])
 	return nil
 }
-func resourceAlicloudMseEngineNamespaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseEngineNamespaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -199,9 +199,9 @@ func resourceAlicloudMseEngineNamespaceUpdate(d *schema.ResourceData, meta inter
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudMseEngineNamespaceRead(d, meta)
+	return resourceAliCloudMseEngineNamespaceRead(d, meta)
 }
-func resourceAlicloudMseEngineNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseEngineNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteEngineNamespace"
 	var response map[string]interface{}

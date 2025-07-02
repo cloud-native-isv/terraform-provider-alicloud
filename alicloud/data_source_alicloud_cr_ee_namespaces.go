@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCrEENamespaces() *schema.Resource {
+func dataSourceAliCloudCrEENamespaces() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCrEENamespacesRead,
+		Read: dataSourceAliCloudCrEENamespacesRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Type:     schema.TypeString,
@@ -82,7 +82,7 @@ func dataSourceAlicloudCrEENamespaces() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCrEENamespacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCrEENamespacesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := &CrService{client}
 	pageNo := 1

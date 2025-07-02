@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudNlbServerGroups() *schema.Resource {
+func dataSourceAliCloudNlbServerGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNlbServerGroupsRead,
+		Read: dataSourceAliCloudNlbServerGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"resource_group_id": {
 				Type:     schema.TypeString,
@@ -188,7 +188,7 @@ func dataSourceAlicloudNlbServerGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNlbServerGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNlbServerGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListServerGroups"

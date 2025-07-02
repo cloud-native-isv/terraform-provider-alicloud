@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudNasSnapshots() *schema.Resource {
+func dataSourceAliCloudNasSnapshots() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNasSnapshotsRead,
+		Read: dataSourceAliCloudNasSnapshotsRead,
 		Schema: map[string]*schema.Schema{
 			"file_system_id": {
 				Type:     schema.TypeString,
@@ -118,7 +118,7 @@ func dataSourceAlicloudNasSnapshots() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNasSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNasSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeSnapshots"

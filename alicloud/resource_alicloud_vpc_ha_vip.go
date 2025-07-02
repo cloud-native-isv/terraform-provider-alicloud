@@ -15,10 +15,10 @@ import (
 
 func resourceAliCloudVpcHaVip() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpcHaVipCreate,
-		Read:   resourceAlicloudVpcHaVipRead,
-		Update: resourceAlicloudVpcHaVipUpdate,
-		Delete: resourceAlicloudVpcHaVipDelete,
+		Create: resourceAliCloudVpcHaVipCreate,
+		Read:   resourceAliCloudVpcHaVipRead,
+		Update: resourceAliCloudVpcHaVipUpdate,
+		Delete: resourceAliCloudVpcHaVipDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -100,7 +100,7 @@ func resourceAliCloudVpcHaVip() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpcHaVipCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcHaVipCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "CreateHaVip"
@@ -162,10 +162,10 @@ func resourceAlicloudVpcHaVipCreate(d *schema.ResourceData, meta interface{}) er
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudVpcHaVipUpdate(d, meta)
+	return resourceAliCloudVpcHaVipUpdate(d, meta)
 }
 
-func resourceAlicloudVpcHaVipRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcHaVipRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcServiceV2 := VpcServiceV2{client}
 
@@ -202,7 +202,7 @@ func resourceAlicloudVpcHaVipRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceAlicloudVpcHaVipUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcHaVipUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var request map[string]interface{}
 	var response map[string]interface{}
@@ -304,10 +304,10 @@ func resourceAlicloudVpcHaVipUpdate(d *schema.ResourceData, meta interface{}) er
 		d.SetPartial("tags")
 	}
 	d.Partial(false)
-	return resourceAlicloudVpcHaVipRead(d, meta)
+	return resourceAliCloudVpcHaVipRead(d, meta)
 }
 
-func resourceAlicloudVpcHaVipDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcHaVipDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 

@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudPolarDBGlobalDatabaseNetwork() *schema.Resource {
+func resourceAliCloudPolarDBGlobalDatabaseNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPolarDBGlobalDatabaseNetworkCreate,
-		Read:   resourceAlicloudPolarDBGlobalDatabaseNetworkRead,
-		Update: resourceAlicloudPolarDBGlobalDatabaseNetworkUpdate,
-		Delete: resourceAlicloudPolarDBGlobalDatabaseNetworkDelete,
+		Create: resourceAliCloudPolarDBGlobalDatabaseNetworkCreate,
+		Read:   resourceAliCloudPolarDBGlobalDatabaseNetworkRead,
+		Update: resourceAliCloudPolarDBGlobalDatabaseNetworkUpdate,
+		Delete: resourceAliCloudPolarDBGlobalDatabaseNetworkDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -42,7 +42,7 @@ func resourceAlicloudPolarDBGlobalDatabaseNetwork() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPolarDBGlobalDatabaseNetworkCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBGlobalDatabaseNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 	var response map[string]interface{}
@@ -79,10 +79,10 @@ func resourceAlicloudPolarDBGlobalDatabaseNetworkCreate(d *schema.ResourceData, 
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudPolarDBGlobalDatabaseNetworkRead(d, meta)
+	return resourceAliCloudPolarDBGlobalDatabaseNetworkRead(d, meta)
 }
 
-func resourceAlicloudPolarDBGlobalDatabaseNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBGlobalDatabaseNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 	object, err := polarDBService.DescribePolarDBGlobalDatabaseNetwork(d.Id())
@@ -101,7 +101,7 @@ func resourceAlicloudPolarDBGlobalDatabaseNetworkRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceAlicloudPolarDBGlobalDatabaseNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBGlobalDatabaseNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -137,10 +137,10 @@ func resourceAlicloudPolarDBGlobalDatabaseNetworkUpdate(d *schema.ResourceData, 
 		}
 	}
 
-	return resourceAlicloudPolarDBGlobalDatabaseNetworkRead(d, meta)
+	return resourceAliCloudPolarDBGlobalDatabaseNetworkRead(d, meta)
 }
 
-func resourceAlicloudPolarDBGlobalDatabaseNetworkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBGlobalDatabaseNetworkDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 	action := "DeleteGlobalDatabaseNetwork"

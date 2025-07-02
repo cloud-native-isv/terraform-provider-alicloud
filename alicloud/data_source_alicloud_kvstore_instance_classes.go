@@ -2,10 +2,11 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -13,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudKVStoreInstanceClasses() *schema.Resource {
+func dataSourceAliCloudKVStoreInstanceClasses() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudKVStoreAvailableResourceRead,
+		Read: dataSourceAliCloudKVStoreAvailableResourceRead,
 		Schema: map[string]*schema.Schema{
 			"zone_id": {
 				Type:     schema.TypeString,
@@ -138,7 +139,7 @@ func dataSourceAlicloudKVStoreInstanceClasses() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudKVStoreAvailableResourceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudKVStoreAvailableResourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error

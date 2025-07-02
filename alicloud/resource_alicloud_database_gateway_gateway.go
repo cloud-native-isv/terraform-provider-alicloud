@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDatabaseGatewayGateway() *schema.Resource {
+func resourceAliCloudDatabaseGatewayGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDatabaseGatewayGatewayCreate,
-		Read:   resourceAlicloudDatabaseGatewayGatewayRead,
-		Update: resourceAlicloudDatabaseGatewayGatewayUpdate,
-		Delete: resourceAlicloudDatabaseGatewayGatewayDelete,
+		Create: resourceAliCloudDatabaseGatewayGatewayCreate,
+		Read:   resourceAliCloudDatabaseGatewayGatewayRead,
+		Update: resourceAliCloudDatabaseGatewayGatewayUpdate,
+		Delete: resourceAliCloudDatabaseGatewayGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -36,7 +36,7 @@ func resourceAlicloudDatabaseGatewayGateway() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDatabaseGatewayGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDatabaseGatewayGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateGateway"
@@ -69,9 +69,9 @@ func resourceAlicloudDatabaseGatewayGatewayCreate(d *schema.ResourceData, meta i
 
 	d.SetId(fmt.Sprint(response["Data"]))
 
-	return resourceAlicloudDatabaseGatewayGatewayRead(d, meta)
+	return resourceAliCloudDatabaseGatewayGatewayRead(d, meta)
 }
-func resourceAlicloudDatabaseGatewayGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDatabaseGatewayGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dgService := DgService{client}
 	object, err := dgService.DescribeDatabaseGatewayGateway(d.Id())
@@ -88,7 +88,7 @@ func resourceAlicloudDatabaseGatewayGatewayRead(d *schema.ResourceData, meta int
 	d.Set("status", object["status"])
 	return nil
 }
-func resourceAlicloudDatabaseGatewayGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDatabaseGatewayGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -128,9 +128,9 @@ func resourceAlicloudDatabaseGatewayGatewayUpdate(d *schema.ResourceData, meta i
 			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
 		}
 	}
-	return resourceAlicloudDatabaseGatewayGatewayRead(d, meta)
+	return resourceAliCloudDatabaseGatewayGatewayRead(d, meta)
 }
-func resourceAlicloudDatabaseGatewayGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDatabaseGatewayGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteGateway"
 	var response map[string]interface{}

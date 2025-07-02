@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudMseGateway() *schema.Resource {
+func resourceAliCloudMseGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMseGatewayCreate,
-		Read:   resourceAlicloudMseGatewayRead,
-		Update: resourceAlicloudMseGatewayUpdate,
-		Delete: resourceAlicloudMseGatewayDelete,
+		Create: resourceAliCloudMseGatewayCreate,
+		Read:   resourceAliCloudMseGatewayRead,
+		Update: resourceAliCloudMseGatewayUpdate,
+		Delete: resourceAliCloudMseGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -120,7 +120,7 @@ func resourceAlicloudMseGateway() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMseGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddGateway"
@@ -175,9 +175,9 @@ func resourceAlicloudMseGatewayCreate(d *schema.ResourceData, meta interface{}) 
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudMseGatewayRead(d, meta)
+	return resourceAliCloudMseGatewayRead(d, meta)
 }
-func resourceAlicloudMseGatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mseService := MseService{client}
 	object, err := mseService.DescribeMseGateway(d.Id())
@@ -228,7 +228,7 @@ func resourceAlicloudMseGatewayRead(d *schema.ResourceData, meta interface{}) er
 
 	return nil
 }
-func resourceAlicloudMseGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseGatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"GatewayUniqueId": d.Id(),
@@ -260,9 +260,9 @@ func resourceAlicloudMseGatewayUpdate(d *schema.ResourceData, meta interface{}) 
 	if fmt.Sprint(response["Success"]) == "false" {
 		return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
 	}
-	return resourceAlicloudMseGatewayRead(d, meta)
+	return resourceAliCloudMseGatewayRead(d, meta)
 }
-func resourceAlicloudMseGatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteGateway"
 	var response map[string]interface{}

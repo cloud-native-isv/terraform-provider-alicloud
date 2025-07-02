@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudForwardEntry() *schema.Resource {
+func resourceAliCloudForwardEntry() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudForwardEntryCreate,
-		Read:   resourceAlicloudForwardEntryRead,
-		Update: resourceAlicloudForwardEntryUpdate,
-		Delete: resourceAlicloudForwardEntryDelete,
+		Create: resourceAliCloudForwardEntryCreate,
+		Read:   resourceAliCloudForwardEntryRead,
+		Update: resourceAliCloudForwardEntryUpdate,
+		Delete: resourceAliCloudForwardEntryDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -82,7 +82,7 @@ func resourceAlicloudForwardEntry() *schema.Resource {
 	}
 }
 
-func resourceAlicloudForwardEntryCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudForwardEntryCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	var response map[string]interface{}
@@ -129,9 +129,9 @@ func resourceAlicloudForwardEntryCreate(d *schema.ResourceData, meta interface{}
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudForwardEntryRead(d, meta)
+	return resourceAliCloudForwardEntryRead(d, meta)
 }
-func resourceAlicloudForwardEntryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudForwardEntryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	if !strings.Contains(d.Id(), COLON_SEPARATED) {
@@ -162,7 +162,7 @@ func resourceAlicloudForwardEntryRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudForwardEntryUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudForwardEntryUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	var response map[string]interface{}
@@ -234,9 +234,9 @@ func resourceAlicloudForwardEntryUpdate(d *schema.ResourceData, meta interface{}
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudForwardEntryRead(d, meta)
+	return resourceAliCloudForwardEntryRead(d, meta)
 }
-func resourceAlicloudForwardEntryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudForwardEntryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	if !strings.Contains(d.Id(), COLON_SEPARATED) {
 		d.SetId(d.Get("forward_table_id").(string) + COLON_SEPARATED + d.Id())

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudMongodbAuditPolicy() *schema.Resource {
+func resourceAliCloudMongodbAuditPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMongodbAuditPolicyCreate,
-		Read:   resourceAlicloudMongodbAuditPolicyRead,
-		Update: resourceAlicloudMongodbAuditPolicyUpdate,
-		Delete: resourceAlicloudMongodbAuditPolicyDelete,
+		Create: resourceAliCloudMongodbAuditPolicyCreate,
+		Read:   resourceAliCloudMongodbAuditPolicyRead,
+		Update: resourceAliCloudMongodbAuditPolicyUpdate,
+		Delete: resourceAliCloudMongodbAuditPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -44,7 +44,7 @@ func resourceAlicloudMongodbAuditPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMongodbAuditPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongodbAuditPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "ModifyAuditPolicy"
@@ -80,9 +80,9 @@ func resourceAlicloudMongodbAuditPolicyCreate(d *schema.ResourceData, meta inter
 		return WrapError(err)
 	}
 
-	return resourceAlicloudMongodbAuditPolicyRead(d, meta)
+	return resourceAliCloudMongodbAuditPolicyRead(d, meta)
 }
-func resourceAlicloudMongodbAuditPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongodbAuditPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	MongoDBService := MongoDBService{client}
 	object, err := MongoDBService.DescribeMongodbAuditPolicy(d.Id())
@@ -99,7 +99,7 @@ func resourceAlicloudMongodbAuditPolicyRead(d *schema.ResourceData, meta interfa
 	d.Set("audit_status", convertMongodbAuditPolicyResponse(object["LogAuditStatus"].(string)))
 	return nil
 }
-func resourceAlicloudMongodbAuditPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongodbAuditPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -141,9 +141,9 @@ func resourceAlicloudMongodbAuditPolicyUpdate(d *schema.ResourceData, meta inter
 		return WrapError(err)
 	}
 
-	return resourceAlicloudMongodbAuditPolicyRead(d, meta)
+	return resourceAliCloudMongodbAuditPolicyRead(d, meta)
 }
-func resourceAlicloudMongodbAuditPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongodbAuditPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[WARN] Cannot destroy resource Alicloud Mongodb AuditPolicy. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

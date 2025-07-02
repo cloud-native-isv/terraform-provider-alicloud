@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCenChildInstanceRouteEntryToAttachment() *schema.Resource {
+func resourceAliCloudCenChildInstanceRouteEntryToAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenChildInstanceRouteEntryToAttachmentCreate,
-		Update: resourceAlicloudCenChildInstanceRouteEntryToAttachmentUpdate,
-		Read:   resourceAlicloudCenChildInstanceRouteEntryToAttachmentRead,
-		Delete: resourceAlicloudCenChildInstanceRouteEntryToAttachmentDelete,
+		Create: resourceAliCloudCenChildInstanceRouteEntryToAttachmentCreate,
+		Update: resourceAliCloudCenChildInstanceRouteEntryToAttachmentUpdate,
+		Read:   resourceAliCloudCenChildInstanceRouteEntryToAttachmentRead,
+		Delete: resourceAliCloudCenChildInstanceRouteEntryToAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -61,7 +61,7 @@ func resourceAlicloudCenChildInstanceRouteEntryToAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenChildInstanceRouteEntryToAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenChildInstanceRouteEntryToAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	request := make(map[string]interface{})
@@ -111,14 +111,14 @@ func resourceAlicloudCenChildInstanceRouteEntryToAttachmentCreate(d *schema.Reso
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudCenChildInstanceRouteEntryToAttachmentRead(d, meta)
+	return resourceAliCloudCenChildInstanceRouteEntryToAttachmentRead(d, meta)
 }
 
-func resourceAlicloudCenChildInstanceRouteEntryToAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceAlicloudCenChildInstanceRouteEntryToAttachmentRead(d, meta)
+func resourceAliCloudCenChildInstanceRouteEntryToAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceAliCloudCenChildInstanceRouteEntryToAttachmentRead(d, meta)
 }
 
-func resourceAlicloudCenChildInstanceRouteEntryToAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenChildInstanceRouteEntryToAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 
@@ -145,7 +145,7 @@ func resourceAlicloudCenChildInstanceRouteEntryToAttachmentRead(d *schema.Resour
 	return nil
 }
 
-func resourceAlicloudCenChildInstanceRouteEntryToAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenChildInstanceRouteEntryToAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	var err error

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudHavips() *schema.Resource {
+func dataSourceAliCloudHavips() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudHavipsRead,
+		Read: dataSourceAliCloudHavipsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -100,7 +100,7 @@ func dataSourceAlicloudHavips() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudHavipsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudHavipsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeHaVips"

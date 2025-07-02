@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudApiGatewayLogConfig() *schema.Resource {
+func resourceAliCloudApiGatewayLogConfig() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudApiGatewayLogConfigCreate,
-		Read:   resourceAlicloudApiGatewayLogConfigRead,
-		Update: resourceAlicloudApiGatewayLogConfigUpdate,
-		Delete: resourceAlicloudApiGatewayLogConfigDelete,
+		Create: resourceAliCloudApiGatewayLogConfigCreate,
+		Read:   resourceAliCloudApiGatewayLogConfigRead,
+		Update: resourceAliCloudApiGatewayLogConfigUpdate,
+		Delete: resourceAliCloudApiGatewayLogConfigDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -43,7 +43,7 @@ func resourceAlicloudApiGatewayLogConfig() *schema.Resource {
 	}
 }
 
-func resourceAlicloudApiGatewayLogConfigCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayLogConfigCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateLogConfig"
@@ -73,10 +73,10 @@ func resourceAlicloudApiGatewayLogConfigCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(fmt.Sprint(request["LogType"]))
 
-	return resourceAlicloudApiGatewayLogConfigRead(d, meta)
+	return resourceAliCloudApiGatewayLogConfigRead(d, meta)
 }
 
-func resourceAlicloudApiGatewayLogConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayLogConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudApiService := CloudApiService{client}
 	object, err := cloudApiService.DescribeApiGatewayLogConfig(d.Id())
@@ -95,7 +95,7 @@ func resourceAlicloudApiGatewayLogConfigRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAlicloudApiGatewayLogConfigUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayLogConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -130,10 +130,10 @@ func resourceAlicloudApiGatewayLogConfigUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	return resourceAlicloudApiGatewayLogConfigRead(d, meta)
+	return resourceAliCloudApiGatewayLogConfigRead(d, meta)
 }
 
-func resourceAlicloudApiGatewayLogConfigDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudApiGatewayLogConfigDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteLogConfig"
 	var response map[string]interface{}

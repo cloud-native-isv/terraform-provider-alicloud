@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudSddpDataLimit() *schema.Resource {
+func resourceAliCloudSddpDataLimit() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSddpDataLimitCreate,
-		Read:   resourceAlicloudSddpDataLimitRead,
-		Update: resourceAlicloudSddpDataLimitUpdate,
-		Delete: resourceAlicloudSddpDataLimitDelete,
+		Create: resourceAliCloudSddpDataLimitCreate,
+		Read:   resourceAliCloudSddpDataLimitRead,
+		Update: resourceAliCloudSddpDataLimitUpdate,
+		Delete: resourceAliCloudSddpDataLimitDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -102,7 +102,7 @@ func resourceAlicloudSddpDataLimit() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSddpDataLimitCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSddpDataLimitCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDataLimit"
@@ -154,9 +154,9 @@ func resourceAlicloudSddpDataLimitCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(response["Id"]))
 
-	return resourceAlicloudSddpDataLimitRead(d, meta)
+	return resourceAliCloudSddpDataLimitRead(d, meta)
 }
-func resourceAlicloudSddpDataLimitRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSddpDataLimitRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sddpService := SddpService{client}
 	object, err := sddpService.DescribeSddpDataLimit(d.Id())
@@ -184,7 +184,7 @@ func resourceAlicloudSddpDataLimitRead(d *schema.ResourceData, meta interface{})
 	d.Set("user_name", object["UserName"])
 	return nil
 }
-func resourceAlicloudSddpDataLimitUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSddpDataLimitUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	update := false
@@ -228,9 +228,9 @@ func resourceAlicloudSddpDataLimitUpdate(d *schema.ResourceData, meta interface{
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudSddpDataLimitRead(d, meta)
+	return resourceAliCloudSddpDataLimitRead(d, meta)
 }
-func resourceAlicloudSddpDataLimitDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSddpDataLimitDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDataLimit"
 	var response map[string]interface{}

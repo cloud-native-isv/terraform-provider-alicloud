@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudPolarDBParameterGroup() *schema.Resource {
+func resourceAliCloudPolarDBParameterGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPolarDBParameterGroupCreate,
-		Read:   resourceAlicloudPolarDBParameterGroupRead,
-		Delete: resourceAlicloudPolarDBParameterGroupDelete,
+		Create: resourceAliCloudPolarDBParameterGroupCreate,
+		Read:   resourceAliCloudPolarDBParameterGroupRead,
+		Delete: resourceAliCloudPolarDBParameterGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -68,7 +68,7 @@ func resourceAlicloudPolarDBParameterGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPolarDBParameterGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBParameterGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateParameterGroup"
@@ -112,10 +112,10 @@ func resourceAlicloudPolarDBParameterGroupCreate(d *schema.ResourceData, meta in
 	}
 	d.SetId(fmt.Sprint(response["ParameterGroupId"]))
 
-	return resourceAlicloudPolarDBParameterGroupRead(d, meta)
+	return resourceAliCloudPolarDBParameterGroupRead(d, meta)
 }
 
-func resourceAlicloudPolarDBParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 	object, err := polarDBService.DescribePolarDBParameterGroup(d.Id())
@@ -147,7 +147,7 @@ func resourceAlicloudPolarDBParameterGroupRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceAlicloudPolarDBParameterGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBParameterGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteParameterGroup"
 	var response map[string]interface{}

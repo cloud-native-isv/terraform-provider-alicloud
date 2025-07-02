@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAlidnsRecords() *schema.Resource {
+func dataSourceAliCloudAlidnsRecords() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAlidnsRecordsRead,
+		Read: dataSourceAliCloudAlidnsRecordsRead,
 		Schema: map[string]*schema.Schema{
 			"direction": {
 				Type:     schema.TypeString,
@@ -166,7 +166,7 @@ func dataSourceAlicloudAlidnsRecords() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAlidnsRecordsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAlidnsRecordsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := alidns.CreateDescribeDomainRecordsRequest()

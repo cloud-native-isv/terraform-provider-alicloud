@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudFileCRC64Checksum() *schema.Resource {
+func dataSourceAliCloudFileCRC64Checksum() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFileCRC64ChecksumRead,
+		Read: dataSourceAliCloudFileCRC64ChecksumRead,
 
 		Schema: map[string]*schema.Schema{
 			"filename": {
@@ -29,7 +29,7 @@ func dataSourceAlicloudFileCRC64Checksum() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudFileCRC64ChecksumRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFileCRC64ChecksumRead(d *schema.ResourceData, meta interface{}) error {
 	filename := d.Get("filename")
 	file, err := loadFileContent(filename.(string))
 	if err != nil {

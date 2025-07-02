@@ -552,7 +552,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	}
 
 	// Handle streaming resource setting
-	streamingResourceSetting := expandStreamingResourceSetting(d)
+	streamingResourceSetting := resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting(d)
 	if streamingResourceSetting != nil {
 		deployment.StreamingResourceSetting = streamingResourceSetting
 	}
@@ -566,7 +566,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	}
 
 	// Handle logging configuration
-	logging := expandLogging(d)
+	logging := resourceAliCloudFlinkDeploymentExpandLogging(d)
 	if logging != nil {
 		// Convert Logging to LoggingProfile for deployment
 		deployment.Logging = &aliyunFlinkAPI.LoggingProfile{
@@ -731,7 +731,7 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 	// Set streaming resource setting using both new and legacy fields
 	if deployment.StreamingResourceSetting != nil {
 		// Set new streaming resource setting structure
-		d.Set("streaming_resource_setting", flattenStreamingResourceSetting(deployment.StreamingResourceSetting))
+		d.Set("streaming_resource_setting", resourceAliCloudFlinkDeploymentFlattenStreamingResourceSetting(deployment.StreamingResourceSetting))
 
 		// Set legacy parallelism field for backward compatibility
 		if deployment.StreamingResourceSetting.BasicResourceSetting != nil {
@@ -754,7 +754,7 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 		logging := &aliyunFlinkAPI.Logging{
 			LoggingProfile: deployment.Logging.Template,
 		}
-		d.Set("logging", flattenLogging(logging))
+		d.Set("logging", resourceAliCloudFlinkDeploymentflattenLogging(logging))
 	}
 
 	// Set labels/tags
@@ -912,7 +912,7 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 
 	// Update streaming resource setting
 	if d.HasChange("streaming_resource_setting") || d.HasChange("parallelism") {
-		streamingResourceSetting := expandStreamingResourceSetting(d)
+		streamingResourceSetting := resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting(d)
 		if streamingResourceSetting != nil {
 			deployment.StreamingResourceSetting = streamingResourceSetting
 		} else {
@@ -936,7 +936,7 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 
 	// Update logging configuration
 	if d.HasChange("logging") {
-		logging := expandLogging(d)
+		logging := resourceAliCloudFlinkDeploymentExpandLogging(d)
 		if logging != nil {
 			// Convert Logging to LoggingProfile for deployment
 			deployment.Logging = &aliyunFlinkAPI.LoggingProfile{
@@ -1025,8 +1025,8 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 
 // Helper functions for schema conversion
 
-// expandArtifact converts schema artifact to API artifact
-func expandArtifact(d *schema.ResourceData) (*aliyunFlinkAPI.Artifact, error) {
+// resourceAliCloudFlinkDeploymentExpandArtifact converts schema artifact to API artifact
+func resourceAliCloudFlinkDeploymentExpandArtifact(d *schema.ResourceData) (*aliyunFlinkAPI.Artifact, error) {
 	// Check for new artifact structure
 	if artifactList, ok := d.GetOk("artifact"); ok {
 		artifacts := artifactList.([]interface{})
@@ -1100,8 +1100,8 @@ func expandArtifact(d *schema.ResourceData) (*aliyunFlinkAPI.Artifact, error) {
 	return nil, nil
 }
 
-// expandStreamingResourceSetting converts schema streaming resource setting to API format
-func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunFlinkAPI.StreamingResourceSetting {
+// resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting converts schema streaming resource setting to API format
+func resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting(d *schema.ResourceData) *aliyunFlinkAPI.StreamingResourceSetting {
 	if streamingResourceList, ok := d.GetOk("streaming_resource_setting"); ok {
 		settings := streamingResourceList.([]interface{})
 		if len(settings) > 0 {
@@ -1165,8 +1165,8 @@ func expandStreamingResourceSetting(d *schema.ResourceData) *aliyunFlinkAPI.Stre
 	return nil
 }
 
-// expandLogging converts schema logging configuration to API format
-func expandLogging(d *schema.ResourceData) *aliyunFlinkAPI.Logging {
+// resourceAliCloudFlinkDeploymentExpandLogging converts schema logging configuration to API format
+func resourceAliCloudFlinkDeploymentExpandLogging(d *schema.ResourceData) *aliyunFlinkAPI.Logging {
 	if loggingList, ok := d.GetOk("logging"); ok {
 		loggings := loggingList.([]interface{})
 		if len(loggings) > 0 {
@@ -1206,8 +1206,8 @@ func expandLogging(d *schema.ResourceData) *aliyunFlinkAPI.Logging {
 	return nil
 }
 
-// flattenArtifact converts API artifact to schema format
-func flattenArtifact(artifact *aliyunFlinkAPI.Artifact) []interface{} {
+// resourceAliCloudFlinkDeploymentFlattenArtifact converts API artifact to schema format
+func resourceAliCloudFlinkDeploymentFlattenArtifact(artifact *aliyunFlinkAPI.Artifact) []interface{} {
 	if artifact == nil {
 		return []interface{}{}
 	}
@@ -1262,8 +1262,8 @@ func flattenArtifact(artifact *aliyunFlinkAPI.Artifact) []interface{} {
 	return []interface{}{artifactMap}
 }
 
-// flattenStreamingResourceSetting converts API streaming resource setting to schema format
-func flattenStreamingResourceSetting(setting *aliyunFlinkAPI.StreamingResourceSetting) []interface{} {
+// resourceAliCloudFlinkDeploymentFlattenStreamingResourceSetting converts API streaming resource setting to schema format
+func resourceAliCloudFlinkDeploymentFlattenStreamingResourceSetting(setting *aliyunFlinkAPI.StreamingResourceSetting) []interface{} {
 	if setting == nil {
 		return []interface{}{}
 	}
@@ -1315,8 +1315,8 @@ func flattenStreamingResourceSetting(setting *aliyunFlinkAPI.StreamingResourceSe
 	return []interface{}{settingMap}
 }
 
-// flattenLogging converts API logging configuration to schema format
-func flattenLogging(logging *aliyunFlinkAPI.Logging) []interface{} {
+// resourceAliCloudFlinkDeploymentflattenLogging converts API logging configuration to schema format
+func resourceAliCloudFlinkDeploymentflattenLogging(logging *aliyunFlinkAPI.Logging) []interface{} {
 	if logging == nil {
 		return []interface{}{}
 	}

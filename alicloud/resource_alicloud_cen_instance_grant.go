@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCenInstanceGrant() *schema.Resource {
+func resourceAliCloudCenInstanceGrant() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenInstanceGrantCreate,
-		Read:   resourceAlicloudCenInstanceGrantRead,
-		Delete: resourceAlicloudCenInstanceGrantDelete,
+		Create: resourceAliCloudCenInstanceGrantCreate,
+		Read:   resourceAliCloudCenInstanceGrantRead,
+		Delete: resourceAliCloudCenInstanceGrantDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -40,7 +40,7 @@ func resourceAlicloudCenInstanceGrant() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenInstanceGrantCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenInstanceGrantCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cenId := d.Get("cen_id").(string)
 	ownerId := d.Get("cen_owner_id").(string)
@@ -80,10 +80,10 @@ func resourceAlicloudCenInstanceGrantCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(cenId + COLON_SEPARATED + instanceId + COLON_SEPARATED + string(ownerId))
 
-	return resourceAlicloudCenInstanceGrantRead(d, meta)
+	return resourceAliCloudCenInstanceGrantRead(d, meta)
 }
 
-func resourceAlicloudCenInstanceGrantRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenInstanceGrantRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	parts, err := ParseResourceId(d.Id(), 3)
@@ -108,7 +108,7 @@ func resourceAlicloudCenInstanceGrantRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceAlicloudCenInstanceGrantDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenInstanceGrantDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 

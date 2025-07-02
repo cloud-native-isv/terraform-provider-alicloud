@@ -17,12 +17,12 @@ import (
 
 const resourceName = "resource_alicloud_cs_autoscaling_config"
 
-func resourceAlicloudCSAutoscalingConfig() *schema.Resource {
+func resourceAliCloudCSAutoscalingConfig() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCSAutoscalingConfigCreate,
-		Read:   resourceAlicloudCSAutoscalingConfigRead,
-		Update: resourceAlicloudCSAutoscalingConfigUpdate,
-		Delete: resourceAlicloudCSAutoscalingConfigDelete,
+		Create: resourceAliCloudCSAutoscalingConfigCreate,
+		Read:   resourceAliCloudCSAutoscalingConfigRead,
+		Update: resourceAliCloudCSAutoscalingConfigUpdate,
+		Delete: resourceAliCloudCSAutoscalingConfigDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -110,11 +110,11 @@ func resourceAlicloudCSAutoscalingConfig() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCSAutoscalingConfigCreate(d *schema.ResourceData, meta interface{}) error {
-	return resourceAlicloudCSAutoscalingConfigUpdate(d, meta)
+func resourceAliCloudCSAutoscalingConfigCreate(d *schema.ResourceData, meta interface{}) error {
+	return resourceAliCloudCSAutoscalingConfigUpdate(d, meta)
 }
 
-func resourceAlicloudCSAutoscalingConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSAutoscalingConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client, err := meta.(*connectivity.AliyunClient).NewRoaCsClient()
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, ResourceName, "InitializeClient", err)
@@ -191,7 +191,7 @@ func resourceAlicloudCSAutoscalingConfigRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAlicloudCSAutoscalingConfigUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSAutoscalingConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	d.Partial(true)
 	client, err := meta.(*connectivity.AliyunClient).NewRoaCsClient()
 	if err != nil {
@@ -271,9 +271,9 @@ func resourceAlicloudCSAutoscalingConfigUpdate(d *schema.ResourceData, meta inte
 	d.SetId(clusterId)
 	d.Partial(false)
 
-	return resourceAlicloudCSAutoscalingConfigRead(d, meta)
+	return resourceAliCloudCSAutoscalingConfigRead(d, meta)
 }
 
-func resourceAlicloudCSAutoscalingConfigDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSAutoscalingConfigDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }

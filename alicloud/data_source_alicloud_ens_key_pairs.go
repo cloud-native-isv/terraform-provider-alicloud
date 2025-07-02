@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEnsKeyPairs() *schema.Resource {
+func dataSourceAliCloudEnsKeyPairs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEnsKeyPairsRead,
+		Read: dataSourceAliCloudEnsKeyPairsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -78,7 +78,7 @@ func dataSourceAlicloudEnsKeyPairs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEnsKeyPairsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEnsKeyPairsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeKeyPairs"

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudThreatDetectionAssets() *schema.Resource {
+func dataSourceAliCloudThreatDetectionAssets() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudThreatDetectionAssetsRead,
+		Read: dataSourceAliCloudThreatDetectionAssetsRead,
 		Schema: map[string]*schema.Schema{
 			"criteria": {
 				Optional: true,
@@ -121,7 +121,7 @@ func dataSourceAlicloudThreatDetectionAssets() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudThreatDetectionAssetsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudThreatDetectionAssetsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudThreatDetectionAntiBruteForceRules() *schema.Resource {
+func dataSourceAliCloudThreatDetectionAntiBruteForceRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudThreatDetectionAntiBruteForceRulesRead,
+		Read: dataSourceAliCloudThreatDetectionAntiBruteForceRulesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Optional: true,
@@ -88,7 +88,7 @@ func dataSourceAlicloudThreatDetectionAntiBruteForceRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudThreatDetectionAntiBruteForceRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudThreatDetectionAntiBruteForceRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

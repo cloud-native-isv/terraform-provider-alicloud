@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudElasticsearch() *schema.Resource {
+func dataSourceAliCloudElasticsearch() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudElasticsearchRead,
+		Read: dataSourceAliCloudElasticsearchRead,
 
 		Schema: map[string]*schema.Schema{
 			"description_regex": {
@@ -111,7 +111,7 @@ func dataSourceAlicloudElasticsearch() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudElasticsearchRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudElasticsearchRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := elasticsearch.CreateListInstanceRequest()

@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEssNotifications() *schema.Resource {
+func dataSourceAliCloudEssNotifications() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEssNotificationsRead,
+		Read: dataSourceAliCloudEssNotificationsRead,
 		Schema: map[string]*schema.Schema{
 			"scaling_group_id": {
 				Type:     schema.TypeString,
@@ -52,7 +52,7 @@ func dataSourceAlicloudEssNotifications() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEssNotificationsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEssNotificationsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := ess.CreateDescribeNotificationConfigurationsRequest()
 	request.RegionId = client.RegionId

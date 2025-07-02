@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRouterInterface() *schema.Resource {
+func resourceAliCloudRouterInterface() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRouterInterfaceCreate,
-		Read:   resourceAlicloudRouterInterfaceRead,
-		Update: resourceAlicloudRouterInterfaceUpdate,
-		Delete: resourceAlicloudRouterInterfaceDelete,
+		Create: resourceAliCloudRouterInterfaceCreate,
+		Read:   resourceAliCloudRouterInterfaceRead,
+		Update: resourceAliCloudRouterInterfaceUpdate,
+		Delete: resourceAliCloudRouterInterfaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -125,7 +125,7 @@ func resourceAlicloudRouterInterface() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRouterInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRouterInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	request, err := buildAlicloudRouterInterfaceCreateArgs(d, meta)
@@ -147,10 +147,10 @@ func resourceAlicloudRouterInterfaceCreate(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	return resourceAlicloudRouterInterfaceUpdate(d, meta)
+	return resourceAliCloudRouterInterfaceUpdate(d, meta)
 }
 
-func resourceAlicloudRouterInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRouterInterfaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	d.Partial(true)
@@ -186,10 +186,10 @@ func resourceAlicloudRouterInterfaceUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	d.Partial(false)
-	return resourceAlicloudRouterInterfaceRead(d, meta)
+	return resourceAliCloudRouterInterfaceRead(d, meta)
 }
 
-func resourceAlicloudRouterInterfaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRouterInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 
@@ -229,7 +229,7 @@ func resourceAlicloudRouterInterfaceRead(d *schema.ResourceData, meta interface{
 
 }
 
-func resourceAlicloudRouterInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRouterInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 

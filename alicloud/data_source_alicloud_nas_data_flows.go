@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudNasDataFlows() *schema.Resource {
+func dataSourceAliCloudNasDataFlows() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNasDataFlowsRead,
+		Read: dataSourceAliCloudNasDataFlowsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -101,7 +101,7 @@ func dataSourceAlicloudNasDataFlows() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNasDataFlowsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNasDataFlowsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDataFlows"

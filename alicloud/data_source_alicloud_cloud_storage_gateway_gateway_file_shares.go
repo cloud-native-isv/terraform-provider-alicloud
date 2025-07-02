@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudStorageGatewayGatewayFileShares() *schema.Resource {
+func dataSourceAliCloudCloudStorageGatewayGatewayFileShares() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudStorageGatewayGatewayFileSharesRead,
+		Read: dataSourceAliCloudCloudStorageGatewayGatewayFileSharesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -303,7 +303,7 @@ func dataSourceAlicloudCloudStorageGatewayGatewayFileShares() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudStorageGatewayGatewayFileSharesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudStorageGatewayGatewayFileSharesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeGatewayFileShares"

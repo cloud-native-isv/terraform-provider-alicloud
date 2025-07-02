@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudHbrHanaInstance() *schema.Resource {
+func resourceAliCloudHbrHanaInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudHbrHanaInstanceCreate,
-		Read:   resourceAlicloudHbrHanaInstanceRead,
-		Update: resourceAlicloudHbrHanaInstanceUpdate,
-		Delete: resourceAlicloudHbrHanaInstanceDelete,
+		Create: resourceAliCloudHbrHanaInstanceCreate,
+		Read:   resourceAliCloudHbrHanaInstanceRead,
+		Update: resourceAliCloudHbrHanaInstanceUpdate,
+		Delete: resourceAliCloudHbrHanaInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -95,7 +95,7 @@ func resourceAlicloudHbrHanaInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudHbrHanaInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrHanaInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateHanaInstance"
@@ -157,9 +157,9 @@ func resourceAlicloudHbrHanaInstanceCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(fmt.Sprint(request["VaultId"], ":", response["ClusterId"]))
 
-	return resourceAlicloudHbrHanaInstanceRead(d, meta)
+	return resourceAliCloudHbrHanaInstanceRead(d, meta)
 }
-func resourceAlicloudHbrHanaInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrHanaInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	hbrService := HbrService{client}
 	object, err := hbrService.DescribeHbrHanaInstance(d.Id())
@@ -190,7 +190,7 @@ func resourceAlicloudHbrHanaInstanceRead(d *schema.ResourceData, meta interface{
 	d.Set("validate_certificate", object["ValidateCertificate"])
 	return nil
 }
-func resourceAlicloudHbrHanaInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrHanaInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -273,9 +273,9 @@ func resourceAlicloudHbrHanaInstanceUpdate(d *schema.ResourceData, meta interfac
 			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
 		}
 	}
-	return resourceAlicloudHbrHanaInstanceRead(d, meta)
+	return resourceAliCloudHbrHanaInstanceRead(d, meta)
 }
-func resourceAlicloudHbrHanaInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudHbrHanaInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

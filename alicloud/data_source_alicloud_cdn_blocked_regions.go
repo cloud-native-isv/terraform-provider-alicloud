@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCdnBlockedRegions() *schema.Resource {
+func dataSourceAliCloudCdnBlockedRegions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCdnBlockedRegionsRead,
+		Read: dataSourceAliCloudCdnBlockedRegionsRead,
 		Schema: map[string]*schema.Schema{
 			"language": {
 				Type:         schema.TypeString,
@@ -47,7 +47,7 @@ func dataSourceAlicloudCdnBlockedRegions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCdnBlockedRegionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCdnBlockedRegionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeBlockedRegions"

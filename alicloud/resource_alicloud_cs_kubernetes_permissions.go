@@ -23,12 +23,12 @@ const (
 	ThrottlingError = "Throttling.User"
 )
 
-func resourceAlicloudCSKubernetesPermissions() *schema.Resource {
+func resourceAliCloudCSKubernetesPermissions() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCSKubernetesPermissionsCreate,
-		Read:   resourceAlicloudCSKubernetesPermissionsRead,
-		Update: resourceAlicloudCSKubernetesPermissionsUpdate,
-		Delete: resourceAlicloudCSKubernetesPermissionsDelete,
+		Create: resourceAliCloudCSKubernetesPermissionsCreate,
+		Read:   resourceAliCloudCSKubernetesPermissionsRead,
+		Update: resourceAliCloudCSKubernetesPermissionsUpdate,
+		Delete: resourceAliCloudCSKubernetesPermissionsDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -82,7 +82,7 @@ func resourceAlicloudCSKubernetesPermissions() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCSKubernetesPermissionsCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesPermissionsCreate(d *schema.ResourceData, meta interface{}) error {
 	// Create new permissions of cluster for the specified user.
 	var err error
 	uid := d.Get("uid").(string)
@@ -95,10 +95,10 @@ func resourceAlicloudCSKubernetesPermissionsCreate(d *schema.ResourceData, meta 
 	}
 
 	d.SetId(uid)
-	return resourceAlicloudCSKubernetesPermissionsRead(d, meta)
+	return resourceAliCloudCSKubernetesPermissionsRead(d, meta)
 }
 
-func resourceAlicloudCSKubernetesPermissionsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesPermissionsRead(d *schema.ResourceData, meta interface{}) error {
 	client, err := meta.(*connectivity.AliyunClient).NewRoaCsClient()
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, ResourceName, "InitializeClient", err)
@@ -136,7 +136,7 @@ func resourceAlicloudCSKubernetesPermissionsRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceAlicloudCSKubernetesPermissionsUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesPermissionsUpdate(d *schema.ResourceData, meta interface{}) error {
 	d.Partial(true)
 	defer d.Partial(false)
 
@@ -171,10 +171,10 @@ func resourceAlicloudCSKubernetesPermissionsUpdate(d *schema.ResourceData, meta 
 		}
 	}
 
-	return resourceAlicloudCSKubernetesPermissionsRead(d, meta)
+	return resourceAliCloudCSKubernetesPermissionsRead(d, meta)
 }
 
-func resourceAlicloudCSKubernetesPermissionsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesPermissionsDelete(d *schema.ResourceData, meta interface{}) error {
 	// Delete old permissions of cluster for the specified user.
 	if perms, ok := d.GetOk("permissions"); ok {
 		return manageUserPermissions(ModeDelete, d.Get("uid").(string), meta, perms.(*schema.Set).List())

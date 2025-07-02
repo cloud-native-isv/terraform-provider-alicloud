@@ -17,12 +17,12 @@ const dbConnectionPrefixWithSuffixRegex = "^([a-zA-Z0-9\\-_]+)" + dbConnectionSu
 
 var dbConnectionPrefixWithSuffixRegexp = regexp.MustCompile(dbConnectionPrefixWithSuffixRegex)
 
-func resourceAlicloudDBReadWriteSplittingConnection() *schema.Resource {
+func resourceAliCloudDBReadWriteSplittingConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDBReadWriteSplittingConnectionCreate,
-		Read:   resourceAlicloudDBReadWriteSplittingConnectionRead,
-		Update: resourceAlicloudDBReadWriteSplittingConnectionUpdate,
-		Delete: resourceAlicloudDBReadWriteSplittingConnectionDelete,
+		Create: resourceAliCloudDBReadWriteSplittingConnectionCreate,
+		Read:   resourceAliCloudDBReadWriteSplittingConnectionRead,
+		Update: resourceAliCloudDBReadWriteSplittingConnectionUpdate,
+		Delete: resourceAliCloudDBReadWriteSplittingConnectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +66,7 @@ func resourceAlicloudDBReadWriteSplittingConnection() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDBReadWriteSplittingConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBReadWriteSplittingConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	action := "AllocateReadWriteSplittingConnection"
@@ -117,10 +117,10 @@ func resourceAlicloudDBReadWriteSplittingConnectionCreate(d *schema.ResourceData
 		return WrapError(err)
 	}
 
-	return resourceAlicloudDBReadWriteSplittingConnectionUpdate(d, meta)
+	return resourceAliCloudDBReadWriteSplittingConnectionUpdate(d, meta)
 }
 
-func resourceAlicloudDBReadWriteSplittingConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBReadWriteSplittingConnectionRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
@@ -181,7 +181,7 @@ func resourceAlicloudDBReadWriteSplittingConnectionRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceAlicloudDBReadWriteSplittingConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBReadWriteSplittingConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	action := "ModifyReadWriteSplittingConnection"
@@ -202,7 +202,7 @@ func resourceAlicloudDBReadWriteSplittingConnectionUpdate(d *schema.ResourceData
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
-		return resourceAlicloudDBReadWriteSplittingConnectionRead(d, meta)
+		return resourceAliCloudDBReadWriteSplittingConnectionRead(d, meta)
 	}
 
 	if d.HasChange("weight") {
@@ -246,10 +246,10 @@ func resourceAlicloudDBReadWriteSplittingConnectionUpdate(d *schema.ResourceData
 		}
 	}
 
-	return resourceAlicloudDBReadWriteSplittingConnectionRead(d, meta)
+	return resourceAliCloudDBReadWriteSplittingConnectionRead(d, meta)
 }
 
-func resourceAlicloudDBReadWriteSplittingConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDBReadWriteSplittingConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	action := "ReleaseReadWriteSplittingConnection"

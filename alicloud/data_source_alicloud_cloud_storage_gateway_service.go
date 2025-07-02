@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudStorageGatewayService() *schema.Resource {
+func dataSourceAliCloudCloudStorageGatewayService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudStorageGatewayServiceRead,
+		Read: dataSourceAliCloudCloudStorageGatewayServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -29,7 +29,7 @@ func dataSourceAlicloudCloudStorageGatewayService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudCloudStorageGatewayServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudStorageGatewayServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("CloudStorageGatewayServiceHasNotBeenOpened")
 		d.Set("status", "")

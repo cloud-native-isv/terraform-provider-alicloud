@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCloudSsoUser() *schema.Resource {
+func resourceAliCloudCloudSsoUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudSsoUserCreate,
-		Read:   resourceAlicloudCloudSsoUserRead,
-		Update: resourceAlicloudCloudSsoUserUpdate,
-		Delete: resourceAlicloudCloudSsoUserDelete,
+		Create: resourceAliCloudCloudSsoUserCreate,
+		Read:   resourceAliCloudCloudSsoUserRead,
+		Update: resourceAliCloudCloudSsoUserUpdate,
+		Delete: resourceAliCloudCloudSsoUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -71,7 +71,7 @@ func resourceAlicloudCloudSsoUser() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudSsoUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoUserCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateUser"
@@ -118,9 +118,9 @@ func resourceAlicloudCloudSsoUserCreate(d *schema.ResourceData, meta interface{}
 	responseUser := response["User"].(map[string]interface{})
 	d.SetId(fmt.Sprint(request["DirectoryId"], ":", responseUser["UserId"]))
 
-	return resourceAlicloudCloudSsoUserRead(d, meta)
+	return resourceAliCloudCloudSsoUserRead(d, meta)
 }
-func resourceAlicloudCloudSsoUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudssoService := CloudssoService{client}
 	object, err := cloudssoService.DescribeCloudSsoUser(d.Id())
@@ -147,7 +147,7 @@ func resourceAlicloudCloudSsoUserRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("user_name", object["UserName"])
 	return nil
 }
-func resourceAlicloudCloudSsoUserUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -248,9 +248,9 @@ func resourceAlicloudCloudSsoUserUpdate(d *schema.ResourceData, meta interface{}
 		d.SetPartial("last_name")
 	}
 	d.Partial(false)
-	return resourceAlicloudCloudSsoUserRead(d, meta)
+	return resourceAliCloudCloudSsoUserRead(d, meta)
 }
-func resourceAlicloudCloudSsoUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoUserDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

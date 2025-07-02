@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAlbAscripts() *schema.Resource {
+func dataSourceAliCloudAlbAscripts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAlbAscriptsRead,
+		Read: dataSourceAliCloudAlbAscriptsRead,
 		Schema: map[string]*schema.Schema{
 			"ascript_name": {
 				Optional: true,
@@ -123,7 +123,7 @@ func dataSourceAlicloudAlbAscripts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAlbAscriptsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAlbAscriptsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

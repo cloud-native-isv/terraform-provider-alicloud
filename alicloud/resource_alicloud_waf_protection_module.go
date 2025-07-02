@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudWafProtectionModule() *schema.Resource {
+func resourceAliCloudWafProtectionModule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudWafProtectionModuleCreate,
-		Read:   resourceAlicloudWafProtectionModuleRead,
-		Update: resourceAlicloudWafProtectionModuleUpdate,
-		Delete: resourceAlicloudWafProtectionModuleDelete,
+		Create: resourceAliCloudWafProtectionModuleCreate,
+		Read:   resourceAliCloudWafProtectionModuleRead,
+		Update: resourceAliCloudWafProtectionModuleUpdate,
+		Delete: resourceAliCloudWafProtectionModuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -51,7 +51,7 @@ func resourceAlicloudWafProtectionModule() *schema.Resource {
 	}
 }
 
-func resourceAlicloudWafProtectionModuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafProtectionModuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "ModifyProtectionModuleMode"
@@ -81,9 +81,9 @@ func resourceAlicloudWafProtectionModuleCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["Domain"], ":", request["DefenseType"]))
 
-	return resourceAlicloudWafProtectionModuleUpdate(d, meta)
+	return resourceAliCloudWafProtectionModuleUpdate(d, meta)
 }
-func resourceAlicloudWafProtectionModuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafProtectionModuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	wafOpenapiService := WafOpenapiService{client}
 	object, err := wafOpenapiService.DescribeWafProtectionModule(d.Id())
@@ -110,7 +110,7 @@ func resourceAlicloudWafProtectionModuleRead(d *schema.ResourceData, meta interf
 	d.Set("status", formatInt(describeProtectionModuleStatusObject["ModuleStatus"]))
 	return nil
 }
-func resourceAlicloudWafProtectionModuleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafProtectionModuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -185,9 +185,9 @@ func resourceAlicloudWafProtectionModuleUpdate(d *schema.ResourceData, meta inte
 	}
 
 	d.Partial(false)
-	return resourceAlicloudWafProtectionModuleRead(d, meta)
+	return resourceAliCloudWafProtectionModuleRead(d, meta)
 }
-func resourceAlicloudWafProtectionModuleDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudWafProtectionModule. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudWafProtectionModuleDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudWafProtectionModule. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

@@ -5,9 +5,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCallerIdentity() *schema.Resource {
+func dataSourceAliCloudCallerIdentity() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCallerIdentityRead,
+		Read: dataSourceAliCloudCallerIdentityRead,
 		Schema: map[string]*schema.Schema{
 			"account_id": {
 				Type:     schema.TypeString,
@@ -25,7 +25,7 @@ func dataSourceAlicloudCallerIdentity() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCallerIdentityRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCallerIdentityRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resp, err := client.GetCallerIdentity()
 	if err != nil {

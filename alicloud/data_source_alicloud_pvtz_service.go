@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudPvtzService() *schema.Resource {
+func dataSourceAliCloudPvtzService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPvtzServiceRead,
+		Read: dataSourceAliCloudPvtzServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -31,7 +31,7 @@ func dataSourceAlicloudPvtzService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudPvtzServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPvtzServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("PvtzServiceHasNotBeenOpened")

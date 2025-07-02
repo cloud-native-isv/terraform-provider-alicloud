@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCloudStorageGatewayGatewayBlockVolume() *schema.Resource {
+func resourceAliCloudCloudStorageGatewayGatewayBlockVolume() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudStorageGatewayGatewayBlockVolumeCreate,
-		Read:   resourceAlicloudCloudStorageGatewayGatewayBlockVolumeRead,
-		Update: resourceAlicloudCloudStorageGatewayGatewayBlockVolumeUpdate,
-		Delete: resourceAlicloudCloudStorageGatewayGatewayBlockVolumeDelete,
+		Create: resourceAliCloudCloudStorageGatewayGatewayBlockVolumeCreate,
+		Read:   resourceAliCloudCloudStorageGatewayGatewayBlockVolumeRead,
+		Update: resourceAliCloudCloudStorageGatewayGatewayBlockVolumeUpdate,
+		Delete: resourceAliCloudCloudStorageGatewayGatewayBlockVolumeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -137,7 +137,7 @@ func resourceAlicloudCloudStorageGatewayGatewayBlockVolume() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudStorageGatewayGatewayBlockVolumeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayBlockVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateGatewayBlockVolume"
@@ -206,9 +206,9 @@ func resourceAlicloudCloudStorageGatewayGatewayBlockVolumeCreate(d *schema.Resou
 		return WrapError(err)
 	}
 	d.SetId(fmt.Sprint(request["GatewayId"], ":", response["RelatedResourceId"]))
-	return resourceAlicloudCloudStorageGatewayGatewayBlockVolumeRead(d, meta)
+	return resourceAliCloudCloudStorageGatewayGatewayBlockVolumeRead(d, meta)
 }
-func resourceAlicloudCloudStorageGatewayGatewayBlockVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayBlockVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	object, err := sgwService.DescribeCloudStorageGatewayGatewayBlockVolume(d.Id())
@@ -241,7 +241,7 @@ func resourceAlicloudCloudStorageGatewayGatewayBlockVolumeRead(d *schema.Resourc
 	d.Set("status", fmt.Sprint(formatInt(object["VolumeState"])))
 	return nil
 }
-func resourceAlicloudCloudStorageGatewayGatewayBlockVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayBlockVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -306,9 +306,9 @@ func resourceAlicloudCloudStorageGatewayGatewayBlockVolumeUpdate(d *schema.Resou
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudCloudStorageGatewayGatewayBlockVolumeRead(d, meta)
+	return resourceAliCloudCloudStorageGatewayGatewayBlockVolumeRead(d, meta)
 }
-func resourceAlicloudCloudStorageGatewayGatewayBlockVolumeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayGatewayBlockVolumeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudPolarDBBackupPolicy() *schema.Resource {
+func resourceAliCloudPolarDBBackupPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPolarDBBackupPolicyCreate,
-		Read:   resourceAlicloudPolarDBBackupPolicyRead,
-		Update: resourceAlicloudPolarDBBackupPolicyUpdate,
-		Delete: resourceAlicloudPolarDBBackupPolicyDelete,
+		Create: resourceAliCloudPolarDBBackupPolicyCreate,
+		Read:   resourceAliCloudPolarDBBackupPolicyRead,
+		Update: resourceAliCloudPolarDBBackupPolicyUpdate,
+		Delete: resourceAliCloudPolarDBBackupPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -143,14 +143,14 @@ func resourceAlicloudPolarDBBackupPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPolarDBBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(d.Get("db_cluster_id").(string))
 
-	return resourceAlicloudPolarDBBackupPolicyUpdate(d, meta)
+	return resourceAliCloudPolarDBBackupPolicyUpdate(d, meta)
 }
 
-func resourceAlicloudPolarDBBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polardbService := PolarDBService{client}
 	object, err := polardbService.DescribeBackupPolicy(d.Id())
@@ -195,7 +195,7 @@ func resourceAlicloudPolarDBBackupPolicyRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAlicloudPolarDBBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
@@ -319,10 +319,10 @@ func resourceAlicloudPolarDBBackupPolicyUpdate(d *schema.ResourceData, meta inte
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudPolarDBBackupPolicyRead(d, meta)
+	return resourceAliCloudPolarDBBackupPolicyRead(d, meta)
 }
 
-func resourceAlicloudPolarDBBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	//  Terraform can not destroy it..
 	return nil
 }

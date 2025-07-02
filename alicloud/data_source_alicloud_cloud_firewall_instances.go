@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCloudFirewallInstances() *schema.Resource {
+func dataSourceAliCloudCloudFirewallInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudFirewallInstancesRead,
+		Read: dataSourceAliCloudCloudFirewallInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"payment_type": {
 				Type:         schema.TypeString,
@@ -68,7 +68,7 @@ func dataSourceAlicloudCloudFirewallInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudFirewallInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudFirewallInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "QueryAvailableInstances"

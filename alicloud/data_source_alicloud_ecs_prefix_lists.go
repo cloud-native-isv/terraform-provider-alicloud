@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcsPrefixLists() *schema.Resource {
+func dataSourceAliCloudEcsPrefixLists() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcsPrefixListsRead,
+		Read: dataSourceAliCloudEcsPrefixListsRead,
 		Schema: map[string]*schema.Schema{
 			"address_family": {
 				Type:         schema.TypeString,
@@ -109,7 +109,7 @@ func dataSourceAlicloudEcsPrefixLists() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcsPrefixListsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcsPrefixListsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribePrefixLists"

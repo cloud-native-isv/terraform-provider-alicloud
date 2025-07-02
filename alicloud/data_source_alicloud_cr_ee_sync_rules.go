@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCrEESyncRules() *schema.Resource {
+func dataSourceAliCloudCrEESyncRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCrEESyncRulesRead,
+		Read: dataSourceAliCloudCrEESyncRulesRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Type:     schema.TypeString,
@@ -127,7 +127,7 @@ func dataSourceAlicloudCrEESyncRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCrEESyncRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCrEESyncRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := &CrService{client}
 	instanceId := d.Get("instance_id").(string)

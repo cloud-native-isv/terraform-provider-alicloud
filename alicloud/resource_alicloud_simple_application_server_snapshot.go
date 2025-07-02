@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSimpleApplicationServerSnapshot() *schema.Resource {
+func resourceAliCloudSimpleApplicationServerSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSimpleApplicationServerSnapshotCreate,
-		Read:   resourceAlicloudSimpleApplicationServerSnapshotRead,
-		Delete: resourceAlicloudSimpleApplicationServerSnapshotDelete,
+		Create: resourceAliCloudSimpleApplicationServerSnapshotCreate,
+		Read:   resourceAliCloudSimpleApplicationServerSnapshotRead,
+		Delete: resourceAliCloudSimpleApplicationServerSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -44,7 +44,7 @@ func resourceAlicloudSimpleApplicationServerSnapshot() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSimpleApplicationServerSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateSnapshot"
@@ -78,9 +78,9 @@ func resourceAlicloudSimpleApplicationServerSnapshotCreate(d *schema.ResourceDat
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudSimpleApplicationServerSnapshotRead(d, meta)
+	return resourceAliCloudSimpleApplicationServerSnapshotRead(d, meta)
 }
-func resourceAlicloudSimpleApplicationServerSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	swasOpenService := SwasOpenService{client}
 	object, err := swasOpenService.DescribeSimpleApplicationServerSnapshot(d.Id())
@@ -97,7 +97,7 @@ func resourceAlicloudSimpleApplicationServerSnapshotRead(d *schema.ResourceData,
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudSimpleApplicationServerSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSimpleApplicationServerSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteSnapshot"
 	var response map[string]interface{}

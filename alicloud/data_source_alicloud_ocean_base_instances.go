@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOceanBaseInstances() *schema.Resource {
+func dataSourceAliCloudOceanBaseInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOceanBaseInstancesRead,
+		Read: dataSourceAliCloudOceanBaseInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Optional: true,
@@ -151,7 +151,7 @@ func dataSourceAlicloudOceanBaseInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudOceanBaseInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOceanBaseInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

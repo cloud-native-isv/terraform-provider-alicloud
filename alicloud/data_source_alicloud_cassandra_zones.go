@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCassandraZones() *schema.Resource {
+func dataSourceAliCloudCassandraZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudZonesCassandraRead,
+		Read: dataSourceAliCloudZonesCassandraRead,
 
 		Schema: map[string]*schema.Schema{
 			"multi": {
@@ -50,7 +50,7 @@ func dataSourceAlicloudCassandraZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudZonesCassandraRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudZonesCassandraRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	multi := false
 	if v, ok := d.GetOk("multi"); ok {

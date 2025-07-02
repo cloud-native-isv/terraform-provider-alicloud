@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudGraphDatabaseDbInstances() *schema.Resource {
+func dataSourceAliCloudGraphDatabaseDbInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGraphDatabaseDbInstancesRead,
+		Read: dataSourceAliCloudGraphDatabaseDbInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"db_instance_description": {
 				Type:     schema.TypeString,
@@ -204,7 +204,7 @@ func dataSourceAlicloudGraphDatabaseDbInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGraphDatabaseDbInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGraphDatabaseDbInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDBInstances"

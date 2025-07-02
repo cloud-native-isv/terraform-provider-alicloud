@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudAdbAccount() *schema.Resource {
+func resourceAliCloudAdbAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAdbAccountCreate,
-		Read:   resourceAlicloudAdbAccountRead,
-		Update: resourceAlicloudAdbAccountUpdate,
-		Delete: resourceAlicloudAdbAccountDelete,
+		Create: resourceAliCloudAdbAccountCreate,
+		Read:   resourceAliCloudAdbAccountRead,
+		Update: resourceAliCloudAdbAccountUpdate,
+		Delete: resourceAliCloudAdbAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -74,7 +74,7 @@ func resourceAlicloudAdbAccount() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAdbAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAdbAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	adbService := AdbService{client}
 	request := adb.CreateCreateAccountRequest()
@@ -130,10 +130,10 @@ func resourceAlicloudAdbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		return WrapError(err)
 	}
 
-	return resourceAlicloudAdbAccountRead(d, meta)
+	return resourceAliCloudAdbAccountRead(d, meta)
 }
 
-func resourceAlicloudAdbAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAdbAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	adbService := AdbService{client}
 	object, err := adbService.DescribeAdbAccount(d.Id())
@@ -157,7 +157,7 @@ func resourceAlicloudAdbAccountRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAlicloudAdbAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAdbAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	adbService := AdbService{client}
 	d.Partial(true)
@@ -222,10 +222,10 @@ func resourceAlicloudAdbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Partial(false)
-	return resourceAlicloudAdbAccountRead(d, meta)
+	return resourceAliCloudAdbAccountRead(d, meta)
 }
 
-func resourceAlicloudAdbAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAdbAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	adbService := AdbService{client}
 	parts, err := ParseResourceId(d.Id(), 2)

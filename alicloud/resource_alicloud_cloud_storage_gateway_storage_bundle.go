@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCloudStorageGatewayStorageBundle() *schema.Resource {
+func resourceAliCloudCloudStorageGatewayStorageBundle() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudStorageGatewayStorageBundleCreate,
-		Read:   resourceAlicloudCloudStorageGatewayStorageBundleRead,
-		Update: resourceAlicloudCloudStorageGatewayStorageBundleUpdate,
-		Delete: resourceAlicloudCloudStorageGatewayStorageBundleDelete,
+		Create: resourceAliCloudCloudStorageGatewayStorageBundleCreate,
+		Read:   resourceAliCloudCloudStorageGatewayStorageBundleRead,
+		Update: resourceAliCloudCloudStorageGatewayStorageBundleUpdate,
+		Delete: resourceAliCloudCloudStorageGatewayStorageBundleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -32,7 +32,7 @@ func resourceAlicloudCloudStorageGatewayStorageBundle() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudStorageGatewayStorageBundleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayStorageBundleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateStorageBundle"
@@ -63,9 +63,9 @@ func resourceAlicloudCloudStorageGatewayStorageBundleCreate(d *schema.ResourceDa
 
 	d.SetId(fmt.Sprint(response["StorageBundleId"]))
 
-	return resourceAlicloudCloudStorageGatewayStorageBundleRead(d, meta)
+	return resourceAliCloudCloudStorageGatewayStorageBundleRead(d, meta)
 }
-func resourceAlicloudCloudStorageGatewayStorageBundleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayStorageBundleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sgwService := SgwService{client}
 	object, err := sgwService.DescribeCloudStorageGatewayStorageBundle(d.Id())
@@ -81,7 +81,7 @@ func resourceAlicloudCloudStorageGatewayStorageBundleRead(d *schema.ResourceData
 	d.Set("storage_bundle_name", object["Name"])
 	return nil
 }
-func resourceAlicloudCloudStorageGatewayStorageBundleUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayStorageBundleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -116,9 +116,9 @@ func resourceAlicloudCloudStorageGatewayStorageBundleUpdate(d *schema.ResourceDa
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCloudStorageGatewayStorageBundleRead(d, meta)
+	return resourceAliCloudCloudStorageGatewayStorageBundleRead(d, meta)
 }
-func resourceAlicloudCloudStorageGatewayStorageBundleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudStorageGatewayStorageBundleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteStorageBundle"
 	var response map[string]interface{}

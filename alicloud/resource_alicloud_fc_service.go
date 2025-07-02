@@ -15,12 +15,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudFCService() *schema.Resource {
+func resourceAliCloudFCService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudFCServiceCreate,
-		Read:   resourceAlicloudFCServiceRead,
-		Update: resourceAlicloudFCServiceUpdate,
-		Delete: resourceAlicloudFCServiceDelete,
+		Create: resourceAliCloudFCServiceCreate,
+		Read:   resourceAliCloudFCServiceRead,
+		Update: resourceAliCloudFCServiceUpdate,
+		Delete: resourceAliCloudFCServiceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -175,7 +175,7 @@ func resourceAlicloudFCService() *schema.Resource {
 	}
 }
 
-func resourceAlicloudFCServiceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var name string
@@ -284,10 +284,10 @@ func resourceAlicloudFCServiceCreate(d *schema.ResourceData, meta interface{}) e
 			return WrapError(err)
 		}
 	}
-	return resourceAlicloudFCServiceRead(d, meta)
+	return resourceAliCloudFCServiceRead(d, meta)
 }
 
-func resourceAlicloudFCServiceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fcService := FcService{client}
 
@@ -395,7 +395,7 @@ func resourceAlicloudFCServiceRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceAlicloudFCServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	d.Partial(true)
 
@@ -520,10 +520,10 @@ func resourceAlicloudFCServiceUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Partial(false)
-	return resourceAlicloudFCServiceRead(d, meta)
+	return resourceAliCloudFCServiceRead(d, meta)
 }
 
-func resourceAlicloudFCServiceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fcService := FcService{client}
 

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudGaCustomRoutingEndpoints() *schema.Resource {
+func dataSourceAliCloudGaCustomRoutingEndpoints() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGaCustomRoutingEndpointsRead,
+		Read: dataSourceAliCloudGaCustomRoutingEndpointsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -93,7 +93,7 @@ func dataSourceAlicloudGaCustomRoutingEndpoints() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGaCustomRoutingEndpointsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGaCustomRoutingEndpointsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListCustomRoutingEndpoints"

@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCloudStorageGatewayGatewaySmbUsers() *schema.Resource {
+func dataSourceAliCloudCloudStorageGatewayGatewaySmbUsers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudStorageGatewayGatewaySmbUsersRead,
+		Read: dataSourceAliCloudCloudStorageGatewayGatewaySmbUsersRead,
 		Schema: map[string]*schema.Schema{
 			"gateway_id": {
 				Type:     schema.TypeString,
@@ -63,7 +63,7 @@ func dataSourceAlicloudCloudStorageGatewayGatewaySmbUsers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudStorageGatewayGatewaySmbUsersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudStorageGatewayGatewaySmbUsersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeGatewaySMBUsers"

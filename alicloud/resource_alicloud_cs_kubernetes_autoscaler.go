@@ -68,13 +68,13 @@ type autoscalerOptions struct {
 	UseEcsRamRoleToken bool
 }
 
-// resourceAlicloudCSKubernetesAutoscaler defines the schema of resource
-func resourceAlicloudCSKubernetesAutoscaler() *schema.Resource {
+// resourceAliCloudCSKubernetesAutoscaler defines the schema of resource
+func resourceAliCloudCSKubernetesAutoscaler() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCSKubernetesAutoscalerCreate,
-		Read:   resourceAlicloudCSKubernetesAutoscalerRead,
-		Update: resourceAlicloudCSKubernetesAutoscalerUpdate,
-		Delete: resourceAlicloudCSKubernetesAutoscalerDelete,
+		Create: resourceAliCloudCSKubernetesAutoscalerCreate,
+		Read:   resourceAliCloudCSKubernetesAutoscalerRead,
+		Update: resourceAliCloudCSKubernetesAutoscalerUpdate,
+		Delete: resourceAliCloudCSKubernetesAutoscalerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -142,21 +142,21 @@ func resourceAlicloudCSKubernetesAutoscaler() *schema.Resource {
 	}
 }
 
-// resourceAlicloudCSKubernetesAutoscalerCreate define how to create autoscaler
-func resourceAlicloudCSKubernetesAutoscalerCreate(d *schema.ResourceData, meta interface{}) error {
+// resourceAliCloudCSKubernetesAutoscalerCreate define how to create autoscaler
+func resourceAliCloudCSKubernetesAutoscalerCreate(d *schema.ResourceData, meta interface{}) error {
 	clusterId := d.Get("cluster_id").(string)
 	// set unique id of tf state
 	d.SetId(fmt.Sprintf("%s:%s", clusterId, clusterAutoscaler))
-	return resourceAlicloudCSKubernetesAutoscalerUpdate(d, meta)
+	return resourceAliCloudCSKubernetesAutoscalerUpdate(d, meta)
 }
 
-// resourceAlicloudCSKubernetesAutoscalerRead no need to implement
-func resourceAlicloudCSKubernetesAutoscalerRead(d *schema.ResourceData, meta interface{}) error {
+// resourceAliCloudCSKubernetesAutoscalerRead no need to implement
+func resourceAliCloudCSKubernetesAutoscalerRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-// resourceAlicloudCSKubernetesAutoscalerUpdate define how to update autoscaler configuration
-func resourceAlicloudCSKubernetesAutoscalerUpdate(d *schema.ResourceData, meta interface{}) error {
+// resourceAliCloudCSKubernetesAutoscalerUpdate define how to update autoscaler configuration
+func resourceAliCloudCSKubernetesAutoscalerUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	csService := CsService{client}
@@ -286,7 +286,7 @@ func resourceAlicloudCSKubernetesAutoscalerUpdate(d *schema.ResourceData, meta i
 }
 
 // delete autoscaler deployment
-func resourceAlicloudCSKubernetesAutoscalerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesAutoscalerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	regionId := client.RegionId
 

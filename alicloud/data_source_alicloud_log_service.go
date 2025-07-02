@@ -10,9 +10,9 @@ import (
 
 const maxWaitTime = 60
 
-func dataSourceAlicloudLogService() *schema.Resource {
+func dataSourceAliCloudLogService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudLogServiceRead,
+		Read: dataSourceAliCloudLogServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -29,7 +29,7 @@ func dataSourceAlicloudLogService() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudLogServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudLogServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("LogServiceHasNotBeenOpened")
 		d.Set("status", "")

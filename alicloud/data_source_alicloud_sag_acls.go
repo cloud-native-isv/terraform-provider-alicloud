@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSagAcls() *schema.Resource {
+func dataSourceAliCloudSagAcls() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSagAclsRead,
+		Read: dataSourceAliCloudSagAclsRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -59,7 +59,7 @@ func dataSourceAlicloudSagAcls() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSagAclsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSagAclsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := smartag.CreateDescribeACLsRequest()
 

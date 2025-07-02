@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudNasFilesets() *schema.Resource {
+func dataSourceAliCloudNasFilesets() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudNasFilesetsRead,
+		Read: dataSourceAliCloudNasFilesetsRead,
 		Schema: map[string]*schema.Schema{
 			"file_system_id": {
 				Type:     schema.TypeString,
@@ -79,7 +79,7 @@ func dataSourceAlicloudNasFilesets() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudNasFilesetsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudNasFilesetsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {

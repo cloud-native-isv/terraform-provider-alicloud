@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudElasticsearch() *schema.Resource {
+func resourceAliCloudElasticsearch() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudElasticsearchCreate,
-		Read:   resourceAlicloudElasticsearchRead,
-		Update: resourceAlicloudElasticsearchUpdate,
-		Delete: resourceAlicloudElasticsearchDelete,
+		Create: resourceAliCloudElasticsearchCreate,
+		Read:   resourceAliCloudElasticsearchRead,
+		Update: resourceAliCloudElasticsearchUpdate,
+		Delete: resourceAliCloudElasticsearchDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -349,7 +349,7 @@ func resourceAlicloudElasticsearch() *schema.Resource {
 	}
 }
 
-func resourceAlicloudElasticsearchCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudElasticsearchCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	elasticsearchService := ElasticsearchService{client}
 	action := "createInstance"
@@ -397,10 +397,10 @@ func resourceAlicloudElasticsearchCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudElasticsearchUpdate(d, meta)
+	return resourceAliCloudElasticsearchUpdate(d, meta)
 }
 
-func resourceAlicloudElasticsearchRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudElasticsearchRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	elasticsearchService := ElasticsearchService{client}
 
@@ -520,7 +520,7 @@ func resourceAlicloudElasticsearchRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudElasticsearchUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudElasticsearchUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	elasticsearchService := ElasticsearchService{client}
 	d.Partial(true)
@@ -766,7 +766,7 @@ func resourceAlicloudElasticsearchUpdate(d *schema.ResourceData, meta interface{
 
 	if d.IsNewResource() {
 		d.Partial(false)
-		return resourceAlicloudElasticsearchRead(d, meta)
+		return resourceAliCloudElasticsearchRead(d, meta)
 	}
 
 	if d.HasChange("data_node_amount") {
@@ -864,10 +864,10 @@ func resourceAlicloudElasticsearchUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	d.Partial(false)
-	return resourceAlicloudElasticsearchRead(d, meta)
+	return resourceAliCloudElasticsearchRead(d, meta)
 }
 
-func resourceAlicloudElasticsearchDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudElasticsearchDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	elasticsearchService := ElasticsearchService{client}
 	action := "DeleteInstance"

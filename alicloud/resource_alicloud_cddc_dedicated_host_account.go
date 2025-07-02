@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCddcDedicatedHostAccount() *schema.Resource {
+func resourceAliCloudCddcDedicatedHostAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCddcDedicatedHostAccountCreate,
-		Read:   resourceAlicloudCddcDedicatedHostAccountRead,
-		Update: resourceAlicloudCddcDedicatedHostAccountUpdate,
-		Delete: resourceAlicloudCddcDedicatedHostAccountDelete,
+		Create: resourceAliCloudCddcDedicatedHostAccountCreate,
+		Read:   resourceAliCloudCddcDedicatedHostAccountRead,
+		Update: resourceAliCloudCddcDedicatedHostAccountUpdate,
+		Delete: resourceAliCloudCddcDedicatedHostAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +49,7 @@ func resourceAlicloudCddcDedicatedHostAccount() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCddcDedicatedHostAccountCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDedicatedHostAccount"
@@ -87,9 +87,9 @@ func resourceAlicloudCddcDedicatedHostAccountCreate(d *schema.ResourceData, meta
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCddcDedicatedHostAccountRead(d, meta)
+	return resourceAliCloudCddcDedicatedHostAccountRead(d, meta)
 }
-func resourceAlicloudCddcDedicatedHostAccountRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cddcService := CddcService{client}
 	object, err := cddcService.DescribeCddcDedicatedHostAccount(d.Id())
@@ -106,7 +106,7 @@ func resourceAlicloudCddcDedicatedHostAccountRead(d *schema.ResourceData, meta i
 	d.Set("dedicated_host_id", object["DedicatedHostId"])
 	return nil
 }
-func resourceAlicloudCddcDedicatedHostAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -138,9 +138,9 @@ func resourceAlicloudCddcDedicatedHostAccountUpdate(d *schema.ResourceData, meta
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
-	return resourceAlicloudCddcDedicatedHostAccountRead(d, meta)
+	return resourceAliCloudCddcDedicatedHostAccountRead(d, meta)
 }
-func resourceAlicloudCddcDedicatedHostAccountDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

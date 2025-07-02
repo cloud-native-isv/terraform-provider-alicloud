@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcdSnapshot() *schema.Resource {
+func resourceAliCloudEcdSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdSnapshotCreate,
-		Read:   resourceAlicloudEcdSnapshotRead,
-		Delete: resourceAlicloudEcdSnapshotDelete,
+		Create: resourceAliCloudEcdSnapshotCreate,
+		Read:   resourceAliCloudEcdSnapshotRead,
+		Delete: resourceAliCloudEcdSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceAlicloudEcdSnapshot() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"RegionId": client.RegionId,
@@ -94,9 +94,9 @@ func resourceAlicloudEcdSnapshotCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(fmt.Sprint(response["SnapshotId"]))
-	return resourceAlicloudEcdSnapshotRead(d, meta)
+	return resourceAliCloudEcdSnapshotRead(d, meta)
 }
-func resourceAlicloudEcdSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecdService := EcdService{client}
 
@@ -118,7 +118,7 @@ func resourceAlicloudEcdSnapshotRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAlicloudEcdSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	request := map[string]interface{}{

@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCrEndpointAclPolicies() *schema.Resource {
+func dataSourceAliCloudCrEndpointAclPolicies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCrEndpointAclPoliciesRead,
+		Read: dataSourceAliCloudCrEndpointAclPoliciesRead,
 		Schema: map[string]*schema.Schema{
 			"endpoint_type": {
 				Type:         schema.TypeString,
@@ -69,7 +69,7 @@ func dataSourceAlicloudCrEndpointAclPolicies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCrEndpointAclPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCrEndpointAclPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "GetInstanceEndpoint"

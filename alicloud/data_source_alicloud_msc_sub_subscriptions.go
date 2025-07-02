@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudMscSubSubscriptions() *schema.Resource {
+func dataSourceAliCloudMscSubSubscriptions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMscSubSubscriptionsRead,
+		Read: dataSourceAliCloudMscSubSubscriptionsRead,
 		Schema: map[string]*schema.Schema{
 			"output_file": {
 				Type:     schema.TypeString,
@@ -82,7 +82,7 @@ func dataSourceAlicloudMscSubSubscriptions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMscSubSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMscSubSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListSubscriptionItems"

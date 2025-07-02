@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCenInstanceAttachment() *schema.Resource {
+func resourceAliCloudCenInstanceAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenInstanceAttachmentCreate,
-		Read:   resourceAlicloudCenInstanceAttachmentRead,
-		Update: resourceAlicloudCenInstanceAttachmentUpdate,
-		Delete: resourceAlicloudCenInstanceAttachmentDelete,
+		Create: resourceAliCloudCenInstanceAttachmentCreate,
+		Read:   resourceAliCloudCenInstanceAttachmentRead,
+		Update: resourceAliCloudCenInstanceAttachmentUpdate,
+		Delete: resourceAliCloudCenInstanceAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +66,7 @@ func resourceAlicloudCenInstanceAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenInstanceAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenInstanceAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 
@@ -105,10 +105,10 @@ func resourceAlicloudCenInstanceAttachmentCreate(d *schema.ResourceData, meta in
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCenInstanceAttachmentRead(d, meta)
+	return resourceAliCloudCenInstanceAttachmentRead(d, meta)
 }
 
-func resourceAlicloudCenInstanceAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenInstanceAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	if len(strings.Split(d.Id(), ":")) == 2 {
@@ -141,12 +141,12 @@ func resourceAlicloudCenInstanceAttachmentRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceAlicloudCenInstanceAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenInstanceAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudCenInstanceAttachmentRead(d, meta)
+	return resourceAliCloudCenInstanceAttachmentRead(d, meta)
 }
 
-func resourceAlicloudCenInstanceAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenInstanceAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	if len(strings.Split(d.Id(), ":")) == 2 {
 		childType, _ := GetCenChildInstanceType(d.Get("child_instance_id").(string))

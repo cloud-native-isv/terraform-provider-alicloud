@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudRosTemplateScratches() *schema.Resource {
+func dataSourceAliCloudRosTemplateScratches() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRosTemplateScratchesRead,
+		Read: dataSourceAliCloudRosTemplateScratchesRead,
 		Schema: map[string]*schema.Schema{
 			"status": {
 				Type:         schema.TypeString,
@@ -161,7 +161,7 @@ func dataSourceAlicloudRosTemplateScratches() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRosTemplateScratchesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRosTemplateScratchesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTemplateScratches"

@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSlbServerCertificates() *schema.Resource {
+func dataSourceAliCloudSlbServerCertificates() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSlbServerCertificatesRead,
+		Read: dataSourceAliCloudSlbServerCertificatesRead,
 
 		Schema: map[string]*schema.Schema{
 			"output_file": {
@@ -124,7 +124,7 @@ func severCertificateTagsMappings(id string, meta interface{}) map[string]interf
 	return tagsToMap(tags)
 }
 
-func dataSourceAlicloudSlbServerCertificatesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSlbServerCertificatesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := slb.CreateDescribeServerCertificatesRequest()

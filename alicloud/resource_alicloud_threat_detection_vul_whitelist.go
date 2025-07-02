@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudThreatDetectionVulWhitelist() *schema.Resource {
+func resourceAliCloudThreatDetectionVulWhitelist() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudThreatDetectionVulWhitelistCreate,
-		Read:   resourceAlicloudThreatDetectionVulWhitelistRead,
-		Update: resourceAlicloudThreatDetectionVulWhitelistUpdate,
-		Delete: resourceAlicloudThreatDetectionVulWhitelistDelete,
+		Create: resourceAliCloudThreatDetectionVulWhitelistCreate,
+		Read:   resourceAliCloudThreatDetectionVulWhitelistRead,
+		Update: resourceAliCloudThreatDetectionVulWhitelistUpdate,
+		Delete: resourceAliCloudThreatDetectionVulWhitelistDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -42,7 +42,7 @@ func resourceAlicloudThreatDetectionVulWhitelist() *schema.Resource {
 	}
 }
 
-func resourceAlicloudThreatDetectionVulWhitelistCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionVulWhitelistCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "ModifyCreateVulWhitelist"
@@ -83,10 +83,10 @@ func resourceAlicloudThreatDetectionVulWhitelistCreate(d *schema.ResourceData, m
 		d.SetId(fmt.Sprint(v.(map[string]interface{})["Id"]))
 	}
 
-	return resourceAlicloudThreatDetectionVulWhitelistRead(d, meta)
+	return resourceAliCloudThreatDetectionVulWhitelistRead(d, meta)
 }
 
-func resourceAlicloudThreatDetectionVulWhitelistRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionVulWhitelistRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	threatDetectionService := ThreatDetectionService{client}
 
@@ -106,7 +106,7 @@ func resourceAlicloudThreatDetectionVulWhitelistRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceAlicloudThreatDetectionVulWhitelistUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionVulWhitelistUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -151,10 +151,10 @@ func resourceAlicloudThreatDetectionVulWhitelistUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	return resourceAlicloudThreatDetectionVulWhitelistRead(d, meta)
+	return resourceAliCloudThreatDetectionVulWhitelistRead(d, meta)
 }
 
-func resourceAlicloudThreatDetectionVulWhitelistDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudThreatDetectionVulWhitelistDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteVulWhitelist"
 	var response map[string]interface{}

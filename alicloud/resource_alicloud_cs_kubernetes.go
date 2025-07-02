@@ -41,12 +41,12 @@ var (
 	KubernetesClusterNodeCIDRMasksByDefault = 24
 )
 
-func resourceAlicloudCSKubernetes() *schema.Resource {
+func resourceAliCloudCSKubernetes() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCSKubernetesCreate,
-		Read:   resourceAlicloudCSKubernetesRead,
-		Update: resourceAlicloudCSKubernetesUpdate,
-		Delete: resourceAlicloudCSKubernetesDelete,
+		Create: resourceAliCloudCSKubernetesCreate,
+		Read:   resourceAliCloudCSKubernetesRead,
+		Update: resourceAliCloudCSKubernetesUpdate,
+		Delete: resourceAliCloudCSKubernetesDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -832,7 +832,7 @@ func resourceAlicloudCSKubernetes() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCSKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	csService := CsService{client}
 	invoker := NewInvoker()
@@ -886,10 +886,10 @@ func resourceAlicloudCSKubernetesCreate(d *schema.ResourceData, meta interface{}
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCSKubernetesRead(d, meta)
+	return resourceAliCloudCSKubernetesRead(d, meta)
 }
 
-func resourceAlicloudCSKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
 	d.Partial(true)
 	invoker := NewInvoker()
 	// modifyCluster
@@ -928,7 +928,7 @@ func resourceAlicloudCSKubernetesUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	d.Partial(false)
-	return resourceAlicloudCSKubernetesRead(d, meta)
+	return resourceAliCloudCSKubernetesRead(d, meta)
 }
 
 func migrateCluster(d *schema.ResourceData, meta interface{}) error {
@@ -1096,7 +1096,7 @@ func modifyCluster(d *schema.ResourceData, meta interface{}, invoker *Invoker) e
 	return nil
 }
 
-func resourceAlicloudCSKubernetesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	csService := CsService{client}
 
@@ -1313,7 +1313,7 @@ func resourceAlicloudCSKubernetesRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAlicloudCSKubernetesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCSKubernetesDelete(d *schema.ResourceData, meta interface{}) error {
 	csService := CsService{meta.(*connectivity.AliyunClient)}
 	client, err := meta.(*connectivity.AliyunClient).NewRoaCsClient()
 	if err != nil {

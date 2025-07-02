@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudVpcDhcpOptionsSetAttachement() *schema.Resource {
+func resourceAliCloudVpcDhcpOptionsSetAttachement() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpcDhcpOptionsAttachmentCreate,
-		Read:   resourceAlicloudVpcDhcpOptionsSetAttachmentRead,
-		Update: resourceAlicloudVpcDhcpOptionsSetAttachmentUpdate,
-		Delete: resourceAlicloudVpcDhcpOptionsSetAttachmentDelete,
+		Create: resourceAliCloudVpcDhcpOptionsAttachmentCreate,
+		Read:   resourceAliCloudVpcDhcpOptionsSetAttachmentRead,
+		Update: resourceAliCloudVpcDhcpOptionsSetAttachmentUpdate,
+		Delete: resourceAliCloudVpcDhcpOptionsSetAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudVpcDhcpOptionsSetAttachement() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpcDhcpOptionsAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcDhcpOptionsAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AttachDhcpOptionsSetToVpc"
@@ -85,9 +85,9 @@ func resourceAlicloudVpcDhcpOptionsAttachmentCreate(d *schema.ResourceData, meta
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudVpcDhcpOptionsSetAttachmentRead(d, meta)
+	return resourceAliCloudVpcDhcpOptionsSetAttachmentRead(d, meta)
 }
-func resourceAlicloudVpcDhcpOptionsSetAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcDhcpOptionsSetAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	parts, err := ParseResourceId(d.Id(), 2)
@@ -118,11 +118,11 @@ func resourceAlicloudVpcDhcpOptionsSetAttachmentRead(d *schema.ResourceData, met
 	}
 	return nil
 }
-func resourceAlicloudVpcDhcpOptionsSetAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcDhcpOptionsSetAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudVpcDhcpOptionsSetAttachmentRead(d, meta)
+	return resourceAliCloudVpcDhcpOptionsSetAttachmentRead(d, meta)
 }
-func resourceAlicloudVpcDhcpOptionsSetAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcDhcpOptionsSetAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DetachDhcpOptionsSetFromVpc"
 	var response map[string]interface{}

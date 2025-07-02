@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudPolarDBEndpoint() *schema.Resource {
+func resourceAliCloudPolarDBEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPolarDBEndpointCreate,
-		Read:   resourceAlicloudPolarDBEndpointRead,
-		Update: resourceAlicloudPolarDBEndpointUpdate,
-		Delete: resourceAlicloudPolarDBEndpointDelete,
+		Create: resourceAliCloudPolarDBEndpointCreate,
+		Read:   resourceAliCloudPolarDBEndpointRead,
+		Update: resourceAliCloudPolarDBEndpointUpdate,
+		Delete: resourceAliCloudPolarDBEndpointDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -109,7 +109,7 @@ func resourceAlicloudPolarDBEndpoint() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPolarDBEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 	clusterId := d.Get("db_cluster_id").(string)
@@ -176,10 +176,10 @@ func resourceAlicloudPolarDBEndpointCreate(d *schema.ResourceData, meta interfac
 	}
 	d.SetId(fmt.Sprintf("%s%s%s", clusterId, COLON_SEPARATED, dbEndpointId))
 
-	return resourceAlicloudPolarDBEndpointUpdate(d, meta)
+	return resourceAliCloudPolarDBEndpointUpdate(d, meta)
 }
 
-func resourceAlicloudPolarDBEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 	parts, errParse := ParseResourceId(d.Id(), 2)
@@ -275,7 +275,7 @@ func resourceAlicloudPolarDBEndpointRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudPolarDBEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 
@@ -411,10 +411,10 @@ func resourceAlicloudPolarDBEndpointUpdate(d *schema.ResourceData, meta interfac
 			return WrapErrorf(err, IdMsg, dbClusterId)
 		}
 	}
-	return resourceAlicloudPolarDBEndpointRead(d, meta)
+	return resourceAliCloudPolarDBEndpointRead(d, meta)
 }
 
-func resourceAlicloudPolarDBEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPolarDBEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	polarDBService := PolarDBService{client}
 

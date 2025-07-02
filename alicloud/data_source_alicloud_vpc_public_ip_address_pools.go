@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudVpcPublicIpAddressPools() *schema.Resource {
+func dataSourceAliCloudVpcPublicIpAddressPools() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudVpcPublicIpAddressPoolsRead,
+		Read: dataSourceAliCloudVpcPublicIpAddressPoolsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -121,7 +121,7 @@ func dataSourceAlicloudVpcPublicIpAddressPools() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudVpcPublicIpAddressPoolsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudVpcPublicIpAddressPoolsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListPublicIpAddressPools"

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudNasSmbAclAttachment() *schema.Resource {
+func resourceAliCloudNasSmbAclAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudNasSmbAclAttachmentCreate,
-		Read:   resourceAlicloudNasSmbAclAttachmentRead,
-		Update: resourceAlicloudNasSmbAclAttachmentUpdate,
-		Delete: resourceAlicloudNasSmbAclAttachmentDelete,
+		Create: resourceAliCloudNasSmbAclAttachmentCreate,
+		Read:   resourceAliCloudNasSmbAclAttachmentRead,
+		Update: resourceAliCloudNasSmbAclAttachmentUpdate,
+		Delete: resourceAliCloudNasSmbAclAttachmentDelete,
 
 		Schema: map[string]*schema.Schema{
 			"file_system_id": {
@@ -65,7 +65,7 @@ func resourceAlicloudNasSmbAclAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudNasSmbAclAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasSmbAclAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "EnableSmbAcl"
@@ -93,10 +93,10 @@ func resourceAlicloudNasSmbAclAttachmentCreate(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_nas_smb_acl_attachment", action, AlibabaCloudSdkGoERROR)
 	}
 	d.SetId(fmt.Sprint(request["FileSystemId"]))
-	return resourceAlicloudNasSmbAclAttachmentRead(d, meta)
+	return resourceAliCloudNasSmbAclAttachmentRead(d, meta)
 }
 
-func resourceAlicloudNasSmbAclAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasSmbAclAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -167,10 +167,10 @@ func resourceAlicloudNasSmbAclAttachmentUpdate(d *schema.ResourceData, meta inte
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudNasSmbAclAttachmentRead(d, meta)
+	return resourceAliCloudNasSmbAclAttachmentRead(d, meta)
 }
 
-func resourceAlicloudNasSmbAclAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasSmbAclAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	nasService, err := NewNasService(client)
 	if err != nil {
@@ -198,7 +198,7 @@ func resourceAlicloudNasSmbAclAttachmentRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAlicloudNasSmbAclAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudNasSmbAclAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DisableSmbAcl"
 	var response map[string]interface{}

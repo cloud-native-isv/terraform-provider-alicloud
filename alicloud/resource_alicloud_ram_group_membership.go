@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRamGroupMembership() *schema.Resource {
+func resourceAliCloudRamGroupMembership() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRamGroupMembershipCreate,
-		Read:   resourceAlicloudRamGroupMembershipRead,
-		Update: resourceAlicloudRamGroupMembershipUpdate,
-		Delete: resourceAlicloudRamGroupMembershipDelete,
+		Create: resourceAliCloudRamGroupMembershipCreate,
+		Read:   resourceAliCloudRamGroupMembershipRead,
+		Update: resourceAliCloudRamGroupMembershipUpdate,
+		Delete: resourceAliCloudRamGroupMembershipDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -37,7 +37,7 @@ func resourceAlicloudRamGroupMembership() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRamGroupMembershipCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRamGroupMembershipCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	group := d.Get("group_name").(string)
@@ -50,10 +50,10 @@ func resourceAlicloudRamGroupMembershipCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(group)
 
-	return resourceAlicloudRamGroupMembershipRead(d, meta)
+	return resourceAliCloudRamGroupMembershipRead(d, meta)
 }
 
-func resourceAlicloudRamGroupMembershipUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRamGroupMembershipUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	d.Partial(true)
@@ -84,10 +84,10 @@ func resourceAlicloudRamGroupMembershipUpdate(d *schema.ResourceData, meta inter
 	}
 
 	d.Partial(false)
-	return resourceAlicloudRamGroupMembershipRead(d, meta)
+	return resourceAliCloudRamGroupMembershipRead(d, meta)
 }
 
-func resourceAlicloudRamGroupMembershipRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRamGroupMembershipRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ramService := RamService{client}
 
@@ -110,7 +110,7 @@ func resourceAlicloudRamGroupMembershipRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceAlicloudRamGroupMembershipDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRamGroupMembershipDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ramService := RamService{client}
 	users := expandStringList(d.Get("user_names").(*schema.Set).List())

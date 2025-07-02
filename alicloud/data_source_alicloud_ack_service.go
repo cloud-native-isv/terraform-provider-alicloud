@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAckService() *schema.Resource {
+func dataSourceAliCloudAckService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAckServiceRead,
+		Read: dataSourceAliCloudAckServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -34,7 +34,7 @@ func dataSourceAlicloudAckService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudAckServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAckServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("AckServiceHasNotBeenOpened")
 		d.Set("status", "")

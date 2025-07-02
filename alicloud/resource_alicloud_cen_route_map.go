@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCenRouteMap() *schema.Resource {
+func resourceAliCloudCenRouteMap() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenRouteMapCreate,
-		Read:   resourceAlicloudCenRouteMapRead,
-		Update: resourceAlicloudCenRouteMapUpdate,
-		Delete: resourceAlicloudCenRouteMapDelete,
+		Create: resourceAliCloudCenRouteMapCreate,
+		Read:   resourceAliCloudCenRouteMapRead,
+		Update: resourceAliCloudCenRouteMapUpdate,
+		Delete: resourceAliCloudCenRouteMapDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -200,7 +200,7 @@ func resourceAlicloudCenRouteMap() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenRouteMapCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenRouteMapCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 
@@ -317,9 +317,9 @@ func resourceAlicloudCenRouteMapCreate(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCenRouteMapRead(d, meta)
+	return resourceAliCloudCenRouteMapRead(d, meta)
 }
-func resourceAlicloudCenRouteMapRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenRouteMapRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenRouteMap(d.Id())
@@ -366,7 +366,7 @@ func resourceAlicloudCenRouteMapRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("transmit_direction", object.TransmitDirection)
 	return nil
 }
-func resourceAlicloudCenRouteMapUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenRouteMapUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -502,9 +502,9 @@ func resourceAlicloudCenRouteMapUpdate(d *schema.ResourceData, meta interface{})
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCenRouteMapRead(d, meta)
+	return resourceAliCloudCenRouteMapRead(d, meta)
 }
-func resourceAlicloudCenRouteMapDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenRouteMapDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcsDedicatedHostCluster() *schema.Resource {
+func resourceAliCloudEcsDedicatedHostCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsDedicatedHostClusterCreate,
-		Read:   resourceAlicloudEcsDedicatedHostClusterRead,
-		Update: resourceAlicloudEcsDedicatedHostClusterUpdate,
-		Delete: resourceAlicloudEcsDedicatedHostClusterDelete,
+		Create: resourceAliCloudEcsDedicatedHostClusterCreate,
+		Read:   resourceAliCloudEcsDedicatedHostClusterRead,
+		Update: resourceAliCloudEcsDedicatedHostClusterUpdate,
+		Delete: resourceAliCloudEcsDedicatedHostClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -47,7 +47,7 @@ func resourceAlicloudEcsDedicatedHostCluster() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsDedicatedHostClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDedicatedHostClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDedicatedHostCluster"
@@ -91,9 +91,9 @@ func resourceAlicloudEcsDedicatedHostClusterCreate(d *schema.ResourceData, meta 
 
 	d.SetId(fmt.Sprint(response["DedicatedHostClusterId"]))
 
-	return resourceAlicloudEcsDedicatedHostClusterRead(d, meta)
+	return resourceAliCloudEcsDedicatedHostClusterRead(d, meta)
 }
-func resourceAlicloudEcsDedicatedHostClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDedicatedHostClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsDedicatedHostCluster(d.Id())
@@ -113,7 +113,7 @@ func resourceAlicloudEcsDedicatedHostClusterRead(d *schema.ResourceData, meta in
 	d.Set("zone_id", object["ZoneId"])
 	return nil
 }
-func resourceAlicloudEcsDedicatedHostClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDedicatedHostClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	var err error
@@ -160,9 +160,9 @@ func resourceAlicloudEcsDedicatedHostClusterUpdate(d *schema.ResourceData, meta 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudEcsDedicatedHostClusterRead(d, meta)
+	return resourceAliCloudEcsDedicatedHostClusterRead(d, meta)
 }
-func resourceAlicloudEcsDedicatedHostClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsDedicatedHostClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDedicatedHostCluster"
 	var response map[string]interface{}

@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudClickHouseBackupPolicy() *schema.Resource {
+func resourceAliCloudClickHouseBackupPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudClickHouseBackupPolicyCreate,
-		Read:   resourceAlicloudClickHouseBackupPolicyRead,
-		Update: resourceAlicloudClickHouseBackupPolicyUpdate,
-		Delete: resourceAlicloudClickHouseBackupPolicyDelete,
+		Create: resourceAliCloudClickHouseBackupPolicyCreate,
+		Read:   resourceAliCloudClickHouseBackupPolicyRead,
+		Update: resourceAliCloudClickHouseBackupPolicyUpdate,
+		Delete: resourceAliCloudClickHouseBackupPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceAlicloudClickHouseBackupPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudClickHouseBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudClickHouseBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateBackupPolicy"
@@ -91,9 +91,9 @@ func resourceAlicloudClickHouseBackupPolicyCreate(d *schema.ResourceData, meta i
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudClickHouseBackupPolicyRead(d, meta)
+	return resourceAliCloudClickHouseBackupPolicyRead(d, meta)
 }
-func resourceAlicloudClickHouseBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudClickHouseBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	clickhouseService := ClickhouseService{client}
 	object, err := clickhouseService.DescribeClickHouseBackupPolicy(d.Id())
@@ -115,7 +115,7 @@ func resourceAlicloudClickHouseBackupPolicyRead(d *schema.ResourceData, meta int
 	d.Set("status", fmt.Sprint(object["Switch"]))
 	return nil
 }
-func resourceAlicloudClickHouseBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudClickHouseBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -159,9 +159,9 @@ func resourceAlicloudClickHouseBackupPolicyUpdate(d *schema.ResourceData, meta i
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudClickHouseBackupPolicyRead(d, meta)
+	return resourceAliCloudClickHouseBackupPolicyRead(d, meta)
 }
-func resourceAlicloudClickHouseBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudClickHouseBackupPolicy. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudClickHouseBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudClickHouseBackupPolicy. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

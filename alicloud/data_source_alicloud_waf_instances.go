@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudWafInstances() *schema.Resource {
+func dataSourceAliCloudWafInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudWafInstancesRead,
+		Read: dataSourceAliCloudWafInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -85,7 +85,7 @@ func dataSourceAlicloudWafInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudWafInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudWafInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeInstanceInfos"

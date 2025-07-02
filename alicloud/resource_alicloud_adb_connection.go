@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudAdbConnection() *schema.Resource {
+func resourceAliCloudAdbConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAdbConnectionCreate,
-		Read:   resourceAlicloudAdbConnectionRead,
-		Delete: resourceAlicloudAdbConnectionDelete,
+		Create: resourceAliCloudAdbConnectionCreate,
+		Read:   resourceAliCloudAdbConnectionRead,
+		Delete: resourceAliCloudAdbConnectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +52,7 @@ func resourceAlicloudAdbConnection() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAdbConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAdbConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	adbService := AdbService{client}
 	dbClusterId := d.Get("db_cluster_id").(string)
@@ -96,10 +96,10 @@ func resourceAlicloudAdbConnectionCreate(d *schema.ResourceData, meta interface{
 		return WrapError(err)
 	}
 
-	return resourceAlicloudAdbConnectionRead(d, meta)
+	return resourceAliCloudAdbConnectionRead(d, meta)
 }
 
-func resourceAlicloudAdbConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAdbConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	adbService := AdbService{client}
 	object, err := adbService.DescribeAdbConnection(d.Id())
@@ -124,7 +124,7 @@ func resourceAlicloudAdbConnectionRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudAdbConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAdbConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	adbService := AdbService{client}
 

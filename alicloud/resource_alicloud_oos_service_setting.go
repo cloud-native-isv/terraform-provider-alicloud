@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudOosServiceSetting() *schema.Resource {
+func resourceAliCloudOosServiceSetting() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOosServiceSettingCreate,
-		Read:   resourceAlicloudOosServiceSettingRead,
-		Update: resourceAlicloudOosServiceSettingUpdate,
-		Delete: resourceAlicloudOosServiceSettingDelete,
+		Create: resourceAliCloudOosServiceSettingCreate,
+		Read:   resourceAliCloudOosServiceSettingRead,
+		Update: resourceAliCloudOosServiceSettingUpdate,
+		Delete: resourceAliCloudOosServiceSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -65,7 +65,7 @@ func resourceAlicloudOosServiceSetting() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOosServiceSettingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosServiceSettingCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "SetServiceSettings"
@@ -105,9 +105,9 @@ func resourceAlicloudOosServiceSettingCreate(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(fmt.Sprint(strings.Trim(uuid.New().String(), "-")))
-	return resourceAlicloudOosServiceSettingRead(d, meta)
+	return resourceAliCloudOosServiceSettingRead(d, meta)
 }
-func resourceAlicloudOosServiceSettingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosServiceSettingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	oosService := OosService{client}
 	object, err := oosService.DescribeOosServiceSetting(d.Id())
@@ -127,7 +127,7 @@ func resourceAlicloudOosServiceSettingRead(d *schema.ResourceData, meta interfac
 	d.Set("rdc_enterprise_id", object["RdcEnterpriseId"])
 	return nil
 }
-func resourceAlicloudOosServiceSettingUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOosServiceSettingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -183,9 +183,9 @@ func resourceAlicloudOosServiceSettingUpdate(d *schema.ResourceData, meta interf
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudOosServiceSettingRead(d, meta)
+	return resourceAliCloudOosServiceSettingRead(d, meta)
 }
-func resourceAlicloudOosServiceSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudOosServiceSetting. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudOosServiceSettingDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudOosServiceSetting. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

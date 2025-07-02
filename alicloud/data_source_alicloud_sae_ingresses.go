@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudSaeIngresses() *schema.Resource {
+func dataSourceAliCloudSaeIngresses() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSaeIngressesRead,
+		Read: dataSourceAliCloudSaeIngressesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -79,7 +79,7 @@ func dataSourceAlicloudSaeIngresses() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSaeIngressesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSaeIngressesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "/pop/v1/sam/ingress/IngressList"

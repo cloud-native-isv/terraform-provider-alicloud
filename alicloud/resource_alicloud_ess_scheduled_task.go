@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEssScheduledTask() *schema.Resource {
+func resourceAliCloudEssScheduledTask() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunEssScheduledTaskCreate,
 		Read:   resourceAliyunEssScheduledTaskRead,

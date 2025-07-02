@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDdosbgpInstances() *schema.Resource {
+func dataSourceAliCloudDdosbgpInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDdosbgpInstancesRead,
+		Read: dataSourceAliCloudDdosbgpInstancesRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -91,7 +91,7 @@ func dataSourceAlicloudDdosbgpInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDdosbgpInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDdosbgpInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := ddosbgp.CreateDescribeInstanceListRequest()

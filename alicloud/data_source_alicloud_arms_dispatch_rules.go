@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudArmsAlertDispatchRules() *schema.Resource {
+func dataSourceAliCloudArmsAlertDispatchRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudArmsDispatchRulesRead,
+		Read: dataSourceAliCloudArmsDispatchRulesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -221,7 +221,7 @@ func dataSourceAlicloudArmsAlertDispatchRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudArmsDispatchRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsDispatchRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListNotificationPolicies"

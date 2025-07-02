@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudInstanceKeywords() *schema.Resource {
+func dataSourceAliCloudInstanceKeywords() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudInstanceKeywordsRead,
+		Read: dataSourceAliCloudInstanceKeywordsRead,
 
 		Schema: map[string]*schema.Schema{
 			"key": {
@@ -41,7 +41,7 @@ func dataSourceAlicloudInstanceKeywords() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudInstanceKeywordsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudInstanceKeywordsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeInstanceKeywords"
 	request := map[string]interface{}{

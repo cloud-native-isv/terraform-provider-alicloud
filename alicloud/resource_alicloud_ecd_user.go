@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcdUser() *schema.Resource {
+func resourceAliCloudEcdUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcdUserCreate,
-		Read:   resourceAlicloudEcdUserRead,
-		Update: resourceAlicloudEcdUserUpdate,
-		Delete: resourceAlicloudEcdUserDelete,
+		Create: resourceAliCloudEcdUserCreate,
+		Read:   resourceAliCloudEcdUserRead,
+		Update: resourceAliCloudEcdUserUpdate,
+		Delete: resourceAliCloudEcdUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceAlicloudEcdUser() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcdUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdUserCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateUsers"
@@ -99,9 +99,9 @@ func resourceAlicloudEcdUserCreate(d *schema.ResourceData, meta interface{}) err
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEcdUserUpdate(d, meta)
+	return resourceAliCloudEcdUserUpdate(d, meta)
 }
-func resourceAlicloudEcdUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edsUserService := EdsUserService{client}
 	object, err := edsUserService.DescribeEcdUser(d.Id())
@@ -120,7 +120,7 @@ func resourceAlicloudEcdUserRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("status", convertEcdUserStatusResponse(fmt.Sprint(formatInt(object["Status"]))))
 	return nil
 }
-func resourceAlicloudEcdUserUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edsUserService := EdsUserService{client}
 	var response map[string]interface{}
@@ -183,9 +183,9 @@ func resourceAlicloudEcdUserUpdate(d *schema.ResourceData, meta interface{}) err
 
 	}
 	d.Partial(false)
-	return resourceAlicloudEcdUserRead(d, meta)
+	return resourceAliCloudEcdUserRead(d, meta)
 }
-func resourceAlicloudEcdUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcdUserDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "RemoveUsers"
 	var response map[string]interface{}

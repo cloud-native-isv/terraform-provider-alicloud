@@ -15,12 +15,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEdasApplication() *schema.Resource {
+func resourceAliCloudEdasApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEdasApplicationCreate,
-		Update: resourceAlicloudEdasApplicationUpdate,
-		Read:   resourceAlicloudEdasApplicationRead,
-		Delete: resourceAlicloudEdasApplicationDelete,
+		Create: resourceAliCloudEdasApplicationCreate,
+		Update: resourceAliCloudEdasApplicationUpdate,
+		Read:   resourceAliCloudEdasApplicationRead,
+		Delete: resourceAliCloudEdasApplicationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -78,7 +78,7 @@ func resourceAlicloudEdasApplication() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEdasApplicationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 	request := edas.CreateInsertApplicationRequest()
@@ -188,10 +188,10 @@ func resourceAlicloudEdasApplicationCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	return resourceAlicloudEdasApplicationRead(d, meta)
+	return resourceAliCloudEdasApplicationRead(d, meta)
 }
 
-func resourceAlicloudEdasApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -213,10 +213,10 @@ func resourceAlicloudEdasApplicationUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	time.Sleep(3 * time.Second)
-	return resourceAlicloudEdasApplicationRead(d, meta)
+	return resourceAliCloudEdasApplicationRead(d, meta)
 }
 
-func resourceAlicloudEdasApplicationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -262,7 +262,7 @@ func resourceAlicloudEdasApplicationRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudEdasApplicationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasApplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 

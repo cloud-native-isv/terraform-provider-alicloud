@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudArmsAlertRobots() *schema.Resource {
+func dataSourceAliCloudArmsAlertRobots() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudArmsAlertRobotsRead,
+		Read: dataSourceAliCloudArmsAlertRobotsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -92,7 +92,7 @@ func dataSourceAlicloudArmsAlertRobots() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudArmsAlertRobotsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsAlertRobotsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeIMRobots"

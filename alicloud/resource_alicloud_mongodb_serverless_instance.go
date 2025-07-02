@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudMongodbServerlessInstance() *schema.Resource {
+func resourceAliCloudMongodbServerlessInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMongodbServerlessInstanceCreate,
-		Read:   resourceAlicloudMongodbServerlessInstanceRead,
-		Update: resourceAlicloudMongodbServerlessInstanceUpdate,
-		Delete: resourceAlicloudMongodbServerlessInstanceDelete,
+		Create: resourceAliCloudMongodbServerlessInstanceCreate,
+		Read:   resourceAliCloudMongodbServerlessInstanceRead,
+		Update: resourceAliCloudMongodbServerlessInstanceUpdate,
+		Delete: resourceAliCloudMongodbServerlessInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -137,7 +137,7 @@ func resourceAlicloudMongodbServerlessInstance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMongodbServerlessInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongodbServerlessInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateServerlessDBInstance"
@@ -197,9 +197,9 @@ func resourceAlicloudMongodbServerlessInstanceCreate(d *schema.ResourceData, met
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudMongodbServerlessInstanceUpdate(d, meta)
+	return resourceAliCloudMongodbServerlessInstanceUpdate(d, meta)
 }
-func resourceAlicloudMongodbServerlessInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongodbServerlessInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mongoDBService := MongoDBService{client}
 	object, err := mongoDBService.DescribeMongodbServerlessInstance(d.Id())
@@ -256,7 +256,7 @@ func resourceAlicloudMongodbServerlessInstanceRead(d *schema.ResourceData, meta 
 	}
 	return nil
 }
-func resourceAlicloudMongodbServerlessInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongodbServerlessInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	MongoDBService := MongoDBService{client}
@@ -421,9 +421,9 @@ func resourceAlicloudMongodbServerlessInstanceUpdate(d *schema.ResourceData, met
 	}
 	d.Partial(false)
 
-	return resourceAlicloudMongodbServerlessInstanceRead(d, meta)
+	return resourceAliCloudMongodbServerlessInstanceRead(d, meta)
 }
-func resourceAlicloudMongodbServerlessInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMongodbServerlessInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[WARN] Cannot destroy resource Alicloud Resource Mongodb Serverless Subscription Instance. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

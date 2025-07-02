@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudBrainIndustrialPidProject() *schema.Resource {
+func resourceAliCloudBrainIndustrialPidProject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudBrainIndustrialPidProjectCreate,
-		Read:   resourceAlicloudBrainIndustrialPidProjectRead,
-		Update: resourceAlicloudBrainIndustrialPidProjectUpdate,
-		Delete: resourceAlicloudBrainIndustrialPidProjectDelete,
+		Create: resourceAliCloudBrainIndustrialPidProjectCreate,
+		Read:   resourceAliCloudBrainIndustrialPidProjectRead,
+		Update: resourceAliCloudBrainIndustrialPidProjectUpdate,
+		Delete: resourceAliCloudBrainIndustrialPidProjectDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -36,7 +36,7 @@ func resourceAlicloudBrainIndustrialPidProject() *schema.Resource {
 	}
 }
 
-func resourceAlicloudBrainIndustrialPidProjectCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidProjectCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreatePidProject"
@@ -68,9 +68,9 @@ func resourceAlicloudBrainIndustrialPidProjectCreate(d *schema.ResourceData, met
 	addDebug(action, response, request)
 	d.SetId(fmt.Sprint(response["PidProjectId"]))
 
-	return resourceAlicloudBrainIndustrialPidProjectRead(d, meta)
+	return resourceAliCloudBrainIndustrialPidProjectRead(d, meta)
 }
-func resourceAlicloudBrainIndustrialPidProjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidProjectRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	brain_industrialService := Brain_industrialService{client}
 	object, err := brain_industrialService.DescribeBrainIndustrialPidProject(d.Id())
@@ -87,7 +87,7 @@ func resourceAlicloudBrainIndustrialPidProjectRead(d *schema.ResourceData, meta 
 	d.Set("pid_project_name", object["PidProjectName"])
 	return nil
 }
-func resourceAlicloudBrainIndustrialPidProjectUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidProjectUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -126,9 +126,9 @@ func resourceAlicloudBrainIndustrialPidProjectUpdate(d *schema.ResourceData, met
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudBrainIndustrialPidProjectRead(d, meta)
+	return resourceAliCloudBrainIndustrialPidProjectRead(d, meta)
 }
-func resourceAlicloudBrainIndustrialPidProjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidProjectDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeletePidProject"
 	var response map[string]interface{}

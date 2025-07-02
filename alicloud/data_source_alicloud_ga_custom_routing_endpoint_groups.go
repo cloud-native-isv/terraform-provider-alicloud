@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudGaCustomRoutingEndpointGroups() *schema.Resource {
+func dataSourceAliCloudGaCustomRoutingEndpointGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGaCustomRoutingEndpointGroupsRead,
+		Read: dataSourceAliCloudGaCustomRoutingEndpointGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -122,7 +122,7 @@ func dataSourceAlicloudGaCustomRoutingEndpointGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGaCustomRoutingEndpointGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGaCustomRoutingEndpointGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListCustomRoutingEndpointGroups"

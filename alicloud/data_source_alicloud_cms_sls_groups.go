@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCmsSlsGroups() *schema.Resource {
+func dataSourceAliCloudCmsSlsGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsSlsGroupsRead,
+		Read: dataSourceAliCloudCmsSlsGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"keyword": {
 				Type:     schema.TypeString,
@@ -104,7 +104,7 @@ func dataSourceAlicloudCmsSlsGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsSlsGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsSlsGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeHybridMonitorSLSGroup"

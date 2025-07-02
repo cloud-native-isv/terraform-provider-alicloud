@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudLogStores() *schema.Resource {
+func dataSourceAliCloudLogStores() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudLogStoresRead,
+		Read: dataSourceAliCloudLogStoresRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -160,7 +160,7 @@ func dataSourceAlicloudLogStores() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudLogStoresRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudLogStoresRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {

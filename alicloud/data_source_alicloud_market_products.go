@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudProducts() *schema.Resource {
+func dataSourceAliCloudProducts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudProductsRead,
+		Read: dataSourceAliCloudProductsRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -148,7 +148,7 @@ func dataSourceAlicloudProducts() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudProductsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudProductsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := market.CreateDescribeProductsRequest()
 	request.RegionId = client.RegionId

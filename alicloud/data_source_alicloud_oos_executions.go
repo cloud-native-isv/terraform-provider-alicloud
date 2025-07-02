@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudOosExecutions() *schema.Resource {
+func dataSourceAliCloudOosExecutions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudOosExecutionsRead,
+		Read: dataSourceAliCloudOosExecutionsRead,
 		Schema: map[string]*schema.Schema{
 			"category": {
 				Type:         schema.TypeString,
@@ -195,7 +195,7 @@ func dataSourceAlicloudOosExecutions() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudOosExecutionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudOosExecutionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListExecutions"

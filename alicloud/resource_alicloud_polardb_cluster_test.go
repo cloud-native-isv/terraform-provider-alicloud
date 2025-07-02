@@ -2759,7 +2759,7 @@ func deleteTDEPolicyAndRole() error {
 	accountId, err := rawClient.(*connectivity.AliyunClient).AccountId()
 	policyId := fmt.Sprintf("AliyunRDSInstanceEncryptionRolePolicy:System:AliyunRDSInstanceEncryptionDefaultRole@role.%s.onaliyunservice.com:ServiceRole:%s", accountId, accountId)
 	ramPolicyExisted.SetId(policyId)
-	err = resourceAlicloudResourceManagerPolicyAttachmentDelete(ramPolicyExisted, rawClient)
+	err = resourceAliCloudResourceManagerPolicyAttachmentDelete(ramPolicyExisted, rawClient)
 	if err != nil && !IsExpectedErrors(err, []string{"EntityNotExist.Role", "EntityNotExist.Policy"}) {
 		return err
 	}

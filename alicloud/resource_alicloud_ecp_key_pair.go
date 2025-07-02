@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEcpKeyPair() *schema.Resource {
+func resourceAliCloudEcpKeyPair() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcpKeyPairCreate,
-		Read:   resourceAlicloudEcpKeyPairRead,
-		Update: resourceAlicloudEcpKeyPairUpdate,
-		Delete: resourceAlicloudEcpKeyPairDelete,
+		Create: resourceAliCloudEcpKeyPairCreate,
+		Read:   resourceAliCloudEcpKeyPairRead,
+		Update: resourceAliCloudEcpKeyPairUpdate,
+		Delete: resourceAliCloudEcpKeyPairDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -33,7 +33,7 @@ func resourceAlicloudEcpKeyPair() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcpKeyPairCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcpKeyPairCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "ImportKeyPair"
@@ -61,9 +61,9 @@ func resourceAlicloudEcpKeyPairCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(fmt.Sprint(request["KeyPairName"]))
 
-	return resourceAlicloudEcpKeyPairRead(d, meta)
+	return resourceAliCloudEcpKeyPairRead(d, meta)
 }
-func resourceAlicloudEcpKeyPairRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcpKeyPairRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudphoneService := CloudphoneService{client}
 	_, err := cloudphoneService.DescribeEcpKeyPair(d.Id())
@@ -79,11 +79,11 @@ func resourceAlicloudEcpKeyPairRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("key_pair_name", d.Id())
 	return nil
 }
-func resourceAlicloudEcpKeyPairUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcpKeyPairUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudEcpKeyPairRead(d, meta)
+	return resourceAliCloudEcpKeyPairRead(d, meta)
 }
-func resourceAlicloudEcpKeyPairDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcpKeyPairDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteKeyPairs"
 	var response map[string]interface{}

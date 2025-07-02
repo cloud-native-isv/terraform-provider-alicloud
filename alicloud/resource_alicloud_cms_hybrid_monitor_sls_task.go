@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCmsHybridMonitorSlsTask() *schema.Resource {
+func resourceAliCloudCmsHybridMonitorSlsTask() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCmsHybridMonitorSlsTaskCreate,
-		Read:   resourceAlicloudCmsHybridMonitorSlsTaskRead,
-		Update: resourceAlicloudCmsHybridMonitorSlsTaskUpdate,
-		Delete: resourceAlicloudCmsHybridMonitorSlsTaskDelete,
+		Create: resourceAliCloudCmsHybridMonitorSlsTaskCreate,
+		Read:   resourceAliCloudCmsHybridMonitorSlsTaskRead,
+		Update: resourceAliCloudCmsHybridMonitorSlsTaskUpdate,
+		Delete: resourceAliCloudCmsHybridMonitorSlsTaskDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -176,7 +176,7 @@ func resourceAlicloudCmsHybridMonitorSlsTask() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCmsHybridMonitorSlsTaskCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsHybridMonitorSlsTaskCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateHybridMonitorTask"
@@ -282,9 +282,9 @@ func resourceAlicloudCmsHybridMonitorSlsTaskCreate(d *schema.ResourceData, meta 
 
 	d.SetId(fmt.Sprint(response["TaskId"]))
 
-	return resourceAlicloudCmsHybridMonitorSlsTaskRead(d, meta)
+	return resourceAliCloudCmsHybridMonitorSlsTaskRead(d, meta)
 }
-func resourceAlicloudCmsHybridMonitorSlsTaskRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsHybridMonitorSlsTaskRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cmsService := CmsService{client}
 	object, err := cmsService.DescribeCmsHybridMonitorSlsTask(d.Id())
@@ -384,7 +384,7 @@ func resourceAlicloudCmsHybridMonitorSlsTaskRead(d *schema.ResourceData, meta in
 	d.Set("task_name", object["TaskName"])
 	return nil
 }
-func resourceAlicloudCmsHybridMonitorSlsTaskUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsHybridMonitorSlsTaskUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -503,9 +503,9 @@ func resourceAlicloudCmsHybridMonitorSlsTaskUpdate(d *schema.ResourceData, meta 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCmsHybridMonitorSlsTaskRead(d, meta)
+	return resourceAliCloudCmsHybridMonitorSlsTaskRead(d, meta)
 }
-func resourceAlicloudCmsHybridMonitorSlsTaskDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsHybridMonitorSlsTaskDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteHybridMonitorTask"
 	var response map[string]interface{}

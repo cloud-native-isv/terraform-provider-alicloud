@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCmsHybridMonitorDatas() *schema.Resource {
+func dataSourceAliCloudCmsHybridMonitorDatas() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsHybridMonitorDatasRead,
+		Read: dataSourceAliCloudCmsHybridMonitorDatasRead,
 		Schema: map[string]*schema.Schema{
 			"namespace": {
 				Type:     schema.TypeString,
@@ -92,7 +92,7 @@ func dataSourceAlicloudCmsHybridMonitorDatas() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsHybridMonitorDatasRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsHybridMonitorDatasRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeHybridMonitorDataList"

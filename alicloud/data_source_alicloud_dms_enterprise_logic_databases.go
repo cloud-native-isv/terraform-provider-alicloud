@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudDmsEnterpriseLogicDatabases() *schema.Resource {
+func dataSourceAliCloudDmsEnterpriseLogicDatabases() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDmsEnterpriseLogicDatabasesRead,
+		Read: dataSourceAliCloudDmsEnterpriseLogicDatabasesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Optional: true,
@@ -91,7 +91,7 @@ func dataSourceAlicloudDmsEnterpriseLogicDatabases() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDmsEnterpriseLogicDatabasesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDmsEnterpriseLogicDatabasesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := map[string]interface{}{

@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEdasK8sApplication() *schema.Resource {
+func resourceAliCloudEdasK8sApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEdasK8sApplicationCreate,
-		Read:   resourceAlicloudEdasK8sApplicationRead,
-		Update: resourceAlicloudEdasK8sApplicationUpdate,
-		Delete: resourceAlicloudEdasK8sApplicationDelete,
+		Create: resourceAliCloudEdasK8sApplicationCreate,
+		Read:   resourceAliCloudEdasK8sApplicationRead,
+		Update: resourceAliCloudEdasK8sApplicationUpdate,
+		Delete: resourceAliCloudEdasK8sApplicationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -196,7 +196,7 @@ func resourceAlicloudEdasK8sApplication() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEdasK8sApplicationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasK8sApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 	request := edas.CreateInsertK8sApplicationRequest()
@@ -368,10 +368,10 @@ func resourceAlicloudEdasK8sApplicationCreate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	return resourceAlicloudEdasK8sApplicationRead(d, meta)
+	return resourceAliCloudEdasK8sApplicationRead(d, meta)
 }
 
-func resourceAlicloudEdasK8sApplicationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasK8sApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 
@@ -448,7 +448,7 @@ func resourceAlicloudEdasK8sApplicationRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceAlicloudEdasK8sApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasK8sApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 	var partialKeys []string
@@ -628,10 +628,10 @@ func resourceAlicloudEdasK8sApplicationUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudEdasK8sApplicationRead(d, meta)
+	return resourceAliCloudEdasK8sApplicationRead(d, meta)
 }
 
-func resourceAlicloudEdasK8sApplicationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEdasK8sApplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	edasService := EdasService{client}
 

@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCloudSsoAccessAssignment() *schema.Resource {
+func resourceAliCloudCloudSsoAccessAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudSsoAccessAssignmentCreate,
-		Read:   resourceAlicloudCloudSsoAccessAssignmentRead,
-		Update: resourceAlicloudCloudSsoAccessAssignmentUpdate,
-		Delete: resourceAlicloudCloudSsoAccessAssignmentDelete,
+		Create: resourceAliCloudCloudSsoAccessAssignmentCreate,
+		Read:   resourceAliCloudCloudSsoAccessAssignmentRead,
+		Update: resourceAliCloudCloudSsoAccessAssignmentUpdate,
+		Delete: resourceAliCloudCloudSsoAccessAssignmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -68,7 +68,7 @@ func resourceAlicloudCloudSsoAccessAssignment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCloudSsoAccessAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoAccessAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateAccessAssignment"
@@ -110,9 +110,9 @@ func resourceAlicloudCloudSsoAccessAssignmentCreate(d *schema.ResourceData, meta
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCloudSsoAccessAssignmentRead(d, meta)
+	return resourceAliCloudCloudSsoAccessAssignmentRead(d, meta)
 }
-func resourceAlicloudCloudSsoAccessAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoAccessAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudssoService := CloudssoService{client}
 	_, err := cloudssoService.DescribeCloudSsoAccessAssignment(d.Id())
@@ -138,11 +138,11 @@ func resourceAlicloudCloudSsoAccessAssignmentRead(d *schema.ResourceData, meta i
 
 	return nil
 }
-func resourceAlicloudCloudSsoAccessAssignmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoAccessAssignmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	log.Println(fmt.Sprintf("[WARNING] The resouce has not update operation."))
-	return resourceAlicloudCloudSsoAccessAssignmentRead(d, meta)
+	return resourceAliCloudCloudSsoAccessAssignmentRead(d, meta)
 }
-func resourceAlicloudCloudSsoAccessAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoAccessAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 6)
 	if err != nil {

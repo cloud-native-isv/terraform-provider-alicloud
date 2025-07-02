@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudThreatDetectionLogShipper() *schema.Resource {
+func dataSourceAliCloudThreatDetectionLogShipper() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudThreatDetectionLogShipperRead,
+		Read: dataSourceAliCloudThreatDetectionLogShipperRead,
 		Schema: map[string]*schema.Schema{
 			"enable": {
 				Type:         schema.TypeString,
@@ -48,7 +48,7 @@ func dataSourceAlicloudThreatDetectionLogShipper() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudThreatDetectionLogShipperRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudThreatDetectionLogShipperRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	threatDetectionService := ThreatDetectionService{client}
 	var response map[string]interface{}

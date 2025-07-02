@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCrChartNamespace() *schema.Resource {
+func resourceAliCloudCrChartNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCrChartNamespaceCreate,
-		Read:   resourceAlicloudCrChartNamespaceRead,
-		Update: resourceAlicloudCrChartNamespaceUpdate,
-		Delete: resourceAlicloudCrChartNamespaceDelete,
+		Create: resourceAliCloudCrChartNamespaceCreate,
+		Read:   resourceAliCloudCrChartNamespaceRead,
+		Update: resourceAliCloudCrChartNamespaceUpdate,
+		Delete: resourceAliCloudCrChartNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudCrChartNamespace() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCrChartNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChartNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateChartNamespace"
@@ -79,9 +79,9 @@ func resourceAlicloudCrChartNamespaceCreate(d *schema.ResourceData, meta interfa
 	}
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["NamespaceName"]))
-	return resourceAlicloudCrChartNamespaceRead(d, meta)
+	return resourceAliCloudCrChartNamespaceRead(d, meta)
 }
-func resourceAlicloudCrChartNamespaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChartNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	crService := CrService{client}
 	object, err := crService.DescribeCrChartNamespace(d.Id())
@@ -103,7 +103,7 @@ func resourceAlicloudCrChartNamespaceRead(d *schema.ResourceData, meta interface
 	d.Set("default_repo_type", object["DefaultRepoType"])
 	return nil
 }
-func resourceAlicloudCrChartNamespaceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChartNamespaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -148,9 +148,9 @@ func resourceAlicloudCrChartNamespaceUpdate(d *schema.ResourceData, meta interfa
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCrChartNamespaceRead(d, meta)
+	return resourceAliCloudCrChartNamespaceRead(d, meta)
 }
-func resourceAlicloudCrChartNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCrChartNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

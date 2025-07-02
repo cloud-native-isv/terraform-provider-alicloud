@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudEcpInstanceTypes() *schema.Resource {
+func dataSourceAliCloudEcpInstanceTypes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcpInstanceTypesRead,
+		Read: dataSourceAliCloudEcpInstanceTypesRead,
 		Schema: map[string]*schema.Schema{
 			"output_file": {
 				Type:     schema.TypeString,
@@ -53,7 +53,7 @@ func dataSourceAlicloudEcpInstanceTypes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcpInstanceTypesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcpInstanceTypesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListInstanceTypes"

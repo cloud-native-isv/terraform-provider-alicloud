@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudEcsKeyPairAttachment() *schema.Resource {
+func resourceAliCloudEcsKeyPairAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEcsKeyPairAttachmentCreate,
-		Read:   resourceAlicloudEcsKeyPairAttachmentRead,
-		Delete: resourceAlicloudEcsKeyPairAttachmentDelete,
+		Create: resourceAliCloudEcsKeyPairAttachmentCreate,
+		Read:   resourceAliCloudEcsKeyPairAttachmentRead,
+		Delete: resourceAliCloudEcsKeyPairAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceAlicloudEcsKeyPairAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEcsKeyPairAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsKeyPairAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AttachKeyPair"
@@ -127,9 +127,9 @@ func resourceAlicloudEcsKeyPairAttachmentCreate(d *schema.ResourceData, meta int
 		}
 	}
 
-	return resourceAlicloudEcsKeyPairAttachmentRead(d, meta)
+	return resourceAliCloudEcsKeyPairAttachmentRead(d, meta)
 }
-func resourceAlicloudEcsKeyPairAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsKeyPairAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsKeyPairAttachment(d.Id())
@@ -146,7 +146,7 @@ func resourceAlicloudEcsKeyPairAttachmentRead(d *schema.ResourceData, meta inter
 	d.Set("instance_ids", d.Get("instance_ids"))
 	return nil
 }
-func resourceAlicloudEcsKeyPairAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsKeyPairAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DetachKeyPair"
 	var response map[string]interface{}

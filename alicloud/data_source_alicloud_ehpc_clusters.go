@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEhpcClusters() *schema.Resource {
+func dataSourceAliCloudEhpcClusters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEhpcClustersRead,
+		Read: dataSourceAliCloudEhpcClustersRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -209,7 +209,7 @@ func dataSourceAlicloudEhpcClusters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEhpcClustersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEhpcClustersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListClusters"

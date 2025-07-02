@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudSlbBackendServers() *schema.Resource {
+func dataSourceAliCloudSlbBackendServers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSlbBackendServersRead,
+		Read: dataSourceAliCloudSlbBackendServersRead,
 
 		Schema: map[string]*schema.Schema{
 			"load_balancer_id": {
@@ -51,7 +51,7 @@ func dataSourceAlicloudSlbBackendServers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSlbBackendServersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSlbBackendServersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := slb.CreateDescribeLoadBalancerAttributeRequest()

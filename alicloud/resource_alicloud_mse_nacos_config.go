@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudMseNacosConfig() *schema.Resource {
+func resourceAliCloudMseNacosConfig() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMseNacosConfigCreate,
-		Read:   resourceAlicloudMseNacosConfigRead,
-		Update: resourceAlicloudMseNacosConfigUpdate,
-		Delete: resourceAlicloudMseNacosConfigDelete,
+		Create: resourceAliCloudMseNacosConfigCreate,
+		Read:   resourceAliCloudMseNacosConfigRead,
+		Update: resourceAliCloudMseNacosConfigUpdate,
+		Delete: resourceAliCloudMseNacosConfigDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Minute),
 			Delete: schema.DefaultTimeout(1 * time.Minute),
@@ -84,7 +84,7 @@ func resourceAlicloudMseNacosConfig() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMseNacosConfigCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseNacosConfigCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateNacosConfig"
@@ -152,10 +152,10 @@ func resourceAlicloudMseNacosConfigCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprint(EscapeColons(instanceId), ":", EscapeColons(namespaceId.(string)), ":", EscapeColons(dataId), ":", EscapeColons(group)))
 
-	return resourceAlicloudMseNacosConfigRead(d, meta)
+	return resourceAliCloudMseNacosConfigRead(d, meta)
 }
 
-func resourceAlicloudMseNacosConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseNacosConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mseService := MseService{client}
 
@@ -187,7 +187,7 @@ func resourceAlicloudMseNacosConfigRead(d *schema.ResourceData, meta interface{}
 
 	return nil
 }
-func resourceAlicloudMseNacosConfigUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseNacosConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -236,9 +236,9 @@ func resourceAlicloudMseNacosConfigUpdate(d *schema.ResourceData, meta interface
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudMseNacosConfigRead(d, meta)
+	return resourceAliCloudMseNacosConfigRead(d, meta)
 }
-func resourceAlicloudMseNacosConfigDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMseNacosConfigDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteNacosConfig"
 	var response map[string]interface{}

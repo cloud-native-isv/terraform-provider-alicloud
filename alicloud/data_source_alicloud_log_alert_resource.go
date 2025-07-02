@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudLogAlertResource() *schema.Resource {
+func dataSourceAliCloudLogAlertResource() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudLogAlertResourceRead,
+		Read: dataSourceAliCloudLogAlertResourceRead,
 		Schema: map[string]*schema.Schema{
 			"type": {
 				Type:         schema.TypeString,
@@ -35,7 +35,7 @@ func dataSourceAlicloudLogAlertResource() *schema.Resource {
 	}
 
 }
-func dataSourceAlicloudLogAlertResourceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudLogAlertResourceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resourceType := d.Get("type").(string)
 	lang := d.Get("lang").(string)

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudThreatDetectionHoneypotPresets() *schema.Resource {
+func dataSourceAliCloudThreatDetectionHoneypotPresets() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudThreatDetectionHoneypotPresetsRead,
+		Read: dataSourceAliCloudThreatDetectionHoneypotPresetsRead,
 		Schema: map[string]*schema.Schema{
 			"current_page": {
 				Optional: true,
@@ -122,7 +122,7 @@ func dataSourceAlicloudThreatDetectionHoneypotPresets() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudThreatDetectionHoneypotPresetsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudThreatDetectionHoneypotPresetsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

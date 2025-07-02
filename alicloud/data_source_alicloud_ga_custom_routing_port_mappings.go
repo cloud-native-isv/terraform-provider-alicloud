@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudGaCustomRoutingPortMappings() *schema.Resource {
+func dataSourceAliCloudGaCustomRoutingPortMappings() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudGaCustomRoutingPortMappingsRead,
+		Read: dataSourceAliCloudGaCustomRoutingPortMappingsRead,
 		Schema: map[string]*schema.Schema{
 			"accelerator_id": {
 				Type:     schema.TypeString,
@@ -115,7 +115,7 @@ func dataSourceAlicloudGaCustomRoutingPortMappings() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudGaCustomRoutingPortMappingsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudGaCustomRoutingPortMappingsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListCustomRoutingPortMappings"

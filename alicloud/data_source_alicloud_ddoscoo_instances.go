@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDdoscooInstances() *schema.Resource {
+func dataSourceAliCloudDdoscooInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDdoscooInstancesRead,
+		Read: dataSourceAliCloudDdoscooInstancesRead,
 
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
@@ -114,7 +114,7 @@ func dataSourceAlicloudDdoscooInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDdoscooInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDdoscooInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeInstances"

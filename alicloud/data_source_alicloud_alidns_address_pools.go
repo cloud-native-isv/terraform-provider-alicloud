@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudAlidnsAddressPools() *schema.Resource {
+func dataSourceAliCloudAlidnsAddressPools() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudAlidnsAddressPoolsRead,
+		Read: dataSourceAliCloudAlidnsAddressPoolsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -136,7 +136,7 @@ func dataSourceAlicloudAlidnsAddressPools() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudAlidnsAddressPoolsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudAlidnsAddressPoolsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDnsGtmInstanceAddressPools"

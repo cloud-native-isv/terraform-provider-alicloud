@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCddcDedicatedHostGroup() *schema.Resource {
+func resourceAliCloudCddcDedicatedHostGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCddcDedicatedHostGroupCreate,
-		Read:   resourceAlicloudCddcDedicatedHostGroupRead,
-		Update: resourceAlicloudCddcDedicatedHostGroupUpdate,
-		Delete: resourceAlicloudCddcDedicatedHostGroupDelete,
+		Create: resourceAliCloudCddcDedicatedHostGroupCreate,
+		Read:   resourceAliCloudCddcDedicatedHostGroupRead,
+		Update: resourceAliCloudCddcDedicatedHostGroupUpdate,
+		Delete: resourceAliCloudCddcDedicatedHostGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -77,7 +77,7 @@ func resourceAlicloudCddcDedicatedHostGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCddcDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDedicatedHostGroup"
@@ -130,9 +130,9 @@ func resourceAlicloudCddcDedicatedHostGroupCreate(d *schema.ResourceData, meta i
 
 	d.SetId(fmt.Sprint(response["DedicatedHostGroupId"]))
 
-	return resourceAlicloudCddcDedicatedHostGroupRead(d, meta)
+	return resourceAliCloudCddcDedicatedHostGroupRead(d, meta)
 }
-func resourceAlicloudCddcDedicatedHostGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cddcService := CddcService{client}
 	object, err := cddcService.DescribeCddcDedicatedHostGroup(d.Id())
@@ -162,7 +162,7 @@ func resourceAlicloudCddcDedicatedHostGroupRead(d *schema.ResourceData, meta int
 	d.Set("open_permission", convertCddcDedicatedHostGroupOpenPermissionResponse(formatInt(object["OpenPermission"])))
 	return nil
 }
-func resourceAlicloudCddcDedicatedHostGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -226,9 +226,9 @@ func resourceAlicloudCddcDedicatedHostGroupUpdate(d *schema.ResourceData, meta i
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudCddcDedicatedHostGroupRead(d, meta)
+	return resourceAliCloudCddcDedicatedHostGroupRead(d, meta)
 }
-func resourceAlicloudCddcDedicatedHostGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCddcDedicatedHostGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDedicatedHostGroup"
 	var response map[string]interface{}

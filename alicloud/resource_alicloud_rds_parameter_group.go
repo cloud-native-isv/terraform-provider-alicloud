@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudRdsParameterGroup() *schema.Resource {
+func resourceAliCloudRdsParameterGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdsParameterGroupCreate,
-		Read:   resourceAlicloudRdsParameterGroupRead,
-		Update: resourceAlicloudRdsParameterGroupUpdate,
-		Delete: resourceAlicloudRdsParameterGroupDelete,
+		Create: resourceAliCloudRdsParameterGroupCreate,
+		Read:   resourceAliCloudRdsParameterGroupRead,
+		Update: resourceAliCloudRdsParameterGroupUpdate,
+		Delete: resourceAliCloudRdsParameterGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -61,7 +61,7 @@ func resourceAlicloudRdsParameterGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRdsParameterGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsParameterGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateParameterGroup"
@@ -103,9 +103,9 @@ func resourceAlicloudRdsParameterGroupCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(fmt.Sprint(response["ParameterGroupId"]))
 
-	return resourceAlicloudRdsParameterGroupRead(d, meta)
+	return resourceAliCloudRdsParameterGroupRead(d, meta)
 }
-func resourceAlicloudRdsParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeRdsParameterGroup(d.Id())
@@ -136,7 +136,7 @@ func resourceAlicloudRdsParameterGroupRead(d *schema.ResourceData, meta interfac
 	d.Set("parameter_group_name", object["ParameterGroupName"])
 	return nil
 }
-func resourceAlicloudRdsParameterGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsParameterGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -184,9 +184,9 @@ func resourceAlicloudRdsParameterGroupUpdate(d *schema.ResourceData, meta interf
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudRdsParameterGroupRead(d, meta)
+	return resourceAliCloudRdsParameterGroupRead(d, meta)
 }
-func resourceAlicloudRdsParameterGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsParameterGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteParameterGroup"
 	var response map[string]interface{}

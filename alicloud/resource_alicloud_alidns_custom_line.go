@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudAlidnsCustomLine() *schema.Resource {
+func resourceAliCloudAlidnsCustomLine() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlidnsCustomLineCreate,
-		Read:   resourceAlicloudAlidnsCustomLineRead,
-		Update: resourceAlicloudAlidnsCustomLineUpdate,
-		Delete: resourceAlicloudAlidnsCustomLineDelete,
+		Create: resourceAliCloudAlidnsCustomLineCreate,
+		Read:   resourceAliCloudAlidnsCustomLineRead,
+		Update: resourceAliCloudAlidnsCustomLineUpdate,
+		Delete: resourceAliCloudAlidnsCustomLineDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceAlicloudAlidnsCustomLine() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlidnsCustomLineCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsCustomLineCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddCustomLine"
@@ -90,9 +90,9 @@ func resourceAlicloudAlidnsCustomLineCreate(d *schema.ResourceData, meta interfa
 
 	d.SetId(fmt.Sprint(response["LineId"]))
 
-	return resourceAlicloudAlidnsCustomLineRead(d, meta)
+	return resourceAliCloudAlidnsCustomLineRead(d, meta)
 }
-func resourceAlicloudAlidnsCustomLineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsCustomLineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsCustomLine(d.Id())
@@ -119,7 +119,7 @@ func resourceAlicloudAlidnsCustomLineRead(d *schema.ResourceData, meta interface
 	}
 	return nil
 }
-func resourceAlicloudAlidnsCustomLineUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsCustomLineUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -165,9 +165,9 @@ func resourceAlicloudAlidnsCustomLineUpdate(d *schema.ResourceData, meta interfa
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudAlidnsCustomLineRead(d, meta)
+	return resourceAliCloudAlidnsCustomLineRead(d, meta)
 }
-func resourceAlicloudAlidnsCustomLineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsCustomLineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteCustomLines"
 	var response map[string]interface{}

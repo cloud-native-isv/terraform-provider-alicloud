@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudRosTemplateScratch() *schema.Resource {
+func resourceAliCloudRosTemplateScratch() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRosTemplateScratchCreate,
-		Read:   resourceAlicloudRosTemplateScratchRead,
-		Update: resourceAlicloudRosTemplateScratchUpdate,
-		Delete: resourceAlicloudRosTemplateScratchDelete,
+		Create: resourceAliCloudRosTemplateScratchCreate,
+		Read:   resourceAliCloudRosTemplateScratchRead,
+		Update: resourceAliCloudRosTemplateScratchUpdate,
+		Delete: resourceAliCloudRosTemplateScratchDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -127,7 +127,7 @@ func resourceAlicloudRosTemplateScratch() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRosTemplateScratchCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosTemplateScratchCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateTemplateScratch"
@@ -234,9 +234,9 @@ func resourceAlicloudRosTemplateScratchCreate(d *schema.ResourceData, meta inter
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudRosTemplateScratchRead(d, meta)
+	return resourceAliCloudRosTemplateScratchRead(d, meta)
 }
-func resourceAlicloudRosTemplateScratchRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosTemplateScratchRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	object, err := rosService.DescribeRosTemplateScratch(d.Id())
@@ -318,7 +318,7 @@ func resourceAlicloudRosTemplateScratchRead(d *schema.ResourceData, meta interfa
 	d.Set("template_scratch_type", object["TemplateScratchType"])
 	return nil
 }
-func resourceAlicloudRosTemplateScratchUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosTemplateScratchUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	var response map[string]interface{}
@@ -447,9 +447,9 @@ func resourceAlicloudRosTemplateScratchUpdate(d *schema.ResourceData, meta inter
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAlicloudRosTemplateScratchRead(d, meta)
+	return resourceAliCloudRosTemplateScratchRead(d, meta)
 }
-func resourceAlicloudRosTemplateScratchDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosTemplateScratchDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	action := "DeleteTemplateScratch"

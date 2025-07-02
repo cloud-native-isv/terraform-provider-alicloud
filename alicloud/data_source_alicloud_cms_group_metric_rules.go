@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCmsGroupMetricRules() *schema.Resource {
+func dataSourceAliCloudCmsGroupMetricRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCmsGroupMetricRulesRead,
+		Read: dataSourceAliCloudCmsGroupMetricRulesRead,
 		Schema: map[string]*schema.Schema{
 			"dimensions": {
 				Type:     schema.TypeString,
@@ -236,7 +236,7 @@ func dataSourceAlicloudCmsGroupMetricRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCmsGroupMetricRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCmsGroupMetricRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeMetricRuleList"

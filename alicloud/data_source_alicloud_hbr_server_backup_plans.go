@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudHbrServerBackupPlans() *schema.Resource {
+func dataSourceAliCloudHbrServerBackupPlans() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudHbrServerBackupPlansRead,
+		Read: dataSourceAliCloudHbrServerBackupPlansRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -140,7 +140,7 @@ func dataSourceAlicloudHbrServerBackupPlans() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudHbrServerBackupPlansRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudHbrServerBackupPlansRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeBackupPlans"

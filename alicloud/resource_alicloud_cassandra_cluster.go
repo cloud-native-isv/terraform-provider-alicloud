@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCassandraCluster() *schema.Resource {
+func resourceAliCloudCassandraCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCassandraClusterCreate,
-		Read:   resourceAlicloudCassandraClusterRead,
-		Update: resourceAlicloudCassandraClusterUpdate,
-		Delete: resourceAlicloudCassandraClusterDelete,
+		Create: resourceAliCloudCassandraClusterCreate,
+		Read:   resourceAliCloudCassandraClusterRead,
+		Update: resourceAliCloudCassandraClusterUpdate,
+		Delete: resourceAliCloudCassandraClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -138,7 +138,7 @@ func resourceAlicloudCassandraCluster() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCassandraClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cassandraService := CassandraService{client}
 
@@ -206,9 +206,9 @@ func resourceAlicloudCassandraClusterCreate(d *schema.ResourceData, meta interfa
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudCassandraClusterUpdate(d, meta)
+	return resourceAliCloudCassandraClusterUpdate(d, meta)
 }
-func resourceAlicloudCassandraClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cassandraService := CassandraService{client}
 	object, err := cassandraService.DescribeCassandraCluster(d.Id())
@@ -278,7 +278,7 @@ func resourceAlicloudCassandraClusterRead(d *schema.ResourceData, meta interface
 	}
 	return nil
 }
-func resourceAlicloudCassandraClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cassandraService := CassandraService{client}
 	d.Partial(true)
@@ -375,7 +375,7 @@ func resourceAlicloudCassandraClusterUpdate(d *schema.ResourceData, meta interfa
 	}
 	if d.IsNewResource() {
 		d.Partial(false)
-		return resourceAlicloudCassandraClusterRead(d, meta)
+		return resourceAliCloudCassandraClusterRead(d, meta)
 	}
 	if d.HasChange("cluster_name") {
 		request := cassandra.CreateModifyClusterRequest()
@@ -485,9 +485,9 @@ func resourceAlicloudCassandraClusterUpdate(d *schema.ResourceData, meta interfa
 		d.SetPartial("password")
 	}
 	d.Partial(false)
-	return resourceAlicloudCassandraClusterRead(d, meta)
+	return resourceAliCloudCassandraClusterRead(d, meta)
 }
-func resourceAlicloudCassandraClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCassandraClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := cassandra.CreateDeleteClusterRequest()
 	request.ClusterId = d.Id()

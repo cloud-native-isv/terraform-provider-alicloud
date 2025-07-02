@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudPolarDBGlobalDatabaseNetworks() *schema.Resource {
+func dataSourceAliCloudPolarDBGlobalDatabaseNetworks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudPolarDBGlobalDatabaseNetworksRead,
+		Read: dataSourceAliCloudPolarDBGlobalDatabaseNetworksRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -116,7 +116,7 @@ func dataSourceAlicloudPolarDBGlobalDatabaseNetworks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudPolarDBGlobalDatabaseNetworksRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudPolarDBGlobalDatabaseNetworksRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeGlobalDatabaseNetworks"

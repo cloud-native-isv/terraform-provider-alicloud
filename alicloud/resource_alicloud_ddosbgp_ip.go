@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDdosbgpIp() *schema.Resource {
+func resourceAliCloudDdosbgpIp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDdosbgpIpCreate,
-		Read:   resourceAlicloudDdosbgpIpRead,
-		Delete: resourceAlicloudDdosbgpIpDelete,
+		Create: resourceAliCloudDdosbgpIpCreate,
+		Read:   resourceAliCloudDdosbgpIpRead,
+		Delete: resourceAliCloudDdosbgpIpDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +52,7 @@ func resourceAlicloudDdosbgpIp() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDdosbgpIpCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdosbgpIpCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddIp"
@@ -87,9 +87,9 @@ func resourceAlicloudDdosbgpIpCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", d.Get("ip").(string)))
 
-	return resourceAlicloudDdosbgpIpRead(d, meta)
+	return resourceAliCloudDdosbgpIpRead(d, meta)
 }
-func resourceAlicloudDdosbgpIpRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdosbgpIpRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ddosbgpService := DdosbgpService{client}
 	object, err := ddosbgpService.DescribeDdosbgpIp(d.Id())
@@ -111,7 +111,7 @@ func resourceAlicloudDdosbgpIpRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("member_uid", object["MemberUid"])
 	return nil
 }
-func resourceAlicloudDdosbgpIpDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdosbgpIpDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCenBandwidthPackageAttachment() *schema.Resource {
+func resourceAliCloudCenBandwidthPackageAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCenBandwidthPackageAttachmentCreate,
-		Read:   resourceAlicloudCenBandwidthPackageAttachmentRead,
-		Delete: resourceAlicloudCenBandwidthPackageAttachmentDelete,
+		Create: resourceAliCloudCenBandwidthPackageAttachmentCreate,
+		Read:   resourceAliCloudCenBandwidthPackageAttachmentRead,
+		Delete: resourceAliCloudCenBandwidthPackageAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -36,7 +36,7 @@ func resourceAlicloudCenBandwidthPackageAttachment() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCenBandwidthPackageAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenBandwidthPackageAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cenService := CenService{client}
 
@@ -71,10 +71,10 @@ func resourceAlicloudCenBandwidthPackageAttachmentCreate(d *schema.ResourceData,
 		return WrapError(err)
 	}
 
-	return resourceAlicloudCenBandwidthPackageAttachmentRead(d, meta)
+	return resourceAliCloudCenBandwidthPackageAttachmentRead(d, meta)
 }
 
-func resourceAlicloudCenBandwidthPackageAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenBandwidthPackageAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cenService := CenService{client}
 
@@ -93,7 +93,7 @@ func resourceAlicloudCenBandwidthPackageAttachmentRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceAlicloudCenBandwidthPackageAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCenBandwidthPackageAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cenService := CenService{client}
 	cenId := d.Get("instance_id").(string)

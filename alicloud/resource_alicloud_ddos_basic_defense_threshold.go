@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDdosBasicDefenseThreshold() *schema.Resource {
+func resourceAliCloudDdosBasicDefenseThreshold() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDdosBasicAntiddosCreate,
-		Read:   resourceAlicloudDdosBasicAntiddosRead,
-		Update: resourceAlicloudDdosBasicAntiddosUpdate,
-		Delete: resourceAlicloudDdosBasicAntiddosDelete,
+		Create: resourceAliCloudDdosBasicAntiddosCreate,
+		Read:   resourceAliCloudDdosBasicAntiddosRead,
+		Update: resourceAliCloudDdosBasicAntiddosUpdate,
+		Delete: resourceAliCloudDdosBasicAntiddosDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -71,7 +71,7 @@ func resourceAlicloudDdosBasicDefenseThreshold() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDdosBasicAntiddosCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdosBasicAntiddosCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "ModifyDefenseThreshold"
@@ -116,9 +116,9 @@ func resourceAlicloudDdosBasicAntiddosCreate(d *schema.ResourceData, meta interf
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudDdosBasicAntiddosRead(d, meta)
+	return resourceAliCloudDdosBasicAntiddosRead(d, meta)
 }
-func resourceAlicloudDdosBasicAntiddosRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdosBasicAntiddosRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	antiddosPublicService := AntiddosPublicService{client}
 	object, err := antiddosPublicService.DescribeDdosBasicAntiddos(d.Id())
@@ -146,7 +146,7 @@ func resourceAlicloudDdosBasicAntiddosRead(d *schema.ResourceData, meta interfac
 	d.Set("max_pps", object["MaxPps"])
 	return nil
 }
-func resourceAlicloudDdosBasicAntiddosUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdosBasicAntiddosUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	parts, err := ParseResourceId(d.Id(), 3)
@@ -209,9 +209,9 @@ func resourceAlicloudDdosBasicAntiddosUpdate(d *schema.ResourceData, meta interf
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudDdosBasicAntiddosRead(d, meta)
+	return resourceAliCloudDdosBasicAntiddosRead(d, meta)
 }
-func resourceAlicloudDdosBasicAntiddosDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDdosBasicAntiddosDelete(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[WARN] Cannot destroy resource alicloud_ddos_basic_antiddos. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

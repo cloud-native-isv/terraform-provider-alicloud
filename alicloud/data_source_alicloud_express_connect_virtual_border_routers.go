@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudExpressConnectVirtualBorderRouters() *schema.Resource {
+func dataSourceAliCloudExpressConnectVirtualBorderRouters() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudExpressConnectVirtualBorderRoutersRead,
+		Read: dataSourceAliCloudExpressConnectVirtualBorderRoutersRead,
 		Schema: map[string]*schema.Schema{
 			"filter": {
 				Type:     schema.TypeList,
@@ -206,7 +206,7 @@ func dataSourceAlicloudExpressConnectVirtualBorderRouters() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudExpressConnectVirtualBorderRoutersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudExpressConnectVirtualBorderRoutersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeVirtualBorderRouters"

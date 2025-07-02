@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudRosTemplate() *schema.Resource {
+func resourceAliCloudRosTemplate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRosTemplateCreate,
-		Read:   resourceAlicloudRosTemplateRead,
-		Update: resourceAlicloudRosTemplateUpdate,
-		Delete: resourceAlicloudRosTemplateDelete,
+		Create: resourceAliCloudRosTemplateCreate,
+		Read:   resourceAliCloudRosTemplateRead,
+		Update: resourceAliCloudRosTemplateUpdate,
+		Delete: resourceAliCloudRosTemplateDelete,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
 		},
@@ -50,7 +50,7 @@ func resourceAlicloudRosTemplate() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRosTemplateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosTemplateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateTemplate"
@@ -88,9 +88,9 @@ func resourceAlicloudRosTemplateCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(fmt.Sprint(response["TemplateId"]))
 
-	return resourceAlicloudRosTemplateUpdate(d, meta)
+	return resourceAliCloudRosTemplateUpdate(d, meta)
 }
-func resourceAlicloudRosTemplateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosTemplateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	object, err := rosService.DescribeRosTemplate(d.Id())
@@ -113,7 +113,7 @@ func resourceAlicloudRosTemplateRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("tags", tagsToMap(listTagResourcesObject))
 	return nil
 }
-func resourceAlicloudRosTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rosService := RosService{client}
 	var err error
@@ -168,9 +168,9 @@ func resourceAlicloudRosTemplateUpdate(d *schema.ResourceData, meta interface{})
 		d.SetPartial("template_name")
 	}
 	d.Partial(false)
-	return resourceAlicloudRosTemplateRead(d, meta)
+	return resourceAliCloudRosTemplateRead(d, meta)
 }
-func resourceAlicloudRosTemplateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRosTemplateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteTemplate"
 	var response map[string]interface{}

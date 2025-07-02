@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEciContainerGroup() *schema.Resource {
+func resourceAliCloudEciContainerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEciContainerGroupCreate,
-		Read:   resourceAlicloudEciContainerGroupRead,
-		Update: resourceAlicloudEciContainerGroupUpdate,
-		Delete: resourceAlicloudEciContainerGroupDelete,
+		Create: resourceAliCloudEciContainerGroupCreate,
+		Read:   resourceAliCloudEciContainerGroupRead,
+		Update: resourceAliCloudEciContainerGroupUpdate,
+		Delete: resourceAliCloudEciContainerGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -883,7 +883,7 @@ func resourceAlicloudEciContainerGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEciContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEciContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	eciService := EciService{client}
 	var response map[string]interface{}
@@ -1322,10 +1322,10 @@ func resourceAlicloudEciContainerGroupCreate(d *schema.ResourceData, meta interf
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEciContainerGroupRead(d, meta)
+	return resourceAliCloudEciContainerGroupRead(d, meta)
 }
 
-func resourceAlicloudEciContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEciContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	eciService := EciService{client}
 	object, err := eciService.DescribeEciContainerGroup(d.Id())
@@ -1787,7 +1787,7 @@ func getConfigFileContent(d *schema.ResourceData, name interface{}, path interfa
 	return ""
 }
 
-func resourceAlicloudEciContainerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEciContainerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	eciService := EciService{client}
 	var response map[string]interface{}
@@ -2117,10 +2117,10 @@ func resourceAlicloudEciContainerGroupUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return resourceAlicloudEciContainerGroupRead(d, meta)
+	return resourceAliCloudEciContainerGroupRead(d, meta)
 }
 
-func resourceAlicloudEciContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEciContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteContainerGroup"
 	var response map[string]interface{}

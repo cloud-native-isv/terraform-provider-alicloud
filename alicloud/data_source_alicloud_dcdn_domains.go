@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDcdnDomains() *schema.Resource {
+func dataSourceAliCloudDcdnDomains() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDcdnDomainsRead,
+		Read: dataSourceAliCloudDcdnDomainsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -165,7 +165,7 @@ func dataSourceAlicloudDcdnDomains() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDcdnDomainsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDcdnDomainsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeDcdnUserDomains"

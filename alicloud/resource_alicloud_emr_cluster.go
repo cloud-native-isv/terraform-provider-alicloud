@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEmrCluster() *schema.Resource {
+func resourceAliCloudEmrCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEmrClusterCreate,
-		Read:   resourceAlicloudEmrClusterRead,
-		Update: resourceAlicloudEmrClusterUpdate,
-		Delete: resourceAlicloudEmrClusterDelete,
+		Create: resourceAliCloudEmrClusterCreate,
+		Read:   resourceAliCloudEmrClusterRead,
+		Update: resourceAliCloudEmrClusterUpdate,
+		Delete: resourceAliCloudEmrClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -364,7 +364,7 @@ func resourceAlicloudEmrCluster() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEmrClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEmrClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateClusterV2"
@@ -675,10 +675,10 @@ func resourceAlicloudEmrClusterCreate(d *schema.ResourceData, meta interface{}) 
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEmrClusterRead(d, meta)
+	return resourceAliCloudEmrClusterRead(d, meta)
 }
 
-func resourceAlicloudEmrClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEmrClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	emrService := EmrService{client}
 
@@ -723,7 +723,7 @@ func resourceAlicloudEmrClusterRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAlicloudEmrClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEmrClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -1051,7 +1051,7 @@ func resourceAlicloudEmrClusterUpdate(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceAlicloudEmrClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEmrClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	emrService := EmrService{client}
 	action := "ReleaseCluster"

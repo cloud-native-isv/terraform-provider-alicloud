@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudOtsInstance() *schema.Resource {
+func resourceAliCloudOtsInstance() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunOtsInstanceCreate,
 		Read:   resourceAliyunOtsInstanceRead,

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCSKubernetesPermissions() *schema.Resource {
+func dataSourceAliCloudCSKubernetesPermissions() *schema.Resource {
 	return &schema.Resource{
 		Read: dataAlicloudCSKubernetesPermissionsRead,
 

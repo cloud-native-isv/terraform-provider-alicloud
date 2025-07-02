@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudActiontrailHistoryDeliveryJobs() *schema.Resource {
+func dataSourceAliCloudActiontrailHistoryDeliveryJobs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudActiontrailHistoryDeliveryJobsRead,
+		Read: dataSourceAliCloudActiontrailHistoryDeliveryJobsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -101,7 +101,7 @@ func dataSourceAlicloudActiontrailHistoryDeliveryJobs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudActiontrailHistoryDeliveryJobsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudActiontrailHistoryDeliveryJobsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListDeliveryHistoryJobs"

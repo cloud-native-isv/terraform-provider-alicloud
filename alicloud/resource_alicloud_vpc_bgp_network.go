@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudVpcBgpNetwork() *schema.Resource {
+func resourceAliCloudVpcBgpNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpcBgpNetworkCreate,
-		Read:   resourceAlicloudVpcBgpNetworkRead,
-		Delete: resourceAlicloudVpcBgpNetworkDelete,
+		Create: resourceAliCloudVpcBgpNetworkCreate,
+		Read:   resourceAliCloudVpcBgpNetworkRead,
+		Delete: resourceAliCloudVpcBgpNetworkDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +41,7 @@ func resourceAlicloudVpcBgpNetwork() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpcBgpNetworkCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcBgpNetworkCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddBgpNetwork"
@@ -75,9 +75,9 @@ func resourceAlicloudVpcBgpNetworkCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudVpcBgpNetworkRead(d, meta)
+	return resourceAliCloudVpcBgpNetworkRead(d, meta)
 }
-func resourceAlicloudVpcBgpNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcBgpNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpcBgpNetwork(d.Id())
@@ -94,7 +94,7 @@ func resourceAlicloudVpcBgpNetworkRead(d *schema.ResourceData, meta interface{})
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudVpcBgpNetworkDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcBgpNetworkDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

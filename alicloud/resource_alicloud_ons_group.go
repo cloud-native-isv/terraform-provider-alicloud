@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudOnsGroup() *schema.Resource {
+func resourceAliCloudOnsGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOnsGroupCreate,
-		Read:   resourceAlicloudOnsGroupRead,
-		Update: resourceAlicloudOnsGroupUpdate,
-		Delete: resourceAlicloudOnsGroupDelete,
+		Create: resourceAliCloudOnsGroupCreate,
+		Read:   resourceAliCloudOnsGroupRead,
+		Update: resourceAliCloudOnsGroupUpdate,
+		Delete: resourceAliCloudOnsGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -69,7 +69,7 @@ func resourceAlicloudOnsGroup() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOnsGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "OnsGroupCreate"
@@ -111,9 +111,9 @@ func resourceAlicloudOnsGroupCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["GroupId"]))
 
-	return resourceAlicloudOnsGroupUpdate(d, meta)
+	return resourceAliCloudOnsGroupUpdate(d, meta)
 }
-func resourceAlicloudOnsGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	onsService := OnsService{client}
 	object, err := onsService.DescribeOnsGroup(d.Id())
@@ -137,7 +137,7 @@ func resourceAlicloudOnsGroupRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("tags", tagsToMap(object["Tags"].(map[string]interface{})["Tag"]))
 	return nil
 }
-func resourceAlicloudOnsGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	onsService := OnsService{client}
 	var err error
@@ -180,9 +180,9 @@ func resourceAlicloudOnsGroupUpdate(d *schema.ResourceData, meta interface{}) er
 		d.SetPartial("read_enable")
 	}
 	d.Partial(false)
-	return resourceAlicloudOnsGroupRead(d, meta)
+	return resourceAliCloudOnsGroupRead(d, meta)
 }
-func resourceAlicloudOnsGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOnsGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

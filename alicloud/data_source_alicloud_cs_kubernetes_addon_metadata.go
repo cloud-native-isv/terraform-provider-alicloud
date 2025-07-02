@@ -15,7 +15,7 @@ import (
 const MASKED_CONFIG_KEY_PREFIX = "x-ui"
 const DatasourceAlicloudCSKubernetesAddonMetadata = "alicloud_cs_kubernetes_addon_metadata"
 
-func dataSourceAlicloudCSKubernetesAddonMetadata() *schema.Resource {
+func dataSourceAliCloudCSKubernetesAddonMetadata() *schema.Resource {
 	return &schema.Resource{
 		Read: dataAlicloudCSKubernetesAddonMetadataRead,
 

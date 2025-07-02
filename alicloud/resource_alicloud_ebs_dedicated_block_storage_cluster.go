@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEbsDedicatedBlockStorageCluster() *schema.Resource {
+func resourceAliCloudEbsDedicatedBlockStorageCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEbsDedicatedBlockStorageClusterCreate,
-		Read:   resourceAlicloudEbsDedicatedBlockStorageClusterRead,
-		Update: resourceAlicloudEbsDedicatedBlockStorageClusterUpdate,
-		Delete: resourceAlicloudEbsDedicatedBlockStorageClusterDelete,
+		Create: resourceAliCloudEbsDedicatedBlockStorageClusterCreate,
+		Read:   resourceAliCloudEbsDedicatedBlockStorageClusterRead,
+		Update: resourceAliCloudEbsDedicatedBlockStorageClusterUpdate,
+		Delete: resourceAliCloudEbsDedicatedBlockStorageClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -99,7 +99,7 @@ func resourceAlicloudEbsDedicatedBlockStorageCluster() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEbsDedicatedBlockStorageClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEbsDedicatedBlockStorageClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ebsService := EbsService{client}
 	request := map[string]interface{}{
@@ -149,10 +149,10 @@ func resourceAlicloudEbsDedicatedBlockStorageClusterCreate(d *schema.ResourceDat
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEbsDedicatedBlockStorageClusterRead(d, meta)
+	return resourceAliCloudEbsDedicatedBlockStorageClusterRead(d, meta)
 }
 
-func resourceAlicloudEbsDedicatedBlockStorageClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEbsDedicatedBlockStorageClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ebsService := EbsService{client}
 
@@ -185,7 +185,7 @@ func resourceAlicloudEbsDedicatedBlockStorageClusterRead(d *schema.ResourceData,
 	return nil
 }
 
-func resourceAlicloudEbsDedicatedBlockStorageClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEbsDedicatedBlockStorageClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var err error
@@ -229,10 +229,10 @@ func resourceAlicloudEbsDedicatedBlockStorageClusterUpdate(d *schema.ResourceDat
 	}
 
 	d.Partial(false)
-	return resourceAlicloudEbsDedicatedBlockStorageClusterRead(d, meta)
+	return resourceAliCloudEbsDedicatedBlockStorageClusterRead(d, meta)
 }
 
-func resourceAlicloudEbsDedicatedBlockStorageClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudEbsDedicatedBlockStorageCluster. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudEbsDedicatedBlockStorageClusterDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudEbsDedicatedBlockStorageCluster. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudServiceCatalogPortfolios() *schema.Resource {
+func dataSourceAliCloudServiceCatalogPortfolios() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudServiceCatalogPortfoliosRead,
+		Read: dataSourceAliCloudServiceCatalogPortfoliosRead,
 		Schema: map[string]*schema.Schema{
 			"product_id": {
 				Optional: true,
@@ -113,7 +113,7 @@ func dataSourceAlicloudServiceCatalogPortfolios() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudServiceCatalogPortfoliosRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudServiceCatalogPortfoliosRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

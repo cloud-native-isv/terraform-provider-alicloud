@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSlbTlsCipherPolicies() *schema.Resource {
+func dataSourceAliCloudSlbTlsCipherPolicies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSlbTlsCipherPoliciesRead,
+		Read: dataSourceAliCloudSlbTlsCipherPoliciesRead,
 		Schema: map[string]*schema.Schema{
 			"include_listener": {
 				Type:     schema.TypeBool,
@@ -116,7 +116,7 @@ func dataSourceAlicloudSlbTlsCipherPolicies() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSlbTlsCipherPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSlbTlsCipherPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListTLSCipherPolicies"

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudSddpConfig() *schema.Resource {
+func resourceAliCloudSddpConfig() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSddpConfigCreate,
-		Read:   resourceAlicloudSddpConfigRead,
-		Update: resourceAlicloudSddpConfigUpdate,
-		Delete: resourceAlicloudSddpConfigDelete,
+		Create: resourceAliCloudSddpConfigCreate,
+		Read:   resourceAliCloudSddpConfigRead,
+		Update: resourceAliCloudSddpConfigUpdate,
+		Delete: resourceAliCloudSddpConfigDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,7 +46,7 @@ func resourceAlicloudSddpConfig() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSddpConfigCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSddpConfigCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateConfig"
@@ -83,9 +83,9 @@ func resourceAlicloudSddpConfigCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(fmt.Sprint(request["Code"]))
 
-	return resourceAlicloudSddpConfigRead(d, meta)
+	return resourceAliCloudSddpConfigRead(d, meta)
 }
-func resourceAlicloudSddpConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSddpConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	sddpService := SddpService{client}
 	object, err := sddpService.DescribeSddpConfig(d.Id())
@@ -103,7 +103,7 @@ func resourceAlicloudSddpConfigRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("value", fmt.Sprint(formatInt(object["Value"])))
 	return nil
 }
-func resourceAlicloudSddpConfigUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSddpConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -145,9 +145,9 @@ func resourceAlicloudSddpConfigUpdate(d *schema.ResourceData, meta interface{}) 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudSddpConfigRead(d, meta)
+	return resourceAliCloudSddpConfigRead(d, meta)
 }
-func resourceAlicloudSddpConfigDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudSddpConfig. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudSddpConfigDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudSddpConfig. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

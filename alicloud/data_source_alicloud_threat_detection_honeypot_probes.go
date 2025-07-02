@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudThreatDetectionHoneypotProbes() *schema.Resource {
+func dataSourceAliCloudThreatDetectionHoneypotProbes() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudThreatDetectionHoneypotProbesRead,
+		Read: dataSourceAliCloudThreatDetectionHoneypotProbesRead,
 		Schema: map[string]*schema.Schema{
 			"display_name": {
 				Optional: true,
@@ -153,7 +153,7 @@ func dataSourceAlicloudThreatDetectionHoneypotProbes() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudThreatDetectionHoneypotProbesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudThreatDetectionHoneypotProbesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

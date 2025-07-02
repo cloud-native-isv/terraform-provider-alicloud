@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudConfigConfigurationRecorders() *schema.Resource {
+func dataSourceAliCloudConfigConfigurationRecorders() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudConfigConfigurationRecordersRead,
+		Read: dataSourceAliCloudConfigConfigurationRecordersRead,
 		Schema: map[string]*schema.Schema{
 			"output_file": {
 				Type:     schema.TypeString,
@@ -54,7 +54,7 @@ func dataSourceAlicloudConfigConfigurationRecorders() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudConfigConfigurationRecordersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudConfigConfigurationRecordersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeConfigurationRecorder"

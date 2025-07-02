@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudDcdnWafPolicy() *schema.Resource {
+func resourceAliCloudDcdnWafPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDcdnWafPolicyCreate,
-		Read:   resourceAlicloudDcdnWafPolicyRead,
-		Update: resourceAlicloudDcdnWafPolicyUpdate,
-		Delete: resourceAlicloudDcdnWafPolicyDelete,
+		Create: resourceAliCloudDcdnWafPolicyCreate,
+		Read:   resourceAliCloudDcdnWafPolicyRead,
+		Update: resourceAliCloudDcdnWafPolicyUpdate,
+		Delete: resourceAliCloudDcdnWafPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -54,7 +54,7 @@ func resourceAlicloudDcdnWafPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDcdnWafPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDcdnWafPolicy"
@@ -83,9 +83,9 @@ func resourceAlicloudDcdnWafPolicyCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(fmt.Sprint(response["PolicyId"]))
 
-	return resourceAlicloudDcdnWafPolicyRead(d, meta)
+	return resourceAliCloudDcdnWafPolicyRead(d, meta)
 }
-func resourceAlicloudDcdnWafPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dcdnService := DcdnService{client}
 	object, err := dcdnService.DescribeDcdnWafPolicy(d.Id())
@@ -103,7 +103,7 @@ func resourceAlicloudDcdnWafPolicyRead(d *schema.ResourceData, meta interface{})
 	d.Set("status", object["PolicyStatus"])
 	return nil
 }
-func resourceAlicloudDcdnWafPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -138,9 +138,9 @@ func resourceAlicloudDcdnWafPolicyUpdate(d *schema.ResourceData, meta interface{
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudDcdnWafPolicyRead(d, meta)
+	return resourceAliCloudDcdnWafPolicyRead(d, meta)
 }
-func resourceAlicloudDcdnWafPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDcdnWafPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDcdnWafPolicy"
 	var response map[string]interface{}

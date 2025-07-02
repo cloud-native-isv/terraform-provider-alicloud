@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcsCommands() *schema.Resource {
+func dataSourceAliCloudEcsCommands() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcsCommandsRead,
+		Read: dataSourceAliCloudEcsCommandsRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -115,7 +115,7 @@ func dataSourceAlicloudEcsCommands() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcsCommandsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcsCommandsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeCommands"

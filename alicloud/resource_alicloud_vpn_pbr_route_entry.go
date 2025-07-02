@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudVpnPbrRouteEntry() *schema.Resource {
+func resourceAliCloudVpnPbrRouteEntry() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpnPbrRouteEntryCreate,
-		Read:   resourceAlicloudVpnPbrRouteEntryRead,
-		Update: resourceAlicloudVpnPbrRouteEntryUpdate,
-		Delete: resourceAlicloudVpnPbrRouteEntryDelete,
+		Create: resourceAliCloudVpnPbrRouteEntryCreate,
+		Read:   resourceAliCloudVpnPbrRouteEntryRead,
+		Update: resourceAliCloudVpnPbrRouteEntryUpdate,
+		Delete: resourceAliCloudVpnPbrRouteEntryDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -65,7 +65,7 @@ func resourceAlicloudVpnPbrRouteEntry() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpnPbrRouteEntryCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpnPbrRouteEntryCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	var response map[string]interface{}
@@ -105,10 +105,10 @@ func resourceAlicloudVpnPbrRouteEntryCreate(d *schema.ResourceData, meta interfa
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudVpnPbrRouteEntryRead(d, meta)
+	return resourceAliCloudVpnPbrRouteEntryRead(d, meta)
 }
 
-func resourceAlicloudVpnPbrRouteEntryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpnPbrRouteEntryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpnPbrRouteEntry(d.Id())
@@ -135,7 +135,7 @@ func resourceAlicloudVpnPbrRouteEntryRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceAlicloudVpnPbrRouteEntryUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpnPbrRouteEntryUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	d.Partial(true)
@@ -222,10 +222,10 @@ func resourceAlicloudVpnPbrRouteEntryUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	d.Partial(false)
-	return resourceAlicloudVpnPbrRouteEntryRead(d, meta)
+	return resourceAliCloudVpnPbrRouteEntryRead(d, meta)
 }
 
-func resourceAlicloudVpnPbrRouteEntryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpnPbrRouteEntryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 	var response map[string]interface{}

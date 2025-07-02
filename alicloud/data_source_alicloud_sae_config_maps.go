@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSaeConfigMaps() *schema.Resource {
+func dataSourceAliCloudSaeConfigMaps() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSaeConfigMapsRead,
+		Read: dataSourceAliCloudSaeConfigMapsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -85,7 +85,7 @@ func dataSourceAlicloudSaeConfigMaps() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSaeConfigMapsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSaeConfigMapsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "/pop/v1/sam/configmap/listNamespacedConfigMaps"

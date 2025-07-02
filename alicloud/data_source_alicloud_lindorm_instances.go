@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudLindormInstances() *schema.Resource {
+func dataSourceAliCloudLindormInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudLindormInstancesRead,
+		Read: dataSourceAliCloudLindormInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -209,7 +209,7 @@ func dataSourceAlicloudLindormInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudLindormInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudLindormInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "GetLindormInstanceList"

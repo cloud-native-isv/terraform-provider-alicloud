@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCloudConnectNetworks() *schema.Resource {
+func dataSourceAliCloudCloudConnectNetworks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudConnectNetworkRead,
+		Read: dataSourceAliCloudCloudConnectNetworkRead,
 
 		Schema: map[string]*schema.Schema{
 			"ids": {
@@ -71,7 +71,7 @@ func dataSourceAlicloudCloudConnectNetworks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCloudConnectNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudConnectNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := smartag.CreateDescribeCloudConnectNetworksRequest()
 

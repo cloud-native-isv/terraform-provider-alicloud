@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudMhubApp() *schema.Resource {
+func resourceAliCloudMhubApp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudMhubAppCreate,
-		Read:   resourceAlicloudMhubAppRead,
-		Update: resourceAlicloudMhubAppUpdate,
-		Delete: resourceAlicloudMhubAppDelete,
+		Create: resourceAliCloudMhubAppCreate,
+		Read:   resourceAliCloudMhubAppRead,
+		Update: resourceAliCloudMhubAppUpdate,
+		Delete: resourceAliCloudMhubAppDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceAlicloudMhubApp() *schema.Resource {
 	}
 }
 
-func resourceAlicloudMhubAppCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMhubAppCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateApp"
@@ -95,9 +95,9 @@ func resourceAlicloudMhubAppCreate(d *schema.ResourceData, meta interface{}) err
 	responseAppInfo := response["AppInfo"].(map[string]interface{})
 	d.SetId(fmt.Sprint(responseAppInfo["ProductId"], ":", responseAppInfo["AppKey"]))
 
-	return resourceAlicloudMhubAppUpdate(d, meta)
+	return resourceAliCloudMhubAppUpdate(d, meta)
 }
-func resourceAlicloudMhubAppRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMhubAppRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	mhubService := MhubService{client}
 	object, err := mhubService.DescribeMhubApp(d.Id())
@@ -123,7 +123,7 @@ func resourceAlicloudMhubAppRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("package_name", object["PackageName"])
 	return nil
 }
-func resourceAlicloudMhubAppUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMhubAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -170,9 +170,9 @@ func resourceAlicloudMhubAppUpdate(d *schema.ResourceData, meta interface{}) err
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudMhubAppRead(d, meta)
+	return resourceAliCloudMhubAppRead(d, meta)
 }
-func resourceAlicloudMhubAppDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudMhubAppDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteApp"
 	var response map[string]interface{}

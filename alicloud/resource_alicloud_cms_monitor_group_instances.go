@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudCmsMonitorGroupInstances() *schema.Resource {
+func resourceAliCloudCmsMonitorGroupInstances() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCmsMonitorGroupInstancesCreate,
-		Read:   resourceAlicloudCmsMonitorGroupInstancesRead,
-		Update: resourceAlicloudCmsMonitorGroupInstancesUpdate,
-		Delete: resourceAlicloudCmsMonitorGroupInstancesDelete,
+		Create: resourceAliCloudCmsMonitorGroupInstancesCreate,
+		Read:   resourceAliCloudCmsMonitorGroupInstancesRead,
+		Update: resourceAliCloudCmsMonitorGroupInstancesUpdate,
+		Delete: resourceAliCloudCmsMonitorGroupInstancesDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -54,7 +54,7 @@ func resourceAlicloudCmsMonitorGroupInstances() *schema.Resource {
 	}
 }
 
-func resourceAlicloudCmsMonitorGroupInstancesCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMonitorGroupInstancesCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateMonitorGroupInstances"
@@ -94,9 +94,9 @@ func resourceAlicloudCmsMonitorGroupInstancesCreate(d *schema.ResourceData, meta
 
 	d.SetId(fmt.Sprint(request["GroupId"]))
 
-	return resourceAlicloudCmsMonitorGroupInstancesRead(d, meta)
+	return resourceAliCloudCmsMonitorGroupInstancesRead(d, meta)
 }
-func resourceAlicloudCmsMonitorGroupInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMonitorGroupInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cmsService := CmsService{client}
 	object, err := cmsService.DescribeCmsMonitorGroupInstances(d.Id())
@@ -125,7 +125,7 @@ func resourceAlicloudCmsMonitorGroupInstancesRead(d *schema.ResourceData, meta i
 	}
 	return nil
 }
-func resourceAlicloudCmsMonitorGroupInstancesUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMonitorGroupInstancesUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -165,9 +165,9 @@ func resourceAlicloudCmsMonitorGroupInstancesUpdate(d *schema.ResourceData, meta
 			return WrapError(Error("ModifyMonitorGroupInstances failed for %s", response["Message"]))
 		}
 	}
-	return resourceAlicloudCmsMonitorGroupInstancesRead(d, meta)
+	return resourceAliCloudCmsMonitorGroupInstancesRead(d, meta)
 }
-func resourceAlicloudCmsMonitorGroupInstancesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCmsMonitorGroupInstancesDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteMonitorGroupInstances"
 	var response map[string]interface{}

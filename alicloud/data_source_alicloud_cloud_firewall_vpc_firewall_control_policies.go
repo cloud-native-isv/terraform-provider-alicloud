@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudCloudFirewallVpcFirewallControlPolicies() *schema.Resource {
+func dataSourceAliCloudCloudFirewallVpcFirewallControlPolicies() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCloudFirewallVpcFirewallControlPoliciesRead,
+		Read: dataSourceAliCloudCloudFirewallVpcFirewallControlPoliciesRead,
 		Schema: map[string]*schema.Schema{
 			"acl_action": {
 				Optional:     true,
@@ -207,7 +207,7 @@ func dataSourceAlicloudCloudFirewallVpcFirewallControlPolicies() *schema.Resourc
 	}
 }
 
-func dataSourceAlicloudCloudFirewallVpcFirewallControlPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCloudFirewallVpcFirewallControlPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := make(map[string]interface{})

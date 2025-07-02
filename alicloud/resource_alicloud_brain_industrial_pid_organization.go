@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudBrainIndustrialPidOrganization() *schema.Resource {
+func resourceAliCloudBrainIndustrialPidOrganization() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudBrainIndustrialPidOrganizationCreate,
-		Read:   resourceAlicloudBrainIndustrialPidOrganizationRead,
-		Update: resourceAlicloudBrainIndustrialPidOrganizationUpdate,
-		Delete: resourceAlicloudBrainIndustrialPidOrganizationDelete,
+		Create: resourceAliCloudBrainIndustrialPidOrganizationCreate,
+		Read:   resourceAliCloudBrainIndustrialPidOrganizationRead,
+		Update: resourceAliCloudBrainIndustrialPidOrganizationUpdate,
+		Delete: resourceAliCloudBrainIndustrialPidOrganizationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -33,7 +33,7 @@ func resourceAlicloudBrainIndustrialPidOrganization() *schema.Resource {
 	}
 }
 
-func resourceAlicloudBrainIndustrialPidOrganizationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidOrganizationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreatePidOrganization"
@@ -65,9 +65,9 @@ func resourceAlicloudBrainIndustrialPidOrganizationCreate(d *schema.ResourceData
 
 	d.SetId(fmt.Sprint(response["OrganizationId"]))
 
-	return resourceAlicloudBrainIndustrialPidOrganizationRead(d, meta)
+	return resourceAliCloudBrainIndustrialPidOrganizationRead(d, meta)
 }
-func resourceAlicloudBrainIndustrialPidOrganizationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidOrganizationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	brain_industrialService := Brain_industrialService{client}
 	object, err := brain_industrialService.DescribeBrainIndustrialPidOrganization(d.Id())
@@ -82,7 +82,7 @@ func resourceAlicloudBrainIndustrialPidOrganizationRead(d *schema.ResourceData, 
 	d.Set("pid_organization_name", object["OrganizationName"])
 	return nil
 }
-func resourceAlicloudBrainIndustrialPidOrganizationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidOrganizationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -109,9 +109,9 @@ func resourceAlicloudBrainIndustrialPidOrganizationUpdate(d *schema.ResourceData
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudBrainIndustrialPidOrganizationRead(d, meta)
+	return resourceAliCloudBrainIndustrialPidOrganizationRead(d, meta)
 }
-func resourceAlicloudBrainIndustrialPidOrganizationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidOrganizationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeletePidOrganization"
 	var response map[string]interface{}

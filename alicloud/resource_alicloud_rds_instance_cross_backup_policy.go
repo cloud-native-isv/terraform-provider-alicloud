@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRdsInstanceCrossBackupPolicy() *schema.Resource {
+func resourceAliCloudRdsInstanceCrossBackupPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdsInstanceCrossBackupPolicyCreate,
-		Read:   resourceAlicloudRdsInstanceCrossBackupPolicyRead,
-		Update: resourceAlicloudRdsInstanceCrossBackupPolicyUpdate,
-		Delete: resourceAlicloudRdsInstanceCrossBackupPolicyDelete,
+		Create: resourceAliCloudRdsInstanceCrossBackupPolicyCreate,
+		Read:   resourceAliCloudRdsInstanceCrossBackupPolicyRead,
+		Update: resourceAliCloudRdsInstanceCrossBackupPolicyUpdate,
+		Delete: resourceAliCloudRdsInstanceCrossBackupPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -80,14 +80,14 @@ func resourceAlicloudRdsInstanceCrossBackupPolicy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRdsInstanceCrossBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsInstanceCrossBackupPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(d.Get("instance_id").(string))
 
-	return resourceAlicloudRdsInstanceCrossBackupPolicyUpdate(d, meta)
+	return resourceAliCloudRdsInstanceCrossBackupPolicyUpdate(d, meta)
 }
 
-func resourceAlicloudRdsInstanceCrossBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsInstanceCrossBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeInstanceCrossBackupPolicy(d.Id())
@@ -112,7 +112,7 @@ func resourceAlicloudRdsInstanceCrossBackupPolicyRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceAlicloudRdsInstanceCrossBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsInstanceCrossBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	if d.HasChanges("log_backup_enabled", "cross_backup_region", "retention") {
 		action := "ModifyInstanceCrossBackupPolicy"
@@ -152,10 +152,10 @@ func resourceAlicloudRdsInstanceCrossBackupPolicyUpdate(d *schema.ResourceData, 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudRdsInstanceCrossBackupPolicyRead(d, meta)
+	return resourceAliCloudRdsInstanceCrossBackupPolicyRead(d, meta)
 }
 
-func resourceAlicloudRdsInstanceCrossBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsInstanceCrossBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeInstanceCrossBackupPolicy(d.Id())

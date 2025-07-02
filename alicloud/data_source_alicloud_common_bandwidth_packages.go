@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCommonBandwidthPackages() *schema.Resource {
+func dataSourceAliCloudCommonBandwidthPackages() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCommonBandwidthPackagesRead,
+		Read: dataSourceAliCloudCommonBandwidthPackagesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -178,7 +178,7 @@ func dataSourceAlicloudCommonBandwidthPackages() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudCommonBandwidthPackagesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCommonBandwidthPackagesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeCommonBandwidthPackages"

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudMscSubWebhooks() *schema.Resource {
+func dataSourceAliCloudMscSubWebhooks() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMscSubWebhooksRead,
+		Read: dataSourceAliCloudMscSubWebhooksRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -66,7 +66,7 @@ func dataSourceAlicloudMscSubWebhooks() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMscSubWebhooksRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMscSubWebhooksRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListWebhooks"

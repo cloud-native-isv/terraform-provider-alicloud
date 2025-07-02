@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudCloudSsoAccessConfigurationProvisioning() *schema.Resource {
+func resourceAliCloudCloudSsoAccessConfigurationProvisioning() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudCloudSsoAccessConfigurationProvisioningCreate,
-		Read:   resourceAlicloudCloudSsoAccessConfigurationProvisioningRead,
-		Update: resourceAlicloudCloudSsoAccessConfigurationProvisioningUpdate,
-		Delete: resourceAlicloudCloudSsoAccessConfigurationProvisioningDelete,
+		Create: resourceAliCloudCloudSsoAccessConfigurationProvisioningCreate,
+		Read:   resourceAliCloudCloudSsoAccessConfigurationProvisioningRead,
+		Update: resourceAliCloudCloudSsoAccessConfigurationProvisioningUpdate,
+		Delete: resourceAliCloudCloudSsoAccessConfigurationProvisioningDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -54,7 +54,7 @@ func resourceAlicloudCloudSsoAccessConfigurationProvisioning() *schema.Resource 
 	}
 }
 
-func resourceAlicloudCloudSsoAccessConfigurationProvisioningCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoAccessConfigurationProvisioningCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudssoService := CloudssoService{client}
 	err := cloudssoService.CloudssoServicAccessConfigurationProvisioning(fmt.Sprint(d.Get("directory_id")), fmt.Sprint(d.Get("access_configuration_id")), fmt.Sprint(d.Get("target_type")), fmt.Sprint(d.Get("target_id")))
@@ -62,9 +62,9 @@ func resourceAlicloudCloudSsoAccessConfigurationProvisioningCreate(d *schema.Res
 		return WrapError(err)
 	}
 	d.SetId(fmt.Sprint(d.Get("directory_id"), ":", d.Get("access_configuration_id"), ":", d.Get("target_type"), ":", d.Get("target_id")))
-	return resourceAlicloudCloudSsoAccessConfigurationProvisioningRead(d, meta)
+	return resourceAliCloudCloudSsoAccessConfigurationProvisioningRead(d, meta)
 }
-func resourceAlicloudCloudSsoAccessConfigurationProvisioningRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoAccessConfigurationProvisioningRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudssoService := CloudssoService{client}
 	object, err := cloudssoService.DescribeCloudSsoAccessConfigurationProvisioning(d.Id())
@@ -89,7 +89,7 @@ func resourceAlicloudCloudSsoAccessConfigurationProvisioningRead(d *schema.Resou
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudCloudSsoAccessConfigurationProvisioningUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoAccessConfigurationProvisioningUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	cloudssoService := CloudssoService{client}
 
@@ -113,9 +113,9 @@ func resourceAlicloudCloudSsoAccessConfigurationProvisioningUpdate(d *schema.Res
 		}
 	}
 
-	return resourceAlicloudCloudSsoAccessConfigurationProvisioningRead(d, meta)
+	return resourceAliCloudCloudSsoAccessConfigurationProvisioningRead(d, meta)
 }
-func resourceAlicloudCloudSsoAccessConfigurationProvisioningDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudCloudSsoAccessConfigurationProvisioningDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 4)
 	if err != nil {

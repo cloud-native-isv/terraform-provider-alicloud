@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudRdsDBProxy() *schema.Resource {
+func resourceAliCloudRdsDBProxy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudRdsDBProxyCreate,
-		Read:   resourceAlicloudRdsDBProxyRead,
-		Update: resourceAlicloudRdsDBProxyUpdate,
-		Delete: resourceAlicloudRdsDBProxyDelete,
+		Create: resourceAliCloudRdsDBProxyCreate,
+		Read:   resourceAliCloudRdsDBProxyRead,
+		Update: resourceAliCloudRdsDBProxyUpdate,
+		Delete: resourceAliCloudRdsDBProxyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -164,7 +164,7 @@ func resourceAlicloudRdsDBProxy() *schema.Resource {
 	}
 }
 
-func resourceAlicloudRdsDBProxyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBProxyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	action := "ModifyDBProxy"
@@ -213,10 +213,10 @@ func resourceAlicloudRdsDBProxyCreate(d *schema.ResourceData, meta interface{}) 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudRdsDBProxyUpdate(d, meta)
+	return resourceAliCloudRdsDBProxyUpdate(d, meta)
 }
 
-func resourceAlicloudRdsDBProxyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBProxyRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
@@ -295,7 +295,7 @@ func resourceAlicloudRdsDBProxyRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAlicloudRdsDBProxyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBProxyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	proxy, proxyErr := rdsService.DescribeDBProxy(d.Id())
@@ -528,10 +528,10 @@ func resourceAlicloudRdsDBProxyUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 	}
-	return resourceAlicloudRdsDBProxyRead(d, meta)
+	return resourceAliCloudRdsDBProxyRead(d, meta)
 }
 
-func resourceAlicloudRdsDBProxyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudRdsDBProxyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rdsService := RdsService{client}
 	if d.Id() == "" {

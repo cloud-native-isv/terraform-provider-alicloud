@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdAdConnectorOfficeSites() *schema.Resource {
+func dataSourceAliCloudEcdAdConnectorOfficeSites() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdAdConnectorOfficeSitesRead,
+		Read: dataSourceAliCloudEcdAdConnectorOfficeSitesRead,
 		Schema: map[string]*schema.Schema{
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -220,7 +220,7 @@ func dataSourceAlicloudEcdAdConnectorOfficeSites() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdAdConnectorOfficeSitesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdAdConnectorOfficeSitesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeOfficeSites"

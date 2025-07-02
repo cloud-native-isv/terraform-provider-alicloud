@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSlbListeners() *schema.Resource {
+func dataSourceAliCloudSlbListeners() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSlbListenersRead,
+		Read: dataSourceAliCloudSlbListenersRead,
 
 		Schema: map[string]*schema.Schema{
 			"load_balancer_id": {
@@ -218,7 +218,7 @@ func dataSourceAlicloudSlbListeners() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSlbListenersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSlbListenersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := slb.CreateDescribeLoadBalancerAttributeRequest()

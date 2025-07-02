@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcsSnapshotGroups() *schema.Resource {
+func dataSourceAliCloudEcsSnapshotGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcsSnapshotGroupsRead,
+		Read: dataSourceAliCloudEcsSnapshotGroupsRead,
 		Schema: map[string]*schema.Schema{
 			"instance_id": {
 				Type:     schema.TypeString,
@@ -96,7 +96,7 @@ func dataSourceAlicloudEcsSnapshotGroups() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcsSnapshotGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcsSnapshotGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeSnapshotGroups"

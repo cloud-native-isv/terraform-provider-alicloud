@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudActiontrailHistoryDeliveryJob() *schema.Resource {
+func resourceAliCloudActiontrailHistoryDeliveryJob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudActiontrailHistoryDeliveryJobCreate,
-		Read:   resourceAlicloudActiontrailHistoryDeliveryJobRead,
-		Delete: resourceAlicloudActiontrailHistoryDeliveryJobDelete,
+		Create: resourceAliCloudActiontrailHistoryDeliveryJobCreate,
+		Read:   resourceAliCloudActiontrailHistoryDeliveryJobRead,
+		Delete: resourceAliCloudActiontrailHistoryDeliveryJobDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -37,7 +37,7 @@ func resourceAlicloudActiontrailHistoryDeliveryJob() *schema.Resource {
 	}
 }
 
-func resourceAlicloudActiontrailHistoryDeliveryJobCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudActiontrailHistoryDeliveryJobCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateDeliveryHistoryJob"
@@ -69,9 +69,9 @@ func resourceAlicloudActiontrailHistoryDeliveryJobCreate(d *schema.ResourceData,
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudActiontrailHistoryDeliveryJobRead(d, meta)
+	return resourceAliCloudActiontrailHistoryDeliveryJobRead(d, meta)
 }
-func resourceAlicloudActiontrailHistoryDeliveryJobRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudActiontrailHistoryDeliveryJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	actiontrailService := ActiontrailService{client}
 	object, err := actiontrailService.DescribeActiontrailHistoryDeliveryJob(d.Id())
@@ -87,7 +87,7 @@ func resourceAlicloudActiontrailHistoryDeliveryJobRead(d *schema.ResourceData, m
 	d.Set("trail_name", object["TrailName"])
 	return nil
 }
-func resourceAlicloudActiontrailHistoryDeliveryJobDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudActiontrailHistoryDeliveryJobDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteDeliveryHistoryJob"
 	var response map[string]interface{}

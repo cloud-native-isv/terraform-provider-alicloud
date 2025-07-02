@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudWafv3Instance() *schema.Resource {
+func resourceAliCloudWafv3Instance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudWafv3InstanceCreate,
-		Read:   resourceAlicloudWafv3InstanceRead,
-		Delete: resourceAlicloudWafv3InstanceDelete,
+		Create: resourceAliCloudWafv3InstanceCreate,
+		Read:   resourceAliCloudWafv3InstanceRead,
+		Delete: resourceAliCloudWafv3InstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -40,7 +40,7 @@ func resourceAlicloudWafv3Instance() *schema.Resource {
 	}
 }
 
-func resourceAlicloudWafv3InstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafv3InstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := make(map[string]interface{})
 	wafOpenapiService := WafOpenapiService{client}
@@ -75,10 +75,10 @@ func resourceAlicloudWafv3InstanceCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudWafv3InstanceRead(d, meta)
+	return resourceAliCloudWafv3InstanceRead(d, meta)
 }
 
-func resourceAlicloudWafv3InstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafv3InstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	wafOpenapiService := WafOpenapiService{client}
 
@@ -102,7 +102,7 @@ func resourceAlicloudWafv3InstanceRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceAlicloudWafv3InstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudWafv3InstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	wafOpenapiService := WafOpenapiService{client}
 	var response map[string]interface{}

@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEciImageCache() *schema.Resource {
+func resourceAliCloudEciImageCache() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudEciImageCacheCreate,
-		Read:   resourceAlicloudEciImageCacheRead,
-		Delete: resourceAlicloudEciImageCacheDelete,
+		Create: resourceAliCloudEciImageCacheCreate,
+		Read:   resourceAliCloudEciImageCacheRead,
+		Delete: resourceAliCloudEciImageCacheDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -103,7 +103,7 @@ func resourceAlicloudEciImageCache() *schema.Resource {
 	}
 }
 
-func resourceAlicloudEciImageCacheCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEciImageCacheCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	eciService := EciService{client}
 
@@ -158,9 +158,9 @@ func resourceAlicloudEciImageCacheCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudEciImageCacheRead(d, meta)
+	return resourceAliCloudEciImageCacheRead(d, meta)
 }
-func resourceAlicloudEciImageCacheRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEciImageCacheRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	eciService := EciService{client}
 	object, err := eciService.DescribeEciImageCache(d.Id())
@@ -178,7 +178,7 @@ func resourceAlicloudEciImageCacheRead(d *schema.ResourceData, meta interface{})
 	d.Set("status", object.Status)
 	return nil
 }
-func resourceAlicloudEciImageCacheDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEciImageCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	request := eci.CreateDeleteImageCacheRequest()
 	request.ImageCacheId = d.Id()

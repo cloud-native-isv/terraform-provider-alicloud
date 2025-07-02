@@ -15,10 +15,10 @@ import (
 
 func resourceAliCloudVpcIpv6Gateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVpcIpv6GatewayCreate,
-		Read:   resourceAlicloudVpcIpv6GatewayRead,
-		Update: resourceAlicloudVpcIpv6GatewayUpdate,
-		Delete: resourceAlicloudVpcIpv6GatewayDelete,
+		Create: resourceAliCloudVpcIpv6GatewayCreate,
+		Read:   resourceAliCloudVpcIpv6GatewayRead,
+		Update: resourceAliCloudVpcIpv6GatewayUpdate,
+		Delete: resourceAliCloudVpcIpv6GatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -83,7 +83,7 @@ func resourceAliCloudVpcIpv6Gateway() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVpcIpv6GatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcIpv6GatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "CreateIpv6Gateway"
@@ -132,10 +132,10 @@ func resourceAlicloudVpcIpv6GatewayCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudVpcIpv6GatewayUpdate(d, meta)
+	return resourceAliCloudVpcIpv6GatewayUpdate(d, meta)
 }
 
-func resourceAlicloudVpcIpv6GatewayRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcIpv6GatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcServiceV2 := VpcServiceV2{client}
 
@@ -166,7 +166,7 @@ func resourceAlicloudVpcIpv6GatewayRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceAlicloudVpcIpv6GatewayUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcIpv6GatewayUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var request map[string]interface{}
 	var response map[string]interface{}
@@ -257,10 +257,10 @@ func resourceAlicloudVpcIpv6GatewayUpdate(d *schema.ResourceData, meta interface
 		d.SetPartial("tags")
 	}
 	d.Partial(false)
-	return resourceAlicloudVpcIpv6GatewayRead(d, meta)
+	return resourceAliCloudVpcIpv6GatewayRead(d, meta)
 }
 
-func resourceAlicloudVpcIpv6GatewayDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVpcIpv6GatewayDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 

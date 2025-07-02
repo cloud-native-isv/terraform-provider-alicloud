@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudTagMetaTag() *schema.Resource {
+func resourceAliCloudTagMetaTag() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudTagMetaTagCreate,
-		Read:   resourceAlicloudTagMetaTagRead,
-		Delete: resourceAlicloudTagMetaTagDelete,
+		Create: resourceAliCloudTagMetaTagCreate,
+		Read:   resourceAliCloudTagMetaTagRead,
+		Delete: resourceAliCloudTagMetaTagDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -37,7 +37,7 @@ func resourceAlicloudTagMetaTag() *schema.Resource {
 	}
 }
 
-func resourceAlicloudTagMetaTagCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudTagMetaTagCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateTags"
@@ -79,9 +79,9 @@ func resourceAlicloudTagMetaTagCreate(d *schema.ResourceData, meta interface{}) 
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_tag_meta_tag", action, AlibabaCloudSdkGoERROR)
 	}
 	d.SetId(fmt.Sprintf("%v:%v", client.RegionId, d.Get("key")))
-	return resourceAlicloudTagMetaTagRead(d, meta)
+	return resourceAliCloudTagMetaTagRead(d, meta)
 }
-func resourceAlicloudTagMetaTagRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudTagMetaTagRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	tagService := TagService{client}
 	parts, err := ParseResourceIdN(d.Id(), 2)
@@ -98,7 +98,7 @@ func resourceAlicloudTagMetaTagRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceAlicloudTagMetaTagDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudTagMetaTagDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteTag"
 	var response map[string]interface{}

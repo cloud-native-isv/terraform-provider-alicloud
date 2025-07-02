@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudSecurityGroupRules() *schema.Resource {
+func dataSourceAliCloudSecurityGroupRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudSecurityGroupRulesRead,
+		Read: dataSourceAliCloudSecurityGroupRulesRead,
 
 		Schema: map[string]*schema.Schema{
 			"group_id": {
@@ -123,7 +123,7 @@ func dataSourceAlicloudSecurityGroupRules() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudSecurityGroupRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudSecurityGroupRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	req := ecs.CreateDescribeSecurityGroupAttributeRequest()

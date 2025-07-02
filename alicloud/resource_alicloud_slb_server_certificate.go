@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSlbServerCertificate() *schema.Resource {
+func resourceAliCloudSlbServerCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSlbServerCertificateCreate,
-		Read:   resourceAlicloudSlbServerCertificateRead,
-		Update: resourceAlicloudSlbServerCertificateUpdate,
-		Delete: resourceAlicloudSlbServerCertificateDelete,
+		Create: resourceAliCloudSlbServerCertificateCreate,
+		Read:   resourceAliCloudSlbServerCertificateRead,
+		Update: resourceAliCloudSlbServerCertificateUpdate,
+		Delete: resourceAliCloudSlbServerCertificateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -75,7 +75,7 @@ func resourceAlicloudSlbServerCertificate() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSlbServerCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbServerCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	request := slb.CreateUploadServerCertificateRequest()
@@ -130,10 +130,10 @@ func resourceAlicloudSlbServerCertificateCreate(d *schema.ResourceData, meta int
 	response, _ := raw.(*slb.UploadServerCertificateResponse)
 	d.SetId(response.ServerCertificateId)
 
-	return resourceAlicloudSlbServerCertificateUpdate(d, meta)
+	return resourceAliCloudSlbServerCertificateUpdate(d, meta)
 }
 
-func resourceAlicloudSlbServerCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbServerCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slbService := SlbService{client}
 	tags, err := slbService.ListTagResources(d.Id(), "certificate")
@@ -176,7 +176,7 @@ func resourceAlicloudSlbServerCertificateRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceAlicloudSlbServerCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbServerCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slbService := SlbService{client}
 	if err := slbService.setInstanceTags(d, TagResourceCertificate); err != nil {
@@ -184,7 +184,7 @@ func resourceAlicloudSlbServerCertificateUpdate(d *schema.ResourceData, meta int
 	}
 	if d.IsNewResource() {
 		d.Partial(false)
-		return resourceAlicloudSlbServerCertificateRead(d, meta)
+		return resourceAliCloudSlbServerCertificateRead(d, meta)
 	}
 	if !d.IsNewResource() && d.HasChange("name") {
 		request := slb.CreateSetServerCertificateNameRequest()
@@ -199,10 +199,10 @@ func resourceAlicloudSlbServerCertificateUpdate(d *schema.ResourceData, meta int
 		}
 		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 	}
-	return resourceAlicloudSlbServerCertificateRead(d, meta)
+	return resourceAliCloudSlbServerCertificateRead(d, meta)
 }
 
-func resourceAlicloudSlbServerCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSlbServerCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slbService := SlbService{client}
 

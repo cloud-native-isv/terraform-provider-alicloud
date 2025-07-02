@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudDatabaseGatewayGateways() *schema.Resource {
+func dataSourceAliCloudDatabaseGatewayGateways() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudDatabaseGatewayGatewaysRead,
+		Read: dataSourceAliCloudDatabaseGatewayGatewaysRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -150,7 +150,7 @@ func dataSourceAlicloudDatabaseGatewayGateways() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudDatabaseGatewayGatewaysRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudDatabaseGatewayGatewaysRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "GetUserGateways"

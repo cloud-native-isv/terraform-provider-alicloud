@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudActiontrailTrail() *schema.Resource {
+func resourceAliCloudActiontrailTrail() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudActiontrailTrailCreate,
-		Read:   resourceAlicloudActiontrailTrailRead,
-		Update: resourceAlicloudActiontrailTrailUpdate,
-		Delete: resourceAlicloudActiontrailTrailDelete,
+		Create: resourceAliCloudActiontrailTrailCreate,
+		Read:   resourceAliCloudActiontrailTrailRead,
+		Update: resourceAliCloudActiontrailTrailUpdate,
+		Delete: resourceAliCloudActiontrailTrailDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -98,7 +98,7 @@ func resourceAlicloudActiontrailTrail() *schema.Resource {
 	}
 }
 
-func resourceAlicloudActiontrailTrailCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudActiontrailTrailCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	actiontrailService := ActiontrailService{client}
 	var response map[string]interface{}
@@ -168,9 +168,9 @@ func resourceAlicloudActiontrailTrailCreate(d *schema.ResourceData, meta interfa
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudActiontrailTrailUpdate(d, meta)
+	return resourceAliCloudActiontrailTrailUpdate(d, meta)
 }
-func resourceAlicloudActiontrailTrailRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudActiontrailTrailRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	actiontrailService := ActiontrailService{client}
 	object, err := actiontrailService.DescribeActiontrailTrail(d.Id())
@@ -196,7 +196,7 @@ func resourceAlicloudActiontrailTrailRead(d *schema.ResourceData, meta interface
 	d.Set("trail_region", object["TrailRegion"])
 	return nil
 }
-func resourceAlicloudActiontrailTrailUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudActiontrailTrailUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	actiontrailService := ActiontrailService{client}
 	var err error
@@ -339,9 +339,9 @@ func resourceAlicloudActiontrailTrailUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 	d.Partial(false)
-	return resourceAlicloudActiontrailTrailRead(d, meta)
+	return resourceAliCloudActiontrailTrailRead(d, meta)
 }
-func resourceAlicloudActiontrailTrailDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudActiontrailTrailDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteTrail"
 	var response map[string]interface{}

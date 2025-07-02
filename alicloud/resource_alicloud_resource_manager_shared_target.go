@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudResourceManagerSharedTarget() *schema.Resource {
+func resourceAliCloudResourceManagerSharedTarget() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudResourceManagerSharedTargetCreate,
-		Read:   resourceAlicloudResourceManagerSharedTargetRead,
-		Delete: resourceAlicloudResourceManagerSharedTargetDelete,
+		Create: resourceAliCloudResourceManagerSharedTargetCreate,
+		Read:   resourceAliCloudResourceManagerSharedTargetRead,
+		Delete: resourceAliCloudResourceManagerSharedTargetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +41,7 @@ func resourceAlicloudResourceManagerSharedTarget() *schema.Resource {
 	}
 }
 
-func resourceAlicloudResourceManagerSharedTargetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerSharedTargetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resourcesharingService := ResourcesharingService{client}
 	var response map[string]interface{}
@@ -74,9 +74,9 @@ func resourceAlicloudResourceManagerSharedTargetCreate(d *schema.ResourceData, m
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudResourceManagerSharedTargetRead(d, meta)
+	return resourceAliCloudResourceManagerSharedTargetRead(d, meta)
 }
-func resourceAlicloudResourceManagerSharedTargetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerSharedTargetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	resourcesharingService := ResourcesharingService{client}
 	object, err := resourcesharingService.DescribeResourceManagerSharedTarget(d.Id())
@@ -97,7 +97,7 @@ func resourceAlicloudResourceManagerSharedTargetRead(d *schema.ResourceData, met
 	d.Set("status", object["AssociationStatus"])
 	return nil
 }
-func resourceAlicloudResourceManagerSharedTargetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudResourceManagerSharedTargetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {

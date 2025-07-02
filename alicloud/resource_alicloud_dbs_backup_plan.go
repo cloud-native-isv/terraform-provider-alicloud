@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudDbsBackupPlan() *schema.Resource {
+func resourceAliCloudDbsBackupPlan() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudDbsBackupPlanCreate,
-		Read:   resourceAlicloudDbsBackupPlanRead,
-		Update: resourceAlicloudDbsBackupPlanUpdate,
-		Delete: resourceAlicloudDbsBackupPlanDelete,
+		Create: resourceAliCloudDbsBackupPlanCreate,
+		Read:   resourceAliCloudDbsBackupPlanRead,
+		Update: resourceAliCloudDbsBackupPlanUpdate,
+		Delete: resourceAliCloudDbsBackupPlanDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -241,7 +241,7 @@ func resourceAlicloudDbsBackupPlan() *schema.Resource {
 	}
 }
 
-func resourceAlicloudDbsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbsBackupPlanCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreateAndStartBackupPlan"
@@ -374,9 +374,9 @@ func resourceAlicloudDbsBackupPlanCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudDbsBackupPlanUpdate(d, meta)
+	return resourceAliCloudDbsBackupPlanUpdate(d, meta)
 }
-func resourceAlicloudDbsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbsBackupPlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dbsService := DbsService{client}
 	object, err := dbsService.DescribeDbsBackupPlan(d.Id())
@@ -422,7 +422,7 @@ func resourceAlicloudDbsBackupPlanRead(d *schema.ResourceData, meta interface{})
 	d.Set("payment_type", convertDbsBackupPlanPaymentTypeResponse(describeBackupPlanBillingObject["BuyChargeType"]))
 	return nil
 }
-func resourceAlicloudDbsBackupPlanUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbsBackupPlanUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dbsService := DbsService{client}
 	var response map[string]interface{}
@@ -490,9 +490,9 @@ func resourceAlicloudDbsBackupPlanUpdate(d *schema.ResourceData, meta interface{
 			}
 		}
 	}
-	return resourceAlicloudDbsBackupPlanRead(d, meta)
+	return resourceAliCloudDbsBackupPlanRead(d, meta)
 }
-func resourceAlicloudDbsBackupPlanDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudDbsBackupPlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	dbsService := DbsService{client}
 	action := "ReleaseBackupPlan"

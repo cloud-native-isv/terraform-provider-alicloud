@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudAlidnsMonitorConfig() *schema.Resource {
+func resourceAliCloudAlidnsMonitorConfig() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudAlidnsMonitorConfigCreate,
-		Read:   resourceAlicloudAlidnsMonitorConfigRead,
-		Update: resourceAlicloudAlidnsMonitorConfigUpdate,
-		Delete: resourceAlicloudAlidnsMonitorConfigDelete,
+		Create: resourceAliCloudAlidnsMonitorConfigCreate,
+		Read:   resourceAliCloudAlidnsMonitorConfigRead,
+		Update: resourceAliCloudAlidnsMonitorConfigUpdate,
+		Delete: resourceAliCloudAlidnsMonitorConfigDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -79,7 +79,7 @@ func resourceAlicloudAlidnsMonitorConfig() *schema.Resource {
 	}
 }
 
-func resourceAlicloudAlidnsMonitorConfigCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsMonitorConfigCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddDnsGtmMonitor"
@@ -120,9 +120,9 @@ func resourceAlicloudAlidnsMonitorConfigCreate(d *schema.ResourceData, meta inte
 	}
 
 	d.SetId(fmt.Sprint(response["MonitorConfigId"]))
-	return resourceAlicloudAlidnsMonitorConfigRead(d, meta)
+	return resourceAliCloudAlidnsMonitorConfigRead(d, meta)
 }
-func resourceAlicloudAlidnsMonitorConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsMonitorConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsMonitorConfig(d.Id())
@@ -162,7 +162,7 @@ func resourceAlicloudAlidnsMonitorConfigRead(d *schema.ResourceData, meta interf
 	}
 	return nil
 }
-func resourceAlicloudAlidnsMonitorConfigUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudAlidnsMonitorConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -219,9 +219,9 @@ func resourceAlicloudAlidnsMonitorConfigUpdate(d *schema.ResourceData, meta inte
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudAlidnsMonitorConfigRead(d, meta)
+	return resourceAliCloudAlidnsMonitorConfigRead(d, meta)
 }
-func resourceAlicloudAlidnsMonitorConfigDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAlicloudAlidnsMonitorConfig. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAliCloudAlidnsMonitorConfigDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAliCloudAlidnsMonitorConfig. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

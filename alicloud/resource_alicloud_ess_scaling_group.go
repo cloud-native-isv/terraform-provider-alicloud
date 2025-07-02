@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudEssScalingGroup() *schema.Resource {
+func resourceAliCloudEssScalingGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliyunEssScalingGroupCreate,
 		Read:   resourceAliyunEssScalingGroupRead,

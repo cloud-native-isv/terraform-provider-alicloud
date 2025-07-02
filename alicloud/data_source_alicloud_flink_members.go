@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudFlinkMembers() *schema.Resource {
+func dataSourceAliCloudFlinkMembers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFlinkMembersRead,
+		Read: dataSourceAliCloudFlinkMembersRead,
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
 				Type:         schema.TypeString,
@@ -66,7 +66,7 @@ func dataSourceAlicloudFlinkMembers() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudFlinkMembersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFlinkMembersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {
@@ -86,7 +86,7 @@ func dataSourceAlicloudFlinkMembersRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	addDebug("dataSourceAlicloudFlinkMembersRead", "ListMembers", map[string]interface{}{
+	addDebug("dataSourceAliCloudFlinkMembersRead", "ListMembers", map[string]interface{}{
 		"workspaceId":       workspaceId,
 		"namespaceName":     namespaceName,
 		"memberNamesFilter": memberNamesMap,
@@ -95,10 +95,10 @@ func dataSourceAlicloudFlinkMembersRead(d *schema.ResourceData, meta interface{}
 	// Get all members for the namespace
 	members, err := flinkService.ListMembers(workspaceId, namespaceName)
 	if err != nil {
-		addDebug("dataSourceAlicloudFlinkMembersRead", "ListMembersError", err)
+		addDebug("dataSourceAliCloudFlinkMembersRead", "ListMembersError", err)
 		return WrapError(err)
 	}
-	addDebug("dataSourceAlicloudFlinkMembersRead", "ListMembersResponse", len(members))
+	addDebug("dataSourceAliCloudFlinkMembersRead", "ListMembersResponse", len(members))
 
 	// Filter and map results
 	var memberMaps []map[string]interface{}

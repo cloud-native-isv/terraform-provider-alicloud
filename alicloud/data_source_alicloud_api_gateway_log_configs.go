@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudApiGatewayLogConfigs() *schema.Resource {
+func dataSourceAliCloudApiGatewayLogConfigs() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudApiGatewayLogConfigsRead,
+		Read: dataSourceAliCloudApiGatewayLogConfigsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -64,7 +64,7 @@ func dataSourceAlicloudApiGatewayLogConfigs() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudApiGatewayLogConfigsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudApiGatewayLogConfigsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeLogConfig"

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudRosStackInstances() *schema.Resource {
+func dataSourceAliCloudRosStackInstances() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRosStackInstancesRead,
+		Read: dataSourceAliCloudRosStackInstancesRead,
 		Schema: map[string]*schema.Schema{
 			"stack_group_name": {
 				Type:         schema.TypeString,
@@ -115,7 +115,7 @@ func dataSourceAlicloudRosStackInstances() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRosStackInstancesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRosStackInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListStackInstances"

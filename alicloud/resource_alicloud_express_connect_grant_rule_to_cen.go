@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudExpressConnectGrantRuleToCen() *schema.Resource {
+func resourceAliCloudExpressConnectGrantRuleToCen() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudExpressConnectGrantRuleToCenCreate,
-		Read:   resourceAlicloudExpressConnectGrantRuleToCenRead,
-		Delete: resourceAlicloudExpressConnectGrantRuleToCenDelete,
+		Create: resourceAliCloudExpressConnectGrantRuleToCenCreate,
+		Read:   resourceAliCloudExpressConnectGrantRuleToCenRead,
+		Delete: resourceAliCloudExpressConnectGrantRuleToCenDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -41,7 +41,7 @@ func resourceAlicloudExpressConnectGrantRuleToCen() *schema.Resource {
 	}
 }
 
-func resourceAlicloudExpressConnectGrantRuleToCenCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectGrantRuleToCenCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "GrantInstanceToCen"
@@ -75,10 +75,10 @@ func resourceAlicloudExpressConnectGrantRuleToCenCreate(d *schema.ResourceData, 
 
 	d.SetId(fmt.Sprintf("%v:%v:%v", request["CenId"], request["CenOwnerId"], request["InstanceId"]))
 
-	return resourceAlicloudExpressConnectGrantRuleToCenRead(d, meta)
+	return resourceAliCloudExpressConnectGrantRuleToCenRead(d, meta)
 }
 
-func resourceAlicloudExpressConnectGrantRuleToCenRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectGrantRuleToCenRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
 
@@ -103,7 +103,7 @@ func resourceAlicloudExpressConnectGrantRuleToCenRead(d *schema.ResourceData, me
 	return nil
 }
 
-func resourceAlicloudExpressConnectGrantRuleToCenDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudExpressConnectGrantRuleToCenDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "RevokeInstanceFromCen"
 	var response map[string]interface{}

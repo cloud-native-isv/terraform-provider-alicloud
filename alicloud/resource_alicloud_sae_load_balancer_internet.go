@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudSaeLoadBalancerInternet() *schema.Resource {
+func resourceAliCloudSaeLoadBalancerInternet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudSaeSaeLoadBalancerInternetCreate,
-		Read:   resourceAlicloudSaeSaeLoadBalancerInternetRead,
-		Update: resourceAlicloudSaeSaeLoadBalancerInternetUpdate,
-		Delete: resourceAlicloudSaeSaeLoadBalancerInternetDelete,
+		Create: resourceAliCloudSaeSaeLoadBalancerInternetCreate,
+		Read:   resourceAliCloudSaeSaeLoadBalancerInternetRead,
+		Update: resourceAliCloudSaeSaeLoadBalancerInternetUpdate,
+		Delete: resourceAliCloudSaeSaeLoadBalancerInternetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -64,7 +64,7 @@ func resourceAlicloudSaeLoadBalancerInternet() *schema.Resource {
 	}
 }
 
-func resourceAlicloudSaeSaeLoadBalancerInternetCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeSaeLoadBalancerInternetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	saeService := SaeService{client}
 	var response map[string]interface{}
@@ -112,9 +112,9 @@ func resourceAlicloudSaeSaeLoadBalancerInternetCreate(d *schema.ResourceData, me
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudSaeSaeLoadBalancerInternetRead(d, meta)
+	return resourceAliCloudSaeSaeLoadBalancerInternetRead(d, meta)
 }
-func resourceAlicloudSaeSaeLoadBalancerInternetRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeSaeLoadBalancerInternetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	saeService := SaeService{client}
 
@@ -142,7 +142,7 @@ func resourceAlicloudSaeSaeLoadBalancerInternetRead(d *schema.ResourceData, meta
 	d.Set("internet", internetArray)
 	return nil
 }
-func resourceAlicloudSaeSaeLoadBalancerInternetUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeSaeLoadBalancerInternetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	saeService := SaeService{client}
 	var err error
@@ -200,9 +200,9 @@ func resourceAlicloudSaeSaeLoadBalancerInternetUpdate(d *schema.ResourceData, me
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudSaeSaeLoadBalancerInternetRead(d, meta)
+	return resourceAliCloudSaeSaeLoadBalancerInternetRead(d, meta)
 }
-func resourceAlicloudSaeSaeLoadBalancerInternetDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSaeSaeLoadBalancerInternetDelete(d *schema.ResourceData, meta interface{}) error {
 	request := map[string]*string{
 		"AppId":    StringPointer(d.Id()),
 		"Internet": StringPointer(strconv.FormatBool(true)),

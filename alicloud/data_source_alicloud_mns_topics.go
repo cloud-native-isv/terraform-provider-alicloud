@@ -6,9 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudMNSTopics() *schema.Resource {
+func dataSourceAliCloudMNSTopics() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudMNSTopicRead,
+		Read: dataSourceAliCloudMNSTopicRead,
 		Schema: map[string]*schema.Schema{
 			"name_prefix": {
 				Type:     schema.TypeString,
@@ -54,7 +54,7 @@ func dataSourceAlicloudMNSTopics() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudMNSTopicRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudMNSTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	var namePrefix string

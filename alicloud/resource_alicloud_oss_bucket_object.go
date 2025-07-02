@@ -16,12 +16,12 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
-func resourceAlicloudOssBucketObject() *schema.Resource {
+func resourceAliCloudOssBucketObject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOssBucketObjectPut,
-		Read:   resourceAlicloudOssBucketObjectRead,
-		Update: resourceAlicloudOssBucketObjectPut,
-		Delete: resourceAlicloudOssBucketObjectDelete,
+		Create: resourceAliCloudOssBucketObjectPut,
+		Read:   resourceAliCloudOssBucketObjectRead,
+		Update: resourceAliCloudOssBucketObjectPut,
+		Delete: resourceAliCloudOssBucketObjectDelete,
 
 		Schema: map[string]*schema.Schema{
 			"bucket": {
@@ -121,7 +121,7 @@ func resourceAlicloudOssBucketObject() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOssBucketObjectPut(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketObjectPut(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var requestInfo *oss.Client
 	raw, err := client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
@@ -178,10 +178,10 @@ func resourceAlicloudOssBucketObjectPut(d *schema.ResourceData, meta interface{}
 	}
 
 	d.SetId(key)
-	return resourceAlicloudOssBucketObjectRead(d, meta)
+	return resourceAliCloudOssBucketObjectRead(d, meta)
 }
 
-func resourceAlicloudOssBucketObjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketObjectRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var requestInfo *oss.Client
 	raw, err := client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
@@ -223,7 +223,7 @@ func resourceAlicloudOssBucketObjectRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAlicloudOssBucketObjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOssBucketObjectDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ossService := NewOssService(client)
 	var requestInfo *oss.Client

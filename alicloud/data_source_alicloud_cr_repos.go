@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudCRRepos() *schema.Resource {
+func dataSourceAliCloudCRRepos() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudCRReposRead,
+		Read: dataSourceAliCloudCRReposRead,
 
 		Schema: map[string]*schema.Schema{
 			"namespace": {
@@ -133,7 +133,7 @@ func dataSourceAlicloudCRRepos() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudCRReposRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudCRReposRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	invoker := NewInvoker()
 

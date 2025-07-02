@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudFcService() *schema.Resource {
+func dataSourceAliCloudFcService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFcServiceRead,
+		Read: dataSourceAliCloudFcServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"enable": {
@@ -29,7 +29,7 @@ func dataSourceAlicloudFcService() *schema.Resource {
 		},
 	}
 }
-func dataSourceAlicloudFcServiceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFcServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if v, ok := d.GetOk("enable"); !ok || v.(string) != "On" {
 		d.SetId("FcServiceHasNotBeenOpened")
 		d.Set("status", "")

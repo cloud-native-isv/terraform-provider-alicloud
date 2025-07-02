@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudFnfFlows() *schema.Resource {
+func dataSourceAliCloudFnfFlows() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFnfFlowsRead,
+		Read: dataSourceAliCloudFnfFlowsRead,
 		Schema: map[string]*schema.Schema{
 			"limit": {
 				Type:     schema.TypeInt,
@@ -85,7 +85,7 @@ func dataSourceAlicloudFnfFlows() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudFnfFlowsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFnfFlowsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "ListFlows"

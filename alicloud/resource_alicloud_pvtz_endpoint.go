@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudPvtzEndpoint() *schema.Resource {
+func resourceAliCloudPvtzEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPvtzEndpointCreate,
-		Read:   resourceAlicloudPvtzEndpointRead,
-		Update: resourceAlicloudPvtzEndpointUpdate,
-		Delete: resourceAlicloudPvtzEndpointDelete,
+		Create: resourceAliCloudPvtzEndpointCreate,
+		Read:   resourceAliCloudPvtzEndpointRead,
+		Update: resourceAliCloudPvtzEndpointUpdate,
+		Delete: resourceAliCloudPvtzEndpointDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -77,7 +77,7 @@ func resourceAlicloudPvtzEndpoint() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPvtzEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddResolverEndpoint"
@@ -119,9 +119,9 @@ func resourceAlicloudPvtzEndpointCreate(d *schema.ResourceData, meta interface{}
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-	return resourceAlicloudPvtzEndpointRead(d, meta)
+	return resourceAliCloudPvtzEndpointRead(d, meta)
 }
-func resourceAlicloudPvtzEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	pvtzService := PvtzService{client}
 	object, err := pvtzService.DescribePvtzEndpoint(d.Id())
@@ -153,7 +153,7 @@ func resourceAlicloudPvtzEndpointRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("vpc_region_id", object["VpcRegionId"])
 	return nil
 }
-func resourceAlicloudPvtzEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -207,9 +207,9 @@ func resourceAlicloudPvtzEndpointUpdate(d *schema.ResourceData, meta interface{}
 		}
 
 	}
-	return resourceAlicloudPvtzEndpointRead(d, meta)
+	return resourceAliCloudPvtzEndpointRead(d, meta)
 }
-func resourceAlicloudPvtzEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteResolverEndpoint"
 	var response map[string]interface{}

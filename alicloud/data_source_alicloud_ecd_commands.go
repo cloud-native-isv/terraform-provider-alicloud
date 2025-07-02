@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudEcdCommands() *schema.Resource {
+func dataSourceAliCloudEcdCommands() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudEcdCommandsRead,
+		Read: dataSourceAliCloudEcdCommandsRead,
 		Schema: map[string]*schema.Schema{
 			"command_type": {
 				Type:         schema.TypeString,
@@ -137,7 +137,7 @@ func dataSourceAlicloudEcdCommands() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudEcdCommandsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudEcdCommandsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	action := "DescribeInvocations"

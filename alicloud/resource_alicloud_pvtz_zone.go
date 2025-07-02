@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudPvtzZone() *schema.Resource {
+func resourceAliCloudPvtzZone() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudPvtzZoneCreate,
-		Read:   resourceAlicloudPvtzZoneRead,
-		Update: resourceAlicloudPvtzZoneUpdate,
-		Delete: resourceAlicloudPvtzZoneDelete,
+		Create: resourceAliCloudPvtzZoneCreate,
+		Read:   resourceAliCloudPvtzZoneRead,
+		Update: resourceAliCloudPvtzZoneUpdate,
+		Delete: resourceAliCloudPvtzZoneDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -113,7 +113,7 @@ func resourceAlicloudPvtzZone() *schema.Resource {
 	}
 }
 
-func resourceAlicloudPvtzZoneCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzZoneCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddZone"
@@ -160,9 +160,9 @@ func resourceAlicloudPvtzZoneCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(fmt.Sprint(response["ZoneId"]))
 
-	return resourceAlicloudPvtzZoneUpdate(d, meta)
+	return resourceAliCloudPvtzZoneUpdate(d, meta)
 }
-func resourceAlicloudPvtzZoneRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzZoneRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	pvtzService := PvtzService{client}
 	object, err := pvtzService.DescribePvtzZone(d.Id())
@@ -210,7 +210,7 @@ func resourceAlicloudPvtzZoneRead(d *schema.ResourceData, meta interface{}) erro
 
 	return nil
 }
-func resourceAlicloudPvtzZoneUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzZoneUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	pvtzService := PvtzService{client}
 	var err error
@@ -358,9 +358,9 @@ func resourceAlicloudPvtzZoneUpdate(d *schema.ResourceData, meta interface{}) er
 		d.SetPartial("tags")
 	}
 	d.Partial(false)
-	return resourceAlicloudPvtzZoneRead(d, meta)
+	return resourceAliCloudPvtzZoneRead(d, meta)
 }
-func resourceAlicloudPvtzZoneDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudPvtzZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeleteZone"
 	var response map[string]interface{}

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudBrainIndustrialPidLoop() *schema.Resource {
+func resourceAliCloudBrainIndustrialPidLoop() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudBrainIndustrialPidLoopCreate,
-		Read:   resourceAlicloudBrainIndustrialPidLoopRead,
-		Update: resourceAlicloudBrainIndustrialPidLoopUpdate,
-		Delete: resourceAlicloudBrainIndustrialPidLoopDelete,
+		Create: resourceAliCloudBrainIndustrialPidLoopCreate,
+		Read:   resourceAliCloudBrainIndustrialPidLoopRead,
+		Update: resourceAliCloudBrainIndustrialPidLoopUpdate,
+		Delete: resourceAliCloudBrainIndustrialPidLoopDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -65,7 +65,7 @@ func resourceAlicloudBrainIndustrialPidLoop() *schema.Resource {
 	}
 }
 
-func resourceAlicloudBrainIndustrialPidLoopCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidLoopCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "CreatePidLoop"
@@ -102,9 +102,9 @@ func resourceAlicloudBrainIndustrialPidLoopCreate(d *schema.ResourceData, meta i
 
 	d.SetId(fmt.Sprint(response["PidLoopId"]))
 
-	return resourceAlicloudBrainIndustrialPidLoopRead(d, meta)
+	return resourceAliCloudBrainIndustrialPidLoopRead(d, meta)
 }
-func resourceAlicloudBrainIndustrialPidLoopRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidLoopRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	brain_industrialService := Brain_industrialService{client}
 	object, err := brain_industrialService.DescribeBrainIndustrialPidLoop(d.Id())
@@ -126,7 +126,7 @@ func resourceAlicloudBrainIndustrialPidLoopRead(d *schema.ResourceData, meta int
 	d.Set("status", object["Status"])
 	return nil
 }
-func resourceAlicloudBrainIndustrialPidLoopUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidLoopUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var err error
 	var response map[string]interface{}
@@ -181,9 +181,9 @@ func resourceAlicloudBrainIndustrialPidLoopUpdate(d *schema.ResourceData, meta i
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 	}
-	return resourceAlicloudBrainIndustrialPidLoopRead(d, meta)
+	return resourceAliCloudBrainIndustrialPidLoopRead(d, meta)
 }
-func resourceAlicloudBrainIndustrialPidLoopDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBrainIndustrialPidLoopDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DeletePidLoop"
 	var response map[string]interface{}

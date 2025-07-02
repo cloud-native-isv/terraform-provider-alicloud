@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAlicloudBastionhostHostGroupAccountUserAttachment() *schema.Resource {
+func resourceAliCloudBastionhostHostGroupAccountUserAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudBastionhostHostGroupAccountUserAttachmentCreate,
-		Read:   resourceAlicloudBastionhostHostGroupAccountUserAttachmentRead,
-		Update: resourceAlicloudBastionhostHostGroupAccountUserAttachmentUpdate,
-		Delete: resourceAlicloudBastionhostHostGroupAccountUserAttachmentDelete,
+		Create: resourceAliCloudBastionhostHostGroupAccountUserAttachmentCreate,
+		Read:   resourceAliCloudBastionhostHostGroupAccountUserAttachmentRead,
+		Update: resourceAliCloudBastionhostHostGroupAccountUserAttachmentUpdate,
+		Delete: resourceAliCloudBastionhostHostGroupAccountUserAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -44,12 +44,12 @@ func resourceAlicloudBastionhostHostGroupAccountUserAttachment() *schema.Resourc
 	}
 }
 
-func resourceAlicloudBastionhostHostGroupAccountUserAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostGroupAccountUserAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(fmt.Sprint(d.Get("instance_id"), ":", d.Get("user_id"), ":", d.Get("host_group_id")))
 
-	return resourceAlicloudBastionhostHostGroupAccountUserAttachmentUpdate(d, meta)
+	return resourceAliCloudBastionhostHostGroupAccountUserAttachmentUpdate(d, meta)
 }
-func resourceAlicloudBastionhostHostGroupAccountUserAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostGroupAccountUserAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	yundunBastionhostService := YundunBastionhostService{client}
 	object, err := yundunBastionhostService.DescribeBastionhostHostGroupAccountUserAttachment(d.Id())
@@ -71,7 +71,7 @@ func resourceAlicloudBastionhostHostGroupAccountUserAttachmentRead(d *schema.Res
 	d.Set("host_account_names", object)
 	return nil
 }
-func resourceAlicloudBastionhostHostGroupAccountUserAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostGroupAccountUserAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	if d.HasChange("host_account_names") {
 		parts, err := ParseResourceId(d.Id(), 3)
@@ -145,9 +145,9 @@ func resourceAlicloudBastionhostHostGroupAccountUserAttachmentUpdate(d *schema.R
 			}
 		}
 	}
-	return resourceAlicloudBastionhostHostGroupAccountUserAttachmentRead(d, meta)
+	return resourceAliCloudBastionhostHostGroupAccountUserAttachmentRead(d, meta)
 }
-func resourceAlicloudBastionhostHostGroupAccountUserAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudBastionhostHostGroupAccountUserAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {

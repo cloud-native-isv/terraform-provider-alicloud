@@ -7,9 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAlicloudRdsClassDetails() *schema.Resource {
+func dataSourceAliCloudRdsClassDetails() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudRdsRdsClassDetailsRead,
+		Read: dataSourceAliCloudRdsRdsClassDetailsRead,
 		Schema: map[string]*schema.Schema{
 			"commodity_code": {
 				Type:         schema.TypeString,
@@ -82,7 +82,7 @@ func dataSourceAlicloudRdsClassDetails() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudRdsRdsClassDetailsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudRdsRdsClassDetailsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	action := "DescribeClassDetails"
 	request := map[string]interface{}{

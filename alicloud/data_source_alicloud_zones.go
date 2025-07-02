@@ -25,9 +25,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudZones() *schema.Resource {
+func dataSourceAliCloudZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudZonesRead,
+		Read: dataSourceAliCloudZonesRead,
 
 		Schema: map[string]*schema.Schema{
 			"available_instance_type": {
@@ -178,7 +178,7 @@ func dataSourceAlicloudZones() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 

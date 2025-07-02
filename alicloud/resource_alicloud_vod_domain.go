@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAlicloudVodDomain() *schema.Resource {
+func resourceAliCloudVodDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudVodDomainCreate,
-		Read:   resourceAlicloudVodDomainRead,
-		Update: resourceAlicloudVodDomainUpdate,
-		Delete: resourceAlicloudVodDomainDelete,
+		Create: resourceAliCloudVodDomainCreate,
+		Read:   resourceAliCloudVodDomainRead,
+		Update: resourceAliCloudVodDomainUpdate,
+		Delete: resourceAliCloudVodDomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -109,7 +109,7 @@ func resourceAlicloudVodDomain() *schema.Resource {
 	}
 }
 
-func resourceAlicloudVodDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVodDomainCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	action := "AddVodDomain"
@@ -163,9 +163,9 @@ func resourceAlicloudVodDomainCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(fmt.Sprint(request["DomainName"]))
 
-	return resourceAlicloudVodDomainUpdate(d, meta)
+	return resourceAliCloudVodDomainUpdate(d, meta)
 }
-func resourceAlicloudVodDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVodDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vodService := VodService{client}
 	object, err := vodService.DescribeVodDomain(d.Id())
@@ -207,7 +207,7 @@ func resourceAlicloudVodDomainRead(d *schema.ResourceData, meta interface{}) err
 	}
 	return nil
 }
-func resourceAlicloudVodDomainUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVodDomainUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vodService := VodService{client}
 	var response map[string]interface{}
@@ -268,9 +268,9 @@ func resourceAlicloudVodDomainUpdate(d *schema.ResourceData, meta interface{}) e
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudVodDomainRead(d, meta)
+	return resourceAliCloudVodDomainRead(d, meta)
 }
-func resourceAlicloudVodDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudVodDomainDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vodService := VodService{client}
 	action := "DeleteVodDomain"

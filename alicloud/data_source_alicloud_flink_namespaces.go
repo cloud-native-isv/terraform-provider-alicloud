@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAlicloudFlinkNamespaces() *schema.Resource {
+func dataSourceAliCloudFlinkNamespaces() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAlicloudFlinkNamespacesRead,
+		Read: dataSourceAliCloudFlinkNamespacesRead,
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
 				Type:         schema.TypeString,
@@ -78,7 +78,7 @@ func dataSourceAlicloudFlinkNamespaces() *schema.Resource {
 	}
 }
 
-func dataSourceAlicloudFlinkNamespacesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFlinkNamespacesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {
@@ -106,7 +106,7 @@ func dataSourceAlicloudFlinkNamespacesRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespaces", map[string]interface{}{
+	addDebug("dataSourceAliCloudFlinkNamespacesRead", "ListNamespaces", map[string]interface{}{
 		"workspaceId": workspace,
 		"idsFilter":   idsMap,
 		"namesFilter": namesMap,
@@ -115,10 +115,10 @@ func dataSourceAlicloudFlinkNamespacesRead(d *schema.ResourceData, meta interfac
 	// Get all namespaces directly without pagination
 	namespaces, err := flinkService.ListNamespaces(workspace)
 	if err != nil {
-		addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespacesError", err)
+		addDebug("dataSourceAliCloudFlinkNamespacesRead", "ListNamespacesError", err)
 		return WrapError(err)
 	}
-	addDebug("dataSourceAlicloudFlinkNamespacesRead", "ListNamespacesResponse", len(namespaces))
+	addDebug("dataSourceAliCloudFlinkNamespacesRead", "ListNamespacesResponse", len(namespaces))
 
 	// Filter and map results
 	var namespaceMaps []map[string]interface{}
