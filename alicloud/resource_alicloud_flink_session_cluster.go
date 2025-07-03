@@ -171,12 +171,20 @@ func resourceAliCloudFlinkSessionCluster() *schema.Resource {
 					},
 				},
 			},
+			// Status parameter for controlling session cluster lifecycle
+			"status": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"STOPPED",
+					"RUNNING",
+					"FAILED",
+				}, false),
+				Description: "Target status of the session cluster. Valid values: STOPPED, RUNNING, FAILED. Other statuses (STARTING, UPDATING, STOPPING) are intermediate states managed by the system.",
+			},
 			// Computed attributes
 			"session_cluster_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -258,6 +266,14 @@ func resourceAliCloudFlinkSessionClusterCreate(d *schema.ResourceData, meta inte
 	stateConf := BuildStateConf([]string{}, []string{"RUNNING", "STOPPED"}, d.Timeout(schema.TimeoutCreate), 30*time.Second, flinkService.SessionClusterStateRefreshFunc(d.Id(), []string{"FAILED", "TERMINATED"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	// Handle status parameter - start/stop cluster if needed
+	if targetStatus, ok := d.GetOk("status"); ok {
+		err := handleSessionClusterStatusChange(d, flinkService, workspaceId, namespaceName, sessionClusterName, targetStatus.(string))
+		if err != nil {
+			return err
+		}
 	}
 
 	return resourceAliCloudFlinkSessionClusterRead(d, meta)
@@ -393,6 +409,16 @@ func resourceAliCloudFlinkSessionClusterUpdate(d *schema.ResourceData, meta inte
 		stateConf := BuildStateConf([]string{}, []string{"RUNNING", "STOPPED"}, d.Timeout(schema.TimeoutUpdate), 30*time.Second, flinkService.SessionClusterStateRefreshFunc(d.Id(), []string{"FAILED", "TERMINATED"}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
+		}
+	}
+
+	// Handle status parameter change - start/stop cluster if needed
+	if d.HasChange("status") {
+		if targetStatus, ok := d.GetOk("status"); ok {
+			err := handleSessionClusterStatusChange(d, flinkService, workspaceId, namespaceName, sessionClusterName, targetStatus.(string))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -636,4 +662,56 @@ func flattenLogReservePolicy(policy *flinkAPI.LogReservePolicy) []interface{} {
 // Helper function to format timestamp
 func formatTimestamp(timestamp int64) string {
 	return time.Unix(timestamp/1000, 0).Format(time.RFC3339)
+}
+
+// handleSessionClusterStatusChange handles starting/stopping session cluster based on target status
+func handleSessionClusterStatusChange(d *schema.ResourceData, flinkService *FlinkService, workspaceId, namespaceName, sessionClusterName, targetStatus string) error {
+	// Get current status
+	currentCluster, err := flinkService.DescribeSessionCluster(d.Id())
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DescribeSessionCluster", AlibabaCloudSdkGoERROR)
+	}
+
+	currentStatus := "UNKNOWN"
+	if currentCluster != nil && currentCluster.Status != nil {
+		currentStatus = currentCluster.Status.CurrentSessionClusterStatus
+	}
+
+	// Only handle RUNNING and STOPPED target statuses for start/stop operations
+	switch targetStatus {
+	case "RUNNING":
+		if currentStatus == "STOPPED" {
+			// Start the session cluster
+			err := flinkService.StartSessionCluster(workspaceId, namespaceName, sessionClusterName)
+			if err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "StartSessionCluster", AlibabaCloudSdkGoERROR)
+			}
+
+			// Wait for cluster to reach RUNNING state
+			stateConf := BuildStateConf([]string{"STOPPED", "STARTING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 30*time.Second, flinkService.SessionClusterStateRefreshFunc(d.Id(), []string{"FAILED", "TERMINATED"}))
+			if _, err := stateConf.WaitForState(); err != nil {
+				return WrapErrorf(err, IdMsg, d.Id())
+			}
+		}
+	case "STOPPED":
+		if currentStatus == "RUNNING" {
+			// Stop the session cluster
+			err := flinkService.StopSessionCluster(workspaceId, namespaceName, sessionClusterName)
+			if err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "StopSessionCluster", AlibabaCloudSdkGoERROR)
+			}
+
+			// Wait for cluster to reach STOPPED state
+			stateConf := BuildStateConf([]string{"RUNNING", "STOPPING"}, []string{"STOPPED"}, d.Timeout(schema.TimeoutUpdate), 30*time.Second, flinkService.SessionClusterStateRefreshFunc(d.Id(), []string{"FAILED", "TERMINATED"}))
+			if _, err := stateConf.WaitForState(); err != nil {
+				return WrapErrorf(err, IdMsg, d.Id())
+			}
+		}
+	default:
+		// For other statuses (STARTING, UPDATING, STOPPING, FAILED), we don't perform any action
+		// These are either transitional states or error states that should be handled by the service
+		return nil
+	}
+
+	return nil
 }
