@@ -353,10 +353,23 @@ func resourceAliCloudFlinkSessionClusterUpdate(d *schema.ResourceData, meta inte
 		return WrapError(err)
 	}
 
+	// First, retrieve the current complete session cluster to ensure we don't lose existing settings
+	existingCluster, err := flinkService.DescribeSessionCluster(d.Id())
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DescribeSessionCluster", AlibabaCloudSdkGoERROR)
+	}
+
+	// Initialize updateRequest with the existing complete configuration
 	updateRequest := &flinkAPI.SessionCluster{
-		Name:      sessionClusterName,
-		Namespace: namespaceName,
-		Workspace: workspaceId,
+		Name:                 sessionClusterName,
+		Namespace:            namespaceName,
+		Workspace:            workspaceId,
+		EngineVersion:        existingCluster.EngineVersion,
+		DeploymentTargetName: existingCluster.DeploymentTargetName,
+		BasicResourceSetting: existingCluster.BasicResourceSetting,
+		FlinkConf:            existingCluster.FlinkConf,
+		Labels:               existingCluster.Labels,
+		Logging:              existingCluster.Logging,
 	}
 
 	update := false
