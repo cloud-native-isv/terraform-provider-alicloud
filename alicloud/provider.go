@@ -1952,7 +1952,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_flink_job":                                             resourceAliCloudFlinkJob(),
 			"alicloud_flink_member":                                          resourceAliCloudFlinkMember(),
 			"alicloud_flink_variable":                                        resourceAliCloudFlinkVariable(),
-			"alicloud_flink_session_cluster":  resourceAliCloudFlinkSessionCluster(),
+			"alicloud_flink_session_cluster":                                 resourceAliCloudFlinkSessionCluster(),
 			"alicloud_arms_alert_integration":                                resourceAliCloudArmsAlertIntegration(),
 			"alicloud_arms_alert_rule":                                       resourceAliCloudArmsAlertRule(),
 			"alicloud_arms_alert_notification_policy":                        resourceAliCloudArmsAlertNotificationPolicy(),

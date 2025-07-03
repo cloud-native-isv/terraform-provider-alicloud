@@ -122,6 +122,11 @@ func resourceAliCloudFlinkSessionCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"logging_profile": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Logging profile.",
+						},
 						"log4j2_configuration_template": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -491,6 +496,10 @@ func expandLogging(configured []interface{}) *flinkAPI.Logging {
 	raw := configured[0].(map[string]interface{})
 	logging := &flinkAPI.Logging{}
 
+	if v, ok := raw["logging_profile"]; ok {
+		logging.LoggingProfile = v.(string)
+	}
+
 	if v, ok := raw["log4j2_configuration_template"]; ok {
 		logging.Log4j2ConfigurationTemplate = v.(string)
 	}
@@ -585,6 +594,7 @@ func flattenLogging(logging *flinkAPI.Logging) []interface{} {
 	}
 
 	result := map[string]interface{}{
+		"logging_profile":               logging.LoggingProfile,
 		"log4j2_configuration_template": logging.Log4j2ConfigurationTemplate,
 	}
 
