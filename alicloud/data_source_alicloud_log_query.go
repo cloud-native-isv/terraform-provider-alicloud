@@ -46,8 +46,8 @@ func dataSourceAliCloudLogQuery() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      100,
-				ValidateFunc: validation.IntBetween(1, 10000),
-				Description:  "Maximum number of log lines to return. Range: 1-10000.",
+				ValidateFunc: validation.IntBetween(1, 50000),
+				Description:  "Maximum number of log lines to return. Range: 1-50000.",
 			},
 			"output_file": {
 				Type:        schema.TypeString,
