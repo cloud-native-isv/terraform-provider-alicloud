@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	common "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	aliyunNasAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/nas"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -20,7 +21,7 @@ func (s *NasService) DescribeNasAccessRule(id string) (*aliyunNasAPI.AccessRule,
 
 	accessRule, err := nasAPI.GetAccessRule(accessGroupName, accessRuleId)
 	if err != nil {
-		if aliyunNasAPI.IsNotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil, WrapErrorf(Error(GetNotFoundMessage("NasAccessRule", id)), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetAccessRule", AlibabaCloudSdkGoERROR)
@@ -54,9 +55,9 @@ func (s *NasService) UpdateNasAccessRule(accessGroupName, accessRuleId, sourceCi
 func (s *NasService) DeleteNasAccessRule(accessGroupName, accessRuleId string) error {
 	nasAPI := s.aliyunNasAPI
 
-	err:= nasAPI.DeleteAccessRule(accessGroupName, accessRuleId)
+	err := nasAPI.DeleteAccessRule(accessGroupName, accessRuleId)
 	if err != nil {
-		if aliyunNasAPI.IsNotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, accessRuleId, "DeleteAccessRule", AlibabaCloudSdkGoERROR)

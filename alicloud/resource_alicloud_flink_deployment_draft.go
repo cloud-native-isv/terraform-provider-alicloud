@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	common "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
-	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -89,12 +89,14 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 						"kind": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice([]string{"JAR", "PYTHON", "SQLSCRIPT"}, false),
 							Description:  "The type of artifact.",
 						},
 						"jar_artifact": {
 							Type:        schema.TypeList,
 							Optional:    true,
+							ForceNew:    true,
 							MaxItems:    1,
 							Description: "JAR artifact configuration.",
 							Elem: &schema.Resource{
@@ -102,21 +104,25 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 									"jar_uri": {
 										Type:        schema.TypeString,
 										Required:    true,
+										ForceNew:    true,
 										Description: "The URI of the JAR file.",
 									},
 									"entry_class": {
 										Type:        schema.TypeString,
 										Optional:    true,
+										ForceNew:    true,
 										Description: "The main class of the JAR.",
 									},
 									"main_args": {
 										Type:        schema.TypeString,
 										Optional:    true,
+										ForceNew:    true,
 										Description: "Main method arguments.",
 									},
 									"additional_dependencies": {
 										Type:        schema.TypeList,
 										Optional:    true,
+										ForceNew:    true,
 										Elem:        &schema.Schema{Type: schema.TypeString},
 										Description: "Additional dependencies.",
 									},
@@ -126,6 +132,7 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 						"python_artifact": {
 							Type:        schema.TypeList,
 							Optional:    true,
+							ForceNew:    true,
 							MaxItems:    1,
 							Description: "Python artifact configuration.",
 							Elem: &schema.Resource{
@@ -133,33 +140,39 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 									"python_artifact_uri": {
 										Type:        schema.TypeString,
 										Required:    true,
+										ForceNew:    true,
 										Description: "The URI of the Python artifact.",
 									},
 									"entry_module": {
 										Type:        schema.TypeString,
 										Optional:    true,
+										ForceNew:    true,
 										Description: "The entry module.",
 									},
 									"main_args": {
 										Type:        schema.TypeString,
 										Optional:    true,
+										ForceNew:    true,
 										Description: "Main method arguments.",
 									},
 									"additional_dependencies": {
 										Type:        schema.TypeList,
 										Optional:    true,
+										ForceNew:    true,
 										Elem:        &schema.Schema{Type: schema.TypeString},
 										Description: "Additional dependencies.",
 									},
 									"additional_python_libraries": {
 										Type:        schema.TypeList,
 										Optional:    true,
+										ForceNew:    true,
 										Elem:        &schema.Schema{Type: schema.TypeString},
 										Description: "Additional Python libraries.",
 									},
 									"additional_python_archives": {
 										Type:        schema.TypeList,
 										Optional:    true,
+										ForceNew:    true,
 										Elem:        &schema.Schema{Type: schema.TypeString},
 										Description: "Additional Python archives.",
 									},
@@ -169,6 +182,7 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 						"sql_artifact": {
 							Type:        schema.TypeList,
 							Optional:    true,
+							ForceNew:    true,
 							MaxItems:    1,
 							Description: "SQL artifact configuration.",
 							Elem: &schema.Resource{
@@ -176,11 +190,13 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 									"sql_script": {
 										Type:        schema.TypeString,
 										Required:    true,
+										ForceNew:    true,
 										Description: "The SQL script content.",
 									},
 									"additional_dependencies": {
 										Type:        schema.TypeList,
 										Optional:    true,
+										ForceNew:    true,
 										Elem:        &schema.Schema{Type: schema.TypeString},
 										Description: "Additional dependencies.",
 									},
@@ -447,7 +463,7 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	namespaceName := d.Get("namespace_name").(string)
 	name := d.Get("name").(string)
 
-	draft := &flinkAPI.DeploymentDraft{
+	draft := &aliyunFlinkAPI.DeploymentDraft{
 		Workspace: workspaceId,
 		Namespace: namespaceName,
 		Name:      name,
@@ -838,7 +854,7 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	}
 
 	// Initialize updateRequest with the existing complete configuration
-	updateRequest := &flinkAPI.DeploymentDraft{
+	updateRequest := &aliyunFlinkAPI.DeploymentDraft{
 		Id:                     existingDraft.Id,
 		Workspace:              workspaceID,
 		Namespace:              namespace,
@@ -1093,6 +1109,17 @@ func resourceAliCloudFlinkDeploymentDraftDelete(d *schema.ResourceData, meta int
 
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDeploymentDraft", AlibabaCloudSdkGoERROR)
+	}
+
+	// Wait for deletion to complete using StateRefreshFunc
+	// This ensures the resource is truly deleted before proceeding with recreation
+	stateConf := BuildStateConf([]string{"Deleting"}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceID, namespace, draftID, []string{"DraftNotFound"}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		// If the error is due to resource not found, that's expected for deletion
+		if common.IsNotFoundError(err) {
+			return nil
+		}
+		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
 	return nil

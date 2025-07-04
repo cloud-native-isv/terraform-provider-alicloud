@@ -5,12 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+	common "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // DescribeSlsDashboard retrieves a dashboard by project and dashboard name
-func (s *SlsService) DescribeSlsDashboard(projectName, dashboardName string) (*sls.Dashboard, error) {
+func (s *SlsService) DescribeSlsDashboard(projectName, dashboardName string) (*aliyunSlsAPI.Dashboard, error) {
 	slsAPI, err := s.getSlsAPI()
 	if err != nil {
 		return nil, WrapError(err)
@@ -18,7 +19,7 @@ func (s *SlsService) DescribeSlsDashboard(projectName, dashboardName string) (*s
 
 	dashboard, err := slsAPI.GetDashboard(projectName, dashboardName)
 	if err != nil {
-		if sls.IsSlsNotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("SlsDashboard", fmt.Sprintf("%s:%s", projectName, dashboardName)), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%s:%s", projectName, dashboardName), "GetDashboard", AlibabaCloudSdkGoERROR)
@@ -28,7 +29,7 @@ func (s *SlsService) DescribeSlsDashboard(projectName, dashboardName string) (*s
 }
 
 // CreateSlsDashboard creates a new dashboard in the specified project
-func (s *SlsService) CreateSlsDashboard(projectName string, dashboard *sls.Dashboard) error {
+func (s *SlsService) CreateSlsDashboard(projectName string, dashboard *aliyunSlsAPI.Dashboard) error {
 	slsAPI, err := s.getSlsAPI()
 	if err != nil {
 		return WrapError(err)
@@ -43,7 +44,7 @@ func (s *SlsService) CreateSlsDashboard(projectName string, dashboard *sls.Dashb
 }
 
 // UpdateSlsDashboard updates an existing dashboard in the specified project
-func (s *SlsService) UpdateSlsDashboard(projectName, dashboardName string, dashboard *sls.Dashboard) error {
+func (s *SlsService) UpdateSlsDashboard(projectName, dashboardName string, dashboard *aliyunSlsAPI.Dashboard) error {
 	slsAPI, err := s.getSlsAPI()
 	if err != nil {
 		return WrapError(err)
@@ -79,7 +80,7 @@ func (s *SlsService) DeleteSlsDashboard(projectName, dashboardName string) error
 
 	err = slsAPI.DeleteDashboard(projectName, dashboardName)
 	if err != nil {
-		if sls.IsSlsNotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, dashboardName, "DeleteDashboard", AlibabaCloudSdkGoERROR)
@@ -89,7 +90,7 @@ func (s *SlsService) DeleteSlsDashboard(projectName, dashboardName string) error
 }
 
 // ListSlsDashboards lists dashboards in the specified project with pagination
-func (s *SlsService) ListSlsDashboards(projectName string, offset, size int32) ([]*sls.Dashboard, error) {
+func (s *SlsService) ListSlsDashboards(projectName string, offset, size int32) ([]*aliyunSlsAPI.Dashboard, error) {
 	slsAPI, err := s.getSlsAPI()
 	if err != nil {
 		return nil, WrapError(err)
@@ -104,7 +105,7 @@ func (s *SlsService) ListSlsDashboards(projectName string, offset, size int32) (
 }
 
 // ListAllSlsDashboards lists all dashboards in the specified project (handles pagination automatically)
-func (s *SlsService) ListAllSlsDashboards(projectName string) ([]*sls.Dashboard, error) {
+func (s *SlsService) ListAllSlsDashboards(projectName string) ([]*aliyunSlsAPI.Dashboard, error) {
 	slsAPI, err := s.getSlsAPI()
 	if err != nil {
 		return nil, WrapError(err)
@@ -198,8 +199,8 @@ func (s *SlsService) WaitForSlsDashboard(id string, status Status, timeout time.
 // Helper functions for converting between Terraform and SLS API types
 
 // ConvertToSlsChart converts a Terraform chart configuration to SLS Chart
-func ConvertToSlsChart(terraformChart map[string]interface{}) *sls.Chart {
-	chart := &sls.Chart{}
+func ConvertToSlsChart(terraformChart map[string]interface{}) *aliyunSlsAPI.Chart {
+	chart := &aliyunSlsAPI.Chart{}
 
 	if title, ok := terraformChart["title"].(string); ok {
 		chart.Title = title
@@ -212,7 +213,7 @@ func ConvertToSlsChart(terraformChart map[string]interface{}) *sls.Chart {
 	// Convert search configuration
 	if searchData, ok := terraformChart["search"].([]interface{}); ok && len(searchData) > 0 {
 		if searchMap, ok := searchData[0].(map[string]interface{}); ok {
-			chart.Search = &sls.ChartSearch{}
+			chart.Search = &aliyunSlsAPI.ChartSearch{}
 
 			if logstore, ok := searchMap["logstore"].(string); ok {
 				chart.Search.Logstore = logstore
@@ -238,7 +239,7 @@ func ConvertToSlsChart(terraformChart map[string]interface{}) *sls.Chart {
 	// Convert display configuration
 	if displayData, ok := terraformChart["display"].([]interface{}); ok && len(displayData) > 0 {
 		if displayMap, ok := displayData[0].(map[string]interface{}); ok {
-			chart.Display = &sls.ChartDisplay{}
+			chart.Display = &aliyunSlsAPI.ChartDisplay{}
 
 			if xPos, ok := displayMap["x_pos"].(int); ok {
 				chart.Display.XPos = xPos
@@ -262,7 +263,7 @@ func ConvertToSlsChart(terraformChart map[string]interface{}) *sls.Chart {
 }
 
 // ConvertFromSlsChart converts an SLS Chart to Terraform chart configuration
-func ConvertFromSlsChart(chart *sls.Chart) map[string]interface{} {
+func ConvertFromSlsChart(chart *aliyunSlsAPI.Chart) map[string]interface{} {
 	result := make(map[string]interface{})
 
 	if chart.Title != "" {
@@ -313,8 +314,8 @@ func ConvertFromSlsChart(chart *sls.Chart) map[string]interface{} {
 }
 
 // ConvertToSlsDashboard converts Terraform dashboard configuration to SLS Dashboard
-func ConvertToSlsDashboard(d map[string]interface{}) *sls.Dashboard {
-	dashboard := &sls.Dashboard{}
+func ConvertToSlsDashboard(d map[string]interface{}) *aliyunSlsAPI.Dashboard {
+	dashboard := &aliyunSlsAPI.Dashboard{}
 
 	if name, ok := d["dashboard_name"].(string); ok {
 		dashboard.Name = name
@@ -338,7 +339,7 @@ func ConvertToSlsDashboard(d map[string]interface{}) *sls.Dashboard {
 
 	// Convert charts - Fixed typo from "char_list" to "chart_list"
 	if chartsData, ok := d["chart_list"].([]interface{}); ok {
-		dashboard.ChartList = make([]*sls.Chart, len(chartsData))
+		dashboard.ChartList = make([]*aliyunSlsAPI.Chart, len(chartsData))
 		for i, chartData := range chartsData {
 			if chartMap, ok := chartData.(map[string]interface{}); ok {
 				dashboard.ChartList[i] = ConvertToSlsChart(chartMap)
@@ -350,7 +351,7 @@ func ConvertToSlsDashboard(d map[string]interface{}) *sls.Dashboard {
 }
 
 // ConvertFromSlsDashboard converts an SLS Dashboard to Terraform dashboard configuration
-func ConvertFromSlsDashboard(dashboard *sls.Dashboard) map[string]interface{} {
+func ConvertFromSlsDashboard(dashboard *aliyunSlsAPI.Dashboard) map[string]interface{} {
 	result := make(map[string]interface{})
 
 	if dashboard.Name != "" {

@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+	common "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // DescribeSlsETL retrieves an ETL task by project and ETL name
-func (s *SlsService) DescribeSlsETL(projectName, etlName string) (*sls.ETL, error) {
+func (s *SlsService) DescribeSlsETL(projectName, etlName string) (*aliyunSlsAPI.ETL, error) {
 	slsAPI, err := s.getSlsAPI()
 	if err != nil {
 		return nil, WrapError(err)
@@ -19,7 +20,7 @@ func (s *SlsService) DescribeSlsETL(projectName, etlName string) (*sls.ETL, erro
 
 	etl, err := slsAPI.GetETL(projectName, etlName)
 	if err != nil {
-		if sls.IsSlsNotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("SlsETL", fmt.Sprintf("%s:%s", projectName, etlName)), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%s:%s", projectName, etlName), "GetETL", AlibabaCloudSdkGoERROR)
@@ -29,7 +30,7 @@ func (s *SlsService) DescribeSlsETL(projectName, etlName string) (*sls.ETL, erro
 }
 
 // CreateSlsETL creates a new ETL task in the specified project
-func (s *SlsService) CreateSlsETL(projectName string, etl *sls.ETL) error {
+func (s *SlsService) CreateSlsETL(projectName string, etl *aliyunSlsAPI.ETL) error {
 	slsAPI, err := s.getSlsAPI()
 	if err != nil {
 		return WrapError(err)
@@ -44,7 +45,7 @@ func (s *SlsService) CreateSlsETL(projectName string, etl *sls.ETL) error {
 }
 
 // UpdateSlsETL updates an existing ETL task in the specified project
-func (s *SlsService) UpdateSlsETL(projectName, etlName string, etl *sls.ETL) error {
+func (s *SlsService) UpdateSlsETL(projectName, etlName string, etl *aliyunSlsAPI.ETL) error {
 	slsAPI, err := s.getSlsAPI()
 	if err != nil {
 		return WrapError(err)
@@ -67,7 +68,7 @@ func (s *SlsService) DeleteSlsETL(projectName, etlName string) error {
 
 	err = slsAPI.DeleteETL(projectName, etlName)
 	if err != nil {
-		if sls.IsSlsNotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, etlName, "DeleteETL", AlibabaCloudSdkGoERROR)
@@ -107,7 +108,7 @@ func (s *SlsService) StopSlsETL(projectName, etlName string) error {
 }
 
 // ListSlsETLs lists ETL tasks in the specified project with optional filtering
-func (s *SlsService) ListSlsETLs(projectName, etlName, logstore string) ([]*sls.ETL, error) {
+func (s *SlsService) ListSlsETLs(projectName, etlName, logstore string) ([]*aliyunSlsAPI.ETL, error) {
 	slsAPI, err := s.getSlsAPI()
 	if err != nil {
 		return nil, WrapError(err)
@@ -213,8 +214,8 @@ func (s *SlsService) WaitForSlsETL(id string, status Status, timeout time.Durati
 // Helper functions for converting between Terraform and SLS API types
 
 // ConvertToSlsETLConfiguration converts Terraform ETL configuration to SLS ETL Configuration
-func ConvertToSlsETLConfiguration(terraformConfig map[string]interface{}) *sls.ETLConfiguration {
-	config := &sls.ETLConfiguration{}
+func ConvertToSlsETLConfiguration(terraformConfig map[string]interface{}) *aliyunSlsAPI.ETLConfiguration {
+	config := &aliyunSlsAPI.ETLConfiguration{}
 
 	if script, ok := terraformConfig["script"].(string); ok {
 		config.Script = script
@@ -258,7 +259,7 @@ func ConvertToSlsETLConfiguration(terraformConfig map[string]interface{}) *sls.E
 }
 
 // ConvertFromSlsETLConfiguration converts SLS ETL Configuration to Terraform ETL configuration
-func ConvertFromSlsETLConfiguration(config *sls.ETLConfiguration) map[string]interface{} {
+func ConvertFromSlsETLConfiguration(config *aliyunSlsAPI.ETLConfiguration) map[string]interface{} {
 	result := make(map[string]interface{})
 
 	if config.Script != "" {
@@ -295,8 +296,8 @@ func ConvertFromSlsETLConfiguration(config *sls.ETLConfiguration) map[string]int
 }
 
 // ConvertToSlsETL converts Terraform ETL configuration to SLS ETL
-func ConvertToSlsETL(d map[string]interface{}) *sls.ETL {
-	etl := &sls.ETL{}
+func ConvertToSlsETL(d map[string]interface{}) *aliyunSlsAPI.ETL {
+	etl := &aliyunSlsAPI.ETL{}
 
 	if name, ok := d["name"].(string); ok {
 		etl.Name = name
@@ -325,7 +326,7 @@ func ConvertToSlsETL(d map[string]interface{}) *sls.ETL {
 }
 
 // ConvertFromSlsETL converts SLS ETL to Terraform ETL configuration
-func ConvertFromSlsETL(etl *sls.ETL) map[string]interface{} {
+func ConvertFromSlsETL(etl *aliyunSlsAPI.ETL) map[string]interface{} {
 	result := make(map[string]interface{})
 
 	if etl.Name != "" {

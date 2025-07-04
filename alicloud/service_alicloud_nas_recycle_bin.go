@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	common "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	aliyunNasAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/nas"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -162,7 +163,7 @@ func (s *NasService) NasRecycleBinJobStateRefreshFunc(fileSystemId, jobId string
 func (s *NasService) DescribeNasRecycleBin(id string) (object map[string]interface{}, err error) {
 	attr, err := s.GetNasRecycleBinAttribute(id)
 	if err != nil {
-		if aliyunNasAPI.IsNotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("NAS:RecycleBin", id), NotFoundMsg, ProviderERROR, "")
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetRecycleBinAttribute", AlibabaCloudSdkGoERROR)
@@ -188,7 +189,7 @@ func (s *NasService) DescribeNasRecycleBin(id string) (object map[string]interfa
 func (s *NasService) DescribeFileSystemGetRecycleBinAttribute(id string) (object map[string]interface{}, err error) {
 	attr, err := s.GetNasRecycleBinAttribute(id)
 	if err != nil {
-		if aliyunNasAPI.IsNotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("NAS:RecycleBin", id), NotFoundMsg, ProviderERROR, "")
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetRecycleBinAttribute", AlibabaCloudSdkGoERROR)

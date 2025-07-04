@@ -5,8 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
-
+	common "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	aliyunNasAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/nas"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -18,7 +17,7 @@ func (s *NasService) DescribeNasFileSystem(id string) (fileSystem *aliyunNasAPI.
 
 	fileSystem, err = nasAPI.GetFileSystem(id)
 	if err != nil {
-		if aliyunNasAPI.IsNotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("FileSystem", id), NotFoundMsg, err)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetFileSystem", AlibabaCloudSdkGoERROR)
@@ -214,7 +213,7 @@ func (s *NasService) DeleteNasFileSystem(fileSystemId string) error {
 
 	err := nasAPI.DeleteFileSystem(fileSystemId)
 	if err != nil {
-		if aliyunNasAPI.IsNotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, fileSystemId, "DeleteFileSystem", AlibabaCloudSdkGoERROR)
