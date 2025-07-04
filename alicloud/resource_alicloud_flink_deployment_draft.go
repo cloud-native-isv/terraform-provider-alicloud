@@ -81,6 +81,7 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 			"artifact": {
 				Type:        schema.TypeList,
 				Optional:    true,
+				ForceNew:    true,
 				MaxItems:    1,
 				Description: "Extended artifact configuration. If specified, takes precedence over artifact_uri.",
 				Elem: &schema.Resource{
@@ -748,31 +749,67 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 		d.Set("artifact", artifactConfig)
 	}
 
-	// Set Flink configuration
+	// Set Flink configuration - always set as map, never null
+	flinkConf := make(map[string]interface{})
 	if deploymentDraft.FlinkConf != nil && len(deploymentDraft.FlinkConf) > 0 {
-		flinkConf := make(map[string]interface{})
 		for k, v := range deploymentDraft.FlinkConf {
 			flinkConf[k] = v
 		}
-		d.Set("flink_conf", flinkConf)
 	}
+	d.Set("flink_conf", flinkConf)
 
-	// Set environment variables (from LocalVariables)
+	// Set environment variables (from LocalVariables) - always set as map, never null
+	envVars := make(map[string]interface{})
 	if deploymentDraft.LocalVariables != nil && len(deploymentDraft.LocalVariables) > 0 {
-		envVars := make(map[string]interface{})
 		for _, localVar := range deploymentDraft.LocalVariables {
 			envVars[localVar.Name] = localVar.Value
 		}
-		d.Set("environment_variables", envVars)
 	}
+	d.Set("environment_variables", envVars)
 
-	// Set labels/tags
+	// Set labels/tags - always set as map, never null
+	tags := make(map[string]interface{})
 	if deploymentDraft.Labels != nil && len(deploymentDraft.Labels) > 0 {
-		tags := make(map[string]interface{})
 		for k, v := range deploymentDraft.Labels {
 			tags[k] = v
 		}
-		d.Set("tags", tags)
+	}
+	d.Set("tags", tags)
+
+	// Handle logging configuration with schema defaults
+	if loggingConfig, ok := d.GetOk("logging"); ok {
+		// If logging is configured in Terraform, preserve the configuration structure
+		d.Set("logging", loggingConfig)
+	} else {
+		// Set empty logging configuration to match schema expectations
+		loggingList := make([]map[string]interface{}, 0, 1)
+		loggingMap := map[string]interface{}{
+			"logging_profile":               "",
+			"log4j2_configuration_template": "",
+		}
+		loggingList = append(loggingList, loggingMap)
+		d.Set("logging", loggingList)
+	}
+
+	// Handle streaming_resource_setting configuration with schema defaults
+	if streamingConfig, ok := d.GetOk("streaming_resource_setting"); ok {
+		// If streaming_resource_setting is configured in Terraform, preserve it
+		d.Set("streaming_resource_setting", streamingConfig)
+	} else {
+		// Set default streaming resource setting to match schema expectations
+		streamingList := make([]map[string]interface{}, 0, 1)
+		streamingMap := map[string]interface{}{
+			"resource_setting_mode": "BASIC",
+		}
+		streamingList = append(streamingList, streamingMap)
+		d.Set("streaming_resource_setting", streamingList)
+	}
+
+	// Set parallelism - ensure it matches the schema default if not explicitly set
+	if parallelism, ok := d.GetOk("parallelism"); ok {
+		d.Set("parallelism", parallelism)
+	} else {
+		d.Set("parallelism", 1) // Match schema default
 	}
 
 	return nil
@@ -794,55 +831,75 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	draftID := parts[1]
 	workspaceID := d.Get("workspace_id").(string)
 
-	// Get the current deployment draft
-	deploymentDraft, err := flinkService.GetDeploymentDraft(workspaceID, namespace, draftID)
+	// First, retrieve the current complete deployment draft to ensure we don't lose existing settings
+	existingDraft, err := flinkService.GetDeploymentDraft(workspaceID, namespace, draftID)
 	if err != nil {
-		return WrapError(err)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetDeploymentDraft", AlibabaCloudSdkGoERROR)
+	}
+
+	// Initialize updateRequest with the existing complete configuration
+	updateRequest := &flinkAPI.DeploymentDraft{
+		Id:                     existingDraft.Id,
+		Workspace:              workspaceID,
+		Namespace:              namespace,
+		Name:                   existingDraft.Name,
+		ParentId:               existingDraft.ParentId,
+		EngineVersion:          existingDraft.EngineVersion,
+		ExecutionMode:          existingDraft.ExecutionMode,
+		ReferencedDeploymentId: existingDraft.ReferencedDeploymentId,
+		Artifact:               existingDraft.Artifact,
+		FlinkConf:              existingDraft.FlinkConf,
+		LocalVariables:         existingDraft.LocalVariables,
+		Labels:                 existingDraft.Labels,
 	}
 
 	update := false
 
 	// Update basic fields
 	if d.HasChange("name") {
-		deploymentDraft.Name = d.Get("name").(string)
+		updateRequest.Name = d.Get("name").(string)
 		update = true
 	}
 
 	if d.HasChange("engine_version") {
-		deploymentDraft.EngineVersion = d.Get("engine_version").(string)
+		updateRequest.EngineVersion = d.Get("engine_version").(string)
 		update = true
 	}
 
 	if d.HasChange("execution_mode") {
-		deploymentDraft.ExecutionMode = d.Get("execution_mode").(string)
+		updateRequest.ExecutionMode = d.Get("execution_mode").(string)
 		update = true
 	}
 
 	if d.HasChange("deployment_id") {
 		if deploymentID, ok := d.GetOk("deployment_id"); ok {
-			deploymentDraft.ReferencedDeploymentId = deploymentID.(string)
+			updateRequest.ReferencedDeploymentId = deploymentID.(string)
 		} else {
-			deploymentDraft.ReferencedDeploymentId = ""
+			updateRequest.ReferencedDeploymentId = ""
 		}
 		update = true
 	}
 
-	// Update artifact configuration
+	// Enhanced artifact change detection - check for any changes in the artifact structure
+	// Including specific detection for SQL script content changes
 	if d.HasChange("artifact_uri") || d.HasChange("artifact") ||
-		d.HasChange("artifact.0.sql_artifact") || d.HasChange("artifact.0.sql_artifact.0.sql_script") ||
-		d.HasChange("artifact.0.jar_artifact") || d.HasChange("artifact.0.jar_artifact.0.jar_uri") ||
-		d.HasChange("artifact.0.python_artifact") || d.HasChange("artifact.0.python_artifact.0.python_artifact_uri") {
+		d.HasChange("artifact.0.kind") ||
+		d.HasChange("artifact.0.jar_artifact") ||
+		d.HasChange("artifact.0.python_artifact") ||
+		d.HasChange("artifact.0.sql_artifact") ||
+		d.HasChange("artifact.0.sql_artifact.0.sql_script") ||
+		d.HasChange("artifact.0.sql_artifact.0.additional_dependencies") {
 
 		if artifactUri, ok := d.GetOk("artifact_uri"); ok {
 			// Simple artifact URI
-			deploymentDraft.Artifact = &aliyunFlinkAPI.Artifact{
+			updateRequest.Artifact = &aliyunFlinkAPI.Artifact{
 				Kind: "JAR",
 				JarArtifact: &aliyunFlinkAPI.JarArtifact{
 					JarUri: artifactUri.(string),
 				},
 			}
 		} else if artifactConfig, ok := d.GetOk("artifact"); ok {
-			// Complex artifact configuration
+			// Complex artifact configuration - completely rebuild the artifact
 			artifactList := artifactConfig.([]interface{})
 			if len(artifactList) > 0 {
 				artifactMap := artifactList[0].(map[string]interface{})
@@ -923,8 +980,14 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 						artifact.SqlArtifact = sqlArtifact
 					}
 				}
-				deploymentDraft.Artifact = artifact
+				updateRequest.Artifact = artifact
+			} else {
+				// If the artifact list is empty, set to nil
+				updateRequest.Artifact = nil
 			}
+		} else {
+			// If neither artifact_uri nor artifact is specified, set to nil
+			updateRequest.Artifact = nil
 		}
 		update = true
 	}
@@ -932,12 +995,12 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	// Update Flink configuration
 	if d.HasChange("flink_conf") {
 		if flinkConf, ok := d.GetOk("flink_conf"); ok {
-			deploymentDraft.FlinkConf = make(map[string]string)
+			updateRequest.FlinkConf = make(map[string]string)
 			for k, v := range flinkConf.(map[string]interface{}) {
-				deploymentDraft.FlinkConf[k] = v.(string)
+				updateRequest.FlinkConf[k] = v.(string)
 			}
 		} else {
-			deploymentDraft.FlinkConf = nil
+			updateRequest.FlinkConf = nil
 		}
 		update = true
 	}
@@ -946,15 +1009,15 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	if d.HasChange("environment_variables") {
 		if envVars, ok := d.GetOk("environment_variables"); ok {
 			envVarMap := envVars.(map[string]interface{})
-			deploymentDraft.LocalVariables = make([]*aliyunFlinkAPI.LocalVariable, 0, len(envVarMap))
+			updateRequest.LocalVariables = make([]*aliyunFlinkAPI.LocalVariable, 0, len(envVarMap))
 			for k, v := range envVarMap {
-				deploymentDraft.LocalVariables = append(deploymentDraft.LocalVariables, &aliyunFlinkAPI.LocalVariable{
+				updateRequest.LocalVariables = append(updateRequest.LocalVariables, &aliyunFlinkAPI.LocalVariable{
 					Name:  k,
 					Value: v.(string),
 				})
 			}
 		} else {
-			deploymentDraft.LocalVariables = nil
+			updateRequest.LocalVariables = nil
 		}
 		update = true
 	}
@@ -962,19 +1025,19 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 	// Update labels/tags
 	if d.HasChange("tags") {
 		if tags, ok := d.GetOk("tags"); ok {
-			deploymentDraft.Labels = make(map[string]interface{})
+			updateRequest.Labels = make(map[string]interface{})
 			for k, v := range tags.(map[string]interface{}) {
-				deploymentDraft.Labels[k] = v.(string)
+				updateRequest.Labels[k] = v.(string)
 			}
 		} else {
-			deploymentDraft.Labels = nil
+			updateRequest.Labels = nil
 		}
 		update = true
 	}
 
 	if update {
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			_, err := flinkService.UpdateDeploymentDraft(workspaceID, namespace, deploymentDraft)
+			_, err := flinkService.UpdateDeploymentDraft(workspaceID, namespace, updateRequest)
 			if err != nil {
 				if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
 					time.Sleep(5 * time.Second)
