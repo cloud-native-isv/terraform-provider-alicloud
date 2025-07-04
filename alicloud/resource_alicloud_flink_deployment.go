@@ -184,12 +184,6 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 					},
 				},
 			},
-			"parallelism": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     1,
-				Description: "The parallelism of the job.",
-			},
 			"streaming_resource_setting": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -568,10 +562,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	// Handle logging configuration
 	logging := resourceAliCloudFlinkDeploymentExpandLogging(d)
 	if logging != nil {
-		// Convert Logging to LoggingProfile for deployment
-		deployment.Logging = &aliyunFlinkAPI.LoggingProfile{
-			Template: logging.LoggingProfile,
-		}
+		deployment.Logging = logging
 	}
 
 	// Handle labels/tags
@@ -732,11 +723,6 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 	if deployment.StreamingResourceSetting != nil {
 		// Set new streaming resource setting structure
 		d.Set("streaming_resource_setting", resourceAliCloudFlinkDeploymentFlattenStreamingResourceSetting(deployment.StreamingResourceSetting))
-
-		// Set legacy parallelism field for backward compatibility
-		if deployment.StreamingResourceSetting.BasicResourceSetting != nil {
-			d.Set("parallelism", deployment.StreamingResourceSetting.BasicResourceSetting.Parallelism)
-		}
 	}
 
 	// Set Flink configuration
@@ -750,11 +736,7 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 
 	// Set logging configuration
 	if deployment.Logging != nil {
-		// Convert LoggingProfile to Logging for flattening
-		logging := &aliyunFlinkAPI.Logging{
-			LoggingProfile: deployment.Logging.Template,
-		}
-		d.Set("logging", resourceAliCloudFlinkDeploymentflattenLogging(logging))
+		d.Set("logging", resourceAliCloudFlinkDeploymentflattenLogging(deployment.Logging))
 	}
 
 	// Set labels/tags
@@ -911,7 +893,7 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	// Update streaming resource setting
-	if d.HasChange("streaming_resource_setting") || d.HasChange("parallelism") {
+	if d.HasChange("streaming_resource_setting") {
 		streamingResourceSetting := resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting(d)
 		if streamingResourceSetting != nil {
 			deployment.StreamingResourceSetting = streamingResourceSetting
@@ -938,12 +920,9 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	if d.HasChange("logging") {
 		logging := resourceAliCloudFlinkDeploymentExpandLogging(d)
 		if logging != nil {
-			// Convert Logging to LoggingProfile for deployment
-			deployment.Logging = &aliyunFlinkAPI.LoggingProfile{
-				Template: logging.LoggingProfile,
-			}
-		} else {
 			deployment.Logging = nil
+		} else {
+			deployment.Logging = logging
 		}
 		update = true
 	}
@@ -1008,7 +987,7 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 		// Use service method with correct parameters
 		err := flinkService.DeleteDeployment(namespace, deploymentID)
 		if err != nil {
-			if IsExpectedErrors(err, []string{"DeploymentNotFound"}) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return resource.RetryableError(err)
@@ -1018,6 +997,12 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDeployment", AlibabaCloudSdkGoERROR)
+	}
+
+	// Wait for deployment deletion to complete using StateRefreshFunc
+	stateConf := BuildStateConf([]string{"Deleting"}, []string{"Deleted"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"Failed"}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
 	return nil
@@ -1152,16 +1137,6 @@ func resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting(d *schema.Res
 		}
 	}
 
-	// Fallback to simple parallelism setting for backward compatibility
-	if parallelism, ok := d.GetOk("parallelism"); ok {
-		return &aliyunFlinkAPI.StreamingResourceSetting{
-			ResourceSettingMode: "BASIC",
-			BasicResourceSetting: &aliyunFlinkAPI.BasicResourceSetting{
-				Parallelism: int64(parallelism.(int)),
-			},
-		}
-	}
-
 	return nil
 }
 
@@ -1173,15 +1148,15 @@ func resourceAliCloudFlinkDeploymentExpandLogging(d *schema.ResourceData) *aliyu
 			loggingMap := loggings[0].(map[string]interface{})
 			logging := &aliyunFlinkAPI.Logging{}
 
-			if profile, ok := loggingMap["logging_profile"].(string); ok {
+			if profile, ok := loggingMap["logging_profile"].(string); ok && profile != "" {
 				logging.LoggingProfile = profile
 			}
 
-			if template, ok := loggingMap["log4j2_configuration_template"].(string); ok {
+			if template, ok := loggingMap["log4j2_configuration_template"].(string); ok && template != "" {
 				logging.Log4j2ConfigurationTemplate = template
 			}
 
-			if loggersList, ok := loggingMap["log4j_loggers"].([]interface{}); ok {
+			if loggersList, ok := loggingMap["log4j_loggers"].([]interface{}); ok && len(loggersList) > 0 {
 				logging.Log4jLoggers = make([]aliyunFlinkAPI.Log4jLogger, len(loggersList))
 				for i, loggerItem := range loggersList {
 					loggerMap := loggerItem.(map[string]interface{})

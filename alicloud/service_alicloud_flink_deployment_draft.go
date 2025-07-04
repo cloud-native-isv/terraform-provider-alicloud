@@ -33,14 +33,14 @@ func (s *FlinkService) FlinkDeploymentDraftStateRefreshFunc(workspaceId string, 
 		if err != nil {
 			if NotFoundError(err) {
 				// Draft not found - this is expected during deletion
-				return nil, "", nil
+				return nil, "Deleted", nil
 			}
 			return nil, "", WrapError(err)
 		}
 
 		// If draft is nil, it means the resource doesn't exist
 		if draft == nil {
-			return nil, "", nil
+			return nil, "Deleted", nil
 		}
 
 		// For deployment drafts, if we can get it successfully, it means it's available

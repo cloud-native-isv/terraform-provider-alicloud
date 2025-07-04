@@ -38,9 +38,22 @@ func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string, failStates []s
 		deployment, err := s.GetDeployment(id)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, "", nil
+				// Deployment not found - this is expected during deletion
+				return nil, "Deleted", nil
 			}
 			return nil, "", WrapErrorf(err, DefaultErrorMsg, id, "GetDeployment", AlibabaCloudSdkGoERROR)
+		}
+
+		// If deployment is nil, it means the resource doesn't exist
+		if deployment == nil {
+			return nil, "Deleted", nil
+		}
+
+		// Check for fail states
+		for _, failState := range failStates {
+			if deployment.Status == failState {
+				return deployment, deployment.Status, WrapErrorf(err, DefaultErrorMsg, id, "GetDeployment", AlibabaCloudSdkGoERROR)
+			}
 		}
 
 		return deployment, deployment.Status, nil

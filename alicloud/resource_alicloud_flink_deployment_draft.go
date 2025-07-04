@@ -205,12 +205,6 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 					},
 				},
 			},
-			"parallelism": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     1,
-				Description: "The parallelism of the job.",
-			},
 			"streaming_resource_setting": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -791,42 +785,6 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 	}
 	d.Set("tags", tags)
 
-	// Handle logging configuration with schema defaults
-	if loggingConfig, ok := d.GetOk("logging"); ok {
-		// If logging is configured in Terraform, preserve the configuration structure
-		d.Set("logging", loggingConfig)
-	} else {
-		// Set empty logging configuration to match schema expectations
-		loggingList := make([]map[string]interface{}, 0, 1)
-		loggingMap := map[string]interface{}{
-			"logging_profile":               "",
-			"log4j2_configuration_template": "",
-		}
-		loggingList = append(loggingList, loggingMap)
-		d.Set("logging", loggingList)
-	}
-
-	// Handle streaming_resource_setting configuration with schema defaults
-	if streamingConfig, ok := d.GetOk("streaming_resource_setting"); ok {
-		// If streaming_resource_setting is configured in Terraform, preserve it
-		d.Set("streaming_resource_setting", streamingConfig)
-	} else {
-		// Set default streaming resource setting to match schema expectations
-		streamingList := make([]map[string]interface{}, 0, 1)
-		streamingMap := map[string]interface{}{
-			"resource_setting_mode": "BASIC",
-		}
-		streamingList = append(streamingList, streamingMap)
-		d.Set("streaming_resource_setting", streamingList)
-	}
-
-	// Set parallelism - ensure it matches the schema default if not explicitly set
-	if parallelism, ok := d.GetOk("parallelism"); ok {
-		d.Set("parallelism", parallelism)
-	} else {
-		d.Set("parallelism", 1) // Match schema default
-	}
-
 	return nil
 }
 
@@ -1098,7 +1056,7 @@ func resourceAliCloudFlinkDeploymentDraftDelete(d *schema.ResourceData, meta int
 		// Use service method instead of directly accessing VervericaClient
 		err := flinkService.DeleteDeploymentDraft(workspaceID, namespace, draftID)
 		if err != nil {
-			if IsExpectedErrors(err, []string{"DraftNotFound"}) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return resource.RetryableError(err)
@@ -1110,11 +1068,10 @@ func resourceAliCloudFlinkDeploymentDraftDelete(d *schema.ResourceData, meta int
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDeploymentDraft", AlibabaCloudSdkGoERROR)
 	}
 
-	// For deletion, we don't need to wait for state changes since deployment drafts
-	// are deleted immediately. Just verify the resource is gone.
-	_, err = flinkService.GetDeploymentDraft(workspaceID, namespace, draftID)
-	if err != nil && !IsExpectedErrors(err, []string{"DraftNotFound"}) {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetDeploymentDraft", AlibabaCloudSdkGoERROR)
+	// Wait for deployment draft deletion to complete using StateRefreshFunc
+	stateConf := BuildStateConf([]string{"Deleting"}, []string{"Deleted"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceID, namespace, draftID, []string{"Failed"}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
 	return nil
