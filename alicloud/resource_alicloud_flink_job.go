@@ -26,7 +26,7 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the Flink workspace.",
 			},
-			"namespace": {
+			"namespace_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -205,7 +205,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 
 	// Get parameters from schema
 	workspaceId := d.Get("workspace_id").(string)
-	namespaceName := d.Get("namespace").(string)
+	namespaceName := d.Get("namespace_name").(string)
 	deploymentId := d.Get("deployment_id").(string)
 	jobName := d.Get("job_name").(string)
 	parallelism := d.Get("parallelism").(int)
@@ -276,7 +276,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	// Start job using FlinkService
-	job, err := flinkService.StartJobWithParams(namespaceName, request)
+	job, err := flinkService.StartJob(namespaceName, request)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -313,7 +313,7 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 
 	// Set basic attributes using correct field names from cws-lib-go Job type
 	d.Set("workspace_id", job.Workspace)
-	d.Set("namespace", job.Namespace)
+	d.Set("namespace_name", job.Namespace)
 	d.Set("deployment_id", job.DeploymentId)
 	d.Set("job_name", job.JobName)
 	d.Set("job_id", job.JobId)

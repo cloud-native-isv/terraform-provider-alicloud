@@ -32,10 +32,15 @@ func (s *FlinkService) FlinkDeploymentDraftStateRefreshFunc(workspaceId string, 
 		draft, err := s.GetDeploymentDraft(workspaceId, namespaceName, draftId)
 		if err != nil {
 			if NotFoundError(err) {
-				// Draft not found, still being created or deleted
+				// Draft not found - this is expected during deletion
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
+		}
+
+		// If draft is nil, it means the resource doesn't exist
+		if draft == nil {
+			return nil, "", nil
 		}
 
 		// For deployment drafts, if we can get it successfully, it means it's available
@@ -47,9 +52,12 @@ func (s *FlinkService) FlinkDeploymentDraftStateRefreshFunc(workspaceId string, 
 			status = "Creating"
 		}
 
-		// Note: failStates parameter is kept for interface compatibility
-		// but deployment drafts typically don't have complex failure states
-		// since they are just configuration templates
+		// Check for fail states
+		for _, failState := range failStates {
+			if status == failState {
+				return draft, status, WrapErrorf(err, DefaultErrorMsg, draftId, "GetDeploymentDraft", AlibabaCloudSdkGoERROR)
+			}
+		}
 
 		return draft, status, nil
 	}

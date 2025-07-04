@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	common "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -1111,15 +1110,11 @@ func resourceAliCloudFlinkDeploymentDraftDelete(d *schema.ResourceData, meta int
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDeploymentDraft", AlibabaCloudSdkGoERROR)
 	}
 
-	// Wait for deletion to complete using StateRefreshFunc
-	// This ensures the resource is truly deleted before proceeding with recreation
-	stateConf := BuildStateConf([]string{"Deleting"}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceID, namespace, draftID, []string{"DraftNotFound"}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		// If the error is due to resource not found, that's expected for deletion
-		if common.IsNotFoundError(err) {
-			return nil
-		}
-		return WrapErrorf(err, IdMsg, d.Id())
+	// For deletion, we don't need to wait for state changes since deployment drafts
+	// are deleted immediately. Just verify the resource is gone.
+	_, err = flinkService.GetDeploymentDraft(workspaceID, namespace, draftID)
+	if err != nil && !IsExpectedErrors(err, []string{"DraftNotFound"}) {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetDeploymentDraft", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil
