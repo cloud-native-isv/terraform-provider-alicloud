@@ -16,9 +16,9 @@ func (s *FlinkService) DescribeFlinkJob(id string) (*aliyunFlinkAPI.Job, error) 
 	return s.flinkAPI.GetJob(namespaceName, jobId)
 }
 
-func (s *FlinkService) StartJob(namespaceName string, job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.Job, error) {
-	job.Namespace = namespaceName
-	return s.flinkAPI.StartJob(job)
+func (s *FlinkService) StartJob(namespaceName string, params *aliyunFlinkAPI.JobStartParameters) (*aliyunFlinkAPI.Job, error) {
+	params.Namespace = namespaceName
+	return s.flinkAPI.StartJob(params)
 }
 
 func (s *FlinkService) UpdateJob(job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.HotUpdateJobResult, error) {

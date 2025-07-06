@@ -204,27 +204,13 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	// Get parameters from schema
-	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	deploymentId := d.Get("deployment_id").(string)
-	jobName := d.Get("job_name").(string)
-	parallelism := d.Get("parallelism").(int)
-	maxParallelism := d.Get("max_parallelism").(int)
-	executionMode := d.Get("execution_mode").(string)
-	engineVersion := d.Get("engine_version").(string)
-	sessionClusterName := d.Get("session_cluster_name").(string)
 
-	// Build job request - using the Job struct from cws-lib-go with correct field names
-	request := &aliyunFlinkAPI.Job{
-		Workspace:          workspaceId,
-		Namespace:          namespaceName,
-		DeploymentId:       deploymentId,
-		JobName:            jobName,
-		Parallelism:        int32(parallelism),
-		MaxParallelism:     int32(maxParallelism),
-		ExecutionMode:      executionMode,
-		EngineVersion:      engineVersion,
-		SessionClusterName: sessionClusterName,
+	// Build job start parameters - using JobStartParameters struct
+	params := &aliyunFlinkAPI.JobStartParameters{
+		Namespace:    namespaceName,
+		DeploymentId: deploymentId,
 	}
 
 	// Handle restore strategy
@@ -232,11 +218,11 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 		restoreList := v.([]interface{})
 		if len(restoreList) > 0 {
 			restoreMap := restoreList[0].(map[string]interface{})
-			request.RestoreStrategy = &aliyunFlinkAPI.RestoreStrategy{
+			params.RestoreStrategy = &aliyunFlinkAPI.DeploymentRestoreStrategy{
 				Kind: restoreMap["kind"].(string),
 			}
 			if savepointId, exists := restoreMap["savepoint_id"]; exists && savepointId.(string) != "" {
-				request.RestoreStrategy.SavepointId = savepointId.(string)
+				params.RestoreStrategy.SavepointId = savepointId.(string)
 			}
 		}
 	}
@@ -252,31 +238,11 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 				Value: varMap["value"].(string),
 			})
 		}
-		request.LocalVariables = localVars
+		params.LocalVariables = localVars
 	}
 
-	// Handle flink configuration
-	if v, ok := d.GetOk("flink_conf"); ok {
-		flinkConfMap := v.(map[string]interface{})
-		flinkConf := make(map[string]interface{})
-		for key, value := range flinkConfMap {
-			flinkConf[key] = value
-		}
-		request.FlinkConf = flinkConf
-	}
-
-	// Handle user flink configuration
-	if v, ok := d.GetOk("user_flink_conf"); ok {
-		userFlinkConfMap := v.(map[string]interface{})
-		userFlinkConf := make(map[string]interface{})
-		for key, value := range userFlinkConfMap {
-			userFlinkConf[key] = value
-		}
-		request.UserFlinkConf = userFlinkConf
-	}
-
-	// Start job using FlinkService
-	job, err := flinkService.StartJob(namespaceName, request)
+	// Start job using FlinkService with JobStartParameters
+	job, err := flinkService.StartJob(namespaceName, params)
 	if err != nil {
 		return WrapError(err)
 	}

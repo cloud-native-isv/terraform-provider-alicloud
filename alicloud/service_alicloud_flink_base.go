@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	aliyunCommonAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
+	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 )
 
 type FlinkService struct {
@@ -53,6 +53,14 @@ func parseDeploymentId(id string) (string, string, error) {
 		return "", "", fmt.Errorf("invalid deployment ID format, expected namespace:deploymentId, got %s", id)
 	}
 	return parts[0], parts[1], nil
+}
+
+func parseDeploymentIdWithWorkspace(id string) (string, string, string, error) {
+	parts := strings.Split(id, ":")
+	if len(parts) != 3 {
+		return "", "", "", fmt.Errorf("invalid deployment ID format, expected workspaceId:namespace:deploymentId, got %s", id)
+	}
+	return parts[0], parts[1], parts[2], nil
 }
 
 func parseJobId(id string) (string, string, error) {

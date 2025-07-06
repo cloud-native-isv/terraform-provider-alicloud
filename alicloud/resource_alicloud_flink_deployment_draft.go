@@ -70,9 +70,15 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:        schema.TypeString,
-							Optional:    true,
-							Default:     "session-cluster",
+							Required:    true,
 							Description: "The name of the deployment target.",
+						},
+						"mode": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "SESSION",
+							ValidateFunc: validation.StringInSlice([]string{"PER_JOB", "SESSION"}, false),
+							Description:  "The mode of the deployment target.",
 						},
 					},
 				},
@@ -478,6 +484,21 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		draft.ReferencedDeploymentId = deploymentId.(string)
 	}
 
+	// Handle deployment target configuration
+	if deploymentTargetList, ok := d.GetOk("deployment_target"); ok {
+		targets := deploymentTargetList.([]interface{})
+		if len(targets) > 0 {
+			targetMap := targets[0].(map[string]interface{})
+			deploymentTarget := &aliyunFlinkAPI.DeploymentTarget{
+				Name: targetMap["name"].(string),
+			}
+			if mode, ok := targetMap["mode"]; ok {
+				deploymentTarget.Mode = mode.(string)
+			}
+			draft.DeploymentTarget = deploymentTarget
+		}
+	}
+
 	// Handle artifact configuration
 	if artifactUri, ok := d.GetOk("artifact_uri"); ok {
 		// Simple artifact URI - create JAR artifact
@@ -670,6 +691,19 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 		d.Set("referenced_deployment_id", deploymentDraft.ReferencedDeploymentId)
 	}
 
+	// Set deployment target configuration
+	if deploymentDraft.DeploymentTarget != nil {
+		deploymentTargetConfig := make([]map[string]interface{}, 0, 1)
+		targetMap := map[string]interface{}{
+			"name": deploymentDraft.DeploymentTarget.Name,
+		}
+		if deploymentDraft.DeploymentTarget.Mode != "" {
+			targetMap["mode"] = deploymentDraft.DeploymentTarget.Mode
+		}
+		deploymentTargetConfig = append(deploymentTargetConfig, targetMap)
+		d.Set("deployment_target", deploymentTargetConfig)
+	}
+
 	// Set creator information
 	d.Set("creator", deploymentDraft.Creator)
 	d.Set("creator_name", deploymentDraft.CreatorName)
@@ -849,6 +883,28 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 			updateRequest.ReferencedDeploymentId = deploymentID.(string)
 		} else {
 			updateRequest.ReferencedDeploymentId = ""
+		}
+		update = true
+	}
+
+	// Update deployment target configuration
+	if d.HasChange("deployment_target") {
+		if deploymentTargetList, ok := d.GetOk("deployment_target"); ok {
+			targets := deploymentTargetList.([]interface{})
+			if len(targets) > 0 {
+				targetMap := targets[0].(map[string]interface{})
+				deploymentTarget := &aliyunFlinkAPI.DeploymentTarget{
+					Name: targetMap["name"].(string),
+				}
+				if mode, ok := targetMap["mode"]; ok {
+					deploymentTarget.Mode = mode.(string)
+				}
+				updateRequest.DeploymentTarget = deploymentTarget
+			} else {
+				updateRequest.DeploymentTarget = nil
+			}
+		} else {
+			updateRequest.DeploymentTarget = nil
 		}
 		update = true
 	}

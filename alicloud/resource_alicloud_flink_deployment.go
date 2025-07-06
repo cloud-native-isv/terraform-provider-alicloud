@@ -590,7 +590,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	}
 	addDebugJson("Deployment", newDeployment)
 
-	d.SetId(fmt.Sprintf("%s:%s", namespaceName, newDeployment.DeploymentId))
+	d.SetId(fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, newDeployment.DeploymentId))
 	d.Set("deployment_id", newDeployment.DeploymentId)
 
 	// Wait for deployment creation to complete using StateRefreshFunc
@@ -992,13 +992,13 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	parts, err := ParseResourceId(d.Id(), 2)
+	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	namespace := parts[0]
-	deploymentID := parts[1]
+	namespace := parts[1]
+	deploymentID := parts[2]
 
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		// Use service method with correct parameters

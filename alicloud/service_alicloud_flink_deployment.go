@@ -7,13 +7,13 @@ import (
 
 // Deployment methods
 func (s *FlinkService) GetDeployment(id string) (*aliyunFlinkAPI.Deployment, error) {
-	// Parse deployment ID to extract namespace and deployment ID
-	// Format: namespace:deploymentId
-	namespaceName, deploymentId, err := parseDeploymentId(id)
+	// Parse deployment ID to extract workspace, namespace and deployment ID
+	// Format: workspaceId:namespace:deploymentId
+	workspaceId, namespaceName, deploymentId, err := parseDeploymentIdWithWorkspace(id)
 	if err != nil {
 		return nil, err
 	}
-	return s.flinkAPI.GetDeployment(namespaceName, deploymentId)
+	return s.flinkAPI.GetDeployment(workspaceId, namespaceName, deploymentId)
 }
 
 func (s *FlinkService) CreateDeployment(namespaceName *string, deployment *aliyunFlinkAPI.Deployment) (*aliyunFlinkAPI.Deployment, error) {
