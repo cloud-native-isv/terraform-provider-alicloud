@@ -70,6 +70,13 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 							Default:     "session-cluster",
 							Description: "The name of the deployment target.",
 						},
+						"mode": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "PER_JOB",
+							ValidateFunc: validation.StringInSlice([]string{"PER_JOB", "SESSION"}, false),
+							Description:  "The mode of the deployment target.",
+						},
 					},
 				},
 			},
@@ -449,12 +456,16 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		deployment.ExecutionMode = executionMode.(string)
 	}
 
+	// Handle deployment target
 	if deploymentTargetList, ok := d.GetOk("deployment_target"); ok {
 		targets := deploymentTargetList.([]interface{})
 		if len(targets) > 0 {
 			targetMap := targets[0].(map[string]interface{})
 			deployment.DeploymentTarget = &aliyunFlinkAPI.DeploymentTarget{
 				Name: targetMap["name"].(string),
+			}
+			if mode, ok := targetMap["mode"]; ok {
+				deployment.DeploymentTarget.Mode = mode.(string)
 			}
 		}
 	}
@@ -647,6 +658,9 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 		deploymentTargetMap := map[string]interface{}{
 			"name": deployment.DeploymentTarget.Name,
 		}
+		if deployment.DeploymentTarget.Mode != "" {
+			deploymentTargetMap["mode"] = deployment.DeploymentTarget.Mode
+		}
 		d.Set("deployment_target", []interface{}{deploymentTargetMap})
 	}
 
@@ -793,6 +807,9 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 				targetMap := targets[0].(map[string]interface{})
 				deployment.DeploymentTarget = &aliyunFlinkAPI.DeploymentTarget{
 					Name: targetMap["name"].(string),
+				}
+				if mode, ok := targetMap["mode"]; ok {
+					deployment.DeploymentTarget.Mode = mode.(string)
 				}
 			}
 		} else {
