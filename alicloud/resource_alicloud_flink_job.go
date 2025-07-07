@@ -8,6 +8,7 @@ import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAliCloudFlinkJob() *schema.Resource {
@@ -75,15 +76,16 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 			},
 			"restore_strategy": {
 				Type:        schema.TypeList,
-				Optional:    true,
+				Required:    true,
 				MaxItems:    1,
 				Description: "The restore strategy for the job.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"kind": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The restore strategy kind (LATEST_SAVEPOINT, LATEST_CHECKPOINT, SAVEPOINT).",
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"NONE", "LATEST_SAVEPOINT", "FROM_SAVEPOINT", "LATEST_STATE"}, false),
+							Description:  "The restore strategy kind (NONE, LATEST_SAVEPOINT, FROM_SAVEPOINT, LATEST_STATE).",
 						},
 						"savepoint_id": {
 							Type:        schema.TypeString,
@@ -214,17 +216,15 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 		DeploymentId: deploymentId,
 	}
 
-	// Handle restore strategy
-	if v, ok := d.GetOk("restore_strategy"); ok {
-		restoreList := v.([]interface{})
-		if len(restoreList) > 0 {
-			restoreMap := restoreList[0].(map[string]interface{})
-			params.RestoreStrategy = &aliyunFlinkAPI.DeploymentRestoreStrategy{
-				Kind: restoreMap["kind"].(string),
-			}
-			if savepointId, exists := restoreMap["savepoint_id"]; exists && savepointId.(string) != "" {
-				params.RestoreStrategy.SavepointId = savepointId.(string)
-			}
+	// Handle restore strategy - now required
+	restoreList := d.Get("restore_strategy").([]interface{})
+	if len(restoreList) > 0 {
+		restoreMap := restoreList[0].(map[string]interface{})
+		params.RestoreStrategy = &aliyunFlinkAPI.DeploymentRestoreStrategy{
+			Kind: restoreMap["kind"].(string),
+		}
+		if savepointId, exists := restoreMap["savepoint_id"]; exists && savepointId.(string) != "" {
+			params.RestoreStrategy.SavepointId = savepointId.(string)
 		}
 	}
 

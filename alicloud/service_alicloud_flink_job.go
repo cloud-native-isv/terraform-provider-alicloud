@@ -61,11 +61,23 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(id string, failStates []string) 
 		job, err := s.DescribeFlinkJob(id)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, "", nil
+				return nil, "NotFound", nil
 			}
-			return nil, "", WrapErrorf(err, DefaultErrorMsg, id, "DescribeFlinkJob", AlibabaCloudSdkGoERROR)
+			return nil, "FAILED", WrapErrorf(err, DefaultErrorMsg, id, "DescribeFlinkJob", AlibabaCloudSdkGoERROR)
 		}
 
-		return job, "", nil
+		// If job is nil, it means the resource doesn't exist
+		if job == nil {
+			return nil, "NotFound", nil
+		}
+
+		// Check for fail states
+		for _, failState := range failStates {
+			if job.GetStatus() == failState {
+				return job, job.GetStatus(), WrapErrorf(err, DefaultErrorMsg, id, "DescribeFlinkJob", AlibabaCloudSdkGoERROR)
+			}
+		}
+
+		return job, job.GetStatus(), nil
 	}
 }
