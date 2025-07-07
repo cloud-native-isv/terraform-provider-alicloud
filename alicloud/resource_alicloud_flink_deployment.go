@@ -775,30 +775,53 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	deployment, err := flinkService.GetDeployment(d.Id())
+	// First, retrieve the current complete deployment to ensure we don't lose existing settings
+	existingDeployment, err := flinkService.GetDeployment(d.Id())
 	if err != nil {
-		return WrapError(err)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetDeployment", AlibabaCloudSdkGoERROR)
+	}
+
+	// Initialize updateRequest with the existing complete configuration
+	updateRequest := &aliyunFlinkAPI.Deployment{
+		DeploymentId:             existingDeployment.DeploymentId,
+		Workspace:                existingDeployment.Workspace,
+		Namespace:                existingDeployment.Namespace,
+		Name:                     existingDeployment.Name,
+		Description:              existingDeployment.Description,
+		EngineVersion:            existingDeployment.EngineVersion,
+		ExecutionMode:            existingDeployment.ExecutionMode,
+		DeploymentTarget:         existingDeployment.DeploymentTarget,
+		Artifact:                 existingDeployment.Artifact,
+		StreamingResourceSetting: existingDeployment.StreamingResourceSetting,
+		FlinkConf:                existingDeployment.FlinkConf,
+		Logging:                  existingDeployment.Logging,
+		Labels:                   existingDeployment.Labels,
 	}
 
 	update := false
 
+	// Update basic fields
 	if d.HasChange("name") {
-		deployment.Name = d.Get("name").(string)
+		updateRequest.Name = d.Get("name").(string)
 		update = true
 	}
 
 	if d.HasChange("description") {
-		deployment.Description = d.Get("description").(string)
+		if description, ok := d.GetOk("description"); ok {
+			updateRequest.Description = description.(string)
+		} else {
+			updateRequest.Description = ""
+		}
 		update = true
 	}
 
 	if d.HasChange("engine_version") {
-		deployment.EngineVersion = d.Get("engine_version").(string)
+		updateRequest.EngineVersion = d.Get("engine_version").(string)
 		update = true
 	}
 
 	if d.HasChange("execution_mode") {
-		deployment.ExecutionMode = d.Get("execution_mode").(string)
+		updateRequest.ExecutionMode = d.Get("execution_mode").(string)
 		update = true
 	}
 
@@ -808,22 +831,43 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 			targets := deploymentTargetList.([]interface{})
 			if len(targets) > 0 {
 				targetMap := targets[0].(map[string]interface{})
-				deployment.DeploymentTarget = &aliyunFlinkAPI.DeploymentTarget{
+				updateRequest.DeploymentTarget = &aliyunFlinkAPI.DeploymentTarget{
 					Name: targetMap["name"].(string),
 				}
 				if mode, ok := targetMap["mode"]; ok {
-					deployment.DeploymentTarget.Mode = mode.(string)
+					updateRequest.DeploymentTarget.Mode = mode.(string)
 				}
+			} else {
+				updateRequest.DeploymentTarget = nil
 			}
 		} else {
-			deployment.DeploymentTarget = nil
+			updateRequest.DeploymentTarget = nil
 		}
 		update = true
 	}
 
-	// Update artifact configuration
-	if d.HasChange("artifact") {
+	// Enhanced artifact change detection - check for any changes in the artifact structure
+	// Including specific detection for all artifact types and their nested fields
+	if d.HasChange("artifact") ||
+		d.HasChange("artifact.0.kind") ||
+		d.HasChange("artifact.0.jar_artifact") ||
+		d.HasChange("artifact.0.python_artifact") ||
+		d.HasChange("artifact.0.sql_artifact") ||
+		d.HasChange("artifact.0.jar_artifact.0.jar_uri") ||
+		d.HasChange("artifact.0.jar_artifact.0.entry_class") ||
+		d.HasChange("artifact.0.jar_artifact.0.main_args") ||
+		d.HasChange("artifact.0.jar_artifact.0.additional_dependencies") ||
+		d.HasChange("artifact.0.python_artifact.0.python_artifact_uri") ||
+		d.HasChange("artifact.0.python_artifact.0.entry_module") ||
+		d.HasChange("artifact.0.python_artifact.0.main_args") ||
+		d.HasChange("artifact.0.python_artifact.0.additional_dependencies") ||
+		d.HasChange("artifact.0.python_artifact.0.additional_python_libraries") ||
+		d.HasChange("artifact.0.python_artifact.0.additional_python_archives") ||
+		d.HasChange("artifact.0.sql_artifact.0.sql_script") ||
+		d.HasChange("artifact.0.sql_artifact.0.additional_dependencies") {
+
 		if artifactConfig, ok := d.GetOk("artifact"); ok {
+			// Complex artifact configuration - completely rebuild the artifact
 			artifactList := artifactConfig.([]interface{})
 			if len(artifactList) > 0 {
 				artifactMap := artifactList[0].(map[string]interface{})
@@ -904,10 +948,14 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 						artifact.SqlArtifact = sqlArtifact
 					}
 				}
-				deployment.Artifact = artifact
+				updateRequest.Artifact = artifact
+			} else {
+				// If the artifact list is empty, set to nil
+				updateRequest.Artifact = nil
 			}
 		} else {
-			deployment.Artifact = nil
+			// If artifact is not specified, set to nil
+			updateRequest.Artifact = nil
 		}
 		update = true
 	}
@@ -916,9 +964,9 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	if d.HasChange("streaming_resource_setting") {
 		streamingResourceSetting := resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting(d)
 		if streamingResourceSetting != nil {
-			deployment.StreamingResourceSetting = streamingResourceSetting
+			updateRequest.StreamingResourceSetting = streamingResourceSetting
 		} else {
-			deployment.StreamingResourceSetting = nil
+			updateRequest.StreamingResourceSetting = nil
 		}
 		update = true
 	}
@@ -926,12 +974,12 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	// Update Flink configuration
 	if d.HasChange("flink_conf") {
 		if flinkConf, ok := d.GetOk("flink_conf"); ok {
-			deployment.FlinkConf = make(map[string]string)
+			updateRequest.FlinkConf = make(map[string]string)
 			for k, v := range flinkConf.(map[string]interface{}) {
-				deployment.FlinkConf[k] = v.(string)
+				updateRequest.FlinkConf[k] = v.(string)
 			}
 		} else {
-			deployment.FlinkConf = nil
+			updateRequest.FlinkConf = nil
 		}
 		update = true
 	}
@@ -940,9 +988,9 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	if d.HasChange("logging") {
 		logging := resourceAliCloudFlinkDeploymentExpandLogging(d)
 		if logging != nil {
-			deployment.Logging = nil
+			updateRequest.Logging = logging
 		} else {
-			deployment.Logging = logging
+			updateRequest.Logging = nil
 		}
 		update = true
 	}
@@ -950,19 +998,19 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	// Update labels/tags
 	if d.HasChange("tags") {
 		if tags, ok := d.GetOk("tags"); ok {
-			deployment.Labels = make(map[string]string)
+			updateRequest.Labels = make(map[string]string)
 			for k, v := range tags.(map[string]interface{}) {
-				deployment.Labels[k] = v.(string)
+				updateRequest.Labels[k] = v.(string)
 			}
 		} else {
-			deployment.Labels = nil
+			updateRequest.Labels = nil
 		}
 		update = true
 	}
 
 	if update {
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			_, err := flinkService.UpdateDeployment(d.Id(), deployment)
+			_, err := flinkService.UpdateDeployment(d.Id(), updateRequest)
 			if err != nil {
 				if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
 					time.Sleep(5 * time.Second)
@@ -978,7 +1026,7 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		}
 
 		// Wait for update to complete using StateRefreshFunc
-		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{}))
+		stateConf := BuildStateConf([]string{"NotFound"}, []string{"CREATED"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"FAILED"}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}

@@ -15,7 +15,6 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudFlinkJobCreate,
 		Read:   resourceAliCloudFlinkJobRead,
-		Update: resourceAliCloudFlinkJobUpdate,
 		Delete: resourceAliCloudFlinkJobDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -42,41 +41,48 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 			"job_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				ForceNew:    true,
 				Computed:    true,
 				Description: "The name of the job. Defaults to the deployment name if not specified.",
 			},
 			"parallelism": {
 				Type:        schema.TypeInt,
 				Optional:    true,
+				ForceNew:    true,
 				Computed:    true,
 				Description: "The parallelism level for the job.",
 			},
 			"max_parallelism": {
 				Type:        schema.TypeInt,
 				Optional:    true,
+				ForceNew:    true,
 				Computed:    true,
 				Description: "The maximum parallelism level for the job.",
 			},
 			"execution_mode": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				ForceNew:    true,
 				Computed:    true,
 				Description: "The execution mode of the job (STREAMING or BATCH).",
 			},
 			"engine_version": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				ForceNew:    true,
 				Computed:    true,
 				Description: "The Flink engine version.",
 			},
 			"session_cluster_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				ForceNew:    true,
 				Description: "The session cluster name for the job.",
 			},
 			"restore_strategy": {
 				Type:        schema.TypeList,
 				Required:    true,
+				ForceNew:    true,
 				MaxItems:    1,
 				Description: "The restore strategy for the job.",
 				Elem: &schema.Resource{
@@ -98,6 +104,7 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 			"local_variables": {
 				Type:        schema.TypeSet,
 				Optional:    true,
+				ForceNew:    true,
 				Description: "Local variables for the job.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -116,14 +123,12 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 			},
 			"flink_conf": {
 				Type:        schema.TypeMap,
-				Optional:    true,
 				Computed:    true,
 				Description: "Flink configuration parameters.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			"user_flink_conf": {
 				Type:        schema.TypeMap,
-				Optional:    true,
 				Computed:    true,
 				Description: "User-defined Flink configuration parameters.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -192,7 +197,6 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 	}
@@ -212,6 +216,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 
 	// Build job start parameters - using JobStartParameters struct
 	params := &aliyunFlinkAPI.JobStartParameters{
+		WorkspaceId:  workspaceId,
 		Namespace:    namespaceName,
 		DeploymentId: deploymentId,
 	}
@@ -242,8 +247,8 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 		params.LocalVariables = localVars
 	}
 
-	// Start job using FlinkService with JobStartParameters and workspaceId
-	job, err := flinkService.StartJob(workspaceId, namespaceName, params)
+	// Start job using FlinkService with JobStartParameters
+	job, err := flinkService.StartJob(params)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -325,7 +330,9 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 				"savepoint_id": job.RestoreStrategy.SavepointId,
 			},
 		}
-		d.Set("restore_strategy", restoreStrategy)
+		if err := d.Set("restore_strategy", restoreStrategy); err != nil {
+			return WrapError(err)
+		}
 	}
 
 	// Handle local variables
@@ -337,7 +344,20 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 				"value": variable.Value,
 			})
 		}
-		d.Set("local_variables", localVars)
+
+		// Convert []map[string]interface{} to []interface{} for schema.NewSet
+		localVarsInterface := make([]interface{}, len(localVars))
+		for i, v := range localVars {
+			localVarsInterface[i] = v
+		}
+
+		if err := d.Set("local_variables", schema.NewSet(schema.HashResource(resourceAliCloudFlinkJob().Schema["local_variables"].Elem.(*schema.Resource)), localVarsInterface)); err != nil {
+			return WrapError(err)
+		}
+	} else {
+		if err := d.Set("local_variables", nil); err != nil {
+			return WrapError(err)
+		}
 	}
 
 	// Handle flink configuration
@@ -346,7 +366,9 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 		for key, value := range job.FlinkConf {
 			flinkConf[key] = fmt.Sprintf("%v", value)
 		}
-		d.Set("flink_conf", flinkConf)
+		if err := d.Set("flink_conf", flinkConf); err != nil {
+			return WrapError(err)
+		}
 	}
 
 	// Handle user flink configuration
@@ -355,16 +377,12 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 		for key, value := range job.UserFlinkConf {
 			userFlinkConf[key] = fmt.Sprintf("%v", value)
 		}
-		d.Set("user_flink_conf", userFlinkConf)
+		if err := d.Set("user_flink_conf", userFlinkConf); err != nil {
+			return WrapError(err)
+		}
 	}
 
 	return nil
-}
-
-func resourceAliCloudFlinkJobUpdate(d *schema.ResourceData, meta interface{}) error {
-	// Jobs typically cannot be updated once started, only stopped and restarted
-	// For now, return an error indicating updates are not supported
-	return WrapError(fmt.Errorf("Flink jobs cannot be updated once started. Please delete and recreate the job."))
 }
 
 func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) error {
@@ -374,19 +392,20 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
-	// Parse composite ID to get workspaceId, namespace and jobId
-	workspaceId, namespace, jobId, err := parseJobId(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-
 	// Stop job with savepoint
-	err = flinkService.StopJob(workspaceId, namespace, jobId, true)
+	err = flinkService.StopJob(d.Id(), true)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidJob.NotFound"}) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
+	}
+
+	// Wait for job to be stopped and deleted using StateRefreshFunc
+	// Job should transition from "RUNNING" to "NotFound" state
+	stateConf := BuildStateConf([]string{"RUNNING", "STOPPING"}, []string{"NotFound"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
 	return nil

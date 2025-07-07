@@ -27,15 +27,21 @@ func (s *FlinkService) DescribeFlinkJob(id string) (*aliyunFlinkAPI.Job, error) 
 	return s.flinkAPI.GetJob(workspaceId, namespaceName, jobId)
 }
 
-func (s *FlinkService) StartJob(workspaceId string, namespaceName string, params *aliyunFlinkAPI.JobStartParameters) (*aliyunFlinkAPI.Job, error) {
-	params.WorkspaceId = workspaceId
-	params.Namespace = namespaceName
+func (s *FlinkService) StartJob(params *aliyunFlinkAPI.JobStartParameters) (*aliyunFlinkAPI.Job, error) {
+	// Validate required parameters
+	if params.WorkspaceId == "" {
+		return nil, fmt.Errorf("WorkspaceId is required in JobStartParameters")
+	}
+	if params.Namespace == "" {
+		return nil, fmt.Errorf("Namespace is required in JobStartParameters")
+	}
+
 	return s.flinkAPI.StartJob(params)
 }
 
-func (s *FlinkService) UpdateJob(workspaceId string, job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.HotUpdateJobResult, error) {
+func (s *FlinkService) UpdateJob(job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.HotUpdateJobResult, error) {
 	// Parse job ID to extract namespace and job ID
-	_, namespaceName, jobId, err := parseJobId(job.JobId)
+	workspaceId, namespaceName, jobId, err := parseJobId(job.JobId)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +54,11 @@ func (s *FlinkService) UpdateJob(workspaceId string, job *aliyunFlinkAPI.Job) (*
 	return s.flinkAPI.UpdateJob(workspaceId, namespaceName, jobId, params)
 }
 
-func (s *FlinkService) StopJob(workspaceId, namespaceName, jobId string, withSavepoint bool) error {
+func (s *FlinkService) StopJob(JobId string, withSavepoint bool) error {
+	workspaceId, namespaceName, jobId, err := parseJobId(JobId)
+	if err != nil {
+		return err
+	}
 	return s.flinkAPI.StopJob(workspaceId, namespaceName, jobId, withSavepoint)
 }
 
