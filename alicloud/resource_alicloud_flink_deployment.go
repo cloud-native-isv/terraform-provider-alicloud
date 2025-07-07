@@ -584,7 +584,10 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	newDeployment, err := flinkService.CreateDeployment(&namespaceName, deployment)
+	// Create temporary ID for service call
+	tempId := fmt.Sprintf("%s:%s:temp", workspaceId, namespaceName)
+
+	newDeployment, err := flinkService.CreateDeployment(tempId, deployment)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment", "CreateDeployment", AlibabaCloudSdkGoERROR)
 	}
@@ -594,7 +597,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	d.Set("deployment_id", newDeployment.DeploymentId)
 
 	// Wait for deployment creation to complete using StateRefreshFunc
-	stateConf := BuildStateConf([]string{"CREATING", "STARTING"}, []string{"CREATED", "RUNNING"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"FAILED"}))
+	stateConf := BuildStateConf([]string{"NotFound"}, []string{"CREATED"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"FAILED"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -959,7 +962,7 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 
 	if update {
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			_, err := flinkService.UpdateDeployment(deployment)
+			_, err := flinkService.UpdateDeployment(d.Id(), deployment)
 			if err != nil {
 				if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
 					time.Sleep(5 * time.Second)
@@ -992,17 +995,9 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	parts, err := ParseResourceId(d.Id(), 3)
-	if err != nil {
-		return WrapError(err)
-	}
-
-	namespace := parts[1]
-	deploymentID := parts[2]
-
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		// Use service method with correct parameters
-		err := flinkService.DeleteDeployment(namespace, deploymentID)
+		err := flinkService.DeleteDeployment(d.Id())
 		if err != nil {
 			if NotFoundError(err) {
 				return nil
@@ -1017,7 +1012,7 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 	}
 
 	// Wait for deployment deletion to complete using StateRefreshFunc
-	stateConf := BuildStateConf([]string{"Deleting"}, []string{"Deleted"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"Failed"}))
+	stateConf := BuildStateConf([]string{"CREATED"}, []string{"NotFound"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"Failed"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

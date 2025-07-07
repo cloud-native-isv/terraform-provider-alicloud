@@ -1,35 +1,75 @@
 package alicloud
 
 import (
+	"strings"
+	"fmt"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
+
+func parseDeploymentId(id string) (string, string, string, error) {
+	parts := strings.Split(id, ":")
+	if len(parts) != 3 {
+		return "", "", "", fmt.Errorf("invalid deployment ID format, expected workspaceId:namespace:deploymentId, got %s", id)
+	}
+	return parts[0], parts[1], parts[2], nil
+}
 
 // Deployment methods
 func (s *FlinkService) GetDeployment(id string) (*aliyunFlinkAPI.Deployment, error) {
 	// Parse deployment ID to extract workspace, namespace and deployment ID
 	// Format: workspaceId:namespace:deploymentId
-	workspaceId, namespaceName, deploymentId, err := parseDeploymentIdWithWorkspace(id)
+	workspaceId, namespaceName, deploymentId, err := parseDeploymentId(id)
 	if err != nil {
 		return nil, err
 	}
 	return s.flinkAPI.GetDeployment(workspaceId, namespaceName, deploymentId)
 }
 
-func (s *FlinkService) CreateDeployment(namespaceName *string, deployment *aliyunFlinkAPI.Deployment) (*aliyunFlinkAPI.Deployment, error) {
-	deployment.Namespace = *namespaceName
+func (s *FlinkService) CreateDeployment(id string, deployment *aliyunFlinkAPI.Deployment) (*aliyunFlinkAPI.Deployment, error) {
+	// Parse deployment ID to extract workspace and namespace
+	// Format: workspaceId:namespace:deploymentId (deploymentId part will be generated)
+	workspaceId, namespaceName, _, err := parseDeploymentId(id)
+	if err != nil {
+		return nil, err
+	}
+
+	deployment.Workspace = workspaceId
+	deployment.Namespace = namespaceName
 	return s.flinkAPI.CreateDeployment(deployment)
 }
 
-func (s *FlinkService) UpdateDeployment(deployment *aliyunFlinkAPI.Deployment) (*aliyunFlinkAPI.Deployment, error) {
+func (s *FlinkService) UpdateDeployment(id string, deployment *aliyunFlinkAPI.Deployment) (*aliyunFlinkAPI.Deployment, error) {
+	// Parse deployment ID to extract workspace, namespace and deployment ID
+	// Format: workspaceId:namespace:deploymentId
+	workspaceId, namespaceName, deploymentId, err := parseDeploymentId(id)
+	if err != nil {
+		return nil, err
+	}
+
+	deployment.Workspace = workspaceId
+	deployment.Namespace = namespaceName
+	deployment.DeploymentId = deploymentId
 	return s.flinkAPI.UpdateDeployment(deployment)
 }
 
-func (s *FlinkService) DeleteDeployment(namespaceName, deploymentId string) error {
-	return s.flinkAPI.DeleteDeployment(namespaceName, deploymentId)
+func (s *FlinkService) DeleteDeployment(id string) error {
+	// Parse deployment ID to extract workspace, namespace and deployment ID
+	// Format: workspaceId:namespace:deploymentId
+	workspaceId, namespaceName, deploymentId, err := parseDeploymentId(id)
+	if err != nil {
+		return err
+	}
+	return s.flinkAPI.DeleteDeployment(workspaceId, namespaceName, deploymentId)
 }
 
-func (s *FlinkService) ListDeployments(namespaceName string) ([]aliyunFlinkAPI.Deployment, error) {
+func (s *FlinkService) ListDeployments(id string) ([]aliyunFlinkAPI.Deployment, error) {
+	// Parse namespace ID to extract namespace name
+	// Format: workspaceId:namespace (for listing deployments in a namespace)
+	_, namespaceName, _, err := parseDeploymentId(id)
+	if err != nil {
+		return nil, err
+	}
 	return s.flinkAPI.ListDeployments(namespaceName)
 }
 
@@ -38,15 +78,14 @@ func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string, failStates []s
 		deployment, err := s.GetDeployment(id)
 		if err != nil {
 			if NotFoundError(err) {
-				// Deployment not found - this is expected during deletion
-				return nil, "Deleted", nil
+				return nil, "NotFound", nil
 			}
-			return nil, "", WrapErrorf(err, DefaultErrorMsg, id, "GetDeployment", AlibabaCloudSdkGoERROR)
+			return nil, "FAILED", WrapErrorf(err, DefaultErrorMsg, id, "GetDeployment", AlibabaCloudSdkGoERROR)
 		}
 
 		// If deployment is nil, it means the resource doesn't exist
 		if deployment == nil {
-			return nil, "Deleted", nil
+			return nil, "NotFound", nil
 		}
 
 		// Check for fail states

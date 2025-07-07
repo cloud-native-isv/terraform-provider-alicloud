@@ -1,29 +1,41 @@
 package alicloud
 
 import (
+	"fmt"
+	"strings"
+
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
+func parseJobId(id string) (string, string, string, error) {
+	parts := strings.Split(id, ":")
+	if len(parts) != 3 {
+		return "", "", "", fmt.Errorf("invalid job ID format, expected workspaceId:namespace:jobId, got %s", id)
+	}
+	return parts[0], parts[1], parts[2], nil
+}
+
 // Job methods
 func (s *FlinkService) DescribeFlinkJob(id string) (*aliyunFlinkAPI.Job, error) {
-	// Parse job ID to extract namespace and job ID
-	// Format: namespace:jobId
-	namespaceName, jobId, err := parseJobId(id)
+	// Parse job ID to extract workspace ID, namespace and job ID
+	// Format: workspaceId:namespace:jobId
+	workspaceId, namespaceName, jobId, err := parseJobId(id)
 	if err != nil {
 		return nil, err
 	}
-	return s.flinkAPI.GetJob(namespaceName, jobId)
+	return s.flinkAPI.GetJob(workspaceId, namespaceName, jobId)
 }
 
-func (s *FlinkService) StartJob(namespaceName string, params *aliyunFlinkAPI.JobStartParameters) (*aliyunFlinkAPI.Job, error) {
+func (s *FlinkService) StartJob(workspaceId string, namespaceName string, params *aliyunFlinkAPI.JobStartParameters) (*aliyunFlinkAPI.Job, error) {
+	params.WorkspaceId = workspaceId
 	params.Namespace = namespaceName
 	return s.flinkAPI.StartJob(params)
 }
 
-func (s *FlinkService) UpdateJob(job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.HotUpdateJobResult, error) {
+func (s *FlinkService) UpdateJob(workspaceId string, job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.HotUpdateJobResult, error) {
 	// Parse job ID to extract namespace and job ID
-	namespaceName, jobId, err := parseJobId(job.JobId)
+	_, namespaceName, jobId, err := parseJobId(job.JobId)
 	if err != nil {
 		return nil, err
 	}
@@ -33,14 +45,11 @@ func (s *FlinkService) UpdateJob(job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.HotUp
 		JobConfig: job.FlinkConf, // Use strong typed FlinkConf field
 	}
 
-	// Get workspace ID from job context or use job's workspace field
-	workspaceId := job.Workspace
-
 	return s.flinkAPI.UpdateJob(workspaceId, namespaceName, jobId, params)
 }
 
-func (s *FlinkService) StopJob(namespaceName, jobId string, withSavepoint bool) error {
-	return s.flinkAPI.StopJob(namespaceName, jobId, withSavepoint)
+func (s *FlinkService) StopJob(workspaceId, namespaceName, jobId string, withSavepoint bool) error {
+	return s.flinkAPI.StopJob(workspaceId, namespaceName, jobId, withSavepoint)
 }
 
 func (s *FlinkService) ListJobs(workspaceId, namespaceName, deploymentId string) ([]aliyunFlinkAPI.Job, error) {

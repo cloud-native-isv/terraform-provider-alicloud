@@ -2,7 +2,6 @@ package alicloud
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunCommonAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
@@ -44,29 +43,4 @@ func (s *FlinkService) DescribeSupportedZones() ([]*aliyunFlinkAPI.ZoneInfo, err
 // Engine methods
 func (s *FlinkService) ListEngines(workspaceId string) ([]*aliyunFlinkAPI.FlinkEngine, error) {
 	return s.flinkAPI.ListEngines(workspaceId)
-}
-
-// Helper functions for parsing IDs
-func parseDeploymentId(id string) (string, string, error) {
-	parts := strings.Split(id, ":")
-	if len(parts) != 2 {
-		return "", "", fmt.Errorf("invalid deployment ID format, expected namespace:deploymentId, got %s", id)
-	}
-	return parts[0], parts[1], nil
-}
-
-func parseDeploymentIdWithWorkspace(id string) (string, string, string, error) {
-	parts := strings.Split(id, ":")
-	if len(parts) != 3 {
-		return "", "", "", fmt.Errorf("invalid deployment ID format, expected workspaceId:namespace:deploymentId, got %s", id)
-	}
-	return parts[0], parts[1], parts[2], nil
-}
-
-func parseJobId(id string) (string, string, error) {
-	parts := strings.Split(id, ":")
-	if len(parts) != 2 {
-		return "", "", fmt.Errorf("invalid job ID format, expected namespace:jobId, got %s", id)
-	}
-	return parts[0], parts[1], nil
 }

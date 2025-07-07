@@ -204,6 +204,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	// Get parameters from schema
+	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	deploymentId := d.Get("deployment_id").(string)
 
@@ -241,14 +242,14 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 		params.LocalVariables = localVars
 	}
 
-	// Start job using FlinkService with JobStartParameters
-	job, err := flinkService.StartJob(namespaceName, params)
+	// Start job using FlinkService with JobStartParameters and workspaceId
+	job, err := flinkService.StartJob(workspaceId, namespaceName, params)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	// Set composite ID: namespace:jobId
-	d.SetId(fmt.Sprintf("%s:%s", namespaceName, job.JobId))
+	// Set composite ID: workspaceId:namespace:jobId
+	d.SetId(fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, job.JobId))
 
 	// Wait for job to start using StateRefreshFunc
 	stateConf := BuildStateConf([]string{"STARTING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}))
@@ -373,14 +374,14 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
-	// Parse composite ID to get namespace and jobId
-	namespace, jobId, err := parseJobId(d.Id())
+	// Parse composite ID to get workspaceId, namespace and jobId
+	workspaceId, namespace, jobId, err := parseJobId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
 	// Stop job with savepoint
-	err = flinkService.StopJob(namespace, jobId, true)
+	err = flinkService.StopJob(workspaceId, namespace, jobId, true)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"InvalidJob.NotFound"}) {
 			return nil
