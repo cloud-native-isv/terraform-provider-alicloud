@@ -2,7 +2,6 @@ package alicloud
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -15,188 +14,164 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudFlinkJobCreate,
 		Read:   resourceAliCloudFlinkJobRead,
+		Update: resourceAliCloudFlinkJobUpdate,
 		Delete: resourceAliCloudFlinkJobDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "The ID of the Flink workspace.",
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"namespace_name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "The name of the namespace.",
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"deployment_id": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "The ID of the associated deployment.",
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"job_name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Computed:    true,
-				Description: "The name of the job. Defaults to the deployment name if not specified.",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
 			},
 			"parallelism": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				ForceNew:    true,
-				Computed:    true,
-				Description: "The parallelism level for the job.",
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
 			},
 			"max_parallelism": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				ForceNew:    true,
-				Computed:    true,
-				Description: "The maximum parallelism level for the job.",
+				Type:     schema.TypeInt,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
 			},
 			"execution_mode": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Computed:    true,
-				Description: "The execution mode of the job (STREAMING or BATCH).",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
 			},
 			"engine_version": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Computed:    true,
-				Description: "The Flink engine version.",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
 			},
 			"session_cluster_name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "The session cluster name for the job.",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			"with_savepoint": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 			"restore_strategy": {
-				Type:        schema.TypeList,
-				Required:    true,
-				ForceNew:    true,
-				MaxItems:    1,
-				Description: "The restore strategy for the job.",
+				Type:     schema.TypeList,
+				Required: true,
+				ForceNew: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"kind": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice([]string{"NONE", "LATEST_SAVEPOINT", "FROM_SAVEPOINT", "LATEST_STATE"}, false),
-							Description:  "The restore strategy kind (NONE, LATEST_SAVEPOINT, FROM_SAVEPOINT, LATEST_STATE).",
 						},
 						"savepoint_id": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The savepoint ID for restore.",
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
 			},
 			"local_variables": {
-				Type:        schema.TypeSet,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "Local variables for the job.",
+				Type:     schema.TypeSet,
+				Optional: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "Variable name.",
+							Type:     schema.TypeString,
+							Required: true,
 						},
 						"value": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "Variable value.",
+							Type:     schema.TypeString,
+							Required: true,
 						},
 					},
 				},
 			},
 			"flink_conf": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Description: "Flink configuration parameters.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"user_flink_conf": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Description: "User-defined Flink configuration parameters.",
-				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			// Computed fields
 			"job_id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The Flink job ID.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"status": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The status of the job (e.g., RUNNING, STOPPED, FAILED).",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"deployment_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The deployment name associated with the job.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"start_time": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The start time of the job (Unix timestamp).",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"end_time": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The end time of the job (Unix timestamp).",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"duration": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The duration of the job in milliseconds.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"creator": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The creator of the job.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"creator_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The creator name of the job.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"modifier": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The modifier of the job.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"modifier_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The modifier name of the job.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"created_at": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The creation time of the job.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"modified_at": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The modification time of the job.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 	}
@@ -209,19 +184,16 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
-	// Get parameters from schema
 	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	deploymentId := d.Get("deployment_id").(string)
 
-	// Build job start parameters - using JobStartParameters struct
 	params := &aliyunFlinkAPI.JobStartParameters{
 		WorkspaceId:  workspaceId,
 		Namespace:    namespaceName,
 		DeploymentId: deploymentId,
 	}
 
-	// Handle restore strategy - now required
 	restoreList := d.Get("restore_strategy").([]interface{})
 	if len(restoreList) > 0 {
 		restoreMap := restoreList[0].(map[string]interface{})
@@ -233,7 +205,6 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	// Handle local variables
 	if v, ok := d.GetOk("local_variables"); ok {
 		variableSet := v.(*schema.Set)
 		localVars := make([]*aliyunFlinkAPI.LocalVariable, 0, variableSet.Len())
@@ -247,22 +218,18 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 		params.LocalVariables = localVars
 	}
 
-	// Start job using FlinkService with JobStartParameters
 	job, err := flinkService.StartJob(params)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	// Set composite ID: workspaceId:namespace:jobId
 	d.SetId(fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, job.JobId))
 
-	// Wait for job to start using StateRefreshFunc
 	stateConf := BuildStateConf([]string{"STARTING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	// Call Read to sync final state
 	return resourceAliCloudFlinkJobRead(d, meta)
 }
 
@@ -276,14 +243,12 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 	job, err := flinkService.DescribeFlinkJob(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_flink_job DescribeFlinkJob Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
 
-	// Set basic attributes using correct field names from cws-lib-go Job type
 	d.Set("workspace_id", job.Workspace)
 	d.Set("namespace_name", job.Namespace)
 	d.Set("deployment_id", job.DeploymentId)
@@ -291,16 +256,13 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("job_id", job.JobId)
 	d.Set("deployment_name", job.DeploymentName)
 
-	// Handle job status from job status field
 	if job.Status != nil {
 		d.Set("status", job.Status.CurrentJobStatus)
 	}
 
-	// Set numeric fields
 	d.Set("parallelism", int(job.Parallelism))
 	d.Set("max_parallelism", int(job.MaxParallelism))
 
-	// Set time fields - convert Unix timestamps to strings
 	if job.StartTime > 0 {
 		d.Set("start_time", fmt.Sprintf("%d", job.StartTime))
 	}
@@ -311,7 +273,6 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("duration", fmt.Sprintf("%d", job.Duration))
 	}
 
-	// Set string fields
 	d.Set("execution_mode", job.ExecutionMode)
 	d.Set("engine_version", job.EngineVersion)
 	d.Set("session_cluster_name", job.SessionClusterName)
@@ -322,7 +283,10 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("created_at", job.CreatedAt)
 	d.Set("modified_at", job.ModifiedAt)
 
-	// Handle restore strategy
+	if _, ok := d.GetOk("with_savepoint"); !ok {
+		d.Set("with_savepoint", true)
+	}
+
 	if job.RestoreStrategy != nil {
 		restoreStrategy := []map[string]interface{}{
 			{
@@ -335,7 +299,6 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	// Handle local variables
 	if len(job.LocalVariables) > 0 {
 		localVars := make([]map[string]interface{}, 0, len(job.LocalVariables))
 		for _, variable := range job.LocalVariables {
@@ -345,7 +308,6 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 			})
 		}
 
-		// Convert []map[string]interface{} to []interface{} for schema.NewSet
 		localVarsInterface := make([]interface{}, len(localVars))
 		for i, v := range localVars {
 			localVarsInterface[i] = v
@@ -360,29 +322,62 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	// Handle flink configuration
-	if len(job.FlinkConf) > 0 {
-		flinkConf := make(map[string]interface{})
-		for key, value := range job.FlinkConf {
-			flinkConf[key] = fmt.Sprintf("%v", value)
-		}
-		if err := d.Set("flink_conf", flinkConf); err != nil {
-			return WrapError(err)
-		}
-	}
-
-	// Handle user flink configuration
-	if len(job.UserFlinkConf) > 0 {
-		userFlinkConf := make(map[string]interface{})
-		for key, value := range job.UserFlinkConf {
-			userFlinkConf[key] = fmt.Sprintf("%v", value)
-		}
-		if err := d.Set("user_flink_conf", userFlinkConf); err != nil {
-			return WrapError(err)
-		}
-	}
-
 	return nil
+}
+
+func resourceAliCloudFlinkJobUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	flinkService, err := NewFlinkService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	hasUpdatableChange := d.HasChange("parallelism") || d.HasChange("with_savepoint")
+
+	if d.HasChange("workspace_id") || d.HasChange("namespace_name") || d.HasChange("deployment_id") ||
+		d.HasChange("job_name") || d.HasChange("max_parallelism") || d.HasChange("execution_mode") ||
+		d.HasChange("engine_version") || d.HasChange("session_cluster_name") || d.HasChange("restore_strategy") ||
+		d.HasChange("local_variables") {
+		return fmt.Errorf("the following fields cannot be updated for existing Flink jobs: workspace_id, namespace_name, deployment_id, job_name, max_parallelism, execution_mode, engine_version, session_cluster_name, restore_strategy, local_variables. These changes require recreating the resource")
+	}
+
+	if d.HasChange("with_savepoint") && !d.HasChange("parallelism") {
+		return resourceAliCloudFlinkJobRead(d, meta)
+	}
+
+	if !hasUpdatableChange {
+		return resourceAliCloudFlinkJobRead(d, meta)
+	}
+
+	updateParams := &aliyunFlinkAPI.HotUpdateJobParams{}
+	needsUpdate := false
+
+	if d.HasChange("parallelism") {
+		newParallelism := d.Get("parallelism").(int)
+
+		updateParams.RescaleJobParam = &aliyunFlinkAPI.RescaleJobParam{}
+
+		updateParams.UpdateJobConfigParam = &aliyunFlinkAPI.UpdateJobConfigParam{
+			FlinkConf: map[string]string{
+				"parallelism.default": fmt.Sprintf("%d", newParallelism),
+			},
+		}
+
+		needsUpdate = true
+	}
+
+	if needsUpdate {
+		result, err := flinkService.UpdateJob(d.Id(), updateParams)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "HotUpdateJob", AlibabaCloudSdkGoERROR)
+		}
+
+		if result != nil && result.JobHotUpdateId != "" {
+			time.Sleep(10 * time.Second)
+		}
+	}
+
+	return resourceAliCloudFlinkJobRead(d, meta)
 }
 
 func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) error {
@@ -392,8 +387,9 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
-	// Stop job with savepoint
-	err = flinkService.StopJob(d.Id(), true)
+	withSavepoint := d.Get("with_savepoint").(bool)
+
+	err = flinkService.StopJob(d.Id(), withSavepoint)
 	if err != nil {
 		if NotFoundError(err) {
 			return nil
@@ -401,10 +397,21 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
-	// Wait for job to be stopped and deleted using StateRefreshFunc
-	// Job should transition from "RUNNING" to "NotFound" state
-	stateConf := BuildStateConf([]string{"RUNNING", "STOPPING"}, []string{"NotFound"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}))
+	stateConf := BuildStateConf([]string{"RUNNING", "STOPPING", "CANCELLING"}, []string{"FAILED", "CANCELLED", "STOPPED"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}))
 	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	err = flinkService.DeleteJob(d.Id())
+	if err != nil {
+		if NotFoundError(err) {
+			return nil
+		}
+		return WrapError(err)
+	}
+
+	deleteStateConf := BuildStateConf([]string{"FAILED", "CANCELLED", "STOPPED"}, []string{"NotFound"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}))
+	if _, err := deleteStateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 

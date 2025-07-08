@@ -24,6 +24,7 @@ func (s *FlinkService) DescribeFlinkJob(id string) (*aliyunFlinkAPI.Job, error) 
 	if err != nil {
 		return nil, err
 	}
+
 	return s.flinkAPI.GetJob(workspaceId, namespaceName, jobId)
 }
 
@@ -39,27 +40,30 @@ func (s *FlinkService) StartJob(params *aliyunFlinkAPI.JobStartParameters) (*ali
 	return s.flinkAPI.StartJob(params)
 }
 
-func (s *FlinkService) UpdateJob(job *aliyunFlinkAPI.Job) (*aliyunFlinkAPI.HotUpdateJobResult, error) {
-	// Parse job ID to extract namespace and job ID
-	workspaceId, namespaceName, jobId, err := parseJobId(job.JobId)
+func (s *FlinkService) UpdateJob(stateId string, updateParams *aliyunFlinkAPI.HotUpdateJobParams) (*aliyunFlinkAPI.HotUpdateJobResult, error) {
+	// Parse job ID to extract workspace ID, namespace and job ID
+	workspaceId, namespaceName, jobId, err := parseJobId(stateId)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create HotUpdateJobParams from job with proper strong typing
-	params := &aliyunFlinkAPI.HotUpdateJobParams{
-		JobConfig: job.FlinkConf, // Use strong typed FlinkConf field
-	}
-
-	return s.flinkAPI.UpdateJob(workspaceId, namespaceName, jobId, params)
+	return s.flinkAPI.UpdateJob(workspaceId, namespaceName, jobId, updateParams)
 }
 
-func (s *FlinkService) StopJob(JobId string, withSavepoint bool) error {
-	workspaceId, namespaceName, jobId, err := parseJobId(JobId)
+func (s *FlinkService) StopJob(stateId string, withSavepoint bool) error {
+	workspaceId, namespaceName, jobId, err := parseJobId(stateId)
 	if err != nil {
 		return err
 	}
 	return s.flinkAPI.StopJob(workspaceId, namespaceName, jobId, withSavepoint)
+}
+
+func (s *FlinkService) DeleteJob(stateId string) error {
+	workspaceId, namespaceName, jobId, err := parseJobId(stateId)
+	if err != nil {
+		return err
+	}
+	return s.flinkAPI.DeleteJob(workspaceId, namespaceName, jobId)
 }
 
 func (s *FlinkService) ListJobs(workspaceId, namespaceName, deploymentId string) ([]aliyunFlinkAPI.Job, error) {
@@ -78,6 +82,16 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(id string, failStates []string) 
 
 		// If job is nil, it means the resource doesn't exist
 		if job == nil {
+			return nil, "NotFound", nil
+		}
+
+		// Check job status and generate error if job has failed
+		if job.Status != nil && job.Status.CurrentJobStatus != nil {
+			status := job.GetStatus()
+			if status == "FINISHED" || status == "RUNNING" {
+				return job, "RUNNING", nil
+			}
+		} else {
 			return nil, "NotFound", nil
 		}
 

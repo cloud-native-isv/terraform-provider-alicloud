@@ -594,14 +594,6 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		}
 	}
 
-	// Handle Flink configuration
-	if flinkConf, ok := d.GetOk("flink_conf"); ok {
-		draft.FlinkConf = make(map[string]string)
-		for k, v := range flinkConf.(map[string]interface{}) {
-			draft.FlinkConf[k] = v.(string)
-		}
-	}
-
 	// Handle environment variables (stored as LocalVariables)
 	if envVars, ok := d.GetOk("environment_variables"); ok {
 		envVarMap := envVars.(map[string]interface{})
@@ -792,15 +784,6 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 		d.Set("artifact", artifactConfig)
 	}
 
-	// Set Flink configuration - always set as map, never null
-	flinkConf := make(map[string]interface{})
-	if deploymentDraft.FlinkConf != nil && len(deploymentDraft.FlinkConf) > 0 {
-		for k, v := range deploymentDraft.FlinkConf {
-			flinkConf[k] = v
-		}
-	}
-	d.Set("flink_conf", flinkConf)
-
 	// Set environment variables (from LocalVariables) - always set as map, never null
 	envVars := make(map[string]interface{})
 	if deploymentDraft.LocalVariables != nil && len(deploymentDraft.LocalVariables) > 0 {
@@ -855,7 +838,6 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 		ExecutionMode:          existingDraft.ExecutionMode,
 		ReferencedDeploymentId: existingDraft.ReferencedDeploymentId,
 		Artifact:               existingDraft.Artifact,
-		FlinkConf:              existingDraft.FlinkConf,
 		LocalVariables:         existingDraft.LocalVariables,
 		Labels:                 existingDraft.Labels,
 	}
@@ -1017,19 +999,6 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 		} else {
 			// If neither artifact_uri nor artifact is specified, set to nil
 			updateRequest.Artifact = nil
-		}
-		update = true
-	}
-
-	// Update Flink configuration
-	if d.HasChange("flink_conf") {
-		if flinkConf, ok := d.GetOk("flink_conf"); ok {
-			updateRequest.FlinkConf = make(map[string]string)
-			for k, v := range flinkConf.(map[string]interface{}) {
-				updateRequest.FlinkConf[k] = v.(string)
-			}
-		} else {
-			updateRequest.FlinkConf = nil
 		}
 		update = true
 	}
