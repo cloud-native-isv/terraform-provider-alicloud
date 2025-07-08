@@ -23,167 +23,158 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"workspace_id": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "The workspace ID of the Flink workspace.",
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"namespace_name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "The name of the namespace within the workspace.",
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The name of the Flink deployment.",
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"description": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The description of the Flink deployment.",
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"engine_version": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "vvr-11.1-jdk11-flink-1.20",
-				Description: "The version of Flink engine to use for the deployment.",
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "vvr-11.1-jdk11-flink-1.20",
 			},
 			"execution_mode": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "STREAMING",
 				ValidateFunc: validation.StringInSlice([]string{"STREAMING", "BATCH"}, false),
-				Description:  "The execution mode for the Flink job.",
 			},
 			"deployment_target": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				Description: "Deployment target configuration.",
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Default:     "session-cluster",
-							Description: "The name of the deployment target.",
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "session-cluster",
 						},
 						"mode": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "PER_JOB",
 							ValidateFunc: validation.StringInSlice([]string{"PER_JOB", "SESSION"}, false),
-							Description:  "The mode of the deployment target.",
 						},
 					},
 				},
 			},
 			"artifact": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				Description: "Extended artifact configuration. If specified, takes precedence over artifact_uri.",
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"kind": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice([]string{"JAR", "PYTHON", "SQLSCRIPT"}, false),
-							Description:  "The type of artifact.",
 						},
 						"jar_artifact": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: "JAR artifact configuration.",
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"jar_uri": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The URI of the JAR file.",
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
 									},
 									"entry_class": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The main class of the JAR.",
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
 									},
 									"main_args": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Main method arguments.",
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
 									},
 									"additional_dependencies": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Elem:        &schema.Schema{Type: schema.TypeString},
-										Description: "Additional dependencies.",
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 								},
 							},
 						},
 						"python_artifact": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: "Python artifact configuration.",
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"python_artifact_uri": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The URI of the Python artifact.",
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
 									},
 									"entry_module": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The entry module.",
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
 									},
 									"main_args": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Main method arguments.",
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
 									},
 									"additional_dependencies": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Elem:        &schema.Schema{Type: schema.TypeString},
-										Description: "Additional dependencies.",
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"additional_python_libraries": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Elem:        &schema.Schema{Type: schema.TypeString},
-										Description: "Additional Python libraries.",
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"additional_python_archives": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Elem:        &schema.Schema{Type: schema.TypeString},
-										Description: "Additional Python archives.",
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 								},
 							},
 						},
 						"sql_artifact": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: "SQL artifact configuration.",
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"sql_script": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The SQL script content.",
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
 									},
 									"additional_dependencies": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Elem:        &schema.Schema{Type: schema.TypeString},
-										Description: "Additional dependencies.",
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 								},
 							},
@@ -192,10 +183,9 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 				},
 			},
 			"streaming_resource_setting": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				Description: "Resource configuration for streaming jobs.",
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"resource_setting_mode": {
@@ -203,56 +193,47 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 							Optional:     true,
 							Default:      "BASIC",
 							ValidateFunc: validation.StringInSlice([]string{"BASIC", "EXPERT"}, false),
-							Description:  "The resource setting mode.",
 						},
 						"basic_resource_setting": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: "Basic resource setting configuration.",
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"parallelism": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "The parallelism for basic resource setting.",
+										Type:     schema.TypeInt,
+										Optional: true,
 									},
 									"jobmanager_resource_setting_spec": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										MaxItems:    1,
-										Description: "JobManager resource specification.",
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"cpu": {
-													Type:        schema.TypeFloat,
-													Optional:    true,
-													Description: "CPU cores for JobManager.",
+													Type:     schema.TypeFloat,
+													Optional: true,
 												},
 												"memory": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Memory allocation for JobManager.",
+													Type:     schema.TypeString,
+													Optional: true,
 												},
 											},
 										},
 									},
 									"taskmanager_resource_setting_spec": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										MaxItems:    1,
-										Description: "TaskManager resource specification.",
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"cpu": {
-													Type:        schema.TypeFloat,
-													Optional:    true,
-													Description: "CPU cores for TaskManager.",
+													Type:     schema.TypeFloat,
+													Optional: true,
 												},
 												"memory": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Memory allocation for TaskManager.",
+													Type:     schema.TypeString,
+													Optional: true,
 												},
 											},
 										},
@@ -261,33 +242,28 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 							},
 						},
 						"expert_resource_setting": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: "Expert resource setting configuration.",
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"resource_plan": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "The resource plan for expert mode.",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"jobmanager_resource_setting_spec": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										MaxItems:    1,
-										Description: "JobManager resource specification for expert mode.",
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"cpu": {
-													Type:        schema.TypeFloat,
-													Optional:    true,
-													Description: "CPU cores for JobManager.",
+													Type:     schema.TypeFloat,
+													Optional: true,
 												},
 												"memory": {
-													Type:        schema.TypeString,
-													Optional:    true,
-													Description: "Memory allocation for JobManager.",
+													Type:     schema.TypeString,
+													Optional: true,
 												},
 											},
 										},
@@ -299,65 +275,53 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 				},
 			},
 			"flink_conf": {
-				Type:        schema.TypeMap,
-				Optional:    true,
-				Description: "Flink configuration key-value pairs.",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"logging": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				Description: "Logging configuration for the deployment.",
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"logging_profile": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The logging profile to use.",
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"log4j2_configuration_template": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The Log4j2 configuration template.",
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"log4j_loggers": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "List of Log4j loggers configuration.",
+							Type:     schema.TypeList,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"logger_name": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The name of the logger.",
+										Type:     schema.TypeString,
+										Required: true,
 									},
 									"logger_level": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The log level for the logger.",
+										Type:     schema.TypeString,
+										Required: true,
 									},
 								},
 							},
 						},
 						"log_reserve_policy": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: "Log retention policy configuration.",
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"expiration_days": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "Number of days to retain logs.",
+										Type:     schema.TypeInt,
+										Optional: true,
 									},
 									"open_history": {
-										Type:        schema.TypeBool,
-										Optional:    true,
-										Description: "Whether to enable history logs.",
+										Type:     schema.TypeBool,
+										Optional: true,
 									},
 								},
 							},
@@ -366,57 +330,45 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 				},
 			},
 			"tags": {
-				Type:        schema.TypeMap,
-				Optional:    true,
-				Description: "Tags to assign to the deployment.",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"create_time": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The creation time of the deployment.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"update_time": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The last update time of the deployment.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"status": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The current status of the deployment.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"deployment_id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The unique ID of the deployment.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"creator": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The creator of the deployment.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"creator_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The name of the deployment creator.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"modifier": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The last modifier of the deployment.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"modifier_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The name of the last modifier.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"referenced_deployment_draft_id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The ID of the referenced deployment draft.",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
@@ -447,16 +399,13 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	if description, ok := d.GetOk("description"); ok {
 		deployment.Description = description.(string)
 	}
-
 	if engineVersion, ok := d.GetOk("engine_version"); ok {
 		deployment.EngineVersion = engineVersion.(string)
 	}
-
 	if executionMode, ok := d.GetOk("execution_mode"); ok {
 		deployment.ExecutionMode = executionMode.(string)
 	}
 
-	// Handle deployment target
 	if deploymentTargetList, ok := d.GetOk("deployment_target"); ok {
 		targets := deploymentTargetList.([]interface{})
 		if len(targets) > 0 {
@@ -470,7 +419,6 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	// Handle artifact configuration
 	if artifactConfig, ok := d.GetOk("artifact"); ok {
 		artifactList := artifactConfig.([]interface{})
 		if len(artifactList) > 0 {
@@ -556,13 +504,11 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	// Handle streaming resource setting
 	streamingResourceSetting := resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting(d)
 	if streamingResourceSetting != nil {
 		deployment.StreamingResourceSetting = streamingResourceSetting
 	}
 
-	// Handle Flink configuration
 	if flinkConf, ok := d.GetOk("flink_conf"); ok {
 		deployment.FlinkConf = make(map[string]string)
 		for k, v := range flinkConf.(map[string]interface{}) {
@@ -570,13 +516,11 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	// Handle logging configuration
 	logging := resourceAliCloudFlinkDeploymentExpandLogging(d)
 	if logging != nil {
 		deployment.Logging = logging
 	}
 
-	// Handle labels/tags
 	if tags, ok := d.GetOk("tags"); ok {
 		deployment.Labels = make(map[string]string)
 		for k, v := range tags.(map[string]interface{}) {
@@ -584,9 +528,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	// Create temporary ID for service call
 	tempId := fmt.Sprintf("%s:%s:temp", workspaceId, namespaceName)
-
 	newDeployment, err := flinkService.CreateDeployment(tempId, deployment)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment", "CreateDeployment", AlibabaCloudSdkGoERROR)
@@ -596,13 +538,11 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	d.SetId(fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, newDeployment.DeploymentId))
 	d.Set("deployment_id", newDeployment.DeploymentId)
 
-	// Wait for deployment creation to complete using StateRefreshFunc
 	stateConf := BuildStateConf([]string{"NotFound"}, []string{"CREATED"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"FAILED"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	// 最后调用Read同步状态
 	return resourceAliCloudFlinkDeploymentRead(d, meta)
 }
 
@@ -615,7 +555,7 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 
 	deployment, err := flinkService.GetDeployment(d.Id())
 	if err != nil {
-		if IsExpectedErrors(err, []string{"DeploymentNotFound"}) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -627,7 +567,6 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 		return nil
 	}
 
-	// Set basic fields
 	d.Set("namespace_name", deployment.Namespace)
 	d.Set("workspace_id", deployment.Workspace)
 	d.Set("name", deployment.Name)
@@ -636,27 +575,21 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 	d.Set("engine_version", deployment.EngineVersion)
 	d.Set("execution_mode", deployment.ExecutionMode)
 	d.Set("status", deployment.Status)
-
-	// Set creator information
 	d.Set("creator", deployment.Creator)
 	d.Set("creator_name", deployment.CreatorName)
 	d.Set("modifier", deployment.Modifier)
 	d.Set("modifier_name", deployment.ModifierName)
 
-	// Set timestamps
 	if deployment.CreatedAt > 0 {
 		d.Set("create_time", fmt.Sprintf("%d", deployment.CreatedAt))
 	}
 	if deployment.ModifiedAt > 0 {
 		d.Set("update_time", fmt.Sprintf("%d", deployment.ModifiedAt))
 	}
-
-	// Set referenced deployment draft ID if present
 	if deployment.ReferencedDeploymentDraftId != "" {
 		d.Set("referenced_deployment_draft_id", deployment.ReferencedDeploymentDraftId)
 	}
 
-	// Set deployment target
 	if deployment.DeploymentTarget != nil {
 		deploymentTargetMap := map[string]interface{}{
 			"name": deployment.DeploymentTarget.Name,
@@ -667,9 +600,7 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 		d.Set("deployment_target", []interface{}{deploymentTargetMap})
 	}
 
-	// Set artifact configuration
 	if deployment.Artifact != nil {
-		// Handle complex artifact configuration
 		artifactConfig := make([]map[string]interface{}, 0, 1)
 		artifactMap := map[string]interface{}{
 			"kind": deployment.Artifact.Kind,
@@ -736,13 +667,10 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 		d.Set("artifact", artifactConfig)
 	}
 
-	// Set streaming resource setting using both new and legacy fields
 	if deployment.StreamingResourceSetting != nil {
-		// Set new streaming resource setting structure
 		d.Set("streaming_resource_setting", resourceAliCloudFlinkDeploymentFlattenStreamingResourceSetting(deployment.StreamingResourceSetting))
 	}
 
-	// Set Flink configuration
 	if deployment.FlinkConf != nil && len(deployment.FlinkConf) > 0 {
 		flinkConf := make(map[string]interface{})
 		for k, v := range deployment.FlinkConf {
@@ -751,12 +679,10 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 		d.Set("flink_conf", flinkConf)
 	}
 
-	// Set logging configuration
 	if deployment.Logging != nil {
 		d.Set("logging", resourceAliCloudFlinkDeploymentflattenLogging(deployment.Logging))
 	}
 
-	// Set labels/tags
 	if deployment.Labels != nil && len(deployment.Labels) > 0 {
 		tags := make(map[string]interface{})
 		for k, v := range deployment.Labels {
@@ -775,13 +701,11 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	// First, retrieve the current complete deployment to ensure we don't lose existing settings
 	existingDeployment, err := flinkService.GetDeployment(d.Id())
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetDeployment", AlibabaCloudSdkGoERROR)
 	}
 
-	// Initialize updateRequest with the existing complete configuration
 	updateRequest := &aliyunFlinkAPI.Deployment{
 		DeploymentId:             existingDeployment.DeploymentId,
 		Workspace:                existingDeployment.Workspace,
@@ -800,7 +724,6 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 
 	update := false
 
-	// Update basic fields
 	if d.HasChange("name") {
 		updateRequest.Name = d.Get("name").(string)
 		update = true
@@ -825,7 +748,6 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		update = true
 	}
 
-	// Update deployment target
 	if d.HasChange("deployment_target") {
 		if deploymentTargetList, ok := d.GetOk("deployment_target"); ok {
 			targets := deploymentTargetList.([]interface{})
@@ -846,28 +768,8 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		update = true
 	}
 
-	// Enhanced artifact change detection - check for any changes in the artifact structure
-	// Including specific detection for all artifact types and their nested fields
-	if d.HasChange("artifact") ||
-		d.HasChange("artifact.0.kind") ||
-		d.HasChange("artifact.0.jar_artifact") ||
-		d.HasChange("artifact.0.python_artifact") ||
-		d.HasChange("artifact.0.sql_artifact") ||
-		d.HasChange("artifact.0.jar_artifact.0.jar_uri") ||
-		d.HasChange("artifact.0.jar_artifact.0.entry_class") ||
-		d.HasChange("artifact.0.jar_artifact.0.main_args") ||
-		d.HasChange("artifact.0.jar_artifact.0.additional_dependencies") ||
-		d.HasChange("artifact.0.python_artifact.0.python_artifact_uri") ||
-		d.HasChange("artifact.0.python_artifact.0.entry_module") ||
-		d.HasChange("artifact.0.python_artifact.0.main_args") ||
-		d.HasChange("artifact.0.python_artifact.0.additional_dependencies") ||
-		d.HasChange("artifact.0.python_artifact.0.additional_python_libraries") ||
-		d.HasChange("artifact.0.python_artifact.0.additional_python_archives") ||
-		d.HasChange("artifact.0.sql_artifact.0.sql_script") ||
-		d.HasChange("artifact.0.sql_artifact.0.additional_dependencies") {
-
+	if d.HasChange("artifact") || d.HasChange("artifact.0.kind") || d.HasChange("artifact.0.jar_artifact") || d.HasChange("artifact.0.python_artifact") || d.HasChange("artifact.0.sql_artifact") || d.HasChange("artifact.0.jar_artifact.0.jar_uri") || d.HasChange("artifact.0.jar_artifact.0.entry_class") || d.HasChange("artifact.0.jar_artifact.0.main_args") || d.HasChange("artifact.0.jar_artifact.0.additional_dependencies") || d.HasChange("artifact.0.python_artifact.0.python_artifact_uri") || d.HasChange("artifact.0.python_artifact.0.entry_module") || d.HasChange("artifact.0.python_artifact.0.main_args") || d.HasChange("artifact.0.python_artifact.0.additional_dependencies") || d.HasChange("artifact.0.python_artifact.0.additional_python_libraries") || d.HasChange("artifact.0.python_artifact.0.additional_python_archives") || d.HasChange("artifact.0.sql_artifact.0.sql_script") || d.HasChange("artifact.0.sql_artifact.0.additional_dependencies") {
 		if artifactConfig, ok := d.GetOk("artifact"); ok {
-			// Complex artifact configuration - completely rebuild the artifact
 			artifactList := artifactConfig.([]interface{})
 			if len(artifactList) > 0 {
 				artifactMap := artifactList[0].(map[string]interface{})
@@ -950,17 +852,14 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 				}
 				updateRequest.Artifact = artifact
 			} else {
-				// If the artifact list is empty, set to nil
 				updateRequest.Artifact = nil
 			}
 		} else {
-			// If artifact is not specified, set to nil
 			updateRequest.Artifact = nil
 		}
 		update = true
 	}
 
-	// Update streaming resource setting
 	if d.HasChange("streaming_resource_setting") {
 		streamingResourceSetting := resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting(d)
 		if streamingResourceSetting != nil {
@@ -971,7 +870,6 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		update = true
 	}
 
-	// Update Flink configuration
 	if d.HasChange("flink_conf") {
 		if flinkConf, ok := d.GetOk("flink_conf"); ok {
 			updateRequest.FlinkConf = make(map[string]string)
@@ -984,7 +882,6 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		update = true
 	}
 
-	// Update logging configuration
 	if d.HasChange("logging") {
 		logging := resourceAliCloudFlinkDeploymentExpandLogging(d)
 		if logging != nil {
@@ -995,7 +892,6 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		update = true
 	}
 
-	// Update labels/tags
 	if d.HasChange("tags") {
 		if tags, ok := d.GetOk("tags"); ok {
 			updateRequest.Labels = make(map[string]string)
@@ -1024,15 +920,8 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateDeployment", AlibabaCloudSdkGoERROR)
 		}
-
-		// Wait for update to complete using StateRefreshFunc
-		stateConf := BuildStateConf([]string{"NotFound"}, []string{"CREATED"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"FAILED"}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
 	}
 
-	// 最后调用Read同步状态
 	return resourceAliCloudFlinkDeploymentRead(d, meta)
 }
 
@@ -1044,7 +933,6 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 	}
 
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		// Use service method with correct parameters
 		err := flinkService.DeleteDeployment(d.Id())
 		if err != nil {
 			if NotFoundError(err) {
@@ -1059,7 +947,6 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDeployment", AlibabaCloudSdkGoERROR)
 	}
 
-	// Wait for deployment deletion to complete using StateRefreshFunc
 	stateConf := BuildStateConf([]string{"CREATED"}, []string{"NotFound"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkDeploymentStateRefreshFunc(d.Id(), []string{"Failed"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -1068,11 +955,7 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-// Helper functions for schema conversion
-
-// resourceAliCloudFlinkDeploymentExpandArtifact converts schema artifact to API artifact
 func resourceAliCloudFlinkDeploymentExpandArtifact(d *schema.ResourceData) (*aliyunFlinkAPI.Artifact, error) {
-	// Check for new artifact structure
 	if artifactList, ok := d.GetOk("artifact"); ok {
 		artifacts := artifactList.([]interface{})
 		if len(artifacts) > 0 {
@@ -1141,11 +1024,9 @@ func resourceAliCloudFlinkDeploymentExpandArtifact(d *schema.ResourceData) (*ali
 			return artifact, nil
 		}
 	}
-
 	return nil, nil
 }
 
-// resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting converts schema streaming resource setting to API format
 func resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting(d *schema.ResourceData) *aliyunFlinkAPI.StreamingResourceSetting {
 	if streamingResourceList, ok := d.GetOk("streaming_resource_setting"); ok {
 		settings := streamingResourceList.([]interface{})
@@ -1196,11 +1077,9 @@ func resourceAliCloudFlinkDeploymentExpandStreamingResourceSetting(d *schema.Res
 			return resourceSetting
 		}
 	}
-
 	return nil
 }
 
-// resourceAliCloudFlinkDeploymentExpandLogging converts schema logging configuration to API format
 func resourceAliCloudFlinkDeploymentExpandLogging(d *schema.ResourceData) *aliyunFlinkAPI.Logging {
 	if loggingList, ok := d.GetOk("logging"); ok {
 		loggings := loggingList.([]interface{})
@@ -1241,7 +1120,6 @@ func resourceAliCloudFlinkDeploymentExpandLogging(d *schema.ResourceData) *aliyu
 	return nil
 }
 
-// resourceAliCloudFlinkDeploymentFlattenArtifact converts API artifact to schema format
 func resourceAliCloudFlinkDeploymentFlattenArtifact(artifact *aliyunFlinkAPI.Artifact) []interface{} {
 	if artifact == nil {
 		return []interface{}{}
@@ -1297,7 +1175,6 @@ func resourceAliCloudFlinkDeploymentFlattenArtifact(artifact *aliyunFlinkAPI.Art
 	return []interface{}{artifactMap}
 }
 
-// resourceAliCloudFlinkDeploymentFlattenStreamingResourceSetting converts API streaming resource setting to schema format
 func resourceAliCloudFlinkDeploymentFlattenStreamingResourceSetting(setting *aliyunFlinkAPI.StreamingResourceSetting) []interface{} {
 	if setting == nil {
 		return []interface{}{}
@@ -1350,7 +1227,6 @@ func resourceAliCloudFlinkDeploymentFlattenStreamingResourceSetting(setting *ali
 	return []interface{}{settingMap}
 }
 
-// resourceAliCloudFlinkDeploymentflattenLogging converts API logging configuration to schema format
 func resourceAliCloudFlinkDeploymentflattenLogging(logging *aliyunFlinkAPI.Logging) []interface{} {
 	if logging == nil {
 		return []interface{}{}

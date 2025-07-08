@@ -89,19 +89,12 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(id string, failStates []string) 
 		if job.Status != nil && job.Status.CurrentJobStatus != nil {
 			status := job.GetStatus()
 			if status == "FINISHED" || status == "RUNNING" {
-				return job, "RUNNING", nil
+				return job, status, nil
+			} else {
+				return job, "STOPPED", nil
 			}
 		} else {
 			return nil, "NotFound", nil
 		}
-
-		// Check for fail states
-		for _, failState := range failStates {
-			if job.GetStatus() == failState {
-				return job, job.GetStatus(), WrapErrorf(err, DefaultErrorMsg, id, "DescribeFlinkJob", AlibabaCloudSdkGoERROR)
-			}
-		}
-
-		return job, job.GetStatus(), nil
 	}
 }

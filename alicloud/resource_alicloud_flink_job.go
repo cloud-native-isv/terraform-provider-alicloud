@@ -225,7 +225,13 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, job.JobId))
 
-	stateConf := BuildStateConf([]string{"STARTING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}))
+	stateConf := BuildStateConf(
+		[]string{"STARTING", "STOPPED"},
+		[]string{"RUNNING"},
+		d.Timeout(schema.TimeoutCreate),
+		5*time.Second,
+		flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}),
+	)
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -389,17 +395,35 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 
 	withSavepoint := d.Get("with_savepoint").(bool)
 
-	err = flinkService.StopJob(d.Id(), withSavepoint)
+	job, err := flinkService.DescribeFlinkJob(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
+			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
 
-	stateConf := BuildStateConf([]string{"RUNNING", "STOPPING", "CANCELLING"}, []string{"FAILED", "CANCELLED", "STOPPED"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
+	jobStatus := job.GetStatus()
+	if jobStatus == "RUNNING" {
+		stopErr := flinkService.StopJob(d.Id(), withSavepoint)
+		if stopErr != nil {
+			if NotFoundError(stopErr) {
+				return nil
+			}
+			return WrapError(stopErr)
+		}
+
+		stateConf := BuildStateConf(
+			[]string{"RUNNING", "STOPPING", "CANCELLING"},
+			[]string{"CANCELLED", "FAILED", "FINISHED", "STOPPED", "NotFound"},
+			d.Timeout(schema.TimeoutDelete),
+			5*time.Second,
+			flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}),
+		)
+		if _, err := stateConf.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
 	}
 
 	err = flinkService.DeleteJob(d.Id())
@@ -410,7 +434,13 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
-	deleteStateConf := BuildStateConf([]string{"FAILED", "CANCELLED", "STOPPED"}, []string{"NotFound"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}))
+	deleteStateConf := BuildStateConf(
+		[]string{"FAILED", "CANCELLED", "STOPPED", "FINISHED"},
+		[]string{"NotFound"},
+		d.Timeout(schema.TimeoutDelete),
+		5*time.Second,
+		flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}),
+	)
 	if _, err := deleteStateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
