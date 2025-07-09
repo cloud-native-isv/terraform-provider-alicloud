@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -256,6 +257,10 @@ func resourceAliyunOtsTableRead(d *schema.ResourceData, meta interface{}) error 
 
 	var pks []map[string]interface{}
 	keys := tableResp.TableMeta.SchemaEntry
+	// Sort primary keys by name to ensure consistent ordering
+	sort.Slice(keys, func(i, j int) bool {
+		return *keys[i].Name < *keys[j].Name
+	})
 	for _, v := range keys {
 		item := make(map[string]interface{})
 		item["name"] = *v.Name
@@ -265,7 +270,12 @@ func resourceAliyunOtsTableRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("primary_key", pks)
 
 	var columns []map[string]interface{}
-	for _, column := range tableResp.TableMeta.DefinedColumns {
+	definedColumns := tableResp.TableMeta.DefinedColumns
+	// Sort defined columns by name to ensure consistent ordering
+	sort.Slice(definedColumns, func(i, j int) bool {
+		return definedColumns[i].Name < definedColumns[j].Name
+	})
+	for _, column := range definedColumns {
 		columnType, err := ConvertDefinedColumnType(column.ColumnType)
 		if err != nil {
 			return WrapError(err)

@@ -72,8 +72,8 @@ func resourceAliCloudLogStoreIndex() *schema.Resource {
 						"type": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      "long",
-							ValidateFunc: validation.StringInSlice([]string{"text", "long", "double", "json"}, false),
+							Default:      "text",
+							ValidateFunc: validation.StringInSlice([]string{"text", "long", "double"}, false),
 						},
 						"alias": {
 							Type:     schema.TypeString,
@@ -108,9 +108,10 @@ func resourceAliCloudLogStoreIndex() *schema.Resource {
 										Required: true,
 									},
 									"type": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "long",
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "text",
+										ValidateFunc: validation.StringInSlice([]string{"text", "long", "double"}, false),
 									},
 									"alias": {
 										Type:     schema.TypeString,

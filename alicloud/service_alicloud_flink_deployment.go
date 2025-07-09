@@ -16,10 +16,7 @@ func parseDeploymentId(id string) (string, string, string, error) {
 	return parts[0], parts[1], parts[2], nil
 }
 
-// Deployment methods
 func (s *FlinkService) GetDeployment(id string) (*aliyunFlinkAPI.Deployment, error) {
-	// Parse deployment ID to extract workspace, namespace and deployment ID
-	// Format: workspaceId:namespace:deploymentId
 	workspaceId, namespaceName, deploymentId, err := parseDeploymentId(id)
 	if err != nil {
 		return nil, err
@@ -28,8 +25,6 @@ func (s *FlinkService) GetDeployment(id string) (*aliyunFlinkAPI.Deployment, err
 }
 
 func (s *FlinkService) CreateDeployment(id string, deployment *aliyunFlinkAPI.Deployment) (*aliyunFlinkAPI.Deployment, error) {
-	// Parse deployment ID to extract workspace and namespace
-	// Format: workspaceId:namespace:deploymentId (deploymentId part will be generated)
 	workspaceId, namespaceName, _, err := parseDeploymentId(id)
 	if err != nil {
 		return nil, err
@@ -37,12 +32,14 @@ func (s *FlinkService) CreateDeployment(id string, deployment *aliyunFlinkAPI.De
 
 	deployment.Workspace = workspaceId
 	deployment.Namespace = namespaceName
-	return s.flinkAPI.CreateDeployment(deployment)
+	result, err := s.flinkAPI.CreateDeployment(deployment)
+	if err == nil && result != nil {
+		addDebugJson("CreateDeployment", result)
+	}
+	return result, err
 }
 
 func (s *FlinkService) UpdateDeployment(id string, deployment *aliyunFlinkAPI.Deployment) (*aliyunFlinkAPI.Deployment, error) {
-	// Parse deployment ID to extract workspace, namespace and deployment ID
-	// Format: workspaceId:namespace:deploymentId
 	workspaceId, namespaceName, deploymentId, err := parseDeploymentId(id)
 	if err != nil {
 		return nil, err
@@ -51,22 +48,26 @@ func (s *FlinkService) UpdateDeployment(id string, deployment *aliyunFlinkAPI.De
 	deployment.Workspace = workspaceId
 	deployment.Namespace = namespaceName
 	deployment.DeploymentId = deploymentId
-	return s.flinkAPI.UpdateDeployment(deployment)
+	result, err := s.flinkAPI.UpdateDeployment(deployment)
+	if err == nil && result != nil {
+		addDebugJson("UpdateDeployment", result)
+	}
+	return result, err
 }
 
 func (s *FlinkService) DeleteDeployment(id string) error {
-	// Parse deployment ID to extract workspace, namespace and deployment ID
-	// Format: workspaceId:namespace:deploymentId
 	workspaceId, namespaceName, deploymentId, err := parseDeploymentId(id)
 	if err != nil {
 		return err
 	}
-	return s.flinkAPI.DeleteDeployment(workspaceId, namespaceName, deploymentId)
+	err = s.flinkAPI.DeleteDeployment(workspaceId, namespaceName, deploymentId)
+	if err == nil {
+		addDebugJson("DeleteDeployment", fmt.Sprintf("Deployment %s deleted successfully", deploymentId))
+	}
+	return err
 }
 
 func (s *FlinkService) ListDeployments(id string) ([]aliyunFlinkAPI.Deployment, error) {
-	// Parse namespace ID to extract workspace ID and namespace name
-	// Format: workspaceId:namespace (for listing deployments in a namespace)
 	parts := strings.Split(id, ":")
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("invalid namespace ID format for listing deployments, expected workspaceId:namespace, got %s", id)
@@ -86,12 +87,10 @@ func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string, failStates []s
 			return nil, "FAILED", WrapErrorf(err, DefaultErrorMsg, id, "GetDeployment", AlibabaCloudSdkGoERROR)
 		}
 
-		// If deployment is nil, it means the resource doesn't exist
 		if deployment == nil {
 			return nil, "NotFound", nil
 		}
 
-		// Check for fail states
 		for _, failState := range failStates {
 			if deployment.Status == failState {
 				return deployment, deployment.Status, WrapErrorf(err, DefaultErrorMsg, id, "GetDeployment", AlibabaCloudSdkGoERROR)

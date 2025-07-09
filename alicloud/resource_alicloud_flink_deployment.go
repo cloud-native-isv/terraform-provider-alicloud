@@ -533,7 +533,6 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment", "CreateDeployment", AlibabaCloudSdkGoERROR)
 	}
-	addDebugJson("Deployment", newDeployment)
 
 	d.SetId(fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, newDeployment.DeploymentId))
 	d.Set("deployment_id", newDeployment.DeploymentId)

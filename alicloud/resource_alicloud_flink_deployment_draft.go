@@ -46,6 +46,7 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 			"deployment_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "Associated deployment ID for this draft.",
 			},
 			"engine_version": {
@@ -393,7 +394,6 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			// Draft 特有参数 - 环境变量
 			"environment_variables": {
 				Type:        schema.TypeMap,
 				Optional:    true,
@@ -484,7 +484,6 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		draft.ReferencedDeploymentId = deploymentId.(string)
 	}
 
-	// Handle deployment target configuration
 	if deploymentTargetList, ok := d.GetOk("deployment_target"); ok {
 		targets := deploymentTargetList.([]interface{})
 		if len(targets) > 0 {
@@ -499,9 +498,7 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		}
 	}
 
-	// Handle artifact configuration
 	if artifactUri, ok := d.GetOk("artifact_uri"); ok {
-		// Simple artifact URI - create JAR artifact
 		draft.Artifact = &aliyunFlinkAPI.Artifact{
 			Kind: "JAR",
 			JarArtifact: &aliyunFlinkAPI.JarArtifact{
@@ -509,7 +506,6 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 			},
 		}
 	} else if artifactConfig, ok := d.GetOk("artifact"); ok {
-		// Complex artifact configuration
 		artifactList := artifactConfig.([]interface{})
 		if len(artifactList) > 0 {
 			artifactMap := artifactList[0].(map[string]interface{})
@@ -594,7 +590,6 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		}
 	}
 
-	// Handle environment variables (stored as LocalVariables)
 	if envVars, ok := d.GetOk("environment_variables"); ok {
 		envVarMap := envVars.(map[string]interface{})
 		draft.LocalVariables = make([]*aliyunFlinkAPI.LocalVariable, 0, len(envVarMap))
@@ -606,7 +601,6 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 		}
 	}
 
-	// Handle labels/tags
 	if tags, ok := d.GetOk("tags"); ok {
 		draft.Labels = make(map[string]interface{})
 		for k, v := range tags.(map[string]interface{}) {
@@ -618,18 +612,15 @@ func resourceAliCloudFlinkDeploymentDraftCreate(d *schema.ResourceData, meta int
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment_draft", "CreateDeploymentDraft", AlibabaCloudSdkGoERROR)
 	}
-	addDebugJson("DeploymentDraft", newDraft)
 
-	d.SetId(fmt.Sprintf("%s:%s", namespaceName, newDraft.Id))
+	d.SetId(formatDeploymentDraftId(workspaceId, namespaceName, newDraft.Id))
 	d.Set("draft_id", newDraft.Id)
 
-	// Wait for deployment draft creation to complete using StateRefreshFunc
 	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceId, namespaceName, newDraft.Id, []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	// 最后调用Read同步状态
 	return resourceAliCloudFlinkDeploymentDraftRead(d, meta)
 }
 
@@ -640,17 +631,12 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 		return WrapError(err)
 	}
 
-	parts, err := ParseResourceId(d.Id(), 2)
+	workspaceId, namespace, draftId, err := parseDeploymentDraftId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
-	namespace := parts[0]
-	draftID := parts[1]
-	workspaceID := d.Get("workspace_id").(string)
-
-	// Use FlinkService method instead of directly accessing VervericaClient
-	deploymentDraft, err := flinkService.GetDeploymentDraft(workspaceID, namespace, draftID)
+	deploymentDraft, err := flinkService.GetDeploymentDraft(workspaceId, namespace, draftId)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"DraftNotFound"}) {
 			d.SetId("")
@@ -664,7 +650,6 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 		return nil
 	}
 
-	// Set basic fields
 	d.Set("namespace_name", deploymentDraft.Namespace)
 	d.Set("workspace_id", deploymentDraft.Workspace)
 	d.Set("name", deploymentDraft.Name)
@@ -672,18 +657,15 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 	d.Set("engine_version", deploymentDraft.EngineVersion)
 	d.Set("execution_mode", deploymentDraft.ExecutionMode)
 
-	// Set folder_id from ParentId
 	if deploymentDraft.ParentId != "" {
 		d.Set("folder_id", deploymentDraft.ParentId)
 	}
 
-	// Set deployment ID if present
 	if deploymentDraft.ReferencedDeploymentId != "" {
 		d.Set("deployment_id", deploymentDraft.ReferencedDeploymentId)
 		d.Set("referenced_deployment_id", deploymentDraft.ReferencedDeploymentId)
 	}
 
-	// Set deployment target configuration
 	if deploymentDraft.DeploymentTarget != nil {
 		deploymentTargetConfig := make([]map[string]interface{}, 0, 1)
 		targetMap := map[string]interface{}{
@@ -696,13 +678,11 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 		d.Set("deployment_target", deploymentTargetConfig)
 	}
 
-	// Set creator information
 	d.Set("creator", deploymentDraft.Creator)
 	d.Set("creator_name", deploymentDraft.CreatorName)
 	d.Set("modifier", deploymentDraft.Modifier)
 	d.Set("modifier_name", deploymentDraft.ModifierName)
 
-	// Set timestamps
 	if deploymentDraft.CreatedAt > 0 {
 		d.Set("create_time", fmt.Sprintf("%d", deploymentDraft.CreatedAt))
 	}
@@ -710,14 +690,11 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 		d.Set("update_time", fmt.Sprintf("%d", deploymentDraft.ModifiedAt))
 	}
 
-	// Set artifact configuration
 	if deploymentDraft.Artifact != nil {
-		// Handle simple artifact URI case
 		if deploymentDraft.Artifact.JarArtifact != nil {
 			d.Set("artifact_uri", deploymentDraft.Artifact.JarArtifact.JarUri)
 		}
 
-		// Handle complex artifact configuration
 		artifactConfig := make([]map[string]interface{}, 0, 1)
 		artifactMap := map[string]interface{}{
 			"kind": deploymentDraft.Artifact.Kind,
@@ -784,7 +761,6 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 		d.Set("artifact", artifactConfig)
 	}
 
-	// Set environment variables (from LocalVariables) - always set as map, never null
 	envVars := make(map[string]interface{})
 	if deploymentDraft.LocalVariables != nil && len(deploymentDraft.LocalVariables) > 0 {
 		for _, localVar := range deploymentDraft.LocalVariables {
@@ -793,7 +769,6 @@ func resourceAliCloudFlinkDeploymentDraftRead(d *schema.ResourceData, meta inter
 	}
 	d.Set("environment_variables", envVars)
 
-	// Set labels/tags - always set as map, never null
 	tags := make(map[string]interface{})
 	if deploymentDraft.Labels != nil && len(deploymentDraft.Labels) > 0 {
 		for k, v := range deploymentDraft.Labels {
@@ -812,25 +787,19 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 		return WrapError(err)
 	}
 
-	parts, err := ParseResourceId(d.Id(), 2)
+	workspaceId, namespace, draftId, err := parseDeploymentDraftId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
-	namespace := parts[0]
-	draftID := parts[1]
-	workspaceID := d.Get("workspace_id").(string)
-
-	// First, retrieve the current complete deployment draft to ensure we don't lose existing settings
-	existingDraft, err := flinkService.GetDeploymentDraft(workspaceID, namespace, draftID)
+	existingDraft, err := flinkService.GetDeploymentDraft(workspaceId, namespace, draftId)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetDeploymentDraft", AlibabaCloudSdkGoERROR)
 	}
 
-	// Initialize updateRequest with the existing complete configuration
 	updateRequest := &aliyunFlinkAPI.DeploymentDraft{
 		Id:                     existingDraft.Id,
-		Workspace:              workspaceID,
+		Workspace:              workspaceId,
 		Namespace:              namespace,
 		Name:                   existingDraft.Name,
 		ParentId:               existingDraft.ParentId,
@@ -844,7 +813,6 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 
 	update := false
 
-	// Update basic fields
 	if d.HasChange("name") {
 		updateRequest.Name = d.Get("name").(string)
 		update = true
@@ -869,7 +837,6 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 		update = true
 	}
 
-	// Update deployment target configuration
 	if d.HasChange("deployment_target") {
 		if deploymentTargetList, ok := d.GetOk("deployment_target"); ok {
 			targets := deploymentTargetList.([]interface{})
@@ -891,8 +858,6 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 		update = true
 	}
 
-	// Enhanced artifact change detection - check for any changes in the artifact structure
-	// Including specific detection for SQL script content changes
 	if d.HasChange("artifact_uri") || d.HasChange("artifact") ||
 		d.HasChange("artifact.0.kind") ||
 		d.HasChange("artifact.0.jar_artifact") ||
@@ -902,7 +867,6 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 		d.HasChange("artifact.0.sql_artifact.0.additional_dependencies") {
 
 		if artifactUri, ok := d.GetOk("artifact_uri"); ok {
-			// Simple artifact URI
 			updateRequest.Artifact = &aliyunFlinkAPI.Artifact{
 				Kind: "JAR",
 				JarArtifact: &aliyunFlinkAPI.JarArtifact{
@@ -910,7 +874,6 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 				},
 			}
 		} else if artifactConfig, ok := d.GetOk("artifact"); ok {
-			// Complex artifact configuration - completely rebuild the artifact
 			artifactList := artifactConfig.([]interface{})
 			if len(artifactList) > 0 {
 				artifactMap := artifactList[0].(map[string]interface{})
@@ -993,17 +956,14 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 				}
 				updateRequest.Artifact = artifact
 			} else {
-				// If the artifact list is empty, set to nil
 				updateRequest.Artifact = nil
 			}
 		} else {
-			// If neither artifact_uri nor artifact is specified, set to nil
 			updateRequest.Artifact = nil
 		}
 		update = true
 	}
 
-	// Update environment variables (stored as LocalVariables)
 	if d.HasChange("environment_variables") {
 		if envVars, ok := d.GetOk("environment_variables"); ok {
 			envVarMap := envVars.(map[string]interface{})
@@ -1020,7 +980,6 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 		update = true
 	}
 
-	// Update labels/tags
 	if d.HasChange("tags") {
 		if tags, ok := d.GetOk("tags"); ok {
 			updateRequest.Labels = make(map[string]interface{})
@@ -1035,7 +994,7 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 
 	if update {
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			_, err := flinkService.UpdateDeploymentDraft(workspaceID, namespace, updateRequest)
+			_, err := flinkService.UpdateDeploymentDraft(workspaceId, namespace, updateRequest)
 			if err != nil {
 				if IsExpectedErrors(err, []string{"ThrottlingException", "OperationConflict"}) {
 					time.Sleep(5 * time.Second)
@@ -1050,14 +1009,12 @@ func resourceAliCloudFlinkDeploymentDraftUpdate(d *schema.ResourceData, meta int
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateDeploymentDraft", AlibabaCloudSdkGoERROR)
 		}
 
-		// Wait for update to complete using StateRefreshFunc
-		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceID, namespace, draftID, []string{}))
+		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceId, namespace, draftId, []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
 
-	// 最后调用Read同步状态
 	return resourceAliCloudFlinkDeploymentDraftRead(d, meta)
 }
 
@@ -1068,18 +1025,13 @@ func resourceAliCloudFlinkDeploymentDraftDelete(d *schema.ResourceData, meta int
 		return WrapError(err)
 	}
 
-	parts, err := ParseResourceId(d.Id(), 2)
+	workspaceId, namespace, draftId, err := parseDeploymentDraftId(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
-	namespace := parts[0]
-	draftID := parts[1]
-	workspaceID := d.Get("workspace_id").(string)
-
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		// Use service method instead of directly accessing VervericaClient
-		err := flinkService.DeleteDeploymentDraft(workspaceID, namespace, draftID)
+		err := flinkService.DeleteDeploymentDraft(workspaceId, namespace, draftId)
 		if err != nil {
 			if NotFoundError(err) {
 				return nil
@@ -1093,8 +1045,7 @@ func resourceAliCloudFlinkDeploymentDraftDelete(d *schema.ResourceData, meta int
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDeploymentDraft", AlibabaCloudSdkGoERROR)
 	}
 
-	// Wait for deployment draft deletion to complete using StateRefreshFunc
-	stateConf := BuildStateConf([]string{"Deleting"}, []string{"Deleted"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceID, namespace, draftID, []string{"Failed"}))
+	stateConf := BuildStateConf([]string{"Deleting"}, []string{"NotFound"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, flinkService.FlinkDeploymentDraftStateRefreshFunc(workspaceId, namespace, draftId, []string{"Failed"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

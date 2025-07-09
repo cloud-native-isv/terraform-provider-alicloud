@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-// DescribeSlsLogtailConfig retrieves logtail configuration details
 func (s *SlsService) DescribeSlsLogtailConfig(id string) (*slsAPI.LogtailConfig, error) {
 	if s.aliyunSlsAPI == nil {
 		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
@@ -23,7 +22,6 @@ func (s *SlsService) DescribeSlsLogtailConfig(id string) (*slsAPI.LogtailConfig,
 	projectName := parts[0]
 	configName := parts[2]
 
-	// Use cws-lib-go API method
 	config, err := s.aliyunSlsAPI.GetLogtailConfig(projectName, configName)
 	if err != nil {
 		if strings.Contains(err.Error(), "ConfigNotExist") || strings.Contains(err.Error(), "config not found") {
@@ -35,51 +33,50 @@ func (s *SlsService) DescribeSlsLogtailConfig(id string) (*slsAPI.LogtailConfig,
 	return config, nil
 }
 
-// CreateSlsLogtailConfig creates a new logtail configuration
 func (s *SlsService) CreateSlsLogtailConfig(projectName string, config *slsAPI.LogtailConfig) error {
 	if s.aliyunSlsAPI == nil {
 		return fmt.Errorf("aliyunSlsAPI client is not initialized")
 	}
 
-	addDebugJson(fmt.Sprintf("UpdateSlsLogtailConfig, project: %s, config: %s", projectName), config)
-
-	// Use cws-lib-go API method
-	return s.aliyunSlsAPI.CreateLogtailConfig(projectName, config)
+	err := s.aliyunSlsAPI.CreateLogtailConfig(projectName, config)
+	if err == nil {
+		addDebugJson("CreateSlsLogtailConfig", config)
+	}
+	return err
 }
 
-// UpdateSlsLogtailConfig updates an existing logtail configuration
 func (s *SlsService) UpdateSlsLogtailConfig(projectName string, configName string, config *slsAPI.LogtailConfig) error {
 	if s.aliyunSlsAPI == nil {
 		return fmt.Errorf("aliyunSlsAPI client is not initialized")
 	}
 
-	addDebugJson(fmt.Sprintf("UpdateSlsLogtailConfig, project: %s, config: %s", projectName, configName), config)
-
-	// Use cws-lib-go API method
-	return s.aliyunSlsAPI.UpdateLogtailConfig(projectName, configName, config)
+	err := s.aliyunSlsAPI.UpdateLogtailConfig(projectName, configName, config)
+	if err == nil {
+		addDebugJson("UpdateSlsLogtailConfig", config)
+	}
+	return err
 }
 
-// DeleteSlsLogtailConfig deletes a logtail configuration
 func (s *SlsService) DeleteSlsLogtailConfig(projectName string, configName string) error {
 	if s.aliyunSlsAPI == nil {
 		return fmt.Errorf("aliyunSlsAPI client is not initialized")
 	}
 
-	// Use cws-lib-go API method
-	return s.aliyunSlsAPI.DeleteLogtailConfig(projectName, configName)
+	err := s.aliyunSlsAPI.DeleteLogtailConfig(projectName, configName)
+	if err == nil {
+		addDebugJson("DeleteSlsLogtailConfig", fmt.Sprintf("Config %s deleted successfully", configName))
+	}
+	return err
 }
 
-// ListSlsLogtailConfigs lists logtail configurations in a project
 func (s *SlsService) ListSlsLogtailConfigs(projectName string, configNameFilter string) ([]*slsAPI.LogtailConfig, error) {
 	if s.aliyunSlsAPI == nil {
 		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
 	}
 
-	// Use cws-lib-go API method with pagination handled internally
 	return s.aliyunSlsAPI.ListLogtailConfigs(projectName, configNameFilter)
 }
 
-// LogtailConfigStateRefreshFunc returns a StateRefreshFunc for logtail config status monitoring
 func (s *SlsService) LogtailConfigStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSlsLogtailConfig(id)
@@ -90,7 +87,6 @@ func (s *SlsService) LogtailConfigStateRefreshFunc(id string, field string, fail
 			return nil, "", WrapError(err)
 		}
 
-		// Handle strongly typed LogtailConfig object instead of using jsonpath.Get
 		var currentStatus string
 		switch field {
 		case "configName":
@@ -104,7 +100,6 @@ func (s *SlsService) LogtailConfigStateRefreshFunc(id string, field string, fail
 		case "lastModifyTime":
 			currentStatus = fmt.Sprint(object.LastModifyTime)
 		default:
-			// For other fields, assume the config exists and is available
 			currentStatus = "Available"
 		}
 
@@ -117,7 +112,6 @@ func (s *SlsService) LogtailConfigStateRefreshFunc(id string, field string, fail
 	}
 }
 
-// ValidateSlsLogtailConfig validates logtail configuration parameters
 func (s *SlsService) ValidateSlsLogtailConfig(config *slsAPI.LogtailConfig) error {
 	if config == nil {
 		return fmt.Errorf("logtail config cannot be nil")
