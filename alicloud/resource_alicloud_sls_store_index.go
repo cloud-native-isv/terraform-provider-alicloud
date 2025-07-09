@@ -98,33 +98,6 @@ func resourceAliCloudLogStoreIndex() *schema.Resource {
 							Optional: true,
 							Default:  true,
 						},
-						"json_keys": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"type": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										Default:      "text",
-										ValidateFunc: validation.StringInSlice([]string{"text", "long", "double"}, false),
-									},
-									"alias": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"doc_value": {
-										Type:     schema.TypeBool,
-										Optional: true,
-										Default:  true,
-									},
-								},
-							},
-						},
 					},
 				},
 				MinItems: 1,
@@ -350,20 +323,6 @@ func resourceAliCloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 				mapping["token"] = tokenStr
 			}
 
-			// Handle JSON keys for nested fields
-			if indexKey.JsonKeys != nil && len(indexKey.JsonKeys) > 0 {
-				var jsonKeyResults []map[string]interface{}
-				for jsonKeyName, jsonIndexKey := range indexKey.JsonKeys {
-					jsonKeyMapping := map[string]interface{}{
-						"name":      jsonKeyName,
-						"type":      jsonIndexKey.Type,
-						"alias":     jsonIndexKey.Alias,
-						"doc_value": jsonIndexKey.DocValue,
-					}
-					jsonKeyResults = append(jsonKeyResults, jsonKeyMapping)
-				}
-				mapping["json_keys"] = jsonKeyResults
-			}
 			keySet = append(keySet, mapping)
 		}
 		if err := d.Set("field_search", keySet); err != nil {
@@ -572,20 +531,6 @@ func buildIndexKeys(d *schema.ResourceData) map[string]*aliyunSlsAPI.IndexKey {
 				DocValue:      v["enable_analytics"].(bool),
 				Token:         strings.Split(v["token"].(string), ""),
 				CaseSensitive: v["case_sensitive"].(bool),
-				JsonKeys:      map[string]*aliyunSlsAPI.IndexKey{},
-			}
-			jsonKeys := v["json_keys"].(*schema.Set).List()
-			for _, e := range jsonKeys {
-				value := e.(map[string]interface{})
-				name := value["name"].(string)
-				alias := value["alias"].(string)
-				keyType := value["type"].(string)
-				docValue := value["doc_value"].(bool)
-				indexKey.JsonKeys[name] = &aliyunSlsAPI.IndexKey{
-					Type:     keyType,
-					Alias:    alias,
-					DocValue: docValue,
-				}
 			}
 			keys[v["name"].(string)] = indexKey
 		}
