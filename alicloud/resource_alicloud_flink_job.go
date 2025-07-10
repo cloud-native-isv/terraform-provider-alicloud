@@ -37,9 +37,8 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 			},
 			"job_name": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
-				Computed: true,
 			},
 			"parallelism": {
 				Type:     schema.TypeInt,
@@ -252,7 +251,6 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("workspace_id", job.Workspace)
 	d.Set("namespace_name", job.Namespace)
 	d.Set("deployment_id", job.DeploymentId)
-	d.Set("job_name", job.JobName)
 	d.Set("job_id", job.JobId)
 	d.Set("deployment_name", job.DeploymentName)
 
@@ -282,6 +280,35 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("modifier_name", job.ModifierName)
 	d.Set("created_at", job.CreatedAt)
 	d.Set("modified_at", job.ModifiedAt)
+
+	// Set FlinkConf and UserFlinkConf fields (computed only)
+	if job.FlinkConf != nil {
+		flinkConfMap := make(map[string]interface{})
+		for k, v := range job.FlinkConf {
+			flinkConfMap[k] = fmt.Sprintf("%v", v)
+		}
+		if err := d.Set("flink_conf", flinkConfMap); err != nil {
+			return WrapError(err)
+		}
+	} else {
+		if err := d.Set("flink_conf", nil); err != nil {
+			return WrapError(err)
+		}
+	}
+
+	if job.UserFlinkConf != nil {
+		userFlinkConfMap := make(map[string]interface{})
+		for k, v := range job.UserFlinkConf {
+			userFlinkConfMap[k] = fmt.Sprintf("%v", v)
+		}
+		if err := d.Set("user_flink_conf", userFlinkConfMap); err != nil {
+			return WrapError(err)
+		}
+	} else {
+		if err := d.Set("user_flink_conf", nil); err != nil {
+			return WrapError(err)
+		}
+	}
 
 	if _, ok := d.GetOk("with_savepoint"); !ok {
 		d.Set("with_savepoint", true)
@@ -413,7 +440,7 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 
 	// Use abstracted wait method from service layer for deleting
 	if err := flinkService.WaitForFlinkJobDeleting(d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
-		return err
+		return WrapError(err)
 	}
 
 	return nil

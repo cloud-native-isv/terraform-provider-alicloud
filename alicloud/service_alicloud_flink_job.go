@@ -94,27 +94,20 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(id string, failStates []string) 
 		job, err := s.DescribeFlinkJob(id)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, "NotFound", nil
+				// For deletion scenarios, return nil to indicate resource absence
+				// This allows WaitForState to properly handle the "waiting for absence" case
+				return nil, "", nil
 			}
-			return nil, "FAILED", WrapErrorf(err, DefaultErrorMsg, id, "DescribeFlinkJob", AlibabaCloudSdkGoERROR)
+			return nil, aliyunFlinkAPI.FlinkJobStatusFailed.String(), WrapErrorf(err, DefaultErrorMsg, id, "DescribeFlinkJob", AlibabaCloudSdkGoERROR)
 		}
 
 		// If job is nil, it means the resource doesn't exist
 		if job == nil {
-			return nil, "NotFound", nil
+			// For deletion scenarios, return nil to indicate resource absence
+			return nil, "", nil
 		}
 
-		// Check job status and generate error if job has failed
-		if job.Status != nil && job.Status.CurrentJobStatus != nil {
-			status := job.GetStatus()
-			if status == "FINISHED" || status == "RUNNING" {
-				return job, status, nil
-			} else {
-				return job, "STOPPED", nil
-			}
-		} else {
-			return nil, "NotFound", nil
-		}
+		return job, job.GetStatus(), nil
 	}
 }
 
@@ -154,6 +147,7 @@ func (s *FlinkService) WaitForFlinkJobStopping(id string, timeout time.Duration)
 	stopExpectStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
 		aliyunFlinkAPI.FlinkJobStatusFailed,
 		aliyunFlinkAPI.FlinkJobStatusFinished,
+		aliyunFlinkAPI.FlinkJobStatusCancelled,
 		aliyunFlinkAPI.FlinkJobStatusStopped,
 		aliyunFlinkAPI.FlinkJobStatusNotFound,
 	})
@@ -179,12 +173,11 @@ func (s *FlinkService) WaitForFlinkJobStopping(id string, timeout time.Duration)
 func (s *FlinkService) WaitForFlinkJobDeleting(id string, timeout time.Duration) error {
 	deletePendingStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
 		aliyunFlinkAPI.FlinkJobStatusFailed,
-		aliyunFlinkAPI.FlinkJobStatusStopped,
 		aliyunFlinkAPI.FlinkJobStatusFinished,
+		aliyunFlinkAPI.FlinkJobStatusCancelled,
+		aliyunFlinkAPI.FlinkJobStatusStopped,
 	})
-	deleteExpectStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
-		aliyunFlinkAPI.FlinkJobStatusNotFound,
-	})
+	deleteExpectStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{})
 	deleteFailedStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
 		aliyunFlinkAPI.FlinkJobStatusFailed,
 	})
