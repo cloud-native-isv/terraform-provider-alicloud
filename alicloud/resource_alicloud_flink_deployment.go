@@ -42,13 +42,13 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 			},
 			"engine_version": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "vvr-11.1-jdk11-flink-1.20",
+				Required: true,
+				ForceNew: true,
 			},
 			"execution_mode": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "STREAMING",
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"STREAMING", "BATCH"}, false),
 			},
 			"deployment_target": {
@@ -275,6 +275,11 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 				},
 			},
 			"flink_conf": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"user_flink_conf": {
 				Type:     schema.TypeMap,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -516,6 +521,12 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
+	if userFlinkConf, ok := d.GetOk("user_flink_conf"); ok {
+		for k, v := range userFlinkConf.(map[string]interface{}) {
+			deployment.FlinkConf[k] = v.(string)
+		}
+	}
+
 	logging := resourceAliCloudFlinkDeploymentExpandLogging(d)
 	if logging != nil {
 		deployment.Logging = logging
@@ -676,6 +687,10 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 			flinkConf[k] = v
 		}
 		d.Set("flink_conf", flinkConf)
+	}
+
+	if userFlinkConf, ok := d.GetOk("user_flink_conf"); ok {
+		d.Set("user_flink_conf", userFlinkConf.(map[string]interface{}))
 	}
 
 	if deployment.Logging != nil {
@@ -869,14 +884,11 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 		update = true
 	}
 
-	if d.HasChange("flink_conf") {
-		if flinkConf, ok := d.GetOk("flink_conf"); ok {
-			updateRequest.FlinkConf = make(map[string]string)
+	if d.HasChange("user_flink_conf") {
+		if flinkConf, ok := d.GetOk("user_flink_conf"); ok {
 			for k, v := range flinkConf.(map[string]interface{}) {
 				updateRequest.FlinkConf[k] = v.(string)
 			}
-		} else {
-			updateRequest.FlinkConf = nil
 		}
 		update = true
 	}

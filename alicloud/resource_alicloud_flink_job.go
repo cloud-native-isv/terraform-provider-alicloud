@@ -225,15 +225,9 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, job.JobId))
 
-	stateConf := BuildStateConf(
-		[]string{"STARTING", "STOPPED"},
-		[]string{"RUNNING"},
-		d.Timeout(schema.TimeoutCreate),
-		5*time.Second,
-		flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}),
-	)
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
+	// Use abstracted wait method from service layer
+	if err := flinkService.WaitForFlinkJobCreating(d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
+		return err
 	}
 
 	return resourceAliCloudFlinkJobRead(d, meta)
@@ -395,35 +389,18 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 
 	withSavepoint := d.Get("with_savepoint").(bool)
 
-	job, err := flinkService.DescribeFlinkJob(d.Id())
-	if err != nil {
-		if NotFoundError(err) {
-			d.SetId("")
+	// StopJob now handles status checking internally
+	stopErr := flinkService.StopJob(d.Id(), withSavepoint)
+	if stopErr != nil {
+		if NotFoundError(stopErr) {
 			return nil
 		}
-		return WrapError(err)
+		return WrapError(stopErr)
 	}
 
-	jobStatus := job.GetStatus()
-	if jobStatus == "RUNNING" {
-		stopErr := flinkService.StopJob(d.Id(), withSavepoint)
-		if stopErr != nil {
-			if NotFoundError(stopErr) {
-				return nil
-			}
-			return WrapError(stopErr)
-		}
-
-		stateConf := BuildStateConf(
-			[]string{"RUNNING", "STOPPING", "CANCELLING"},
-			[]string{"CANCELLED", "FAILED", "FINISHED", "STOPPED", "NotFound"},
-			d.Timeout(schema.TimeoutDelete),
-			5*time.Second,
-			flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}),
-		)
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
+	// Use abstracted wait method from service layer for stopping
+	if err := flinkService.WaitForFlinkJobStopping(d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
+		return err
 	}
 
 	err = flinkService.DeleteJob(d.Id())
@@ -434,15 +411,9 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
-	deleteStateConf := BuildStateConf(
-		[]string{"FAILED", "CANCELLED", "STOPPED", "FINISHED"},
-		[]string{"NotFound"},
-		d.Timeout(schema.TimeoutDelete),
-		5*time.Second,
-		flinkService.FlinkJobStateRefreshFunc(d.Id(), []string{"FAILED"}),
-	)
-	if _, err := deleteStateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
+	// Use abstracted wait method from service layer for deleting
+	if err := flinkService.WaitForFlinkJobDeleting(d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
+		return err
 	}
 
 	return nil

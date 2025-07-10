@@ -166,10 +166,21 @@ func resourceAliCloudOssBucketObjectPut(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 	if filePath != "" {
+		addDebug("PutObjectFromFile", map[string]interface{}{
+			"bucket":   d.Get("bucket").(string),
+			"key":      key,
+			"filePath": filePath,
+			"options":  options,
+		})
 		err = bucket.PutObjectFromFile(key, filePath, options...)
 	}
 
 	if body != nil {
+		addDebug("PutObject", map[string]interface{}{
+			"bucket":  d.Get("bucket").(string),
+			"key":     key,
+			"options": options,
+		})
 		err = bucket.PutObject(key, body, options...)
 	}
 

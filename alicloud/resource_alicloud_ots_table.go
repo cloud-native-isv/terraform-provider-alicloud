@@ -87,9 +87,9 @@ func resourceAliCloudOtsTable() *schema.Resource {
 				ValidateFunc: validation.IntBetween(-1, INT_MAX),
 			},
 			"max_version": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntBetween(1, INT_MAX),
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  1,
 			},
 			"allow_update": {
 				Type:     schema.TypeBool,

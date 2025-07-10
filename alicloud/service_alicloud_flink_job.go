@@ -3,6 +3,7 @@ package alicloud
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -55,7 +56,25 @@ func (s *FlinkService) StopJob(stateId string, withSavepoint bool) error {
 	if err != nil {
 		return err
 	}
-	return s.flinkAPI.StopJob(workspaceId, namespaceName, jobId, withSavepoint)
+
+	// First get the current job status
+	job, err := s.flinkAPI.GetJob(workspaceId, namespaceName, jobId)
+	if err != nil {
+		if NotFoundError(err) {
+			// Job doesn't exist, no need to stop
+			return nil
+		}
+		return err
+	}
+
+	// Check if job is running, only stop if it's running
+	jobStatus := job.GetStatus()
+	if jobStatus == aliyunFlinkAPI.FlinkJobStatusRunning.String() {
+		return s.flinkAPI.StopJob(workspaceId, namespaceName, jobId, withSavepoint)
+	}
+
+	// Job is not running, no need to stop
+	return nil
 }
 
 func (s *FlinkService) DeleteJob(stateId string) error {
@@ -97,4 +116,90 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(id string, failStates []string) 
 			return nil, "NotFound", nil
 		}
 	}
+}
+
+func (s *FlinkService) WaitForFlinkJobCreating(id string, timeout time.Duration) error {
+	createPendingStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
+		aliyunFlinkAPI.FlinkJobStatusStarting,
+		aliyunFlinkAPI.FlinkJobStatusStopped,
+	})
+	createExpectStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
+		aliyunFlinkAPI.FlinkJobStatusRunning,
+	})
+	createFailedStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
+		aliyunFlinkAPI.FlinkJobStatusFailed,
+	})
+
+	stateConf := BuildStateConf(
+		createPendingStatus,
+		createExpectStatus,
+		timeout,
+		5*time.Second,
+		s.FlinkJobStateRefreshFunc(id, createFailedStatus),
+	)
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+
+	return nil
+}
+
+func (s *FlinkService) WaitForFlinkJobStopping(id string, timeout time.Duration) error {
+	stopPendingStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
+		aliyunFlinkAPI.FlinkJobStatusRunning,
+		aliyunFlinkAPI.FlinkJobStatusStopping,
+		aliyunFlinkAPI.FlinkJobStatusCancelling,
+	})
+	stopExpectStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
+		aliyunFlinkAPI.FlinkJobStatusFailed,
+		aliyunFlinkAPI.FlinkJobStatusFinished,
+		aliyunFlinkAPI.FlinkJobStatusStopped,
+		aliyunFlinkAPI.FlinkJobStatusNotFound,
+	})
+	stopFailedStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
+		aliyunFlinkAPI.FlinkJobStatusFailed,
+	})
+
+	stateConf := BuildStateConf(
+		stopPendingStatus,
+		stopExpectStatus,
+		timeout,
+		5*time.Second,
+		s.FlinkJobStateRefreshFunc(id, stopFailedStatus),
+	)
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+
+	return nil
+}
+
+func (s *FlinkService) WaitForFlinkJobDeleting(id string, timeout time.Duration) error {
+	deletePendingStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
+		aliyunFlinkAPI.FlinkJobStatusFailed,
+		aliyunFlinkAPI.FlinkJobStatusStopped,
+		aliyunFlinkAPI.FlinkJobStatusFinished,
+	})
+	deleteExpectStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
+		aliyunFlinkAPI.FlinkJobStatusNotFound,
+	})
+	deleteFailedStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
+		aliyunFlinkAPI.FlinkJobStatusFailed,
+	})
+
+	stateConf := BuildStateConf(
+		deletePendingStatus,
+		deleteExpectStatus,
+		timeout,
+		5*time.Second,
+		s.FlinkJobStateRefreshFunc(id, deleteFailedStatus),
+	)
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+
+	return nil
 }

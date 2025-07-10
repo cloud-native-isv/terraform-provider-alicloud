@@ -147,25 +147,6 @@ func IsExpectedErrors(err error, expectCodes []string) bool {
 		return IsExpectedErrors(e.Cause, expectCodes)
 	}
 
-	// Check for specific error patterns in expected codes using unified error checking
-	for _, code := range expectCodes {
-		switch code {
-		case NotFound, InstanceNotFound, RamInstanceNotFound:
-			if commonErrors.IsNotFoundError(err) {
-				return true
-			}
-		case Throttling, ThrottlingUser, ServiceUnavailable:
-			if commonErrors.IsQuotaError(err) || commonErrors.IsRetryableError(err) {
-				return true
-			}
-		default:
-			// Use unified error code extraction from cws-lib-go
-			if errorCode := commonErrors.GetErrorCode(err); errorCode == code {
-				return true
-			}
-		}
-	}
-
 	// Handle legacy SDK errors
 	if e, ok := err.(*tea.SDKError); ok {
 		for _, code := range expectCodes {
