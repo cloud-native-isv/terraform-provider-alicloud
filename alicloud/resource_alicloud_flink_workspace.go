@@ -47,62 +47,63 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 			"vswitch_ids": {
 				Type:        schema.TypeList,
 				Required:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
 				ForceNew:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "The IDs of the vSwitches for the Flink instance.",
 			},
 			"security_group_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The ID of the security group.",
 				ForceNew:    true,
+				Description: "The ID of the security group.",
 			},
 			"architecture_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "X86",
-				Description:  "The architecture type of the Flink instance.",
-				ValidateFunc: validation.StringInSlice([]string{"X86", "ARM"}, false),
 				ForceNew:     true,
+				Default:      "X86",
+				ValidateFunc: validation.StringInSlice([]string{"X86", "ARM"}, false),
+				Description:  "The architecture type of the Flink instance.",
 			},
 			"auto_renew": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				ForceNew:    true,
 				Default:     true,
 				Description: "Whether the instance automatically renews.",
-				ForceNew:    true,
 			},
 			"charge_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "POST",
-				Description:  "The billing method of the instance.",
-				ValidateFunc: validation.StringInSlice([]string{"POST", "PRE"}, false),
 				ForceNew:     true,
+				Default:      "POST",
+				ValidateFunc: validation.StringInSlice([]string{"POST", "PRE"}, false),
+				Description:  "The billing method of the instance.",
 			},
 			"duration": {
 				Type:        schema.TypeInt,
 				Optional:    true,
+				ForceNew:    true,
 				Default:     1,
 				Description: "The subscription duration.",
-				ForceNew:    true,
 			},
 			"pricing_cycle": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				ForceNew:    true,
 				Default:     "Month",
 				Description: "The billing cycle for Subscription instances.",
-				ForceNew:    true,
 			},
 			"extra": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Additional configuration for the instance.",
 				ForceNew:    true,
+				Description: "Additional configuration for the instance.",
 			},
 			"ha": {
 				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -140,31 +141,31 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 					},
 				},
 				Description: "High availability configuration.",
-				ForceNew:    true,
 			},
 			"monitor_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Description:  "The monitoring type of the instance.",
 				ForceNew:     true,
 				Default:      "ARMS",
 				ValidateFunc: validation.StringInSlice([]string{"ARMS", "TAIHAO"}, true),
+				Description:  "The monitoring type of the instance.",
 			},
 			"promotion_code": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The promotion code.",
 				ForceNew:    true,
+				Description: "The promotion code.",
 			},
 			"use_promotion_code": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Whether to use promotion code.",
 				ForceNew:    true,
+				Description: "Whether to use promotion code.",
 			},
 			"storage": {
 				Type:     schema.TypeList,
 				Required: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -176,11 +177,11 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 					},
 				},
 				Description: "Storage configuration of oss bucket for the Flink instance.",
-				ForceNew:    true,
 			},
 			"resource": {
 				Type:     schema.TypeList,
 				Required: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -197,7 +198,6 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 					},
 				},
 				Description: "Resource specifications for the Flink instance.",
-				ForceNew:    true,
 			},
 			"resource_id": {
 				Type:        schema.TypeString,
@@ -492,7 +492,7 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 	// Use a customized state refresh function that handles the not found case properly
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"DELETING"},
-		Target:  []string{""},
+		Target:  []string{},
 		Refresh: func() (interface{}, string, error) {
 			// Check if the workspace still exists
 			workspace, err := flinkService.DescribeFlinkWorkspace(d.Id())

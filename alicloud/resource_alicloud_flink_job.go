@@ -43,6 +43,7 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 			"parallelism": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				ForceNew: true,
 				Computed: true,
 			},
 			"max_parallelism": {
@@ -248,6 +249,22 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 		return WrapError(err)
 	}
 
+	// Check if the parent deployment still exists
+	// If deployment is deleted, the job should also be considered deleted
+	if job.DeploymentId != "" {
+		workspaceId := job.Workspace
+		namespaceName := job.Namespace
+		deploymentId := job.DeploymentId
+
+		deploymentResourceId := fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, deploymentId)
+		_, deploymentErr := flinkService.GetDeployment(deploymentResourceId)
+		if deploymentErr != nil && NotFoundError(deploymentErr) {
+			// Parent deployment no longer exists, remove job from state
+			d.SetId("")
+			return nil
+		}
+	}
+
 	d.Set("workspace_id", job.Workspace)
 	d.Set("namespace_name", job.Namespace)
 	d.Set("deployment_id", job.DeploymentId)
@@ -353,57 +370,19 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceAliCloudFlinkJobUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	flinkService, err := NewFlinkService(client)
-	if err != nil {
-		return WrapError(err)
-	}
+	// client := meta.(*connectivity.AliyunClient)
+	// flinkService, err := NewFlinkService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
-	hasUpdatableChange := d.HasChange("parallelism") || d.HasChange("with_savepoint")
-
-	if d.HasChange("workspace_id") || d.HasChange("namespace_name") || d.HasChange("deployment_id") ||
-		d.HasChange("job_name") || d.HasChange("max_parallelism") || d.HasChange("execution_mode") ||
-		d.HasChange("engine_version") || d.HasChange("session_cluster_name") || d.HasChange("restore_strategy") ||
-		d.HasChange("local_variables") {
-		return fmt.Errorf("the following fields cannot be updated for existing Flink jobs: workspace_id, namespace_name, deployment_id, job_name, max_parallelism, execution_mode, engine_version, session_cluster_name, restore_strategy, local_variables. These changes require recreating the resource")
-	}
-
-	if d.HasChange("with_savepoint") && !d.HasChange("parallelism") {
+	// Since parallelism is now ForceNew: true, only with_savepoint can be updated
+	if d.HasChange("with_savepoint") {
+		// with_savepoint is only used during deletion, no API call needed for update
 		return resourceAliCloudFlinkJobRead(d, meta)
 	}
 
-	if !hasUpdatableChange {
-		return resourceAliCloudFlinkJobRead(d, meta)
-	}
-
-	updateParams := &aliyunFlinkAPI.HotUpdateJobParams{}
-	needsUpdate := false
-
-	if d.HasChange("parallelism") {
-		newParallelism := d.Get("parallelism").(int)
-
-		updateParams.RescaleJobParam = &aliyunFlinkAPI.RescaleJobParam{}
-
-		updateParams.UpdateJobConfigParam = &aliyunFlinkAPI.UpdateJobConfigParam{
-			FlinkConf: map[string]string{
-				"parallelism.default": fmt.Sprintf("%d", newParallelism),
-			},
-		}
-
-		needsUpdate = true
-	}
-
-	if needsUpdate {
-		result, err := flinkService.UpdateJob(d.Id(), updateParams)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "HotUpdateJob", AlibabaCloudSdkGoERROR)
-		}
-
-		if result != nil && result.JobHotUpdateId != "" {
-			time.Sleep(10 * time.Second)
-		}
-	}
-
+	// No updatable changes detected
 	return resourceAliCloudFlinkJobRead(d, meta)
 }
 

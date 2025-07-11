@@ -282,7 +282,7 @@ func resourceAliCloudFlinkConnectorDelete(d *schema.ResourceData, meta interface
 	// Wait for connector to be deleted
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"DELETING"},
-		Target:  []string{""},
+		Target:  []string{},
 		Refresh: func() (interface{}, string, error) {
 			connector, err := flinkService.GetConnector(workspaceId, namespaceName, connectorName)
 			if err != nil {

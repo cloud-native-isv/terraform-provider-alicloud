@@ -26,6 +26,12 @@ func (s *FlinkService) DeleteNamespace(workspaceId string, namespaceName string)
 	return s.flinkAPI.DeleteNamespace(workspaceId, namespaceName)
 }
 
+func (s *FlinkService) UpdateNamespace(workspaceId string, namespace *aliyunFlinkAPI.Namespace) (*aliyunFlinkAPI.Namespace, error) {
+	// Update namespace using the flinkAPI directly
+	result, err := s.flinkAPI.UpdateNamespace(workspaceId, namespace)
+	return result, err
+}
+
 // FlinkNamespaceStateRefreshFunc provides state refresh for namespaces
 func (s *FlinkService) FlinkNamespaceStateRefreshFunc(workspaceId string, namespaceName string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {

@@ -44,6 +44,7 @@ require (
 	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.7
+	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v0.0.0-00010101000000-000000000000
 	github.com/blues/jsonata-go v1.5.4
 	github.com/hashicorp/go-hclog v1.6.2
 	github.com/samber/lo v1.49.1
@@ -86,7 +87,6 @@ require (
 	github.com/alibabacloud-go/tea-rpc-utils v1.1.2 // indirect
 	github.com/alibabacloud-go/tea-xml v1.1.3 // indirect
 	github.com/alibabacloud-go/ververica-20220718 v0.0.0-00010101000000-000000000000 // indirect
-	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
@@ -252,7 +252,8 @@ replace (
 	github.com/alibabacloud-go/sls-20201230/v6 => ../cws-lib-go/lib/cloud/aliyun/sdk/sls-20201230
 	github.com/alibabacloud-go/tablestore-20201209 => ../cws-lib-go/lib/cloud/aliyun/sdk/tablestore-20201209
 	github.com/alibabacloud-go/ververica-20220718 => ../cws-lib-go/lib/cloud/aliyun/sdk/ververica-20220718
-	github.com/aliyun/alibabacloud-oss-go-sdk-v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/alibabacloud-oss-go-sdk-v2
 
+	github.com/aliyun/alibabacloud-oss-go-sdk-v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/alibabacloud-oss-go-sdk-v2
 	github.com/aliyun/aliyun-log-go-sdk => ../cws-lib-go/lib/cloud/aliyun/sdk/aliyun-log-go-sdk
+	github.com/aliyun/aliyun-tablestore-go-sdk => ../cws-lib-go/lib/cloud/aliyun/sdk/aliyun-tablestore-go-sdk
 )

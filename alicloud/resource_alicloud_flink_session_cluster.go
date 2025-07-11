@@ -32,7 +32,7 @@ func resourceAliCloudFlinkSessionCluster() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			"namespace": {
+			"namespace_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -106,7 +106,7 @@ func resourceAliCloudFlinkSessionCluster() *schema.Resource {
 					},
 				},
 			},
-			"flink_conf": {
+			"user_flink_conf": {
 				Type:     schema.TypeMap,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -224,7 +224,7 @@ func resourceAliCloudFlinkSessionClusterCreate(d *schema.ResourceData, meta inte
 	}
 
 	workspaceId := d.Get("workspace_id").(string)
-	namespaceName := d.Get("namespace").(string)
+	namespaceName := d.Get("namespace_name").(string)
 	sessionClusterName := d.Get("name").(string)
 
 	sessionCluster := &flinkAPI.SessionCluster{
@@ -241,7 +241,7 @@ func resourceAliCloudFlinkSessionClusterCreate(d *schema.ResourceData, meta inte
 	}
 
 	// Set flink configuration
-	if v, ok := d.GetOk("flink_conf"); ok {
+	if v, ok := d.GetOk("user_flink_conf"); ok {
 		sessionCluster.FlinkConf = expandFlinkConf(v.(map[string]interface{}))
 	}
 
@@ -301,7 +301,7 @@ func resourceAliCloudFlinkSessionClusterRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("workspace_id", workspaceId)
-	d.Set("namespace", namespaceName)
+	d.Set("namespace_name", namespaceName)
 	d.Set("name", sessionClusterName)
 	d.Set("session_cluster_id", object.SessionClusterId)
 	d.Set("engine_version", object.EngineVersion)
@@ -327,7 +327,7 @@ func resourceAliCloudFlinkSessionClusterRead(d *schema.ResourceData, meta interf
 	}
 
 	if object.FlinkConf != nil {
-		d.Set("flink_conf", flattenFlinkConf(object.FlinkConf))
+		d.Set("user_flink_conf", flattenFlinkConf(object.FlinkConf))
 	}
 
 	if object.Labels != nil {
@@ -391,8 +391,8 @@ func resourceAliCloudFlinkSessionClusterUpdate(d *schema.ResourceData, meta inte
 		update = true
 	}
 
-	if d.HasChange("flink_conf") {
-		if v, ok := d.GetOk("flink_conf"); ok {
+	if d.HasChange("user_flink_conf") {
+		if v, ok := d.GetOk("user_flink_conf"); ok {
 			updateRequest.FlinkConf = expandFlinkConf(v.(map[string]interface{}))
 		}
 		update = true

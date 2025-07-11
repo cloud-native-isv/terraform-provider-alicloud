@@ -35,9 +35,9 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			"resource_spec": {
+			"elastic_resource_spec": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -52,12 +52,30 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 					},
 				},
 			},
-			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
+			"guaranteed_resource_spec": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cpu": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"memory_gb": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
 			},
 			"ha": {
 				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+			"status": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
@@ -83,12 +101,26 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 		Name: namespaceName,
 	}
 
-	// Handle resource specification
-	if resourceSpecList := d.Get("resource_spec").([]interface{}); len(resourceSpecList) > 0 {
-		resourceSpecMap := resourceSpecList[0].(map[string]interface{})
-		namespace.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{
-			Cpu:      float64(resourceSpecMap["cpu"].(int)),
-			MemoryGB: float64(resourceSpecMap["memory_gb"].(int)),
+	// Handle HA configuration
+	if v, ok := d.GetOk("ha"); ok {
+		namespace.Ha = v.(bool)
+	}
+
+	// Handle elastic resource specification
+	if elasticSpecList := d.Get("elastic_resource_spec").([]interface{}); len(elasticSpecList) > 0 {
+		elasticSpecMap := elasticSpecList[0].(map[string]interface{})
+		namespace.ElasticResourceSpec = &aliyunFlinkAPI.ResourceSpec{
+			Cpu:      float64(elasticSpecMap["cpu"].(int)),
+			MemoryGB: float64(elasticSpecMap["memory_gb"].(int)),
+		}
+	}
+
+	// Handle guaranteed resource specification
+	if guaranteedSpecList := d.Get("guaranteed_resource_spec").([]interface{}); len(guaranteedSpecList) > 0 {
+		guaranteedSpecMap := guaranteedSpecList[0].(map[string]interface{})
+		namespace.GuaranteedResourceSpec = &aliyunFlinkAPI.ResourceSpec{
+			Cpu:      float64(guaranteedSpecMap["cpu"].(int)),
+			MemoryGB: float64(guaranteedSpecMap["memory_gb"].(int)),
 		}
 	}
 
@@ -136,13 +168,22 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 	d.Set("status", namespace.Status)
 	d.Set("ha", namespace.Ha)
 
-	// Set resource specification
-	if namespace.ResourceSpec != nil {
-		resourceSpec := map[string]interface{}{
-			"cpu":       int(namespace.ResourceSpec.Cpu),
-			"memory_gb": int(namespace.ResourceSpec.MemoryGB),
+	// Set elastic resource specification
+	if namespace.ElasticResourceSpec != nil {
+		elasticSpec := map[string]interface{}{
+			"cpu":       int(namespace.ElasticResourceSpec.Cpu),
+			"memory_gb": int(namespace.ElasticResourceSpec.MemoryGB),
 		}
-		d.Set("resource_spec", []interface{}{resourceSpec})
+		d.Set("elastic_resource_spec", []interface{}{elasticSpec})
+	}
+
+	// Set guaranteed resource specification
+	if namespace.GuaranteedResourceSpec != nil {
+		guaranteedSpec := map[string]interface{}{
+			"cpu":       int(namespace.GuaranteedResourceSpec.Cpu),
+			"memory_gb": int(namespace.GuaranteedResourceSpec.MemoryGB),
+		}
+		d.Set("guaranteed_resource_spec", []interface{}{guaranteedSpec})
 	}
 
 	return nil
@@ -160,22 +201,37 @@ func resourceAliCloudFlinkNamespaceUpdate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	if d.HasChange("resource_spec") {
+	// Check if any updatable field has changed
+	if d.HasChange("elastic_resource_spec") || d.HasChange("guaranteed_resource_spec") || d.HasChange("ha") {
 		namespace := &aliyunFlinkAPI.Namespace{
 			Name: namespaceName,
 		}
 
-		// Handle resource specification
-		if resourceSpecList := d.Get("resource_spec").([]interface{}); len(resourceSpecList) > 0 {
-			resourceSpecMap := resourceSpecList[0].(map[string]interface{})
-			namespace.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{
-				Cpu:      float64(resourceSpecMap["cpu"].(int)),
-				MemoryGB: float64(resourceSpecMap["memory_gb"].(int)),
+		// Handle HA configuration
+		if v, ok := d.GetOk("ha"); ok {
+			namespace.Ha = v.(bool)
+		}
+
+		// Handle elastic resource specification
+		if elasticSpecList := d.Get("elastic_resource_spec").([]interface{}); len(elasticSpecList) > 0 {
+			elasticSpecMap := elasticSpecList[0].(map[string]interface{})
+			namespace.ElasticResourceSpec = &aliyunFlinkAPI.ResourceSpec{
+				Cpu:      float64(elasticSpecMap["cpu"].(int)),
+				MemoryGB: float64(elasticSpecMap["memory_gb"].(int)),
 			}
 		}
 
-		// Update namespace - Note: Update might not be supported for all fields
-		_, err := flinkService.CreateNamespace(workspaceId, namespace)
+		// Handle guaranteed resource specification
+		if guaranteedSpecList := d.Get("guaranteed_resource_spec").([]interface{}); len(guaranteedSpecList) > 0 {
+			guaranteedSpecMap := guaranteedSpecList[0].(map[string]interface{})
+			namespace.GuaranteedResourceSpec = &aliyunFlinkAPI.ResourceSpec{
+				Cpu:      float64(guaranteedSpecMap["cpu"].(int)),
+				MemoryGB: float64(guaranteedSpecMap["memory_gb"].(int)),
+			}
+		}
+
+		// Update namespace using the UpdateNamespace method
+		_, err := flinkService.UpdateNamespace(workspaceId, namespace)
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateNamespace", AlibabaCloudSdkGoERROR)
 		}
@@ -213,7 +269,7 @@ func resourceAliCloudFlinkNamespaceDelete(d *schema.ResourceData, meta interface
 	// Wait for namespace to be deleted
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"DELETING"},
-		Target:  []string{""},
+		Target:  []string{},
 		Refresh: func() (interface{}, string, error) {
 			namespace, err := flinkService.GetNamespace(workspaceId, namespaceName)
 			if err != nil {
