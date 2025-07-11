@@ -74,36 +74,200 @@ func (s *FlinkService) SessionClusterStateRefreshFunc(id string, failStates []st
 	}
 }
 
-// WaitForSessionCluster waits for a session cluster to reach target status
-func (s *FlinkService) WaitForSessionCluster(id string, status Status, timeout int) error {
-	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
-	for {
-		object, err := s.DescribeSessionCluster(id)
-		if err != nil {
-			if NotFoundError(err) {
-				if status == Deleted {
-					return nil
-				}
-			} else {
-				return WrapError(err)
-			}
-		}
+// WaitForSessionClusterStopping waits for a session cluster to stop
+func (s *FlinkService) WaitForSessionClusterStopping(id string, timeout time.Duration) error {
+	stopPendingStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusRunning,
+		flinkAPI.FlinkSessionClusterStatusStopping,
+	})
+	stopExpectStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusStopped,
+		flinkAPI.FlinkSessionClusterStatusFailed,
+	})
+	stopFailedStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusFailed,
+	})
 
-		currentStatus := "Unknown"
-		if object != nil && object.Status != nil {
-			currentStatus = object.Status.CurrentSessionClusterStatus
-		}
+	stateConf := BuildStateConf(
+		stopPendingStatus,
+		stopExpectStatus,
+		timeout,
+		30*time.Second,
+		s.SessionClusterStateRefreshFunc(id, stopFailedStatus),
+	)
 
-		if currentStatus == string(status) {
-			return nil
-		}
-
-		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, id, GetFunc(1), timeout, currentStatus, string(status), ProviderERROR)
-		}
-
-		time.Sleep(DefaultIntervalShort)
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
 	}
+
+	return nil
+}
+
+// WaitForSessionClusterStarting waits for a session cluster to start
+func (s *FlinkService) WaitForSessionClusterStarting(id string, timeout time.Duration) error {
+	startPendingStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusStopped,
+		flinkAPI.FlinkSessionClusterStatusStarting,
+	})
+	startExpectStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusRunning,
+	})
+	startFailedStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusFailed,
+	})
+
+	stateConf := BuildStateConf(
+		startPendingStatus,
+		startExpectStatus,
+		timeout,
+		30*time.Second,
+		s.SessionClusterStateRefreshFunc(id, startFailedStatus),
+	)
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+
+	return nil
+}
+
+// WaitForSessionClusterDeleting waits for a session cluster to be deleted
+func (s *FlinkService) WaitForSessionClusterDeleting(id string, timeout time.Duration) error {
+	deletePendingStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusStopped,
+		flinkAPI.FlinkSessionClusterStatusFailed,
+	})
+	deleteExpectStatus := []string{} // Empty means waiting for resource to be gone
+	deleteFailedStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusFailed,
+	})
+
+	stateConf := BuildStateConf(
+		deletePendingStatus,
+		deleteExpectStatus,
+		timeout,
+		30*time.Second,
+		s.SessionClusterStateRefreshFunc(id, deleteFailedStatus),
+	)
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+
+	return nil
+}
+
+// WaitForSessionClusterCreating waits for a session cluster to be created and ready
+func (s *FlinkService) WaitForSessionClusterCreating(id string, timeout time.Duration) error {
+	createPendingStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusStarting,
+		flinkAPI.FlinkSessionClusterStatusUpdating,
+	})
+	createExpectStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusRunning,
+		flinkAPI.FlinkSessionClusterStatusStopped,
+	})
+	createFailedStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusFailed,
+	})
+
+	stateConf := BuildStateConf(
+		createPendingStatus,
+		createExpectStatus,
+		timeout,
+		30*time.Second,
+		s.SessionClusterStateRefreshFunc(id, createFailedStatus),
+	)
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+
+	return nil
+}
+
+// WaitForSessionClusterUpdating waits for a session cluster to finish updating
+func (s *FlinkService) WaitForSessionClusterUpdating(id string, timeout time.Duration) error {
+	updatePendingStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusUpdating,
+	})
+	updateExpectStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusRunning,
+		flinkAPI.FlinkSessionClusterStatusStopped,
+	})
+	updateFailedStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusFailed,
+	})
+
+	stateConf := BuildStateConf(
+		updatePendingStatus,
+		updateExpectStatus,
+		timeout,
+		30*time.Second,
+		s.SessionClusterStateRefreshFunc(id, updateFailedStatus),
+	)
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+
+	return nil
+}
+
+// WaitForSessionClusterStopped waits for a session cluster to be stopped
+func (s *FlinkService) WaitForSessionClusterStopped(id string, timeout time.Duration) error {
+	stopPendingStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusRunning,
+		flinkAPI.FlinkSessionClusterStatusStopping,
+	})
+	stopExpectStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusStopped,
+	})
+	stopFailedStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusFailed,
+	})
+
+	stateConf := BuildStateConf(
+		stopPendingStatus,
+		stopExpectStatus,
+		timeout,
+		30*time.Second,
+		s.SessionClusterStateRefreshFunc(id, stopFailedStatus),
+	)
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+
+	return nil
+}
+
+// WaitForSessionClusterRunning waits for a session cluster to be running
+func (s *FlinkService) WaitForSessionClusterRunning(id string, timeout time.Duration) error {
+	startPendingStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusStopped,
+		flinkAPI.FlinkSessionClusterStatusStarting,
+	})
+	startExpectStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusRunning,
+	})
+	startFailedStatus := flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+		flinkAPI.FlinkSessionClusterStatusFailed,
+	})
+
+	stateConf := BuildStateConf(
+		startPendingStatus,
+		startExpectStatus,
+		timeout,
+		30*time.Second,
+		s.SessionClusterStateRefreshFunc(id, startFailedStatus),
+	)
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+
+	return nil
 }
 
 // Helper function to parse session cluster ID

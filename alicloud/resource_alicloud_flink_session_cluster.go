@@ -176,11 +176,11 @@ func resourceAliCloudFlinkSessionCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"STOPPED",
-					"RUNNING",
-					"FAILED",
-				}, false),
+				ValidateFunc: validation.StringInSlice(
+					flinkAPI.FlinkSessionClusterStatusesToStrings([]flinkAPI.FlinkSessionClusterStatus{
+						flinkAPI.FlinkSessionClusterStatusStopped,
+						flinkAPI.FlinkSessionClusterStatusRunning,
+					}), false),
 				Description: "Target status of the session cluster. Valid values: STOPPED, RUNNING, FAILED. Other statuses (STARTING, UPDATING, STOPPING) are intermediate states managed by the system.",
 			},
 			// Computed attributes
@@ -263,8 +263,8 @@ func resourceAliCloudFlinkSessionClusterCreate(d *schema.ResourceData, meta inte
 	d.SetId(formatSessionClusterId(workspaceId, namespaceName, sessionClusterName))
 
 	// Wait for session cluster to be ready
-	stateConf := BuildStateConf([]string{}, []string{"RUNNING", "STOPPED"}, d.Timeout(schema.TimeoutCreate), 30*time.Second, flinkService.SessionClusterStateRefreshFunc(d.Id(), []string{"FAILED", "TERMINATED"}))
-	if _, err := stateConf.WaitForState(); err != nil {
+	err = flinkService.WaitForSessionClusterCreating(d.Id(), d.Timeout(schema.TimeoutCreate))
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
@@ -419,8 +419,8 @@ func resourceAliCloudFlinkSessionClusterUpdate(d *schema.ResourceData, meta inte
 		}
 
 		// Wait for update to complete
-		stateConf := BuildStateConf([]string{}, []string{"RUNNING", "STOPPED"}, d.Timeout(schema.TimeoutUpdate), 30*time.Second, flinkService.SessionClusterStateRefreshFunc(d.Id(), []string{"FAILED", "TERMINATED"}))
-		if _, err := stateConf.WaitForState(); err != nil {
+		err = flinkService.WaitForSessionClusterUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
@@ -450,6 +450,39 @@ func resourceAliCloudFlinkSessionClusterDelete(d *schema.ResourceData, meta inte
 		return WrapError(err)
 	}
 
+	// First, get the current session cluster to check its status
+	currentCluster, err := flinkService.DescribeSessionCluster(d.Id())
+	if err != nil {
+		if NotFoundError(err) {
+			return nil
+		}
+		return WrapError(err)
+	}
+
+	// Stop the session cluster if it's running
+	currentStatus := "UNKNOWN"
+	if currentCluster != nil && currentCluster.Status != nil {
+		currentStatus = currentCluster.Status.CurrentSessionClusterStatus
+	}
+
+	// Only stop if it's running
+	if currentStatus == "RUNNING" {
+		err = flinkService.StopSessionCluster(workspaceId, namespaceName, sessionClusterName)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil
+			}
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "StopSessionCluster", AlibabaCloudSdkGoERROR)
+		}
+
+		// Wait for session cluster to stop
+		err = flinkService.WaitForSessionClusterStopped(d.Id(), d.Timeout(schema.TimeoutDelete))
+		if err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
+	}
+
+	// Now delete the session cluster
 	_, err = flinkService.DeleteSessionCluster(workspaceId, namespaceName, sessionClusterName)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"InvalidSessionCluster.NotFound", "SessionClusterNotFound"}) {
@@ -459,8 +492,8 @@ func resourceAliCloudFlinkSessionClusterDelete(d *schema.ResourceData, meta inte
 	}
 
 	// Wait for deletion
-	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 30*time.Second, flinkService.SessionClusterStateRefreshFunc(d.Id(), []string{"FAILED"}))
-	if _, err := stateConf.WaitForState(); err != nil {
+	err = flinkService.WaitForSessionClusterDeleting(d.Id(), d.Timeout(schema.TimeoutDelete))
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
@@ -692,8 +725,8 @@ func handleSessionClusterStatusChange(d *schema.ResourceData, flinkService *Flin
 
 	// Only handle RUNNING and STOPPED target statuses for start/stop operations
 	switch targetStatus {
-	case "RUNNING":
-		if currentStatus == "STOPPED" {
+	case flinkAPI.FlinkSessionClusterStatusRunning.String():
+		if currentStatus == flinkAPI.FlinkSessionClusterStatusStopped.String() {
 			// Start the session cluster
 			err := flinkService.StartSessionCluster(workspaceId, namespaceName, sessionClusterName)
 			if err != nil {
@@ -701,13 +734,13 @@ func handleSessionClusterStatusChange(d *schema.ResourceData, flinkService *Flin
 			}
 
 			// Wait for cluster to reach RUNNING state
-			stateConf := BuildStateConf([]string{"STOPPED", "STARTING"}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 30*time.Second, flinkService.SessionClusterStateRefreshFunc(d.Id(), []string{"FAILED", "TERMINATED"}))
-			if _, err := stateConf.WaitForState(); err != nil {
+			err = flinkService.WaitForSessionClusterRunning(d.Id(), d.Timeout(schema.TimeoutUpdate))
+			if err != nil {
 				return WrapErrorf(err, IdMsg, d.Id())
 			}
 		}
-	case "STOPPED":
-		if currentStatus == "RUNNING" {
+	case flinkAPI.FlinkSessionClusterStatusStopped.String():
+		if currentStatus == flinkAPI.FlinkSessionClusterStatusRunning.String() {
 			// Stop the session cluster
 			err := flinkService.StopSessionCluster(workspaceId, namespaceName, sessionClusterName)
 			if err != nil {
@@ -715,8 +748,8 @@ func handleSessionClusterStatusChange(d *schema.ResourceData, flinkService *Flin
 			}
 
 			// Wait for cluster to reach STOPPED state
-			stateConf := BuildStateConf([]string{"RUNNING", "STOPPING"}, []string{"STOPPED"}, d.Timeout(schema.TimeoutUpdate), 30*time.Second, flinkService.SessionClusterStateRefreshFunc(d.Id(), []string{"FAILED", "TERMINATED"}))
-			if _, err := stateConf.WaitForState(); err != nil {
+			err = flinkService.WaitForSessionClusterStopped(d.Id(), d.Timeout(schema.TimeoutUpdate))
+			if err != nil {
 				return WrapErrorf(err, IdMsg, d.Id())
 			}
 		}

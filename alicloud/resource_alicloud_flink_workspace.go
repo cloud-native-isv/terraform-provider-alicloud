@@ -110,17 +110,20 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 						"resource": {
 							Type:     schema.TypeList,
 							Required: true,
+							ForceNew: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"cpu": {
 										Type:        schema.TypeInt,
 										Required:    true,
+										ForceNew:    true,
 										Description: "CPU specifications for HA resources.",
 									},
 									"memory": {
 										Type:        schema.TypeInt,
 										Required:    true,
+										ForceNew:    true,
 										Description: "Memory specifications for HA resources.",
 									},
 								},
@@ -130,12 +133,14 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 						"vswitch_ids": {
 							Type:        schema.TypeList,
 							Required:    true,
+							ForceNew:    true,
 							Elem:        &schema.Schema{Type: schema.TypeString},
 							Description: "The IDs of the vSwitches for high availability.",
 						},
 						"zone_id": {
 							Type:        schema.TypeString,
 							Required:    true,
+							ForceNew:    true,
 							Description: "The zone ID for high availability.",
 						},
 					},
@@ -172,6 +177,7 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 						"oss_bucket": {
 							Type:        schema.TypeString,
 							Required:    true,
+							ForceNew:    true,
 							Description: "The OSS bucket name for the Flink instance.",
 						},
 					},
@@ -188,11 +194,13 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 						"cpu": {
 							Type:        schema.TypeInt,
 							Required:    true,
+							ForceNew:    true,
 							Description: "CPU units in millicores.",
 						},
 						"memory": {
 							Type:        schema.TypeInt,
 							Required:    true,
+							ForceNew:    true,
 							Description: "Memory in MB.",
 						},
 					},
@@ -306,7 +314,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		resp, err := flinkService.CreateInstance(workspaceRequest)
 		if err != nil {
-			if IsExpectedErrors(err, []string{"903021"}) {
+			if NotFoundError(err) {
 				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
@@ -326,16 +334,8 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(workspace.ID)
 
-	// Wait for the instance to be in running state using StateRefreshFunc
-	stateConf := resource.StateChangeConf{
-		Pending:    []string{"CREATING"},
-		Target:     []string{"RUNNING"},
-		Refresh:    flinkService.FlinkWorkspaceStateRefreshFunc(d.Id()),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
-		Delay:      10 * time.Second,
-		MinTimeout: 5 * time.Second,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	// Wait for the instance to be in running state using service layer function
+	if err := flinkService.WaitForWorkspaceStarting(d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
@@ -483,36 +483,14 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 
 	err = flinkService.DeleteInstance(d.Id())
 	if err != nil {
-		if !IsExpectedErrors(err, []string{"903021"}) {
+		if !NotFoundError(err) {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteInstance", AlibabaCloudSdkGoERROR)
 		}
-		// Error 903021 means deletion was successful, continue to wait for state change
+		// NotFoundError means deletion was successful or resource already gone
 	}
 
-	// Use a customized state refresh function that handles the not found case properly
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"DELETING"},
-		Target:  []string{},
-		Refresh: func() (interface{}, string, error) {
-			// Check if the workspace still exists
-			workspace, err := flinkService.DescribeFlinkWorkspace(d.Id())
-			if err != nil {
-				if NotFoundError(err) {
-					// Resource is gone, which is what we want
-					return nil, "", nil
-				}
-				return nil, "", WrapError(err)
-			}
-			// If we can still get the workspace, it's still being deleted
-			return workspace, workspace.Status, nil
-		},
-		Timeout:    d.Timeout(schema.TimeoutDelete),
-		Delay:      5 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	_, err = stateConf.WaitForState()
-	if err != nil {
+	// Wait for the workspace to be completely deleted using service layer function
+	if err := flinkService.WaitForWorkspaceDeleting(d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
