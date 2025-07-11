@@ -327,65 +327,6 @@ func resourceAliCloudFlinkDeploymentDraft() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"logging": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				Description: "Logging configuration.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"logging_profile": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Logging profile.",
-						},
-						"log4j2_configuration_template": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Log4j2 configuration template.",
-						},
-						"log4j_loggers": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "Log4j loggers configuration.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"logger_name": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Logger name.",
-									},
-									"logger_level": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Logger level.",
-									},
-								},
-							},
-						},
-						"log_reserve_policy": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
-							Description: "Log reserve policy.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"expiration_days": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "Log expiration days.",
-									},
-									"open_history": {
-										Type:        schema.TypeBool,
-										Optional:    true,
-										Description: "Whether to open history logs.",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
 			"tags": {
 				Type:        schema.TypeMap,
 				Optional:    true,

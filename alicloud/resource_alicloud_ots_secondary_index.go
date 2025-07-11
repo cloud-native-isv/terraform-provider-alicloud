@@ -117,21 +117,31 @@ func resourceAliyunOtsSecondaryIndexCreate(d *schema.ResourceData, meta interfac
 	if err := checkArgs(tableResp, args); err != nil {
 		return err
 	}
-	// build request
+	// build request using official SDK methods
 	idxType, err := ConvertSecIndexTypeString(args.indexType)
 	if err != nil {
 		return WrapError(err)
 	}
+
+	// Create IndexMeta using official SDK methods (following GlobalTableOperation.go pattern)
+	indexMeta := new(tablestore.IndexMeta)
+	indexMeta.IndexName = args.indexName
+	indexMeta.IndexType = idxType
+
+	// Use AddPrimaryKeyColumn method for each primary key
+	for _, pk := range args.primaryKeys {
+		indexMeta.AddPrimaryKeyColumn(pk)
+	}
+
+	// Use AddDefinedColumn method for each defined column
+	for _, col := range args.definedColumns {
+		indexMeta.AddDefinedColumn(col)
+	}
+
 	req := &tablestore.CreateIndexRequest{
 		MainTableName:   args.tableName,
 		IncludeBaseData: args.includeBaseData,
-
-		IndexMeta: &tablestore.IndexMeta{
-			IndexName:      args.indexName,
-			Primarykey:     args.primaryKeys,
-			IndexType:      idxType,
-			DefinedColumns: args.definedColumns,
-		},
+		IndexMeta:       indexMeta,
 	}
 
 	var reqClient *tablestore.TableStoreClient

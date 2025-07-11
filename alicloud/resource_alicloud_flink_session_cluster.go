@@ -123,9 +123,8 @@ func resourceAliCloudFlinkSessionCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"logging_profile": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Logging profile.",
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"log4j2_configuration_template": {
 							Type:     schema.TypeString,
@@ -237,22 +236,22 @@ func resourceAliCloudFlinkSessionClusterCreate(d *schema.ResourceData, meta inte
 
 	// Set basic resource setting
 	if v, ok := d.GetOk("basic_resource_setting"); ok {
-		sessionCluster.BasicResourceSetting = expandBasicResourceSetting(v.([]interface{}))
+		sessionCluster.BasicResourceSetting = flinkAPI.ExpandBasicResourceSetting(v.([]interface{}))
 	}
 
 	// Set flink configuration
 	if v, ok := d.GetOk("user_flink_conf"); ok {
-		sessionCluster.FlinkConf = expandFlinkConf(v.(map[string]interface{}))
+		sessionCluster.FlinkConf = flinkAPI.ExpandFlinkConf(v.(map[string]interface{}))
 	}
 
 	// Set labels
 	if v, ok := d.GetOk("labels"); ok {
-		sessionCluster.Labels = expandLabels(v.(map[string]interface{}))
+		sessionCluster.Labels = flinkAPI.ExpandLabels(v.(map[string]interface{}))
 	}
 
 	// Set logging configuration
 	if v, ok := d.GetOk("logging"); ok {
-		sessionCluster.Logging = expandLogging(v.([]interface{}))
+		sessionCluster.Logging = flinkAPI.ExpandLogging(v.([]interface{}))
 	}
 
 	_, err = flinkService.CreateSessionCluster(workspaceId, namespaceName, sessionCluster)
@@ -312,10 +311,10 @@ func resourceAliCloudFlinkSessionClusterRead(d *schema.ResourceData, meta interf
 	d.Set("modifier_name", object.ModifierName)
 
 	if object.CreatedAt != 0 {
-		d.Set("created_at", formatTimestamp(object.CreatedAt))
+		d.Set("created_at", flinkAPI.FormatTimestamp(object.CreatedAt))
 	}
 	if object.ModifiedAt != 0 {
-		d.Set("modified_at", formatTimestamp(object.ModifiedAt))
+		d.Set("modified_at", flinkAPI.FormatTimestamp(object.ModifiedAt))
 	}
 
 	if object.Status != nil {
@@ -323,19 +322,19 @@ func resourceAliCloudFlinkSessionClusterRead(d *schema.ResourceData, meta interf
 	}
 
 	if object.BasicResourceSetting != nil {
-		d.Set("basic_resource_setting", flattenBasicResourceSetting(object.BasicResourceSetting))
+		d.Set("basic_resource_setting", flinkAPI.FlattenBasicResourceSetting(object.BasicResourceSetting))
 	}
 
 	if object.FlinkConf != nil {
-		d.Set("user_flink_conf", flattenFlinkConf(object.FlinkConf))
+		d.Set("user_flink_conf", flinkAPI.FlattenFlinkConf(object.FlinkConf))
 	}
 
 	if object.Labels != nil {
-		d.Set("labels", flattenLabels(object.Labels))
+		d.Set("labels", flinkAPI.FlattenLabels(object.Labels))
 	}
 
 	if object.Logging != nil {
-		d.Set("logging", flattenLogging(object.Logging))
+		d.Set("logging", flinkAPI.FlattenLogging(object.Logging))
 	}
 
 	return nil
@@ -386,28 +385,28 @@ func resourceAliCloudFlinkSessionClusterUpdate(d *schema.ResourceData, meta inte
 
 	if d.HasChange("basic_resource_setting") {
 		if v, ok := d.GetOk("basic_resource_setting"); ok {
-			updateRequest.BasicResourceSetting = expandBasicResourceSetting(v.([]interface{}))
+			updateRequest.BasicResourceSetting = flinkAPI.ExpandBasicResourceSetting(v.([]interface{}))
 		}
 		update = true
 	}
 
 	if d.HasChange("user_flink_conf") {
 		if v, ok := d.GetOk("user_flink_conf"); ok {
-			updateRequest.FlinkConf = expandFlinkConf(v.(map[string]interface{}))
+			updateRequest.FlinkConf = flinkAPI.ExpandFlinkConf(v.(map[string]interface{}))
 		}
 		update = true
 	}
 
 	if d.HasChange("labels") {
 		if v, ok := d.GetOk("labels"); ok {
-			updateRequest.Labels = expandLabels(v.(map[string]interface{}))
+			updateRequest.Labels = flinkAPI.ExpandLabels(v.(map[string]interface{}))
 		}
 		update = true
 	}
 
 	if d.HasChange("logging") {
 		if v, ok := d.GetOk("logging"); ok {
-			updateRequest.Logging = expandLogging(v.([]interface{}))
+			updateRequest.Logging = flinkAPI.ExpandLogging(v.([]interface{}))
 		}
 		update = true
 	}
@@ -500,217 +499,7 @@ func resourceAliCloudFlinkSessionClusterDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-// Helper functions for expanding and flattening schema data
-
-func expandBasicResourceSetting(configured []interface{}) *flinkAPI.BasicResourceSetting {
-	if len(configured) == 0 || configured[0] == nil {
-		return nil
-	}
-
-	raw := configured[0].(map[string]interface{})
-	setting := &flinkAPI.BasicResourceSetting{}
-
-	if v, ok := raw["parallelism"]; ok && v.(int) > 0 {
-		setting.Parallelism = int64(v.(int))
-	}
-
-	if v, ok := raw["jobmanager_resource_setting_spec"]; ok {
-		setting.JobManagerResourceSettingSpec = expandBasicResourceSettingSpec(v.([]interface{}))
-	}
-
-	if v, ok := raw["taskmanager_resource_setting_spec"]; ok {
-		setting.TaskManagerResourceSettingSpec = expandBasicResourceSettingSpec(v.([]interface{}))
-	}
-
-	return setting
-}
-
-func expandBasicResourceSettingSpec(configured []interface{}) *flinkAPI.BasicResourceSettingSpec {
-	if len(configured) == 0 || configured[0] == nil {
-		return nil
-	}
-
-	raw := configured[0].(map[string]interface{})
-	spec := &flinkAPI.BasicResourceSettingSpec{}
-
-	if v, ok := raw["cpu"]; ok && v.(float64) > 0 {
-		spec.Cpu = v.(float64)
-	}
-
-	if v, ok := raw["memory"]; ok && v.(string) != "" {
-		spec.Memory = v.(string)
-	}
-
-	return spec
-}
-
-func expandFlinkConf(configured map[string]interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-	for k, v := range configured {
-		result[k] = v
-	}
-	return result
-}
-
-func expandLabels(configured map[string]interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-	for k, v := range configured {
-		result[k] = v
-	}
-	return result
-}
-
-func expandLogging(configured []interface{}) *flinkAPI.Logging {
-	if len(configured) == 0 || configured[0] == nil {
-		return nil
-	}
-
-	raw := configured[0].(map[string]interface{})
-	logging := &flinkAPI.Logging{}
-
-	if v, ok := raw["logging_profile"]; ok {
-		logging.LoggingProfile = v.(string)
-	}
-
-	if v, ok := raw["log4j2_configuration_template"]; ok {
-		logging.Log4j2ConfigurationTemplate = v.(string)
-	}
-
-	if v, ok := raw["log4j_loggers"]; ok {
-		logging.Log4jLoggers = expandLog4jLoggers(v.([]interface{}))
-	}
-
-	if v, ok := raw["log_reserve_policy"]; ok {
-		logging.LogReservePolicy = expandLogReservePolicy(v.([]interface{}))
-	}
-
-	return logging
-}
-
-func expandLog4jLoggers(configured []interface{}) []flinkAPI.Log4jLogger {
-	loggers := make([]flinkAPI.Log4jLogger, len(configured))
-	for i, raw := range configured {
-		logger := raw.(map[string]interface{})
-		loggers[i] = flinkAPI.Log4jLogger{
-			LoggerName:  logger["logger_name"].(string),
-			LoggerLevel: logger["logger_level"].(string),
-		}
-	}
-	return loggers
-}
-
-func expandLogReservePolicy(configured []interface{}) *flinkAPI.LogReservePolicy {
-	if len(configured) == 0 || configured[0] == nil {
-		return nil
-	}
-
-	raw := configured[0].(map[string]interface{})
-	return &flinkAPI.LogReservePolicy{
-		ExpirationDays: raw["expiration_days"].(int),
-		OpenHistory:    raw["open_history"].(bool),
-	}
-}
-
-func flattenBasicResourceSetting(setting *flinkAPI.BasicResourceSetting) []interface{} {
-	if setting == nil {
-		return []interface{}{}
-	}
-
-	result := map[string]interface{}{
-		"parallelism": int(setting.Parallelism),
-	}
-
-	if setting.JobManagerResourceSettingSpec != nil {
-		result["jobmanager_resource_setting_spec"] = flattenBasicResourceSettingSpec(setting.JobManagerResourceSettingSpec)
-	}
-
-	if setting.TaskManagerResourceSettingSpec != nil {
-		result["taskmanager_resource_setting_spec"] = flattenBasicResourceSettingSpec(setting.TaskManagerResourceSettingSpec)
-	}
-
-	return []interface{}{result}
-}
-
-func flattenBasicResourceSettingSpec(spec *flinkAPI.BasicResourceSettingSpec) []interface{} {
-	if spec == nil {
-		return []interface{}{}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"cpu":    spec.Cpu,
-			"memory": spec.Memory,
-		},
-	}
-}
-
-func flattenFlinkConf(flinkConf map[string]interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-	for k, v := range flinkConf {
-		result[k] = v
-	}
-	return result
-}
-
-func flattenLabels(labels map[string]interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-	for k, v := range labels {
-		result[k] = v
-	}
-	return result
-}
-
-func flattenLogging(logging *flinkAPI.Logging) []interface{} {
-	if logging == nil {
-		return []interface{}{}
-	}
-
-	result := map[string]interface{}{
-		"logging_profile":               logging.LoggingProfile,
-		"log4j2_configuration_template": logging.Log4j2ConfigurationTemplate,
-	}
-
-	if len(logging.Log4jLoggers) > 0 {
-		result["log4j_loggers"] = flattenLog4jLoggers(logging.Log4jLoggers)
-	}
-
-	if logging.LogReservePolicy != nil {
-		result["log_reserve_policy"] = flattenLogReservePolicy(logging.LogReservePolicy)
-	}
-
-	return []interface{}{result}
-}
-
-func flattenLog4jLoggers(loggers []flinkAPI.Log4jLogger) []interface{} {
-	result := make([]interface{}, len(loggers))
-	for i, logger := range loggers {
-		result[i] = map[string]interface{}{
-			"logger_name":  logger.LoggerName,
-			"logger_level": logger.LoggerLevel,
-		}
-	}
-	return result
-}
-
-func flattenLogReservePolicy(policy *flinkAPI.LogReservePolicy) []interface{} {
-	if policy == nil {
-		return []interface{}{}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"expiration_days": policy.ExpirationDays,
-			"open_history":    policy.OpenHistory,
-		},
-	}
-}
-
-// Helper function to format timestamp
-func formatTimestamp(timestamp int64) string {
-	return time.Unix(timestamp/1000, 0).Format(time.RFC3339)
-}
-
-// handleSessionClusterStatusChange handles starting/stopping session cluster based on target status
+// Helper function to handle session cluster status changes
 func handleSessionClusterStatusChange(d *schema.ResourceData, flinkService *FlinkService, workspaceId, namespaceName, sessionClusterName, targetStatus string) error {
 	// Get current status
 	currentCluster, err := flinkService.DescribeSessionCluster(d.Id())

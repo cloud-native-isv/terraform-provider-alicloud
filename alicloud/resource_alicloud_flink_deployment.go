@@ -527,7 +527,7 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	logging := resourceAliCloudFlinkDeploymentExpandLogging(d)
+	logging := aliyunFlinkAPI.ExpandLogging(d.Get("logging").([]interface{}))
 	if logging != nil {
 		deployment.Logging = logging
 	}
@@ -694,7 +694,7 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 	}
 
 	if deployment.Logging != nil {
-		d.Set("logging", resourceAliCloudFlinkDeploymentflattenLogging(deployment.Logging))
+		d.Set("logging", aliyunFlinkAPI.FlattenLogging(deployment.Logging))
 	}
 
 	if deployment.Labels != nil && len(deployment.Labels) > 0 {
@@ -894,7 +894,7 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("logging") {
-		logging := resourceAliCloudFlinkDeploymentExpandLogging(d)
+		logging := aliyunFlinkAPI.ExpandLogging(d.Get("logging").([]interface{}))
 		if logging != nil {
 			updateRequest.Logging = logging
 		} else {
@@ -1098,30 +1098,40 @@ func resourceAliCloudFlinkDeploymentExpandLogging(d *schema.ResourceData) *aliyu
 			loggingMap := loggings[0].(map[string]interface{})
 			logging := &aliyunFlinkAPI.Logging{}
 
-			if profile, ok := loggingMap["logging_profile"].(string); ok && profile != "" {
-				logging.LoggingProfile = profile
+			if profile, ok := loggingMap["logging_profile"]; ok && profile != nil {
+				if profileStr, ok := profile.(string); ok && profileStr != "" {
+					logging.LoggingProfile = profileStr
+				}
 			}
 
-			if template, ok := loggingMap["log4j2_configuration_template"].(string); ok && template != "" {
-				logging.Log4j2ConfigurationTemplate = template
+			if template, ok := loggingMap["log4j2_configuration_template"]; ok && template != nil {
+				if templateStr, ok := template.(string); ok && templateStr != "" {
+					logging.Log4j2ConfigurationTemplate = templateStr
+				}
 			}
 
-			if loggersList, ok := loggingMap["log4j_loggers"].([]interface{}); ok && len(loggersList) > 0 {
-				logging.Log4jLoggers = make([]aliyunFlinkAPI.Log4jLogger, len(loggersList))
-				for i, loggerItem := range loggersList {
-					loggerMap := loggerItem.(map[string]interface{})
-					logging.Log4jLoggers[i] = aliyunFlinkAPI.Log4jLogger{
-						LoggerName:  loggerMap["logger_name"].(string),
-						LoggerLevel: loggerMap["logger_level"].(string),
+			if loggersList, ok := loggingMap["log4j_loggers"]; ok && loggersList != nil {
+				if loggersSlice, ok := loggersList.([]interface{}); ok && len(loggersSlice) > 0 {
+					logging.Log4jLoggers = make([]aliyunFlinkAPI.Log4jLogger, len(loggersSlice))
+					for i, loggerItem := range loggersSlice {
+						if loggerItem != nil {
+							loggerMap := loggerItem.(map[string]interface{})
+							logging.Log4jLoggers[i] = aliyunFlinkAPI.Log4jLogger{
+								LoggerName:  loggerMap["logger_name"].(string),
+								LoggerLevel: loggerMap["logger_level"].(string),
+							}
+						}
 					}
 				}
 			}
 
-			if reservePolicyList, ok := loggingMap["log_reserve_policy"].([]interface{}); ok && len(reservePolicyList) > 0 {
-				policyMap := reservePolicyList[0].(map[string]interface{})
-				logging.LogReservePolicy = &aliyunFlinkAPI.LogReservePolicy{
-					ExpirationDays: policyMap["expiration_days"].(int),
-					OpenHistory:    policyMap["open_history"].(bool),
+			if reservePolicyList, ok := loggingMap["log_reserve_policy"]; ok && reservePolicyList != nil {
+				if policySlice, ok := reservePolicyList.([]interface{}); ok && len(policySlice) > 0 && policySlice[0] != nil {
+					policyMap := policySlice[0].(map[string]interface{})
+					logging.LogReservePolicy = &aliyunFlinkAPI.LogReservePolicy{
+						ExpirationDays: policyMap["expiration_days"].(int),
+						OpenHistory:    policyMap["open_history"].(bool),
+					}
 				}
 			}
 
