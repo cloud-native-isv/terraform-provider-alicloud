@@ -566,7 +566,7 @@ func (s *ArmsService) DescribeArmsIntegration(id string) (object map[string]inte
 		// Convert string ID to int64
 		integrationIdInt, parseErr := strconv.ParseInt(id, 10, 64)
 		if parseErr == nil {
-			integration, err := s.armsAPI.GetIntegrationByID(integrationIdInt, true)
+			integration, err := s.armsAPI.GetIntegrationById(integrationIdInt, true)
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				result := map[string]interface{}{

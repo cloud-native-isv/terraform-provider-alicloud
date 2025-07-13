@@ -59,6 +59,25 @@ func (s *FlinkService) GetDeploymentFoldersByParent(workspaceId, namespace, pare
 	return s.flinkAPI.GetDeploymentFoldersByParent(workspaceId, namespace, parentId)
 }
 
+// FindDeploymentFolderByName finds a deployment folder by name within a specific parent folder
+func (s *FlinkService) FindDeploymentFolderByName(workspaceId, namespace, folderName, parentId string) (*aliyunFlinkAPI.DeploymentFolder, error) {
+	// Get folders only within the specific parent folder for better performance
+	folders, err := s.GetDeploymentFoldersByParent(workspaceId, namespace, parentId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	// Filter folders by name within the parent folder
+	for _, folder := range folders {
+		if folder.Name == folderName {
+			return folder, nil
+		}
+	}
+
+	// If no folder found, return nil without error (not found is a valid state)
+	return nil, nil
+}
+
 // DeploymentFolderStateRefreshFunc returns a StateRefreshFunc for deployment folder state management
 func (s *FlinkService) DeploymentFolderStateRefreshFunc(workspaceId, namespace, folderId string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {

@@ -150,7 +150,8 @@ func (s *SlsService) RemoveConfigFromMachineGroup(projectName, configName, machi
 
 // ValidateMachineGroupIdentifyType validates the machine group identify type
 func (s *SlsService) ValidateMachineGroupIdentifyType(identifyType string) error {
-	validTypes := []string{aliyunSlsAPI.MachineIDTypeIP, aliyunSlsAPI.MachineIDTypeUserDefined}
+	// Use constants from the SLS SDK directly
+	validTypes := []string{"ip", "userdefined"}
 	for _, validType := range validTypes {
 		if identifyType == validType {
 			return nil

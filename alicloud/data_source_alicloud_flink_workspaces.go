@@ -134,25 +134,25 @@ func dataSourceAliCloudFlinkWorkspacesRead(d *schema.ResourceData, meta interfac
 
 	for _, instance := range workspaces {
 		workspace := map[string]interface{}{
-			"id":                instance.ID,
+			"id":                instance.Id,
 			"name":              instance.Name,
 			"status":            instance.Status,
 			"region":            instance.Region,
 			"architecture_type": instance.ArchitectureType,
-			"ask_cluster_id":    instance.AskClusterID,
+			"ask_cluster_id":    instance.AskClusterId,
 			"charge_type":       instance.ChargeType,
 			"monitor_type":      instance.MonitorType,
 			"order_state":       instance.OrderState,
-			"resource_id":       instance.ResourceID,
-			"resource_group_id": instance.ResourceGroupID,
-			"uid":               instance.UID,
-			"vpc_id":            instance.VPCID,
+			"resource_id":       instance.ResourceId,
+			"resource_group_id": instance.ResourceGroupId,
+			"uid":               instance.Uid,
+			"vpc_id":            instance.VpcId,
 			"create_time":       instance.CreateTime,
 		}
 
 		// Add VSwitchIDs as a list
-		if instance.VSwitchIDs != nil && len(instance.VSwitchIDs) > 0 {
-			workspace["vswitch_ids"] = instance.VSwitchIDs
+		if instance.VSwitchIds != nil && len(instance.VSwitchIds) > 0 {
+			workspace["vswitch_ids"] = instance.VSwitchIds
 		}
 
 		// Add Storage as a map
@@ -169,7 +169,7 @@ func dataSourceAliCloudFlinkWorkspacesRead(d *schema.ResourceData, meta interfac
 		}
 
 		workspaceMaps = append(workspaceMaps, workspace)
-		ids = append(ids, instance.ID)
+		ids = append(ids, instance.Id)
 		names = append(names, instance.Name)
 	}
 

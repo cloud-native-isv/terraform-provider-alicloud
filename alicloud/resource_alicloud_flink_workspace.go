@@ -230,17 +230,17 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	// Create workspace request using cws-lib-go types
 	workspaceRequest := &aliyunFlinkAPI.Workspace{
 		Name:            d.Get("name").(string),
-		ResourceGroupID: d.Get("resource_group_id").(string),
-		ZoneID:          d.Get("zone_id").(string),
-		VPCID:           d.Get("vpc_id").(string),
+		ResourceGroupId: d.Get("resource_group_id").(string),
+		ZoneId:          d.Get("zone_id").(string),
+		VpcId:           d.Get("vpc_id").(string),
 		Region:          client.RegionId,
 	}
 
 	// Handle vswitch_ids
 	if vswitchIds := d.Get("vswitch_ids").([]interface{}); len(vswitchIds) > 0 {
-		workspaceRequest.VSwitchIDs = make([]string, len(vswitchIds))
+		workspaceRequest.VSwitchIds = make([]string, len(vswitchIds))
 		for i, v := range vswitchIds {
-			workspaceRequest.VSwitchIDs[i] = v.(string)
+			workspaceRequest.VSwitchIds[i] = v.(string)
 		}
 	}
 
@@ -249,7 +249,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		if workspaceRequest.SecurityGroupInfo == nil {
 			workspaceRequest.SecurityGroupInfo = &aliyunFlinkAPI.SecurityGroupInfo{}
 		}
-		workspaceRequest.SecurityGroupInfo.SecurityGroupID = sgId.(string)
+		workspaceRequest.SecurityGroupInfo.SecurityGroupId = sgId.(string)
 	}
 
 	// Handle architecture_type
@@ -288,14 +288,14 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		// Set high availability flag
 		workspaceRequest.HighAvailability = &aliyunFlinkAPI.HighAvailability{
 			Enabled: true,
-			ZoneID:  haMap["zone_id"].(string),
+			ZoneId:  haMap["zone_id"].(string),
 		}
 
 		// Handle HA vswitch IDs
 		if haVswitchIds := haMap["vswitch_ids"].([]interface{}); len(haVswitchIds) > 0 {
-			workspaceRequest.HighAvailability.VSwitchIDs = make([]string, len(haVswitchIds))
+			workspaceRequest.HighAvailability.VSwitchIds = make([]string, len(haVswitchIds))
 			for i, v := range haVswitchIds {
-				workspaceRequest.HighAvailability.VSwitchIDs[i] = v.(string)
+				workspaceRequest.HighAvailability.VSwitchIds[i] = v.(string)
 			}
 		}
 
@@ -328,11 +328,11 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_workspace", "CreateInstance", AlibabaCloudSdkGoERROR)
 	}
 
-	if workspace == nil || workspace.ID == "" {
+	if workspace == nil || workspace.Id == "" {
 		return WrapError(Error("Failed to get instance ID from workspace"))
 	}
 
-	d.SetId(workspace.ID)
+	d.SetId(workspace.Id)
 
 	// Wait for the instance to be in running state using service layer function
 	if err := flinkService.WaitForWorkspaceStarting(d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
@@ -362,11 +362,11 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 
 	// Set attributes from workspace
 	d.Set("name", workspace.Name)
-	d.Set("resource_group_id", workspace.ResourceGroupID)
+	d.Set("resource_group_id", workspace.ResourceGroupId)
 
 	// Ensure zone_id is always set to prevent forces replacement
-	if workspace.ZoneID != "" {
-		d.Set("zone_id", workspace.ZoneID)
+	if workspace.ZoneId != "" {
+		d.Set("zone_id", workspace.ZoneId)
 	} else {
 		// If API doesn't return zone_id, preserve the configured value
 		if configuredZoneId := d.Get("zone_id").(string); configuredZoneId != "" {
@@ -374,11 +374,11 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	d.Set("vpc_id", workspace.VPCID)
+	d.Set("vpc_id", workspace.VpcId)
 
 	// Handle vswitch_ids with proper type conversion
-	if workspace.VSwitchIDs != nil && len(workspace.VSwitchIDs) > 0 {
-		d.Set("vswitch_ids", workspace.VSwitchIDs)
+	if workspace.VSwitchIds != nil && len(workspace.VSwitchIds) > 0 {
+		d.Set("vswitch_ids", workspace.VSwitchIds)
 	} else {
 		// Preserve configured vswitch_ids if API doesn't return them
 		if configuredVSwitchIds := d.Get("vswitch_ids").([]interface{}); len(configuredVSwitchIds) > 0 {
@@ -387,8 +387,8 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	// Handle security group from SecurityGroupInfo structure
-	if workspace.SecurityGroupInfo != nil && workspace.SecurityGroupInfo.SecurityGroupID != "" {
-		d.Set("security_group_id", workspace.SecurityGroupInfo.SecurityGroupID)
+	if workspace.SecurityGroupInfo != nil && workspace.SecurityGroupInfo.SecurityGroupId != "" {
+		d.Set("security_group_id", workspace.SecurityGroupInfo.SecurityGroupId)
 	}
 
 	// Set fields that are returned by the API with fallback to configured values
@@ -403,8 +403,8 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	// Always set resource_id if available
-	if workspace.ResourceID != "" {
-		d.Set("resource_id", workspace.ResourceID)
+	if workspace.ResourceId != "" {
+		d.Set("resource_id", workspace.ResourceId)
 	}
 
 	// Set resource configuration
@@ -427,8 +427,8 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 	// Set HA configuration
 	if workspace.HighAvailability != nil && workspace.HighAvailability.Enabled {
 		haConfig := map[string]interface{}{
-			"zone_id":     workspace.HighAvailability.ZoneID,
-			"vswitch_ids": workspace.HighAvailability.VSwitchIDs,
+			"zone_id":     workspace.HighAvailability.ZoneId,
+			"vswitch_ids": workspace.HighAvailability.VSwitchIds,
 		}
 
 		// Add resource info if available

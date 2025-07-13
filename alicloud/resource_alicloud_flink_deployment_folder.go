@@ -81,9 +81,50 @@ func resourceAliCloudFlinkDeploymentFolderCreate(d *schema.ResourceData, meta in
 	folderName := d.Get("folder_name").(string)
 	parentId := d.Get("parent_id").(string)
 
+	// Check if folder already exists before creating
+	existingFolder, err := service.FindDeploymentFolderByName(workspaceId, namespaceName, folderName, parentId)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment_folder", "FindDeploymentFolderByName", AlibabaCloudSdkGoERROR)
+	}
+
+	if existingFolder != nil {
+		// Folder already exists, set resource ID and proceed to read
+		d.SetId(service.BuildDeploymentFolderId(workspaceId, namespaceName, existingFolder.FolderId))
+
+		// Wait for folder to be available
+		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, service.DeploymentFolderStateRefreshFunc(workspaceId, namespaceName, existingFolder.FolderId, []string{}))
+		if _, err := stateConf.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
+
+		return resourceAliCloudFlinkDeploymentFolderRead(d, meta)
+	}
+
 	// Create deployment folder
 	folder, err := service.CreateDeploymentFolder(workspaceId, namespaceName, folderName, parentId)
 	if err != nil {
+		// Check if this is a duplicate folder error using the enhanced IsAlreadyExistError
+		if IsAlreadyExistError(err) {
+			// Try to find the existing folder again
+			existingFolder, findErr := service.FindDeploymentFolderByName(workspaceId, namespaceName, folderName, parentId)
+			if findErr != nil {
+				return WrapErrorf(findErr, DefaultErrorMsg, "alicloud_flink_deployment_folder", "FindDeploymentFolderByName", AlibabaCloudSdkGoERROR)
+			}
+
+			if existingFolder != nil {
+				// Set resource ID using the existing folder
+				d.SetId(service.BuildDeploymentFolderId(workspaceId, namespaceName, existingFolder.FolderId))
+
+				// Wait for folder to be available
+				stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, service.DeploymentFolderStateRefreshFunc(workspaceId, namespaceName, existingFolder.FolderId, []string{}))
+				if _, err := stateConf.WaitForState(); err != nil {
+					return WrapErrorf(err, IdMsg, d.Id())
+				}
+
+				return resourceAliCloudFlinkDeploymentFolderRead(d, meta)
+			}
+		}
+
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_deployment_folder", "CreateDeploymentFolder", AlibabaCloudSdkGoERROR)
 	}
 

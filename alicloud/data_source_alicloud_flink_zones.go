@@ -80,20 +80,20 @@ func dataSourceAliCloudFlinkZonesRead(d *schema.ResourceData, meta interface{}) 
 	for _, zone := range zones {
 		// Apply filters
 		if len(idsMap) > 0 {
-			if _, ok := idsMap[zone.ZoneID]; !ok {
+			if _, ok := idsMap[zone.ZoneId]; !ok {
 				continue
 			}
 		}
 
 		zoneMap := map[string]interface{}{
-			"id":         zone.ZoneID,
-			"zone_id":    zone.ZoneID,
+			"id":         zone.ZoneId,
+			"zone_id":    zone.ZoneId,
 			"zone_name":  zone.ZoneName,
 			"deprecated": zone.Deprecated,
 		}
 
 		zoneMaps = append(zoneMaps, zoneMap)
-		filteredIds = append(filteredIds, zone.ZoneID)
+		filteredIds = append(filteredIds, zone.ZoneId)
 	}
 
 	d.SetId(fmt.Sprintf("flink_zones_%d", time.Now().Unix()))

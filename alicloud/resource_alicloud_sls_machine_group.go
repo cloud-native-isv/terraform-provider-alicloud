@@ -33,8 +33,8 @@ func resourceAliCloudLogMachineGroup() *schema.Resource {
 			"identify_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      aliyunSlsAPI.MachineIDTypeIP,
-				ValidateFunc: validation.StringInSlice([]string{aliyunSlsAPI.MachineIDTypeIP, aliyunSlsAPI.MachineIDTypeUserDefined}, false),
+				Default:      "ip",
+				ValidateFunc: validation.StringInSlice([]string{"ip", "userdefined"}, false),
 			},
 			"identify_list": {
 				Type:     schema.TypeList,
@@ -62,8 +62,8 @@ func resourceAliCloudLogMachineGroupCreate(d *schema.ResourceData, meta interfac
 	// Build machine group object
 	machineGroup := &aliyunSlsAPI.MachineGroup{
 		Name:          machineGroupName,
-		MachineIDType: d.Get("identify_type").(string),
-		MachineIDList: expandStringList(d.Get("identify_list").([]interface{})),
+		MachineIdType: d.Get("identify_type").(string),
+		MachineIdList: expandStringList(d.Get("identify_list").([]interface{})),
 	}
 
 	// Set topic if provided
@@ -117,8 +117,8 @@ func resourceAliCloudLogMachineGroupRead(d *schema.ResourceData, meta interface{
 	// Set resource attributes
 	d.Set("project", projectName)
 	d.Set("name", machineGroup.Name)
-	d.Set("identify_type", machineGroup.MachineIDType)
-	d.Set("identify_list", machineGroup.MachineIDList)
+	d.Set("identify_type", machineGroup.MachineIdType)
+	d.Set("identify_list", machineGroup.MachineIdList)
 
 	// Set topic if available
 	if machineGroup.Attribute != nil {
@@ -144,8 +144,8 @@ func resourceAliCloudLogMachineGroupUpdate(d *schema.ResourceData, meta interfac
 		// Build updated machine group object
 		machineGroup := &aliyunSlsAPI.MachineGroup{
 			Name:          machineGroupName,
-			MachineIDType: d.Get("identify_type").(string),
-			MachineIDList: expandStringList(d.Get("identify_list").([]interface{})),
+			MachineIdType: d.Get("identify_type").(string),
+			MachineIdList: expandStringList(d.Get("identify_list").([]interface{})),
 		}
 
 		// Set topic if provided

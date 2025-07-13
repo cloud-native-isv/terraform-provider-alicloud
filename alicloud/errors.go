@@ -453,12 +453,21 @@ func IsAlreadyExistError(err error) bool {
 	if e, ok := err.(*tea.SDKError); ok {
 		if e.Code != nil {
 			code := strings.ToLower(*e.Code)
+			// Check for specific Flink error code
+			if *e.Code == "990002" {
+				return true
+			}
 			if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") {
 				return true
 			}
 		}
 		if e.Message != nil {
 			message := strings.ToLower(*e.Message)
+			// Check for specific Flink folder duplicate error messages
+			if strings.Contains(message, "the same folder name is already existing") ||
+				strings.Contains(message, "already existing in the parent folder") {
+				return true
+			}
 			if strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
 				return true
 			}
@@ -468,6 +477,15 @@ func IsAlreadyExistError(err error) bool {
 	if e, ok := err.(*errors.ServerError); ok {
 		code := strings.ToLower(e.ErrorCode())
 		message := strings.ToLower(e.Message())
+		// Check for specific Flink error code
+		if e.ErrorCode() == "990002" {
+			return true
+		}
+		// Check for specific Flink folder duplicate error messages
+		if strings.Contains(message, "the same folder name is already existing") ||
+			strings.Contains(message, "already existing in the parent folder") {
+			return true
+		}
 		if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") ||
 			strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
 			return true
@@ -477,6 +495,15 @@ func IsAlreadyExistError(err error) bool {
 	if e, ok := err.(*ProviderError); ok {
 		code := strings.ToLower(e.ErrorCode())
 		message := strings.ToLower(e.Message())
+		// Check for specific Flink error code
+		if e.ErrorCode() == "990002" {
+			return true
+		}
+		// Check for specific Flink folder duplicate error messages
+		if strings.Contains(message, "the same folder name is already existing") ||
+			strings.Contains(message, "already existing in the parent folder") {
+			return true
+		}
 		if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") ||
 			strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
 			return true
@@ -486,14 +513,32 @@ func IsAlreadyExistError(err error) bool {
 	if e, ok := err.(*common.Error); ok {
 		code := strings.ToLower(e.Code)
 		message := strings.ToLower(e.Message)
+		// Check for specific Flink error code
+		if e.Code == "990002" {
+			return true
+		}
+		// Check for specific Flink folder duplicate error messages
+		if strings.Contains(message, "the same folder name is already existing") ||
+			strings.Contains(message, "already existing in the parent folder") {
+			return true
+		}
 		if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") ||
 			strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
 			return true
 		}
 	}
 
-	// Check common "already exists" patterns in error message
+	// Check error message for specific patterns
 	errorMsg := strings.ToLower(err.Error())
+
+	// Check for specific Flink error code and messages first
+	if strings.Contains(err.Error(), "990002") ||
+		strings.Contains(errorMsg, "the same folder name is already existing") ||
+		strings.Contains(errorMsg, "already existing in the parent folder") {
+		return true
+	}
+
+	// Check common "already exists" patterns in error message
 	alreadyExistPatterns := []string{
 		"already exist",
 		"alreadyexist",
