@@ -81,7 +81,9 @@ require (
 	github.com/alibabacloud-go/nas-20170626/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/openapi-util v0.1.1 // indirect
 	github.com/alibabacloud-go/rds-20140815/v5 v5.0.5 // indirect
+	github.com/alibabacloud-go/selectdb-20230522/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/sls-20201230/v6 v6.0.0-00010101000000-000000000000 // indirect
+	github.com/alibabacloud-go/tablestore-20201209 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/tea-oss-utils v1.1.0 // indirect
 	github.com/alibabacloud-go/tea-roa-utils v1.1.5 // indirect
 	github.com/alibabacloud-go/tea-rpc-utils v1.1.2 // indirect
