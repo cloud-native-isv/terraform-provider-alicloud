@@ -1,76 +1,113 @@
 package alicloud
 
 import (
+	"fmt"
+	"strings"
+	"time"
+
 	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
+
+func parseTableId(id string) (string, string, error) {
+	parts := strings.Split(id, ":")
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("invalid table ID format, expected instanceName:tableName, got %s", id)
+	}
+	return parts[0], parts[1], nil
+}
 
 // Table management functions
 
 func (s *OtsService) CreateOtsTable(d *schema.ResourceData, instanceName string) error {
-	_, err := s.getTablestoreAPI()
+	// Validate input parameters
+	if instanceName == "" {
+		return fmt.Errorf("instanceName cannot be empty")
+	}
+
+	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return WrapError(err)
 	}
 
-	// tableName := d.Get("table_name").(string)
+	tableName := d.Get("table_name").(string)
+	if tableName == "" {
+		return fmt.Errorf("table_name cannot be empty")
+	}
 
-	// // Build primary key schema
-	// primaryKeyList := d.Get("primary_key").([]interface{})
-	// var primaryKeys []tablestore.PrimaryKeyColumn
-	// for _, pk := range primaryKeyList {
-	// 	pkMap := pk.(map[string]interface{})
-	// 	primaryKeys = append(primaryKeys, tablestore.PrimaryKeyColumn{
-	// 		Name: pkMap["name"].(string),
-	// 		Type: pkMap["type"].(string),
-	// 	})
-	// }
+	// Build primary key schema
+	primaryKeyList := d.Get("primary_key").([]interface{})
+	if len(primaryKeyList) == 0 {
+		return fmt.Errorf("primary_key must be specified")
+	}
 
-	// options := &tablestore.CreateTableOptions{
-	// 	InstanceName: instanceName,
-	// 	TableName:    tableName,
-	// 	PrimaryKeys:  primaryKeys,
-	// 	TableOption: tablestore.TableOption{
-	// 		TimeToLive:                int32(d.Get("time_to_live").(int)),
-	// 		MaxVersions:               int32(d.Get("max_version").(int)),
-	// 		DeviationCellVersionInSec: int64(d.Get("deviation_cell_version_in_sec").(int)),
-	// 	},
-	// 	ReservedThroughput: tablestore.ReservedThroughput{
-	// 		ReadCapacity:  int32(d.Get("read_capacity").(int)),
-	// 		WriteCapacity: int32(d.Get("write_capacity").(int)),
-	// 	},
-	// }
+	var primaryKeys []tablestoreAPI.PrimaryKeyColumn
+	for _, pk := range primaryKeyList {
+		pkMap := pk.(map[string]interface{})
+		primaryKeys = append(primaryKeys, tablestoreAPI.PrimaryKeyColumn{
+			Name: pkMap["name"].(string),
+			Type: pkMap["type"].(string),
+		})
+	}
 
-	// // Set defined columns if provided
-	// if definedColumns, ok := d.GetOk("defined_column"); ok {
-	// 	var columns []tablestore.DefinedColumn
-	// 	for _, col := range definedColumns.([]interface{}) {
-	// 		colMap := col.(map[string]interface{})
-	// 		columns = append(columns, tablestore.DefinedColumn{
-	// 			Name: colMap["name"].(string),
-	// 			Type: colMap["type"].(string),
-	// 		})
-	// 	}
-	// 	options.DefinedColumns = columns
-	// }
+	options := &tablestoreAPI.CreateTableOptions{
+		InstanceName: instanceName,
+		TableName:    tableName,
+		PrimaryKeys:  primaryKeys,
+		TableOption: tablestoreAPI.TableOption{
+			TimeToLive:                int32(d.Get("time_to_live").(int)),
+			MaxVersions:               int32(d.Get("max_version").(int)),
+			DeviationCellVersionInSec: int64(d.Get("deviation_cell_version_in_sec").(int)),
+		},
+		ReservedThroughput: tablestoreAPI.ReservedThroughput{
+			ReadCapacity:  int32(d.Get("read_capacity").(int)),
+			WriteCapacity: int32(d.Get("write_capacity").(int)),
+		},
+	}
 
-	// // Set stream specification if provided
-	// if enableStream, ok := d.GetOk("enable_sse"); ok && enableStream.(bool) {
-	// 	options.StreamSpec = &tablestore.StreamSpecification{
-	// 		EnableStream:   true,
-	// 		ExpirationTime: int32(d.Get("sse_key_type").(int)), // This mapping might need adjustment
-	// 	}
-	// }
+	// Set defined columns if provided
+	if definedColumns, ok := d.GetOk("defined_column"); ok {
+		var columns []tablestoreAPI.DefinedColumn
+		for _, col := range definedColumns.([]interface{}) {
+			colMap := col.(map[string]interface{})
+			columns = append(columns, tablestoreAPI.DefinedColumn{
+				Name: colMap["name"].(string),
+				Type: colMap["type"].(string),
+			})
+		}
+		options.DefinedColumns = columns
+	}
 
-	// if err := s.tablestoreAPI.CreateTable(options); err != nil {
-	// 	return WrapErrorf(err, DefaultErrorMsg, tableName, "CreateTable", AlibabaCloudSdkGoERROR)
-	// }
+	// Set stream specification if provided
+	if enableStream, ok := d.GetOk("enable_sse"); ok && enableStream.(bool) {
+		options.StreamSpec = &tablestoreAPI.StreamSpecification{
+			EnableStream:   true,
+			ExpirationTime: int32(d.Get("sse_key_type").(int)), // This mapping might need adjustment
+		}
+	}
 
-	// d.SetId(fmt.Sprintf("%s:%s", instanceName, tableName))
+	if err := api.CreateTable(options); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, tableName, "CreateTable", AlibabaCloudSdkGoERROR)
+	}
+
+	d.SetId(fmt.Sprintf("%s:%s", instanceName, tableName))
 	return nil
 }
 
-func (s *OtsService) DescribeOtsTable(instanceName, tableName string) (*tablestoreAPI.TablestoreTable, error) {
+func (s *OtsService) DescribeOtsTable(id string) (*tablestoreAPI.TablestoreTable, error) {
+	// Validate input parameter
+	if id == "" {
+		return nil, fmt.Errorf("table ID cannot be empty")
+	}
+
+	// Parse table ID to extract instance name and table name
+	// Format: instanceName:tableName
+	instanceName, tableName, err := parseTableId(id)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, id, "parseTableId", AlibabaCloudSdkGoERROR)
+	}
+
 	table, err := s.tablestoreAPI.GetTable(tableName)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidTableName.NotFound"}) {
@@ -82,84 +119,122 @@ func (s *OtsService) DescribeOtsTable(instanceName, tableName string) (*tablesto
 	return table, nil
 }
 
-func (s *OtsService) UpdateOtsTable(d *schema.ResourceData, instanceName, tableName string) error {
-	// api, err := s.getTablestoreAPI()
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
+func (s *OtsService) UpdateOtsTable(d *schema.ResourceData, id string) error {
+	// Validate input parameter
+	if id == "" {
+		return fmt.Errorf("table ID cannot be empty")
+	}
 
-	// options := &tablestore.UpdateTableOptions{}
-	// update := false
+	// Parse table ID to extract instance name and table name
+	instanceName, tableName, err := parseTableId(id)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, id, "parseTableId", AlibabaCloudSdkGoERROR)
+	}
 
-	// if d.HasChange("time_to_live") || d.HasChange("max_version") || d.HasChange("deviation_cell_version_in_sec") {
-	// 	options.TableOption = &tablestore.TableOption{
-	// 		TimeToLive:                int32(d.Get("time_to_live").(int)),
-	// 		MaxVersions:               int32(d.Get("max_version").(int)),
-	// 		DeviationCellVersionInSec: int64(d.Get("deviation_cell_version_in_sec").(int)),
-	// 	}
-	// 	update = true
-	// }
+	api, err := s.getTablestoreAPI()
+	if err != nil {
+		return WrapError(err)
+	}
 
-	// if d.HasChange("read_capacity") || d.HasChange("write_capacity") {
-	// 	options.ReservedThroughput = &tablestore.ReservedThroughput{
-	// 		ReadCapacity:  int32(d.Get("read_capacity").(int)),
-	// 		WriteCapacity: int32(d.Get("write_capacity").(int)),
-	// 	}
-	// 	update = true
-	// }
+	options := &tablestoreAPI.UpdateTableOptions{}
+	update := false
 
-	// if update {
-	// 	if err := s.tablestoreAPI.UpdateTable(tableName, options); err != nil {
-	// 		return WrapErrorf(err, DefaultErrorMsg, tableName, "UpdateTable", AlibabaCloudSdkGoERROR)
-	// 	}
-	// }
+	if d.HasChange("time_to_live") || d.HasChange("max_version") || d.HasChange("deviation_cell_version_in_sec") {
+		options.TableOption = &tablestoreAPI.TableOption{
+			TimeToLive:                int32(d.Get("time_to_live").(int)),
+			MaxVersions:               int32(d.Get("max_version").(int)),
+			DeviationCellVersionInSec: int64(d.Get("deviation_cell_version_in_sec").(int)),
+		}
+		update = true
+	}
 
-	return nil
-}
+	if d.HasChange("read_capacity") || d.HasChange("write_capacity") {
+		options.ReservedThroughput = &tablestoreAPI.ReservedThroughput{
+			ReadCapacity:  int32(d.Get("read_capacity").(int)),
+			WriteCapacity: int32(d.Get("write_capacity").(int)),
+		}
+		update = true
+	}
 
-func (s *OtsService) DeleteOtsTable(instanceName, tableName string) error {
-	// api, err := s.getTablestoreAPI()
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// if err := s.tablestoreAPI.DeleteTable(tableName); err != nil {
-	// 	if IsExpectedErrors(err, []string{"NotExist", "InvalidTableName.NotFound"}) {
-	// 		return nil
-	// 	}
-	// 	return WrapErrorf(err, DefaultErrorMsg, tableName, "DeleteTable", AlibabaCloudSdkGoERROR)
-	// }
+	if update {
+		if err := api.UpdateTable(tableName, options); err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, tableName, "UpdateTable", AlibabaCloudSdkGoERROR)
+		}
+	}
 
 	return nil
 }
 
-func (s *OtsService) WaitForOtsTable(instanceName, tableName string, status string, timeout int) error {
-	// deadline := time.Now().Add(time.Duration(timeout) * time.Second)
-	// for {
-	// 	table, err := s.DescribeOtsTable(instanceName, tableName)
-	// 	if err != nil {
-	// 		if NotFoundError(err) {
-	// 			if status == string(Deleted) {
-	// 				return nil
-	// 			}
-	// 		} else {
-	// 			return WrapError(err)
-	// 		}
-	// 	}
+func (s *OtsService) DeleteOtsTable(id string) error {
+	// Validate input parameter
+	if id == "" {
+		return fmt.Errorf("table ID cannot be empty")
+	}
 
-	// 	if table != nil && table.TableStatus == status {
-	// 		return nil
-	// 	}
+	// Parse table ID to extract instance name and table name
+	instanceName, tableName, err := parseTableId(id)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, id, "parseTableId", AlibabaCloudSdkGoERROR)
+	}
 
-	// 	if time.Now().After(deadline) {
-	// 		return WrapErrorf(err, WaitTimeoutMsg, tableName, GetFunc(1), timeout, table.TableStatus, status, ProviderERROR)
-	// 	}
-	// 	time.Sleep(DefaultIntervalShort * time.Second)
-	// }
+	api, err := s.getTablestoreAPI()
+	if err != nil {
+		return WrapError(err)
+	}
+
+	if err := api.DeleteTable(tableName); err != nil {
+		if IsExpectedErrors(err, []string{"NotExist", "InvalidTableName.NotFound"}) {
+			return nil
+		}
+		return WrapErrorf(err, DefaultErrorMsg, tableName, "DeleteTable", AlibabaCloudSdkGoERROR)
+	}
+
 	return nil
+}
+
+func (s *OtsService) WaitForOtsTable(id string, status string, timeout time.Duration) error {
+	// Validate input parameters
+	if id == "" {
+		return fmt.Errorf("table ID cannot be empty")
+	}
+	if status == "" {
+		return fmt.Errorf("status cannot be empty")
+	}
+
+	deadline := time.Now().Add(timeout)
+	for {
+		table, err := s.DescribeOtsTable(id)
+		if err != nil {
+			if NotFoundError(err) {
+				if status == string(Deleted) {
+					return nil
+				}
+			} else {
+				return WrapError(err)
+			}
+		}
+
+		if table != nil && table.TableStatus == status {
+			return nil
+		}
+
+		if time.Now().After(deadline) {
+			currentStatus := ""
+			if table != nil {
+				currentStatus = table.TableStatus
+			}
+			return WrapErrorf(err, WaitTimeoutMsg, id, GetFunc(1), int(timeout.Seconds()), currentStatus, status, ProviderERROR)
+		}
+		time.Sleep(DefaultIntervalShort * time.Second)
+	}
 }
 
 func (s *OtsService) ListOtsTable(instanceName string) ([]*tablestoreAPI.TablestoreTable, error) {
+	// Validate input parameter
+	if instanceName == "" {
+		return nil, fmt.Errorf("instanceName cannot be empty")
+	}
+
 	tables, err := s.tablestoreAPI.ListTables()
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, instanceName, "ListTables", AlibabaCloudSdkGoERROR)
@@ -169,10 +244,77 @@ func (s *OtsService) ListOtsTable(instanceName string) ([]*tablestoreAPI.Tablest
 }
 
 func (s *OtsService) ListOtsTables(instanceName string) ([]*tablestoreAPI.TablestoreTable, error) {
+	// Validate input parameter
+	if instanceName == "" {
+		return nil, fmt.Errorf("instanceName cannot be empty")
+	}
+
 	tables, err := s.tablestoreAPI.ListTables()
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, instanceName, "ListTables", AlibabaCloudSdkGoERROR)
 	}
 
 	return tables, nil
+}
+
+func (s *OtsService) OtsTableStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		table, err := s.DescribeOtsTable(id)
+		if err != nil {
+			if NotFoundError(err) {
+				// For deletion scenarios, return nil to indicate resource absence
+				// This allows WaitForState to properly handle the "waiting for absence" case
+				return nil, "", nil
+			}
+			return nil, "Failed", WrapErrorf(err, DefaultErrorMsg, id, "DescribeOtsTable", AlibabaCloudSdkGoERROR)
+		}
+
+		// If table is nil, it means the resource doesn't exist
+		if table == nil {
+			// For deletion scenarios, return nil to indicate resource absence
+			return nil, "", nil
+		}
+
+		return table, table.TableStatus, nil
+	}
+}
+
+func (s *OtsService) WaitForOtsTableCreating(id string, timeout time.Duration) error {
+	createPendingStatus := []string{"Creating", "Updating"}
+	createExpectStatus := []string{"Active"}
+	createFailedStatus := []string{"Failed"}
+
+	stateConf := BuildStateConf(
+		createPendingStatus,
+		createExpectStatus,
+		timeout,
+		5*time.Second,
+		s.OtsTableStateRefreshFunc(id, createFailedStatus),
+	)
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+
+	return nil
+}
+
+func (s *OtsService) WaitForOtsTableDeleting(id string, timeout time.Duration) error {
+	deletePendingStatus := []string{"Active", "Deleting"}
+	deleteExpectStatus := []string{}
+	deleteFailedStatus := []string{"Failed"}
+
+	stateConf := BuildStateConf(
+		deletePendingStatus,
+		deleteExpectStatus,
+		timeout,
+		5*time.Second,
+		s.OtsTableStateRefreshFunc(id, deleteFailedStatus),
+	)
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+
+	return nil
 }
