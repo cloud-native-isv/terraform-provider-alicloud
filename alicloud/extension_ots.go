@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
+	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore/search"
 )
 
 type PrimaryKeyTypeString string
@@ -263,6 +264,98 @@ func ConvertDefinedColumnType(columnType tablestore.DefinedColumnType) (DefinedC
 		return DefinedColumnBoolean, nil
 	default:
 		return "", fmt.Errorf("unknown defined column type: %v", columnType)
+	}
+}
+
+// ConvertSearchIndexFieldTypeString converts SearchIndexFieldTypeString to tablestore FieldType
+func ConvertSearchIndexFieldTypeString(fieldType SearchIndexFieldTypeString) (tablestore.FieldType, error) {
+	switch fieldType {
+	case OtsSearchTypeLong:
+		return tablestore.FieldType_LONG, nil
+	case OtsSearchTypeDouble:
+		return tablestore.FieldType_DOUBLE, nil
+	case OtsSearchTypeBoolean:
+		return tablestore.FieldType_BOOLEAN, nil
+	case OtsSearchTypeKeyword:
+		return tablestore.FieldType_KEYWORD, nil
+	case OtsSearchTypeText:
+		return tablestore.FieldType_TEXT, nil
+	case OtsSearchTypeDate:
+		return tablestore.FieldType_DATE, nil
+	case OtsSearchTypeGeoPoint:
+		return tablestore.FieldType_GEO_POINT, nil
+	case OtsSearchTypeNested:
+		return tablestore.FieldType_NESTED, nil
+	default:
+		return tablestore.FieldType_KEYWORD, fmt.Errorf("unknown search index field type: %s", fieldType)
+	}
+}
+
+// ConvertSearchIndexAnalyzerTypeString converts SearchIndexAnalyzerTypeString to tablestore Analyzer
+func ConvertSearchIndexAnalyzerTypeString(analyzer SearchIndexAnalyzerTypeString) (tablestore.Analyzer, error) {
+	switch analyzer {
+	case OtsSearchSingleWord:
+		return tablestore.Analyzer_SingleWord, nil
+	case OtsSearchSplit:
+		return tablestore.Analyzer_Split, nil
+	case OtsSearchMinWord:
+		return tablestore.Analyzer_MinWord, nil
+	case OtsSearchMaxWord:
+		return tablestore.Analyzer_MaxWord, nil
+	case OtsSearchFuzzy:
+		return tablestore.Analyzer_Fuzzy, nil
+	default:
+		return tablestore.Analyzer_SingleWord, fmt.Errorf("unknown search index analyzer type: %s", analyzer)
+	}
+}
+
+// ConvertSearchIndexSortFieldTypeString converts SearchIndexSortFieldTypeString to search Sorter
+func ConvertSearchIndexSortFieldTypeString(sortType SearchIndexSortFieldTypeString) (search.Sorter, error) {
+	switch sortType {
+	case OtsSearchPrimaryKeySort:
+		return &search.PrimaryKeySort{}, nil
+	case OtsSearchFieldSort:
+		return &search.FieldSort{}, nil
+	default:
+		return &search.PrimaryKeySort{}, fmt.Errorf("unknown search index sort field type: %s", sortType)
+	}
+}
+
+// ConvertSearchIndexOrderTypeString converts SearchIndexOrderTypeString to search SortOrder
+func ConvertSearchIndexOrderTypeString(order SearchIndexOrderTypeString) (search.SortOrder, error) {
+	switch order {
+	case OtsSearchSortOrderAsc:
+		return search.SortOrder_ASC, nil
+	case OtsSearchSortOrderDesc:
+		return search.SortOrder_DESC, nil
+	default:
+		return search.SortOrder_ASC, fmt.Errorf("unknown search index order type: %s", order)
+	}
+}
+
+// ConvertSearchIndexSortModeString converts SearchIndexSortModeString to search SortMode
+func ConvertSearchIndexSortModeString(mode SearchIndexSortModeString) (search.SortMode, error) {
+	switch mode {
+	case OtsSearchModeMin:
+		return search.SortMode_Min, nil
+	case OtsSearchModeMax:
+		return search.SortMode_Max, nil
+	case OtsSearchModeAvg:
+		return search.SortMode_Avg, nil
+	default:
+		return search.SortMode_Min, fmt.Errorf("unknown search index sort mode: %s", mode)
+	}
+}
+
+// ConvertSearchIndexSyncPhase converts tablestore SyncPhase to OtsSearchIndexSyncPhaseString
+func ConvertSearchIndexSyncPhase(phase tablestore.SyncPhase) (OtsSearchIndexSyncPhaseString, error) {
+	switch phase {
+	case tablestore.SyncPhase_FULL:
+		return Full, nil
+	case tablestore.SyncPhase_INCR:
+		return Incr, nil
+	default:
+		return Full, fmt.Errorf("unknown search index sync phase: %v", phase)
 	}
 }
 

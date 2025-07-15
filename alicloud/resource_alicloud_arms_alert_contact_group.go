@@ -3,7 +3,6 @@ package alicloud
 import (
 	"log"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"

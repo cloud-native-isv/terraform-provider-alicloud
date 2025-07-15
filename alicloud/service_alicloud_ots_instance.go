@@ -5,9 +5,6 @@ import (
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ots"
-	tablestoreSDK "github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
-	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -82,10 +79,10 @@ func (s *OtsService) UpdateOtsInstance(d *schema.ResourceData, instanceName stri
 	options := &tablestoreAPI.UpdateTablestoreInstanceOptions{}
 	update := false
 
-	if d.HasChange("resource_group_id") {
-		options.ResourceGroupId = d.Get("resource_group_id").(string)
-		update = true
-	}
+	// if d.HasChange("resource_group_id") {
+	// 	options.ResourceGroupId = d.Get("resource_group_id").(string)
+	// 	update = true
+	// }
 
 	if d.HasChange("network_type_acl") {
 		options.NetworkTypeACL = expandStringList(d.Get("network_type_acl").(*schema.Set).List())

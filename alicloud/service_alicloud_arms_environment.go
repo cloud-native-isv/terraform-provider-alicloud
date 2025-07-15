@@ -99,22 +99,22 @@ func (s *ArmsService) DescribeArmsEnvCustomJob(id string) (object map[string]int
 // DescribeArmsEnvFeature describes ARMS environment feature
 func (s *ArmsService) DescribeArmsEnvFeature(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
-	if s.armsAPI != nil {
-		parts, err := ParseResourceId(id, 2)
-		if err == nil && len(parts) >= 2 {
-			feature, err := s.armsAPI.GetEnvFeature(parts[0], parts[1])
-			if err == nil {
-				// Convert to map[string]interface{} format expected by Terraform
-				return map[string]interface{}{
-					"EnvironmentId": feature.EnvironmentId,
-					"FeatureName":   feature.FeatureName,
-					"Status":        feature.Status,
-					"Config":        feature.Config,
-					"Namespace":     feature.Namespace,
-				}, nil
-			}
-		}
-	}
+	// if s.armsAPI != nil {
+	// 	parts, err := ParseResourceId(id, 2)
+	// 	if err == nil && len(parts) >= 2 {
+	// 		feature, err := s.armsAPI.GetEnvFeature(parts[0], parts[1])
+	// 		if err == nil {
+	// 			// Convert to map[string]interface{} format expected by Terraform
+	// 			return map[string]interface{}{
+	// 				"EnvironmentId": feature.EnvironmentId,
+	// 				"FeatureName":   feature.FeatureName,
+	// 				"Status":        feature.Status,
+	// 				"Config":        feature.Config,
+	// 				"Namespace":     feature.Namespace,
+	// 			}, nil
+	// 		}
+	// 	}
+	// }
 
 	// Placeholder implementation for ARMS environment feature description
 	// TODO: Implement when actual ARMS SDK integration is added

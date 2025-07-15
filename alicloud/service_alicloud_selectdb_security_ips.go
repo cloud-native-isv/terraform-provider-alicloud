@@ -18,7 +18,7 @@ func (s *SelectDBService) DescribeSelectDBSecurityIPList(query *selectdb.Securit
 		return nil, WrapError(fmt.Errorf("security IP list query cannot be nil"))
 	}
 
-	result, err := s.api.GetSecurityIPList(query)
+	result, err := s.selectdbAPI.GetSecurityIPList(query)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -35,7 +35,7 @@ func (s *SelectDBService) ModifySelectDBSecurityIPList(modification *selectdb.Se
 		return nil, WrapError(fmt.Errorf("security IP list modification cannot be nil"))
 	}
 
-	result, err := s.api.ModifySecurityIPList(modification)
+	result, err := s.selectdbAPI.ModifySecurityIPList(modification)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -56,7 +56,7 @@ func (s *SelectDBService) DescribeSelectDBSecurityIPGroup(instanceId, groupName 
 		DBInstanceId: instanceId,
 	}
 
-	result, err := s.api.GetSecurityIPList(query)
+	result, err := s.selectdbAPI.GetSecurityIPList(query)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)

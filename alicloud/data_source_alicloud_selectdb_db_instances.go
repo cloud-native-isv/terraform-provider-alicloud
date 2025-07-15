@@ -1,10 +1,6 @@
 package alicloud
 
 import (
-	"encoding/json"
-	"fmt"
-
-	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -144,133 +140,126 @@ func dataSourceAliCloudSelectDBDbInstances() *schema.Resource {
 }
 
 func dataSourceAliCloudSelectDBDbInstancesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	selectDBService, err := NewSelectDBService(client)
-	if err != nil {
-		return WrapError(err)
-	}
+	// client := meta.(*connectivity.AliyunClient)
+	// selectDBService, err := NewSelectDBService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
-	tags := make([]map[string]interface{}, 0)
-	if v, ok := d.GetOk("tags"); ok {
-		for key, value := range v.(map[string]interface{}) {
-			tags = append(tags, map[string]interface{}{
-				"Key":   key,
-				"Value": value.(string),
-			})
-		}
-	}
+	// tags := make([]map[string]interface{}, 0)
+	// if v, ok := d.GetOk("tags"); ok {
+	// 	for key, value := range v.(map[string]interface{}) {
+	// 		tags = append(tags, map[string]interface{}{
+	// 			"Key":   key,
+	// 			"Value": value.(string),
+	// 		})
+	// 	}
+	// }
 
-	idsStr := ""
-	if v, ok := d.GetOk("ids"); ok {
-		for _, vv := range v.([]interface{}) {
-			if idsStr == "" {
-				idsStr = vv.(string)
-			} else {
-				idsStr = idsStr + ":" + vv.(string)
-			}
-		}
-	}
+	// idsStr := ""
+	// if v, ok := d.GetOk("ids"); ok {
+	// 	for _, vv := range v.([]interface{}) {
+	// 		if idsStr == "" {
+	// 			idsStr = vv.(string)
+	// 		} else {
+	// 			idsStr = idsStr + ":" + vv.(string)
+	// 		}
+	// 	}
+	// }
 
-	instanceResp, err := selectDBService.DescribeSelectDBDbInstances(idsStr, tags)
-	if err != nil {
-		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_db_instances", AlibabaCloudSdkGoERROR)
-	}
+	// var objects []map[string]interface{}
 
-	var objects []map[string]interface{}
+	// ids := make([]string, 0)
+	// s := make([]map[string]interface{}, 0)
+	// for _, object := range objects {
+	// 	// summary
+	// 	mapping := map[string]interface{}{
+	// 		"db_instance_id": object["DBInstanceId"],
+	// 		"engine":         object["Engine"],
+	// 		"engine_version": object["EngineVersion"],
 
-	objects = append(objects, instanceResp...)
+	// 		"db_instance_description": object["Description"],
+	// 		"status":                  object["Status"],
+	// 		"payment_type":            convertChargeTypeToPaymentType(object["ChargeType"]),
 
-	ids := make([]string, 0)
-	s := make([]map[string]interface{}, 0)
-	for _, object := range objects {
-		// summary
-		mapping := map[string]interface{}{
-			"db_instance_id": object["DBInstanceId"],
-			"engine":         object["Engine"],
-			"engine_version": object["EngineVersion"],
+	// 		"region_id":    object["RegionId"],
+	// 		"zone_id":      object["ZoneId"],
+	// 		"vpc_id":       object["VpcId"],
+	// 		"vswitch_id":   object["VswitchId"],
+	// 		"gmt_created":  object["GmtCreated"],
+	// 		"gmt_modified": object["GmtModified"],
+	// 		"gmt_expired":  object["ExpireTime"],
+	// 		"lock_mode":    object["LockMode"],
+	// 		"lock_reason":  object["LockReason"],
+	// 	}
+	// 	// cpu,mem,cache
+	// 	instanceResp, err := selectDBService.DescribeSelectDBInstance(object["DBInstanceId"].(string))
+	// 	if err != nil {
+	// 		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_db_instance", AlibabaCloudSdkGoERROR)
+	// 	}
+	// 	// result := instanceResp["DBClusterList"]
+	// 	cpuPrepaid := 0
+	// 	cpuPostpaid := 0
+	// 	memPrepaid := 0
+	// 	memPostpaid := 0
+	// 	cachePrepaid := 0
+	// 	cachePostpaid := 0
 
-			"db_instance_description": object["Description"],
-			"status":                  object["Status"],
-			"payment_type":            convertChargeTypeToPaymentType(object["ChargeType"]),
+	// 	clusterPrepaidCount := 0
+	// 	clusterPostpaidCount := 0
 
-			"region_id":    object["RegionId"],
-			"zone_id":      object["ZoneId"],
-			"vpc_id":       object["VpcId"],
-			"vswitch_id":   object["VswitchId"],
-			"gmt_created":  object["GmtCreated"],
-			"gmt_modified": object["GmtModified"],
-			"gmt_expired":  object["ExpireTime"],
-			"lock_mode":    object["LockMode"],
-			"lock_reason":  object["LockReason"],
-		}
-		// cpu,mem,cache
-		instanceResp, err := selectDBService.DescribeSelectDBDbInstance(object["DBInstanceId"].(string))
-		if err != nil {
-			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_db_instance", AlibabaCloudSdkGoERROR)
-		}
-		result := instanceResp["DBClusterList"]
-		cpuPrepaid := 0
-		cpuPostpaid := 0
-		memPrepaid := 0
-		memPostpaid := 0
-		cachePrepaid := 0
-		cachePostpaid := 0
+	// 	for _, v := range result.([]interface{}) {
+	// 		item := v.(map[string]interface{})
+	// 		if item["ChargeType"].(string) == "Postpaid" {
+	// 			cpuP, _ := item["CpuCores"].(json.Number).Int64()
+	// 			cpuPostpaid += int(cpuP)
+	// 			memP, _ := item["Memory"].(json.Number).Int64()
+	// 			memPostpaid += int(memP)
+	// 			cacheP, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
+	// 			cachePostpaid += int(cacheP)
+	// 			clusterPostpaidCount += 1
+	// 		}
+	// 		if item["ChargeType"].(string) == "Prepaid" {
+	// 			cpuP, _ := item["CpuCores"].(json.Number).Int64()
+	// 			cpuPrepaid += int(cpuP)
+	// 			memP, _ := item["Memory"].(json.Number).Int64()
+	// 			memPrepaid += int(memP)
+	// 			cacheP, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
+	// 			cachePrepaid += int(cacheP)
+	// 			clusterPrepaidCount += 1
+	// 		}
+	// 	}
+	// 	mapping["cpu_prepaid"] = cpuPrepaid
+	// 	mapping["memory_prepaid"] = memPrepaid
+	// 	mapping["cache_size_prepaid"] = cachePrepaid
+	// 	mapping["cpu_postpaid"] = cpuPostpaid
+	// 	mapping["memory_postpaid"] = memPostpaid
+	// 	mapping["cache_size_postpaid"] = cachePostpaid
 
-		clusterPrepaidCount := 0
-		clusterPostpaidCount := 0
+	// 	mapping["cluster_count_prepaid"] = clusterPrepaidCount
+	// 	mapping["cluster_count_postpaid"] = clusterPostpaidCount
 
-		for _, v := range result.([]interface{}) {
-			item := v.(map[string]interface{})
-			if item["ChargeType"].(string) == "Postpaid" {
-				cpuP, _ := item["CpuCores"].(json.Number).Int64()
-				cpuPostpaid += int(cpuP)
-				memP, _ := item["Memory"].(json.Number).Int64()
-				memPostpaid += int(memP)
-				cacheP, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
-				cachePostpaid += int(cacheP)
-				clusterPostpaidCount += 1
-			}
-			if item["ChargeType"].(string) == "Prepaid" {
-				cpuP, _ := item["CpuCores"].(json.Number).Int64()
-				cpuPrepaid += int(cpuP)
-				memP, _ := item["Memory"].(json.Number).Int64()
-				memPrepaid += int(memP)
-				cacheP, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
-				cachePrepaid += int(cacheP)
-				clusterPrepaidCount += 1
-			}
-		}
-		mapping["cpu_prepaid"] = cpuPrepaid
-		mapping["memory_prepaid"] = memPrepaid
-		mapping["cache_size_prepaid"] = cachePrepaid
-		mapping["cpu_postpaid"] = cpuPostpaid
-		mapping["memory_postpaid"] = memPostpaid
-		mapping["cache_size_postpaid"] = cachePostpaid
+	// 	// mapping["engine_minor_version"] = instanceResp["EngineMinorVersion"]
+	// 	// mapping["sub_domain"] = instanceResp["SubDomain"]
 
-		mapping["cluster_count_prepaid"] = clusterPrepaidCount
-		mapping["cluster_count_postpaid"] = clusterPostpaidCount
+	// 	id := fmt.Sprint(object["DBInstanceId"])
+	// 	mapping["id"] = id
+	// 	ids = append(ids, id)
 
-		mapping["engine_minor_version"] = instanceResp["EngineMinorVersion"]
-		mapping["sub_domain"] = instanceResp["SubDomain"]
+	// 	s = append(s, mapping)
+	// }
 
-		id := fmt.Sprint(object["DBInstanceId"])
-		mapping["id"] = id
-		ids = append(ids, id)
+	// d.SetId(dataResourceIdHash(ids))
+	// if err := d.Set("ids", ids); err != nil {
+	// 	return WrapError(err)
+	// }
 
-		s = append(s, mapping)
-	}
-
-	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("ids", ids); err != nil {
-		return WrapError(err)
-	}
-
-	if err := d.Set("instances", s); err != nil {
-		return WrapError(err)
-	}
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
-	}
+	// if err := d.Set("instances", s); err != nil {
+	// 	return WrapError(err)
+	// }
+	// if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
+	// 	writeToFile(output.(string), s)
+	// }
 
 	return nil
 }

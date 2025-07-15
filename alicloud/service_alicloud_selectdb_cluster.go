@@ -17,7 +17,7 @@ func (s *SelectDBService) CreateSelectDBCluster(options *selectdb.CreateClusterO
 		return nil, WrapError(fmt.Errorf("create cluster options cannot be nil"))
 	}
 
-	result, err := s.api.CreateCluster(options)
+	result, err := s.selectdbAPI.CreateCluster(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -35,7 +35,7 @@ func (s *SelectDBService) DescribeSelectDBCluster(instanceId, clusterId string) 
 	}
 
 	// Since there's no direct GetCluster API, we use the config API to check cluster existence
-	config, err := s.api.GetClusterConfig(&selectdb.ClusterConfigQuery{
+	config, err := s.selectdbAPI.GetClusterConfig(&selectdb.ClusterConfigQuery{
 		DBInstanceId: instanceId,
 		DBClusterId:  clusterId,
 	})
@@ -62,7 +62,7 @@ func (s *SelectDBService) ModifySelectDBCluster(options *selectdb.ModifyClusterO
 		return nil, WrapError(fmt.Errorf("modify cluster options cannot be nil"))
 	}
 
-	result, err := s.api.ModifyCluster(options)
+	result, err := s.selectdbAPI.ModifyCluster(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -79,7 +79,7 @@ func (s *SelectDBService) DeleteSelectDBCluster(instanceId, clusterId string, re
 		return WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
 
-	err := s.api.DeleteCluster(instanceId, clusterId, regionId...)
+	err := s.selectdbAPI.DeleteCluster(instanceId, clusterId, regionId...)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil // Cluster already deleted
@@ -99,7 +99,7 @@ func (s *SelectDBService) RestartSelectDBCluster(instanceId, clusterId string, p
 		return WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
 
-	err := s.api.RestartCluster(instanceId, clusterId, parallelOperation, regionId...)
+	err := s.selectdbAPI.RestartCluster(instanceId, clusterId, parallelOperation, regionId...)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -115,7 +115,7 @@ func (s *SelectDBService) CreateSelectDBClusterBinding(options *selectdb.Cluster
 		return nil, WrapError(fmt.Errorf("cluster binding options cannot be nil"))
 	}
 
-	result, err := s.api.CreateClusterBinding(options)
+	result, err := s.selectdbAPI.CreateClusterBinding(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -129,7 +129,7 @@ func (s *SelectDBService) DeleteSelectDBClusterBinding(options *selectdb.Cluster
 		return WrapError(fmt.Errorf("cluster binding options cannot be nil"))
 	}
 
-	err := s.api.DeleteClusterBinding(options)
+	err := s.selectdbAPI.DeleteClusterBinding(options)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -141,11 +141,8 @@ func (s *SelectDBService) DeleteSelectDBClusterBinding(options *selectdb.Cluster
 
 // DescribeSelectDBClusterConfig retrieves cluster configuration
 func (s *SelectDBService) DescribeSelectDBClusterConfig(id *selectdb.ClusterConfigQuery) (*selectdb.ClusterConfig, error) {
-	if query == nil {
-		return nil, WrapError(fmt.Errorf("cluster config query cannot be nil"))
-	}
 
-	config, err := s.api.GetClusterConfig(id)
+	config, err := s.selectdbAPI.GetClusterConfig(id)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -162,7 +159,7 @@ func (s *SelectDBService) ModifySelectDBClusterConfig(modification *selectdb.Clu
 		return nil, WrapError(fmt.Errorf("cluster config modification cannot be nil"))
 	}
 
-	result, err := s.api.ModifyClusterConfig(modification)
+	result, err := s.selectdbAPI.ModifyClusterConfig(modification)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -176,7 +173,7 @@ func (s *SelectDBService) DescribeSelectDBClusterConfigChangeLogs(query *selectd
 		return nil, WrapError(fmt.Errorf("cluster config change logs query cannot be nil"))
 	}
 
-	logs, err := s.api.GetClusterConfigChangeLogs(query)
+	logs, err := s.selectdbAPI.GetClusterConfigChangeLogs(query)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -188,7 +185,7 @@ func (s *SelectDBService) DescribeSelectDBClusterConfigChangeLogs(query *selectd
 
 // CheckSelectDBServiceLinkedRole checks if service linked role exists
 func (s *SelectDBService) CheckSelectDBServiceLinkedRole(options *selectdb.ServiceLinkedRoleOptions) (*selectdb.ServiceLinkedRoleResult, error) {
-	result, err := s.api.CheckServiceLinkedRole(options)
+	result, err := s.selectdbAPI.CheckServiceLinkedRole(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -198,7 +195,7 @@ func (s *SelectDBService) CheckSelectDBServiceLinkedRole(options *selectdb.Servi
 
 // CreateSelectDBServiceLinkedRole creates service linked role for SelectDB
 func (s *SelectDBService) CreateSelectDBServiceLinkedRole(options *selectdb.ServiceLinkedRoleOptions) error {
-	err := s.api.CreateServiceLinkedRoleForSelectDB(options)
+	err := s.selectdbAPI.CreateServiceLinkedRoleForSelectDB(options)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -214,7 +211,7 @@ func (s *SelectDBService) StartSelectDBBECluster(options *selectdb.BEClusterOpti
 		return WrapError(fmt.Errorf("BE cluster options cannot be nil"))
 	}
 
-	err := s.api.StartBECluster(options)
+	err := s.selectdbAPI.StartBECluster(options)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -228,7 +225,7 @@ func (s *SelectDBService) StopSelectDBBECluster(options *selectdb.BEClusterOptio
 		return WrapError(fmt.Errorf("BE cluster options cannot be nil"))
 	}
 
-	err := s.api.StopBECluster(options)
+	err := s.selectdbAPI.StopBECluster(options)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -242,7 +239,7 @@ func (s *SelectDBService) ModifySelectDBBEClusterAttribute(modification *selectd
 		return WrapError(fmt.Errorf("BE cluster attribute modification cannot be nil"))
 	}
 
-	err := s.api.ModifyBEClusterAttribute(modification)
+	err := s.selectdbAPI.ModifyBEClusterAttribute(modification)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -258,7 +255,7 @@ func (s *SelectDBService) GetCreateSelectDBBEClusterInquiry(options *selectdb.BE
 		return nil, WrapError(fmt.Errorf("BE cluster inquiry options cannot be nil"))
 	}
 
-	result, err := s.api.GetCreateBEClusterInquiry(options)
+	result, err := s.selectdbAPI.GetCreateBEClusterInquiry(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -272,7 +269,7 @@ func (s *SelectDBService) GetModifySelectDBBEClusterInquiry(options *selectdb.BE
 		return nil, WrapError(fmt.Errorf("BE cluster inquiry options cannot be nil"))
 	}
 
-	result, err := s.api.GetModifyBEClusterInquiry(options)
+	result, err := s.selectdbAPI.GetModifyBEClusterInquiry(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}

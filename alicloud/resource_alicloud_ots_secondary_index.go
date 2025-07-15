@@ -2,14 +2,10 @@ package alicloud
 
 import (
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
-	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -104,72 +100,73 @@ type SecIndexResourceArgs struct {
 }
 
 func resourceAliyunOtsSecondaryIndexCreate(d *schema.ResourceData, meta interface{}) error {
-	args := parseArgs(d)
+	// args := parseArgs(d)
 
-	client := meta.(*connectivity.AliyunClient)
-	otsService, err := NewOtsService(client)
-	if err != nil {
-		return WrapError(err)
-	}
-	// check table exists
-	tableResp, err := otsService.LoopWaitTable(args.instanceName, args.tableName)
-	if err != nil {
-		return WrapError(err)
-	}
-	// serverside arguments check
-	if err := checkArgs(tableResp, args); err != nil {
-		return err
-	}
-	// build request using official SDK methods
-	idxType, err := ConvertSecIndexTypeString(args.indexType)
-	if err != nil {
-		return WrapError(err)
-	}
+	// client := meta.(*connectivity.AliyunClient)
+	// otsService, err := NewOtsService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// // check table exists
+	// tableResp, err := otsService.LoopWaitTable(args.instanceName, args.tableName)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// // serverside arguments check
+	// if err := checkArgs(tableResp, args); err != nil {
+	// 	return err
+	// }
+	// // build request using official SDK methods
+	// idxType, err := ConvertSecIndexTypeString(args.indexType)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
-	// Create IndexMeta using official SDK methods (following GlobalTableOperation.go pattern)
-	indexMeta := new(tablestore.IndexMeta)
-	indexMeta.IndexName = args.indexName
-	indexMeta.IndexType = idxType
+	// // Create IndexMeta using official SDK methods (following GlobalTableOperation.go pattern)
+	// indexMeta := new(tablestore.IndexMeta)
+	// indexMeta.IndexName = args.indexName
+	// indexMeta.IndexType = idxType
 
-	// Use AddPrimaryKeyColumn method for each primary key
-	for _, pk := range args.primaryKeys {
-		indexMeta.AddPrimaryKeyColumn(pk)
-	}
+	// // Use AddPrimaryKeyColumn method for each primary key
+	// for _, pk := range args.primaryKeys {
+	// 	indexMeta.AddPrimaryKeyColumn(pk)
+	// }
 
-	// Use AddDefinedColumn method for each defined column
-	for _, col := range args.definedColumns {
-		indexMeta.AddDefinedColumn(col)
-	}
+	// // Use AddDefinedColumn method for each defined column
+	// for _, col := range args.definedColumns {
+	// 	indexMeta.AddDefinedColumn(col)
+	// }
 
-	req := &tablestore.CreateIndexRequest{
-		MainTableName:   args.tableName,
-		IncludeBaseData: args.includeBaseData,
-		IndexMeta:       indexMeta,
-	}
+	// req := &tablestore.CreateIndexRequest{
+	// 	MainTableName:   args.tableName,
+	// 	IncludeBaseData: args.includeBaseData,
+	// 	IndexMeta:       indexMeta,
+	// }
 
-	var reqClient *tablestore.TableStoreClient
-	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithTableStoreClient(args.instanceName, func(tableStoreClient *tablestore.TableStoreClient) (interface{}, error) {
-			reqClient = tableStoreClient
-			return tableStoreClient.CreateIndex(req)
-		})
-		defer func() {
-			addDebug("CreateTableSecondaryIndex", raw, reqClient, req)
-		}()
+	// var reqClient *tablestore.TableStoreClient
+	// if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+	// 	raw, err := client.WithTableStoreClient(args.instanceName, func(tableStoreClient *tablestore.TableStoreClient) (interface{}, error) {
+	// 		reqClient = tableStoreClient
+	// 		return tableStoreClient.CreateIndex(req)
+	// 	})
+	// 	defer func() {
+	// 		addDebug("CreateTableSecondaryIndex", raw, reqClient, req)
+	// 	}()
 
-		if err != nil {
-			if IsExpectedErrors(err, OtsSecondaryIndexIsTemporarilyUnavailable) {
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	}); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_secondary_index", "CreateIndex", AliyunTablestoreGoSdk)
-	}
+	// 	if err != nil {
+	// 		if IsExpectedErrors(err, OtsSecondaryIndexIsTemporarilyUnavailable) {
+	// 			return resource.RetryableError(err)
+	// 		}
+	// 		return resource.NonRetryableError(err)
+	// 	}
+	// 	return nil
+	// }); err != nil {
+	// 	return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_secondary_index", "CreateIndex", AliyunTablestoreGoSdk)
+	// }
 
-	d.SetId(ID(args.instanceName, args.tableName, args.indexName, string(args.indexType)))
-	return resourceAliyunOtsSecondaryIndexRead(d, meta)
+	// d.SetId(ID(args.instanceName, args.tableName, args.indexName, string(args.indexType)))
+	// return resourceAliyunOtsSecondaryIndexRead(d, meta)
+	return nil
 }
 
 func checkArgs(tableResp *tablestore.DescribeTableResponse, args *SecIndexResourceArgs) error {
@@ -224,90 +221,91 @@ func simplifySecIndex(indexes []*tablestore.IndexMeta) []string {
 }
 
 func resourceAliyunOtsSecondaryIndexRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	otsService, err := NewOtsService(client)
-	if err != nil {
-		return WrapError(err)
-	}
-	idx, err := otsService.DescribeOtsSecondaryIndex(d.Id())
-	if err != nil {
-		if NotFoundError(err) {
-			return nil
-		}
-		return WrapError(err)
-	}
-	if idx == nil {
-		d.SetId("")
-		return nil
-	}
+	// client := meta.(*connectivity.AliyunClient)
+	// otsService, err := NewOtsService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// idx, err := otsService.DescribeOtsSecondaryIndex(d.Id())
+	// if err != nil {
+	// 	if NotFoundError(err) {
+	// 		return nil
+	// 	}
+	// 	return WrapError(err)
+	// }
+	// if idx == nil {
+	// 	d.SetId("")
+	// 	return nil
+	// }
 
-	if err := d.Set("instance_name", idx.InstanceName); err != nil {
-		return WrapError(err)
-	}
-	if err := d.Set("table_name", idx.TableName); err != nil {
-		return WrapError(err)
-	}
-	if err := d.Set("index_name", idx.Index.IndexName); err != nil {
-		return WrapError(err)
-	}
-	indexType, err := ConvertSecIndexType(idx.Index.IndexType)
-	if err != nil {
-		return WrapError(err)
-	}
-	if err := d.Set("index_type", string(indexType)); err != nil {
-		return WrapError(err)
-	}
-	if err := d.Set("primary_keys", idx.Index.Primarykey); err != nil {
-		return WrapError(err)
-	}
-	if err := d.Set("defined_columns", idx.Index.DefinedColumns); err != nil {
-		return WrapError(err)
-	}
+	// if err := d.Set("instance_name", idx.InstanceName); err != nil {
+	// 	return WrapError(err)
+	// }
+	// if err := d.Set("table_name", idx.TableName); err != nil {
+	// 	return WrapError(err)
+	// }
+	// if err := d.Set("index_name", idx.Index.IndexName); err != nil {
+	// 	return WrapError(err)
+	// }
+	// indexType, err := ConvertSecIndexType(idx.Index.IndexType)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// if err := d.Set("index_type", string(indexType)); err != nil {
+	// 	return WrapError(err)
+	// }
+	// if err := d.Set("primary_keys", idx.Index.Primarykey); err != nil {
+	// 	return WrapError(err)
+	// }
+	// if err := d.Set("defined_columns", idx.Index.DefinedColumns); err != nil {
+	// 	return WrapError(err)
+	// }
 
 	return nil
 }
 
 func resourceAliyunOtsSecondaryIndexDelete(d *schema.ResourceData, meta interface{}) error {
-	instanceName, tableName, indexName, _, err := ParseIndexId(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
+	// instanceName, tableName, indexName, _, err := ParseIndexId(d.Id())
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
-	client := meta.(*connectivity.AliyunClient)
+	// client := meta.(*connectivity.AliyunClient)
 
-	req := &tablestore.DeleteIndexRequest{
-		MainTableName: tableName,
-		IndexName:     indexName,
-	}
+	// req := &tablestore.DeleteIndexRequest{
+	// 	MainTableName: tableName,
+	// 	IndexName:     indexName,
+	// }
 
-	err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-		var requestInfo *tablestore.TableStoreClient
-		raw, err := client.WithTableStoreClient(instanceName, func(tableStoreClient *tablestore.TableStoreClient) (interface{}, error) {
-			requestInfo = tableStoreClient
-			return tableStoreClient.DeleteIndex(req)
-		})
-		defer func() {
-			addDebug("DeleteTableSecondaryIndex", raw, requestInfo, req)
-		}()
+	// err = resource.Retry(2*time.Minute, func() *resource.RetryError {
+	// 	var requestInfo *tablestore.TableStoreClient
+	// 	raw, err := client.WithTableStoreClient(instanceName, func(tableStoreClient *tablestore.TableStoreClient) (interface{}, error) {
+	// 		requestInfo = tableStoreClient
+	// 		return tableStoreClient.DeleteIndex(req)
+	// 	})
+	// 	defer func() {
+	// 		addDebug("DeleteTableSecondaryIndex", raw, requestInfo, req)
+	// 	}()
 
-		if err != nil {
-			if IsExpectedErrors(err, OtsTableIsTemporarilyUnavailable) {
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	if err != nil {
-		if strings.HasPrefix(err.Error(), "OTSObjectNotExist") {
-			return nil
-		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteTableSecondaryIndex", AliyunTablestoreGoSdk)
-	}
+	// 	if err != nil {
+	// 		if IsExpectedErrors(err, OtsTableIsTemporarilyUnavailable) {
+	// 			return resource.RetryableError(err)
+	// 		}
+	// 		return resource.NonRetryableError(err)
+	// 	}
+	// 	return nil
+	// })
+	// if err != nil {
+	// 	if strings.HasPrefix(err.Error(), "OTSObjectNotExist") {
+	// 		return nil
+	// 	}
+	// 	return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteTableSecondaryIndex", AliyunTablestoreGoSdk)
+	// }
 
-	otsService, err := NewOtsService(client)
-	if err != nil {
-		return WrapError(err)
-	}
-	return WrapError(otsService.WaitForSecondaryIndex(instanceName, tableName, indexName, Deleted, DefaultTimeout))
+	// otsService, err := NewOtsService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// return WrapError(otsService.WaitForSecondaryIndex(instanceName, tableName, indexName, Deleted, DefaultTimeout))
+	return nil
 }

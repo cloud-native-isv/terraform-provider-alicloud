@@ -2,16 +2,12 @@ package alicloud
 
 import (
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore/search"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
-	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -417,56 +413,57 @@ type SearchIndexResourceArgs struct {
 }
 
 func resourceAliyunOtsSearchIndexCreate(d *schema.ResourceData, meta interface{}) error {
-	args, err := parseSearchIndexResourceArgs(d)
-	if err != nil {
-		return WrapError(err)
-	}
+	// args, err := parseSearchIndexResourceArgs(d)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
-	client := meta.(*connectivity.AliyunClient)
-	otsService, err := NewOtsService(client)
-	if err != nil {
-		return WrapError(err)
-	}
-	// check table exists
-	tableResp, err := otsService.LoopWaitTable(args.instanceName, args.tableName)
-	if err != nil {
-		return WrapError(err)
-	}
-	// serverside arguments check
-	if err := args.checkArgs(tableResp); err != nil {
-		return err
-	}
-	// build request
-	req := &tablestore.CreateSearchIndexRequest{
-		TableName:   args.tableName,
-		IndexName:   args.indexName,
-		IndexSchema: args.schema,
-		TimeToLive:  &args.ttl,
-	}
+	// client := meta.(*connectivity.AliyunClient)
+	// otsService, err := NewOtsService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// // check table exists
+	// tableResp, err := otsService.LoopWaitTable(args.instanceName, args.tableName)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// // serverside arguments check
+	// if err := args.checkArgs(tableResp); err != nil {
+	// 	return err
+	// }
+	// // build request
+	// req := &tablestore.CreateSearchIndexRequest{
+	// 	TableName:   args.tableName,
+	// 	IndexName:   args.indexName,
+	// 	IndexSchema: args.schema,
+	// 	TimeToLive:  &args.ttl,
+	// }
 
-	var reqClient *tablestore.TableStoreClient
-	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithTableStoreClient(args.instanceName, func(tableStoreClient *tablestore.TableStoreClient) (interface{}, error) {
-			reqClient = tableStoreClient
-			return tableStoreClient.CreateSearchIndex(req)
-		})
-		defer func() {
-			addDebug("CreateTableSearchIndex", raw, reqClient, req)
-		}()
+	// var reqClient *tablestore.TableStoreClient
+	// if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+	// 	raw, err := client.WithTableStoreClient(args.instanceName, func(tableStoreClient *tablestore.TableStoreClient) (interface{}, error) {
+	// 		reqClient = tableStoreClient
+	// 		return tableStoreClient.CreateSearchIndex(req)
+	// 	})
+	// 	defer func() {
+	// 		addDebug("CreateTableSearchIndex", raw, reqClient, req)
+	// 	}()
 
-		if err != nil {
-			if IsExpectedErrors(err, OtsSearchIndexIsTemporarilyUnavailable) {
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	}); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_search_index", "CreateSearchIndex", AliyunTablestoreGoSdk)
-	}
+	// 	if err != nil {
+	// 		if IsExpectedErrors(err, OtsSearchIndexIsTemporarilyUnavailable) {
+	// 			return resource.RetryableError(err)
+	// 		}
+	// 		return resource.NonRetryableError(err)
+	// 	}
+	// 	return nil
+	// }); err != nil {
+	// 	return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_search_index", "CreateSearchIndex", AliyunTablestoreGoSdk)
+	// }
 
-	d.SetId(ID(args.instanceName, args.tableName, args.indexName, SearchIndexTypeHolder))
-	return resourceAliyunOtsSearchIndexRead(d, meta)
+	// d.SetId(ID(args.instanceName, args.tableName, args.indexName, SearchIndexTypeHolder))
+	// return resourceAliyunOtsSearchIndexRead(d, meta)
+	return nil
 }
 
 func (args *SearchIndexResourceArgs) checkArgs(tableResp *tablestore.DescribeTableResponse) error {
@@ -517,63 +514,64 @@ func (args *SearchIndexResourceArgs) checkArgs(tableResp *tablestore.DescribeTab
 }
 
 func resourceAliyunOtsSearchIndexRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	otsService, err := NewOtsService(client)
-	if err != nil {
-		return WrapError(err)
-	}
-	idx, err := otsService.DescribeOtsSearchIndex(d.Id())
-	if err != nil {
-		if NotFoundError(err) {
-			return nil
-		}
-		return WrapError(err)
-	}
-	if idx == nil {
-		d.SetId("")
-		return nil
-	}
+	// client := meta.(*connectivity.AliyunClient)
+	// otsService, err := NewOtsService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// idx, err := otsService.DescribeOtsSearchIndex(d.Id())
+	// if err != nil {
+	// 	if NotFoundError(err) {
+	// 		return nil
+	// 	}
+	// 	return WrapError(err)
+	// }
+	// if idx == nil {
+	// 	d.SetId("")
+	// 	return nil
+	// }
 
-	if err := d.Set("index_id", d.Id()); err != nil {
-		return WrapError(err)
-	}
-	if err := d.Set("create_time", idx.CreateTime); err != nil {
-		return WrapError(err)
-	}
+	// if err := d.Set("index_id", d.Id()); err != nil {
+	// 	return WrapError(err)
+	// }
+	// if err := d.Set("create_time", idx.CreateTime); err != nil {
+	// 	return WrapError(err)
+	// }
 
-	phase, err := ConvertSearchIndexSyncPhase(idx.SyncStat.SyncPhase)
-	if err != nil {
-		return WrapError(err)
-	}
-	if err := d.Set("sync_phase", string(phase)); err != nil {
-		return WrapError(err)
-	}
+	// phase, err := ConvertSearchIndexSyncPhase(idx.SyncStat.SyncPhase)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// if err := d.Set("sync_phase", string(phase)); err != nil {
+	// 	return WrapError(err)
+	// }
 
-	if err := d.Set("current_sync_timestamp", *idx.SyncStat.CurrentSyncTimestamp); err != nil {
-		return WrapError(err)
-	}
+	// if err := d.Set("current_sync_timestamp", *idx.SyncStat.CurrentSyncTimestamp); err != nil {
+	// 	return WrapError(err)
+	// }
 
 	return nil
 }
 
 func resourceAliyunOtsSearchIndexDelete(d *schema.ResourceData, meta interface{}) error {
-	instanceName, tableName, indexName, _, err := ParseIndexId(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
+	// instanceName, tableName, indexName, _, err := ParseIndexId(d.Id())
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
-	client := meta.(*connectivity.AliyunClient)
-	otsService, err := NewOtsService(client)
-	if err != nil {
-		return WrapError(err)
-	}
+	// client := meta.(*connectivity.AliyunClient)
+	// otsService, err := NewOtsService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
-	if err := otsService.DeleteSearchIndex(instanceName, tableName, indexName); err != nil {
-		if strings.HasPrefix(err.Error(), "OTSObjectNotExist") {
-			return nil
-		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteSearchIndex", AliyunTablestoreGoSdk)
-	}
+	// if err := otsService.DeleteSearchIndex(instanceName, tableName, indexName); err != nil {
+	// 	if strings.HasPrefix(err.Error(), "OTSObjectNotExist") {
+	// 		return nil
+	// 	}
+	// 	return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteSearchIndex", AliyunTablestoreGoSdk)
+	// }
 
-	return WrapError(otsService.WaitForSearchIndex(instanceName, tableName, indexName, Deleted, DefaultTimeout))
+	// return WrapError(otsService.WaitForSearchIndex(instanceName, tableName, indexName, Deleted, DefaultTimeout))
+	return nil
 }

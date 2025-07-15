@@ -25,16 +25,16 @@ func (s *ArmsService) DescribeArmsPrometheusInstance(id string) (object map[stri
 				"VpcId":               instance.VpcId,
 				"VSwitchId":           instance.VSwitchId,
 				"SecurityGroupId":     instance.SecurityGroupId,
-				"AuthToken":           instance.AuthToken,
+
 				"GrafanaInstanceId":   instance.GrafanaInstanceId,
 				"HttpApiInterUrl":     instance.HttpApiInterUrl,
-				"HttpApiIntraUrl":     instance.HttpApiIntraUrl,
+
 				"PushGatewayInterUrl": instance.PushGatewayInterUrl,
-				"PushGatewayIntraUrl": instance.PushGatewayIntraUrl,
+
 				"RemoteReadInterUrl":  instance.RemoteReadInterUrl,
-				"RemoteReadIntraUrl":  instance.RemoteReadIntraUrl,
+
 				"RemoteWriteInterUrl": instance.RemoteWriteInterUrl,
-				"RemoteWriteIntraUrl": instance.RemoteWriteIntraUrl,
+
 				"SubClustersJson":     instance.SubClustersJson,
 			}, nil
 		}

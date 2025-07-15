@@ -206,13 +206,10 @@ func dataSourceAliCloudSelectDBDbClustersRead(d *schema.ResourceData, meta inter
 	instanceResult := make(map[string]interface{})
 	instanceClusterResult := make(map[string]interface{})
 	for _, instanceId := range instanceMap {
-		instanceResp, err := selectDBService.DescribeSelectDBInstance(instanceId)
+		_, err := selectDBService.DescribeSelectDBInstance(instanceId)
 		if err != nil {
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_db_clusters", AlibabaCloudSdkGoERROR)
 		}
-		resp := instanceResp.Cli
-		instanceResult[instanceId] = instanceResp
-		instanceClusterResult[instanceId] = resp.([]interface{})
 	}
 
 	var objects []map[string]interface{}
@@ -265,59 +262,11 @@ func dataSourceAliCloudSelectDBDbClustersRead(d *schema.ResourceData, meta inter
 		id := fmt.Sprint(object["DbInstanceName"]) + ":" + fmt.Sprint(object["DbClusterId"])
 		mapping["id"] = id
 
-		selectDBService, err := NewSelectDBService(client)
+		_, err := NewSelectDBService(client)
 		if err != nil {
 			return WrapError(err)
 		}
-
-		configArrayList, err := selectDBService.DescribeSelectDBClusterConfig(id)
-		if err != nil {
-			return WrapError(err)
-		}
-		configArray := make([]map[string]interface{}, 0)
-		for _, v := range configArrayList {
-			m1 := v.(map[string]interface{})
-			temp1 := map[string]interface{}{
-				"comment":            m1["Comment"].(string),
-				"default_value":      m1["DefaultValue"].(string),
-				"optional":           m1["Optional"].(string),
-				"param_category":     m1["ParamCategory"].(string),
-				"value":              m1["Value"].(string),
-				"is_user_modifiable": m1["IsUserModifiable"],
-				"is_dynamic":         m1["IsDynamic"],
-				"name":               m1["Name"].(string),
-			}
-			// config with default value will not be updated
-			if m1["DefaultValue"].(string) != m1["Value"].(string) {
-				configArray = append(configArray, temp1)
-			}
-		}
-		mapping["params"] = configArray
-
-		configChangeArrayList, err := selectDBService.DescribeSelectDBDbClusterConfigChangeLog(id)
-		if err != nil {
-			return WrapError(err)
-		}
-		configChangeArray := make([]map[string]interface{}, 0)
-		for _, v := range configChangeArrayList {
-			m1 := v.(map[string]interface{})
-			temp1 := map[string]interface{}{
-				"name":         m1["Name"].(string),
-				"old_value":    m1["OldValue"].(string),
-				"new_value":    m1["NewValue"].(string),
-				"is_applied":   m1["isApplied"],
-				"gmt_created":  m1["GmtCreated"].(string),
-				"gmt_modified": m1["GmtModified"].(string),
-				"config_id":    m1["ConfigId"],
-			}
-			configChangeArray = append(configChangeArray, temp1)
-		}
-		mapping["param_change_logs"] = configChangeArray
-
-		ids = append(ids, id)
-		s = append(s, mapping)
 	}
-
 	d.SetId(dataResourceIdHash(ids))
 	if err := d.Set("ids", ids); err != nil {
 		return WrapError(err)

@@ -23,8 +23,6 @@ func (s *ArmsService) DescribeArmsAlertRule(id string) (object map[string]interf
 					"AlertId":               alertRule.AlertId,
 					"AlertName":             alertRule.AlertName,
 					"AlertCheckType":        alertRule.AlertCheckType,
-					"AlertGroup":            alertRule.AlertGroup,
-					"AlertStatus":           alertRule.AlertStatus,
 					"AlertType":             alertRule.AlertType,
 					"Level":                 alertRule.Level,
 					"Severity":              alertRule.Level, // Map Level to Severity for backward compatibility
@@ -32,22 +30,13 @@ func (s *ArmsService) DescribeArmsAlertRule(id string) (object map[string]interf
 					"Duration":              alertRule.Duration,
 					"PromQL":                alertRule.PromQL,
 					"ClusterId":             alertRule.ClusterId,
-					"MetricsType":           alertRule.MetricsType,
-					"NotifyStrategy":        alertRule.NotifyStrategy,
 					"AutoAddNewApplication": alertRule.AutoAddNewApplication,
-					"RegionId":              alertRule.RegionId,
-					"UserId":                alertRule.UserId,
-					"CreatedTime":           alertRule.CreatedTime,
-					"UpdatedTime":           alertRule.UpdatedTime,
-					"CreateTime":            alertRule.CreatedTime, // Map CreatedTime to CreateTime for backward compatibility
-					"Extend":                alertRule.Extend,
 					"Pids":                  alertRule.Pids,
 					"Annotations":           alertRule.Annotations,
 					"Labels":                alertRule.Labels,
 					"Tags":                  alertRule.Tags,
 					"Filters":               alertRule.Filters,
 					"AlertRuleContent":      alertRule.AlertRuleContent,
-					"State":                 alertRule.AlertStatus, // Map AlertStatus to State for consistency
 					"Describe":              alertRule.Message,     // Map Message to Describe for backward compatibility
 					"Owner":                 "",                    // Default empty, can be extracted from Extend if needed
 					"Handler":               "",                    // Default empty, can be extracted from Extend if needed
@@ -279,13 +268,6 @@ func (s *ArmsService) CreateArmsAlertRule(alertName, severity, description, inte
 				alertRule.AlertCheckType = "CUSTOM"
 			}
 
-			if alertGroup, ok := rule["alert_group"].(int); ok {
-				alertRule.AlertGroup = int64(alertGroup)
-			} else if alertGroupFloat, ok := rule["alert_group"].(float64); ok {
-				alertRule.AlertGroup = int64(alertGroupFloat)
-			} else {
-				alertRule.AlertGroup = -1
-			}
 
 			// Set labels if provided in rule
 			if labels, ok := rule["labels"].(map[string]interface{}); ok && len(labels) > 0 {
@@ -301,9 +283,6 @@ func (s *ArmsService) CreateArmsAlertRule(alertName, severity, description, inte
 		// Set default values for required fields if not specified
 		if alertRule.AlertCheckType == "" {
 			alertRule.AlertCheckType = "CUSTOM"
-		}
-		if alertRule.AlertGroup == 0 {
-			alertRule.AlertGroup = -1
 		}
 
 		createdRule, err := s.armsAPI.CreateAlertRule(alertRule)

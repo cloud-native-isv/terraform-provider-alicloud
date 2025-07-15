@@ -1,8 +1,6 @@
 package alicloud
 
 import (
-	"fmt"
-
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunSelectDBAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/selectdb"
 )
@@ -18,11 +16,11 @@ func NewSelectDBService(client *connectivity.AliyunClient) (*SelectDBService, er
 		client: client,
 	}
 
-	// Initialize the SelectDB API client lazily
-	_, err := aliyunSelectDBAPI.NewSelectDBAPI()
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize SelectDB API client: %w", err)
-	}
+	// // Initialize the SelectDB API client lazily
+	// _, err := aliyunSelectDBAPI.NewSelectDBAPI()
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to initialize SelectDB API client: %w", err)
+	// }
 
 	return service, nil
 }

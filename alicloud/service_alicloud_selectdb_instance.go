@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/selectdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -18,7 +17,7 @@ func (s *SelectDBService) CreateSelectDBInstance(options *selectdb.CreateInstanc
 		return nil, WrapError(fmt.Errorf("create instance options cannot be nil"))
 	}
 
-	result, err := s.api.CreateInstance(options)
+	result, err := s.selectdbAPI.CreateInstance(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -32,7 +31,7 @@ func (s *SelectDBService) DescribeSelectDBInstance(instanceId string) (*selectdb
 		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	instance, err := s.api.GetInstance(instanceId)
+	instance, err := s.selectdbAPI.GetInstance(instanceId)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -49,7 +48,7 @@ func (s *SelectDBService) DescribeSelectDBInstances(options *selectdb.ListInstan
 		options = &selectdb.ListInstancesOptions{}
 	}
 
-	result, err := s.api.ListInstances(options)
+	result, err := s.selectdbAPI.ListInstances(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -63,7 +62,7 @@ func (s *SelectDBService) ModifySelectDBInstance(options *selectdb.ModifyInstanc
 		return WrapError(fmt.Errorf("modify instance options cannot be nil"))
 	}
 
-	err := s.api.ModifyInstance(options)
+	err := s.selectdbAPI.ModifyInstance(options)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -77,7 +76,7 @@ func (s *SelectDBService) DeleteSelectDBInstance(instanceId string, regionId ...
 		return WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	err := s.api.DeleteInstance(instanceId, regionId...)
+	err := s.selectdbAPI.DeleteInstance(instanceId, regionId...)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil // Instance already deleted
@@ -94,7 +93,7 @@ func (s *SelectDBService) CheckCreateSelectDBInstance(options *selectdb.CheckCre
 		return WrapError(fmt.Errorf("check create instance options cannot be nil"))
 	}
 
-	err := s.api.CheckCreateInstance(options)
+	err := s.selectdbAPI.CheckCreateInstance(options)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -155,7 +154,7 @@ func (s *SelectDBService) WaitForSelectDBInstance(instanceId string, status Stat
 
 // WaitForSelectDBInstanceStatus waits for instance to reach desired status using state refresh
 func (s *SelectDBService) WaitForSelectDBInstanceStatus(instanceId string, targetStatus string, timeout time.Duration) (*selectdb.Instance, error) {
-	instance, err := s.api.WaitForInstanceStatus(instanceId, targetStatus, timeout)
+	instance, err := s.selectdbAPI.WaitForInstanceStatus(instanceId, targetStatus, timeout)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -171,7 +170,7 @@ func (s *SelectDBService) resetSelectDBInstancePassword(options *selectdb.ResetP
 		return WrapError(fmt.Errorf("reset password options cannot be nil"))
 	}
 
-	err := s.api.ResetAccountPassword(options)
+	err := s.selectdbAPI.ResetAccountPassword(options)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -183,7 +182,7 @@ func (s *SelectDBService) resetSelectDBInstancePassword(options *selectdb.ResetP
 
 // DescribeSelectDBRegions retrieves available regions for SelectDB
 func (s *SelectDBService) DescribeSelectDBRegions(options *selectdb.DescribeRegionsOptions) ([]selectdb.RegionInfo, error) {
-	regions, err := s.api.ListRegions(options)
+	regions, err := s.selectdbAPI.ListRegions(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -195,31 +194,31 @@ func (s *SelectDBService) DescribeSelectDBRegions(options *selectdb.DescribeRegi
 
 // CreateSelectDBConnection creates a connection string for SelectDB instance
 func (s *SelectDBService) CreateSelectDBConnection(instanceId, connectionStringPrefix, netType string) error {
-	options := &selectdb.CreateConnectionOptions{
-		DBInstanceId:           instanceId,
-		ConnectionStringPrefix: connectionStringPrefix,
-		NetType:                netType,
-	}
+	// options := &selectdb.CreateConnectionOptions{
+	// 	DBInstanceId:           instanceId,
+	// 	ConnectionStringPrefix: connectionStringPrefix,
+	// 	NetType:                netType,
+	// }
 
-	err := s.api.CreateConnection(options)
-	if err != nil {
-		return WrapError(err)
-	}
+	// err := s.selectdbAPI.CreateConnection(options)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
 	return nil
 }
 
 // ReleaseSelectDBConnection releases a connection string for SelectDB instance
 func (s *SelectDBService) ReleaseSelectDBConnection(instanceId, connectionString string) error {
-	options := &selectdb.ReleaseConnectionOptions{
-		DBInstanceId:     instanceId,
-		ConnectionString: connectionString,
-	}
+	// options := &selectdb.ReleaseConnectionOptions{
+	// 	DBInstanceId:     instanceId,
+	// 	ConnectionString: connectionString,
+	// }
 
-	err := s.api.ReleaseConnection(options)
-	if err != nil {
-		return WrapError(err)
-	}
+	// err := s.selectdbAPI.ReleaseConnection(options)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
 	return nil
 }
@@ -240,84 +239,84 @@ func IsSelectDBInvalidParameterError(err error) bool {
 
 // ConvertToCreateInstanceOptions converts schema data to API create instance options
 func ConvertToCreateInstanceOptions(d *schema.ResourceData) *selectdb.CreateInstanceOptions {
-	options := &selectdb.CreateInstanceOptions{}
+	// options := &selectdb.CreateInstanceOptions{}
 
-	if v, ok := d.GetOk("engine"); ok {
-		options.Engine = v.(string)
-	}
-	if v, ok := d.GetOk("engine_version"); ok {
-		options.EngineVersion = v.(string)
-	}
-	if v, ok := d.GetOk("db_instance_class"); ok {
-		options.DBInstanceClass = v.(string)
-	}
-	if v, ok := d.GetOk("db_instance_description"); ok {
-		options.DBInstanceDescription = v.(string)
-	}
-	if v, ok := d.GetOk("charge_type"); ok {
-		options.ChargeType = v.(string)
-	}
-	if v, ok := d.GetOk("period"); ok {
-		options.Period = v.(string)
-	}
-	if v, ok := d.GetOk("used_time"); ok {
-		options.UsedTime = int32(v.(int))
-	}
-	if v, ok := d.GetOk("region_id"); ok {
-		options.RegionId = v.(string)
-	}
-	if v, ok := d.GetOk("zone_id"); ok {
-		options.ZoneId = v.(string)
-	}
-	if v, ok := d.GetOk("vpc_id"); ok {
-		options.VpcId = v.(string)
-	}
-	if v, ok := d.GetOk("vswitch_id"); ok {
-		options.VSwitchId = v.(string)
-	}
-	if v, ok := d.GetOk("security_ip_list"); ok {
-		options.SecurityIPList = v.(string)
-	}
-	if v, ok := d.GetOk("cache_size"); ok {
-		options.CacheSize = int32(v.(int))
-	}
-	if v, ok := d.GetOk("resource_group_id"); ok {
-		options.ResourceGroupId = v.(string)
-	}
+	// if v, ok := d.GetOk("engine"); ok {
+	// 	options.Engine = v.(string)
+	// }
+	// if v, ok := d.GetOk("engine_version"); ok {
+	// 	options.EngineVersion = v.(string)
+	// }
+	// if v, ok := d.GetOk("db_instance_class"); ok {
+	// 	options.DBInstanceClass = v.(string)
+	// }
+	// if v, ok := d.GetOk("db_instance_description"); ok {
+	// 	options.DBInstanceDescription = v.(string)
+	// }
+	// if v, ok := d.GetOk("charge_type"); ok {
+	// 	options.ChargeType = v.(string)
+	// }
+	// if v, ok := d.GetOk("period"); ok {
+	// 	options.Period = v.(string)
+	// }
+	// if v, ok := d.GetOk("used_time"); ok {
+	// 	options.UsedTime = int32(v.(int))
+	// }
+	// if v, ok := d.GetOk("region_id"); ok {
+	// 	options.RegionId = v.(string)
+	// }
+	// if v, ok := d.GetOk("zone_id"); ok {
+	// 	options.ZoneId = v.(string)
+	// }
+	// if v, ok := d.GetOk("vpc_id"); ok {
+	// 	options.VpcId = v.(string)
+	// }
+	// if v, ok := d.GetOk("vswitch_id"); ok {
+	// 	options.VSwitchId = v.(string)
+	// }
+	// if v, ok := d.GetOk("security_ip_list"); ok {
+	// 	options.SecurityIPList = v.(string)
+	// }
+	// if v, ok := d.GetOk("cache_size"); ok {
+	// 	options.CacheSize = int32(v.(int))
+	// }
+	// if v, ok := d.GetOk("resource_group_id"); ok {
+	// 	options.ResourceGroupId = v.(string)
+	// }
 
-	// Convert tags
-	if v, ok := d.GetOk("tags"); ok {
-		tags := v.(map[string]interface{})
-		for key, value := range tags {
-			options.Tags = append(options.Tags, selectdb.TagInfo{
-				Key:   key,
-				Value: value.(string),
-			})
-		}
-	}
+	// // Convert tags
+	// if v, ok := d.GetOk("tags"); ok {
+	// 	tags := v.(map[string]interface{})
+	// 	for key, value := range tags {
+	// 		options.Tags = append(options.Tags, selectdb.TagInfo{
+	// 			Key:   key,
+	// 			Value: value.(string),
+	// 		})
+	// 	}
+	// }
 
-	// Convert multi-zone configuration
-	if v, ok := d.GetOk("multi_zone"); ok {
-		multiZoneList := v.([]interface{})
-		for _, mz := range multiZoneList {
-			multiZoneMap := mz.(map[string]interface{})
-			multiZone := selectdb.MultiZoneInfo{}
+	// // Convert multi-zone configuration
+	// if v, ok := d.GetOk("multi_zone"); ok {
+	// 	multiZoneList := v.([]interface{})
+	// 	for _, mz := range multiZoneList {
+	// 		multiZoneMap := mz.(map[string]interface{})
+	// 		multiZone := selectdb.MultiZoneInfo{}
 
-			if zoneId, ok := multiZoneMap["zone_id"]; ok {
-				multiZone.ZoneId = zoneId.(string)
-			}
-			if vswitchIds, ok := multiZoneMap["vswitch_ids"]; ok {
-				vswitchIdList := vswitchIds.([]interface{})
-				for _, vsId := range vswitchIdList {
-					multiZone.VSwitchIds = append(multiZone.VSwitchIds, vsId.(string))
-				}
-			}
+	// 		if zoneId, ok := multiZoneMap["zone_id"]; ok {
+	// 			multiZone.ZoneId = zoneId.(string)
+	// 		}
+	// 		if vswitchIds, ok := multiZoneMap["vswitch_ids"]; ok {
+	// 			vswitchIdList := vswitchIds.([]interface{})
+	// 			for _, vsId := range vswitchIdList {
+	// 				multiZone.VSwitchIds = append(multiZone.VSwitchIds, vsId.(string))
+	// 			}
+	// 		}
 
-			options.MultiZone = append(options.MultiZone, multiZone)
-		}
-	}
+	// 		options.MultiZone = append(options.MultiZone, multiZone)
+	// 	}
+	// }
 
-	return options
+	return nil
 }
 
 // ConvertToModifyInstanceOptions converts schema data to API modify instance options

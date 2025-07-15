@@ -1,13 +1,9 @@
 package alicloud
 
 import (
-	"encoding/json"
-	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
-	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -268,457 +264,459 @@ func resourceAliCloudSelectDBDbInstance() *schema.Resource {
 }
 
 func resourceAliCloudSelectDBDbInstanceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	selectDBService, err := NewSelectDBService(client)
-	if err != nil {
-		return WrapError(err)
-	}
-	request, err := buildSelectDBCreateInstanceRequest(d, meta)
-	if err != nil {
-		return WrapError(err)
-	}
-	action := "CreateDBInstance"
-	response, err := selectDBService.RequestProcessForSelectDB(request, action, "POST")
-	if err != nil {
-		return WrapError(err)
-	}
-	if resp, err := jsonpath.Get("$.Data", response); err != nil || resp == nil {
-		return WrapErrorf(err, IdMsg, "alicloud_selectdb_db_instance")
-	} else {
-		instanceId := resp.(map[string]interface{})["DBInstanceId"].(string)
-		d.SetId(fmt.Sprint(instanceId))
-	}
+	// client := meta.(*connectivity.AliyunClient)
+	// selectDBService, err := NewSelectDBService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// request, err := buildSelectDBCreateInstanceRequest(d, meta)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// action := "CreateDBInstance"
+	// response, err := selectDBService.RequestProcessForSelectDB(request, action, "POST")
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// if resp, err := jsonpath.Get("$.Data", response); err != nil || resp == nil {
+	// 	return WrapErrorf(err, IdMsg, "alicloud_selectdb_db_instance")
+	// } else {
+	// 	instanceId := resp.(map[string]interface{})["DBInstanceId"].(string)
+	// 	d.SetId(fmt.Sprint(instanceId))
+	// }
 
-	stateConfPreparing := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutCreate), 1*time.Minute, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
-	if _, err := stateConfPreparing.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
+	// stateConfPreparing := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutCreate), 1*time.Minute, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
+	// if _, err := stateConfPreparing.WaitForState(); err != nil {
+	// 	return WrapErrorf(err, IdMsg, d.Id())
+	// }
 
-	enable_public_network, exist := d.GetOkExists("enable_public_network")
-	if exist {
-		if enable_public_network == true {
-			if _, err := selectDBService.AllocateSelectDBInstancePublicConnection(d.Id()); err != nil {
-				return WrapError(err)
-			}
-			stateConf := BuildStateConf([]string{"NET_CREATING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutCreate), 1*time.Minute, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
-			if _, err := stateConf.WaitForState(); err != nil {
-				return WrapErrorf(err, IdMsg, d.Id())
-			}
-		}
-	}
+	// enable_public_network, exist := d.GetOkExists("enable_public_network")
+	// if exist {
+	// 	if enable_public_network == true {
+	// 		if _, err := selectDBService.AllocateSelectDBInstancePublicConnection(d.Id()); err != nil {
+	// 			return WrapError(err)
+	// 		}
+	// 		stateConf := BuildStateConf([]string{"NET_CREATING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutCreate), 1*time.Minute, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
+	// 		if _, err := stateConf.WaitForState(); err != nil {
+	// 			return WrapErrorf(err, IdMsg, d.Id())
+	// 		}
+	// 	}
+	// }
 
-	return resourceAliCloudSelectDBDbInstanceUpdate(d, meta)
+	// return resourceAliCloudSelectDBDbInstanceUpdate(d, meta)
+	return nil
 }
 
 func resourceAliCloudSelectDBDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	selectDBService, err := NewSelectDBService(client)
-	if err != nil {
-		return WrapError(err)
-	}
-	d.Partial(true)
+	// client := meta.(*connectivity.AliyunClient)
+	// selectDBService, err := NewSelectDBService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// d.Partial(true)
 
-	if !d.IsNewResource() && d.HasChange("payment_type") {
-		_, newPayment := d.GetChange("payment_type")
+	// if !d.IsNewResource() && d.HasChange("payment_type") {
+	// 	_, newPayment := d.GetChange("payment_type")
 
-		request := make(map[string]string)
-		payment := convertPaymentTypeToChargeType(newPayment)
+	// 	request := make(map[string]string)
+	// 	payment := convertPaymentTypeToChargeType(newPayment)
 
-		if payment == string(PostPaid) {
-			request["payment_type"] = string("POSTPAY")
-		} else if payment == string(PrePaid) {
-			request["payment_type"] = string("PREPAY")
-			if v, ok := d.GetOk("period"); ok {
-				request["period"] = v.(string)
-			} else {
-				request["period"] = "Month"
-			}
-			if v, ok := d.GetOk("period_time"); ok && v.(int) > 0 {
-				request["period_time"] = fmt.Sprint(v.(int))
-			} else {
-				request["period_time"] = "1"
-			}
-		}
-		if _, err := selectDBService.ModifySelectDBInstancePaymentType(d.Id(), request); err != nil {
-			return WrapError(err)
-		}
-		d.SetPartial("payment_type")
+	// 	if payment == string(PostPaid) {
+	// 		request["payment_type"] = string("POSTPAY")
+	// 	} else if payment == string(PrePaid) {
+	// 		request["payment_type"] = string("PREPAY")
+	// 		if v, ok := d.GetOk("period"); ok {
+	// 			request["period"] = v.(string)
+	// 		} else {
+	// 			request["period"] = "Month"
+	// 		}
+	// 		if v, ok := d.GetOk("period_time"); ok && v.(int) > 0 {
+	// 			request["period_time"] = fmt.Sprint(v.(int))
+	// 		} else {
+	// 			request["period_time"] = "1"
+	// 		}
+	// 	}
+	// 	if _, err := selectDBService.ModifySelectDBInstancePaymentType(d.Id(), request); err != nil {
+	// 		return WrapError(err)
+	// 	}
+	// 	d.SetPartial("payment_type")
 
-	}
+	// }
 
-	if !d.IsNewResource() && d.HasChange("enable_public_network") {
-		oldNetStatus, newNetStatus := d.GetChange("enable_public_network")
-		if oldNetStatus.(bool) && !newNetStatus.(bool) {
-			netResp, err := selectDBService.DescribeSelectDBDbInstanceNetInfo(d.Id())
-			if err != nil {
-				return WrapError(err)
-			}
-			connectionString := ""
-			resultNet, _ := netResp["DBInstanceNetInfos"].([]interface{})
-			for _, v := range resultNet {
-				item := v.(map[string]interface{})
-				if item["NetType"].(string) == "PUBLIC" && !strings.Contains(item["ConnectionString"].(string), "webui") {
-					connectionString = item["ConnectionString"].(string)
-				}
-			}
+	// if !d.IsNewResource() && d.HasChange("enable_public_network") {
+	// 	oldNetStatus, newNetStatus := d.GetChange("enable_public_network")
+	// 	if oldNetStatus.(bool) && !newNetStatus.(bool) {
+	// 		netResp, err := selectDBService.DescribeSelectDBDbInstanceNetInfo(d.Id())
+	// 		if err != nil {
+	// 			return WrapError(err)
+	// 		}
+	// 		connectionString := ""
+	// 		resultNet, _ := netResp["DBInstanceNetInfos"].([]interface{})
+	// 		for _, v := range resultNet {
+	// 			item := v.(map[string]interface{})
+	// 			if item["NetType"].(string) == "PUBLIC" && !strings.Contains(item["ConnectionString"].(string), "webui") {
+	// 				connectionString = item["ConnectionString"].(string)
+	// 			}
+	// 		}
 
-			if _, err := selectDBService.ReleaseSelectDBInstancePublicConnection(d.Id(), connectionString); err != nil {
-				return WrapError(err)
-			}
-			stateConf := BuildStateConf([]string{"NET_DELETING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
-			if _, err := stateConf.WaitForState(); err != nil {
-				return WrapErrorf(err, IdMsg, d.Id())
-			}
-			d.SetPartial("enable_public_network")
-			d.SetPartial("instance_net_infos")
-		} else if !oldNetStatus.(bool) && newNetStatus.(bool) {
-			if _, err := selectDBService.AllocateSelectDBInstancePublicConnection(d.Id()); err != nil {
-				return WrapError(err)
-			}
-			stateConf := BuildStateConf([]string{"NET_CREATING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
-			if _, err := stateConf.WaitForState(); err != nil {
-				return WrapErrorf(err, IdMsg, d.Id())
-			}
-			d.SetPartial("enable_public_network")
-			d.SetPartial("instance_net_infos")
-		}
+	// 		if _, err := selectDBService.ReleaseSelectDBInstancePublicConnection(d.Id(), connectionString); err != nil {
+	// 			return WrapError(err)
+	// 		}
+	// 		stateConf := BuildStateConf([]string{"NET_DELETING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
+	// 		if _, err := stateConf.WaitForState(); err != nil {
+	// 			return WrapErrorf(err, IdMsg, d.Id())
+	// 		}
+	// 		d.SetPartial("enable_public_network")
+	// 		d.SetPartial("instance_net_infos")
+	// 	} else if !oldNetStatus.(bool) && newNetStatus.(bool) {
+	// 		if _, err := selectDBService.AllocateSelectDBInstancePublicConnection(d.Id()); err != nil {
+	// 			return WrapError(err)
+	// 		}
+	// 		stateConf := BuildStateConf([]string{"NET_CREATING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
+	// 		if _, err := stateConf.WaitForState(); err != nil {
+	// 			return WrapErrorf(err, IdMsg, d.Id())
+	// 		}
+	// 		d.SetPartial("enable_public_network")
+	// 		d.SetPartial("instance_net_infos")
+	// 	}
 
-	}
+	// }
 
-	if !d.IsNewResource() && (d.HasChange("engine_minor_version") || d.HasChange("upgraded_engine_minor_version")) {
-		var newVersion interface{} = ""
-		if d.HasChange("upgraded_engine_minor_version") {
-			_, newVersion = d.GetChange("upgraded_engine_minor_version")
-		} else if d.HasChange("engine_minor_version") {
-			_, newVersion = d.GetChange("engine_minor_version")
-		}
+	// if !d.IsNewResource() && (d.HasChange("engine_minor_version") || d.HasChange("upgraded_engine_minor_version")) {
+	// 	var newVersion interface{} = ""
+	// 	if d.HasChange("upgraded_engine_minor_version") {
+	// 		_, newVersion = d.GetChange("upgraded_engine_minor_version")
+	// 	} else if d.HasChange("engine_minor_version") {
+	// 		_, newVersion = d.GetChange("engine_minor_version")
+	// 	}
 
-		instanceId := fmt.Sprint(d.Id())
-		instanceResp, err := selectDBService.DescribeSelectDBDbInstance(instanceId)
-		if err != nil {
-			return WrapError(err)
-		}
-		upgradeTargetVersion := ""
-		isNewVersionWithMajorVersion := false
-		if newVersion.(string) == "3.0" || newVersion.(string) == "4.0" {
-			isNewVersionWithMajorVersion = true
-		}
-		canUpgradeVersion := instanceResp["CanUpgradeVersions"].([]interface{})
-		for _, version := range canUpgradeVersion {
-			if isNewVersionWithMajorVersion {
-				if strings.HasPrefix(version.(string), newVersion.(string)) {
-					upgradeTargetVersion = version.(string)
-					break
-				}
-			} else {
-				if newVersion.(string) == version.(string) {
-					upgradeTargetVersion = version.(string)
-					break
-				}
-			}
-		}
+	// 	instanceId := fmt.Sprint(d.Id())
+	// 	instanceResp, err := selectDBService.DescribeSelectDBDbInstance(instanceId)
+	// 	if err != nil {
+	// 		return WrapError(err)
+	// 	}
+	// 	upgradeTargetVersion := ""
+	// 	isNewVersionWithMajorVersion := false
+	// 	if newVersion.(string) == "3.0" || newVersion.(string) == "4.0" {
+	// 		isNewVersionWithMajorVersion = true
+	// 	}
+	// 	canUpgradeVersion := instanceResp["CanUpgradeVersions"].([]interface{})
+	// 	for _, version := range canUpgradeVersion {
+	// 		if isNewVersionWithMajorVersion {
+	// 			if strings.HasPrefix(version.(string), newVersion.(string)) {
+	// 				upgradeTargetVersion = version.(string)
+	// 				break
+	// 			}
+	// 		} else {
+	// 			if newVersion.(string) == version.(string) {
+	// 				upgradeTargetVersion = version.(string)
+	// 				break
+	// 			}
+	// 		}
+	// 	}
 
-		if upgradeTargetVersion == "" {
-			if !isNewVersionWithMajorVersion {
-				return WrapErrorf(err, "Invalid upgrade version for %s, cannot upgrade to %s", d.Id(), newVersion.(string), AlibabaCloudSdkGoERROR)
-			}
-		} else {
-			// todo maintaintime update
-			_, err = selectDBService.UpgradeSelectDBInstanceEngineVersion(d.Id(), upgradeTargetVersion, false)
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpgradeSelectDBInstanceEngineVersion", AlibabaCloudSdkGoERROR)
-			}
-			stateConf := BuildStateConf([]string{"MODULE_UPGRADING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
-			if _, err := stateConf.WaitForState(); err != nil {
-				return WrapErrorf(err, IdMsg, d.Id())
-			}
-		}
+	// 	if upgradeTargetVersion == "" {
+	// 		if !isNewVersionWithMajorVersion {
+	// 			return WrapErrorf(err, "Invalid upgrade version for %s, cannot upgrade to %s", d.Id(), newVersion.(string), AlibabaCloudSdkGoERROR)
+	// 		}
+	// 	} else {
+	// 		// todo maintaintime update
+	// 		_, err = selectDBService.UpgradeSelectDBInstanceEngineVersion(d.Id(), upgradeTargetVersion, false)
+	// 		if err != nil {
+	// 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpgradeSelectDBInstanceEngineVersion", AlibabaCloudSdkGoERROR)
+	// 		}
+	// 		stateConf := BuildStateConf([]string{"MODULE_UPGRADING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
+	// 		if _, err := stateConf.WaitForState(); err != nil {
+	// 			return WrapErrorf(err, IdMsg, d.Id())
+	// 		}
+	// 	}
 
-		d.SetPartial("upgraded_engine_minor_version")
-		d.SetPartial("engine_minor_version")
-	}
+	// 	d.SetPartial("upgraded_engine_minor_version")
+	// 	d.SetPartial("engine_minor_version")
+	// }
 
-	cacheSizeModified := false
-	if !d.IsNewResource() && (d.HasChange("db_instance_class")) {
-		defaultBeId := fmt.Sprint(d.Id() + ":" + d.Id() + "-be")
-		_, newClass := d.GetChange("db_instance_class")
-		cache_size := 0
-		if d.HasChange("cache_size") {
-			_, newCacheSize := d.GetChange("cache_size")
-			cache_size = newCacheSize.(int)
-			cacheSizeModified = true
-		}
-		_, err := selectDBService.ModifySelectDBCluster(defaultBeId, newClass.(string), cache_size)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, defaultBeId, "ModifyDBCluster", AlibabaCloudSdkGoERROR)
-		}
-		stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbClusterStateRefreshFunc(defaultBeId, []string{"DELETING"}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, defaultBeId)
-		}
-		d.SetPartial("db_instance_class")
-		if d.HasChange("cache_size") {
-			d.SetPartial("cache_size")
-		}
-	}
+	// cacheSizeModified := false
+	// if !d.IsNewResource() && (d.HasChange("db_instance_class")) {
+	// 	defaultBeId := fmt.Sprint(d.Id() + ":" + d.Id() + "-be")
+	// 	_, newClass := d.GetChange("db_instance_class")
+	// 	cache_size := 0
+	// 	if d.HasChange("cache_size") {
+	// 		_, newCacheSize := d.GetChange("cache_size")
+	// 		cache_size = newCacheSize.(int)
+	// 		cacheSizeModified = true
+	// 	}
+	// 	_, err := selectDBService.ModifySelectDBCluster(defaultBeId, newClass.(string), cache_size)
+	// 	if err != nil {
+	// 		return WrapErrorf(err, DefaultErrorMsg, defaultBeId, "ModifyDBCluster", AlibabaCloudSdkGoERROR)
+	// 	}
+	// 	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbClusterStateRefreshFunc(defaultBeId, []string{"DELETING"}))
+	// 	if _, err := stateConf.WaitForState(); err != nil {
+	// 		return WrapErrorf(err, IdMsg, defaultBeId)
+	// 	}
+	// 	d.SetPartial("db_instance_class")
+	// 	if d.HasChange("cache_size") {
+	// 		d.SetPartial("cache_size")
+	// 	}
+	// }
 
-	if !d.IsNewResource() && d.HasChange("cache_size") && !cacheSizeModified {
-		defaultBeId := fmt.Sprint(d.Id() + ":" + d.Id() + "-be")
-		_, newCacheSize := d.GetChange("cache_size")
-		db_cluster_class := d.Get("db_instance_class").(string)
-		if d.HasChange("db_instance_class") {
-			_, newClass := d.GetChange("db_instance_class")
-			db_cluster_class = newClass.(string)
-		}
-		_, err := selectDBService.ModifySelectDBCluster(defaultBeId, db_cluster_class, newCacheSize.(int))
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, defaultBeId, "ModifyDBCluster", AlibabaCloudSdkGoERROR)
-		}
-		stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbClusterStateRefreshFunc(defaultBeId, []string{"DELETING"}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, defaultBeId)
-		}
-		d.SetPartial("cache_size")
-		if d.HasChange("db_instance_class") {
-			d.SetPartial("db_instance_class")
-		}
-	}
+	// if !d.IsNewResource() && d.HasChange("cache_size") && !cacheSizeModified {
+	// 	defaultBeId := fmt.Sprint(d.Id() + ":" + d.Id() + "-be")
+	// 	_, newCacheSize := d.GetChange("cache_size")
+	// 	db_cluster_class := d.Get("db_instance_class").(string)
+	// 	if d.HasChange("db_instance_class") {
+	// 		_, newClass := d.GetChange("db_instance_class")
+	// 		db_cluster_class = newClass.(string)
+	// 	}
+	// 	_, err := selectDBService.ModifySelectDBCluster(defaultBeId, db_cluster_class, newCacheSize.(int))
+	// 	if err != nil {
+	// 		return WrapErrorf(err, DefaultErrorMsg, defaultBeId, "ModifyDBCluster", AlibabaCloudSdkGoERROR)
+	// 	}
+	// 	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbClusterStateRefreshFunc(defaultBeId, []string{"DELETING"}))
+	// 	if _, err := stateConf.WaitForState(); err != nil {
+	// 		return WrapErrorf(err, IdMsg, defaultBeId)
+	// 	}
+	// 	d.SetPartial("cache_size")
+	// 	if d.HasChange("db_instance_class") {
+	// 		d.SetPartial("db_instance_class")
+	// 	}
+	// }
 
-	if !d.IsNewResource() && d.HasChange("db_instance_description") {
-		_, newDesc := d.GetChange("db_instance_description")
-		_, err := selectDBService.ModifySelectDBInstanceDescription(d.Id(), newDesc.(string))
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifySelectDBInstanceDescription", AlibabaCloudSdkGoERROR)
-		}
-		d.SetPartial("db_instance_description")
-	}
+	// if !d.IsNewResource() && d.HasChange("db_instance_description") {
+	// 	_, newDesc := d.GetChange("db_instance_description")
+	// 	_, err := selectDBService.ModifySelectDBInstanceDescription(d.Id(), newDesc.(string))
+	// 	if err != nil {
+	// 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifySelectDBInstanceDescription", AlibabaCloudSdkGoERROR)
+	// 	}
+	// 	d.SetPartial("db_instance_description")
+	// }
 
-	if d.HasChange("tags") {
-		added, removed := parsingTags(d)
-		if err := selectDBService.SetResourceTags(d.Id(), added, removed); err != nil {
-			return WrapError(err)
-		}
-		d.SetPartial("tags")
-	}
+	// if d.HasChange("tags") {
+	// 	added, removed := parsingTags(d)
+	// 	if err := selectDBService.SetResourceTags(d.Id(), added, removed); err != nil {
+	// 		return WrapError(err)
+	// 	}
+	// 	d.SetPartial("tags")
+	// }
 
-	if d.HasChange("admin_pass") {
-		_, newPass := d.GetChange("admin_pass")
-		if _, err := selectDBService.ModifySelectDBInstanceAdminPass(d.Id(), newPass.(string)); err != nil {
-			return WrapError(err)
-		}
-		d.SetPartial("admin_pass")
-	}
+	// if d.HasChange("admin_pass") {
+	// 	_, newPass := d.GetChange("admin_pass")
+	// 	if _, err := selectDBService.ModifySelectDBInstanceAdminPass(d.Id(), newPass.(string)); err != nil {
+	// 		return WrapError(err)
+	// 	}
+	// 	d.SetPartial("admin_pass")
+	// }
 
-	if d.HasChange("desired_security_ip_lists") {
-		_, newDesc := d.GetChange("desired_security_ip_lists")
-		for _, v := range newDesc.([]interface{}) {
-			item := v.(map[string]interface{})
-			_, err := selectDBService.ModifySelectDBDbInstanceSecurityIPList(d.Id(), item["group_name"].(string), item["security_ip_list"].(string))
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifySecurityIPList", AlibabaCloudSdkGoERROR)
-			}
-		}
-		d.SetPartial("desired_security_ip_lists")
-	}
-	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING", "CLASS_CHANGING", "MODULE_UPGRADING", "NET_CREATING", "NET_DELETING"},
-		[]string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
+	// if d.HasChange("desired_security_ip_lists") {
+	// 	_, newDesc := d.GetChange("desired_security_ip_lists")
+	// 	for _, v := range newDesc.([]interface{}) {
+	// 		item := v.(map[string]interface{})
+	// 		_, err := selectDBService.ModifySelectDBDbInstanceSecurityIPList(d.Id(), item["group_name"].(string), item["security_ip_list"].(string))
+	// 		if err != nil {
+	// 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifySecurityIPList", AlibabaCloudSdkGoERROR)
+	// 		}
+	// 	}
+	// 	d.SetPartial("desired_security_ip_lists")
+	// }
+	// stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING", "CLASS_CHANGING", "MODULE_UPGRADING", "NET_CREATING", "NET_DELETING"},
+	// 	[]string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
 
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
+	// if _, err := stateConf.WaitForState(); err != nil {
+	// 	return WrapErrorf(err, IdMsg, d.Id())
+	// }
 
-	d.Partial(false)
-	return resourceAliCloudSelectDBDbInstanceRead(d, meta)
+	// d.Partial(false)
+	// return resourceAliCloudSelectDBDbInstanceRead(d, meta)
+	return nil
 }
 
 func resourceAliCloudSelectDBDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	selectDBService, err := NewSelectDBService(client)
-	if err != nil {
-		return WrapError(err)
-	}
+	// client := meta.(*connectivity.AliyunClient)
+	// selectDBService, err := NewSelectDBService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
-	instanceId := fmt.Sprint(d.Id())
-	instanceResp, err := selectDBService.DescribeSelectDBDbInstance(instanceId)
-	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
-			d.SetId("")
-			return nil
-		}
-		return WrapError(err)
-	}
+	// instanceId := fmt.Sprint(d.Id())
+	// instanceResp, err := selectDBService.DescribeSelectDBDbInstance(instanceId)
+	// if err != nil {
+	// 	if !d.IsNewResource() && NotFoundError(err) {
+	// 		d.SetId("")
+	// 		return nil
+	// 	}
+	// 	return WrapError(err)
+	// }
 
-	d.Set("engine", instanceResp["Engine"])
-	d.Set("engine_minor_version", instanceResp["EngineMinorVersion"])
-	d.Set("upgraded_engine_minor_version", instanceResp["EngineMinorVersion"])
+	// d.Set("engine", instanceResp["Engine"])
+	// d.Set("engine_minor_version", instanceResp["EngineMinorVersion"])
+	// d.Set("upgraded_engine_minor_version", instanceResp["EngineMinorVersion"])
 
-	d.Set("region_id", instanceResp["RegionId"])
-	d.Set("zone_id", instanceResp["ZoneId"])
-	d.Set("vpc_id", instanceResp["VpcId"])
+	// d.Set("region_id", instanceResp["RegionId"])
+	// d.Set("zone_id", instanceResp["ZoneId"])
+	// d.Set("vpc_id", instanceResp["VpcId"])
 
-	d.Set("payment_type", convertChargeTypeToPaymentType(instanceResp["ChargeType"]))
+	// d.Set("payment_type", convertChargeTypeToPaymentType(instanceResp["ChargeType"]))
 
-	d.Set("db_instance_description", instanceResp["Description"])
-	d.Set("status", instanceResp["Status"])
-	d.Set("sub_domain", instanceResp["SubDomain"])
-	d.Set("gmt_created", instanceResp["CreateTime"])
-	d.Set("gmt_modified", instanceResp["GmtModified"])
-	d.Set("gmt_expired", instanceResp["ExpiredTime"])
-	d.Set("lock_mode", instanceResp["LockMode"])
-	d.Set("lock_reason", instanceResp["LockReason"])
+	// d.Set("db_instance_description", instanceResp["Description"])
+	// d.Set("status", instanceResp["Status"])
+	// d.Set("sub_domain", instanceResp["SubDomain"])
+	// d.Set("gmt_created", instanceResp["CreateTime"])
+	// d.Set("gmt_modified", instanceResp["GmtModified"])
+	// d.Set("gmt_expired", instanceResp["ExpiredTime"])
+	// d.Set("lock_mode", instanceResp["LockMode"])
+	// d.Set("lock_reason", instanceResp["LockReason"])
 
-	default_cache_size := 0
+	// default_cache_size := 0
 
-	clusterResp := instanceResp["DBClusterList"]
-	result, _ := clusterResp.([]interface{})
-	defaultBeClusterId := d.Id() + "-be"
-	for _, v := range result {
-		item := v.(map[string]interface{})
-		if item["DbClusterId"].(string) == defaultBeClusterId {
-			d.Set("db_instance_class", item["DbClusterClass"])
-			cache, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
-			default_cache_size = int(cache)
-		}
-	}
-	d.Set("cache_size", default_cache_size)
+	// clusterResp := instanceResp["DBClusterList"]
+	// result, _ := clusterResp.([]interface{})
+	// defaultBeClusterId := d.Id() + "-be"
+	// for _, v := range result {
+	// 	item := v.(map[string]interface{})
+	// 	if item["DbClusterId"].(string) == defaultBeClusterId {
+	// 		d.Set("db_instance_class", item["DbClusterClass"])
+	// 		cache, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
+	// 		default_cache_size = int(cache)
+	// 	}
+	// }
+	// d.Set("cache_size", default_cache_size)
 
-	cpuPrepaid := 0
-	cpuPostpaid := 0
-	memPrepaid := 0
-	memPostpaid := 0
-	cachePrepaid := 0
-	cachePostpaid := 0
+	// cpuPrepaid := 0
+	// cpuPostpaid := 0
+	// memPrepaid := 0
+	// memPostpaid := 0
+	// cachePrepaid := 0
+	// cachePostpaid := 0
 
-	clusterPrepaidCount := 0
-	clusterPostpaidCount := 0
+	// clusterPrepaidCount := 0
+	// clusterPostpaidCount := 0
 
-	for _, v := range clusterResp.([]interface{}) {
-		item := v.(map[string]interface{})
-		if item["ChargeType"].(string) == "Postpaid" {
-			cpuP, _ := item["CpuCores"].(json.Number).Int64()
-			cpuPostpaid += int(cpuP)
-			memP, _ := item["Memory"].(json.Number).Int64()
-			memPostpaid += int(memP)
-			cacheP, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
-			cachePostpaid += int(cacheP)
-			clusterPostpaidCount += 1
-		}
-		if item["ChargeType"].(string) == "Prepaid" {
-			cpuP, _ := item["CpuCores"].(json.Number).Int64()
-			cpuPrepaid += int(cpuP)
-			memP, _ := item["Memory"].(json.Number).Int64()
-			memPrepaid += int(memP)
-			cacheP, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
-			cachePrepaid += int(cacheP)
-			clusterPrepaidCount += 1
-		}
-	}
-	d.Set("cpu_prepaid", cpuPrepaid)
-	d.Set("memory_prepaid", memPrepaid)
-	d.Set("cache_size_prepaid", cachePrepaid)
-	d.Set("cpu_postpaid", cpuPostpaid)
-	d.Set("memory_postpaid", memPostpaid)
-	d.Set("cache_size_postpaid", cachePostpaid)
+	// for _, v := range clusterResp.([]interface{}) {
+	// 	item := v.(map[string]interface{})
+	// 	if item["ChargeType"].(string) == "Postpaid" {
+	// 		cpuP, _ := item["CpuCores"].(json.Number).Int64()
+	// 		cpuPostpaid += int(cpuP)
+	// 		memP, _ := item["Memory"].(json.Number).Int64()
+	// 		memPostpaid += int(memP)
+	// 		cacheP, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
+	// 		cachePostpaid += int(cacheP)
+	// 		clusterPostpaidCount += 1
+	// 	}
+	// 	if item["ChargeType"].(string) == "Prepaid" {
+	// 		cpuP, _ := item["CpuCores"].(json.Number).Int64()
+	// 		cpuPrepaid += int(cpuP)
+	// 		memP, _ := item["Memory"].(json.Number).Int64()
+	// 		memPrepaid += int(memP)
+	// 		cacheP, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
+	// 		cachePrepaid += int(cacheP)
+	// 		clusterPrepaidCount += 1
+	// 	}
+	// }
+	// d.Set("cpu_prepaid", cpuPrepaid)
+	// d.Set("memory_prepaid", memPrepaid)
+	// d.Set("cache_size_prepaid", cachePrepaid)
+	// d.Set("cpu_postpaid", cpuPostpaid)
+	// d.Set("memory_postpaid", memPostpaid)
+	// d.Set("cache_size_postpaid", cachePostpaid)
 
-	d.Set("cluster_count_prepaid", clusterPrepaidCount)
-	d.Set("cluster_count_postpaid", clusterPostpaidCount)
+	// d.Set("cluster_count_prepaid", clusterPrepaidCount)
+	// d.Set("cluster_count_postpaid", clusterPostpaidCount)
 
-	if resp, err := jsonpath.Get("$.Tags", instanceResp); err == nil || resp != nil {
-		tags := make(map[string]interface{})
-		for _, t := range resp.([]interface{}) {
-			key := t.(map[string]interface{})["TagKey"].(string)
-			value := t.(map[string]interface{})["TagValue"].(string)
-			if !ignoredTags(key, value) {
-				tags[key] = value
-			}
-		}
-		d.Set("tags", tags)
-	}
+	// if resp, err := jsonpath.Get("$.Tags", instanceResp); err == nil || resp != nil {
+	// 	tags := make(map[string]interface{})
+	// 	for _, t := range resp.([]interface{}) {
+	// 		key := t.(map[string]interface{})["TagKey"].(string)
+	// 		value := t.(map[string]interface{})["TagValue"].(string)
+	// 		if !ignoredTags(key, value) {
+	// 			tags[key] = value
+	// 		}
+	// 	}
+	// 	d.Set("tags", tags)
+	// }
 
-	netResp, err := selectDBService.DescribeSelectDBDbInstanceNetInfo(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-	instanceNetArray := make([]map[string]interface{}, 0)
-	resultInstanceNet, _ := netResp["DBInstanceNetInfos"].([]interface{})
-	new_vswitch_id := ""
-	for _, v := range resultInstanceNet {
-		item := v.(map[string]interface{})
-		port_list := make([]map[string]interface{}, 0)
-		for _, vv := range item["PortList"].([]interface{}) {
-			port_map := map[string]interface{}{
-				"port":     vv.(map[string]interface{})["Port"],
-				"protocol": vv.(map[string]interface{})["Protocol"],
-			}
-			port_list = append(port_list, port_map)
-		}
-		mapping := map[string]interface{}{
-			"db_ip":             item["Ip"],
-			"vpc_instance_id":   item["VpcInstanceId"],
-			"connection_string": item["ConnectionString"],
-			"net_type":          item["NetType"],
-			"vswitch_id":        item["VswitchId"],
-			"port_list":         port_list,
-		}
-		if item["VswitchId"].(string) != "" {
-			new_vswitch_id = item["VswitchId"].(string)
-		}
-		instanceNetArray = append(instanceNetArray, mapping)
-	}
-	if new_vswitch_id != "" {
-		d.Set("vswitch_id", new_vswitch_id)
-	}
-	d.Set("instance_net_infos", instanceNetArray)
+	// netResp, err := selectDBService.DescribeSelectDBDbInstanceNetInfo(d.Id())
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// instanceNetArray := make([]map[string]interface{}, 0)
+	// resultInstanceNet, _ := netResp["DBInstanceNetInfos"].([]interface{})
+	// new_vswitch_id := ""
+	// for _, v := range resultInstanceNet {
+	// 	item := v.(map[string]interface{})
+	// 	port_list := make([]map[string]interface{}, 0)
+	// 	for _, vv := range item["PortList"].([]interface{}) {
+	// 		port_map := map[string]interface{}{
+	// 			"port":     vv.(map[string]interface{})["Port"],
+	// 			"protocol": vv.(map[string]interface{})["Protocol"],
+	// 		}
+	// 		port_list = append(port_list, port_map)
+	// 	}
+	// 	mapping := map[string]interface{}{
+	// 		"db_ip":             item["Ip"],
+	// 		"vpc_instance_id":   item["VpcInstanceId"],
+	// 		"connection_string": item["ConnectionString"],
+	// 		"net_type":          item["NetType"],
+	// 		"vswitch_id":        item["VswitchId"],
+	// 		"port_list":         port_list,
+	// 	}
+	// 	if item["VswitchId"].(string) != "" {
+	// 		new_vswitch_id = item["VswitchId"].(string)
+	// 	}
+	// 	instanceNetArray = append(instanceNetArray, mapping)
+	// }
+	// if new_vswitch_id != "" {
+	// 	d.Set("vswitch_id", new_vswitch_id)
+	// }
+	// d.Set("instance_net_infos", instanceNetArray)
 
-	securityIpArrayList, err := selectDBService.DescribeSelectDBDbInstanceSecurityIPList(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-	securityIpArray := make([]map[string]interface{}, 0)
-	for _, v := range securityIpArrayList {
-		if m1, ok := v.(map[string]interface{}); ok {
-			temp1 := map[string]interface{}{
-				"group_name":       m1["GroupName"],
-				"group_tag":        m1["GroupTag"],
-				"security_ip_type": m1["AecurityIPType"],
-				"security_ip_list": m1["SecurityIPList"],
-				"list_net_type":    m1["WhitelistNetType"],
-			}
-			securityIpArray = append(securityIpArray, temp1)
-		}
-	}
-	d.Set("security_ip_lists", securityIpArray)
+	// securityIpArrayList, err := selectDBService.DescribeSelectDBDbInstanceSecurityIPList(d.Id())
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// securityIpArray := make([]map[string]interface{}, 0)
+	// for _, v := range securityIpArrayList {
+	// 	if m1, ok := v.(map[string]interface{}); ok {
+	// 		temp1 := map[string]interface{}{
+	// 			"group_name":       m1["GroupName"],
+	// 			"group_tag":        m1["GroupTag"],
+	// 			"security_ip_type": m1["AecurityIPType"],
+	// 			"security_ip_list": m1["SecurityIPList"],
+	// 			"list_net_type":    m1["WhitelistNetType"],
+	// 		}
+	// 		securityIpArray = append(securityIpArray, temp1)
+	// 	}
+	// }
+	// d.Set("security_ip_lists", securityIpArray)
 
 	return nil
 }
 
 func resourceAliCloudSelectDBDbInstanceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	selectDBService, err := NewSelectDBService(client)
-	if err != nil {
-		return WrapError(err)
-	}
+	// client := meta.(*connectivity.AliyunClient)
+	// selectDBService, err := NewSelectDBService(client)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
-	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING", "CLASS_CHANGING", "MODULE_UPGRADING", "NET_CREATING", "NET_DELETING"},
-		[]string{"ACTIVATION"}, d.Timeout(schema.TimeoutDelete), 10*time.Second, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
+	// stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING", "CLASS_CHANGING", "MODULE_UPGRADING", "NET_CREATING", "NET_DELETING"},
+	// 	[]string{"ACTIVATION"}, d.Timeout(schema.TimeoutDelete), 10*time.Second, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))
+	// if _, err := stateConf.WaitForState(); err != nil {
+	// 	return WrapErrorf(err, IdMsg, d.Id())
+	// }
 
-	payment := convertPaymentTypeToChargeType(d.Get("payment_type"))
+	// payment := convertPaymentTypeToChargeType(d.Get("payment_type"))
 
-	if payment == string(PrePaid) {
-		request := make(map[string]string)
-		request["payment_type"] = string("POSTPAY")
-		if _, err := selectDBService.ModifySelectDBInstancePaymentType(d.Id(), request); err != nil {
-			return WrapError(err)
-		}
-	}
+	// if payment == string(PrePaid) {
+	// 	request := make(map[string]string)
+	// 	request["payment_type"] = string("POSTPAY")
+	// 	if _, err := selectDBService.ModifySelectDBInstancePaymentType(d.Id(), request); err != nil {
+	// 		return WrapError(err)
+	// 	}
+	// }
 
-	_, err := selectDBService.DeleteSelectDBInstance(d.Id())
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDBInstance", AlibabaCloudSdkGoERROR)
-	}
+	// _, err := selectDBService.DeleteSelectDBInstance(d.Id())
+	// if err != nil {
+	// 	return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDBInstance", AlibabaCloudSdkGoERROR)
+	// }
 	return nil
 }
 
