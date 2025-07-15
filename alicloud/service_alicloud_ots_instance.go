@@ -324,3 +324,50 @@ func convertTablestoreTagsToMap(tags []tablestore.TablestoreInstanceTag) map[str
 	}
 	return result
 }
+
+// List OTS instances for data source support
+func (s *OtsService) ListOtsInstance() ([]*tablestore.TablestoreInstance, error) {
+	api, err := s.getTablestoreAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	ctx := context.Background()
+	instances, err := api.ListAllInstances(ctx, nil)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "ots_instances", "ListInstances", AlibabaCloudSdkGoERROR)
+	}
+
+	// Convert slice to pointer slice
+	var result []*tablestore.TablestoreInstance
+	for i := range instances {
+		result = append(result, &instances[i])
+	}
+
+	return result, nil
+}
+
+// List OTS instance VPC attachments for data source support
+func (s *OtsService) ListOtsInstanceVpc(instanceName string) ([]*ots.VpcInfo, error) {
+	request := ots.CreateListVpcInfoByInstanceRequest()
+	request.RegionId = s.client.RegionId
+	request.InstanceName = instanceName
+
+	raw, err := s.client.WithOtsClient(func(otsClient *ots.Client) (interface{}, error) {
+		return otsClient.ListVpcInfoByInstance(request)
+	})
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, instanceName, request.GetActionName(), AlibabaCloudSdkGoERROR)
+	}
+	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
+
+	response, _ := raw.(*ots.ListVpcInfoByInstanceResponse)
+
+	// Convert to pointer slice
+	var result []*ots.VpcInfo
+	for i := range response.VpcInfos.VpcInfo {
+		result = append(result, &response.VpcInfos.VpcInfo[i])
+	}
+
+	return result, nil
+}

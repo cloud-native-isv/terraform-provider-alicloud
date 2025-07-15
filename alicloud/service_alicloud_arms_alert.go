@@ -135,25 +135,6 @@ func (s *ArmsService) DescribeArmsAlertRobot(id string) (object map[string]inter
 	return object, nil
 }
 
-// DescribeArmsAlertRule describes ARMS alert rule
-func (s *ArmsService) DescribeArmsAlertRule(id string) (object map[string]interface{}, err error) {
-	// Placeholder implementation for ARMS alert rule description
-	// TODO: Implement actual RPC call when needed
-	alertIdInt, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
-		return nil, WrapError(fmt.Errorf("invalid alert rule ID: %s", id))
-	}
-
-	return map[string]interface{}{
-		"AlertId":   alertIdInt,
-		"AlertName": fmt.Sprintf("AlertRule-%s", id),
-		"Status":    "RUNNING",
-		"Type":      "APPLICATION_MONITORING",
-		"ClusterId": "",
-		"RegionId":  s.client.RegionId,
-	}, nil
-}
-
 // ArmsAlertRuleStateRefreshFunc returns state refresh function for ARMS alert rule
 func (s *ArmsService) ArmsAlertRuleStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {

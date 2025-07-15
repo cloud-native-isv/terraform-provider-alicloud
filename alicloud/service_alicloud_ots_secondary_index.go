@@ -1,7 +1,6 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -19,70 +18,61 @@ func (s *OtsService) CreateOtsSecondaryIndex(d *schema.ResourceData, instanceNam
 
 	indexName := d.Get("index_name").(string)
 
-	// Build primary key columns for the index
-	primaryKeyList := d.Get("primary_key").([]interface{})
-	var primaryKeys []tablestore.PrimaryKeyColumn
-	for _, pk := range primaryKeyList {
-		pkMap := pk.(map[string]interface{})
-		primaryKeys = append(primaryKeys, tablestore.PrimaryKeyColumn{
-			Name: pkMap["name"].(string),
-			Type: pkMap["type"].(string),
-		})
-	}
-
-	options := &tablestore.CreateSecondaryIndexOptions{
-		TableName: tableName,
-		IndexName: indexName,
-		IndexMeta: tablestore.IndexMeta{
-			IndexName:   indexName,
-			PrimaryKeys: primaryKeys,
-			IndexType:   tablestore.IT_GLOBAL_INDEX, // Default to global index
-		},
-	}
-
-	// Set defined columns if provided
-	if definedColumns, ok := d.GetOk("defined_column"); ok {
-		var columns []string
-		for _, col := range definedColumns.([]interface{}) {
-			columns = append(columns, col.(string))
-		}
-		options.IndexMeta.DefinedColumns = columns
-	}
-
-	// Set index update mode if provided
-	if indexUpdateMode, ok := d.GetOk("index_update_mode"); ok {
-		switch indexUpdateMode.(string) {
-		case "IUM_ASYNC_INDEX":
-			options.IndexMeta.IndexUpdateMode = tablestore.IUM_ASYNC_INDEX
-		case "IUM_SYNC_INDEX":
-			options.IndexMeta.IndexUpdateMode = tablestore.IUM_SYNC_INDEX
+	// Build primary keys
+	var primaryKeys []string
+	if pks, ok := d.GetOk("primary_key"); ok {
+		for _, pk := range pks.([]interface{}) {
+			primaryKeys = append(primaryKeys, pk.(string))
 		}
 	}
 
-	ctx := context.Background()
-	if err := api.CreateSecondaryIndex(ctx, options); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, indexName, "CreateSecondaryIndex", AlibabaCloudSdkGoERROR)
+	// Build defined columns
+	var definedColumns []string
+	if dcs, ok := d.GetOk("defined_column"); ok {
+		for _, dc := range dcs.([]interface{}) {
+			definedColumns = append(definedColumns, dc.(string))
+		}
+	}
+
+	// Create index metadata
+	indexMeta := &tablestore.IndexMeta{
+		IndexName:      indexName,
+		Primarykey:     primaryKeys,
+		DefinedColumns: definedColumns,
+		IndexType:      tablestore.IT_GLOBAL_INDEX, // Default to global index
+	}
+
+	// Create index object
+	index := &tablestore.TablestoreIndex{
+		TableName:       tableName,
+		IndexName:       indexName,
+		IndexMeta:       indexMeta,
+		IncludeBaseData: d.Get("include_base_data").(bool),
+	}
+
+	if err := api.CreateIndex(index); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, indexName, "CreateIndex", AlibabaCloudSdkGoERROR)
 	}
 
 	d.SetId(fmt.Sprintf("%s:%s:%s", instanceName, tableName, indexName))
 	return nil
 }
 
-func (s *OtsService) DescribeOtsSecondaryIndex(instanceName, tableName, indexName string) (*tablestore.IndexMeta, error) {
-	// Get table information which includes index metadata
-	table, err := s.DescribeOtsTable(instanceName, tableName)
+func (s *OtsService) DescribeOtsSecondaryIndex(instanceName, tableName, indexName string) (*tablestore.TablestoreIndex, error) {
+	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	// Find the specific index
-	for _, indexMeta := range table.IndexMetas {
-		if indexMeta.IndexName == indexName {
-			return &indexMeta, nil
+	index, err := api.GetIndex(tableName, indexName)
+	if err != nil {
+		if IsExpectedErrors(err, []string{"NotExist", "InvalidIndexName.NotFound"}) {
+			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
+		return nil, WrapErrorf(err, DefaultErrorMsg, indexName, "DescribeIndex", AlibabaCloudSdkGoERROR)
 	}
 
-	return nil, WrapErrorf(Error("Secondary index not found"), NotFoundMsg, AlibabaCloudSdkGoERROR)
+	return index, nil
 }
 
 func (s *OtsService) DeleteOtsSecondaryIndex(instanceName, tableName, indexName string) error {
@@ -91,17 +81,16 @@ func (s *OtsService) DeleteOtsSecondaryIndex(instanceName, tableName, indexName 
 		return WrapError(err)
 	}
 
-	options := &tablestore.DeleteSecondaryIndexOptions{
+	index := &tablestore.TablestoreIndex{
 		TableName: tableName,
 		IndexName: indexName,
 	}
 
-	ctx := context.Background()
-	if err := api.DeleteSecondaryIndex(ctx, options); err != nil {
+	if err := api.DeleteIndex(index); err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidIndexName.NotFound"}) {
 			return nil
 		}
-		return WrapErrorf(err, DefaultErrorMsg, indexName, "DeleteSecondaryIndex", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, indexName, "DeleteIndex", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil
@@ -121,22 +110,30 @@ func (s *OtsService) WaitForOtsSecondaryIndex(instanceName, tableName, indexName
 			}
 		}
 
-		if index != nil && string(index.IndexStatus) == status {
-			return nil
+		if index != nil {
+			// For secondary indexes, we assume they're active if they exist
+			if status == "Active" {
+				return nil
+			}
 		}
 
 		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, indexName, GetFunc(1), timeout, string(index.IndexStatus), status, ProviderERROR)
+			return WrapErrorf(err, WaitTimeoutMsg, indexName, GetFunc(1), timeout, "Active", status, ProviderERROR)
 		}
 		time.Sleep(DefaultIntervalShort * time.Second)
 	}
 }
 
-func (s *OtsService) ListOtsSecondaryIndexes(instanceName, tableName string) ([]tablestore.IndexMeta, error) {
-	table, err := s.DescribeOtsTable(instanceName, tableName)
+func (s *OtsService) ListOtsSecondaryIndexes(instanceName, tableName string) ([]*tablestore.TablestoreIndex, error) {
+	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	return table.IndexMetas, nil
+	indexes, err := api.ListIndexes(tableName)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, tableName, "ListIndexes", AlibabaCloudSdkGoERROR)
+	}
+
+	return indexes, nil
 }

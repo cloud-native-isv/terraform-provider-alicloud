@@ -18,12 +18,27 @@ func (s *OtsService) CreateOtsTunnel(d *schema.ResourceData, instanceName, table
 	}
 
 	tunnelName := d.Get("tunnel_name").(string)
-	tunnelType := d.Get("tunnel_type").(string)
+	tunnelTypeStr := d.Get("tunnel_type").(string)
 
+	// Convert tunnel type string to enum
+	var tunnelType tablestore.TunnelType
+	switch tunnelTypeStr {
+	case "BaseData":
+		tunnelType = tablestore.TunnelType_BaseData
+	case "Stream":
+		tunnelType = tablestore.TunnelType_Stream
+	case "BaseAndStream":
+		tunnelType = tablestore.TunnelType_BaseAndStream
+	default:
+		tunnelType = tablestore.TunnelType_Stream
+	}
+
+	// Create tunnel options
 	options := &tablestore.CreateTunnelOptions{
-		TableName:  tableName,
-		TunnelName: tunnelName,
-		TunnelType: tunnelType,
+		TableName:    tableName,
+		TunnelName:   tunnelName,
+		TunnelType:   tunnelType,
+		InstanceName: instanceName,
 	}
 
 	ctx := context.Background()
@@ -32,13 +47,7 @@ func (s *OtsService) CreateOtsTunnel(d *schema.ResourceData, instanceName, table
 		return WrapErrorf(err, DefaultErrorMsg, tunnelName, "CreateTunnel", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprintf("%s:%s:%s", instanceName, tableName, tunnelName))
-
-	// Set the tunnel ID from the response
-	if result != nil && result.TunnelId != "" {
-		d.Set("tunnel_id", result.TunnelId)
-	}
-
+	d.SetId(fmt.Sprintf("%s:%s:%s", instanceName, tableName, result.TunnelId))
 	return nil
 }
 
@@ -54,7 +63,7 @@ func (s *OtsService) DescribeOtsTunnel(instanceName, tableName, tunnelName strin
 	}
 
 	ctx := context.Background()
-	tunnel, err := api.DescribeTunnel(ctx, options)
+	result, err := api.DescribeTunnel(ctx, options)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidTunnelName.NotFound"}) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -62,7 +71,7 @@ func (s *OtsService) DescribeOtsTunnel(instanceName, tableName, tunnelName strin
 		return nil, WrapErrorf(err, DefaultErrorMsg, tunnelName, "DescribeTunnel", AlibabaCloudSdkGoERROR)
 	}
 
-	return tunnel, nil
+	return &result.TunnelInfo, nil
 }
 
 func (s *OtsService) DeleteOtsTunnel(instanceName, tableName, tunnelName string) error {
@@ -77,7 +86,8 @@ func (s *OtsService) DeleteOtsTunnel(instanceName, tableName, tunnelName string)
 	}
 
 	ctx := context.Background()
-	if err := api.DeleteTunnel(ctx, options); err != nil {
+	err = api.DeleteTunnel(ctx, options)
+	if err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidTunnelName.NotFound"}) {
 			return nil
 		}
@@ -101,18 +111,18 @@ func (s *OtsService) WaitForOtsTunnel(instanceName, tableName, tunnelName string
 			}
 		}
 
-		if tunnel != nil && tunnel.TunnelStage == status {
+		if tunnel != nil && tunnel.Stage.String() == status {
 			return nil
 		}
 
 		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, tunnelName, GetFunc(1), timeout, tunnel.TunnelStage, status, ProviderERROR)
+			return WrapErrorf(err, WaitTimeoutMsg, tunnelName, GetFunc(1), timeout, tunnel.Stage.String(), status, ProviderERROR)
 		}
 		time.Sleep(DefaultIntervalShort * time.Second)
 	}
 }
 
-func (s *OtsService) ListOtsTunnels(instanceName, tableName string) ([]tablestore.TunnelInfo, error) {
+func (s *OtsService) ListOtsTunnels(instanceName, tableName string) ([]*tablestore.TunnelInfo, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
@@ -128,7 +138,13 @@ func (s *OtsService) ListOtsTunnels(instanceName, tableName string) ([]tablestor
 		return nil, WrapErrorf(err, DefaultErrorMsg, tableName, "ListTunnel", AlibabaCloudSdkGoERROR)
 	}
 
-	return result.Tunnels, nil
+	// Convert slice to pointer slice
+	var tunnels []*tablestore.TunnelInfo
+	for i := range result.Tunnels {
+		tunnels = append(tunnels, &result.Tunnels[i])
+	}
+
+	return tunnels, nil
 }
 
 // Stream management functions
@@ -152,7 +168,7 @@ func (s *OtsService) ListOtsStreams(instanceName, tableName string) (*tablestore
 	return result, nil
 }
 
-func (s *OtsService) DescribeOtsStream(instanceName, tableName, streamId string) (*tablestore.StreamInfo, error) {
+func (s *OtsService) DescribeOtsStream(instanceName, tableName, streamId string) (*tablestore.DescribeStreamResult, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)

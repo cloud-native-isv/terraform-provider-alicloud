@@ -1,7 +1,6 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -49,10 +48,11 @@ func (s *OtsService) CreateOtsSearchIndex(d *schema.ResourceData, instanceName, 
 		}
 	}
 
-	options := &tablestore.CreateSearchIndexOptions{
+	// Create search index object
+	searchIndex := &tablestore.TablestoreSearchIndex{
 		TableName: tableName,
 		IndexName: indexName,
-		IndexSchema: tablestore.IndexSchema{
+		IndexSchema: &tablestore.IndexSchema{
 			FieldSchemas: fieldSchemas,
 		},
 	}
@@ -66,7 +66,7 @@ func (s *OtsService) CreateOtsSearchIndex(d *schema.ResourceData, instanceName, 
 			indexSetting.RoutingFields = expandStringList(routingFields.([]interface{}))
 		}
 
-		options.IndexSchema.IndexSetting = &indexSetting
+		searchIndex.IndexSchema.IndexSetting = &indexSetting
 	}
 
 	// Set index sort if provided
@@ -80,11 +80,10 @@ func (s *OtsService) CreateOtsSearchIndex(d *schema.ResourceData, instanceName, 
 			}
 			indexSorts = append(indexSorts, indexSort)
 		}
-		options.IndexSchema.IndexSort = indexSorts
+		searchIndex.IndexSchema.IndexSort = indexSorts
 	}
 
-	ctx := context.Background()
-	if err := api.CreateSearchIndex(ctx, options); err != nil {
+	if err := api.CreateSearchIndex(searchIndex); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, indexName, "CreateSearchIndex", AlibabaCloudSdkGoERROR)
 	}
 
@@ -92,19 +91,13 @@ func (s *OtsService) CreateOtsSearchIndex(d *schema.ResourceData, instanceName, 
 	return nil
 }
 
-func (s *OtsService) DescribeOtsSearchIndex(instanceName, tableName, indexName string) (*tablestore.SearchIndexInfo, error) {
+func (s *OtsService) DescribeOtsSearchIndex(instanceName, tableName, indexName string) (*tablestore.TablestoreSearchIndex, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	options := &tablestore.DescribeSearchIndexOptions{
-		TableName: tableName,
-		IndexName: indexName,
-	}
-
-	ctx := context.Background()
-	index, err := api.DescribeSearchIndex(ctx, options)
+	index, err := api.GetSearchIndex(tableName, indexName)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidIndexName.NotFound"}) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -151,16 +144,16 @@ func (s *OtsService) UpdateOtsSearchIndex(d *schema.ResourceData, instanceName, 
 		}
 	}
 
-	options := &tablestore.UpdateSearchIndexOptions{
+	// Create updated search index object
+	searchIndex := &tablestore.TablestoreSearchIndex{
 		TableName: tableName,
 		IndexName: indexName,
-		IndexSchema: tablestore.IndexSchema{
+		IndexSchema: &tablestore.IndexSchema{
 			FieldSchemas: fieldSchemas,
 		},
 	}
 
-	ctx := context.Background()
-	if err := api.UpdateSearchIndex(ctx, options); err != nil {
+	if err := api.UpdateSearchIndex(searchIndex); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, indexName, "UpdateSearchIndex", AlibabaCloudSdkGoERROR)
 	}
 
@@ -173,13 +166,12 @@ func (s *OtsService) DeleteOtsSearchIndex(instanceName, tableName, indexName str
 		return WrapError(err)
 	}
 
-	options := &tablestore.DeleteSearchIndexOptions{
+	searchIndex := &tablestore.TablestoreSearchIndex{
 		TableName: tableName,
 		IndexName: indexName,
 	}
 
-	ctx := context.Background()
-	if err := api.DeleteSearchIndex(ctx, options); err != nil {
+	if err := api.DeleteSearchIndex(searchIndex); err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidIndexName.NotFound"}) {
 			return nil
 		}
@@ -203,32 +195,27 @@ func (s *OtsService) WaitForOtsSearchIndex(instanceName, tableName, indexName st
 			}
 		}
 
-		if index != nil && index.SyncPhase == status {
+		if index != nil && index.SyncPhase.String() == status {
 			return nil
 		}
 
 		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, indexName, GetFunc(1), timeout, index.SyncPhase, status, ProviderERROR)
+			return WrapErrorf(err, WaitTimeoutMsg, indexName, GetFunc(1), timeout, index.SyncPhase.String(), status, ProviderERROR)
 		}
 		time.Sleep(DefaultIntervalShort * time.Second)
 	}
 }
 
-func (s *OtsService) ListOtsSearchIndexes(instanceName, tableName string) ([]tablestore.SearchIndexInfo, error) {
+func (s *OtsService) ListOtsSearchIndexes(instanceName, tableName string) ([]*tablestore.TablestoreSearchIndex, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	options := &tablestore.ListSearchIndexOptions{
-		TableName: tableName,
-	}
-
-	ctx := context.Background()
-	result, err := api.ListSearchIndex(ctx, options)
+	indexes, err := api.ListSearchIndexes(tableName)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, tableName, "ListSearchIndex", AlibabaCloudSdkGoERROR)
 	}
 
-	return result.Indexes, nil
+	return indexes, nil
 }
