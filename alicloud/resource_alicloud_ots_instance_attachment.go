@@ -68,7 +68,10 @@ func resourceAliyunOtsInstanceAttachmentCreate(d *schema.ResourceData, meta inte
 
 func resourceAliyunOtsInstanceAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := otsService.DescribeOtsInstanceAttachment(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -86,7 +89,10 @@ func resourceAliyunOtsInstanceAttachmentRead(d *schema.ResourceData, meta interf
 
 func resourceAliyunOtsInstanceAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := otsService.DescribeOtsInstanceAttachment(d.Id())
 	if err != nil {
 		if NotFoundError(err) {

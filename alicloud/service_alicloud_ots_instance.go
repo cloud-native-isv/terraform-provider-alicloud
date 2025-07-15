@@ -5,24 +5,12 @@ import (
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ots"
+	tablestoreSDK "github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
+	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
-
-type OtsService struct {
-	client *connectivity.AliyunClient
-}
-
-func (s *OtsService) getTablestoreAPI() (*tablestore.TablestoreAPI, error) {
-	credentials := &common.Credentials{
-		AccessKey: s.client.AccessKey,
-		SecretKey: s.client.SecretKey,
-		RegionId:  s.client.RegionId,
-	}
-	return tablestore.NewTablestoreAPI(credentials)
-}
 
 // Instance management functions
 
@@ -33,7 +21,7 @@ func (s *OtsService) CreateOtsInstance(d *schema.ResourceData) error {
 	}
 
 	instanceName := d.Get("name").(string)
-	options := &tablestore.CreateTablestoreInstanceOptions{
+	options := &tablestoreAPI.CreateTablestoreInstanceOptions{
 		InstanceName: instanceName,
 		ClusterType:  d.Get("instance_type").(string),
 	}
@@ -67,7 +55,7 @@ func (s *OtsService) CreateOtsInstance(d *schema.ResourceData) error {
 	return nil
 }
 
-func (s *OtsService) DescribeOtsInstance(instanceName string) (*tablestore.TablestoreInstance, error) {
+func (s *OtsService) DescribeOtsInstance(instanceName string) (*tablestoreAPI.TablestoreInstance, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
@@ -91,7 +79,7 @@ func (s *OtsService) UpdateOtsInstance(d *schema.ResourceData, instanceName stri
 		return WrapError(err)
 	}
 
-	options := &tablestore.UpdateTablestoreInstanceOptions{}
+	options := &tablestoreAPI.UpdateTablestoreInstanceOptions{}
 	update := false
 
 	if d.HasChange("resource_group_id") {
@@ -175,15 +163,15 @@ func (s *OtsService) TagOtsInstance(instanceName string, tags map[string]string)
 		return WrapError(err)
 	}
 
-	var tablestoreTags []tablestore.TablestoreInstanceTag
+	var tablestoreTags []tablestoreAPI.TablestoreInstanceTag
 	for key, value := range tags {
-		tablestoreTags = append(tablestoreTags, tablestore.TablestoreInstanceTag{
+		tablestoreTags = append(tablestoreTags, tablestoreAPI.TablestoreInstanceTag{
 			Key:   key,
 			Value: value,
 		})
 	}
 
-	options := &tablestore.TagResourcesOptions{
+	options := &tablestoreAPI.TagResourcesOptions{
 		ResourceType: "instance",
 		ResourceIds:  []string{instanceName},
 		Tags:         tablestoreTags,
@@ -203,7 +191,7 @@ func (s *OtsService) UntagOtsInstance(instanceName string, tagKeys []string) err
 		return WrapError(err)
 	}
 
-	options := &tablestore.UntagResourcesOptions{
+	options := &tablestoreAPI.UntagResourcesOptions{
 		ResourceType: "instance",
 		ResourceIds:  []string{instanceName},
 		TagKeys:      tagKeys,
@@ -306,10 +294,10 @@ func (s *OtsService) UnbindOtsInstanceFromVpc(instanceName, vpcName string) erro
 
 // Helper functions
 
-func convertToTablestoreTags(tags map[string]interface{}) []tablestore.TablestoreInstanceTag {
-	var result []tablestore.TablestoreInstanceTag
+func convertToTablestoreTags(tags map[string]interface{}) []tablestoreAPI.TablestoreInstanceTag {
+	var result []tablestoreAPI.TablestoreInstanceTag
 	for key, value := range tags {
-		result = append(result, tablestore.TablestoreInstanceTag{
+		result = append(result, tablestoreAPI.TablestoreInstanceTag{
 			Key:   key,
 			Value: value.(string),
 		})
@@ -317,7 +305,7 @@ func convertToTablestoreTags(tags map[string]interface{}) []tablestore.Tablestor
 	return result
 }
 
-func convertTablestoreTagsToMap(tags []tablestore.TablestoreInstanceTag) map[string]string {
+func convertTablestoreTagsToMap(tags []tablestoreAPI.TablestoreInstanceTag) map[string]string {
 	result := make(map[string]string)
 	for _, tag := range tags {
 		result[tag.Key] = tag.Value
@@ -326,7 +314,7 @@ func convertTablestoreTagsToMap(tags []tablestore.TablestoreInstanceTag) map[str
 }
 
 // List OTS instances for data source support
-func (s *OtsService) ListOtsInstance() ([]*tablestore.TablestoreInstance, error) {
+func (s *OtsService) ListOtsInstance() ([]*tablestoreAPI.TablestoreInstance, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
@@ -339,7 +327,7 @@ func (s *OtsService) ListOtsInstance() ([]*tablestore.TablestoreInstance, error)
 	}
 
 	// Convert slice to pointer slice
-	var result []*tablestore.TablestoreInstance
+	var result []*tablestoreAPI.TablestoreInstance
 	for i := range instances {
 		result = append(result, &instances[i])
 	}

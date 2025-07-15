@@ -180,7 +180,10 @@ func dataSourceAliCloudSelectDBDbClusters() *schema.Resource {
 
 func dataSourceAliCloudSelectDBDbClustersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	selectDBService := SelectDBService{client}
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	instanceMap := make(map[string]string)
 	idsMap := make(map[string]string)
@@ -203,11 +206,11 @@ func dataSourceAliCloudSelectDBDbClustersRead(d *schema.ResourceData, meta inter
 	instanceResult := make(map[string]interface{})
 	instanceClusterResult := make(map[string]interface{})
 	for _, instanceId := range instanceMap {
-		instanceResp, err := selectDBService.DescribeSelectDBDbInstance(instanceId)
+		instanceResp, err := selectDBService.DescribeSelectDBInstance(instanceId)
 		if err != nil {
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_db_clusters", AlibabaCloudSdkGoERROR)
 		}
-		resp := instanceResp["DBClusterList"]
+		resp := instanceResp.Cli
 		instanceResult[instanceId] = instanceResp
 		instanceClusterResult[instanceId] = resp.([]interface{})
 	}
@@ -262,9 +265,12 @@ func dataSourceAliCloudSelectDBDbClustersRead(d *schema.ResourceData, meta inter
 		id := fmt.Sprint(object["DbInstanceName"]) + ":" + fmt.Sprint(object["DbClusterId"])
 		mapping["id"] = id
 
-		selectDBService := SelectDBService{client}
+		selectDBService, err := NewSelectDBService(client)
+		if err != nil {
+			return WrapError(err)
+		}
 
-		configArrayList, err := selectDBService.DescribeSelectDBDbClusterConfig(id)
+		configArrayList, err := selectDBService.DescribeSelectDBClusterConfig(id)
 		if err != nil {
 			return WrapError(err)
 		}

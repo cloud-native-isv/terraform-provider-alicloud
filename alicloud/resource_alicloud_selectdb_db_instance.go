@@ -269,7 +269,10 @@ func resourceAliCloudSelectDBDbInstance() *schema.Resource {
 
 func resourceAliCloudSelectDBDbInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	selectDBService := SelectDBService{client}
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	request, err := buildSelectDBCreateInstanceRequest(d, meta)
 	if err != nil {
 		return WrapError(err)
@@ -309,7 +312,10 @@ func resourceAliCloudSelectDBDbInstanceCreate(d *schema.ResourceData, meta inter
 
 func resourceAliCloudSelectDBDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	selectDBService := SelectDBService{client}
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	d.Partial(true)
 
 	if !d.IsNewResource() && d.HasChange("payment_type") {
@@ -527,7 +533,10 @@ func resourceAliCloudSelectDBDbInstanceUpdate(d *schema.ResourceData, meta inter
 
 func resourceAliCloudSelectDBDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	selectDBService := SelectDBService{client}
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	instanceId := fmt.Sprint(d.Id())
 	instanceResp, err := selectDBService.DescribeSelectDBDbInstance(instanceId)
@@ -685,7 +694,10 @@ func resourceAliCloudSelectDBDbInstanceRead(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudSelectDBDbInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	selectDBService := SelectDBService{client}
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING", "CLASS_CHANGING", "MODULE_UPGRADING", "NET_CREATING", "NET_DELETING"},
 		[]string{"ACTIVATION"}, d.Timeout(schema.TimeoutDelete), 10*time.Second, selectDBService.SelectDBDbInstanceStateRefreshFunc(d.Id(), []string{"DELETING"}))

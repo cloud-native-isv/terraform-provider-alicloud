@@ -144,11 +144,14 @@ type OtsTunnelInfo struct {
 
 func dataSourceAliCloudOtsTunnelsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	instanceName := d.Get("instance_name").(string)
 	tableName := d.Get("table_name").(string)
 
-	object, err := otsService.ListOtsTunnels(instanceName, tableName)
+	tunnels, err := otsService.ListOtsTunnels(instanceName, tableName)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -169,7 +172,7 @@ func dataSourceAliCloudOtsTunnelsRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	var filteredTunnelNames []string
-	for _, tunnel := range object.Tunnels {
+	for _, tunnel := range tunnels {
 		// name_regex mismatch
 		if nameReg != nil && !nameReg.MatchString(tunnel.TunnelName) {
 			continue
@@ -187,22 +190,34 @@ func dataSourceAliCloudOtsTunnelsRead(d *schema.ResourceData, meta interface{}) 
 	// get full tunnelInfo via DescribeTunnel
 	allTunnelInfos := make([]*OtsTunnelInfo, 0, len(filteredTunnelNames))
 	for _, tunnelName := range filteredTunnelNames {
-		id := fmt.Sprintf("%s%s%s%s%s", instanceName, COLON_SEPARATED, tableName, COLON_SEPARATED, tunnelName)
-		object, err := otsService.DescribeOtsTunnel(id)
+		object, err := otsService.DescribeOtsTunnel(instanceName, tableName, tunnelName)
 		if err != nil {
 			return WrapError(err)
 		}
+
+		// Convert channels from tablestore.ChannelInfo to otsTunnel.ChannelInfo
+		var channels []*otsTunnel.ChannelInfo
+		for _, ch := range object.Channels {
+			channels = append(channels, &otsTunnel.ChannelInfo{
+				ChannelId:     ch.ChannelId,
+				ChannelType:   ch.ChannelType,
+				ChannelStatus: ch.ChannelStatus.String(),
+				ClientId:      ch.ClientId,
+				ChannelRPO:    ch.ChannelRPO,
+			})
+		}
+
 		allTunnelInfos = append(allTunnelInfos, &OtsTunnelInfo{
 			instanceName: instanceName,
 			tableName:    tableName,
-			tunnelName:   object.Tunnel.TunnelName,
-			tunnelId:     object.Tunnel.TunnelId,
-			tunnelType:   object.Tunnel.TunnelType,
-			tunnelRpo:    object.TunnelRPO,
-			tunnelStage:  object.Tunnel.Stage,
-			expired:      object.Tunnel.Expired,
-			createTime:   object.Tunnel.CreateTime.UnixNano(),
-			channels:     object.Channels,
+			tunnelName:   object.TunnelInfo.TunnelName,
+			tunnelId:     object.TunnelInfo.TunnelId,
+			tunnelType:   object.TunnelInfo.TunnelType.String(),
+			tunnelRpo:    0, // This field is available from DescribeTunnel but not currently exposed in the API layer
+			tunnelStage:  object.TunnelInfo.Stage.String(),
+			expired:      object.TunnelInfo.Expired,
+			createTime:   object.TunnelInfo.CreateTime.UnixNano(),
+			channels:     channels,
 		})
 	}
 

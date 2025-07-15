@@ -27,7 +27,7 @@ func (s *SelectDBService) CreateSelectDBInstance(options *selectdb.CreateInstanc
 }
 
 // DescribeSelectDBInstance retrieves information about a SelectDB instance
-func (s *SelectDBService) DescribeSelectDBInstance(instanceId string) (*selectdb.DBInstance, error) {
+func (s *SelectDBService) DescribeSelectDBInstance(instanceId string) (*selectdb.Instance, error) {
 	if instanceId == "" {
 		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
@@ -154,7 +154,7 @@ func (s *SelectDBService) WaitForSelectDBInstance(instanceId string, status Stat
 }
 
 // WaitForSelectDBInstanceStatus waits for instance to reach desired status using state refresh
-func (s *SelectDBService) WaitForSelectDBInstanceStatus(instanceId string, targetStatus string, timeout time.Duration) (*selectdb.DBInstance, error) {
+func (s *SelectDBService) WaitForSelectDBInstanceStatus(instanceId string, targetStatus string, timeout time.Duration) (*selectdb.Instance, error) {
 	instance, err := s.api.WaitForInstanceStatus(instanceId, targetStatus, timeout)
 	if err != nil {
 		return nil, WrapError(err)
@@ -340,7 +340,7 @@ func ConvertToModifyInstanceOptions(d *schema.ResourceData, instanceId string) *
 }
 
 // ConvertInstanceToMap converts API instance to Terraform map
-func ConvertInstanceToMap(instance *selectdb.DBInstance) map[string]interface{} {
+func ConvertInstanceToMap(instance *selectdb.Instance) map[string]interface{} {
 	if instance == nil {
 		return nil
 	}

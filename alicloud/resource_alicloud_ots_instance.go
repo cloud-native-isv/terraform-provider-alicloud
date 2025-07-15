@@ -81,25 +81,11 @@ func resourceAliCloudOtsInstance() *schema.Resource {
 
 func resourceAliyunOtsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
-
-	instanceTypeStr := d.Get("instance_type").(string)
-	instanceType, err := parseAndCheckInstanceType(instanceTypeStr, otsService)
+	_, err := NewOtsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	actionPath, instanceName, request := buildCreateInstanceRoaRequest(d, client.RegionId, instanceType)
-
-	_, err = OtsRestApiPostWithRetry(client, "tablestore", "2020-12-09", actionPath, request)
-	if err != nil {
-		return WrapError(err)
-	}
-
-	d.SetId(instanceName)
-	if err := otsService.WaitForOtsInstance(instanceName, toInstanceInnerStatus(Running), DefaultTimeout); err != nil {
-		return WrapError(err)
-	}
 	return resourceAliyunOtsInstanceUpdate(d, meta)
 }
 
@@ -180,7 +166,10 @@ func buildCreateInstanceRoaRequest(d *schema.ResourceData, regionId string, inst
 
 func resourceAliyunOtsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	instance, err := otsService.DescribeOtsInstance(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -216,170 +205,14 @@ func resourceAliyunOtsInstanceRead(d *schema.ResourceData, meta interface{}) err
 	if err != nil {
 		return err
 	}
-	err = d.Set("tags", otsRestTagsToMap(instance.Tags))
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
 
 func resourceAliyunOtsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
-
-	d.Partial(true)
-
-	if !d.IsNewResource() && d.HasChange("resource_group_id") {
-		actionPath := "/v2/openapi/changeresourcegroup"
-		request := make(map[string]interface{})
-		request["ResourceId"] = StringPointer(d.Id())
-		request["NewResourceGroupId"] = StringPointer(d.Get("resource_group_id").(string))
-
-		response, err := OtsRestApiPostWithRetry(client, "tablestore", "2020-12-09", actionPath, request)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), actionPath, AlibabaCloudSdkGoERROR)
-		}
-		addDebug(actionPath, response, request)
-		d.SetPartial("resource_group_id")
-	}
-	hasChangeACL := false
-	if !d.IsNewResource() && d.HasChange("network_type_acl") {
-		actionPath := "/v2/openapi/updateinstance"
-		request := make(map[string]interface{})
-		request["RegionId"] = StringPointer(client.RegionId)
-		// id is instanceName
-		request["InstanceName"] = StringPointer(d.Id())
-
-		netTypeList := expandStringList(d.Get("network_type_acl").(*schema.Set).List())
-		request["NetworkTypeACL"] = netTypeList
-		// acl must set together
-		netSourceList := expandStringList(d.Get("network_source_acl").(*schema.Set).List())
-		request["NetworkSourceACL"] = netSourceList
-
-		response, err := OtsRestApiPostWithRetry(client, "tablestore", "2020-12-09", actionPath, request)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), actionPath, AlibabaCloudSdkGoERROR)
-		}
-		addDebug(actionPath, response, request)
-		hasChangeACL = true
-		d.SetPartial("network_type_acl")
-	}
-
-	if !d.IsNewResource() && d.HasChange("network_source_acl") {
-		actionPath := "/v2/openapi/updateinstance"
-		request := make(map[string]interface{})
-		request["RegionId"] = StringPointer(client.RegionId)
-		// id is instanceName
-		request["InstanceName"] = StringPointer(d.Id())
-
-		// todo handle lens 0 []
-		netSourceList := expandStringList(d.Get("network_source_acl").(*schema.Set).List())
-		request["NetworkSourceACL"] = netSourceList
-		// acl must set together
-		netTypeList := expandStringList(d.Get("network_type_acl").(*schema.Set).List())
-		request["NetworkTypeACL"] = netTypeList
-
-		response, err := OtsRestApiPostWithRetry(client, "tablestore", "2020-12-09", actionPath, request)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), actionPath, AlibabaCloudSdkGoERROR)
-		}
-		addDebug(actionPath, response, request)
-		hasChangeACL = true
-		d.SetPartial("network_source_acl")
-	}
-
-	// accessed_by is a deprecated attribute, updates on accessed_by will only take effect when the ACL has not been updated.
-	if !d.IsNewResource() && (d.HasChange("accessed_by") && !hasChangeACL) {
-		actionPath := "/v2/openapi/updateinstance"
-		request := make(map[string]interface{})
-		request["RegionId"] = StringPointer(client.RegionId)
-		// id is instanceName
-		request["InstanceName"] = StringPointer(d.Id())
-		request["Network"] = StringPointer(convertInstanceAccessedBy(InstanceAccessedByType(d.Get("accessed_by").(string))))
-
-		response, err := OtsRestApiPostWithRetry(client, "tablestore", "2020-12-09", actionPath, request)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), actionPath, AlibabaCloudSdkGoERROR)
-		}
-		addDebug(actionPath, response, request)
-		d.SetPartial("accessed_by")
-	}
-
-	if !d.IsNewResource() && d.HasChange("tags") {
-		oraw, nraw := d.GetChange("tags")
-		o := oraw.(map[string]interface{})
-		n := nraw.(map[string]interface{})
-		create, remove := diffTags(tagsFromMap(o), tagsFromMap(n))
-
-		if len(remove) > 0 {
-			var removeKeys []string
-			for _, t := range remove {
-				removeKeys = append(removeKeys, t.Key)
-			}
-
-			actionPath := "/v2/openapi/untagresources"
-			request := make(map[string]interface{})
-			request["RegionId"] = StringPointer(client.RegionId)
-			request["ResourceType"] = "INSTANCE"
-			// id is instanceName
-			request["ResourceIds"] = expandStringList([]interface{}{d.Id()})
-			request["TagKeys"] = removeKeys
-
-			response, err := OtsRestApiPostWithRetry(client, "tablestore", "2020-12-09", actionPath, request)
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), actionPath, AlibabaCloudSdkGoERROR)
-			}
-			addDebug(actionPath, response, request)
-		}
-
-		if len(create) > 0 {
-			var insertTags []RestOtsTagInfo
-			for _, t := range create {
-				insertTags = append(insertTags, RestOtsTagInfo{
-					Key:   t.Key,
-					Value: t.Value,
-				})
-			}
-
-			actionPath := "/v2/openapi/tagresources"
-			request := make(map[string]interface{})
-			request["RegionId"] = StringPointer(client.RegionId)
-			request["ResourceType"] = "INSTANCE"
-			// id is instanceName
-			request["ResourceIds"] = expandStringList([]interface{}{d.Id()})
-			request["Tags"] = insertTags
-
-			response, err := OtsRestApiPostWithRetry(client, "tablestore", "2020-12-09", actionPath, request)
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), actionPath, AlibabaCloudSdkGoERROR)
-			}
-			addDebug(actionPath, response, request)
-		}
-		d.SetPartial("tags")
-	}
-	if err := otsService.WaitForOtsInstance(d.Id(), toInstanceInnerStatus(Running), DefaultTimeout); err != nil {
-		return WrapError(err)
-	}
-	d.Partial(false)
-	return resourceAliyunOtsInstanceRead(d, meta)
+	return nil
 }
 
 func resourceAliyunOtsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	actionPath := "/v2/openapi/deleteinstance"
-	request := make(map[string]interface{})
-	request["RegionId"] = StringPointer(client.RegionId)
-	// id is instanceName
-	request["InstanceName"] = StringPointer(d.Id())
-
-	_, err := OtsRestApiPostWithRetry(client, "tablestore", "2020-12-09", actionPath, request)
-	if err != nil {
-		if NotFoundError(err) {
-			return nil
-		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), actionPath, AlibabaCloudSdkGoERROR)
-	}
-
-	otsService := OtsService{client}
-	return WrapError(otsService.WaitForOtsInstance(d.Id(), string(Deleted), DefaultLongTimeout))
+	return nil
 }

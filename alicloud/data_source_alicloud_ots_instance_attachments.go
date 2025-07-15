@@ -82,7 +82,11 @@ func dataSourceAliCloudOtsInstanceAttachments() *schema.Resource {
 
 func dataSourceAliCloudOtsInstanceAttachmentsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	instanceName := d.Get("instance_name").(string)
 	allVpcs, err := otsService.ListOtsInstanceVpc(instanceName)
 	if err != nil {
@@ -93,12 +97,15 @@ func dataSourceAliCloudOtsInstanceAttachmentsRead(d *schema.ResourceData, meta i
 	if v, ok := d.GetOk("name_regex"); ok && v.(string) != "" {
 		r := regexp.MustCompile(v.(string))
 		for _, vpc := range allVpcs {
-			if r.MatchString(vpc.InstanceVpcName) {
-				filteredVpcs = append(filteredVpcs, vpc)
+			if r.MatchString((*vpc).InstanceVpcName) {
+				filteredVpcs = append(filteredVpcs, *vpc)
 			}
 		}
 	} else {
-		filteredVpcs = allVpcs[:]
+		// Convert []*ots.VpcInfo to []ots.VpcInfo
+		for _, vpc := range allVpcs {
+			filteredVpcs = append(filteredVpcs, *vpc)
+		}
 	}
 	return otsAttachmentsDescriptionAttributes(d, filteredVpcs, meta)
 }

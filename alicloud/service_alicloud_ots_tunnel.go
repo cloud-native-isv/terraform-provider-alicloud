@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
+	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -20,21 +20,21 @@ func (s *OtsService) CreateOtsTunnel(d *schema.ResourceData, instanceName, table
 	tunnelName := d.Get("tunnel_name").(string)
 	tunnelTypeStr := d.Get("tunnel_type").(string)
 
-	// Convert tunnel type string to enum
-	var tunnelType tablestore.TunnelType
+	// Convert tunnel type string to API enum
+	var tunnelType tablestoreAPI.TunnelType
 	switch tunnelTypeStr {
 	case "BaseData":
-		tunnelType = tablestore.TunnelType_BaseData
+		tunnelType = tablestoreAPI.TunnelType_BaseData
 	case "Stream":
-		tunnelType = tablestore.TunnelType_Stream
+		tunnelType = tablestoreAPI.TunnelType_Stream
 	case "BaseAndStream":
-		tunnelType = tablestore.TunnelType_BaseAndStream
+		tunnelType = tablestoreAPI.TunnelType_BaseAndStream
 	default:
-		tunnelType = tablestore.TunnelType_Stream
+		tunnelType = tablestoreAPI.TunnelType_Stream
 	}
 
 	// Create tunnel options
-	options := &tablestore.CreateTunnelOptions{
+	options := &tablestoreAPI.CreateTunnelOptions{
 		TableName:    tableName,
 		TunnelName:   tunnelName,
 		TunnelType:   tunnelType,
@@ -51,13 +51,13 @@ func (s *OtsService) CreateOtsTunnel(d *schema.ResourceData, instanceName, table
 	return nil
 }
 
-func (s *OtsService) DescribeOtsTunnel(instanceName, tableName, tunnelName string) (*tablestore.TunnelInfo, error) {
+func (s *OtsService) DescribeOtsTunnel(instanceName, tableName, tunnelName string) (*tablestoreAPI.DescribeTunnelResult, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	options := &tablestore.DescribeTunnelOptions{
+	options := &tablestoreAPI.DescribeTunnelOptions{
 		TableName:  tableName,
 		TunnelName: tunnelName,
 	}
@@ -71,7 +71,7 @@ func (s *OtsService) DescribeOtsTunnel(instanceName, tableName, tunnelName strin
 		return nil, WrapErrorf(err, DefaultErrorMsg, tunnelName, "DescribeTunnel", AlibabaCloudSdkGoERROR)
 	}
 
-	return &result.TunnelInfo, nil
+	return result, nil
 }
 
 func (s *OtsService) DeleteOtsTunnel(instanceName, tableName, tunnelName string) error {
@@ -80,7 +80,7 @@ func (s *OtsService) DeleteOtsTunnel(instanceName, tableName, tunnelName string)
 		return WrapError(err)
 	}
 
-	options := &tablestore.DeleteTunnelOptions{
+	options := &tablestoreAPI.DeleteTunnelOptions{
 		TableName:  tableName,
 		TunnelName: tunnelName,
 	}
@@ -111,24 +111,24 @@ func (s *OtsService) WaitForOtsTunnel(instanceName, tableName, tunnelName string
 			}
 		}
 
-		if tunnel != nil && tunnel.Stage.String() == status {
+		if tunnel != nil && tunnel.TunnelInfo.Stage.String() == status {
 			return nil
 		}
 
 		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, tunnelName, GetFunc(1), timeout, tunnel.Stage.String(), status, ProviderERROR)
+			return WrapErrorf(err, WaitTimeoutMsg, tunnelName, GetFunc(1), timeout, tunnel.TunnelInfo.Stage.String(), status, ProviderERROR)
 		}
 		time.Sleep(DefaultIntervalShort * time.Second)
 	}
 }
 
-func (s *OtsService) ListOtsTunnels(instanceName, tableName string) ([]*tablestore.TunnelInfo, error) {
+func (s *OtsService) ListOtsTunnels(instanceName, tableName string) ([]tablestoreAPI.TunnelInfo, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	options := &tablestore.ListTunnelOptions{
+	options := &tablestoreAPI.ListTunnelOptions{
 		TableName: tableName,
 	}
 
@@ -138,24 +138,18 @@ func (s *OtsService) ListOtsTunnels(instanceName, tableName string) ([]*tablesto
 		return nil, WrapErrorf(err, DefaultErrorMsg, tableName, "ListTunnel", AlibabaCloudSdkGoERROR)
 	}
 
-	// Convert slice to pointer slice
-	var tunnels []*tablestore.TunnelInfo
-	for i := range result.Tunnels {
-		tunnels = append(tunnels, &result.Tunnels[i])
-	}
-
-	return tunnels, nil
+	return result.Tunnels, nil
 }
 
 // Stream management functions
 
-func (s *OtsService) ListOtsStreams(instanceName, tableName string) (*tablestore.ListStreamResult, error) {
+func (s *OtsService) ListOtsStreams(instanceName, tableName string) (*tablestoreAPI.ListStreamResult, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	options := &tablestore.ListStreamOptions{
+	options := &tablestoreAPI.ListStreamOptions{
 		TableName: tableName,
 	}
 
@@ -168,13 +162,13 @@ func (s *OtsService) ListOtsStreams(instanceName, tableName string) (*tablestore
 	return result, nil
 }
 
-func (s *OtsService) DescribeOtsStream(instanceName, tableName, streamId string) (*tablestore.DescribeStreamResult, error) {
+func (s *OtsService) DescribeOtsStream(instanceName, tableName, streamId string) (*tablestoreAPI.DescribeStreamResult, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	options := &tablestore.DescribeStreamOptions{
+	options := &tablestoreAPI.DescribeStreamOptions{
 		StreamId: streamId,
 	}
 

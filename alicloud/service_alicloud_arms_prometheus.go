@@ -6,6 +6,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
+// DescribeArmsPrometheus describes ARMS Prometheus - alias for DescribeArmsPrometheusInstance
+func (s *ArmsService) DescribeArmsPrometheus(id string) (object map[string]interface{}, err error) {
+	return s.DescribeArmsPrometheusInstance(id)
+}
+
 // DescribeArmsPrometheusInstance describes ARMS Prometheus instance
 func (s *ArmsService) DescribeArmsPrometheusInstance(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available

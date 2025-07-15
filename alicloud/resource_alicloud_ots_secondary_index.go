@@ -107,7 +107,10 @@ func resourceAliyunOtsSecondaryIndexCreate(d *schema.ResourceData, meta interfac
 	args := parseArgs(d)
 
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	// check table exists
 	tableResp, err := otsService.LoopWaitTable(args.instanceName, args.tableName)
 	if err != nil {
@@ -222,7 +225,10 @@ func simplifySecIndex(indexes []*tablestore.IndexMeta) []string {
 
 func resourceAliyunOtsSecondaryIndexRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	idx, err := otsService.DescribeOtsSecondaryIndex(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -299,6 +305,9 @@ func resourceAliyunOtsSecondaryIndexDelete(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteTableSecondaryIndex", AliyunTablestoreGoSdk)
 	}
 
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	return WrapError(otsService.WaitForSecondaryIndex(instanceName, tableName, indexName, Deleted, DefaultTimeout))
 }

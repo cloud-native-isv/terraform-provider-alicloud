@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -112,23 +112,23 @@ func dataSourceAliCloudOtsTables() *schema.Resource {
 	}
 }
 
-type OtsTableInfo struct {
-	instanceName  string
-	tableName     string
-	primaryKey    []*tablestore.PrimaryKeySchema
-	definedColumn []*tablestore.DefinedColumnSchema
-	timeToLive    int
-	maxVersion    int
-}
-
 func dataSourceAliCloudOtsTablesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
-	instanceName := d.Get("instance_name").(string)
-
-	object, err := otsService.ListOtsTable(instanceName)
+	otsService, err := NewOtsService(client)
 	if err != nil {
 		return WrapError(err)
+	}
+	instanceName := d.Get("instance_name").(string)
+
+	tableInfos, err := otsService.ListOtsTable(instanceName)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Extract table names from strongly typed OtsTableInfo slice
+	var tables []string
+	for _, tableInfo := range tableInfos {
+		tables = append(tables, tableInfo.GetName())
 	}
 
 	idsMap := make(map[string]bool)
@@ -147,7 +147,7 @@ func dataSourceAliCloudOtsTablesRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	var filteredTableNames []string
-	for _, tableName := range object.TableNames {
+	for _, tableName := range tables {
 		//name_regex mismatch
 		if nameReg != nil && !nameReg.MatchString(tableName) {
 			continue
@@ -163,65 +163,51 @@ func dataSourceAliCloudOtsTablesRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// get full table info via DescribeTable
-	var allTableInfos []OtsTableInfo
+	var allTableInfos []*tablestoreAPI.TablestoreTable
 	for _, tableName := range filteredTableNames {
-		object, err := otsService.DescribeOtsTable(fmt.Sprintf("%s%s%s", instanceName, COLON_SEPARATED, tableName))
+		object, err := otsService.DescribeOtsTable(instanceName, tableName)
 		if err != nil {
 			return WrapError(err)
 		}
-		allTableInfos = append(allTableInfos, OtsTableInfo{
-			instanceName:  instanceName,
-			tableName:     object.TableMeta.TableName,
-			primaryKey:    object.TableMeta.SchemaEntry,
-			definedColumn: object.TableMeta.DefinedColumns,
-			timeToLive:    object.TableOption.TimeToAlive,
-			maxVersion:    object.TableOption.MaxVersion,
-		})
+		allTableInfos = append(allTableInfos, object)
 	}
 
 	return otsTablesDescriptionAttributes(d, allTableInfos, meta)
 }
 
-func otsTablesDescriptionAttributes(d *schema.ResourceData, tableInfos []OtsTableInfo, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
-
+func otsTablesDescriptionAttributes(d *schema.ResourceData, tableInfos []*tablestoreAPI.TablestoreTable, meta interface{}) error {
 	var ids []string
 	var names []string
 	var s []map[string]interface{}
 	for _, table := range tableInfos {
-		id := fmt.Sprintf("%s:%s", table.instanceName, table.tableName)
+		id := fmt.Sprintf("%s:%s", table.GetInstanceName(), table.GetName())
 		mapping := map[string]interface{}{
 			"id":            id,
-			"instance_name": table.instanceName,
-			"table_name":    table.tableName,
-			"time_to_live":  table.timeToLive,
-			"max_version":   table.maxVersion,
+			"instance_name": table.GetInstanceName(),
+			"table_name":    table.GetName(),
+			"time_to_live":  table.GetTimeToAlive(),
+			"max_version":   table.GetMaxVersion(),
 		}
 		var primaryKey []map[string]interface{}
-		for _, pk := range table.primaryKey {
+		for _, pk := range table.GetPrimaryKeys() {
 			pkColumn := make(map[string]interface{})
-			pkColumn["name"] = *pk.Name
-			pkColumn["type"] = otsService.convertPrimaryKeyType(*pk.Type)
+			pkColumn["name"] = pk.Name
+			pkColumn["type"] = pk.Type
 			primaryKey = append(primaryKey, pkColumn)
 		}
 		mapping["primary_key"] = primaryKey
 
 		var definedColumn []map[string]interface{}
-		for _, col := range table.definedColumn {
-			columnType, err := ConvertDefinedColumnType(col.ColumnType)
-			if err != nil {
-				return WrapError(err)
-			}
+		for _, col := range table.GetDefinedColumns() {
 			viewCol := map[string]interface{}{
 				"name": col.Name,
-				"type": columnType,
+				"type": col.ColumnType,
 			}
 			definedColumn = append(definedColumn, viewCol)
 		}
 		mapping["defined_column"] = definedColumn
 
-		names = append(names, table.tableName)
+		names = append(names, table.GetTableName())
 		ids = append(ids, id)
 		s = append(s, mapping)
 	}

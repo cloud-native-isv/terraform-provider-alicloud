@@ -1,5 +1,12 @@
 package alicloud
 
+import (
+	"fmt"
+	"strings"
+
+	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
+)
+
 type PrimaryKeyTypeString string
 
 const (
@@ -215,4 +222,51 @@ type RestOtsQuota struct {
 type RestOtsTagInfo struct {
 	Key   string `json:"Key" xml:"Key"`
 	Value string `json:"Value" xml:"Value"`
+}
+
+// ConvertSecIndexType converts tablestore IndexType to SecondaryIndexTypeString
+func ConvertSecIndexType(indexType tablestore.IndexType) (SecondaryIndexTypeString, error) {
+	switch indexType {
+	case tablestore.IT_LOCAL_INDEX:
+		return Local, nil
+	case tablestore.IT_GLOBAL_INDEX:
+		return Global, nil
+	default:
+		return "", fmt.Errorf("unknown secondary index type: %v", indexType)
+	}
+}
+
+// ConvertSecIndexTypeString converts SecondaryIndexTypeString to tablestore IndexType
+func ConvertSecIndexTypeString(indexType SecondaryIndexTypeString) (tablestore.IndexType, error) {
+	switch indexType {
+	case Local:
+		return tablestore.IT_LOCAL_INDEX, nil
+	case Global:
+		return tablestore.IT_GLOBAL_INDEX, nil
+	default:
+		return tablestore.IT_GLOBAL_INDEX, fmt.Errorf("unknown secondary index type string: %s", indexType)
+	}
+}
+
+// ConvertDefinedColumnType converts tablestore DefinedColumnType to DefinedColumnTypeString
+func ConvertDefinedColumnType(columnType tablestore.DefinedColumnType) (DefinedColumnTypeString, error) {
+	switch columnType {
+	case tablestore.DefinedColumn_INTEGER:
+		return DefinedColumnInteger, nil
+	case tablestore.DefinedColumn_STRING:
+		return DefinedColumnString, nil
+	case tablestore.DefinedColumn_BINARY:
+		return DefinedColumnBinary, nil
+	case tablestore.DefinedColumn_DOUBLE:
+		return DefinedColumnDouble, nil
+	case tablestore.DefinedColumn_BOOLEAN:
+		return DefinedColumnBoolean, nil
+	default:
+		return "", fmt.Errorf("unknown defined column type: %v", columnType)
+	}
+}
+
+// ID generates an ID string from components
+func ID(parts ...string) string {
+	return strings.Join(parts, ":")
 }

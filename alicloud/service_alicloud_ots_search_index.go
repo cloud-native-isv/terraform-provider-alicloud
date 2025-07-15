@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
+	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -91,7 +91,7 @@ func (s *OtsService) CreateOtsSearchIndex(d *schema.ResourceData, instanceName, 
 	return nil
 }
 
-func (s *OtsService) DescribeOtsSearchIndex(instanceName, tableName, indexName string) (*tablestore.TablestoreSearchIndex, error) {
+func (s *OtsService) DescribeOtsSearchIndex(instanceName, tableName, indexName string) (*tablestoreAPI.TablestoreSearchIndex, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
@@ -206,7 +206,27 @@ func (s *OtsService) WaitForOtsSearchIndex(instanceName, tableName, indexName st
 	}
 }
 
-func (s *OtsService) ListOtsSearchIndexes(instanceName, tableName string) ([]*tablestore.TablestoreSearchIndex, error) {
+func (s *OtsService) ListOtsSearchIndex(instanceName, tableName string) ([]*tablestoreAPI.TablestoreSearchIndex, error) {
+	api, err := s.getTablestoreAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	indexes, err := api.ListSearchIndexes(tableName)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, tableName, "ListSearchIndex", AlibabaCloudSdkGoERROR)
+	}
+
+	// Convert to TablestoreSearchIndex slice
+	var result []*tablestoreAPI.TablestoreSearchIndex
+	for _, index := range indexes {
+		result = append(result, index)
+	}
+
+	return result, nil
+}
+
+func (s *OtsService) ListOtsSearchIndexes(instanceName, tableName string) ([]*tablestoreAPI.TablestoreSearchIndex, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)

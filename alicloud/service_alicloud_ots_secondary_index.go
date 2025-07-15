@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
+	tablestoreSDK "github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
+	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -35,15 +36,15 @@ func (s *OtsService) CreateOtsSecondaryIndex(d *schema.ResourceData, instanceNam
 	}
 
 	// Create index metadata
-	indexMeta := &tablestore.IndexMeta{
+	indexMeta := &tablestoreSDK.IndexMeta{
 		IndexName:      indexName,
 		Primarykey:     primaryKeys,
 		DefinedColumns: definedColumns,
-		IndexType:      tablestore.IT_GLOBAL_INDEX, // Default to global index
+		IndexType:      tablestoreSDK.IT_GLOBAL_INDEX, // Default to global index
 	}
 
 	// Create index object
-	index := &tablestore.TablestoreIndex{
+	index := &tablestoreAPI.TablestoreIndex{
 		TableName:       tableName,
 		IndexName:       indexName,
 		IndexMeta:       indexMeta,
@@ -58,7 +59,7 @@ func (s *OtsService) CreateOtsSecondaryIndex(d *schema.ResourceData, instanceNam
 	return nil
 }
 
-func (s *OtsService) DescribeOtsSecondaryIndex(instanceName, tableName, indexName string) (*tablestore.TablestoreIndex, error) {
+func (s *OtsService) DescribeOtsSecondaryIndex(instanceName, tableName, indexName string) (*tablestoreAPI.TablestoreIndex, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
@@ -81,7 +82,7 @@ func (s *OtsService) DeleteOtsSecondaryIndex(instanceName, tableName, indexName 
 		return WrapError(err)
 	}
 
-	index := &tablestore.TablestoreIndex{
+	index := &tablestoreAPI.TablestoreIndex{
 		TableName: tableName,
 		IndexName: indexName,
 	}
@@ -124,7 +125,29 @@ func (s *OtsService) WaitForOtsSecondaryIndex(instanceName, tableName, indexName
 	}
 }
 
-func (s *OtsService) ListOtsSecondaryIndexes(instanceName, tableName string) ([]*tablestore.TablestoreIndex, error) {
+func (s *OtsService) ListOtsSecondaryIndex(instanceName, tableName string) ([]*tablestoreSDK.IndexMeta, error) {
+	api, err := s.getTablestoreAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	indexes, err := api.ListIndexes(tableName)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, tableName, "ListIndexes", AlibabaCloudSdkGoERROR)
+	}
+
+	// Convert to IndexMeta slice using the correct SDK type
+	var result []*tablestoreSDK.IndexMeta
+	for _, index := range indexes {
+		if index.IndexMeta != nil {
+			result = append(result, index.IndexMeta)
+		}
+	}
+
+	return result, nil
+}
+
+func (s *OtsService) ListOtsSecondaryIndexes(instanceName, tableName string) ([]*tablestoreAPI.TablestoreIndex, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)

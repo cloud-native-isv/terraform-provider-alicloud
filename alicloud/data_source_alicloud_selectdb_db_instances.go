@@ -145,7 +145,10 @@ func dataSourceAliCloudSelectDBDbInstances() *schema.Resource {
 
 func dataSourceAliCloudSelectDBDbInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	selectDBService := SelectDBService{client}
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	tags := make([]map[string]interface{}, 0)
 	if v, ok := d.GetOk("tags"); ok {

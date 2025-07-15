@@ -114,7 +114,10 @@ func resourceAliyunOtsTunnelCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	// check table exists
 	if err := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, e := otsService.DescribeOtsTable(fmt.Sprintf("%s%s%s", instanceName, COLON_SEPARATED, tableName))
@@ -158,7 +161,10 @@ func resourceAliyunOtsTunnelCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceAliyunOtsTunnelRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := otsService.DescribeOtsTunnel(d.Id())
 
 	if err != nil {
@@ -197,7 +203,10 @@ func resourceAliyunOtsTunnelRead(d *schema.ResourceData, meta interface{}) error
 
 func resourceAliyunOtsTunnelDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {

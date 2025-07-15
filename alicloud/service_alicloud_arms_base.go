@@ -30,13 +30,3 @@ func NewArmsService(client *connectivity.AliyunClient) *ArmsService {
 		armsAPI: armsAPI,
 	}
 }
-
-// Note: All specific functionality has been moved to dedicated service files:
-// - service_alicloud_arms_alert.go: Alert contacts, contact groups, robots, schedules
-// - service_alicloud_arms_rule.go: Alert rules and notification policies
-// - service_alicloud_arms_dispatch.go: Dispatch rules
-// - service_alicloud_arms_prometheus.go: Prometheus monitoring and alert rules
-// - service_alicloud_arms_integration.go: Integration management
-// - service_alicloud_arms_environment.go: Environment, features, monitors
-// - service_alicloud_arms_grafana.go: Grafana workspace management
-// - service_alicloud_arms_synthetic.go: Synthetic tasks and silence policies

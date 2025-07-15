@@ -152,7 +152,11 @@ func dataSourceAliCloudOtsSecondaryIndexesRead(d *schema.ResourceData, meta inte
 	args := parseSecIndexDataSourceArgs(d)
 
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	total, err := otsService.ListOtsSecondaryIndex(args.instanceName, args.tableName)
 	if err != nil {
 		return WrapError(err)

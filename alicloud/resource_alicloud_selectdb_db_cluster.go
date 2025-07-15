@@ -185,7 +185,10 @@ func resourceAliCloudSelectDBDbCluster() *schema.Resource {
 
 func resourceAliCloudSelectDBDbClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	selectDBService := SelectDBService{client}
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	request, err := buildSelectDBCreateClusterRequest(d, meta)
 	if err != nil {
@@ -212,7 +215,10 @@ func resourceAliCloudSelectDBDbClusterCreate(d *schema.ResourceData, meta interf
 
 func resourceAliCloudSelectDBDbClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	selectDBService := SelectDBService{client}
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	d.Partial(true)
 
 	cacheSizeModified := false
@@ -427,7 +433,10 @@ func resourceAliCloudSelectDBDbClusterUpdate(d *schema.ResourceData, meta interf
 
 func resourceAliCloudSelectDBDbClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	selectDBService := SelectDBService{client}
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	clusterResp, err := selectDBService.DescribeSelectDBDbCluster(d.Id())
 	if err != nil {
@@ -505,7 +514,10 @@ func resourceAliCloudSelectDBDbClusterRead(d *schema.ResourceData, meta interfac
 
 func resourceAliCloudSelectDBDbClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	selectDBService := SelectDBService{client}
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING", "CREATING", "STOPPING", "STARTING", "RESTARTING", "RESTART", "MODIFY_PARAM"},
 		[]string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, selectDBService.SelectDBDbClusterStateRefreshFunc(d.Id(), []string{}))
@@ -539,7 +551,10 @@ func resourceAliCloudSelectDBDbClusterDelete(d *schema.ResourceData, meta interf
 
 func buildSelectDBCreateClusterRequest(d *schema.ResourceData, meta interface{}) (map[string]interface{}, error) {
 	client := meta.(*connectivity.AliyunClient)
-	selectDBService := SelectDBService{client}
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	instanceResp, err := selectDBService.DescribeSelectDBDbInstance(d.Get("db_instance_id").(string))
 	if err != nil {

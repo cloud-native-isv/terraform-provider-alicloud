@@ -107,11 +107,13 @@ func resourceAliCloudArmsIntegrationCreate(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, FailedGetAttributeMsg, "alicloud_arms_integration", "$.IntegrationId", response)
 	}
 
-	d.SetId(fmt.Sprint(integrationIdResp))
+	id := fmt.Sprint(integrationIdResp)
+
+	d.SetId(id)
 
 	// Wait for integration to be ready
 	armsService := NewArmsService(client)
-	stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(d, []string{}))
+	stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(id, []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -193,7 +195,7 @@ func resourceAliCloudArmsIntegrationUpdate(d *schema.ResourceData, meta interfac
 
 		// Wait for integration to be updated
 		armsService := NewArmsService(client)
-		stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(d, []string{}))
+		stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -234,7 +236,7 @@ func resourceAliCloudArmsIntegrationDelete(d *schema.ResourceData, meta interfac
 
 	// Wait for integration to be deleted
 	armsService := NewArmsService(client)
-	stateConf := BuildStateConf([]string{"Active", "Inactive"}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(d, []string{}))
+	stateConf := BuildStateConf([]string{"Active", "Inactive"}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

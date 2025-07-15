@@ -140,12 +140,12 @@ func (s *SelectDBService) DeleteSelectDBClusterBinding(options *selectdb.Cluster
 // Cluster Configuration Operations
 
 // DescribeSelectDBClusterConfig retrieves cluster configuration
-func (s *SelectDBService) DescribeSelectDBClusterConfig(query *selectdb.ClusterConfigQuery) (*selectdb.ClusterConfig, error) {
+func (s *SelectDBService) DescribeSelectDBClusterConfig(id *selectdb.ClusterConfigQuery) (*selectdb.ClusterConfig, error) {
 	if query == nil {
 		return nil, WrapError(fmt.Errorf("cluster config query cannot be nil"))
 	}
 
-	config, err := s.api.GetClusterConfig(query)
+	config, err := s.api.GetClusterConfig(id)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)

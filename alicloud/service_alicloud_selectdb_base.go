@@ -19,7 +19,7 @@ func NewSelectDBService(client *connectivity.AliyunClient) (*SelectDBService, er
 	}
 
 	// Initialize the SelectDB API client lazily
-	_, err := service.GetSelectDBAPI()
+	_, err := aliyunSelectDBAPI.NewSelectDBAPI()
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize SelectDB API client: %w", err)
 	}

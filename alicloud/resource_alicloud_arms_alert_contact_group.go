@@ -114,18 +114,7 @@ func resourceAliCloudArmsAlertContactGroupRead(d *schema.ResourceData, meta inte
 
 	// Parse ContactIds string into slice
 	contactIdsItems := make([]string, 0)
-	if contactGroup.ContactIds != "" {
-		// ContactIds is a comma-separated string, split it
-		contactIdsItems = strings.Split(contactGroup.ContactIds, ",")
-		// Remove any empty strings
-		filteredIds := make([]string, 0)
-		for _, id := range contactIdsItems {
-			if strings.TrimSpace(id) != "" {
-				filteredIds = append(filteredIds, strings.TrimSpace(id))
-			}
-		}
-		contactIdsItems = filteredIds
-	}
+
 	d.Set("contact_ids", contactIdsItems)
 	return nil
 }

@@ -2,10 +2,11 @@ package alicloud
 
 import (
 	"encoding/json"
+	"fmt"
 	"regexp"
 
-	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -170,14 +171,17 @@ func dataSourceAliCloudOtsSearchIndexesRead(d *schema.ResourceData, meta interfa
 	args := parseSearchIndexDataSourceArgs(d)
 
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	totalIndexes, err := otsService.ListOtsSearchIndex(args.instanceName, args.tableName)
 	if err != nil {
 		return WrapError(err)
 	}
 
 	filteredIndexes := args.doFilters(totalIndexes)
-	source, err := genSearchIndexDataSource(&otsService, filteredIndexes, args)
+	source, err := genSearchIndexDataSource(otsService, filteredIndexes, args)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -187,49 +191,47 @@ func dataSourceAliCloudOtsSearchIndexesRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func genSearchIndexDataSource(otsService *OtsService, filteredIndexes []interface{}, args *SearchIndexDataSourceArgs) (*SearchIndexDataSource, error) {
+func genSearchIndexDataSource(otsService *OtsService, filteredIndexes []*tablestoreAPI.TablestoreSearchIndex, args *SearchIndexDataSourceArgs) (*SearchIndexDataSource, error) {
 	size := len(filteredIndexes)
 	ids := make([]string, 0, size)
 	names := make([]string, 0, size)
 	indexes := make([]map[string]interface{}, 0, size)
 
-	for _, idx := range filteredIndexes {
-		idxInfo := idx.(*tablestore.IndexInfo)
-		id := ID(args.instanceName, args.tableName, idxInfo.IndexName, SearchIndexTypeHolder)
+	for _, indexInfo := range filteredIndexes {
+		indexName := indexInfo.IndexName
+		id := fmt.Sprintf("%s:%s:%s:SearchIndex", args.instanceName, args.tableName, indexName)
 
-		indexResp, err := otsService.DescribeOtsSearchIndex(id)
-		if err != nil {
-			return nil, WrapError(err)
-		}
-		phase, err := ConvertSearchIndexSyncPhase(indexResp.SyncStat.SyncPhase)
+		indexResp, err := otsService.DescribeOtsSearchIndex(args.instanceName, args.tableName, indexName)
 		if err != nil {
 			return nil, WrapError(err)
 		}
 
-		b, err := json.MarshalIndent(indexResp.Schema, "", "  ")
-		if err != nil {
-			return nil, WrapError(err)
+		var phase string
+		var currentSyncTimestamp int64
+		var schema string
+
+		if indexResp.IndexSchema != nil {
+			b, err := json.MarshalIndent(indexResp.IndexSchema, "", "  ")
+			if err != nil {
+				return nil, WrapError(err)
+			}
+			schema = string(b)
 		}
-		schemaJSON := string(b)
 
 		index := map[string]interface{}{
 			"id":            id,
 			"instance_name": args.instanceName,
 			"table_name":    args.tableName,
-			"index_name":    idxInfo.IndexName,
+			"index_name":    indexName,
 
-			"create_time":               indexResp.CreateTime,
-			"time_to_live":              indexResp.TimeToLive,
-			"sync_phase":                phase,
-			"current_sync_timestamp":    *indexResp.SyncStat.CurrentSyncTimestamp,
-			"storage_size":              indexResp.MeteringInfo.StorageSize,
-			"row_count":                 indexResp.MeteringInfo.RowCount,
-			"reserved_read_cu":          indexResp.MeteringInfo.ReservedReadCU,
-			"metering_last_update_time": indexResp.MeteringInfo.LastUpdateTime,
-			"schema":                    schemaJSON,
+			"create_time":            indexResp.CreateTime,
+			"time_to_live":           indexResp.TimeToLive,
+			"sync_phase":             phase,
+			"current_sync_timestamp": currentSyncTimestamp,
+			"schema":                 schema,
 		}
 
-		names = append(names, idxInfo.IndexName)
+		names = append(names, indexName)
 		ids = append(ids, id)
 		indexes = append(indexes, index)
 	}
@@ -241,37 +243,39 @@ func genSearchIndexDataSource(otsService *OtsService, filteredIndexes []interfac
 	}, nil
 }
 
-func (args *SearchIndexDataSourceArgs) doFilters(total []*tablestore.IndexInfo) []interface{} {
-	slice := make([]interface{}, len(total))
-	for i, t := range total {
-		slice[i] = t
-	}
-	ds := InputDataSource{
-		inputs: slice,
-	}
-	// add filter: index id
+func (args *SearchIndexDataSourceArgs) doFilters(total []*tablestoreAPI.TablestoreSearchIndex) []*tablestoreAPI.TablestoreSearchIndex {
+	var result []*tablestoreAPI.TablestoreSearchIndex
+
+	// Filter by IDs if specified
+	idsMap := make(map[string]bool)
 	if args.ids != nil {
-		idFilter := &ValuesFilter{
-			allowedValues: Str2InterfaceSlice(args.ids),
-			getSourceValue: func(sourceObj interface{}) interface{} {
-				idx := sourceObj.(*tablestore.IndexInfo)
-				// search index and search index can have same IndexName, so joined IndexType for index id
-				return ID(args.instanceName, args.tableName, idx.IndexName, SearchIndexTypeHolder)
-			},
+		for _, id := range args.ids {
+			idsMap[id] = true
 		}
-		ds.filters = append(ds.filters, idFilter)
-	}
-	// add filter: index name regex
-	if args.nameRegex != "" {
-		regxFilter := &RegxFilter{
-			regx: regexp.MustCompile(args.nameRegex),
-			getSourceValue: func(sourceObj interface{}) interface{} {
-				return sourceObj.(*tablestore.IndexInfo).IndexName
-			},
-		}
-		ds.filters = append(ds.filters, regxFilter)
 	}
 
-	filtered := ds.doFilters()
-	return filtered
+	// Compile regex if specified
+	var nameRegex *regexp.Regexp
+	if args.nameRegex != "" {
+		nameRegex = regexp.MustCompile(args.nameRegex)
+	}
+
+	for _, indexInfo := range total {
+		// Apply ID filter
+		if len(idsMap) > 0 {
+			id := fmt.Sprintf("%s:%s:%s:SearchIndex", args.instanceName, args.tableName, indexInfo.IndexName)
+			if !idsMap[id] {
+				continue
+			}
+		}
+
+		// Apply name regex filter
+		if nameRegex != nil && !nameRegex.MatchString(indexInfo.IndexName) {
+			continue
+		}
+
+		result = append(result, indexInfo)
+	}
+
+	return result
 }

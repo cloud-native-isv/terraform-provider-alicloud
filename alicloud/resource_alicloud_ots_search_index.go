@@ -423,7 +423,10 @@ func resourceAliyunOtsSearchIndexCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	// check table exists
 	tableResp, err := otsService.LoopWaitTable(args.instanceName, args.tableName)
 	if err != nil {
@@ -515,7 +518,10 @@ func (args *SearchIndexResourceArgs) checkArgs(tableResp *tablestore.DescribeTab
 
 func resourceAliyunOtsSearchIndexRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	idx, err := otsService.DescribeOtsSearchIndex(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -557,7 +563,10 @@ func resourceAliyunOtsSearchIndexDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	if err := otsService.DeleteSearchIndex(instanceName, tableName, indexName); err != nil {
 		if strings.HasPrefix(err.Error(), "OTSObjectNotExist") {

@@ -1,13 +1,14 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
 	"time"
 
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
+	tablestoreSDK "github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
+	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
+
 
 // Table management functions
 
@@ -66,8 +67,7 @@ func (s *OtsService) CreateOtsTable(d *schema.ResourceData, instanceName string)
 		}
 	}
 
-	ctx := context.Background()
-	if err := api.CreateTable(ctx, options); err != nil {
+	if err := s.tablestoreAPI.CreateTable(options); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, tableName, "CreateTable", AlibabaCloudSdkGoERROR)
 	}
 
@@ -75,14 +75,8 @@ func (s *OtsService) CreateOtsTable(d *schema.ResourceData, instanceName string)
 	return nil
 }
 
-func (s *OtsService) DescribeOtsTable(instanceName, tableName string) (*tablestore.TablestoreTable, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	ctx := context.Background()
-	table, err := api.GetTable(ctx, tableName)
+func (s *OtsService) DescribeOtsTable(instanceName, tableName string) (*tablestoreAPI.TablestoreTable, error) {
+	table, err := s.tablestoreAPI.GetTable(tableName)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidTableName.NotFound"}) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -120,8 +114,7 @@ func (s *OtsService) UpdateOtsTable(d *schema.ResourceData, instanceName, tableN
 	}
 
 	if update {
-		ctx := context.Background()
-		if err := api.UpdateTable(ctx, tableName, options); err != nil {
+		if err := s.tablestoreAPI.UpdateTable(tableName, options); err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, tableName, "UpdateTable", AlibabaCloudSdkGoERROR)
 		}
 	}
@@ -135,8 +128,7 @@ func (s *OtsService) DeleteOtsTable(instanceName, tableName string) error {
 		return WrapError(err)
 	}
 
-	ctx := context.Background()
-	if err := api.DeleteTable(ctx, tableName); err != nil {
+	if err := s.tablestoreAPI.DeleteTable(tableName); err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidTableName.NotFound"}) {
 			return nil
 		}
@@ -171,14 +163,17 @@ func (s *OtsService) WaitForOtsTable(instanceName, tableName string, status stri
 	}
 }
 
-func (s *OtsService) ListOtsTables(instanceName string) ([]string, error) {
-	api, err := s.getTablestoreAPI()
+func (s *OtsService) ListOtsTable(instanceName string) ([]*tablestoreAPI.TablestoreTable, error) {
+	tables, err := s.tablestoreAPI.ListTables()
 	if err != nil {
-		return nil, WrapError(err)
+		return nil, WrapErrorf(err, DefaultErrorMsg, instanceName, "ListTables", AlibabaCloudSdkGoERROR)
 	}
 
-	ctx := context.Background()
-	tables, err := api.ListAllTables(ctx)
+	return tables, nil
+}
+
+func (s *OtsService) ListOtsTables(instanceName string) ([]string, error) {
+	tables, err := s.tablestoreAPI.ListTables()
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, instanceName, "ListTables", AlibabaCloudSdkGoERROR)
 	}

@@ -136,7 +136,10 @@ func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) erro
 	tableName := d.Get("table_name").(string)
 	tableMeta.TableName = tableName
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	if err := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, e := otsService.DescribeOtsInstance(instanceName)
 		if e != nil {
@@ -239,7 +242,10 @@ func resourceAliyunOtsTableRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	tableResp, err := otsService.DescribeOtsTable(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -462,7 +468,10 @@ func resourceAliyunOtsTableDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	req := new(tablestore.DeleteTableRequest)
 	req.TableName = tableName

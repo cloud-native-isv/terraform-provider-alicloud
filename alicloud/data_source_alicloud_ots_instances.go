@@ -4,6 +4,7 @@ import (
 	"regexp"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -121,13 +122,18 @@ func dataSourceAliCloudOtsInstances() *schema.Resource {
 
 func dataSourceAliCloudOtsInstancesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	otsService := OtsService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	allInstanceNames, err := otsService.ListOtsInstance(PageSizeLarge)
+	// Get all instance basic info first
+	instanceList, err := otsService.ListOtsInstance()
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_instances", "ListOtsInstance", AlibabaCloudSdkGoERROR)
 	}
 
+	// Prepare filters
 	idsMap := make(map[string]bool)
 	if v, ok := d.GetOk("ids"); ok && len(v.([]interface{})) > 0 {
 		for _, x := range v.([]interface{}) {
@@ -143,47 +149,76 @@ func dataSourceAliCloudOtsInstancesRead(d *schema.ResourceData, meta interface{}
 		nameReg = regexp.MustCompile(v.(string))
 	}
 
+	// Apply early filtering to reduce API calls
 	var filteredInstanceNames []string
-	for _, instanceName := range allInstanceNames {
-		// name_regex mismatch
+	for _, instance := range instanceList {
+		instanceName := instance.InstanceName
+
+		// Apply name_regex filter
 		if nameReg != nil && !nameReg.MatchString(instanceName) {
 			continue
 		}
-		// ids mismatch
-		if len(idsMap) != 0 {
+
+		// Apply ids filter
+		if len(idsMap) > 0 {
 			if _, ok := idsMap[instanceName]; !ok {
 				continue
 			}
 		}
+
 		filteredInstanceNames = append(filteredInstanceNames, instanceName)
 	}
 
-	// get full instance info via GetInstance
-	var allInstances []RestOtsInstanceInfo
+	// Get detailed instance information only for filtered instances
+	var detailedInstances []RestOtsInstanceInfo
 	for _, instanceName := range filteredInstanceNames {
 		instanceInfo, err := otsService.DescribeOtsInstance(instanceName)
 		if err != nil {
-			return WrapError(err)
+			if NotFoundError(err) {
+				// Instance might have been deleted, skip it
+				continue
+			}
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_instances", "DescribeOtsInstance", AlibabaCloudSdkGoERROR)
 		}
-		allInstances = append(allInstances, instanceInfo)
+
+		// Convert TablestoreInstance to RestOtsInstanceInfo
+		restInstanceInfo := RestOtsInstanceInfo{
+			InstanceName:          instanceInfo.InstanceName,
+			InstanceStatus:        instanceInfo.InstanceStatus,
+			InstanceSpecification: instanceInfo.InstanceSpecification,
+			CreateTime:            instanceInfo.CreateTime.Format("2006-01-02T15:04:05Z"),
+			UserId:                instanceInfo.UserId,
+			ResourceGroupId:       instanceInfo.ResourceGroupId,
+			NetworkTypeACL:        instanceInfo.NetworkTypeACL,
+			NetworkSourceACL:      instanceInfo.NetworkSourceACL,
+			Policy:                instanceInfo.Policy,
+			PolicyVersion:         int(instanceInfo.PolicyVersion),
+			InstanceDescription:   instanceInfo.InstanceDescription,
+			Quota: RestOtsQuota{
+				TableQuota: int(instanceInfo.TableQuota),
+			},
+			Tags: convertTablestoreTagsToRestTags(instanceInfo.Tags),
+		}
+		detailedInstances = append(detailedInstances, restInstanceInfo)
 	}
 
-	// filter by tag.
-	var filteredInstances []RestOtsInstanceInfo
+	// Apply tag filtering on detailed instances
+	var finalInstances []RestOtsInstanceInfo
 	if v, ok := d.GetOk("tags"); ok {
 		if vmap, ok := v.(map[string]interface{}); ok && len(vmap) > 0 {
-			for _, instance := range allInstances {
+			for _, instance := range detailedInstances {
 				if tagsMapEqual(vmap, otsRestTagsToMap(instance.Tags)) {
-					filteredInstances = append(filteredInstances, instance)
+					finalInstances = append(finalInstances, instance)
 				}
 			}
 		} else {
-			filteredInstances = allInstances[:]
+			finalInstances = detailedInstances[:]
 		}
 	} else {
-		filteredInstances = allInstances[:]
+		finalInstances = detailedInstances[:]
 	}
-	return otsInstancesDecriptionAttributes(d, filteredInstances, meta)
+
+	return otsInstancesDecriptionAttributes(d, finalInstances, meta)
 }
 
 func otsInstancesDecriptionAttributes(d *schema.ResourceData, instances []RestOtsInstanceInfo, meta interface{}) error {
@@ -230,4 +265,16 @@ func otsInstancesDecriptionAttributes(d *schema.ResourceData, instances []RestOt
 		writeToFile(output.(string), s)
 	}
 	return nil
+}
+
+// Helper function to convert TablestoreInstanceTag to RestOtsTagInfo
+func convertTablestoreTagsToRestTags(tags []tablestore.TablestoreInstanceTag) []RestOtsTagInfo {
+	var restTags []RestOtsTagInfo
+	for _, tag := range tags {
+		restTags = append(restTags, RestOtsTagInfo{
+			Key:   tag.Key,
+			Value: tag.Value,
+		})
+	}
+	return restTags
 }

