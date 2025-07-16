@@ -1,7 +1,7 @@
 ---
 subcategory: "Table Store (OTS)"
 layout: "alicloud"
-page_title: "Alicloud: alicloud_ots_secondary_index"
+page_title: "Alicloud: alicloud_ots_index"
 sidebar_current: "docs-alicloud-datasource-ots-secondary-index"
 description: |-
   Provides a list of ots secondary index to the user.

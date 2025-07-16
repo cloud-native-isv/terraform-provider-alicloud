@@ -1,13 +1,13 @@
 ---
 subcategory: "Table Store (OTS)"
 layout: "alicloud"
-page_title: "Alicloud: alicloud_ots_secondary_index"
+page_title: "Alicloud: alicloud_ots_index"
 sidebar_current: "docs-alicloud-resource-ots-secondary-index"
 description: |-
   Provides an OTS (Open Table Service) secondary index resource.
 ---
 
-# alicloud_ots_secondary_index
+# alicloud_ots_index
 
 Provides an OTS secondary index resource.
 
@@ -18,7 +18,7 @@ For information about OTS secondary index and how to use it, see [Secondary inde
 ## Example Usage
 
 <div style="display: block;margin-bottom: 40px;"><div class="oics-button" style="float: right;position: absolute;margin-bottom: 10px;">
-  <a href="https://api.aliyun.com/terraform?resource=alicloud_ots_secondary_index&exampleId=46566f45-6a4c-4545-6bea-8e736642291445d1ec65&activeTab=example&spm=docs.r.ots_secondary_index.0.46566f456a&intl_lang=EN_US" target="_blank">
+  <a href="https://api.aliyun.com/terraform?resource=alicloud_ots_index&exampleId=46566f45-6a4c-4545-6bea-8e736642291445d1ec65&activeTab=example&spm=docs.r.ots_secondary_index.0.46566f456a&intl_lang=EN_US" target="_blank">
     <img alt="Open in AliCloud" src="https://img.alicdn.com/imgextra/i1/O1CN01hjjqXv1uYUlY56FyX_!!6000000006049-55-tps-254-36.svg" style="max-height: 44px; max-width: 100%;">
   </a>
 </div></div>
@@ -76,7 +76,7 @@ resource "alicloud_ots_table" "default" {
   }
 }
 
-resource "alicloud_ots_secondary_index" "default" {
+resource "alicloud_ots_index" "default" {
   instance_name     = alicloud_ots_instance.default.name
   table_name        = alicloud_ots_table.default.table_name
   index_name        = "example_index"
@@ -116,5 +116,5 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 OTS secondary index can be imported using id, e.g.
 
 ```shell
-$ terraform import alicloud_ots_secondary_index.index1 <instance_name>:<table_name>:<index_name>:<index_type>
+$ terraform import alicloud_ots_index.index1 <instance_name>:<table_name>:<index_name>:<index_type>
 ```

@@ -31,7 +31,7 @@ func (s *OtsService) DescribeOtsInstance(instanceName string) (*tablestoreAPI.Ta
 
 	instance, err := api.GetInstance(instanceName)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotExist", "InvalidInstanceName.NotFound"}) {
+		if NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, instanceName, "GetInstance", AlibabaCloudSdkGoERROR)
@@ -60,7 +60,7 @@ func (s *OtsService) DeleteOtsInstance(instanceName string) error {
 	}
 
 	if err := api.DeleteInstance(instanceName); err != nil {
-		if IsExpectedErrors(err, []string{"NotExist", "InvalidInstanceName.NotFound"}) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, instanceName, "DeleteInstance", AlibabaCloudSdkGoERROR)

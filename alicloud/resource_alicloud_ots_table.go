@@ -1,11 +1,12 @@
 package alicloud
 
 import (
+	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
-	"strconv"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
@@ -189,7 +190,7 @@ func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) erro
 		return WrapError(err)
 	}
 
-	// Build table object
+	// Build table object with complete configuration
 	table := &tablestoreAPI.TablestoreTable{
 		InstanceName: instanceName,
 	}
@@ -198,6 +199,106 @@ func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) erro
 	// Set table options
 	table.SetTimeToAlive(d.Get("time_to_live").(int))
 	table.SetMaxVersion(d.Get("max_version").(int))
+
+	// Set additional table options
+	if v, ok := d.GetOk("allow_update"); ok {
+		table.SetAllowUpdate(v.(bool))
+	}
+
+	if v, ok := d.GetOk("deviation_cell_version_in_sec"); ok {
+		if deviationStr, ok := v.(string); ok {
+			if deviation, err := strconv.ParseInt(deviationStr, 10, 64); err == nil {
+				table.SetDeviationCellVersionInSec(deviation)
+			}
+		}
+	}
+
+	// Set primary keys
+	if primaryKeyList, ok := d.GetOk("primary_key"); ok {
+		primaryKeys := primaryKeyList.([]interface{})
+		for _, pk := range primaryKeys {
+			primaryKey := pk.(map[string]interface{})
+			name := primaryKey["name"].(string)
+			typeStr := primaryKey["type"].(string)
+
+			var keyType tablestore.PrimaryKeyType
+			switch typeStr {
+			case string(IntegerType):
+				keyType = tablestore.PrimaryKeyType_INTEGER
+			case string(StringType):
+				keyType = tablestore.PrimaryKeyType_STRING
+			case string(BinaryType):
+				keyType = tablestore.PrimaryKeyType_BINARY
+			default:
+				return fmt.Errorf("unsupported primary key type: %s", typeStr)
+			}
+
+			table.AddPrimaryKey(name, keyType)
+		}
+	}
+
+	// Set defined columns
+	if definedColumnList, ok := d.GetOk("defined_column"); ok {
+		definedColumns := definedColumnList.([]interface{})
+		for _, dc := range definedColumns {
+			definedColumn := dc.(map[string]interface{})
+			name := definedColumn["name"].(string)
+			typeStr := definedColumn["type"].(string)
+
+			var columnType tablestore.DefinedColumnType
+			switch typeStr {
+			case string(DefinedColumnInteger):
+				columnType = tablestore.DefinedColumn_INTEGER
+			case string(DefinedColumnString):
+				columnType = tablestore.DefinedColumn_STRING
+			case string(DefinedColumnBinary):
+				columnType = tablestore.DefinedColumn_BINARY
+			case string(DefinedColumnDouble):
+				columnType = tablestore.DefinedColumn_DOUBLE
+			case string(DefinedColumnBoolean):
+				columnType = tablestore.DefinedColumn_BOOLEAN
+			default:
+				return fmt.Errorf("unsupported defined column type: %s", typeStr)
+			}
+
+			table.AddDefinedColumn(name, columnType)
+		}
+	}
+
+	// Set SSE configuration
+	if v, ok := d.GetOk("enable_sse"); ok && v.(bool) {
+		sseSpec := &tablestore.SSESpecification{
+			Enable: true,
+		}
+
+		if keyType, ok := d.GetOk("sse_key_type"); ok {
+			switch keyType.(string) {
+			case string(SseKMSService):
+				keyTypeValue := tablestore.SSE_KMS_SERVICE
+				sseSpec.KeyType = &keyTypeValue
+			case string(SseByOk):
+				keyTypeValue := tablestore.SSE_BYOK
+				sseSpec.KeyType = &keyTypeValue
+			}
+		}
+
+		if keyId, ok := d.GetOk("sse_key_id"); ok {
+			keyIdValue := keyId.(string)
+			sseSpec.KeyId = &keyIdValue
+		}
+
+		if roleArn, ok := d.GetOk("sse_role_arn"); ok {
+			roleArnValue := roleArn.(string)
+			sseSpec.RoleArn = &roleArnValue
+		}
+
+		table.SetSSESpecification(sseSpec)
+	}
+
+	// Set local transaction
+	if v, ok := d.GetOk("enable_local_txn"); ok {
+		table.SetEnableLocalTxn(v.(bool))
+	}
 
 	// Create table using service
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
