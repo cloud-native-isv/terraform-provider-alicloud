@@ -223,7 +223,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
-	d.SetId(fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, job.JobId))
+	d.SetId(EncodeJobId(workspaceId, namespaceName, job.JobId))
 
 	// Use abstracted wait method from service layer
 	if err := flinkService.WaitForFlinkJobCreating(d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {

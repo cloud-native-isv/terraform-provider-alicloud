@@ -2,41 +2,41 @@
 
 ## 概述
 
-本文档为 Terraform Provider Alicloud 项目的开发指南，包含大语言模型代码生成规范、架构设计原则、编码标准和最佳实践。本指南旨在确保代码质量、一致性和可维护性，为开发者提供全面的技术规范。
+本文档为 Terraform Provider Alicloud 项目的完整开发指南，包含大语言模型代码生成规范、架构设计原则、编码标准和最佳实践。本指南旨在确保代码质量、一致性和可维护性，为开发者提供全面的技术规范。
 
-## 一、代码生成规范
+## 1. 代码生成规范
 
 ### 1.1 项目信息参考
-- 参考项目目录中的 README.md 文件内容，以此了解项目的基本信息
+- 参考项目目录中的 README.md 文件内容，了解项目基本信息
 - 如果项目根目录下存在 docs 目录，则参考其中的内容
 - 查看 examples 目录了解实际使用场景和模式
 
 ### 1.2 任务执行流程
-- 复杂任务先创建 TODO.md 文件列出计划和步骤，然后一步一步执行
-- 每完成一项更新一次 TODO.md 文档中对应的记录
-- 在任务结束之后再检查 TODO.md 中是否都完成
-- 对于大型重构任务，建议分阶段进行并记录每个阶段的验证点
+- 复杂任务先创建 TODO.md 文件列出计划和步骤，然后逐步执行
+- 每完成一项更新 TODO.md 文档中对应的记录
+- 任务结束后检查 TODO.md 中是否都完成
+- 大型重构任务建议分阶段进行并记录每个阶段的验证点
 
 ### 1.3 文件操作规范
-- 在执行复杂的文件操作时，先生成一个 python 或者 shell 脚本，然后通过执行脚本来进行操作
-- 批量操作前务必进行备份
+- 复杂文件操作时，先生成 Python 或 Shell 脚本，然后执行脚本
+- 批量操作前务必备份
 - 使用版本控制跟踪所有变更
 
 ### 1.4 语言使用规范
 - 生成文档时使用中文
-- 生成代码中的注释和日志使用英文
+- 代码注释和日志使用英文
 - API 文档和错误消息使用英文以保持国际化兼容性
 
 ### 1.5 代码拆分规范
-- 当编程语言代码文件（*.go、*.java、*.py、*.ts、*.js、*.c、*.cpp、*.cs、*.php、*.rb、*.rs等）超过1000行时，需要进行拆分以提高代码的可维护性和可读性
+- 编程语言代码文件（*.go、*.java、*.py、*.ts、*.js、*.c、*.cpp、*.cs、*.php、*.rb、*.rs等）超过1000行时需要拆分
 - 数据文件（*.json、*.yaml、*.csv、*.xml等）不受此限制
-- 按功能模块进行拆分，确保每个文件职责单一且清晰
+- 按功能模块拆分，确保每个文件职责单一且清晰
 
-## 二、架构设计原则
+## 2. 架构设计原则
 
 ### 2.1 分层架构设计
 
-Resource 或 datasource 层应该调用 service 层提供的函数，而不是直接调用底层的 sdk 或者 api 函数。
+Resource 或 DataSource 层应调用 Service 层提供的函数，而不是直接调用底层 SDK 或 API 函数。
 
 **架构层次：**
 ```
@@ -45,67 +45,53 @@ Provider 层 (alicloud/)
 ├── DataSource 层 (data_source_alicloud_*.go)
 └── Service 层 (service_alicloud_*.go)
     └── API 层 (CWS-Lib-Go)
-        └── SDk 层 (阿里云官方SDK)
+        └── SDK 层 (阿里云官方SDK)
 ```
 
-对于添加或者重构一个已有的 resource 或 datasource，需要先定义他的 service 层，resource 或 datasource 只依赖与 service 层提供的函数。
-
-service 层可能包含一个或多个 go 文件，包含了针对资源对象的增删改查方法和状态刷新方法。
+Service 层包含一个或多个 Go 文件，包含针对资源对象的增删改查方法和状态刷新方法。
 
 ### 2.2 Service层API调用规范
 
-当前项目的 service 层包含三种对底层 API 的调用方式：
-
-#### 2.2.1 client.RpcPost直接HTTP请求（❌ 不推荐，应废弃）
-
-```go
-// 不推荐的方式
-response, err := client.RpcPost("ecs", "2014-05-26", "DescribeInstances", parameters, "")
-```
-
-**存在问题：**
-- 维护成本高
-- 当云服务API更新时会产生大量联动修改
-- 缺乏类型安全和自动化代码生成
-- 错误处理复杂
-- 缺乏请求重试和熔断机制
-
-#### 2.2.2 第三方SDK调用（⚠️ 不推荐）
-
-```go
-// 不推荐的方式
-import "github.com/aliyun/aliyun-log-go-sdk"
-import "github.com/aliyun/aliyun-oss-go-sdk"
-```
-
-**存在问题：**
-- 第三方SDK缺乏维护和更新
-- 版本兼容性问题
-- 安全性和稳定性无法保证
-- 可能存在安全漏洞
-
-#### 2.2.3 CWS-Lib-Go封装调用（✅ 推荐）
+#### 2.2.1 ✅ 推荐：CWS-Lib-Go封装调用
 
 ```go
 // 推荐的方式
 import "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api"
+
+// 1. 创建Service对象
+service, err := NewServiceService(client)
+if err != nil {
+    return WrapError(err)
+}
+
+// 2. 调用Service层方法
+instance, err := service.CreateInstance(request)
+if err != nil {
+    return WrapError(err)
+}
 ```
 
 **优势：**
 - 使用官方SDK进行二次封装
 - 提供统一的API接口和错误处理
-- 定期维护和更新
-- 类型安全和代码生成支持
-- 更好的测试覆盖率
+- 定期维护和更新，类型安全和代码生成支持
 - 内置重试机制和错误恢复
-- 统一的认证和配置管理
+
+#### 2.2.2 ❌ 避免：直接HTTP请求和第三方SDK
+
+```go
+// 不推荐：直接HTTP请求
+response, err := client.RpcPost("ecs", "2014-05-26", "DescribeInstances", parameters, "")
+
+// 不推荐：第三方SDK
+import "github.com/aliyun/aliyun-log-go-sdk"
+```
 
 ### 2.3 API分页逻辑封装
 
-所有分页/分批逻辑应封装在 `*_api.go` 文件中，外部调用者无需处理分页细节。API层应提供简单的方法来抽象分页复杂性、页面大小管理和结果聚合。
+所有分页逻辑应封装在 `*_api.go` 文件中，外部调用者无需处理分页细节：
 
 ```go
-// 推荐做法：封装分页逻辑
 func (s *EcsService) DescribeInstances(request *ecs.DescribeInstancesRequest) ([]*ecs.Instance, error) {
     var allInstances []*ecs.Instance
     pageNumber := 1
@@ -132,58 +118,110 @@ func (s *EcsService) DescribeInstances(request *ecs.DescribeInstancesRequest) ([
 }
 ```
 
-## 三、编码规范
+### 2.4 Service层ID编码规范
 
-### 3.1 命名规范
+每个 Service 文件都需要定义相应的 `Encode*Id` 和 `Decode*Id` 函数：
+
+```go
+// EncodeJobId 将工作空间ID、命名空间和作业ID编码为单一ID字符串
+// 格式: workspaceId:namespace:jobId
+func EncodeJobId(workspaceId, namespace, jobId string) string {
+    return fmt.Sprintf("%s:%s:%s", workspaceId, namespace, jobId)
+}
+
+// DecodeJobId 解析作业ID字符串为工作空间ID、命名空间和作业ID组件
+func DecodeJobId(id string) (string, string, string, error) {
+    parts := strings.Split(id, ":")
+    if len(parts) != 3 {
+        return "", "", "", fmt.Errorf("invalid job ID format, expected workspaceId:namespace:jobId, got %s", id)
+    }
+    return parts[0], parts[1], parts[2], nil
+}
+```
+
+### 2.5 Service层状态管理规范
+
+针对每个 Resource，在对应的 Service 中需要添加 `*StateRefreshFunc` 状态刷新函数和 `WaitFor*` 状态同步函数：
+
+```go
+// StateRefreshFunc 状态刷新函数
+func (s *FlinkService) FlinkJobStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
+    return func() (interface{}, string, error) {
+        object, err := s.DescribeFlinkJob(id)
+        if err != nil {
+            if NotFoundError(err) {
+                return nil, "", nil
+            }
+            return nil, "", WrapError(err)
+        }
+
+        var currentStatus string
+        if object.Status != nil {
+            currentStatus = object.Status.CurrentJobStatus
+        }
+
+        for _, failState := range failStates {
+            if currentStatus == failState {
+                return object, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
+            }
+        }
+        return object, currentStatus, nil
+    }
+}
+
+// WaitFor 状态同步函数
+func (s *FlinkService) WaitForFlinkJobCreating(id string, timeout time.Duration) error {
+    stateConf := BuildStateConf(
+        []string{"STARTING", "SUBMITTING"}, // pending states
+        []string{"RUNNING", "FINISHED"},    // target states  
+        timeout,
+        5*time.Second,
+        s.FlinkJobStateRefreshFunc(id, []string{"FAILED", "CANCELLED", "CANCELLING"}),
+    )
+    
+    _, err := stateConf.WaitForState()
+    return WrapErrorf(err, IdMsg, id)
+}
+```
+
+## 3. 编码规范
+
+### 3.1 命名约定
 
 #### 3.1.1 资源和数据源命名
-- 资源：`alicloud_<service>_<resource>`
-- 数据源：`alicloud_<service>_<resource>s` (复数)
-- 服务名使用小写下划线分隔：`ecs`, `rds`, `slb`
-- 资源名称应简洁明了，避免冗余
-
-**示例：**
-```
-alicloud_ecs_instance
-alicloud_rds_instance
-alicloud_slb_load_balancer
-alicloud_ecs_instances (数据源)
-```
+- Resources: `alicloud_<service>_<resource>`
+- Data sources: `alicloud_<service>_<resource>s` (复数)
+- 服务名使用小写下划线：`ecs`, `rds`, `slb`
 
 #### 3.1.2 函数和变量命名
-- 函数：驼峰命名 (`resourceAlicloudEcs`)
-- 变量：下划线命名 (`access_key`)
-- 代表ID的变量应该是 `resourceId`
-- 代表Name的变量应该是 `resourceName`
-- 变量标识一定要明确是ID还是Name
-- 常量使用全大写下划线分隔：`DEFAULT_TIMEOUT`
+- 函数：camelCase (`resourceAlicloudEcs`)
+- 变量：snake_case (`access_key`)
+- ID字段：`resourceId`, 名称字段：`resourceName`
+- 常量：大写下划线 (`DEFAULT_TIMEOUT`)
 
-#### 3.1.3 ID 字段命名规范
-所有表示 ID 的字段应一致使用变量名 `Id` 而不是 `ID`，以保持与许多自动生成工具的兼容性。
+#### 3.1.3 ID字段命名约定
+所有表示ID的字段统一使用 `Id` 而不是 `ID`：
 
-**示例：**
-- `WorkspaceId`
-- `UserId`
-- `ResourceId`
-- `InstanceId`
+```go
+// ✅ 正确
+"WorkspaceId": workspace.WorkspaceId,
+"UserId": user.UserId,
 
-### 3.2 资源结构要求
+// ❌ 错误  
+"WorkspaceID": workspace.WorkspaceID,
+"UserID": user.UserID,
+```
+
+### 3.2 Resource结构要求
 
 所有资源必须包含以下方法：
-- `Create` - 创建资源
-- `Read` - 读取资源状态
-- `Update` - 更新资源（如果支持）
-- `Delete` - 删除资源
-- `Schema` - 资源模式定义
-- `Importer` - 资源导入支持（推荐）
 
-**资源文件结构示例：**
 ```go
 func resourceAlicloudEcsInstance() *schema.Resource {
     return &schema.Resource{
         Create: resourceAlicloudEcsInstanceCreate,
         Read:   resourceAlicloudEcsInstanceRead,
-        Update: resourceAlicloudEcsInstanceUpdate,
+        Update: resourceAlicloudEcsInstanceUpdate, // 可选
         Delete: resourceAlicloudEcsInstanceDelete,
         Importer: &schema.ResourceImporter{
             State: schema.ImportStatePassthrough,
@@ -202,21 +240,13 @@ func resourceAlicloudEcsInstance() *schema.Resource {
 
 ### 3.3 错误处理模式
 
+#### 3.3.1 基本错误处理
+
+推荐使用 `alicloud/errors.go` 中封装的错误类型判断函数，而不是 `IsExpectedErrors`：
+
 ```go
 if err != nil {
     if NotFoundError(err) {
-        d.SetId("")
-        return nil
-    }
-    return WrapError(err)
-}
-```
-
-**增强错误处理：**
-```go
-// 推荐的错误处理模式
-if err != nil {
-    if IsExpectedErrors(err, []string{"InvalidInstance.NotFound", "Forbidden.InstanceNotFound"}) {
         log.Printf("[WARN] Resource (%s) not found, removing from state", d.Id())
         d.SetId("")
         return nil
@@ -225,48 +255,141 @@ if err != nil {
 }
 ```
 
+#### 3.3.2 常用错误判断函数
+
+```go
+// 资源不存在错误判断
+if NotFoundError(err) {
+    d.SetId("")
+    return nil
+}
+
+// 资源已存在错误判断
+if IsAlreadyExistError(err) {
+    // 处理资源已存在的情况
+    return resourceAlicloudServiceResourceRead(d, meta)
+}
+
+// 需要重试的错误判断
+if NeedRetry(err) {
+    time.Sleep(5 * time.Second)
+    return resource.RetryableError(err)
+}
+```
+
+#### 3.3.3 特定服务错误处理
+
+对于特定服务的错误，可以使用预定义的错误码列表：
+
+```go
+// ECS 相关错误
+if IsExpectedErrors(err, EcsNotFound) {
+    d.SetId("")
+    return nil
+}
+
+// SLB 繁忙错误
+if IsExpectedErrors(err, SlbIsBusy) {
+    return resource.RetryableError(err)
+}
+
+// 数据库状态错误
+if IsExpectedErrors(err, OperationDeniedDBStatus) {
+    return resource.RetryableError(err)
+}
+```
+
+#### 3.3.4 避免使用的模式
+
+不推荐直接使用 `IsExpectedErrors` 进行错误判断：
+
+```go
+// ❌ 不推荐的方式
+if IsExpectedErrors(err, []string{"InvalidInstance.NotFound", "Forbidden.InstanceNotFound"}) {
+    d.SetId("")
+    return nil
+}
+
+// ✅ 推荐的方式
+if NotFoundError(err) {
+    d.SetId("")
+    return nil
+}
+```
+
+#### 3.3.5 复合错误处理模式
+
+```go
+if err != nil {
+    // 首先检查是否为资源不存在错误
+    if NotFoundError(err) {
+        if !d.IsNewResource() {
+            log.Printf("[DEBUG] Resource alicloud_service_resource DescribeResource Failed!!! %s", err)
+            d.SetId("")
+            return nil
+        }
+        return WrapError(err)
+    }
+    
+    // 检查是否为资源已存在错误（通常在Create操作中）
+    if IsAlreadyExistError(err) {
+        // 如果资源已存在，读取现有资源状态
+        return resourceAlicloudServiceResourceRead(d, meta)
+    }
+    
+    // 检查是否需要重试
+    if NeedRetry(err) {
+        return resource.RetryableError(err)
+    }
+    
+    // 其他错误直接返回
+    return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+}
+```
+
+#### 3.3.6 错误处理最佳实践
+
+1. **优先使用封装的错误判断函数**：
+   - `NotFoundError(err)` - 检查资源不存在
+   - `IsAlreadyExistError(err)` - 检查资源已存在  
+   - `NeedRetry(err)` - 检查是否需要重试
+
+2. **使用预定义错误码列表**：
+   - `EcsNotFound`, `SlbIsBusy`, `OperationDeniedDBStatus` 等
+
+3. **统一错误包装**：
+   - 使用 `WrapError(err)` 或 `WrapErrorf(err, msg, args...)` 包装错误
+   - 包含详细的上下文信息
+
+4. **适当的日志记录**：
+   - 记录关键错误信息用于调试
+   - 区分不同级别的日志（DEBUG、WARN、ERROR）
+```go
+
 ### 3.4 状态管理规范
 
 #### 3.4.1 基本规则
-- **禁止在Create函数中直接调用Read函数**：应使用StateRefreshFunc机制等待资源创建完成
-- 资源不存在时使用 `d.SetId("")`
-- `Read` 方法中设置所有计算属性
-- 使用适当的超时时间，避免无限等待
-- 实现幂等性操作
+- **禁止在Create函数中直接调用Read函数**：使用StateRefreshFunc机制等待资源创建完成
+- 使用 `d.SetId("")` 当资源不存在时
+- 在 `Read` 方法中设置所有computed属性
+- 实现幂等操作
 
-#### 3.4.2 State Refresh 最佳实践
-
-**正确做法：**
+#### 3.4.2 正确的状态刷新模式
 
 ```go
-// 在Create函数中使用StateRefreshFunc等待资源就绪
-stateConf := BuildStateConf([]string{"Pending", "Starting"}, []string{"Running", "Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, service.ResourceStateRefreshFunc(id, []string{"Failed", "Error"}))
-if _, err := stateConf.WaitForState(); err != nil {
+// ✅ 正确：在Create函数中使用Service层的WaitFor函数等待资源就绪
+err = service.WaitForServiceResourceCreating(d.Id(), d.Timeout(schema.TimeoutCreate))
+if err != nil {
     return WrapErrorf(err, IdMsg, d.Id())
 }
 
 // 最后调用Read同步状态
 return resourceAlicloudServiceResourceRead(d, meta)
 ```
-
-**错误做法：**
-
-```go
-// 错误做法：在Create函数中直接调用Read
-func resourceCreate(d *schema.ResourceData, meta interface{}) error {
-    // ... 创建资源 ...
-    d.SetId(id)
-    
-    // ❌ 错误：不应直接调用Read函数
-    return resourceRead(d, meta)
-}
-```
-
 ### 3.5 数据验证和转换
 
 #### 3.5.1 输入验证
 ```go
-// Schema中的验证
 "instance_type": {
     Type:         schema.TypeString,
     Required:     true,
@@ -276,7 +399,6 @@ func resourceCreate(d *schema.ResourceData, meta interface{}) error {
 
 #### 3.5.2 类型转换
 ```go
-// 安全的类型转换
 func convertToStringSlice(v interface{}) []string {
     if v == nil {
         return []string{}
@@ -290,134 +412,268 @@ func convertToStringSlice(v interface{}) []string {
 }
 ```
 
-### 3.6 代码格式规范
-- 使用 `gofmt` 格式化
-- 遵循 Go 规范
-- 避免重复代码
-- 添加有意义注释
-- 函数长度不超过50行，超过时考虑拆分
-- 使用一致的错误处理模式
+## 4. Resource开发指南
 
-## 四、测试规范
+### 4.1 标准Import包结构
 
-### 4.1 单元测试要求
-- 每个 service 函数都应有对应的单元测试
-- 测试覆盖率应达到80%以上
-- 使用 Mock 对象测试外部依赖
-
-### 4.2 集成测试规范
 ```go
-func TestAccAlicloudEcsInstance_basic(t *testing.T) {
-    var instance ecs.Instance
-    resourceId := "alicloud_ecs_instance.default"
-    ra := resourceAttrInit(resourceId, testAccEcsInstanceBasicMap)
-    testAccCheck := ra.resourceAttrMapUpdateSet()
-    resource.Test(t, resource.TestCase{
-        PreCheck: func() {
-            testAccPreCheck(t)
-        },
-        IDRefreshName: resourceId,
-        Providers:     testAccProviders,
-        CheckDestroy:  testAccCheckEcsInstanceDestroy,
-        Steps: []resource.TestStep{
-            {
-                Config: testAccEcsInstanceConfigBasic(EcsInstanceCommonTestCase),
-                Check: resource.ComposeTestCheckFunc(
-                    testAccCheckEcsInstanceExists(resourceId, &instance),
-                    testAccCheck(map[string]string{
-                        "instance_name": "tf-testAccEcsInstanceConfigBasic",
-                    }),
-                ),
+package alicloud
+
+import (
+    "fmt"
+    "log"
+    "time"
+    "strings"
+
+    "github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+    "github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+    "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+    "github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+)
+```
+
+### 4.2 Schema定义规范
+
+#### 4.2.1 字段类型定义
+
+```go
+// Required字段
+"instance_id": {
+    Type:        schema.TypeString,
+    Required:    true,
+    ForceNew:    true,
+    Description: "The ID of the instance.",
+},
+
+// Optional字段
+"name": {
+    Type:        schema.TypeString,
+    Optional:    true,
+    Description: "The name of the resource.",
+},
+
+// Computed字段
+"status": {
+    Type:        schema.TypeString,
+    Computed:    true,
+    Description: "The status of the resource.",
+},
+
+// Optional + Computed字段
+"instance_name": {
+    Type:        schema.TypeString,
+    Optional:    true,
+    Computed:    true,
+    Description: "The name of the instance.",
+},
+```
+
+#### 4.2.2 嵌套对象定义
+
+```go
+"config": {
+    Type:     schema.TypeList,
+    Required: true,
+    MaxItems: 1,
+    Elem: &schema.Resource{
+        Schema: map[string]*schema.Schema{
+            "cpu": {
+                Type:        schema.TypeInt,
+                Required:    true,
+                Description: "CPU specifications.",
+            },
+            "memory": {
+                Type:        schema.TypeInt,
+                Required:    true,
+                Description: "Memory specifications in GB.",
             },
         },
+    },
+    Description: "Configuration parameters.",
+},
+```
+
+### 4.3 CRUD操作实现
+
+#### 4.3.1 Create方法
+
+```go
+func resourceAliCloudServiceResourceCreate(d *schema.ResourceData, meta interface{}) error {
+    client := meta.(*connectivity.AliyunClient)
+    service, err := NewServiceService(client)
+    if err != nil {
+        return WrapError(err)
+    }
+
+    // 构建请求对象
+    request := &serviceAPI.CreateResourceRequest{
+        InstanceId: d.Get("instance_id").(string),
+        Name:       d.Get("name").(string),
+    }
+
+    // 使用Retry创建资源
+    var result *serviceAPI.Resource
+    err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+        resp, err := service.CreateResource(request)
+        if err != nil {
+            if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable"}) {
+                time.Sleep(5 * time.Second)
+                return resource.RetryableError(err)
+            }
+            return resource.NonRetryableError(err)
+        }
+        result = resp
+        return nil
     })
+
+    if err != nil {
+        return WrapErrorf(err, DefaultErrorMsg, "alicloud_service_resource", "CreateResource", AlibabaCloudSdkGoERROR)
+    }
+
+    d.SetId(result.ResourceId)
+
+    // 等待资源就绪
+    err = service.WaitForServiceResourceCreating(d.Id(), d.Timeout(schema.TimeoutCreate))
+    if err != nil {
+        return WrapErrorf(err, IdMsg, d.Id())
+    }
+
+    // 最后调用Read同步状态
+    return resourceAlicloudServiceResourceRead(d, meta)
 }
 ```
 
-## 五、文档要求
+#### 4.3.2 Read方法
 
-### 5.1 资源文档结构
-每个资源和数据源的文档必须包含：
-- **资源描述**：简要说明资源的用途和功能
-- **参数说明**：所有输入参数的详细描述，包括类型、是否必需、默认值
-- **属性说明**：所有输出属性的描述
-- **导入指南**：如何导入现有资源
-- **使用示例**：完整的、可运行的示例代码
-- **注意事项**：重要的使用限制和注意事项
+```go
+func resourceAliCloudServiceResourceRead(d *schema.ResourceData, meta interface{}) error {
+    client := meta.(*connectivity.AliyunClient)
+    service, err := NewServiceService(client)
+    if err != nil {
+        return WrapError(err)
+    }
 
-### 5.2 示例代码规范
-```hcl
-# 基础示例
-resource "alicloud_ecs_instance" "example" {
-  availability_zone = data.alicloud_zones.default.zones.0.id
-  security_groups   = [alicloud_security_group.default.id]
-  instance_type     = "ecs.n4.large"
-  system_disk_category = "cloud_efficiency"
-  image_id         = data.alicloud_images.default.images.0.id
-  instance_name    = "terraform-example"
-  vswitch_id       = alicloud_vswitch.default.id
+    object, err := service.DescribeResource(d.Id())
+    if err != nil {
+        if !d.IsNewResource() && NotFoundError(err) {
+            log.Printf("[DEBUG] Resource alicloud_service_resource DescribeResource Failed!!! %s", err)
+            d.SetId("")
+            return nil
+        }
+        return WrapError(err)
+    }
+
+    // 设置所有必要字段
+    d.Set("instance_id", object.InstanceId)
+    d.Set("name", object.Name)
+    d.Set("status", object.Status)
+
+    return nil
 }
 ```
 
-## 六、性能优化指南
+#### 4.3.3 Delete方法
 
-### 6.1 API调用优化
-- 合理使用批量API减少网络请求
-- 实现客户端缓存机制
-- 使用连接池管理HTTP连接
-- 设置合理的超时时间
+```go
+func resourceAliCloudServiceResourceDelete(d *schema.ResourceData, meta interface{}) error {
+    client := meta.(*connectivity.AliyunClient)
+    service, err := NewServiceService(client)
+    if err != nil {
+        return WrapError(err)
+    }
 
-### 6.2 状态刷新优化
-- 使用指数退避算法进行重试
-- 避免过于频繁的状态检查
-- 合理设置状态检查间隔
+    err = service.DeleteResource(d.Id())
+    if err != nil {
+        if NotFoundError(err) {
+            return nil
+        }
+        return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteResource", AlibabaCloudSdkGoERROR)
+    }
 
-## 七、安全最佳实践
+    // 等待资源被删除
+    stateConf := &resource.StateChangeConf{
+        Pending: []string{"Deleting"},
+        Target:  []string{""},
+        Refresh: func() (interface{}, string, error) {
+            obj, err := service.DescribeResource(d.Id())
+            if err != nil {
+                if NotFoundError(err) {
+                    return nil, "", nil
+                }
+                return nil, "", WrapError(err)
+            }
+            return obj, obj.Status, nil
+        },
+        Timeout:    d.Timeout(schema.TimeoutDelete),
+        Delay:      5 * time.Second,
+        MinTimeout: 3 * time.Second,
+    }
 
-### 7.1 凭证管理
-- 不在代码中硬编码访问密钥
-- 支持多种认证方式：环境变量、配置文件、RAM角色
-- 实现访问密钥轮换机制
+    _, err = stateConf.WaitForState()
+    if err != nil {
+        return WrapErrorf(err, IdMsg, d.Id())
+    }
 
-### 7.2 权限控制
-- 遵循最小权限原则
-- 明确标记敏感字段
-- 实现资源访问控制
+    return nil
+}
+```
 
-## 八、故障排除指南
+### 4.4 资源创建的resource.Retry逻辑
 
-### 8.1 常见问题
-- **API限流**：实现重试机制和退避策略
-- **网络超时**：检查网络连接和防火墙设置
-- **权限错误**：验证RAM角色和策略配置
-- **资源不存在**：正确处理NotFound错误
+```go
+// 常见的可重试错误
+var retryableErrors = []string{
+    "ServiceUnavailable",
+    "ThrottlingException", 
+    "InternalError",
+    "Throttling",
+    "SystemBusy",
+    "OperationConflict",
+}
 
-### 8.2 调试技巧
-- 启用详细日志记录
-- 使用环境变量控制调试级别
-- 记录关键API调用和响应
+err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+    _, err := service.CreateResource(request)
+    if err != nil {
+        if IsExpectedErrors(err, retryableErrors) {
+            time.Sleep(5 * time.Second)
+            return resource.RetryableError(err)
+        }
+        return resource.NonRetryableError(err)
+    }
+    return nil
+})
+```
 
-## 九、版本兼容性
 
-### 9.1 向后兼容
-- 新增字段使用Optional标记
-- 废弃字段保持向后兼容
-- 提供迁移指南
+## 11. 开发检查清单
 
-### 9.2 版本管理
-- 遵循语义化版本控制
-- 维护CHANGELOG文档
-- 提供升级指导
+### 11.1 基础要求
+- [ ] 使用标准的import包结构
+- [ ] 通过Service层调用CWS-Lib-Go API
+- [ ] 正确定义Schema（Required/Optional/Computed）
+- [ ] 实现所有必要的CRUD方法
+- [ ] 添加适当的Timeout配置
 
-## 十、总结
+### 11.2 状态管理
+- [ ] Create后使用Service层的WaitFor函数等待资源就绪
+- [ ] Delete后使用Service层的WaitFor函数等待资源删除
+- [ ] Read方法中正确设置所有字段
+- [ ] 最后调用Read同步状态
 
-本指南为 Terraform Provider Alicloud 项目的核心开发规范，旨在确保代码质量、一致性和可维护性。开发过程中应严格遵循这些规范，特别是：
+### 11.3 代码质量
+- [ ] 遵循ID字段命名约定（使用Id而不是ID）
+- [ ] 添加适当的Description
+- [ ] 正确处理复杂对象的类型转换
+- [ ] 合理的日志记录
 
-1. **架构分层原则**：严格按照 Provider → Resource/DataSource → Service → API 的层次结构
+## 12. 总结
+
+本指南为Terraform Provider Alicloud项目的核心开发规范，开发过程中应严格遵循，特别是：
+
+1. **架构分层原则**：严格遵循Provider → Resource/DataSource → Service → API层次
 2. **状态管理最佳实践**：正确使用StateRefreshFunc，避免直接调用Read函数
-3. **错误处理规范**：统一的错误处理模式和适当的错误分类
+3. **错误处理规范**：统一错误处理模式和适当错误分类
 4. **测试覆盖**：确保充分的单元测试和集成测试
 5. **文档完整性**：提供清晰、完整的使用文档和示例
 
-遵循这些规范将有助于提高代码质量，降低维护成本，并为用户提供更好的使用体验。
-
+遵循这些规范将有助于提高代码质量，降低维护成本，为用户提供更好的体验。

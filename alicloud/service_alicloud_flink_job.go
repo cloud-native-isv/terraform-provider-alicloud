@@ -9,7 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func parseJobId(id string) (string, string, string, error) {
+// EncodeJobId encodes workspaceId, namespace, and jobId into a single ID string
+// Format: workspaceId:namespace:jobId
+func EncodeJobId(workspaceId, namespace, jobId string) string {
+	return fmt.Sprintf("%s:%s:%s", workspaceId, namespace, jobId)
+}
+
+// DecodeJobId parses a job ID string into workspaceId, namespace, and jobId components
+// Expected format: workspaceId:namespace:jobId
+func DecodeJobId(id string) (string, string, string, error) {
 	parts := strings.Split(id, ":")
 	if len(parts) != 3 {
 		return "", "", "", fmt.Errorf("invalid job ID format, expected workspaceId:namespace:jobId, got %s", id)
@@ -26,9 +34,9 @@ func (s *FlinkService) DescribeFlinkJob(id string) (*aliyunFlinkAPI.Job, error) 
 
 	// Parse job ID to extract workspace ID, namespace and job ID
 	// Format: workspaceId:namespace:jobId
-	workspaceId, namespaceName, jobId, err := parseJobId(id)
+	workspaceId, namespaceName, jobId, err := DecodeJobId(id)
 	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "parseJobId", AlibabaCloudSdkGoERROR)
+		return nil, WrapErrorf(err, DefaultErrorMsg, id, "DecodeJobId", AlibabaCloudSdkGoERROR)
 	}
 
 	job, err := s.flinkAPI.GetJob(workspaceId, namespaceName, jobId)
@@ -69,9 +77,9 @@ func (s *FlinkService) UpdateJob(stateId string, updateParams *aliyunFlinkAPI.Ho
 	}
 
 	// Parse job ID to extract workspace ID, namespace and job ID
-	workspaceId, namespaceName, jobId, err := parseJobId(stateId)
+	workspaceId, namespaceName, jobId, err := DecodeJobId(stateId)
 	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, stateId, "parseJobId", AlibabaCloudSdkGoERROR)
+		return nil, WrapErrorf(err, DefaultErrorMsg, stateId, "DecodeJobId", AlibabaCloudSdkGoERROR)
 	}
 
 	result, err := s.flinkAPI.UpdateJob(workspaceId, namespaceName, jobId, updateParams)
@@ -88,9 +96,9 @@ func (s *FlinkService) StopJob(stateId string, withSavepoint bool) error {
 		return fmt.Errorf("job state ID cannot be empty")
 	}
 
-	workspaceId, namespaceName, jobId, err := parseJobId(stateId)
+	workspaceId, namespaceName, jobId, err := DecodeJobId(stateId)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, stateId, "parseJobId", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, stateId, "DecodeJobId", AlibabaCloudSdkGoERROR)
 	}
 
 	// First get the current job status
@@ -124,9 +132,9 @@ func (s *FlinkService) DeleteJob(stateId string) error {
 		return fmt.Errorf("job state ID cannot be empty")
 	}
 
-	workspaceId, namespaceName, jobId, err := parseJobId(stateId)
+	workspaceId, namespaceName, jobId, err := DecodeJobId(stateId)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, stateId, "parseJobId", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, stateId, "DecodeJobId", AlibabaCloudSdkGoERROR)
 	}
 
 	err = s.flinkAPI.DeleteJob(workspaceId, namespaceName, jobId)
