@@ -4,89 +4,21 @@ import (
 	"time"
 
 	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // Search Index management functions
 
-func (s *OtsService) CreateOtsSearchIndex(d *schema.ResourceData, instanceName, tableName string) error {
-	_, err := s.getTablestoreAPI()
+func (s *OtsService) CreateOtsSearchIndex(instanceName string, index *tablestoreAPI.TablestoreSearchIndex) error {
+	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return WrapError(err)
 	}
 
-	// indexName := d.Get("index_name").(string)
+	if err := api.CreateSearchIndex(instanceName, index); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, index.IndexName, "CreateSearchIndex", AlibabaCloudSdkGoERROR)
+	}
 
-	// // Build field schemas
-	// var fieldSchemas []tablestore.FieldSchema
-	// if schemas, ok := d.GetOk("schema"); ok {
-	// 	for _, schema := range schemas.([]interface{}) {
-	// 		schemaMap := schema.(map[string]interface{})
-	// 		fieldSchema := tablestore.FieldSchema{
-	// 			FieldName: schemaMap["field_name"].(string),
-	// 			FieldType: schemaMap["field_type"].(string),
-	// 		}
-
-	// 		if index, exists := schemaMap["index"]; exists {
-	// 			fieldSchema.Index = index.(bool)
-	// 		}
-
-	// 		if store, exists := schemaMap["store"]; exists {
-	// 			fieldSchema.Store = store.(bool)
-	// 		}
-
-	// 		if enableSortAndAgg, exists := schemaMap["enable_sort_and_agg"]; exists {
-	// 			fieldSchema.EnableSortAndAgg = enableSortAndAgg.(bool)
-	// 		}
-
-	// 		if analyzer, exists := schemaMap["analyzer"]; exists && analyzer.(string) != "" {
-	// 			fieldSchema.Analyzer = analyzer.(string)
-	// 		}
-
-	// 		fieldSchemas = append(fieldSchemas, fieldSchema)
-	// 	}
-	// }
-
-	// // Create search index object
-	// searchIndex := &tablestore.TablestoreSearchIndex{
-	// 	TableName: tableName,
-	// 	IndexName: indexName,
-	// 	IndexSchema: &tablestore.IndexSchema{
-	// 		FieldSchemas: fieldSchemas,
-	// 	},
-	// }
-
-	// Set index setting if provided
-	// if setting, ok := d.GetOk("index_setting"); ok {
-	// 	settingMap := setting.(map[string]interface{})
-	// 	indexSetting := tablestore.IndexSetting{}
-
-	// 	if routingFields, exists := settingMap["routing_fields"]; exists {
-	// 		indexSetting.RoutingFields = expandStringList(routingFields.([]interface{}))
-	// 	}
-
-	// 	searchIndex.IndexSchema.IndexSetting = &indexSetting
-	// }
-
-	// // Set index sort if provided
-	// if sorts, ok := d.GetOk("index_sort"); ok {
-	// 	var indexSorts []tablestore.IndexSort
-	// 	for _, sort := range sorts.([]interface{}) {
-	// 		sortMap := sort.(map[string]interface{})
-	// 		indexSort := tablestore.IndexSort{
-	// 			FieldName: sortMap["field_name"].(string),
-	// 			Order:     sortMap["order"].(string),
-	// 		}
-	// 		indexSorts = append(indexSorts, indexSort)
-	// 	}
-	// 	searchIndex.IndexSchema.IndexSort = indexSorts
-	// }
-
-	// if err := api.CreateSearchIndex(searchIndex); err != nil {
-	// 	return WrapErrorf(err, DefaultErrorMsg, indexName, "CreateSearchIndex", AlibabaCloudSdkGoERROR)
-	// }
-
-	// d.SetId(fmt.Sprintf("%s:%s:%s", instanceName, tableName, indexName))
 	return nil
 }
 
@@ -96,7 +28,7 @@ func (s *OtsService) DescribeOtsSearchIndex(instanceName, tableName, indexName s
 		return nil, WrapError(err)
 	}
 
-	index, err := api.GetSearchIndex(tableName, indexName)
+	index, err := api.GetSearchIndex(instanceName, tableName, indexName)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidIndexName.NotFound"}) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -107,74 +39,30 @@ func (s *OtsService) DescribeOtsSearchIndex(instanceName, tableName, indexName s
 	return index, nil
 }
 
-func (s *OtsService) UpdateOtsSearchIndex(d *schema.ResourceData, instanceName, tableName, indexName string) error {
-	_, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
-
-	// // Build updated field schemas
-	// var fieldSchemas []tablestore.FieldSchema
-	// if schemas, ok := d.GetOk("schema"); ok {
-	// 	for _, schema := range schemas.([]interface{}) {
-	// 		schemaMap := schema.(map[string]interface{})
-	// 		fieldSchema := tablestore.FieldSchema{
-	// 			FieldName: schemaMap["field_name"].(string),
-	// 			FieldType: schemaMap["field_type"].(string),
-	// 		}
-
-	// 		if index, exists := schemaMap["index"]; exists {
-	// 			fieldSchema.Index = index.(bool)
-	// 		}
-
-	// 		if store, exists := schemaMap["store"]; exists {
-	// 			fieldSchema.Store = store.(bool)
-	// 		}
-
-	// 		if enableSortAndAgg, exists := schemaMap["enable_sort_and_agg"]; exists {
-	// 			fieldSchema.EnableSortAndAgg = enableSortAndAgg.(bool)
-	// 		}
-
-	// 		if analyzer, exists := schemaMap["analyzer"]; exists && analyzer.(string) != "" {
-	// 			fieldSchema.Analyzer = analyzer.(string)
-	// 		}
-
-	// 		fieldSchemas = append(fieldSchemas, fieldSchema)
-	// 	}
-	// }
-
-	// // Create updated search index object
-	// searchIndex := &tablestore.TablestoreSearchIndex{
-	// 	TableName: tableName,
-	// 	IndexName: indexName,
-	// 	IndexSchema: &tablestore.IndexSchema{
-	// 		FieldSchemas: fieldSchemas,
-	// 	},
-	// }
-
-	// if err := api.UpdateSearchIndex(searchIndex); err != nil {
-	// 	return WrapErrorf(err, DefaultErrorMsg, indexName, "UpdateSearchIndex", AlibabaCloudSdkGoERROR)
-	// }
-
-	return nil
-}
-
-func (s *OtsService) DeleteOtsSearchIndex(instanceName, tableName, indexName string) error {
+func (s *OtsService) UpdateOtsSearchIndex(instanceName string, index *tablestoreAPI.TablestoreSearchIndex) error {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return WrapError(err)
 	}
 
-	searchIndex := &tablestoreAPI.TablestoreSearchIndex{
-		TableName: tableName,
-		IndexName: indexName,
+	if err := api.UpdateSearchIndex(instanceName, index); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, index.IndexName, "UpdateSearchIndex", AlibabaCloudSdkGoERROR)
 	}
 
-	if err := api.DeleteSearchIndex(searchIndex); err != nil {
+	return nil
+}
+
+func (s *OtsService) DeleteOtsSearchIndex(instanceName string, index *tablestoreAPI.TablestoreSearchIndex) error {
+	api, err := s.getTablestoreAPI()
+	if err != nil {
+		return WrapError(err)
+	}
+
+	if err := api.DeleteSearchIndex(instanceName, index); err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidIndexName.NotFound"}) {
 			return nil
 		}
-		return WrapErrorf(err, DefaultErrorMsg, indexName, "DeleteSearchIndex", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, index.IndexName, "DeleteSearchIndex", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil
@@ -205,36 +93,65 @@ func (s *OtsService) WaitForOtsSearchIndex(instanceName, tableName, indexName st
 	}
 }
 
-func (s *OtsService) ListOtsSearchIndex(instanceName, tableName string) ([]*tablestoreAPI.TablestoreSearchIndex, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	indexes, err := api.ListSearchIndexes(tableName)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, tableName, "ListSearchIndex", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert to TablestoreSearchIndex slice
-	var result []*tablestoreAPI.TablestoreSearchIndex
-	for _, index := range indexes {
-		result = append(result, index)
-	}
-
-	return result, nil
-}
-
 func (s *OtsService) ListOtsSearchIndexes(instanceName, tableName string) ([]*tablestoreAPI.TablestoreSearchIndex, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	indexes, err := api.ListSearchIndexes(tableName)
+	indexes, err := api.ListSearchIndexes(instanceName, tableName)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, tableName, "ListSearchIndex", AlibabaCloudSdkGoERROR)
 	}
 
 	return indexes, nil
+}
+
+// State refresh function for search index
+func (s *OtsService) OtsSearchIndexStateRefreshFunc(instanceName, tableName, indexName string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		object, err := s.DescribeOtsSearchIndex(instanceName, tableName, indexName)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		currentStatus := object.SyncPhase.String()
+		for _, failState := range failStates {
+			if currentStatus == failState {
+				return object, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
+			}
+		}
+		return object, currentStatus, nil
+	}
+}
+
+// Wait for search index creation
+func (s *OtsService) WaitForOtsSearchIndexCreating(instanceName, tableName, indexName string, timeout time.Duration) error {
+	stateConf := BuildStateConf(
+		[]string{"CREATING"}, // pending states
+		[]string{"ACTIVE"},   // target states
+		timeout,
+		5*time.Second,
+		s.OtsSearchIndexStateRefreshFunc(instanceName, tableName, indexName, []string{"FAILED"}),
+	)
+
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, indexName)
+}
+
+// Wait for search index deletion
+func (s *OtsService) WaitForOtsSearchIndexDeleting(instanceName, tableName, indexName string, timeout time.Duration) error {
+	stateConf := BuildStateConf(
+		[]string{"DELETING"}, // pending states
+		[]string{""},         // target states (deleted)
+		timeout,
+		5*time.Second,
+		s.OtsSearchIndexStateRefreshFunc(instanceName, tableName, indexName, []string{}),
+	)
+
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, indexName)
 }

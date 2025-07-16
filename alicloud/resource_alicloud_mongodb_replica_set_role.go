@@ -74,7 +74,7 @@ func parseKeyOfMongoReplica(key string) (instanceId, networkType, roleId string)
 	return parts[0], parts[1], parts[2]
 }
 
-func makeSecondaryIndexOfMongoReplica(roleId, networkType string) string {
+func makeIndexOfMongoReplica(roleId, networkType string) string {
 	return fmt.Sprintf("%s:%s", roleId, networkType)
 }
 
@@ -98,7 +98,7 @@ func resourceAliCloudMongoDBReplicaSetRoleUpdate(d *schema.ResourceData, meta in
 		roleID, roleIdOk := replica["role_id"]
 		networkType, networkTypeOk := replica["network_type"]
 		if roleIdOk && networkTypeOk {
-			return makeSecondaryIndexOfMongoReplica(roleID.(string), networkType.(string)), replica, true
+			return makeIndexOfMongoReplica(roleID.(string), networkType.(string)), replica, true
 		}
 		return "", replica, false
 	})
@@ -106,7 +106,7 @@ func resourceAliCloudMongoDBReplicaSetRoleUpdate(d *schema.ResourceData, meta in
 	roleId := d.Get("role_id").(string)
 	networkType := d.Get("network_type").(string)
 
-	replica, ok := replicasGroupByRoleIdAndNetworkType[makeSecondaryIndexOfMongoReplica(roleId, networkType)]
+	replica, ok := replicasGroupByRoleIdAndNetworkType[makeIndexOfMongoReplica(roleId, networkType)]
 	if !ok {
 		return WrapError(fmt.Errorf("connection address not found, roleId: %s, network type: %s", roleId, networkType))
 	}
@@ -168,7 +168,7 @@ func resourceAliCloudMongoDBReplicaSetRoleRead(d *schema.ResourceData, meta inte
 		roleID, roleIdOk := replica["role_id"]
 		networkType, networkTypeOk := replica["network_type"]
 		if roleIdOk && networkTypeOk {
-			return makeSecondaryIndexOfMongoReplica(roleID.(string), networkType.(string)), replica, true
+			return makeIndexOfMongoReplica(roleID.(string), networkType.(string)), replica, true
 		}
 		return "", replica, false
 	})
@@ -177,7 +177,7 @@ func resourceAliCloudMongoDBReplicaSetRoleRead(d *schema.ResourceData, meta inte
 	d.Set("network_type", networkType)
 	d.Set("role_id", roleId)
 
-	replica, ok := replicasGroupByRoleIdAndNetworkType[makeSecondaryIndexOfMongoReplica(roleId, networkType)]
+	replica, ok := replicasGroupByRoleIdAndNetworkType[makeIndexOfMongoReplica(roleId, networkType)]
 	if !ok {
 		return WrapError(fmt.Errorf("connection address not found, roleId: %s, network type: %s", roleId, networkType))
 	}

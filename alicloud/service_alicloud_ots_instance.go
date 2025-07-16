@@ -1,54 +1,25 @@
 package alicloud
 
 import (
-	"context"
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ots"
 	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // Instance management functions
 
-func (s *OtsService) CreateOtsInstance(d *schema.ResourceData) error {
+func (s *OtsService) CreateOtsInstance(instance *tablestoreAPI.TablestoreInstance) error {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return WrapError(err)
 	}
 
-	instanceName := d.Get("name").(string)
-	options := &tablestoreAPI.CreateTablestoreInstanceOptions{
-		InstanceName: instanceName,
-		ClusterType:  d.Get("instance_type").(string),
+	if err := api.CreateInstance(instance); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, instance.InstanceName, "CreateInstance", AlibabaCloudSdkGoERROR)
 	}
 
-	if description, ok := d.GetOk("description"); ok {
-		options.InstanceDescription = description.(string)
-	}
-
-	if resourceGroupId, ok := d.GetOk("resource_group_id"); ok {
-		options.ResourceGroupId = resourceGroupId.(string)
-	}
-
-	if networkTypeACL, ok := d.GetOk("network_type_acl"); ok {
-		options.NetworkTypeACL = expandStringList(networkTypeACL.(*schema.Set).List())
-	}
-
-	if networkSourceACL, ok := d.GetOk("network_source_acl"); ok {
-		options.NetworkSourceACL = expandStringList(networkSourceACL.(*schema.Set).List())
-	}
-
-	if tags, ok := d.GetOk("tags"); ok {
-		options.Tags = convertToTablestoreTags(tags.(map[string]interface{}))
-	}
-
-	ctx := context.Background()
-	if err := api.CreateInstance(ctx, options); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, instanceName, "CreateInstance", AlibabaCloudSdkGoERROR)
-	}
-
-	d.SetId(instanceName)
 	return nil
 }
 
@@ -58,8 +29,7 @@ func (s *OtsService) DescribeOtsInstance(instanceName string) (*tablestoreAPI.Ta
 		return nil, WrapError(err)
 	}
 
-	ctx := context.Background()
-	instance, err := api.GetInstance(ctx, instanceName)
+	instance, err := api.GetInstance(instanceName)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidInstanceName.NotFound"}) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -70,35 +40,14 @@ func (s *OtsService) DescribeOtsInstance(instanceName string) (*tablestoreAPI.Ta
 	return instance, nil
 }
 
-func (s *OtsService) UpdateOtsInstance(d *schema.ResourceData, instanceName string) error {
+func (s *OtsService) UpdateOtsInstance(instance *tablestoreAPI.TablestoreInstance) error {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return WrapError(err)
 	}
 
-	options := &tablestoreAPI.UpdateTablestoreInstanceOptions{}
-	update := false
-
-	// if d.HasChange("resource_group_id") {
-	// 	options.ResourceGroupId = d.Get("resource_group_id").(string)
-	// 	update = true
-	// }
-
-	if d.HasChange("network_type_acl") {
-		options.NetworkTypeACL = expandStringList(d.Get("network_type_acl").(*schema.Set).List())
-		update = true
-	}
-
-	if d.HasChange("network_source_acl") {
-		options.NetworkSourceACL = expandStringList(d.Get("network_source_acl").(*schema.Set).List())
-		update = true
-	}
-
-	if update {
-		ctx := context.Background()
-		if err := api.UpdateInstance(ctx, instanceName, options); err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, instanceName, "UpdateInstance", AlibabaCloudSdkGoERROR)
-		}
+	if err := api.UpdateInstance(instance); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, instance.InstanceName, "UpdateInstance", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil
@@ -110,8 +59,7 @@ func (s *OtsService) DeleteOtsInstance(instanceName string) error {
 		return WrapError(err)
 	}
 
-	ctx := context.Background()
-	if err := api.DeleteInstance(ctx, instanceName); err != nil {
+	if err := api.DeleteInstance(instanceName); err != nil {
 		if IsExpectedErrors(err, []string{"NotExist", "InvalidInstanceName.NotFound"}) {
 			return nil
 		}
@@ -146,6 +94,51 @@ func (s *OtsService) WaitForOtsInstance(instanceName string, status string, time
 	}
 }
 
+func (s *OtsService) OtsInstanceStateRefreshFunc(instanceName string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		object, err := s.DescribeOtsInstance(instanceName)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		for _, failState := range failStates {
+			if object.InstanceStatus == failState {
+				return object, object.InstanceStatus, WrapError(Error(FailedToReachTargetStatus, object.InstanceStatus))
+			}
+		}
+		return object, object.InstanceStatus, nil
+	}
+}
+
+func (s *OtsService) WaitForOtsInstanceCreating(instanceName string, timeout time.Duration) error {
+	stateConf := BuildStateConf(
+		[]string{"Creating"}, // pending states
+		[]string{"normal"},   // target states
+		timeout,
+		5*time.Second,
+		s.OtsInstanceStateRefreshFunc(instanceName, []string{"forbidden", "deleting"}),
+	)
+
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, instanceName)
+}
+
+func (s *OtsService) WaitForOtsInstanceDeleting(instanceName string, timeout time.Duration) error {
+	stateConf := BuildStateConf(
+		[]string{"deleting"}, // pending states
+		[]string{""},         // target states (not found)
+		timeout,
+		5*time.Second,
+		s.OtsInstanceStateRefreshFunc(instanceName, []string{}),
+	)
+
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, instanceName)
+}
+
 func (s *OtsService) DescribeOtsInstanceTypes() ([]string, error) {
 	// This would typically call an API to get available instance types
 	// For now, return the known types
@@ -154,28 +147,13 @@ func (s *OtsService) DescribeOtsInstanceTypes() ([]string, error) {
 
 // Tag management functions
 
-func (s *OtsService) TagOtsInstance(instanceName string, tags map[string]string) error {
+func (s *OtsService) TagOtsInstance(instanceName string, tags []tablestoreAPI.TablestoreInstanceTag) error {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return WrapError(err)
 	}
 
-	var tablestoreTags []tablestoreAPI.TablestoreInstanceTag
-	for key, value := range tags {
-		tablestoreTags = append(tablestoreTags, tablestoreAPI.TablestoreInstanceTag{
-			Key:   key,
-			Value: value,
-		})
-	}
-
-	options := &tablestoreAPI.TagResourcesOptions{
-		ResourceType: "instance",
-		ResourceIds:  []string{instanceName},
-		Tags:         tablestoreTags,
-	}
-
-	ctx := context.Background()
-	if err := api.TagResources(ctx, options); err != nil {
+	if err := api.TagResources([]string{instanceName}, tags); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, instanceName, "TagResources", AlibabaCloudSdkGoERROR)
 	}
 
@@ -188,14 +166,7 @@ func (s *OtsService) UntagOtsInstance(instanceName string, tagKeys []string) err
 		return WrapError(err)
 	}
 
-	options := &tablestoreAPI.UntagResourcesOptions{
-		ResourceType: "instance",
-		ResourceIds:  []string{instanceName},
-		TagKeys:      tagKeys,
-	}
-
-	ctx := context.Background()
-	if err := api.UntagResources(ctx, options); err != nil {
+	if err := api.UntagResources([]string{instanceName}, tagKeys, false); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, instanceName, "UntagResources", AlibabaCloudSdkGoERROR)
 	}
 
@@ -289,47 +260,19 @@ func (s *OtsService) UnbindOtsInstanceFromVpc(instanceName, vpcName string) erro
 	return nil
 }
 
-// Helper functions
-
-func convertToTablestoreTags(tags map[string]interface{}) []tablestoreAPI.TablestoreInstanceTag {
-	var result []tablestoreAPI.TablestoreInstanceTag
-	for key, value := range tags {
-		result = append(result, tablestoreAPI.TablestoreInstanceTag{
-			Key:   key,
-			Value: value.(string),
-		})
-	}
-	return result
-}
-
-func convertTablestoreTagsToMap(tags []tablestoreAPI.TablestoreInstanceTag) map[string]string {
-	result := make(map[string]string)
-	for _, tag := range tags {
-		result[tag.Key] = tag.Value
-	}
-	return result
-}
-
 // List OTS instances for data source support
-func (s *OtsService) ListOtsInstance() ([]*tablestoreAPI.TablestoreInstance, error) {
+func (s *OtsService) ListOtsInstance() ([]tablestoreAPI.TablestoreInstance, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	ctx := context.Background()
-	instances, err := api.ListAllInstances(ctx, nil)
+	instances, err := api.ListAllInstances(nil)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, "ots_instances", "ListInstances", AlibabaCloudSdkGoERROR)
 	}
 
-	// Convert slice to pointer slice
-	var result []*tablestoreAPI.TablestoreInstance
-	for i := range instances {
-		result = append(result, &instances[i])
-	}
-
-	return result, nil
+	return instances, nil
 }
 
 // List OTS instance VPC attachments for data source support

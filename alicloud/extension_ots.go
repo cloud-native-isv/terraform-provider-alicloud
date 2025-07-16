@@ -136,11 +136,11 @@ const (
 	SseByOk       = SseKeyTypeString("SSE_BYOK")
 )
 
-type SecondaryIndexTypeString string
+type IndexTypeString string
 
 const (
-	Local  = SecondaryIndexTypeString("Local")
-	Global = SecondaryIndexTypeString("Global")
+	Local  = IndexTypeString("Local")
+	Global = IndexTypeString("Global")
 )
 const (
 	SearchIndexTypeHolder = "Search"
@@ -225,8 +225,8 @@ type RestOtsTagInfo struct {
 	Value string `json:"Value" xml:"Value"`
 }
 
-// ConvertSecIndexType converts tablestore IndexType to SecondaryIndexTypeString
-func ConvertSecIndexType(indexType tablestore.IndexType) (SecondaryIndexTypeString, error) {
+// ConvertSecIndexType converts tablestore IndexType to IndexTypeString
+func ConvertSecIndexType(indexType tablestore.IndexType) (IndexTypeString, error) {
 	switch indexType {
 	case tablestore.IT_LOCAL_INDEX:
 		return Local, nil
@@ -237,8 +237,8 @@ func ConvertSecIndexType(indexType tablestore.IndexType) (SecondaryIndexTypeStri
 	}
 }
 
-// ConvertSecIndexTypeString converts SecondaryIndexTypeString to tablestore IndexType
-func ConvertSecIndexTypeString(indexType SecondaryIndexTypeString) (tablestore.IndexType, error) {
+// ConvertSecIndexTypeString converts IndexTypeString to tablestore IndexType
+func ConvertSecIndexTypeString(indexType IndexTypeString) (tablestore.IndexType, error) {
 	switch indexType {
 	case Local:
 		return tablestore.IT_LOCAL_INDEX, nil

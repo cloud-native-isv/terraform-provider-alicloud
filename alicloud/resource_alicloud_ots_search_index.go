@@ -2,22 +2,31 @@ package alicloud
 
 import (
 	"fmt"
-
-	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore/search"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"strings"
+	"time"
 
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
+	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore/search"
+	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAliCloudOtsSearchIndex() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliyunOtsSearchIndexCreate,
-		Read:   resourceAliyunOtsSearchIndexRead,
-		Delete: resourceAliyunOtsSearchIndexDelete,
+		Create: resourceAliCloudOtsSearchIndexCreate,
+		Read:   resourceAliCloudOtsSearchIndexRead,
+		Update: resourceAliCloudOtsSearchIndexUpdate,
+		Delete: resourceAliCloudOtsSearchIndexDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -26,159 +35,160 @@ func resourceAliCloudOtsSearchIndex() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateOTSInstanceName,
+				Description:  "The name of the OTS instance.",
 			},
-
 			"table_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateOTSTableName,
+				Description:  "The name of the table.",
 			},
 			"index_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateOTSIndexName,
+				Description:  "The name of the search index.",
+			},
+			"source_index_name": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "The name of the source index.",
 			},
 			"time_to_live": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  -1,
-				ForceNew: true,
-				// 86400s = 1d
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      -1,
 				ValidateFunc: validation.Any(validation.IntInSlice([]int{-1}), validation.IntAtLeast(86400)),
+				Description:  "The time to live in seconds. -1 means never expire.",
 			},
-			"schema": {
-				Type:     schema.TypeSet,
-				Required: true,
-				ForceNew: true,
+			"field_schemas": {
+				Type:        schema.TypeList,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The field schemas of the search index.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						// Some parameters such as IndexOptions and AnalyzerParameter in field_schema are not supported for the time being,
-						// because there is no description of these parameters in the official documentation.
-						"field_schema": {
+						"field_name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							ForceNew:    true,
+							Description: "The name of the field.",
+						},
+						"field_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(OtsSearchTypeLong),
+								string(OtsSearchTypeDouble),
+								string(OtsSearchTypeBoolean),
+								string(OtsSearchTypeKeyword),
+								string(OtsSearchTypeText),
+								string(OtsSearchTypeDate),
+								string(OtsSearchTypeGeoPoint),
+								string(OtsSearchTypeNested),
+							}, false),
+							Description: "The type of the field.",
+						},
+						"is_array": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							ForceNew:    true,
+							Description: "Whether the field is an array.",
+						},
+						"index": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     true,
+							ForceNew:    true,
+							Description: "Whether to create an index for the field.",
+						},
+						"analyzer": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(OtsSearchSingleWord),
+								string(OtsSearchSplit),
+								string(OtsSearchMinWord),
+								string(OtsSearchMaxWord),
+								string(OtsSearchFuzzy),
+							}, false),
+							Description: "The analyzer for the field.",
+						},
+						"enable_sort_and_agg": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							ForceNew:    true,
+							Description: "Whether to enable sorting and aggregation for the field.",
+						},
+						"store": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							ForceNew:    true,
+							Description: "Whether to store the field value.",
+						},
+					},
+				},
+			},
+			"routing_fields": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				ForceNew:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "The routing fields for the search index.",
+			},
+			"index_sort": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				ForceNew:    true,
+				MaxItems:    1,
+				Description: "The sorting configuration for the search index.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"sorters": {
 							Type:     schema.TypeList,
 							Required: true,
 							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"sorter_type": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  string(OtsSearchPrimaryKeySort),
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(OtsSearchPrimaryKeySort),
+											string(OtsSearchFieldSort),
+										}, false),
+									},
+									"order": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  string(OtsSearchSortOrderAsc),
+										ForceNew: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(OtsSearchSortOrderAsc),
+											string(OtsSearchSortOrderDesc),
+										}, false),
+									},
 									"field_name": {
 										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
-									},
-									"field_type": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(OtsSearchTypeLong),
-											string(OtsSearchTypeDouble),
-											string(OtsSearchTypeBoolean),
-											string(OtsSearchTypeKeyword),
-											string(OtsSearchTypeText),
-											string(OtsSearchTypeDate),
-											string(OtsSearchTypeGeoPoint),
-											string(OtsSearchTypeNested)},
-											false),
-									},
-									"is_array": {
-										Type:     schema.TypeBool,
 										Optional: true,
 										ForceNew: true,
 									},
-									"index": {
-										Type:     schema.TypeBool,
-										Optional: true,
-										Default:  true,
-										ForceNew: true,
-									},
-									"analyzer": {
+									"mode": {
 										Type:     schema.TypeString,
 										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(OtsSearchSingleWord),
-											string(OtsSearchSplit),
-											string(OtsSearchMinWord),
-											string(OtsSearchMaxWord),
-											string(OtsSearchFuzzy)},
-											false),
-									},
-									"enable_sort_and_agg": {
-										Type:     schema.TypeBool,
-										Optional: true,
-										ForceNew: true,
-									},
-									"store": {
-										Type:     schema.TypeBool,
-										Optional: true,
-										ForceNew: true,
-									},
-								},
-							},
-						},
-
-						"index_setting": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"routing_fields": {
-										Type:     schema.TypeList,
-										Optional: true,
-										ForceNew: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-
-						"index_sort": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"sorter": {
-										Type:     schema.TypeList,
-										Required: true,
-										ForceNew: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"sorter_type": {
-													Type:     schema.TypeString,
-													Optional: true,
-													Default:  string(OtsSearchPrimaryKeySort),
-													ForceNew: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(OtsSearchPrimaryKeySort), string(OtsSearchFieldSort)}, false),
-												},
-												"order": {
-													Type:     schema.TypeString,
-													Optional: true,
-													Default:  string(OtsSearchSortOrderAsc),
-													ForceNew: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(OtsSearchSortOrderAsc), string(OtsSearchSortOrderDesc)}, false),
-												},
-												"field_name": {
-													Type:     schema.TypeString,
-													Optional: true,
-													ForceNew: true,
-												},
-												"mode": {
-													Type:     schema.TypeString,
-													Optional: true,
-													ForceNew: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														string(OtsSearchModeMin), string(OtsSearchModeMax), string(OtsSearchModeAvg)}, false),
-												},
-											},
-										},
+											string(OtsSearchModeMin),
+											string(OtsSearchModeMax),
+											string(OtsSearchModeAvg),
+										}, false),
 									},
 								},
 							},
@@ -186,392 +196,372 @@ func resourceAliCloudOtsSearchIndex() *schema.Resource {
 					},
 				},
 			},
-
-			"index_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"create_time": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-
+			// Computed fields
 			"sync_phase": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The synchronization phase of the search index.",
 			},
-
-			"current_sync_timestamp": {
-				Type:     schema.TypeInt,
-				Computed: true,
+			"create_time": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The creation time of the search index.",
 			},
 		},
 	}
 }
 
-func parseSearchIndexResourceArgs(d *schema.ResourceData) (*SearchIndexResourceArgs, error) {
-	indexSchema, err := parseSearchIndexSchema(d)
+func resourceAliCloudOtsSearchIndexCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	otsService, err := NewOtsService(client)
 	if err != nil {
-		return nil, WrapError(err)
-	}
-	args := &SearchIndexResourceArgs{
-		instanceName: d.Get("instance_name").(string),
-		tableName:    d.Get("table_name").(string),
-		indexName:    d.Get("index_name").(string),
-		schema:       indexSchema,
+		return WrapError(err)
 	}
 
-	if v, ok := d.GetOk("time_to_live"); ok {
-		args.ttl = int32(v.(int))
+	instanceName := d.Get("instance_name").(string)
+	tableName := d.Get("table_name").(string)
+	indexName := d.Get("index_name").(string)
+
+	// Build TablestoreSearchIndex from schema
+	index := &tablestoreAPI.TablestoreSearchIndex{
+		TableName: tableName,
+		IndexName: indexName,
 	}
-	return args, nil
+
+	// Set source index name if provided
+	if sourceIndexName, ok := d.GetOk("source_index_name"); ok {
+		sourceIndexNameStr := sourceIndexName.(string)
+		index.SourceIndexName = &sourceIndexNameStr
+	}
+
+	// Set TTL if provided
+	if ttl, ok := d.GetOk("time_to_live"); ok {
+		ttlInt32 := int32(ttl.(int))
+		index.TimeToLive = &ttlInt32
+	}
+
+	// Build IndexSchema
+	indexSchema, err := buildIndexSchemaFromResource(d)
+	if err != nil {
+		return WrapError(err)
+	}
+	index.IndexSchema = indexSchema
+
+	// Create search index
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		if err := otsService.CreateOtsSearchIndex(instanceName, index); err != nil {
+			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable"}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_search_index", "CreateSearchIndex", AlibabaCloudSdkGoERROR)
+	}
+
+	d.SetId(EncodeOtsSearchIndexId(instanceName, tableName, indexName))
+
+	// Wait for search index to be ready
+	if err := otsService.WaitForOtsSearchIndexCreating(instanceName, tableName, indexName, d.Timeout(schema.TimeoutCreate)); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return resourceAliCloudOtsSearchIndexRead(d, meta)
 }
 
-func parseSearchIndexSchema(d *schema.ResourceData) (*tablestore.IndexSchema, error) {
-	// only one schema is valid for a search index
-	schemaArg := d.Get("schema").(*schema.Set).List()[0].(map[string]interface{})
-
-	// required
-	fieldSchemas, err := parseFieldSchemas(schemaArg)
+func resourceAliCloudOtsSearchIndexRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	otsService, err := NewOtsService(client)
 	if err != nil {
-		return nil, WrapError(err)
-	}
-	// optional
-	indexSetting := parseIndexSetting(schemaArg)
-	// optional
-	indexSort, err := parseIndexSort(schemaArg)
-	if err != nil {
-		return nil, WrapError(err)
+		return WrapError(err)
 	}
 
-	return &tablestore.IndexSchema{
-		FieldSchemas: fieldSchemas,
-		IndexSetting: indexSetting,
-		IndexSort:    indexSort,
-	}, nil
+	instanceName, tableName, indexName, err := DecodeOtsSearchIndexId(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+
+	index, err := otsService.DescribeOtsSearchIndex(instanceName, tableName, indexName)
+	if err != nil {
+		if !d.IsNewResource() && NotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
+		return WrapError(err)
+	}
+
+	// Set basic fields
+	d.Set("instance_name", instanceName)
+	d.Set("table_name", tableName)
+	d.Set("index_name", indexName)
+
+	if index.SourceIndexName != nil {
+		d.Set("source_index_name", *index.SourceIndexName)
+	}
+
+	if index.TimeToLive != nil {
+		d.Set("time_to_live", *index.TimeToLive)
+	}
+
+	// Set field schemas
+	if index.IndexSchema != nil && index.IndexSchema.FieldSchemas != nil {
+		fieldSchemas := make([]map[string]interface{}, len(index.IndexSchema.FieldSchemas))
+		for i, fieldSchema := range index.IndexSchema.FieldSchemas {
+			fieldMap := make(map[string]interface{})
+			if fieldSchema.FieldName != nil {
+				fieldMap["field_name"] = *fieldSchema.FieldName
+			}
+			fieldMap["field_type"] = fieldSchema.FieldType.String()
+			if fieldSchema.IsArray != nil {
+				fieldMap["is_array"] = *fieldSchema.IsArray
+			}
+			if fieldSchema.Index != nil {
+				fieldMap["index"] = *fieldSchema.Index
+			}
+			if fieldSchema.Analyzer != nil {
+				fieldMap["analyzer"] = fieldSchema.Analyzer
+			}
+			if fieldSchema.EnableSortAndAgg != nil {
+				fieldMap["enable_sort_and_agg"] = *fieldSchema.EnableSortAndAgg
+			}
+			if fieldSchema.Store != nil {
+				fieldMap["store"] = *fieldSchema.Store
+			}
+			fieldSchemas[i] = fieldMap
+		}
+		d.Set("field_schemas", fieldSchemas)
+	}
+
+	// Set routing fields
+	if index.IndexSchema != nil && index.IndexSchema.IndexSetting != nil {
+		d.Set("routing_fields", index.IndexSchema.IndexSetting.RoutingFields)
+	}
+
+	// Set computed fields
+	d.Set("sync_phase", index.SyncPhase.String())
+	d.Set("create_time", index.CreateTime.Format(time.RFC3339))
+
+	return nil
 }
 
-func parseFieldSchemas(schemaArg map[string]interface{}) ([]*tablestore.FieldSchema, error) {
-	var fieldSchemas []*tablestore.FieldSchema
+func resourceAliCloudOtsSearchIndexUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	fieldSchemasArg := schemaArg["field_schema"].([]interface{})
-	for _, fs := range fieldSchemasArg {
-		fsMap := fs.(map[string]interface{})
-		fieldSchema, err := parseFieldSchema(fsMap)
+	instanceName, tableName, indexName, err := DecodeOtsSearchIndexId(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Only TTL can be updated
+	if d.HasChange("time_to_live") {
+		index := &tablestoreAPI.TablestoreSearchIndex{
+			TableName: tableName,
+			IndexName: indexName,
+		}
+
+		if ttl, ok := d.GetOk("time_to_live"); ok {
+			ttlInt32 := int32(ttl.(int))
+			index.TimeToLive = &ttlInt32
+		}
+
+		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			if err := otsService.UpdateOtsSearchIndex(instanceName, index); err != nil {
+				if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable"}) {
+					time.Sleep(5 * time.Second)
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
+
 		if err != nil {
-			return nil, WrapError(err)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateSearchIndex", AlibabaCloudSdkGoERROR)
 		}
-
-		fieldSchemas = append(fieldSchemas, fieldSchema)
 	}
-	return fieldSchemas, nil
+
+	return resourceAliCloudOtsSearchIndexRead(d, meta)
 }
 
-func parseIndexSort(schemaArg map[string]interface{}) (*search.Sort, error) {
-	var indexSort *search.Sort
-	if v, ok := schemaArg["index_sort"]; ok {
-		var sorts []search.Sorter
-		valSet := v.(*schema.Set)
-		if valSet == nil || valSet.Len() == 0 {
-			return indexSort, nil
+func resourceAliCloudOtsSearchIndexDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	instanceName, tableName, indexName, err := DecodeOtsSearchIndexId(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+
+	index := &tablestoreAPI.TablestoreSearchIndex{
+		TableName: tableName,
+		IndexName: indexName,
+	}
+
+	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		if err := otsService.DeleteOtsSearchIndex(instanceName, index); err != nil {
+			if NotFoundError(err) {
+				return nil
+			}
+			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable"}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
 		}
-		indexSortArg := valSet.List()[0].(map[string]interface{})
-		if v, ok := indexSortArg["sorter"]; ok {
-			sortersArg := v.([]interface{})
-			for _, s := range sortersArg {
-				sorterArg := s.(map[string]interface{})
-				sort, err := parseIndexFieldSort(sorterArg)
+		return nil
+	})
+
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteSearchIndex", AlibabaCloudSdkGoERROR)
+	}
+
+	// Wait for deletion to complete
+	if err := otsService.WaitForOtsSearchIndexDeleting(instanceName, tableName, indexName, d.Timeout(schema.TimeoutDelete)); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return nil
+}
+
+// Helper functions
+
+func buildIndexSchemaFromResource(d *schema.ResourceData) (*tablestore.IndexSchema, error) {
+	schema := &tablestore.IndexSchema{}
+
+	// Build field schemas
+	if fieldSchemasRaw, ok := d.GetOk("field_schemas"); ok {
+		fieldSchemasList := fieldSchemasRaw.([]interface{})
+		fieldSchemas := make([]*tablestore.FieldSchema, len(fieldSchemasList))
+
+		for i, fieldSchemaRaw := range fieldSchemasList {
+			fieldSchemaMap := fieldSchemaRaw.(map[string]interface{})
+			fieldSchema := &tablestore.FieldSchema{}
+
+			if fieldName, ok := fieldSchemaMap["field_name"]; ok {
+				fieldNameStr := fieldName.(string)
+				fieldSchema.FieldName = &fieldNameStr
+			}
+
+			if fieldType, ok := fieldSchemaMap["field_type"]; ok {
+				fieldTypeEnum, err := ConvertSearchIndexFieldTypeString(SearchIndexFieldTypeString(fieldType.(string)))
+				if err != nil {
+					return nil, WrapError(err)
+				}
+				fieldSchema.FieldType = fieldTypeEnum
+			}
+
+			if isArray, ok := fieldSchemaMap["is_array"]; ok {
+				isArrayBool := isArray.(bool)
+				fieldSchema.IsArray = &isArrayBool
+			}
+
+			if index, ok := fieldSchemaMap["index"]; ok {
+				indexBool := index.(bool)
+				fieldSchema.Index = &indexBool
+			}
+
+			if analyzer, ok := fieldSchemaMap["analyzer"]; ok && analyzer.(string) != "" {
+				analyzerEnum, err := ConvertSearchIndexAnalyzerTypeString(SearchIndexAnalyzerTypeString(analyzer.(string)))
+				if err != nil {
+					return nil, WrapError(err)
+				}
+				fieldSchema.Analyzer = &analyzerEnum
+			}
+
+			if enableSortAndAgg, ok := fieldSchemaMap["enable_sort_and_agg"]; ok {
+				enableSortAndAggBool := enableSortAndAgg.(bool)
+				fieldSchema.EnableSortAndAgg = &enableSortAndAggBool
+			}
+
+			if store, ok := fieldSchemaMap["store"]; ok {
+				storeBool := store.(bool)
+				fieldSchema.Store = &storeBool
+			}
+
+			fieldSchemas[i] = fieldSchema
+		}
+
+		schema.FieldSchemas = fieldSchemas
+	}
+
+	// Build index setting
+	if routingFieldsRaw, ok := d.GetOk("routing_fields"); ok {
+		routingFieldsList := routingFieldsRaw.([]interface{})
+		routingFields := make([]string, len(routingFieldsList))
+		for i, field := range routingFieldsList {
+			routingFields[i] = field.(string)
+		}
+
+		schema.IndexSetting = &tablestore.IndexSetting{
+			RoutingFields: routingFields,
+		}
+	}
+
+	// Build index sort
+	if indexSortRaw, ok := d.GetOk("index_sort"); ok && len(indexSortRaw.([]interface{})) > 0 {
+		indexSortMap := indexSortRaw.([]interface{})[0].(map[string]interface{})
+
+		if sortersRaw, ok := indexSortMap["sorters"]; ok {
+			sortersList := sortersRaw.([]interface{})
+			sorters := make([]search.Sorter, len(sortersList))
+
+			for i, sorterRaw := range sortersList {
+				sorterMap := sorterRaw.(map[string]interface{})
+
+				sorterType := sorterMap["sorter_type"].(string)
+				order := sorterMap["order"].(string)
+
+				orderEnum, err := ConvertSearchIndexOrderTypeString(SearchIndexOrderTypeString(order))
 				if err != nil {
 					return nil, WrapError(err)
 				}
 
-				sorts = append(sorts, sort)
-			}
-
-		}
-
-		//default sort
-		if len(sorts) < 1 {
-			asc := search.SortOrder_ASC
-			sorts = append(sorts, &search.PrimaryKeySort{
-				Order: &asc,
-			})
-		}
-		indexSort = &search.Sort{
-			Sorters: sorts,
-		}
-	}
-	return indexSort, nil
-}
-
-func parseIndexSetting(schemaArg map[string]interface{}) *tablestore.IndexSetting {
-	if v, ok := schemaArg["index_setting"]; ok {
-		valSet := v.(*schema.Set)
-		if valSet == nil || valSet.Len() == 0 {
-			return nil
-		}
-		indexSettingArg := valSet.List()[0].(map[string]interface{})
-		if v, ok := indexSettingArg["routing_fields"]; ok {
-			routersArg := v.([]interface{})
-			var routerPKs []string
-			for _, router := range routersArg {
-				routerPK := router.(string)
-				routerPKs = append(routerPKs, routerPK)
-			}
-
-			if len(routerPKs) > 0 {
-				return &tablestore.IndexSetting{
-					RoutingFields: routerPKs,
+				switch sorterType {
+				case string(OtsSearchPrimaryKeySort):
+					sorters[i] = &search.PrimaryKeySort{Order: &orderEnum}
+				case string(OtsSearchFieldSort):
+					fieldSort := &search.FieldSort{Order: &orderEnum}
+					if fieldName, ok := sorterMap["field_name"]; ok {
+						fieldSort.FieldName = fieldName.(string)
+					}
+					if mode, ok := sorterMap["mode"]; ok && mode.(string) != "" {
+						modeEnum, err := ConvertSearchIndexSortModeString(SearchIndexSortModeString(mode.(string)))
+						if err != nil {
+							return nil, WrapError(err)
+						}
+						fieldSort.Mode = &modeEnum
+					}
+					sorters[i] = fieldSort
 				}
 			}
-		}
 
-	}
-	return nil
-}
-
-func parseFieldSchema(fsMap map[string]interface{}) (*tablestore.FieldSchema, error) {
-	fieldName := fsMap["field_name"].(string)
-
-	// required
-	fieldSchema := &tablestore.FieldSchema{
-		FieldName: &fieldName,
-	}
-
-	// optionals
-	if v, ok := fsMap["field_type"]; ok {
-		vv, err := ConvertSearchIndexFieldTypeString(SearchIndexFieldTypeString(v.(string)))
-		if err != nil {
-			return nil, WrapError(err)
-		}
-		fieldSchema.FieldType = vv
-	}
-	if v, ok := fsMap["is_array"]; ok {
-		isArray := v.(bool)
-		fieldSchema.IsArray = &isArray
-	}
-	if v, ok := fsMap["index"]; ok {
-		index := v.(bool)
-		fieldSchema.Index = &index
-	}
-	if v, ok := fsMap["analyzer"]; ok && fsMap["analyzer"] != "" {
-		analyzer, err := ConvertSearchIndexAnalyzerTypeString(SearchIndexAnalyzerTypeString(v.(string)))
-		if err != nil {
-			return nil, WrapError(err)
-		}
-		fieldSchema.Analyzer = &analyzer
-	}
-	if v, ok := fsMap["enable_sort_and_agg"]; ok {
-		enableSortAndAgg := v.(bool)
-		fieldSchema.EnableSortAndAgg = &enableSortAndAgg
-	}
-	if v, ok := fsMap["store"]; ok {
-		store := v.(bool)
-		fieldSchema.Store = &store
-	}
-	return fieldSchema, nil
-}
-
-func parseIndexFieldSort(sorterArg map[string]interface{}) (search.Sorter, error) {
-	sortFieldType, err := ConvertSearchIndexSortFieldTypeString(SearchIndexSortFieldTypeString(sorterArg["sorter_type"].(string)))
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	orderType, err := ConvertSearchIndexOrderTypeString(SearchIndexOrderTypeString(sorterArg["order"].(string)))
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	switch sort := sortFieldType.(type) {
-	case *search.PrimaryKeySort:
-		sort.Order = &orderType
-		return sort, nil
-	case *search.FieldSort:
-		sort.Order = &orderType
-		// field_name and mode are required when sortFieldType is FieldSort
-		sort.FieldName = sorterArg["field_name"].(string)
-		mode, err := ConvertSearchIndexSortModeString(SearchIndexSortModeString(sorterArg["mode"].(string)))
-		if err != nil {
-			return nil, WrapError(err)
-		}
-		sort.Mode = &mode
-
-		return sort, nil
-	default:
-		return nil, WrapError(fmt.Errorf("not find search index sort field type [PrimaryKeySort|FieldSort]: %v", sortFieldType))
-	}
-}
-
-type SearchIndexResourceArgs struct {
-	instanceName string
-	tableName    string
-	indexName    string
-	ttl          int32
-	schema       *tablestore.IndexSchema
-}
-
-func resourceAliyunOtsSearchIndexCreate(d *schema.ResourceData, meta interface{}) error {
-	// args, err := parseSearchIndexResourceArgs(d)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// client := meta.(*connectivity.AliyunClient)
-	// otsService, err := NewOtsService(client)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-	// // check table exists
-	// tableResp, err := otsService.LoopWaitTable(args.instanceName, args.tableName)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-	// // serverside arguments check
-	// if err := args.checkArgs(tableResp); err != nil {
-	// 	return err
-	// }
-	// // build request
-	// req := &tablestore.CreateSearchIndexRequest{
-	// 	TableName:   args.tableName,
-	// 	IndexName:   args.indexName,
-	// 	IndexSchema: args.schema,
-	// 	TimeToLive:  &args.ttl,
-	// }
-
-	// var reqClient *tablestore.TableStoreClient
-	// if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-	// 	raw, err := client.WithTableStoreClient(args.instanceName, func(tableStoreClient *tablestore.TableStoreClient) (interface{}, error) {
-	// 		reqClient = tableStoreClient
-	// 		return tableStoreClient.CreateSearchIndex(req)
-	// 	})
-	// 	defer func() {
-	// 		addDebug("CreateTableSearchIndex", raw, reqClient, req)
-	// 	}()
-
-	// 	if err != nil {
-	// 		if IsExpectedErrors(err, OtsSearchIndexIsTemporarilyUnavailable) {
-	// 			return resource.RetryableError(err)
-	// 		}
-	// 		return resource.NonRetryableError(err)
-	// 	}
-	// 	return nil
-	// }); err != nil {
-	// 	return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_search_index", "CreateSearchIndex", AliyunTablestoreGoSdk)
-	// }
-
-	// d.SetId(ID(args.instanceName, args.tableName, args.indexName, SearchIndexTypeHolder))
-	// return resourceAliyunOtsSearchIndexRead(d, meta)
-	return nil
-}
-
-func (args *SearchIndexResourceArgs) checkArgs(tableResp *tablestore.DescribeTableResponse) error {
-
-	if args.indexName == args.tableName {
-		return WrapError(fmt.Errorf("index name cannot be the same as table: %s/%s", args.indexName, args.tableName))
-	}
-
-	if tableResp.TableOption.TimeToAlive != -1 {
-		return WrapError(fmt.Errorf("when creating a search index, the TimeToAlive of the table must be -1: %v", tableResp.TableOption.TimeToAlive))
-	}
-	if tableResp.TableOption.MaxVersion != 1 {
-		return WrapError(fmt.Errorf("when creating a search index, the table's MaxVersion must be 1: %v", tableResp.TableOption.MaxVersion))
-	}
-
-	for _, fs := range args.schema.FieldSchemas {
-		if fs.FieldType == tablestore.FieldType_NESTED && *fs.EnableSortAndAgg {
-			return WrapError(fmt.Errorf("search index nested type field do not support enable_sort_and_agg: %s/%s", args.indexName, *fs.FieldName))
+			schema.IndexSort = &search.Sort{Sorters: sorters}
 		}
 	}
 
-	if args.schema.IndexSetting != nil {
-		for _, router := range args.schema.IndexSetting.RoutingFields {
-			var routerInPk bool
-			for _, pk := range tableResp.TableMeta.SchemaEntry {
-				if router == *pk.Name {
-					routerInPk = true
-					break
-				}
-			}
-			if !routerInPk {
-				return WrapError(fmt.Errorf("search index router field must be in primary key: %s/%s", args.indexName, router))
-			}
-		}
-	}
-
-	if args.schema.IndexSort != nil {
-		if len(args.schema.IndexSort.Sorters) > 0 {
-			for _, fs := range args.schema.FieldSchemas {
-				if fs.FieldType == tablestore.FieldType_NESTED {
-					return WrapError(fmt.Errorf("search index with nested field type does not support index_sort: %s/%s", args.indexName, *fs.FieldName))
-				}
-			}
-		}
-	}
-
-	return nil
+	return schema, nil
 }
 
-func resourceAliyunOtsSearchIndexRead(d *schema.ResourceData, meta interface{}) error {
-	// client := meta.(*connectivity.AliyunClient)
-	// otsService, err := NewOtsService(client)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-	// idx, err := otsService.DescribeOtsSearchIndex(d.Id())
-	// if err != nil {
-	// 	if NotFoundError(err) {
-	// 		return nil
-	// 	}
-	// 	return WrapError(err)
-	// }
-	// if idx == nil {
-	// 	d.SetId("")
-	// 	return nil
-	// }
-
-	// if err := d.Set("index_id", d.Id()); err != nil {
-	// 	return WrapError(err)
-	// }
-	// if err := d.Set("create_time", idx.CreateTime); err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// phase, err := ConvertSearchIndexSyncPhase(idx.SyncStat.SyncPhase)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-	// if err := d.Set("sync_phase", string(phase)); err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// if err := d.Set("current_sync_timestamp", *idx.SyncStat.CurrentSyncTimestamp); err != nil {
-	// 	return WrapError(err)
-	// }
-
-	return nil
+// ID encoding/decoding functions
+func EncodeOtsSearchIndexId(instanceName, tableName, indexName string) string {
+	return fmt.Sprintf("%s:%s:%s", instanceName, tableName, indexName)
 }
 
-func resourceAliyunOtsSearchIndexDelete(d *schema.ResourceData, meta interface{}) error {
-	// instanceName, tableName, indexName, _, err := ParseIndexId(d.Id())
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// client := meta.(*connectivity.AliyunClient)
-	// otsService, err := NewOtsService(client)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// if err := otsService.DeleteSearchIndex(instanceName, tableName, indexName); err != nil {
-	// 	if strings.HasPrefix(err.Error(), "OTSObjectNotExist") {
-	// 		return nil
-	// 	}
-	// 	return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteSearchIndex", AliyunTablestoreGoSdk)
-	// }
-
-	// return WrapError(otsService.WaitForSearchIndex(instanceName, tableName, indexName, Deleted, DefaultTimeout))
-	return nil
+func DecodeOtsSearchIndexId(id string) (string, string, string, error) {
+	parts := strings.Split(id, ":")
+	if len(parts) != 3 {
+		return "", "", "", fmt.Errorf("invalid search index ID format, expected instanceName:tableName:indexName, got %s", id)
+	}
+	return parts[0], parts[1], parts[2], nil
 }

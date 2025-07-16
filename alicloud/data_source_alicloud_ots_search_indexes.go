@@ -1,10 +1,9 @@
 package alicloud
 
 import (
-	"encoding/json"
-	"fmt"
 	"regexp"
 
+	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore/search"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -21,92 +20,175 @@ func dataSourceAliCloudOtsSearchIndexes() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateOTSInstanceName,
+				Description:  "The name of the OTS instance.",
 			},
 			"table_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateOTSTableName,
+				Description:  "The name of the table.",
 			},
 			"ids": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
-				ForceNew: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Computed:    true,
+				ForceNew:    true,
+				Description: "A list of search index IDs.",
 			},
 			"name_regex": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.ValidateRegexp,
+				Description:  "A regex string to filter results by search index name.",
 			},
 			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "File name where to save data source results (after running `terraform plan`).",
 			},
 
 			"names": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:        schema.TypeList,
+				Computed:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "A list of search index names.",
 			},
 			"indexes": {
-				Type:     schema.TypeList,
-				Computed: true,
+				Type:        schema.TypeList,
+				Computed:    true,
+				Description: "A list of search indexes.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The ID of the search index.",
 						},
 						"instance_name": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The name of the OTS instance.",
 						},
 						"table_name": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The name of the table.",
 						},
 						"index_name": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The name of the search index.",
 						},
-						"create_time": {
-							Type:     schema.TypeInt,
-							Computed: true,
+						"source_index_name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The name of the source index.",
 						},
 						"time_to_live": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "The time to live in seconds.",
 						},
 						"sync_phase": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The synchronization phase of the search index.",
 						},
-						"current_sync_timestamp": {
-							Type:     schema.TypeInt,
-							Computed: true,
+						"create_time": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The creation time of the search index.",
 						},
-						"schema": {
-							Type:     schema.TypeString,
-							Computed: true,
+						"field_schemas": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Description: "The field schemas of the search index.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"field_name": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "The name of the field.",
+									},
+									"field_type": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "The type of the field.",
+									},
+									"is_array": {
+										Type:        schema.TypeBool,
+										Computed:    true,
+										Description: "Whether the field is an array.",
+									},
+									"index": {
+										Type:        schema.TypeBool,
+										Computed:    true,
+										Description: "Whether an index is created for the field.",
+									},
+									"analyzer": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "The analyzer for the field.",
+									},
+									"enable_sort_and_agg": {
+										Type:        schema.TypeBool,
+										Computed:    true,
+										Description: "Whether sorting and aggregation are enabled for the field.",
+									},
+									"store": {
+										Type:        schema.TypeBool,
+										Computed:    true,
+										Description: "Whether the field value is stored.",
+									},
+								},
+							},
 						},
-						"storage_size": {
-							Type:     schema.TypeInt,
-							Computed: true,
+						"routing_fields": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Description: "The routing fields for the search index.",
 						},
-						"row_count": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"reserved_read_cu": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"metering_last_update_time": {
-							Type:     schema.TypeInt,
-							Computed: true,
+						"index_sort": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Description: "The sorting configuration for the search index.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"sorters": {
+										Type:        schema.TypeList,
+										Computed:    true,
+										Description: "The sorters for the index.",
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"sorter_type": {
+													Type:        schema.TypeString,
+													Computed:    true,
+													Description: "The type of the sorter.",
+												},
+												"order": {
+													Type:        schema.TypeString,
+													Computed:    true,
+													Description: "The sort order.",
+												},
+												"field_name": {
+													Type:        schema.TypeString,
+													Computed:    true,
+													Description: "The field name for field sort.",
+												},
+												"mode": {
+													Type:        schema.TypeString,
+													Computed:    true,
+													Description: "The sort mode for field sort.",
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -175,7 +257,8 @@ func dataSourceAliCloudOtsSearchIndexesRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return WrapError(err)
 	}
-	totalIndexes, err := otsService.ListOtsSearchIndex(args.instanceName, args.tableName)
+
+	totalIndexes, err := otsService.ListOtsSearchIndexes(args.instanceName, args.tableName)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -199,23 +282,12 @@ func genSearchIndexDataSource(otsService *OtsService, filteredIndexes []*tablest
 
 	for _, indexInfo := range filteredIndexes {
 		indexName := indexInfo.IndexName
-		id := fmt.Sprintf("%s:%s:%s:SearchIndex", args.instanceName, args.tableName, indexName)
+		id := EncodeOtsSearchIndexId(args.instanceName, args.tableName, indexName)
 
+		// Get detailed information for each index
 		indexResp, err := otsService.DescribeOtsSearchIndex(args.instanceName, args.tableName, indexName)
 		if err != nil {
 			return nil, WrapError(err)
-		}
-
-		var phase string
-		var currentSyncTimestamp int64
-		var schema string
-
-		if indexResp.IndexSchema != nil {
-			b, err := json.MarshalIndent(indexResp.IndexSchema, "", "  ")
-			if err != nil {
-				return nil, WrapError(err)
-			}
-			schema = string(b)
 		}
 
 		index := map[string]interface{}{
@@ -223,12 +295,89 @@ func genSearchIndexDataSource(otsService *OtsService, filteredIndexes []*tablest
 			"instance_name": args.instanceName,
 			"table_name":    args.tableName,
 			"index_name":    indexName,
+			"sync_phase":    indexResp.SyncPhase.String(),
+			"create_time":   indexResp.CreateTime.Format("2006-01-02T15:04:05Z"),
+		}
 
-			"create_time":            indexResp.CreateTime,
-			"time_to_live":           indexResp.TimeToLive,
-			"sync_phase":             phase,
-			"current_sync_timestamp": currentSyncTimestamp,
-			"schema":                 schema,
+		// Set optional fields
+		if indexResp.SourceIndexName != nil {
+			index["source_index_name"] = *indexResp.SourceIndexName
+		}
+
+		if indexResp.TimeToLive != nil {
+			index["time_to_live"] = int(*indexResp.TimeToLive)
+		}
+
+		// Set field schemas
+		if indexResp.IndexSchema != nil && indexResp.IndexSchema.FieldSchemas != nil {
+			fieldSchemas := make([]map[string]interface{}, len(indexResp.IndexSchema.FieldSchemas))
+			for i, fieldSchema := range indexResp.IndexSchema.FieldSchemas {
+				fieldMap := make(map[string]interface{})
+
+				if fieldSchema.FieldName != nil {
+					fieldMap["field_name"] = *fieldSchema.FieldName
+				}
+				fieldMap["field_type"] = fieldSchema.FieldType.String()
+
+				if fieldSchema.IsArray != nil {
+					fieldMap["is_array"] = *fieldSchema.IsArray
+				}
+				if fieldSchema.Index != nil {
+					fieldMap["index"] = *fieldSchema.Index
+				}
+				if fieldSchema.Analyzer != nil {
+					fieldMap["analyzer"] = fieldSchema.Analyzer
+				}
+				if fieldSchema.EnableSortAndAgg != nil {
+					fieldMap["enable_sort_and_agg"] = *fieldSchema.EnableSortAndAgg
+				}
+				if fieldSchema.Store != nil {
+					fieldMap["store"] = *fieldSchema.Store
+				}
+
+				fieldSchemas[i] = fieldMap
+			}
+			index["field_schemas"] = fieldSchemas
+		}
+
+		// Set routing fields
+		if indexResp.IndexSchema != nil && indexResp.IndexSchema.IndexSetting != nil {
+			index["routing_fields"] = indexResp.IndexSchema.IndexSetting.RoutingFields
+		}
+
+		// Set index sort if available
+		if indexResp.IndexSchema != nil && indexResp.IndexSchema.IndexSort != nil {
+			indexSortList := make([]map[string]interface{}, 1)
+			sortersList := make([]map[string]interface{}, len(indexResp.IndexSchema.IndexSort.Sorters))
+
+			for i, sorter := range indexResp.IndexSchema.IndexSort.Sorters {
+				sorterMap := make(map[string]interface{})
+
+				// Check sorter type and extract information
+				switch s := sorter.(type) {
+				case *search.PrimaryKeySort:
+					sorterMap["sorter_type"] = "PrimaryKeySort"
+					if s.Order != nil {
+						sorterMap["order"] = s.Order.String()
+					}
+				case *search.FieldSort:
+					sorterMap["sorter_type"] = "FieldSort"
+					sorterMap["field_name"] = s.FieldName
+					if s.Order != nil {
+						sorterMap["order"] = s.Order.String()
+					}
+					if s.Mode != nil {
+						sorterMap["mode"] = s.Mode.String()
+					}
+				}
+
+				sortersList[i] = sorterMap
+			}
+
+			indexSortList[0] = map[string]interface{}{
+				"sorters": sortersList,
+			}
+			index["index_sort"] = indexSortList
 		}
 
 		names = append(names, indexName)
@@ -263,7 +412,7 @@ func (args *SearchIndexDataSourceArgs) doFilters(total []*tablestoreAPI.Tablesto
 	for _, indexInfo := range total {
 		// Apply ID filter
 		if len(idsMap) > 0 {
-			id := fmt.Sprintf("%s:%s:%s:SearchIndex", args.instanceName, args.tableName, indexInfo.IndexName)
+			id := EncodeOtsSearchIndexId(args.instanceName, args.tableName, indexInfo.IndexName)
 			if !idsMap[id] {
 				continue
 			}

@@ -1,6 +1,8 @@
 package alicloud
 
 import (
+	"time"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -8,168 +10,193 @@ import (
 
 func resourceAliCloudOtsInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliyunOtsInstanceCreate,
-		Read:   resourceAliyunOtsInstanceRead,
-		Update: resourceAliyunOtsInstanceUpdate,
-		Delete: resourceAliyunOtsInstanceDelete,
+		Create: resourceAliCloudOtsInstanceCreate,
+		Read:   resourceAliCloudOtsInstanceRead,
+		Update: resourceAliCloudOtsInstanceUpdate,
+		Delete: resourceAliCloudOtsInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
+			// Basic Information
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateOTSInstanceName,
+				Description:  "The name of the Tablestore instance.",
 			},
-
-			// Expired
-			"accessed_by": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(AnyNetwork), string(VpcOnly), string(VpcOrConsole),
-				}, false),
-			},
-
-			"resource_group_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"network_type_acl": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-
-			"network_source_acl": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-
-			"instance_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  OtsHighPerformance,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(OtsCapacity), string(OtsHighPerformance),
-				}, false),
+			"alias_name": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The alias name of the Tablestore instance.",
 			},
 			"description": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The description of the Tablestore instance.",
+			},
+
+			// Instance Configuration
+			"cluster_type": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"SSD", "HYBRID",
+				}, false),
+				Description: "The cluster type of the Tablestore instance. Valid values: SSD, HYBRID.",
+			},
+			"storage_type": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The storage type of the Tablestore instance.",
+			},
+
+			// Network Configuration
+			"network": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return d.Id() != ""
-				},
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Vpc", "Vpc_CONSOLE", "NORMAL",
+				}, false),
+				Description: "The network type of the Tablestore instance. Valid values: Vpc, Vpc_CONSOLE, NORMAL.",
 			},
+			"network_source_acl": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Computed:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "The network source ACL of the Tablestore instance.",
+			},
+			"network_type_acl": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Computed:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "The network type ACL of the Tablestore instance.",
+			},
+
+			// Resource Management
+			"resource_group_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "The resource group ID of the Tablestore instance.",
+			},
+			"payment_type": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The payment type of the Tablestore instance.",
+			},
+			"is_multi_az": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Whether the Tablestore instance is multi-AZ.",
+			},
+
+			// Status and Quota
+			"status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The status of the Tablestore instance.",
+			},
+			"table_quota": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "The table quota of the Tablestore instance.",
+			},
+			"vcu_quota": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "The VCU quota of the Tablestore instance.",
+			},
+			"elastic_vcu_upper_limit": {
+				Type:        schema.TypeFloat,
+				Computed:    true,
+				Description: "The elastic VCU upper limit of the Tablestore instance.",
+			},
+
+			// Policy and Security
+			"policy": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The policy of the Tablestore instance.",
+			},
+			"policy_version": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "The policy version of the Tablestore instance.",
+			},
+
+			// Read-only fields
+			"region_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The region ID of the Tablestore instance.",
+			},
+			"create_time": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The creation time of the Tablestore instance.",
+			},
+			"user_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The user ID of the Tablestore instance.",
+			},
+
+			// Tags
 			"tags": {
-				Type:     schema.TypeMap,
-				Optional: true,
+				Type:        schema.TypeMap,
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "A mapping of tags to assign to the Tablestore instance.",
 			},
 		},
 	}
 }
 
-func resourceAliyunOtsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	_, err := NewOtsService(client)
-	if err != nil {
-		return WrapError(err)
-	}
-
-	return resourceAliyunOtsInstanceUpdate(d, meta)
-}
-
-func parseAndCheckInstanceType(instanceTypeStr string, otsService OtsService) (string, error) {
-	instanceType := convertInstanceType(OtsInstanceType(instanceTypeStr))
-	types, err := otsService.DescribeOtsInstanceTypes()
-	if err != nil {
-		return "", WrapError(err)
-	}
-	valid := false
-	for _, t := range types {
-		if instanceType == t {
-			valid = true
-			break
-		}
-	}
-	if valid {
-		return instanceType, nil
-	}
-	return instanceType, WrapError(Error("The instance type %s is not available in the region %s.", instanceTypeStr, otsService.client.RegionId))
-
-}
-
-func buildCreateInstanceRoaRequest(d *schema.ResourceData, regionId string, instanceType string) (string, string, map[string]interface{}) {
-	actionPath := "/v2/openapi/createinstance"
-	request := make(map[string]interface{})
-	request["RegionId"] = StringPointer(regionId)
-	request["ClusterType"] = StringPointer(instanceType)
-	instanceName := d.Get("name").(string)
-	request["InstanceName"] = StringPointer(instanceName)
-	request["ResourceGroupId"] = StringPointer(d.Get("resource_group_id").(string))
-	request["InstanceDescription"] = StringPointer(d.Get("description").(string))
-
-	hasSetNetwork := false
-	if v, ok := d.GetOk("accessed_by"); ok {
-		hasSetNetwork = true
-		request["Network"] = StringPointer(convertInstanceAccessedBy(InstanceAccessedByType(v.(string))))
-	}
-
-	hasSetACL := false
-	// LIST or SET cannot set default values in schema in latest terraform version, so do it manually
-	// terraform cannot handle nil and[] in list/set: https://github.com/hashicorp/terraform-plugin-sdk/issues/142
-	// in terraform the zero value of list/set is [], in golang the zero value of slice is nil
-	netTypeList := []string{string(VpcAccess), string(ClassicAccess), string(InternetAccess)}
-	// v not nil and [], it will be ok
-	if v, ok := d.GetOk("network_type_acl"); ok {
-		hasSetACL = true
-		netTypeList = expandStringList(v.(*schema.Set).List())
-	}
-	request["NetworkTypeACL"] = netTypeList
-
-	netSourceList := []string{string(TrustProxyAccess)}
-	if v, ok := d.GetOk("network_source_acl"); ok {
-		hasSetACL = true
-		netSourceList = expandStringList(v.(*schema.Set).List())
-	}
-	request["NetworkSourceACL"] = netSourceList
-
-	// In order to maintain compatibility, when the Network attribute is set,
-	// the ACL attribute cannot have a default value.
-	if hasSetNetwork && !hasSetACL {
-		request["NetworkTypeACL"] = nil
-		request["NetworkSourceACL"] = nil
-	}
-
-	if tagMap, ok := d.GetOk("tags"); ok {
-		var tags []map[string]string
-
-		for key, value := range tagMap.(map[string]interface{}) {
-			tag := map[string]string{"Key": key, "Value": value.(string)}
-			tags = append(tags, tag)
-		}
-		request["Tags"] = tags
-	}
-
-	return actionPath, instanceName, request
-}
-
-func resourceAliyunOtsInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOtsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	otsService, err := NewOtsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
+
+	// Convert schema to TablestoreInstance
+	instance := convertSchemaToTablestoreInstance(d)
+
+	// Create instance
+	if err := otsService.CreateOtsInstance(instance); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_instance", "CreateInstance", AlibabaCloudSdkGoERROR)
+	}
+
+	d.SetId(instance.InstanceName)
+
+	// Wait for instance to be ready
+	if err := otsService.WaitForOtsInstanceCreating(instance.InstanceName, d.Timeout(schema.TimeoutCreate)); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return resourceAliCloudOtsInstanceRead(d, meta)
+}
+
+func resourceAliCloudOtsInstanceRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	instance, err := otsService.DescribeOtsInstance(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
@@ -179,40 +206,74 @@ func resourceAliyunOtsInstanceRead(d *schema.ResourceData, meta interface{}) err
 		return WrapError(err)
 	}
 
-	d.Set("name", instance.InstanceName)
-	err = d.Set("accessed_by", convertInstanceAccessedByRevert(instance.Network))
-	if err != nil {
-		return err
-	}
-	err = d.Set("resource_group_id", instance.ResourceGroupId)
-	if err != nil {
-		return err
-	}
-	err = d.Set("network_type_acl", instance.NetworkTypeACL)
-	if err != nil {
-		return err
-	}
-	err = d.Set("network_source_acl", instance.NetworkSourceACL)
-	if err != nil {
-		return err
-	}
-
-	err = d.Set("instance_type", convertInstanceTypeRevert(instance.InstanceSpecification))
-	if err != nil {
-		return err
-	}
-	err = d.Set("description", instance.InstanceDescription)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	// Convert TablestoreInstance to schema
+	return convertTablestoreInstanceToSchema(d, instance)
 }
 
-func resourceAliyunOtsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+func resourceAliCloudOtsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Check if there are changes that require update
+	if d.HasChanges("alias_name", "description", "network", "network_source_acl", "network_type_acl", "policy") {
+		// Convert schema to TablestoreInstance
+		instance := convertSchemaToTablestoreInstance(d)
+
+		// Update instance
+		if err := otsService.UpdateOtsInstance(instance); err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateInstance", AlibabaCloudSdkGoERROR)
+		}
+	}
+
+	// Handle tags separately
+	if d.HasChange("tags") {
+		old, new := d.GetChange("tags")
+		oldTags := convertMapToTablestoreInstanceTags(old.(map[string]interface{}))
+		newTags := convertMapToTablestoreInstanceTags(new.(map[string]interface{}))
+
+		// Remove old tags
+		if len(oldTags) > 0 {
+			var oldTagKeys []string
+			for _, tag := range oldTags {
+				oldTagKeys = append(oldTagKeys, tag.Key)
+			}
+			if err := otsService.UntagOtsInstance(d.Id(), oldTagKeys); err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UntagResources", AlibabaCloudSdkGoERROR)
+			}
+		}
+
+		// Add new tags
+		if len(newTags) > 0 {
+			if err := otsService.TagOtsInstance(d.Id(), newTags); err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "TagResources", AlibabaCloudSdkGoERROR)
+			}
+		}
+	}
+
+	return resourceAliCloudOtsInstanceRead(d, meta)
 }
 
-func resourceAliyunOtsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOtsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	if err := otsService.DeleteOtsInstance(d.Id()); err != nil {
+		if NotFoundError(err) {
+			return nil
+		}
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteInstance", AlibabaCloudSdkGoERROR)
+	}
+
+	// Wait for instance to be deleted
+	if err := otsService.WaitForOtsInstanceDeleting(d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
 	return nil
 }

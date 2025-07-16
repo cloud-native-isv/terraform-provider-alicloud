@@ -1,16 +1,14 @@
 package alicloud
 
 import (
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"strconv"
 
-	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -24,6 +22,11 @@ func resourceAliCloudOtsTable() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"instance_name": {
@@ -31,23 +34,28 @@ func resourceAliCloudOtsTable() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateOTSInstanceName,
+				Description:  "The name of the OTS instance.",
 			},
-
 			"table_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validateOTSTableName,
+				Description:  "The name of the table.",
 			},
 			"primary_key": {
-				Type:     schema.TypeList,
-				Required: true,
+				Type:        schema.TypeList,
+				Required:    true,
+				ForceNew:    true,
+				MaxItems:    4,
+				Description: "The primary key schema of the table.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							ForceNew:    true,
+							Description: "The name of the primary key column.",
 						},
 						"type": {
 							Type:     schema.TypeString,
@@ -55,90 +63,119 @@ func resourceAliCloudOtsTable() *schema.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(IntegerType), string(BinaryType), string(StringType)}, false),
+							Description: "The type of the primary key column.",
 						},
 					},
 				},
-				MaxItems: 4,
-				ForceNew: true,
 			},
 			"defined_column": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    32,
+				Description: "The defined column schema of the table.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The name of the defined column.",
 						},
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(DefinedColumnInteger), string(DefinedColumnString), string(DefinedColumnBinary), string(DefinedColumnDouble), string(DefinedColumnBoolean)}, false),
+								string(DefinedColumnInteger), string(DefinedColumnString),
+								string(DefinedColumnBinary), string(DefinedColumnDouble),
+								string(DefinedColumnBoolean)}, false),
+							Description: "The type of the defined column.",
 						},
 					},
 				},
-				MaxItems: 32,
 			},
 			"time_to_live": {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(-1, INT_MAX),
+				Description:  "The time to live of the table data in seconds.",
 			},
 			"max_version": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     1,
+				Description: "The maximum number of versions for each column.",
 			},
 			"allow_update": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "Whether to allow update operations on the table.",
 			},
 			"deviation_cell_version_in_sec": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateStringConvertInt64(),
 				Default:      "86400",
+				Description:  "The maximum deviation of the cell version in seconds.",
 			},
 			"enable_sse": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether to enable server-side encryption.",
 			},
 			"sse_key_type": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(SseKMSService), string(SseByOk)}, false),
+				Description: "The type of the server-side encryption key.",
 			},
 			"sse_key_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The ID of the server-side encryption key.",
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return string(SseByOk) != d.Get("sse_key_type").(string)
 				},
 			},
 			"sse_role_arn": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The ARN of the server-side encryption role.",
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return string(SseByOk) != d.Get("sse_key_type").(string)
 				},
+			},
+			"enable_local_txn": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether to enable local transaction.",
+			},
+			// Computed fields
+			"status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The status of the table.",
+			},
+			"create_time": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The creation time of the table.",
 			},
 		},
 	}
 }
 
 func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) error {
-	tableMeta := new(tablestore.TableMeta)
-	instanceName := d.Get("instance_name").(string)
-	tableName := d.Get("table_name").(string)
-	tableMeta.TableName = tableName
 	client := meta.(*connectivity.AliyunClient)
 	otsService, err := NewOtsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
+
+	instanceName := d.Get("instance_name").(string)
+	tableName := d.Get("table_name").(string)
+
+	// Check if instance exists
 	if err := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, e := otsService.DescribeOtsInstance(instanceName)
 		if e != nil {
@@ -150,373 +187,208 @@ func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	}); err != nil {
 		return WrapError(err)
-	 }
-	// for _, primaryKey := range d.Get("primary_key").([]interface{}) {
-	// 	pk := primaryKey.(map[string]interface{})
-	// 	pkValue := otsService.getPrimaryKeyType(pk["type"].(string))
-	// 	tableMeta.AddPrimaryKeyColumn(pk["name"].(string), pkValue)
-	// }
-
-	// if v, ok := d.GetOk("defined_column"); ok {
-	// 	definedColumns := v.([]interface{})
-	// 	for _, definedColumn := range definedColumns {
-	// 		columnArgs := definedColumn.(map[string]interface{})
-	// 		columnType, err := ParseDefinedColumnType(columnArgs["type"].(string))
-	// 		if err != nil {
-	// 			return WrapError(err)
-	// 		}
-	// 		tableMeta.AddDefinedColumn(columnArgs["name"].(string), columnType)
-	// 	}
-	// }
-
-	tableOption := new(tablestore.TableOption)
-	tableOption.TimeToAlive = d.Get("time_to_live").(int)
-	tableOption.MaxVersion = d.Get("max_version").(int)
-	allowUpdate := d.Get("allow_update").(bool)
-	tableOption.AllowUpdate = &allowUpdate
-	if deviation, ok := d.GetOk("deviation_cell_version_in_sec"); ok {
-		tableOption.DeviationCellVersionInSec, _ = strconv.ParseInt(deviation.(string), 10, 64)
-	}
-	reservedThroughput := new(tablestore.ReservedThroughput)
-
-	request := new(tablestore.CreateTableRequest)
-	request.TableMeta = tableMeta
-	request.TableOption = tableOption
-	request.ReservedThroughput = reservedThroughput
-
-	if enableSSE, ok := d.GetOkExists("enable_sse"); ok {
-		sseSpec := new(tablestore.SSESpecification)
-		sseSpec.Enable = enableSSE.(bool)
-
-		if sseKeyType, ok2 := d.GetOk("sse_key_type"); ok2 {
-			var typ tablestore.SSEKeyType
-			switch sseKeyType.(string) {
-			case string(SseKMSService):
-				typ = tablestore.SSE_KMS_SERVICE
-			case string(SseByOk):
-				typ = tablestore.SSE_BYOK
-			default:
-				return WrapError(Error("unknown sse key type: %s", sseKeyType.(string)))
-			}
-			sseSpec.KeyType = &typ
-		}
-		if sseKeyId, ok3 := d.GetOk("sse_key_id"); ok3 {
-			keyId := sseKeyId.(string)
-			sseSpec.KeyId = &keyId
-		}
-
-		if sseRoleArn, ok4 := d.GetOk("sse_role_arn"); ok4 {
-			roleArn := sseRoleArn.(string)
-			sseSpec.RoleArn = &roleArn
-		}
-		request.SSESpecification = sseSpec
 	}
 
-	var requestinfo *tablestore.TableStoreClient
-	if err := resource.Retry(6*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithTableStoreClient(instanceName, func(tableStoreClient *tablestore.TableStoreClient) (interface{}, error) {
-			requestinfo = tableStoreClient
-			return tableStoreClient.CreateTable(request)
-		})
+	// Build table object
+	table := &tablestoreAPI.TablestoreTable{
+		InstanceName: instanceName,
+	}
+	table.SetName(tableName)
+
+	// Set table options
+	table.SetTimeToAlive(d.Get("time_to_live").(int))
+	table.SetMaxVersion(d.Get("max_version").(int))
+
+	// Create table using service
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		err := otsService.CreateOtsTable(instanceName, table)
 		if err != nil {
-			if IsExpectedErrors(err, OtsTableIsTemporarilyUnavailable) {
+			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable"}) {
+				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
-		addDebug("CreateTable", raw, requestinfo, request)
 		return nil
-	}); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_table", "CreateTable", AliyunTablestoreGoSdk)
+	})
+
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_table", "CreateOtsTable", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprintf("%s%s%s", instanceName, COLON_SEPARATED, tableName))
+	// Set resource ID
+	d.SetId(EncodeOtsTableId(instanceName, tableName))
+
+	// Wait for table to be ready
+	err = otsService.WaitForOtsTableCreating(d.Id(), d.Timeout(schema.TimeoutCreate))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
 	return resourceAliyunOtsTableRead(d, meta)
 }
 
 func resourceAliyunOtsTableRead(d *schema.ResourceData, meta interface{}) error {
-	// instanceName, _, err := parseId(d, meta)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
+	client := meta.(*connectivity.AliyunClient)
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	// client := meta.(*connectivity.AliyunClient)
-	// otsService, err := NewOtsService(client)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-	// tableResp, err := otsService.DescribeOtsTable(d.Id())
-	// if err != nil {
-	// 	if NotFoundError(err) {
-	// 		return nil
-	// 	}
-	// 	return WrapError(err)
-	// }
-	// if tableResp == nil {
-	// 	d.SetId("")
-	// 	return nil
-	// }
+	table, err := otsService.DescribeOtsTable(d.Id())
+	if err != nil {
+		if !d.IsNewResource() && NotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
+		return WrapError(err)
+	}
 
-	// d.Set("instance_name", instanceName)
-	// d.Set("table_name", tableResp.TableMeta.TableName)
+	if table == nil {
+		if !d.IsNewResource() {
+			d.SetId("")
+			return nil
+		}
+		return WrapError(Error("table not found"))
+	}
 
-	// var pks []map[string]interface{}
-	// keys := tableResp.TableMeta.SchemaEntry
-	// // Sort primary keys by name to ensure consistent ordering
-	// sort.Slice(keys, func(i, j int) bool {
-	// 	return *keys[i].Name < *keys[j].Name
-	// })
-	// for _, v := range keys {
-	// 	item := make(map[string]interface{})
-	// 	item["name"] = *v.Name
-	// 	item["type"] = otsService.convertPrimaryKeyType(*v.Type)
-	// 	pks = append(pks, item)
-	// }
-	// d.Set("primary_key", pks)
+	// Set basic information
+	d.Set("instance_name", table.GetInstanceName())
+	d.Set("table_name", table.GetName())
+	d.Set("time_to_live", table.GetTimeToAlive())
+	d.Set("max_version", table.GetMaxVersion())
+	d.Set("status", table.Status)
+	if !table.CreateTime.IsZero() {
+		d.Set("create_time", table.CreateTime.Format(time.RFC3339))
+	}
 
-	// var columns []map[string]interface{}
-	// definedColumns := tableResp.TableMeta.DefinedColumns
-	// // Sort defined columns by name to ensure consistent ordering
-	// sort.Slice(definedColumns, func(i, j int) bool {
-	// 	return definedColumns[i].Name < definedColumns[j].Name
-	// })
-	// for _, column := range definedColumns {
-	// 	columnType, err := ConvertDefinedColumnType(column.ColumnType)
-	// 	if err != nil {
-	// 		return WrapError(err)
-	// 	}
-	// 	item := map[string]interface{}{
-	// 		"name": column.Name,
-	// 		"type": columnType,
-	// 	}
-	// 	columns = append(columns, item)
-	// }
-	// d.Set("defined_column", columns)
+	// Set primary keys
+	var primaryKeys []map[string]interface{}
+	for _, pk := range table.GetPrimaryKeys() {
+		if pk != nil && pk.Name != nil {
+			primaryKeys = append(primaryKeys, map[string]interface{}{
+				"name": *pk.Name,
+				"type": *pk.Type,
+			})
+		}
+	}
+	d.Set("primary_key", primaryKeys)
 
-	// d.Set("time_to_live", tableResp.TableOption.TimeToAlive)
-	// d.Set("max_version", tableResp.TableOption.MaxVersion)
-	// d.Set("allow_update", *tableResp.TableOption.AllowUpdate)
-	// d.Set("deviation_cell_version_in_sec", strconv.FormatInt(tableResp.TableOption.DeviationCellVersionInSec, 10))
+	// Set defined columns
+	var definedColumns []map[string]interface{}
+	for _, col := range table.GetDefinedColumns() {
+		if col != nil {
+			columnType, err := ConvertDefinedColumnType(col.ColumnType)
+			if err != nil {
+				return WrapError(err)
+			}
+			definedColumns = append(definedColumns, map[string]interface{}{
+				"name": col.Name,
+				"type": columnType,
+			})
+		}
+	}
+	d.Set("defined_column", definedColumns)
 
-	// if tableResp.SSEDetails != nil && tableResp.SSEDetails.Enable {
-	// 	d.Set("enable_sse", tableResp.SSEDetails.Enable)
-	// 	d.Set("sse_key_type", tableResp.SSEDetails.KeyType.String())
-	// 	d.Set("sse_key_id", tableResp.SSEDetails.KeyId)
-	// 	d.Set("sse_role_arn", tableResp.SSEDetails.RoleArn)
+	// Set table options if available
+	if table.TableOption != nil {
+		if table.TableOption.AllowUpdate != nil {
+			d.Set("allow_update", *table.TableOption.AllowUpdate)
+		}
+		d.Set("deviation_cell_version_in_sec", strconv.FormatInt(table.TableOption.DeviationCellVersionInSec, 10))
+	}
 
-	// }
+	// Set SSE information if available
+	if table.SSEDetails != nil && table.SSEDetails.Enable {
+		d.Set("enable_sse", table.SSEDetails.Enable)
+		d.Set("sse_key_type", table.SSEDetails.KeyType.String())
+		d.Set("sse_key_id", table.SSEDetails.KeyId)
+		d.Set("sse_role_arn", table.SSEDetails.RoleArn)
+	}
+
+	// Set local transaction if available
+	if table.EnableLocalTxn != nil {
+		d.Set("enable_local_txn", *table.EnableLocalTxn)
+	}
 
 	return nil
 }
 
 func resourceAliyunOtsTableUpdate(d *schema.ResourceData, meta interface{}) error {
-	// As the issue of ots sdk, time_to_live and max_version need to be updated together at present.
-	// For the issue, please refer to https://github.com/aliyun/aliyun-tablestore-go-sdk/issues/18
-	// instanceName, tableName, err := parseId(d, meta)
-	// if err != nil {
-	// 	return err
-	// }
-	// client := meta.(*connectivity.AliyunClient)
+	client := meta.(*connectivity.AliyunClient)
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	// if d.HasChange("time_to_live") || d.HasChange("max_version") || d.HasChange("deviation_cell_version_in_sec") || d.HasChange("allow_update") {
-	// 	request := new(tablestore.UpdateTableRequest)
-	// 	request.TableName = tableName
-	// 	tableOption := new(tablestore.TableOption)
+	instanceName, tableName, err := DecodeOtsTableId(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
 
-	// 	tableOption.TimeToAlive = d.Get("time_to_live").(int)
-	// 	tableOption.MaxVersion = d.Get("max_version").(int)
-	// 	if deviation, ok := d.GetOk("deviation_cell_version_in_sec"); ok {
-	// 		tableOption.DeviationCellVersionInSec, _ = strconv.ParseInt(deviation.(string), 10, 64)
-	// 	}
-	// 	allowUpdate := d.Get("allow_update").(bool)
-	// 	tableOption.AllowUpdate = &allowUpdate
+	// Check if table options need to be updated
+	if d.HasChange("time_to_live") || d.HasChange("max_version") ||
+		d.HasChange("deviation_cell_version_in_sec") || d.HasChange("allow_update") {
 
-	// 	request.TableOption = tableOption
-	// 	var requestinfo *tablestore.TableStoreClient
-	// 	if err := resource.Retry(3*time.Minute, func() *resource.RetryError {
-	// 		raw, err := client.WithTableStoreClient(instanceName, func(tableStoreClient *tablestore.TableStoreClient) (interface{}, error) {
-	// 			requestinfo = tableStoreClient
-	// 			return tableStoreClient.UpdateTable(request)
-	// 		})
-	// 		if err != nil {
-	// 			if IsExpectedErrors(err, OtsTableIsTemporarilyUnavailable) {
-	// 				return resource.RetryableError(err)
-	// 			}
-	// 			return resource.NonRetryableError(err)
-	// 		}
-	// 		addDebug("UpdateTable", raw, requestinfo, request)
-	// 		return nil
-	// 	}); err != nil {
-	// 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateTable", AliyunTablestoreGoSdk)
-	// 	}
-	// }
-	// if d.HasChange("defined_column") {
-	// 	o, n := d.GetChange("defined_column")
-	// 	statedColumns, err := parseColsFromConfig(o.([]interface{}))
-	// 	if err != nil {
-	// 		return WrapError(err)
-	// 	}
-	// 	declareColumns, err := parseColsFromConfig(n.([]interface{}))
-	// 	if err != nil {
-	// 		return WrapError(err)
-	// 	}
+		// Build updated table object
+		table := &tablestoreAPI.TablestoreTable{
+			InstanceName: instanceName,
+		}
+		table.SetName(tableName)
+		table.SetTimeToAlive(d.Get("time_to_live").(int))
+		table.SetMaxVersion(d.Get("max_version").(int))
 
-	// 	if needAddColumns, fetchErr := fetchNeedAddColumns(declareColumns, statedColumns); fetchErr != nil {
-	// 		return fetchErr
-	// 	} else if err := updateDefinedColumns(client, instanceName, tablestore.AddDefinedColumnRequest{TableName: tableName}, needAddColumns); err != nil {
-	// 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "AddTableDefineColumn", AliyunTablestoreGoSdk)
-	// 	}
+		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			err := otsService.UpdateOtsTable(instanceName, table)
+			if err != nil {
+				if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable"}) {
+					time.Sleep(5 * time.Second)
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
 
-	// 	if needDeleteColumns, fetchErr := fetchNeedDeleteColumns(statedColumns, declareColumns); fetchErr != nil {
-	// 		return fetchErr
-	// 	} else if err := updateDefinedColumns(client, instanceName, tablestore.DeleteDefinedColumnRequest{TableName: tableName}, needDeleteColumns); err != nil {
-	// 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteTableDefineColumn", AliyunTablestoreGoSdk)
-	// 	}
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateOtsTable", AlibabaCloudSdkGoERROR)
+		}
+	}
 
-	// }
-	// return resourceAliyunOtsTableRead(d, meta)
-	return nil
+	return resourceAliyunOtsTableRead(d, meta)
 }
 
-// func parseColsFromConfig(cols []interface{}) ([]*tablestore.DefinedColumnSchema, error) {
-// 	otsCols := make([]*tablestore.DefinedColumnSchema, 0, len(cols))
-// 	for _, col := range cols {
-// 		colMap := col.(map[string]interface{})
-// 		columnType, err := ParseDefinedColumnType(colMap["type"].(string))
-// 		if err != nil {
-// 			return nil, WrapError(err)
-// 		}
-// 		otsCols = append(otsCols, &tablestore.DefinedColumnSchema{
-// 			Name:       colMap["name"].(string),
-// 			ColumnType: columnType,
-// 		})
-// 	}
-// 	return otsCols, nil
-// }
+func resourceAliyunOtsTableDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-// func fetchNeedDeleteColumns(statedColumns []*tablestore.DefinedColumnSchema, declareColumns []*tablestore.DefinedColumnSchema) ([]*tablestore.DefinedColumnSchema, error) {
-// 	var needDeleteColumns []*tablestore.DefinedColumnSchema
-// 	for _, statedCol := range statedColumns {
-// 		switch FindDefinedColumn(declareColumns, statedCol) {
-// 		case ExistEqual:
-// 			continue
-// 		case ExistNotEqual:
-// 			return nil, WrapError(fmt.Errorf("modifying defined column type is not supported: %v", statedCol))
-// 		case NotExist:
-// 			needDeleteColumns = append(needDeleteColumns, statedCol)
-// 		}
-
-// 	}
-// 	return needDeleteColumns, nil
-// }
-
-// func fetchNeedAddColumns(declareColumns []*tablestore.DefinedColumnSchema, statedColumns []*tablestore.DefinedColumnSchema) ([]*tablestore.DefinedColumnSchema, error) {
-// 	var needAddColumns []*tablestore.DefinedColumnSchema
-// 	for _, declareCol := range declareColumns {
-// 		switch FindDefinedColumn(statedColumns, declareCol) {
-// 		case ExistEqual:
-// 			continue
-// 		case ExistNotEqual:
-// 			return nil, WrapError(fmt.Errorf("modifying defined column type is not supported: %v", declareCol))
-// 		case NotExist:
-// 			needAddColumns = append(needAddColumns, declareCol)
-// 		}
-// 	}
-// 	return needAddColumns, nil
-// }
-
-func updateDefinedColumns(client *connectivity.AliyunClient, instance string, req interface{}, columns []*tablestore.DefinedColumnSchema) error {
-	var clientInfo *tablestore.TableStoreClient
-
-	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithTableStoreClient(instance, func(tableStoreClient *tablestore.TableStoreClient) (interface{}, error) {
-			clientInfo = tableStoreClient
-
-			switch request := req.(type) {
-			case tablestore.AddDefinedColumnRequest:
-				for _, column := range columns {
-					request.AddDefinedColumn(column.Name, column.ColumnType)
-				}
-				return tableStoreClient.AddDefinedColumn(&request)
-			case tablestore.DeleteDefinedColumnRequest:
-				for _, column := range columns {
-					request.DefinedColumns = append(request.DefinedColumns, column.Name)
-				}
-				return tableStoreClient.DeleteDefinedColumn(&request)
-			default:
-				return nil, WrapError(fmt.Errorf("unexpected defined column request type %T: %v", req, req))
-			}
-		})
+	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		err := otsService.DeleteOtsTable(d.Id())
 		if err != nil {
-			if IsExpectedErrors(err, OtsTableIsTemporarilyUnavailable) {
+			if NotFoundError(err) {
+				return nil
+			}
+			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable"}) {
+				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
-		addDebug("UpdateTableDefineColumn", raw, clientInfo, req)
 		return nil
-	}); err != nil {
-		return err
-	}
-	return nil
-}
+	})
 
-func resourceAliyunOtsTableDelete(d *schema.ResourceData, meta interface{}) error {
-	// instanceName, tableName, err := parseId(d, meta)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// client := meta.(*connectivity.AliyunClient)
-	// otsService, err := NewOtsService(client)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// req := new(tablestore.DeleteTableRequest)
-	// req.TableName = tableName
-	// var requestCli *tablestore.TableStoreClient
-	// err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-	// 	raw, err := client.WithTableStoreClient(instanceName, func(tableStoreClient *tablestore.TableStoreClient) (interface{}, error) {
-	// 		requestCli = tableStoreClient
-	// 		return tableStoreClient.DeleteTable(req)
-	// 	})
-	// 	if err != nil {
-	// 		if IsExpectedErrors(err, OtsTableIsTemporarilyUnavailable) {
-	// 			return resource.RetryableError(err)
-	// 		}
-	// 		return resource.NonRetryableError(err)
-	// 	}
-	// 	addDebug("DeleteTable", raw, requestCli, req)
-	// 	return nil
-	// })
-	// if err != nil {
-	// 	if strings.HasPrefix(err.Error(), "OTSObjectNotExist") {
-	// 		return nil
-	// 	}
-	// 	return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteTable", AliyunTablestoreGoSdk)
-	// }
-	// return WrapError(otsService.WaitForOtsTable(instanceName, tableName, Deleted, DefaultTimeout))
-	return nil
-}
-
-func parseId(d *schema.ResourceData, meta interface{}) (instanceName, tableName string, err error) {
-	split := strings.Split(d.Id(), COLON_SEPARATED)
-	if len(split) == 1 {
-		// For compatibility
-		if meta.(*connectivity.AliyunClient).OtsInstanceName != "" {
-			tableName = split[0]
-			instanceName = meta.(*connectivity.AliyunClient).OtsInstanceName
-			d.SetId(fmt.Sprintf("%s%s%s", instanceName, COLON_SEPARATED, tableName))
-		} else {
-			err = WrapError(Error("From Provider version 1.10.0, the provider field 'ots_instance_name' has been deprecated and " +
-				"you should use resource alicloud_ots_table's new field 'instance_name' and 'table_name' to re-import this resource."))
-			return
-		}
-	} else {
-		instanceName = split[0]
-		tableName = split[1]
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteOtsTable", AlibabaCloudSdkGoERROR)
 	}
 
-	return
+	// Wait for table deletion
+	err = otsService.WaitForOtsTableDeleting(d.Id(), d.Timeout(schema.TimeoutDelete))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return nil
 }
