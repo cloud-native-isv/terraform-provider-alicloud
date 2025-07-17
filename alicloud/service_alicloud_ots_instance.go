@@ -116,7 +116,7 @@ func (s *OtsService) OtsInstanceStateRefreshFunc(instanceName string, failStates
 
 func (s *OtsService) WaitForOtsInstanceCreating(instanceName string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
-		[]string{tablestoreAPI.InstanceStatusNotFound.String()},
+		[]string{},
 		[]string{tablestoreAPI.InstanceStatusRunning.String()},
 		timeout,
 		5*time.Second,

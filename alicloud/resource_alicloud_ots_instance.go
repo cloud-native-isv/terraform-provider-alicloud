@@ -6,6 +6,8 @@ import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
+	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 )
 
 func resourceAliCloudOtsInstance() *schema.Resource {
@@ -21,7 +23,7 @@ func resourceAliCloudOtsInstance() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
 			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -44,45 +46,41 @@ func resourceAliCloudOtsInstance() *schema.Resource {
 				Description: "The description of the Tablestore instance.",
 			},
 
-			// Instance Configuration
-			"cluster_type": {
+			// Instance Configuration - Required field
+			"instance_specification": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"SSD", "HYBRID",
 				}, false),
-				Description: "The cluster type of the Tablestore instance. Valid values: SSD, HYBRID.",
-			},
-			"storage_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The storage type of the Tablestore instance.",
+				Description: "The instance specification type of the Tablestore instance. Valid values: SSD, HYBRID.",
 			},
 
 			// Network Configuration
-			"network": {
-				Type:     schema.TypeString,
+			"network_source_acl": {
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Vpc", "Vpc_CONSOLE", "NORMAL",
-				}, false),
-				Description: "The network type of the Tablestore instance. Valid values: Vpc, Vpc_CONSOLE, NORMAL.",
-			},
-			"network_source_acl": {
-				Type:        schema.TypeSet,
-				Optional:    true,
-				Computed:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "The network source ACL of the Tablestore instance.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						"TRUST_PROXY",
+					}, false),
+				},
+				Description: "The network source ACL of the Tablestore instance. Valid values: TRUST_PROXY.",
 			},
 			"network_type_acl": {
-				Type:        schema.TypeSet,
-				Optional:    true,
-				Computed:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "The network type ACL of the Tablestore instance.",
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						"INTERNET", "VPC", "CLASSIC",
+					}, false),
+				},
+				Description: "The network type ACL of the Tablestore instance. Valid values: INTERNET, VPC, CLASSIC.",
 			},
 
 			// Resource Management
@@ -123,6 +121,23 @@ func resourceAliCloudOtsInstance() *schema.Resource {
 				Type:        schema.TypeFloat,
 				Computed:    true,
 				Description: "The elastic VCU upper limit of the Tablestore instance.",
+			},
+
+			// Reserved CU Configuration
+			"is_reserved_cu_instance": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Whether the Tablestore instance is a reserved CU instance.",
+			},
+			"reserved_read_cu": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "The reserved read CU of the Tablestore instance.",
+			},
+			"reserved_write_cu": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "The reserved write CU of the Tablestore instance.",
 			},
 
 			// Policy and Security
@@ -217,14 +232,19 @@ func resourceAliCloudOtsInstanceUpdate(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	// Check if there are changes that require update
-	if d.HasChanges("alias_name", "description", "network", "network_source_acl", "network_type_acl", "policy") {
-		// Convert schema to TablestoreInstance
-		instance := convertSchemaToTablestoreInstance(d)
-
-		// Update instance
+	// Handle ACL updates - only NetworkTypeACL and NetworkSourceACL are supported
+	if d.HasChange("network_source_acl") || d.HasChange("network_type_acl") {
+		instance := convertSchemaToTablestoreInstanceForACLUpdate(d)
 		if err := otsService.UpdateOtsInstance(instance); err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateInstance", AlibabaCloudSdkGoERROR)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateInstanceACL", AlibabaCloudSdkGoERROR)
+		}
+	}
+
+	// Handle other updates
+	if d.HasChanges("alias_name", "description", "policy") {
+		instance := convertSchemaToTablestoreInstanceForBasicUpdate(d)
+		if err := otsService.UpdateOtsInstance(instance); err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateInstanceBasic", AlibabaCloudSdkGoERROR)
 		}
 	}
 
@@ -276,4 +296,50 @@ func resourceAliCloudOtsInstanceDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	return nil
+}
+
+// convertSchemaToTablestoreInstanceForACLUpdate creates an instance object for ACL-only updates
+func convertSchemaToTablestoreInstanceForACLUpdate(d *schema.ResourceData) *tablestoreAPI.TablestoreInstance {
+	instance := &tablestoreAPI.TablestoreInstance{
+		InstanceName: d.Id(),
+	}
+
+	if v, ok := d.GetOk("network_source_acl"); ok {
+		sourceACL := v.(*schema.Set).List()
+		instance.NetworkSourceACL = make([]string, len(sourceACL))
+		for i, acl := range sourceACL {
+			instance.NetworkSourceACL[i] = acl.(string)
+		}
+	}
+
+	if v, ok := d.GetOk("network_type_acl"); ok {
+		typeACL := v.(*schema.Set).List()
+		instance.NetworkTypeACL = make([]string, len(typeACL))
+		for i, acl := range typeACL {
+			instance.NetworkTypeACL[i] = acl.(string)
+		}
+	}
+
+	return instance
+}
+
+// convertSchemaToTablestoreInstanceForBasicUpdate creates an instance object for basic field updates
+func convertSchemaToTablestoreInstanceForBasicUpdate(d *schema.ResourceData) *tablestoreAPI.TablestoreInstance {
+	instance := &tablestoreAPI.TablestoreInstance{
+		InstanceName: d.Id(),
+	}
+
+	if v, ok := d.GetOk("alias_name"); ok {
+		instance.AliasName = v.(string)
+	}
+
+	if v, ok := d.GetOk("description"); ok {
+		instance.InstanceDescription = v.(string)
+	}
+
+	if v, ok := d.GetOk("policy"); ok {
+		instance.Policy = v.(string)
+	}
+
+	return instance
 }

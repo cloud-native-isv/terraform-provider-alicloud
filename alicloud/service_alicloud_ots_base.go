@@ -121,14 +121,11 @@ func (ds *InputDataSource) doFilters() []interface{} {
 func convertInstanceToCreateRequest(instance *aliyunTablestoreAPI.TablestoreInstance) *consoleSDK.CreateInstanceRequest {
 	request := &consoleSDK.CreateInstanceRequest{
 		InstanceName: tea.String(instance.InstanceName),
-		ClusterType:  tea.String(instance.ClusterType),
+		ClusterType:  tea.String(instance.InstanceSpecification), // Use InstanceSpecification for ClusterType
 	}
 
 	if instance.InstanceDescription != "" {
 		request.InstanceDescription = tea.String(instance.InstanceDescription)
-	}
-	if instance.Network != "" {
-		request.Network = tea.String(instance.Network)
 	}
 	if instance.Policy != "" {
 		request.Policy = tea.String(instance.Policy)
@@ -137,7 +134,7 @@ func convertInstanceToCreateRequest(instance *aliyunTablestoreAPI.TablestoreInst
 		request.ResourceGroupId = tea.String(instance.ResourceGroupId)
 	}
 
-	// Convert string arrays
+	// Convert string arrays - only ACL fields are supported now
 	if len(instance.NetworkSourceACL) > 0 {
 		networkSourceACL := make([]*string, len(instance.NetworkSourceACL))
 		for i, str := range instance.NetworkSourceACL {
@@ -180,11 +177,8 @@ func convertInstanceToUpdateRequest(instance *aliyunTablestoreAPI.TablestoreInst
 	if instance.InstanceDescription != "" {
 		request.InstanceDescription = tea.String(instance.InstanceDescription)
 	}
-	if instance.Network != "" {
-		request.Network = tea.String(instance.Network)
-	}
 
-	// Convert string arrays
+	// Convert string arrays - only ACL fields are supported now (Network field is deprecated)
 	if len(instance.NetworkSourceACL) > 0 {
 		networkSourceACL := make([]*string, len(instance.NetworkSourceACL))
 		for i, str := range instance.NetworkSourceACL {
@@ -224,7 +218,11 @@ func convertTagsToSDK(tags []aliyunTablestoreAPI.TablestoreInstanceTag) []*conso
 func convertSchemaToTablestoreInstance(d *schema.ResourceData) *aliyunTablestoreAPI.TablestoreInstance {
 	instance := &aliyunTablestoreAPI.TablestoreInstance{
 		InstanceName: d.Get("name").(string),
-		ClusterType:  d.Get("cluster_type").(string),
+	}
+
+	// Set instance specification (required field)
+	if v, ok := d.GetOk("instance_specification"); ok {
+		instance.InstanceSpecification = v.(string)
 	}
 
 	if v, ok := d.GetOk("alias_name"); ok {
@@ -233,9 +231,6 @@ func convertSchemaToTablestoreInstance(d *schema.ResourceData) *aliyunTablestore
 	if v, ok := d.GetOk("description"); ok {
 		instance.InstanceDescription = v.(string)
 	}
-	if v, ok := d.GetOk("network"); ok {
-		instance.Network = v.(string)
-	}
 	if v, ok := d.GetOk("policy"); ok {
 		instance.Policy = v.(string)
 	}
@@ -243,7 +238,7 @@ func convertSchemaToTablestoreInstance(d *schema.ResourceData) *aliyunTablestore
 		instance.ResourceGroupId = v.(string)
 	}
 
-	// Convert network ACLs
+	// Convert network ACLs - only ACL fields are supported now (Network field is deprecated)
 	if v, ok := d.GetOk("network_source_acl"); ok {
 		if networkSourceAcl, ok := v.(*schema.Set); ok {
 			instance.NetworkSourceACL = convertSetToStringSlice(networkSourceAcl)
@@ -268,12 +263,10 @@ func convertSchemaToTablestoreInstance(d *schema.ResourceData) *aliyunTablestore
 // convertTablestoreInstanceToSchema converts TablestoreInstance to Terraform schema data
 func convertTablestoreInstanceToSchema(d *schema.ResourceData, instance *aliyunTablestoreAPI.TablestoreInstance) error {
 	d.Set("name", instance.InstanceName)
+	d.Set("instance_specification", instance.InstanceSpecification)
 	d.Set("alias_name", instance.AliasName)
 	d.Set("description", instance.InstanceDescription)
-	d.Set("cluster_type", instance.ClusterType)
-	d.Set("storage_type", instance.StorageType)
 	d.Set("status", instance.InstanceStatus)
-	d.Set("network", instance.Network)
 	d.Set("region_id", instance.RegionId)
 	d.Set("resource_group_id", instance.ResourceGroupId)
 	d.Set("payment_type", instance.PaymentType)
@@ -283,10 +276,19 @@ func convertTablestoreInstanceToSchema(d *schema.ResourceData, instance *aliyunT
 	d.Set("table_quota", instance.TableQuota)
 	d.Set("vcu_quota", instance.VCUQuota)
 	d.Set("elastic_vcu_upper_limit", instance.ElasticVCUUpperLimit)
-	d.Set("create_time", instance.CreateTime.Format("2006-01-02T15:04:05Z"))
+
+	// 添加缺失的保留CU相关字段
+	d.Set("is_reserved_cu_instance", instance.IsReservedCUInstance)
+	d.Set("reserved_read_cu", instance.ReservedReadCU)
+	d.Set("reserved_write_cu", instance.ReservedWriteCU)
+
+	// 时间和用户ID字段
+	if !instance.CreateTime.IsZero() {
+		d.Set("create_time", instance.CreateTime.Format("2006-01-02T15:04:05Z"))
+	}
 	d.Set("user_id", instance.UserId)
 
-	// Set network ACLs
+	// Set network ACLs - only ACL fields are supported now (Network field is deprecated)
 	if err := d.Set("network_source_acl", convertStringSliceToSet(instance.NetworkSourceACL)); err != nil {
 		return err
 	}

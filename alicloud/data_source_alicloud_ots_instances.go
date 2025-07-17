@@ -244,8 +244,6 @@ func otsInstancesDescriptionAttributes(d *schema.ResourceData, instances []table
 			"name":                    instance.InstanceName,
 			"alias_name":              instance.AliasName,
 			"description":             instance.InstanceDescription,
-			"cluster_type":            instance.ClusterType,
-			"storage_type":            instance.StorageType,
 			"status":                  instance.InstanceStatus,
 			"network":                 instance.Network,
 			"network_type_acl":        convertStringSliceToSet(instance.NetworkTypeACL),
