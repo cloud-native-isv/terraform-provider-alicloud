@@ -2,7 +2,6 @@ module github.com/aliyun/terraform-provider-alicloud
 
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
-	github.com/agiledragon/gomonkey/v2 v2.3.1
 	github.com/alibabacloud-go/cs-20151215/v5 v5.8.12
 	github.com/alibabacloud-go/tea v1.3.8
 	github.com/alibabacloud-go/tea-roa v1.3.4
@@ -27,7 +26,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/waigani/diffparser v0.0.0-20190828052634-7391f219313d
 	golang.org/x/net v0.26.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -43,6 +42,7 @@ require (
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.6
 	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
+	github.com/alibabacloud-go/tablestore-20201209 v0.0.0-00010101000000-000000000000
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.7
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v0.0.0-00010101000000-000000000000
 	github.com/blues/jsonata-go v1.5.4
@@ -83,7 +83,6 @@ require (
 	github.com/alibabacloud-go/rds-20140815/v5 v5.0.5 // indirect
 	github.com/alibabacloud-go/selectdb-20230522/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/sls-20201230/v6 v6.0.0-00010101000000-000000000000 // indirect
-	github.com/alibabacloud-go/tablestore-20201209 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/tea-oss-utils v1.1.0 // indirect
 	github.com/alibabacloud-go/tea-roa-utils v1.1.5 // indirect
 	github.com/alibabacloud-go/tea-rpc-utils v1.1.2 // indirect
@@ -255,6 +254,7 @@ replace (
 	github.com/alibabacloud-go/tablestore-20201209 => ../cws-lib-go/lib/cloud/aliyun/sdk/tablestore-20201209
 	github.com/alibabacloud-go/ververica-20220718 => ../cws-lib-go/lib/cloud/aliyun/sdk/ververica-20220718
 
+	github.com/aliyun/alibaba-cloud-sdk-go => ../cws-lib-go/lib/cloud/aliyun/sdk/alibaba-cloud-sdk-go
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/alibabacloud-oss-go-sdk-v2
 	github.com/aliyun/aliyun-log-go-sdk => ../cws-lib-go/lib/cloud/aliyun/sdk/aliyun-log-go-sdk
 	github.com/aliyun/aliyun-tablestore-go-sdk => ../cws-lib-go/lib/cloud/aliyun/sdk/aliyun-tablestore-go-sdk

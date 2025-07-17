@@ -139,14 +139,6 @@ func (s *OtsService) WaitForOtsInstanceDeleting(instanceName string, timeout tim
 	return WrapErrorf(err, IdMsg, instanceName)
 }
 
-func (s *OtsService) DescribeOtsInstanceTypes() ([]string, error) {
-	// This would typically call an API to get available instance types
-	// For now, return the known types
-	return []string{"SSD", "HYBRID"}, nil
-}
-
-// Tag management functions
-
 func (s *OtsService) TagOtsInstance(instanceName string, tags []tablestoreAPI.TablestoreInstanceTag) error {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
@@ -175,25 +167,29 @@ func (s *OtsService) UntagOtsInstance(instanceName string, tagKeys []string) err
 
 // Instance VPC Attachment management functions
 
-func (s *OtsService) DescribeOtsInstanceAttachment(instanceName string) (*ots.VpcInfo, error) {
-	request := ots.CreateListVpcInfoByInstanceRequest()
-	request.RegionId = s.client.RegionId
-	request.InstanceName = instanceName
-
-	raw, err := s.client.WithOtsClient(func(otsClient *ots.Client) (interface{}, error) {
-		return otsClient.ListVpcInfoByInstance(request)
-	})
+func (s *OtsService) DescribeOtsInstanceAttachment(instanceName string) (*tablestoreAPI.TablestoreInstanceAttachment, error) {
+	api, err := s.getTablestoreAPI()
 	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, instanceName, request.GetActionName(), AlibabaCloudSdkGoERROR)
+		return nil, WrapError(err)
 	}
-	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 
-	response, _ := raw.(*ots.ListVpcInfoByInstanceResponse)
-	if len(response.VpcInfos.VpcInfo) == 0 {
+	// Get all VPC attachments for the instance
+	attachments, err := api.ListInstanceAttachments(instanceName)
+	if err != nil {
+		if NotFoundError(err) {
+			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
+		}
+		return nil, WrapErrorf(err, DefaultErrorMsg, instanceName, "ListInstanceAttachments", AlibabaCloudSdkGoERROR)
+	}
+
+	// Return the first attachment if any exists
+	// Note: In the original implementation, it returned the first VPC attachment
+	// If you need a specific attachment, you should use GetInstanceAttachment with vpc name
+	if len(attachments) == 0 {
 		return nil, WrapErrorf(Error(GetNotFoundMessage("OtsInstanceAttachment", instanceName)), NotFoundMsg, ProviderERROR)
 	}
 
-	return &response.VpcInfos.VpcInfo[0], nil
+	return &attachments[0], nil
 }
 
 func (s *OtsService) WaitForOtsInstanceVpc(instanceName string, status Status, timeout int) error {
@@ -217,47 +213,6 @@ func (s *OtsService) WaitForOtsInstanceVpc(instanceName string, status Status, t
 		}
 		time.Sleep(DefaultIntervalShort * time.Second)
 	}
-}
-
-// Additional helper functions for instance attachment
-
-func (s *OtsService) BindOtsInstanceToVpc(instanceName, vpcName, vpcId, vswitchId string) error {
-	request := ots.CreateBindInstance2VpcRequest()
-	request.RegionId = s.client.RegionId
-	request.InstanceName = instanceName
-	request.InstanceVpcName = vpcName
-	request.VirtualSwitchId = vswitchId
-	request.VpcId = vpcId
-
-	raw, err := s.client.WithOtsClient(func(otsClient *ots.Client) (interface{}, error) {
-		return otsClient.BindInstance2Vpc(request)
-	})
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, instanceName, request.GetActionName(), AlibabaCloudSdkGoERROR)
-	}
-	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-
-	return nil
-}
-
-func (s *OtsService) UnbindOtsInstanceFromVpc(instanceName, vpcName string) error {
-	request := ots.CreateUnbindInstance2VpcRequest()
-	request.RegionId = s.client.RegionId
-	request.InstanceName = instanceName
-	request.InstanceVpcName = vpcName
-
-	raw, err := s.client.WithOtsClient(func(otsClient *ots.Client) (interface{}, error) {
-		return otsClient.UnbindInstance2Vpc(request)
-	})
-	if err != nil {
-		if NotFoundError(err) {
-			return nil
-		}
-		return WrapErrorf(err, DefaultErrorMsg, instanceName, request.GetActionName(), AlibabaCloudSdkGoERROR)
-	}
-	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-
-	return nil
 }
 
 // List OTS instances for data source support
