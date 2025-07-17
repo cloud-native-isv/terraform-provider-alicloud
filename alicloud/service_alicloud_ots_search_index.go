@@ -68,31 +68,6 @@ func (s *OtsService) DeleteOtsSearchIndex(instanceName string, index *tablestore
 	return nil
 }
 
-func (s *OtsService) WaitForOtsSearchIndex(instanceName, tableName, indexName string, status string, timeout int) error {
-	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
-	for {
-		index, err := s.DescribeOtsSearchIndex(instanceName, tableName, indexName)
-		if err != nil {
-			if NotFoundError(err) {
-				if status == string(Deleted) {
-					return nil
-				}
-			} else {
-				return WrapError(err)
-			}
-		}
-
-		if index != nil && index.SyncPhase.String() == status {
-			return nil
-		}
-
-		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, indexName, GetFunc(1), timeout, index.SyncPhase.String(), status, ProviderERROR)
-		}
-		time.Sleep(DefaultIntervalShort * time.Second)
-	}
-}
-
 func (s *OtsService) ListOtsSearchIndexes(instanceName, tableName string) ([]*tablestoreAPI.TablestoreSearchIndex, error) {
 	api, err := s.getTablestoreAPI()
 	if err != nil {
@@ -113,12 +88,14 @@ func (s *OtsService) OtsSearchIndexStateRefreshFunc(instanceName, tableName, ind
 		object, err := s.DescribeOtsSearchIndex(instanceName, tableName, indexName)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, "", nil
+				return nil, string(tablestoreAPI.TablestoreSearchIndexStatusNotFound), nil
 			}
 			return nil, "", WrapError(err)
 		}
 
-		currentStatus := object.SyncPhase.String()
+		// Use the new status type
+		currentStatus := string(tablestoreAPI.TablestoreSearchIndexStatusExisting)
+
 		for _, failState := range failStates {
 			if currentStatus == failState {
 				return object, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
@@ -132,7 +109,7 @@ func (s *OtsService) OtsSearchIndexStateRefreshFunc(instanceName, tableName, ind
 func (s *OtsService) WaitForOtsSearchIndexCreating(instanceName, tableName, indexName string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
 		[]string{"CREATING"}, // pending states
-		[]string{"ACTIVE"},   // target states
+		[]string{string(tablestoreAPI.TablestoreSearchIndexStatusExisting)}, // target states
 		timeout,
 		5*time.Second,
 		s.OtsSearchIndexStateRefreshFunc(instanceName, tableName, indexName, []string{"FAILED"}),
@@ -145,8 +122,8 @@ func (s *OtsService) WaitForOtsSearchIndexCreating(instanceName, tableName, inde
 // Wait for search index deletion
 func (s *OtsService) WaitForOtsSearchIndexDeleting(instanceName, tableName, indexName string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
-		[]string{"DELETING"}, // pending states
-		[]string{""},         // target states (deleted)
+		[]string{string(tablestoreAPI.TablestoreSearchIndexStatusExisting)}, // pending states
+		[]string{string(tablestoreAPI.TablestoreSearchIndexStatusNotFound)}, // target states
 		timeout,
 		5*time.Second,
 		s.OtsSearchIndexStateRefreshFunc(instanceName, tableName, indexName, []string{}),

@@ -84,6 +84,12 @@ func resourceAliCloudOtsIndex() *schema.Resource {
 				},
 				MaxItems: 32,
 			},
+
+			"index_sync_phase": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The synchronization phase of the index. Valid values: FULL, INCR.",
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -189,6 +195,18 @@ func resourceAlicloudOtsIndexRead(d *schema.ResourceData, meta interface{}) erro
 
 		d.Set("primary_keys", object.IndexMeta.Primarykey)
 		d.Set("defined_columns", object.IndexMeta.DefinedColumns)
+
+		// Set index sync phase if available
+		if object.IndexMeta.IndexSyncPhase != nil {
+			switch *object.IndexMeta.IndexSyncPhase {
+			case tablestore.SyncPhase_FULL:
+				d.Set("index_sync_phase", "FULL")
+			case tablestore.SyncPhase_INCR:
+				d.Set("index_sync_phase", "INCR")
+			default:
+				d.Set("index_sync_phase", "UNKNOWN")
+			}
+		}
 	}
 
 	return nil

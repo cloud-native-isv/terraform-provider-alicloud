@@ -73,8 +73,8 @@ func (s *OtsService) WaitForOtsIndexCreating(instanceName, tableName, indexName 
 
 func (s *OtsService) WaitForOtsIndexDeleting(instanceName, tableName, indexName string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
-		[]string{"DELETING"}, // pending states
-		[]string{""},         // target states (not found)
+		[]string{string(tablestoreAPI.TablestoreIndexStatusExisting)}, // pending states
+		[]string{string(tablestoreAPI.TablestoreIndexStatusNotFound)}, // target states
 		timeout,
 		5*time.Second,
 		s.OtsIndexStateRefreshFunc(instanceName, tableName, indexName, []string{"FAILED"}),
@@ -89,13 +89,13 @@ func (s *OtsService) OtsIndexStateRefreshFunc(instanceName, tableName, indexName
 		object, err := s.DescribeOtsIndex(instanceName, tableName, indexName)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, "", nil
+				return nil, string(tablestoreAPI.TablestoreIndexStatusNotFound), nil
 			}
 			return nil, "", WrapError(err)
 		}
 
 		// For secondary indexes, we assume they're active if they exist
-		currentStatus := "ACTIVE"
+		currentStatus := string(tablestoreAPI.TablestoreIndexStatusExisting)
 
 		for _, failState := range failStates {
 			if currentStatus == failState {

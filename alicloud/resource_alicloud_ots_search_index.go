@@ -82,14 +82,15 @@ func resourceAliCloudOtsSearchIndex() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(OtsSearchTypeLong),
-								string(OtsSearchTypeDouble),
-								string(OtsSearchTypeBoolean),
-								string(OtsSearchTypeKeyword),
-								string(OtsSearchTypeText),
-								string(OtsSearchTypeDate),
-								string(OtsSearchTypeGeoPoint),
-								string(OtsSearchTypeNested),
+								tablestore.FieldType_LONG.String(),
+								tablestore.FieldType_DOUBLE.String(),
+								tablestore.FieldType_BOOLEAN.String(),
+								tablestore.FieldType_KEYWORD.String(),
+								tablestore.FieldType_TEXT.String(),
+								tablestore.FieldType_NESTED.String(),
+								tablestore.FieldType_GEO_POINT.String(),
+								tablestore.FieldType_DATE.String(),
+								tablestore.FieldType_VECTOR.String(),
 							}, false),
 							Description: "The type of the field.",
 						},
@@ -111,11 +112,11 @@ func resourceAliCloudOtsSearchIndex() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(OtsSearchSingleWord),
-								string(OtsSearchSplit),
-								string(OtsSearchMinWord),
-								string(OtsSearchMaxWord),
-								string(OtsSearchFuzzy),
+								string(tablestore.Analyzer_SingleWord),
+								string(tablestore.Analyzer_MaxWord),
+								string(tablestore.Analyzer_MinWord),
+								string(tablestore.Analyzer_Split),
+								string(tablestore.Analyzer_Fuzzy),
 							}, false),
 							Description: "The analyzer for the field.",
 						},
@@ -454,7 +455,7 @@ func buildIndexSchemaFromResource(d *schema.ResourceData) (*tablestore.IndexSche
 			}
 
 			if fieldType, ok := fieldSchemaMap["field_type"]; ok {
-				fieldTypeEnum, err := ConvertSearchIndexFieldTypeString(SearchIndexFieldTypeString(fieldType.(string)))
+				fieldTypeEnum, err := tablestore.ToFieldType(fieldType.(string))
 				if err != nil {
 					return nil, WrapError(err)
 				}
@@ -472,10 +473,7 @@ func buildIndexSchemaFromResource(d *schema.ResourceData) (*tablestore.IndexSche
 			}
 
 			if analyzer, ok := fieldSchemaMap["analyzer"]; ok && analyzer.(string) != "" {
-				analyzerEnum, err := ConvertSearchIndexAnalyzerTypeString(SearchIndexAnalyzerTypeString(analyzer.(string)))
-				if err != nil {
-					return nil, WrapError(err)
-				}
+				analyzerEnum := tablestore.Analyzer(analyzer.(string))
 				fieldSchema.Analyzer = &analyzerEnum
 			}
 

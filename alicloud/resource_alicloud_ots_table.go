@@ -72,6 +72,7 @@ func resourceAliCloudOtsTable() *schema.Resource {
 			"defined_column": {
 				Type:        schema.TypeList,
 				Optional:    true,
+				ForceNew:    true,
 				MaxItems:    32,
 				Description: "The defined column schema of the table.",
 				Elem: &schema.Resource{
@@ -108,7 +109,7 @@ func resourceAliCloudOtsTable() *schema.Resource {
 			"allow_update": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     true,
+				Default:     false,
 				Description: "Whether to allow update operations on the table.",
 			},
 			"deviation_cell_version_in_sec": {
@@ -121,11 +122,13 @@ func resourceAliCloudOtsTable() *schema.Resource {
 			"enable_sse": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				ForceNew:    true,
 				Description: "Whether to enable server-side encryption.",
 			},
 			"sse_key_type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(SseKMSService), string(SseByOk)}, false),
 				Description: "The type of the server-side encryption key.",
@@ -133,6 +136,7 @@ func resourceAliCloudOtsTable() *schema.Resource {
 			"sse_key_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				ForceNew:    true,
 				Description: "The ID of the server-side encryption key.",
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return string(SseByOk) != d.Get("sse_key_type").(string)
@@ -141,6 +145,7 @@ func resourceAliCloudOtsTable() *schema.Resource {
 			"sse_role_arn": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				ForceNew:    true,
 				Description: "The ARN of the server-side encryption role.",
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return string(SseByOk) != d.Get("sse_key_type").(string)
@@ -149,7 +154,24 @@ func resourceAliCloudOtsTable() *schema.Resource {
 			"enable_local_txn": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				ForceNew:    true,
 				Description: "Whether to enable local transaction.",
+			},
+			"read_capacity": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      0,
+				ValidateFunc: validation.IntBetween(0, 100000),
+				Description:  "The reserved read capacity units for the table.",
+			},
+			"write_capacity": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      0,
+				ValidateFunc: validation.IntBetween(0, 100000),
+				Description:  "The reserved write capacity units for the table.",
 			},
 			// Computed fields
 			"status": {
@@ -190,20 +212,18 @@ func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) erro
 		return WrapError(err)
 	}
 
-	// Build table object with complete configuration
-	table := &tablestoreAPI.TablestoreTable{
-		InstanceName: instanceName,
-	}
+	// Create table object using the new constructor
+	table := tablestoreAPI.NewTablestoreTable(instanceName)
+
+	// Set table name
 	table.SetName(tableName)
 
 	// Set table options
 	table.SetTimeToAlive(d.Get("time_to_live").(int))
 	table.SetMaxVersion(d.Get("max_version").(int))
 
-	// Set additional table options
-	if v, ok := d.GetOk("allow_update"); ok {
-		table.SetAllowUpdate(v.(bool))
-	}
+	// Always set allow_update since it's a boolean with default value
+	table.SetAllowUpdate(d.Get("allow_update").(bool))
 
 	if v, ok := d.GetOk("deviation_cell_version_in_sec"); ok {
 		if deviationStr, ok := v.(string); ok {
@@ -300,6 +320,11 @@ func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) erro
 		table.SetEnableLocalTxn(v.(bool))
 	}
 
+	// Set reserved throughput - IMPORTANT: This must always be set to avoid nil pointer
+	readCapacity := d.Get("read_capacity").(int)
+	writeCapacity := d.Get("write_capacity").(int)
+	table.SetReservedThroughput(readCapacity, writeCapacity)
+
 	// Create table using service
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		err := otsService.CreateOtsTable(instanceName, table)
@@ -321,7 +346,7 @@ func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) erro
 	d.SetId(EncodeOtsTableId(instanceName, tableName))
 
 	// Wait for table to be ready
-	err = otsService.WaitForOtsTableCreating(d.Id(), d.Timeout(schema.TimeoutCreate))
+	err = otsService.WaitForOtsTableCreating(instanceName, tableName, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -336,7 +361,12 @@ func resourceAliyunOtsTableRead(d *schema.ResourceData, meta interface{}) error 
 		return WrapError(err)
 	}
 
-	table, err := otsService.DescribeOtsTable(d.Id())
+	instanceName, tableName, err := DecodeOtsTableId(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+
+	table, err := otsService.DescribeOtsTable(instanceName, tableName)
 	if err != nil {
 		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
@@ -412,6 +442,12 @@ func resourceAliyunOtsTableRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("enable_local_txn", *table.EnableLocalTxn)
 	}
 
+	// Set reserved throughput if available
+	if table.ReservedThroughput != nil {
+		d.Set("read_capacity", table.ReservedThroughput.Readcap)
+		d.Set("write_capacity", table.ReservedThroughput.Writecap)
+	}
+
 	return nil
 }
 
@@ -427,17 +463,29 @@ func resourceAliyunOtsTableUpdate(d *schema.ResourceData, meta interface{}) erro
 		return WrapError(err)
 	}
 
-	// Check if table options need to be updated
+	// Check if any of the allowed update fields have changed
 	if d.HasChange("time_to_live") || d.HasChange("max_version") ||
 		d.HasChange("deviation_cell_version_in_sec") || d.HasChange("allow_update") {
 
-		// Build updated table object
-		table := &tablestoreAPI.TablestoreTable{
-			InstanceName: instanceName,
-		}
+		// Build updated table object using the new constructor
+		table := tablestoreAPI.NewTablestoreTable(instanceName)
 		table.SetName(tableName)
 		table.SetTimeToAlive(d.Get("time_to_live").(int))
 		table.SetMaxVersion(d.Get("max_version").(int))
+
+		// Set additional table options
+		table.SetAllowUpdate(d.Get("allow_update").(bool))
+
+		if v, ok := d.GetOk("deviation_cell_version_in_sec"); ok {
+			if deviationStr, ok := v.(string); ok {
+				if deviation, err := strconv.ParseInt(deviationStr, 10, 64); err == nil {
+					table.SetDeviationCellVersionInSec(deviation)
+				}
+			}
+		}
+
+		// Note: Reserved throughput (read_capacity, write_capacity) are now ForceNew fields
+		// They cannot be updated and will force resource recreation if changed
 
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 			err := otsService.UpdateOtsTable(instanceName, table)
@@ -467,7 +515,11 @@ func resourceAliyunOtsTableDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		err := otsService.DeleteOtsTable(d.Id())
+		instanceName, tableName, idErr := DecodeOtsTableId(d.Id())
+		if idErr != nil {
+			return resource.NonRetryableError(idErr)
+		}
+		err := otsService.DeleteOtsTable(instanceName, tableName)
 		if err != nil {
 			if NotFoundError(err) {
 				return nil
@@ -485,8 +537,13 @@ func resourceAliyunOtsTableDelete(d *schema.ResourceData, meta interface{}) erro
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteOtsTable", AlibabaCloudSdkGoERROR)
 	}
 
+	instanceName, tableName, idErr := DecodeOtsTableId(d.Id())
+	if idErr != nil {
+		return WrapError(idErr)
+	}
+
 	// Wait for table deletion
-	err = otsService.WaitForOtsTableDeleting(d.Id(), d.Timeout(schema.TimeoutDelete))
+	err = otsService.WaitForOtsTableDeleting(instanceName, tableName, d.Timeout(schema.TimeoutDelete))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

@@ -69,31 +69,6 @@ func (s *OtsService) DeleteOtsInstance(instanceName string) error {
 	return nil
 }
 
-func (s *OtsService) WaitForOtsInstance(instanceName string, status tablestoreAPI.InstanceStatus, timeout int) error {
-	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
-	for {
-		instance, err := s.DescribeOtsInstance(instanceName)
-		if err != nil {
-			if NotFoundError(err) {
-				if status == tablestoreAPI.InstanceStatusNotFound {
-					return nil
-				}
-			} else {
-				return WrapError(err)
-			}
-		}
-
-		if instance != nil && tablestoreAPI.InstanceStatus(instance.InstanceStatus) == status {
-			return nil
-		}
-
-		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, instanceName, GetFunc(1), timeout, instance.InstanceStatus, string(status), ProviderERROR)
-		}
-		time.Sleep(DefaultIntervalShort * time.Second)
-	}
-}
-
 func (s *OtsService) OtsInstanceStateRefreshFunc(instanceName string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOtsInstance(instanceName)

@@ -162,7 +162,7 @@ func dataSourceAliCloudOtsTablesRead(d *schema.ResourceData, meta interface{}) e
 	instanceName := d.Get("instance_name").(string)
 
 	// Get list of tables from service
-	tableInfos, err := otsService.ListOtsTable(instanceName)
+	tableInfos, err := otsService.ListOtsTables(instanceName)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -210,8 +210,7 @@ func dataSourceAliCloudOtsTablesRead(d *schema.ResourceData, meta interface{}) e
 	// Get full table info via DescribeTable for filtered tables
 	var allTableInfos []*tablestoreAPI.TablestoreTable
 	for _, tableName := range filteredTableNames {
-		tableId := EncodeOtsTableId(instanceName, tableName)
-		object, err := otsService.DescribeOtsTable(tableId)
+		object, err := otsService.DescribeOtsTable(instanceName, tableName)
 		if err != nil {
 			if NotFoundError(err) {
 				// Skip tables that are not found (may have been deleted)

@@ -153,29 +153,6 @@ const (
 	Incr = OtsSearchIndexSyncPhaseString("Incr")
 )
 
-type SearchIndexFieldTypeString string
-
-const (
-	OtsSearchTypeLong     = SearchIndexFieldTypeString("Long")
-	OtsSearchTypeDouble   = SearchIndexFieldTypeString("Double")
-	OtsSearchTypeBoolean  = SearchIndexFieldTypeString("Boolean")
-	OtsSearchTypeKeyword  = SearchIndexFieldTypeString("Keyword")
-	OtsSearchTypeText     = SearchIndexFieldTypeString("Text")
-	OtsSearchTypeDate     = SearchIndexFieldTypeString("Date")
-	OtsSearchTypeGeoPoint = SearchIndexFieldTypeString("GeoPoint")
-	OtsSearchTypeNested   = SearchIndexFieldTypeString("Nested")
-)
-
-type SearchIndexAnalyzerTypeString string
-
-const (
-	OtsSearchSingleWord = SearchIndexAnalyzerTypeString("SingleWord")
-	OtsSearchSplit      = SearchIndexAnalyzerTypeString("Split")
-	OtsSearchMinWord    = SearchIndexAnalyzerTypeString("MinWord")
-	OtsSearchMaxWord    = SearchIndexAnalyzerTypeString("MaxWord")
-	OtsSearchFuzzy      = SearchIndexAnalyzerTypeString("Fuzzy")
-)
-
 type SearchIndexOrderTypeString string
 
 const (
@@ -264,48 +241,6 @@ func ConvertDefinedColumnType(columnType tablestore.DefinedColumnType) (DefinedC
 		return DefinedColumnBoolean, nil
 	default:
 		return "", fmt.Errorf("unknown defined column type: %v", columnType)
-	}
-}
-
-// ConvertSearchIndexFieldTypeString converts SearchIndexFieldTypeString to tablestore FieldType
-func ConvertSearchIndexFieldTypeString(fieldType SearchIndexFieldTypeString) (tablestore.FieldType, error) {
-	switch fieldType {
-	case OtsSearchTypeLong:
-		return tablestore.FieldType_LONG, nil
-	case OtsSearchTypeDouble:
-		return tablestore.FieldType_DOUBLE, nil
-	case OtsSearchTypeBoolean:
-		return tablestore.FieldType_BOOLEAN, nil
-	case OtsSearchTypeKeyword:
-		return tablestore.FieldType_KEYWORD, nil
-	case OtsSearchTypeText:
-		return tablestore.FieldType_TEXT, nil
-	case OtsSearchTypeDate:
-		return tablestore.FieldType_DATE, nil
-	case OtsSearchTypeGeoPoint:
-		return tablestore.FieldType_GEO_POINT, nil
-	case OtsSearchTypeNested:
-		return tablestore.FieldType_NESTED, nil
-	default:
-		return tablestore.FieldType_KEYWORD, fmt.Errorf("unknown search index field type: %s", fieldType)
-	}
-}
-
-// ConvertSearchIndexAnalyzerTypeString converts SearchIndexAnalyzerTypeString to tablestore Analyzer
-func ConvertSearchIndexAnalyzerTypeString(analyzer SearchIndexAnalyzerTypeString) (tablestore.Analyzer, error) {
-	switch analyzer {
-	case OtsSearchSingleWord:
-		return tablestore.Analyzer_SingleWord, nil
-	case OtsSearchSplit:
-		return tablestore.Analyzer_Split, nil
-	case OtsSearchMinWord:
-		return tablestore.Analyzer_MinWord, nil
-	case OtsSearchMaxWord:
-		return tablestore.Analyzer_MaxWord, nil
-	case OtsSearchFuzzy:
-		return tablestore.Analyzer_Fuzzy, nil
-	default:
-		return tablestore.Analyzer_SingleWord, fmt.Errorf("unknown search index analyzer type: %s", analyzer)
 	}
 }
 
