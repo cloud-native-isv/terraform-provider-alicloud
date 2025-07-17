@@ -69,13 +69,13 @@ func (s *OtsService) DeleteOtsInstance(instanceName string) error {
 	return nil
 }
 
-func (s *OtsService) WaitForOtsInstance(instanceName string, status string, timeout int) error {
+func (s *OtsService) WaitForOtsInstance(instanceName string, status tablestoreAPI.InstanceStatus, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
 		instance, err := s.DescribeOtsInstance(instanceName)
 		if err != nil {
 			if NotFoundError(err) {
-				if status == string(Deleted) {
+				if status == tablestoreAPI.InstanceStatusNotFound {
 					return nil
 				}
 			} else {
@@ -83,12 +83,12 @@ func (s *OtsService) WaitForOtsInstance(instanceName string, status string, time
 			}
 		}
 
-		if instance != nil && instance.InstanceStatus == status {
+		if instance != nil && tablestoreAPI.InstanceStatus(instance.InstanceStatus) == status {
 			return nil
 		}
 
 		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, instanceName, GetFunc(1), timeout, instance.InstanceStatus, status, ProviderERROR)
+			return WrapErrorf(err, WaitTimeoutMsg, instanceName, GetFunc(1), timeout, instance.InstanceStatus, string(status), ProviderERROR)
 		}
 		time.Sleep(DefaultIntervalShort * time.Second)
 	}
@@ -99,13 +99,14 @@ func (s *OtsService) OtsInstanceStateRefreshFunc(instanceName string, failStates
 		object, err := s.DescribeOtsInstance(instanceName)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, "", nil
+				return nil, tablestoreAPI.InstanceStatusNotFound.String(), nil
 			}
-			return nil, "", WrapError(err)
+			return nil, tablestoreAPI.InstanceStatusFailed.String(), WrapError(err)
 		}
 
+		currentStatus := object.InstanceStatus
 		for _, failState := range failStates {
-			if object.InstanceStatus == failState {
+			if currentStatus == failState {
 				return object, object.InstanceStatus, WrapError(Error(FailedToReachTargetStatus, object.InstanceStatus))
 			}
 		}
@@ -115,11 +116,11 @@ func (s *OtsService) OtsInstanceStateRefreshFunc(instanceName string, failStates
 
 func (s *OtsService) WaitForOtsInstanceCreating(instanceName string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
-		[]string{"Creating"}, // pending states
-		[]string{"normal"},   // target states
+		[]string{tablestoreAPI.InstanceStatusNotFound.String()},
+		[]string{tablestoreAPI.InstanceStatusRunning.String()},
 		timeout,
 		5*time.Second,
-		s.OtsInstanceStateRefreshFunc(instanceName, []string{"forbidden", "deleting"}),
+		s.OtsInstanceStateRefreshFunc(instanceName, []string{tablestoreAPI.InstanceStatusFailed.String()}),
 	)
 
 	_, err := stateConf.WaitForState()
@@ -128,11 +129,11 @@ func (s *OtsService) WaitForOtsInstanceCreating(instanceName string, timeout tim
 
 func (s *OtsService) WaitForOtsInstanceDeleting(instanceName string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
-		[]string{"deleting"}, // pending states
-		[]string{""},         // target states (not found)
+		[]string{tablestoreAPI.InstanceStatusDeleting.String()},
+		[]string{tablestoreAPI.InstanceStatusNotFound.String()},
 		timeout,
 		5*time.Second,
-		s.OtsInstanceStateRefreshFunc(instanceName, []string{}),
+		s.OtsInstanceStateRefreshFunc(instanceName, []string{tablestoreAPI.InstanceStatusFailed.String()}),
 	)
 
 	_, err := stateConf.WaitForState()

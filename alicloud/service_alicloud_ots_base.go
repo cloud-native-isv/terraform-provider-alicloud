@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/alibabacloud-go/tablestore-20201209/client"
+	consoleSDK "github.com/alibabacloud-go/tablestore-20201209/client"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
@@ -118,8 +118,8 @@ func (ds *InputDataSource) doFilters() []interface{} {
 // Helper functions for schema conversion
 
 // convertInstanceToCreateRequest converts TablestoreInstance to SDK create request
-func convertInstanceToCreateRequest(instance *aliyunTablestoreAPI.TablestoreInstance) *client.CreateInstanceRequest {
-	request := &client.CreateInstanceRequest{
+func convertInstanceToCreateRequest(instance *aliyunTablestoreAPI.TablestoreInstance) *consoleSDK.CreateInstanceRequest {
+	request := &consoleSDK.CreateInstanceRequest{
 		InstanceName: tea.String(instance.InstanceName),
 		ClusterType:  tea.String(instance.ClusterType),
 	}
@@ -155,9 +155,9 @@ func convertInstanceToCreateRequest(instance *aliyunTablestoreAPI.TablestoreInst
 
 	// Convert tags
 	if len(instance.Tags) > 0 {
-		tags := make([]*client.CreateInstanceRequestTags, len(instance.Tags))
+		tags := make([]*consoleSDK.CreateInstanceRequestTags, len(instance.Tags))
 		for i, tag := range instance.Tags {
-			tags[i] = &client.CreateInstanceRequestTags{
+			tags[i] = &consoleSDK.CreateInstanceRequestTags{
 				Key:   tea.String(tag.Key),
 				Value: tea.String(tag.Value),
 			}
@@ -169,8 +169,8 @@ func convertInstanceToCreateRequest(instance *aliyunTablestoreAPI.TablestoreInst
 }
 
 // convertInstanceToUpdateRequest converts TablestoreInstance to SDK update request
-func convertInstanceToUpdateRequest(instance *aliyunTablestoreAPI.TablestoreInstance) *client.UpdateInstanceRequest {
-	request := &client.UpdateInstanceRequest{
+func convertInstanceToUpdateRequest(instance *aliyunTablestoreAPI.TablestoreInstance) *consoleSDK.UpdateInstanceRequest {
+	request := &consoleSDK.UpdateInstanceRequest{
 		InstanceName: tea.String(instance.InstanceName),
 	}
 
@@ -204,14 +204,14 @@ func convertInstanceToUpdateRequest(instance *aliyunTablestoreAPI.TablestoreInst
 }
 
 // convertTagsToSDK converts business tags to SDK format
-func convertTagsToSDK(tags []aliyunTablestoreAPI.TablestoreInstanceTag) []*client.TagResourcesRequestTags {
+func convertTagsToSDK(tags []aliyunTablestoreAPI.TablestoreInstanceTag) []*consoleSDK.TagResourcesRequestTags {
 	if tags == nil {
 		return nil
 	}
 
-	result := make([]*client.TagResourcesRequestTags, 0, len(tags))
+	result := make([]*consoleSDK.TagResourcesRequestTags, 0, len(tags))
 	for _, tag := range tags {
-		result = append(result, &client.TagResourcesRequestTags{
+		result = append(result, &consoleSDK.TagResourcesRequestTags{
 			Key:   tea.String(tag.Key),
 			Value: tea.String(tag.Value),
 		})
