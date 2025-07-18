@@ -109,6 +109,7 @@ func resourceAlicloudOtsIndexCreate(d *schema.ResourceData, meta interface{}) er
 	tableName := d.Get("table_name").(string)
 	indexName := d.Get("index_name").(string)
 	indexType := d.Get("index_type").(string)
+	indexSyncPhase := d.Get("index_sync_phase").(string)
 	includeBaseData := d.Get("include_base_data").(bool)
 	primaryKeys := convertToStringSlice(d.Get("primary_keys").([]interface{}))
 	definedColumns := convertToStringSlice(d.Get("defined_columns").([]interface{}))
@@ -128,6 +129,19 @@ func resourceAlicloudOtsIndexCreate(d *schema.ResourceData, meta interface{}) er
 		indexMeta.IndexType = tablestore.IT_LOCAL_INDEX
 	default:
 		return WrapError(fmt.Errorf("invalid index type: %s", indexType))
+	}
+
+	// Set index Sync Phase
+	switch indexSyncPhase {
+	case "FULL":
+		phase := tablestore.SyncPhase_FULL
+		indexMeta.IndexSyncPhase = &phase
+	case "INCR":
+		phase := tablestore.SyncPhase_INCR
+		indexMeta.IndexSyncPhase = &phase
+	default:
+		phase := tablestore.SyncPhase_FULL
+		indexMeta.IndexSyncPhase = &phase
 	}
 
 	// Create TablestoreIndex object
