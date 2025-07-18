@@ -90,7 +90,7 @@ func (s *OtsService) OtsSearchIndexStateRefreshFunc(instanceName, tableName, ind
 			if NotFoundError(err) {
 				return nil, string(tablestoreAPI.TablestoreSearchIndexStatusNotFound), nil
 			}
-			return nil, "", WrapError(err)
+			return nil, string(tablestoreAPI.TablestoreSearchIndexStatusFailed), WrapError(err)
 		}
 
 		// Use the new status type
@@ -108,11 +108,11 @@ func (s *OtsService) OtsSearchIndexStateRefreshFunc(instanceName, tableName, ind
 // Wait for search index creation
 func (s *OtsService) WaitForOtsSearchIndexCreating(instanceName, tableName, indexName string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
-		[]string{"CREATING"}, // pending states
+		[]string{string(tablestoreAPI.TablestoreSearchIndexStatusNotFound)}, // pending states
 		[]string{string(tablestoreAPI.TablestoreSearchIndexStatusExisting)}, // target states
 		timeout,
 		5*time.Second,
-		s.OtsSearchIndexStateRefreshFunc(instanceName, tableName, indexName, []string{"FAILED"}),
+		s.OtsSearchIndexStateRefreshFunc(instanceName, tableName, indexName, []string{string(tablestoreAPI.TablestoreSearchIndexStatusFailed)}),
 	)
 
 	_, err := stateConf.WaitForState()
@@ -126,7 +126,7 @@ func (s *OtsService) WaitForOtsSearchIndexDeleting(instanceName, tableName, inde
 		[]string{string(tablestoreAPI.TablestoreSearchIndexStatusNotFound)}, // target states
 		timeout,
 		5*time.Second,
-		s.OtsSearchIndexStateRefreshFunc(instanceName, tableName, indexName, []string{}),
+		s.OtsSearchIndexStateRefreshFunc(instanceName, tableName, indexName, []string{string(tablestoreAPI.TablestoreSearchIndexStatusFailed)}),
 	)
 
 	_, err := stateConf.WaitForState()

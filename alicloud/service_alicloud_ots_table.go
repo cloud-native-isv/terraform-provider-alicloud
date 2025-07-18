@@ -92,7 +92,7 @@ func (s *OtsService) OtsTableStateRefreshFunc(instanceName, tableName string, fa
 			if NotFoundError(err) {
 				return nil, string(tablestoreAPI.TablestoreTableStatusNotFound), nil
 			}
-			return nil, "", WrapError(err)
+			return nil, string(tablestoreAPI.TablestoreTableStatusFailed), WrapError(err)
 		}
 
 		// Use the new status type
@@ -110,11 +110,11 @@ func (s *OtsService) OtsTableStateRefreshFunc(instanceName, tableName string, fa
 // Wait for table creation
 func (s *OtsService) WaitForOtsTableCreating(instanceName, tableName string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
-		[]string{"CREATING"}, // pending states
+		[]string{string(tablestoreAPI.TablestoreTableStatusNotFound)}, // pending states
 		[]string{string(tablestoreAPI.TablestoreTableStatusExisting)}, // target states
 		timeout,
 		5*time.Second,
-		s.OtsTableStateRefreshFunc(instanceName, tableName, []string{"FAILED"}),
+		s.OtsTableStateRefreshFunc(instanceName, tableName, []string{string(tablestoreAPI.TablestoreTableStatusFailed)}),
 	)
 
 	_, err := stateConf.WaitForState()
@@ -128,7 +128,7 @@ func (s *OtsService) WaitForOtsTableDeleting(instanceName, tableName string, tim
 		[]string{string(tablestoreAPI.TablestoreTableStatusNotFound)}, // target states
 		timeout,
 		5*time.Second,
-		s.OtsTableStateRefreshFunc(instanceName, tableName, []string{}),
+		s.OtsTableStateRefreshFunc(instanceName, tableName, []string{string(tablestoreAPI.TablestoreTableStatusFailed)}),
 	)
 
 	_, err := stateConf.WaitForState()
