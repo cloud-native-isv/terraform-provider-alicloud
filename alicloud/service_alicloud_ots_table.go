@@ -32,10 +32,7 @@ func (s *OtsService) DescribeOtsTable(instanceName, tableName string) (*tablesto
 
 	table, err := api.GetTable(instanceName, tableName)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"OTSObjectNotExist", "NotExist"}) {
-			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
-		}
-		return nil, WrapErrorf(err, DefaultErrorMsg, tableName, "DescribeTable", AlibabaCloudSdkGoERROR)
+		return nil, WrapErrorf(err, DefaultErrorMsg, tableName, "GetTable", AlibabaCloudSdkGoERROR)
 	}
 
 	return table, nil
@@ -61,9 +58,6 @@ func (s *OtsService) DeleteOtsTable(instanceName, tableName string) error {
 	}
 
 	if err := api.DeleteTable(instanceName, tableName); err != nil {
-		if IsExpectedErrors(err, []string{"OTSObjectNotExist", "NotExist"}) {
-			return nil
-		}
 		return WrapErrorf(err, DefaultErrorMsg, tableName, "DeleteTable", AlibabaCloudSdkGoERROR)
 	}
 
@@ -90,9 +84,10 @@ func (s *OtsService) OtsTableStateRefreshFunc(instanceName, tableName string, fa
 		object, err := s.DescribeOtsTable(instanceName, tableName)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, string(tablestoreAPI.TablestoreTableStatusNotFound), nil
+				// 资源已删除，返回 nil, "", nil 表示目标达成
+				return nil, "", nil
 			}
-			return nil, string(tablestoreAPI.TablestoreTableStatusFailed), WrapError(err)
+			return nil, "", WrapError(err)
 		}
 
 		// Use the new status type
@@ -118,21 +113,27 @@ func (s *OtsService) WaitForOtsTableCreating(instanceName, tableName string, tim
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, tableName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, tableName)
+	}
+	return nil
 }
 
 // Wait for table deletion
 func (s *OtsService) WaitForOtsTableDeleting(instanceName, tableName string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
 		[]string{string(tablestoreAPI.TablestoreTableStatusExisting)}, // pending states
-		[]string{string(tablestoreAPI.TablestoreTableStatusNotFound)}, // target states
+		[]string{}, // target states (empty = wait for resource disappear)
 		timeout,
 		5*time.Second,
 		s.OtsTableStateRefreshFunc(instanceName, tableName, []string{string(tablestoreAPI.TablestoreTableStatusFailed)}),
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, tableName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, tableName)
+	}
+	return nil
 }
 
 // EncodeOtsTableId encodes instance name and table name into a single ID string

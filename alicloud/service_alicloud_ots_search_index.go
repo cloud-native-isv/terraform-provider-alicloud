@@ -30,9 +30,6 @@ func (s *OtsService) DescribeOtsSearchIndex(instanceName, tableName, indexName s
 
 	index, err := api.GetSearchIndex(instanceName, tableName, indexName)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotExist", "InvalidIndexName.NotFound"}) {
-			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
-		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, indexName, "DescribeSearchIndex", AlibabaCloudSdkGoERROR)
 	}
 
@@ -59,9 +56,6 @@ func (s *OtsService) DeleteOtsSearchIndex(instanceName string, index *tablestore
 	}
 
 	if err := api.DeleteSearchIndex(instanceName, index); err != nil {
-		if IsExpectedErrors(err, []string{"NotExist", "InvalidIndexName.NotFound"}) {
-			return nil
-		}
 		return WrapErrorf(err, DefaultErrorMsg, index.IndexName, "DeleteSearchIndex", AlibabaCloudSdkGoERROR)
 	}
 
@@ -88,9 +82,10 @@ func (s *OtsService) OtsSearchIndexStateRefreshFunc(instanceName, tableName, ind
 		object, err := s.DescribeOtsSearchIndex(instanceName, tableName, indexName)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, string(tablestoreAPI.TablestoreSearchIndexStatusNotFound), nil
+				// 资源已删除，返回 nil, "", nil 表示目标达成
+				return nil, "", nil
 			}
-			return nil, string(tablestoreAPI.TablestoreSearchIndexStatusFailed), WrapError(err)
+			return nil, "", WrapError(err)
 		}
 
 		// Use the new status type
@@ -114,21 +109,26 @@ func (s *OtsService) WaitForOtsSearchIndexCreating(instanceName, tableName, inde
 		5*time.Second,
 		s.OtsSearchIndexStateRefreshFunc(instanceName, tableName, indexName, []string{string(tablestoreAPI.TablestoreSearchIndexStatusFailed)}),
 	)
-
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, indexName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, indexName)
+	}
+	return nil
 }
 
 // Wait for search index deletion
 func (s *OtsService) WaitForOtsSearchIndexDeleting(instanceName, tableName, indexName string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
 		[]string{string(tablestoreAPI.TablestoreSearchIndexStatusExisting)}, // pending states
-		[]string{string(tablestoreAPI.TablestoreSearchIndexStatusNotFound)}, // target states
+		[]string{}, // target states (empty = wait for resource disappear)
 		timeout,
 		5*time.Second,
 		s.OtsSearchIndexStateRefreshFunc(instanceName, tableName, indexName, []string{string(tablestoreAPI.TablestoreSearchIndexStatusFailed)}),
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, indexName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, indexName)
+	}
+	return nil
 }

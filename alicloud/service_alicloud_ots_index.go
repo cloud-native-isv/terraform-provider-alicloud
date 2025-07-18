@@ -33,10 +33,7 @@ func (s *OtsService) DescribeOtsIndex(instanceName, tableName, indexName string)
 
 	index, err := api.GetIndex(instanceName, tableName, indexName)
 	if err != nil {
-		if NotFoundError(err) {
-			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
-		}
-		return nil, WrapErrorf(err, DefaultErrorMsg, indexName, "DescribeIndex", AlibabaCloudSdkGoERROR)
+		return nil, WrapErrorf(err, DefaultErrorMsg, indexName, "GetIndex", AlibabaCloudSdkGoERROR)
 	}
 
 	return index, nil
@@ -49,9 +46,6 @@ func (s *OtsService) DeleteOtsIndex(instanceName string, index *tablestoreAPI.Ta
 	}
 
 	if err := api.DeleteIndex(instanceName, index); err != nil {
-		if NotFoundError(err) {
-			return nil
-		}
 		return WrapErrorf(err, DefaultErrorMsg, index.IndexName, "DeleteIndex", AlibabaCloudSdkGoERROR)
 	}
 
@@ -62,34 +56,38 @@ func (s *OtsService) WaitForOtsIndexCreating(instanceName, tableName, indexName 
 	stateConf := BuildStateConf(
 		[]string{
 			string(tablestoreAPI.TablestoreIndexStatusNotFound),
-			}, // pending states
+		}, // pending states
 		[]string{
 			string(tablestoreAPI.TablestoreIndexStatusExisting),
-			}, // target states
+		}, // target states
 		timeout,
 		5*time.Second,
 		s.OtsIndexStateRefreshFunc(instanceName, tableName, indexName, []string{string(tablestoreAPI.TablestoreIndexStatusFailed)}),
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s:%s", instanceName, tableName, indexName))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s:%s", instanceName, tableName, indexName))
+	}
+	return nil
 }
 
 func (s *OtsService) WaitForOtsIndexDeleting(instanceName, tableName, indexName string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
 		[]string{
 			string(tablestoreAPI.TablestoreIndexStatusExisting),
-			}, // pending states
-		[]string{
-			string(tablestoreAPI.TablestoreIndexStatusNotFound),
-			}, // target states
+		}, // pending states
+		[]string{}, // target states (empty = wait for resource disappear)
 		timeout,
 		5*time.Second,
 		s.OtsIndexStateRefreshFunc(instanceName, tableName, indexName, []string{string(tablestoreAPI.TablestoreIndexStatusFailed)}),
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s:%s", instanceName, tableName, indexName))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s:%s", instanceName, tableName, indexName))
+	}
+	return nil
 }
 
 func (s *OtsService) OtsIndexStateRefreshFunc(instanceName, tableName, indexName string, failStates []string) resource.StateRefreshFunc {
@@ -97,9 +95,10 @@ func (s *OtsService) OtsIndexStateRefreshFunc(instanceName, tableName, indexName
 		object, err := s.DescribeOtsIndex(instanceName, tableName, indexName)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, string(tablestoreAPI.TablestoreIndexStatusNotFound), nil
+				// 资源已删除，返回 nil, "", nil 表示目标达成
+				return nil, "", nil
 			}
-			return nil, string(tablestoreAPI.TablestoreIndexStatusFailed), WrapError(err)
+			return nil, "", WrapError(err)
 		}
 
 		// For secondary indexes, we assume they're active if they exist

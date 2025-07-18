@@ -6,7 +6,98 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ots"
 	tablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
+
+// convertSchemaToTablestoreInstance converts Terraform schema data to TablestoreInstance
+func convertSchemaToTablestoreInstance(d *schema.ResourceData) *tablestoreAPI.TablestoreInstance {
+	instance := &tablestoreAPI.TablestoreInstance{
+		InstanceName: d.Get("name").(string),
+	}
+
+	// Set instance specification (required field)
+	if v, ok := d.GetOk("instance_specification"); ok {
+		instance.InstanceSpecification = v.(string)
+	}
+
+	if v, ok := d.GetOk("alias_name"); ok {
+		instance.AliasName = v.(string)
+	}
+	if v, ok := d.GetOk("description"); ok {
+		instance.InstanceDescription = v.(string)
+	}
+	if v, ok := d.GetOk("policy"); ok {
+		instance.Policy = v.(string)
+	}
+	if v, ok := d.GetOk("resource_group_id"); ok {
+		instance.ResourceGroupId = v.(string)
+	}
+
+	// Convert network ACLs - only ACL fields are supported now (Network field is deprecated)
+	if v, ok := d.GetOk("network_source_acl"); ok {
+		if networkSourceAcl, ok := v.(*schema.Set); ok {
+			instance.NetworkSourceACL = convertSetToStringSlice(networkSourceAcl)
+		}
+	}
+	if v, ok := d.GetOk("network_type_acl"); ok {
+		if networkTypeAcl, ok := v.(*schema.Set); ok {
+			instance.NetworkTypeACL = convertSetToStringSlice(networkTypeAcl)
+		}
+	}
+
+	// Convert tags
+	if v, ok := d.GetOk("tags"); ok {
+		if tagsMap, ok := v.(map[string]interface{}); ok {
+			instance.Tags = convertMapToTablestoreInstanceTags(tagsMap)
+		}
+	}
+
+	return instance
+}
+
+// convertTablestoreInstanceToSchema converts TablestoreInstance to Terraform schema data
+func convertTablestoreInstanceToSchema(d *schema.ResourceData, instance *tablestoreAPI.TablestoreInstance) error {
+	d.Set("name", instance.InstanceName)
+	d.Set("instance_specification", instance.InstanceSpecification)
+	d.Set("alias_name", instance.AliasName)
+	d.Set("description", instance.InstanceDescription)
+	d.Set("status", instance.InstanceStatus)
+	d.Set("region_id", instance.RegionId)
+	d.Set("resource_group_id", instance.ResourceGroupId)
+	d.Set("payment_type", instance.PaymentType)
+	d.Set("policy", instance.Policy)
+	d.Set("policy_version", instance.PolicyVersion)
+	d.Set("is_multi_az", instance.IsMultiAZ)
+	d.Set("table_quota", instance.TableQuota)
+	d.Set("vcu_quota", instance.VCUQuota)
+	d.Set("elastic_vcu_upper_limit", instance.ElasticVCUUpperLimit)
+
+	// 添加缺失的保留CU相关字段
+	d.Set("is_reserved_cu_instance", instance.IsReservedCUInstance)
+	d.Set("reserved_read_cu", instance.ReservedReadCU)
+	d.Set("reserved_write_cu", instance.ReservedWriteCU)
+
+	// 时间和用户ID字段
+	if !instance.CreateTime.IsZero() {
+		d.Set("create_time", instance.CreateTime.Format("2006-01-02T15:04:05Z"))
+	}
+	d.Set("user_id", instance.UserId)
+
+	// Set network ACLs - only ACL fields are supported now (Network field is deprecated)
+	if err := d.Set("network_source_acl", convertStringSliceToSet(instance.NetworkSourceACL)); err != nil {
+		return err
+	}
+	if err := d.Set("network_type_acl", convertStringSliceToSet(instance.NetworkTypeACL)); err != nil {
+		return err
+	}
+
+	// Set tags
+	if err := d.Set("tags", convertTablestoreInstanceTagsToMap(instance.Tags)); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // Instance management functions
 
@@ -99,7 +190,10 @@ func (s *OtsService) WaitForOtsInstanceCreating(instanceName string, timeout tim
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, instanceName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, instanceName)
+	}
+	return nil
 }
 
 func (s *OtsService) WaitForOtsInstanceDeleting(instanceName string, timeout time.Duration) error {
@@ -112,7 +206,10 @@ func (s *OtsService) WaitForOtsInstanceDeleting(instanceName string, timeout tim
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, instanceName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, instanceName)
+	}
+	return nil
 }
 
 func (s *OtsService) TagOtsInstance(instanceName string, tags []tablestoreAPI.TablestoreInstanceTag) error {
