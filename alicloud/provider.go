@@ -521,6 +521,8 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_log_projects":                                     dataSourceAliCloudLogProjects(),
 			"alicloud_log_stores":                                       dataSourceAliCloudLogStores(),
 			"alicloud_log_store_indexes":                                dataSourceAliCloudLogStoreIndexes(),
+			"alicloud_log_machine_groups":                               dataSourceAliCloudLogMachineGroups(),
+			"alicloud_log_logtail_configs":                              dataSourceAliCloudLogLogtailConfigs(),
 			"alicloud_event_bridge_service":                             dataSourceAliCloudEventBridgeService(),
 			"alicloud_event_bridge_event_buses":                         dataSourceAliCloudEventBridgeEventBuses(),
 			"alicloud_amqp_virtual_hosts":                               dataSourceAliCloudAmqpVirtualHosts(),

@@ -12,12 +12,12 @@ func dataSourceAliCloudLogStoreIndexes() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAliCloudLogStoreIndexesRead,
 		Schema: map[string]*schema.Schema{
-			"project": {
+			"project_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-			"logstore": {
+			"logstore_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -128,8 +128,8 @@ func dataSourceAliCloudLogStoreIndexesRead(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	project := d.Get("project").(string)
-	logstore := d.Get("logstore").(string)
+	project := d.Get("project_name").(string)
+	logstore := d.Get("logstore_name").(string)
 
 	// Get logstore index configuration
 	index, err := slsService.GetSlsLogStoreIndex(project, logstore)
@@ -145,8 +145,8 @@ func dataSourceAliCloudLogStoreIndexesRead(d *schema.ResourceData, meta interfac
 	d.SetId(resource.PrefixedUniqueId(project + ":" + logstore + ":"))
 
 	// Set basic index properties
-	d.Set("project", project)
-	d.Set("logstore", logstore)
+	d.Set("project_name", project)
+	d.Set("logstore_name", logstore)
 	d.Set("ttl", index.TTL)
 	d.Set("last_modify_time", formatUnixTimestamp(index.LastModifyTime))
 	d.Set("max_text_len", index.MaxTextLen)
