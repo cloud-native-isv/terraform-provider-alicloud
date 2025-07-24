@@ -6,12 +6,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAliCloudSelectDBDbCluster() *schema.Resource {
+func resourceAliCloudSelectDBCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudSelectDBDbClusterCreate,
-		Read:   resourceAliCloudSelectDBDbClusterRead,
-		Update: resourceAliCloudSelectDBDbClusterUpdate,
-		Delete: resourceAliCloudSelectDBDbClusterDelete,
+		Create: resourceAliCloudSelectDBClusterCreate,
+		Read:   resourceAliCloudSelectDBClusterRead,
+		Update: resourceAliCloudSelectDBClusterUpdate,
+		Delete: resourceAliCloudSelectDBClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -178,7 +178,7 @@ func resourceAliCloudSelectDBDbCluster() *schema.Resource {
 	}
 }
 
-func resourceAliCloudSelectDBDbClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSelectDBClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	// client := meta.(*connectivity.AliyunClient)
 	// selectDBService, err := NewSelectDBService(client)
 	// if err != nil {
@@ -201,15 +201,15 @@ func resourceAliCloudSelectDBDbClusterCreate(d *schema.ResourceData, meta interf
 	// 	d.SetId(fmt.Sprint(d.Get("db_instance_id").(string) + ":" + clusterId))
 	// }
 
-	// stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutCreate), 20*time.Second, selectDBService.SelectDBDbClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
+	// stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutCreate), 20*time.Second, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
 	// if _, err := stateConf.WaitForState(); err != nil {
 	// 	return WrapErrorf(err, IdMsg, d.Id())
 	// }
-	// return resourceAliCloudSelectDBDbClusterUpdate(d, meta)
+	// return resourceAliCloudSelectDBClusterUpdate(d, meta)
 	return nil
 }
 
-func resourceAliCloudSelectDBDbClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	// client := meta.(*connectivity.AliyunClient)
 	// selectDBService, err := NewSelectDBService(client)
 	// if err != nil {
@@ -230,7 +230,7 @@ func resourceAliCloudSelectDBDbClusterUpdate(d *schema.ResourceData, meta interf
 	// 	if err != nil {
 	// 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyDBCluster", AlibabaCloudSdkGoERROR)
 	// 	}
-	// 	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
+	// 	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
 	// 	if _, err := stateConf.WaitForState(); err != nil {
 	// 		return WrapErrorf(err, IdMsg, d.Id())
 	// 	}
@@ -251,7 +251,7 @@ func resourceAliCloudSelectDBDbClusterUpdate(d *schema.ResourceData, meta interf
 	// 	if err != nil {
 	// 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyDBCluster", AlibabaCloudSdkGoERROR)
 	// 	}
-	// 	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
+	// 	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
 	// 	if _, err := stateConf.WaitForState(); err != nil {
 	// 		return WrapErrorf(err, IdMsg, d.Id())
 	// 	}
@@ -381,7 +381,7 @@ func resourceAliCloudSelectDBDbClusterUpdate(d *schema.ResourceData, meta interf
 	// 		}
 
 	// 		// Wait for status change to complete
-	// 		stateConf := BuildStateConf([]string{"STATUS_CHANGING", "RESOURCE_PREPARING"}, []string{newStatusFinal}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBDbClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
+	// 		stateConf := BuildStateConf([]string{"STATUS_CHANGING", "RESOURCE_PREPARING"}, []string{newStatusFinal}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
 	// 		if _, err := stateConf.WaitForState(); err != nil {
 	// 			return WrapErrorf(err, IdMsg, d.Id())
 	// 		}
@@ -411,12 +411,12 @@ func resourceAliCloudSelectDBDbClusterUpdate(d *schema.ResourceData, meta interf
 	// 		}
 	// 	}
 
-	// 	if _, err := selectDBService.UpdateSelectDBDbClusterConfig(d.Id(), diffConfig); err != nil {
+	// 	if _, err := selectDBService.UpdateSelectDBClusterConfig(d.Id(), diffConfig); err != nil {
 	// 		return WrapError(err)
 	// 	}
 	// 	d.SetPartial("desired_params")
 
-	// 	stateConf := BuildStateConf([]string{"RESTARTING", "MODIFY_PARAM"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, selectDBService.SelectDBDbClusterStateRefreshFunc(d.Id(), []string{}))
+	// 	stateConf := BuildStateConf([]string{"RESTARTING", "MODIFY_PARAM"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{}))
 	// 	if _, err := stateConf.WaitForState(); err != nil {
 	// 		return WrapErrorf(err, IdMsg, d.Id())
 	// 	}
@@ -424,18 +424,18 @@ func resourceAliCloudSelectDBDbClusterUpdate(d *schema.ResourceData, meta interf
 	// }
 
 	// d.Partial(false)
-	// return resourceAliCloudSelectDBDbClusterRead(d, meta)
+	// return resourceAliCloudSelectDBClusterRead(d, meta)
 	return nil
 }
 
-func resourceAliCloudSelectDBDbClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{}) error {
 	// client := meta.(*connectivity.AliyunClient)
 	// selectDBService, err := NewSelectDBService(client)
 	// if err != nil {
 	// 	return WrapError(err)
 	// }
 
-	// clusterResp, err := selectDBService.DescribeSelectDBDbCluster(d.Id())
+	// clusterResp, err := selectDBService.DescribeSelectDBCluster(d.Id())
 	// if err != nil {
 	// 	return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_db_cluster", AlibabaCloudSdkGoERROR)
 	// }
@@ -485,7 +485,7 @@ func resourceAliCloudSelectDBDbClusterRead(d *schema.ResourceData, meta interfac
 	// 	d.Set("elastic_rules", rulesMapping)
 	// }
 
-	// configChangeArrayList, err := selectDBService.DescribeSelectDBDbClusterConfigChangeLog(d.Id())
+	// configChangeArrayList, err := selectDBService.DescribeSelectDBClusterConfigChangeLog(d.Id())
 	// if err != nil {
 	// 	return WrapError(err)
 	// }
@@ -509,7 +509,7 @@ func resourceAliCloudSelectDBDbClusterRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceAliCloudSelectDBDbClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudSelectDBClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	// client := meta.(*connectivity.AliyunClient)
 	// selectDBService, err := NewSelectDBService(client)
 	// if err != nil {
@@ -517,13 +517,13 @@ func resourceAliCloudSelectDBDbClusterDelete(d *schema.ResourceData, meta interf
 	// }
 
 	// stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING", "CREATING", "STOPPING", "STARTING", "RESTARTING", "RESTART", "MODIFY_PARAM"},
-	// 	[]string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, selectDBService.SelectDBDbClusterStateRefreshFunc(d.Id(), []string{}))
+	// 	[]string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{}))
 
 	// if _, err := stateConf.WaitForState(); err != nil {
 	// 	return WrapErrorf(err, IdMsg, d.Id())
 	// }
 
-	// _, err := selectDBService.DescribeSelectDBDbCluster(d.Id())
+	// _, err := selectDBService.DescribeSelectDBCluster(d.Id())
 	// if err != nil {
 	// 	if NotFoundError(err) {
 	// 		return nil
@@ -539,7 +539,7 @@ func resourceAliCloudSelectDBDbClusterDelete(d *schema.ResourceData, meta interf
 	// instance_id := d.Get("db_instance_id").(string)
 	// // cluster deleting cannot be checked, use instance from class changing to active instead.
 	// // cluster deleting = related instance update
-	// stateConf = BuildStateConf([]string{"CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutDelete), 10*time.Second, selectDBService.SelectDBDbInstanceStateRefreshFunc(instance_id, []string{"DELETING"}))
+	// stateConf = BuildStateConf([]string{"CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutDelete), 10*time.Second, selectDBService.SelectDBInstanceStateRefreshFunc(instance_id, []string{"DELETING"}))
 	// if _, err := stateConf.WaitForState(); err != nil {
 	// 	return WrapErrorf(err, IdMsg, d.Id())
 	// }
@@ -553,13 +553,13 @@ func buildSelectDBCreateClusterRequest(d *schema.ResourceData, meta interface{})
 	// 	return WrapError(err)
 	// }
 
-	// instanceResp, err := selectDBService.DescribeSelectDBDbInstance(d.Get("db_instance_id").(string))
+	// instanceResp, err := selectDBService.DescribeSelectDBInstance(d.Get("db_instance_id").(string))
 	// if err != nil {
 	// 	return nil, WrapErrorf(err, DefaultErrorMsg, d.Id())
 	// }
 
 	// vswitchId := ""
-	// netResp, err := selectDBService.DescribeSelectDBDbInstanceNetInfo(d.Get("db_instance_id").(string))
+	// netResp, err := selectDBService.DescribeSelectDBInstanceNetInfo(d.Get("db_instance_id").(string))
 	// if err != nil {
 	// 	return nil, WrapErrorf(err, DefaultErrorMsg, d.Get("db_instance_id").(string))
 	// }
