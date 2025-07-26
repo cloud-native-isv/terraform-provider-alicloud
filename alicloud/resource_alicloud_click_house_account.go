@@ -135,7 +135,7 @@ func resourceAliCloudClickHouseAccountRead(d *schema.ResourceData, meta interfac
 	clickhouseService := ClickhouseService{client}
 	object, err := clickhouseService.DescribeClickHouseAccount(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_click_house_account clickhouseService.DescribeClickHouseAccount Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -340,7 +340,7 @@ func resourceAliCloudClickHouseAccountDelete(d *schema.ResourceData, meta interf
 	}
 	stateConf := BuildStateConf([]string{"Deleting"}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, clickhouseService.ClickhouseStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, IdMsg, d.Id())

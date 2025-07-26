@@ -118,7 +118,7 @@ func resourceAliCloudRdsBackupRead(d *schema.ResourceData, meta interface{}) err
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeRdsBackup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_rds_backup rdsService.DescribeRdsBackup Failed!!! %s", err)
 			d.SetId("")
 			return nil

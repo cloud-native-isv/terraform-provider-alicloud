@@ -192,7 +192,7 @@ func resourceAliCloudEsaHttpsApplicationConfigurationRead(d *schema.ResourceData
 
 	objectRaw, err := esaServiceV2.DescribeEsaHttpsApplicationConfiguration(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_https_application_configuration DescribeEsaHttpsApplicationConfiguration Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -354,7 +354,7 @@ func resourceAliCloudEsaHttpsApplicationConfigurationDelete(d *schema.ResourceDa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -99,7 +99,7 @@ func resourceAliCloudAlbAclEntryAttachmentRead(d *schema.ResourceData, meta inte
 	albService := AlbService{client}
 	object, err := albService.DescribeAlbAclEntryAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alb_acl_entry_attachment AlbService.DescribeAlbAclEntryAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

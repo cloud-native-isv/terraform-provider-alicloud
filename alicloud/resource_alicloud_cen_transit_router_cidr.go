@@ -111,7 +111,7 @@ func resourceAliCloudCenTransitRouterCidrRead(d *schema.ResourceData, meta inter
 
 	objectRaw, err := cenServiceV2.DescribeCenTransitRouterCidr(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_transit_router_cidr DescribeCenTransitRouterCidr Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -218,7 +218,7 @@ func resourceAliCloudCenTransitRouterCidrDelete(d *schema.ResourceData, meta int
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

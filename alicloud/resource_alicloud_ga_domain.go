@@ -83,7 +83,7 @@ func resourceAliCloudGaDomainRead(d *schema.ResourceData, meta interface{}) erro
 
 	object, err := gaService.DescribeGaDomain(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ga_domain gaService.DescribeGaDomain Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -129,7 +129,7 @@ func resourceAliCloudGaDomainDelete(d *schema.ResourceData, meta interface{}) er
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

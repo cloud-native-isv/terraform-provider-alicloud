@@ -95,7 +95,7 @@ func resourceAliCloudRocketmqAccountRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := rocketmqServiceV2.DescribeRocketmqAccount(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_rocketmq_account DescribeRocketmqAccount Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -196,7 +196,7 @@ func resourceAliCloudRocketmqAccountDelete(d *schema.ResourceData, meta interfac
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

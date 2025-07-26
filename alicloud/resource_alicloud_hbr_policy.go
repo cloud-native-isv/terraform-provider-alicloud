@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"encoding/json"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -196,7 +197,7 @@ func resourceAliCloudHbrPolicyRead(d *schema.ResourceData, meta interface{}) err
 
 	objectRaw, err := hbrServiceV2.DescribeHbrPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_hbr_policy DescribeHbrPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -357,7 +358,7 @@ func resourceAliCloudHbrPolicyDelete(d *schema.ResourceData, meta interface{}) e
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

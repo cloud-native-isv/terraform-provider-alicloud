@@ -3,10 +3,11 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"log"
 	"time"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -260,7 +261,7 @@ func resourceAliCloudVPNGatewayVPNGatewayRead(d *schema.ResourceData, meta inter
 
 	objectRaw, err := vPNGatewayServiceV2.DescribeVPNGatewayVPNGateway(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpn_gateway DescribeVPNGatewayVPNGateway Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -91,7 +91,7 @@ func resourceAliCloudThreatDetectionAssetSelectionConfigRead(d *schema.ResourceD
 
 	objectRaw, err := threatDetectionServiceV2.DescribeThreatDetectionAssetSelectionConfig(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_asset_selection_config DescribeThreatDetectionAssetSelectionConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -115,7 +115,7 @@ func resourceAliyunEssAttachmentUpdate(d *schema.ResourceData, meta interface{})
 				if err != nil {
 					if IsExpectedErrors(err, []string{"IncorrectCapacity.MaxSize"}) {
 						instances, err := essService.DescribeEssAttachment(d.Id(), make([]string, 0))
-						if !NotFoundError(err) {
+						if !IsNotFoundError(err) {
 							return resource.NonRetryableError(err)
 						}
 						var autoAdded, attached []string
@@ -219,7 +219,7 @@ func resourceAliyunEssAttachmentRead(d *schema.ResourceData, meta interface{}) e
 	object, err := essService.DescribeEssAttachment(d.Id(), make([]string, 0))
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -255,7 +255,7 @@ func resourceAliyunEssAttachmentDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	if err := essService.WaitForEssScalingGroup(object.ScalingGroupId, Active, DefaultTimeout); err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
@@ -298,7 +298,7 @@ func resourceAliyunEssAttachmentDelete(d *schema.ResourceData, meta interface{})
 		time.Sleep(3 * time.Second)
 		instances, err := essService.DescribeEssAttachment(d.Id(), removed)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return resource.NonRetryableError(WrapError(err))

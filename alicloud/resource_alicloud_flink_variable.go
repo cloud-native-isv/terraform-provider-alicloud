@@ -65,7 +65,7 @@ func resourceAliCloudFlinkVariableRead(d *schema.ResourceData, meta interface{})
 	workspaceId, namespaceName, varName := splitVariableID(d.Id())
 	variable, err := flinkService.GetVariable(workspaceId, namespaceName, varName)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

@@ -137,7 +137,7 @@ func resourceAliCloudCddcDedicatedHostGroupRead(d *schema.ResourceData, meta int
 	cddcService := CddcService{client}
 	object, err := cddcService.DescribeCddcDedicatedHostGroup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cddc_dedicated_host_group cddcService.DescribeCddcDedicatedHostGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

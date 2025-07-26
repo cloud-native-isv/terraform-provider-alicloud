@@ -104,7 +104,7 @@ func resourceAliCloudPaiWorkspaceExperimentRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := paiWorkspaceServiceV2.DescribePaiWorkspaceExperiment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_pai_workspace_experiment DescribePaiWorkspaceExperiment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -208,7 +208,7 @@ func resourceAliCloudPaiWorkspaceExperimentDelete(d *schema.ResourceData, meta i
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

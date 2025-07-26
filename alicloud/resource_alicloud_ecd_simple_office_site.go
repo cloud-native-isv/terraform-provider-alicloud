@@ -150,7 +150,7 @@ func resourceAliCloudEcdSimpleOfficeSiteRead(d *schema.ResourceData, meta interf
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdSimpleOfficeSite(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_simple_office_site ecdService.DescribeEcdSimpleOfficeSite Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -320,7 +320,7 @@ func resourceAliCloudEcdSimpleOfficeSiteDelete(d *schema.ResourceData, meta inte
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdSimpleOfficeSite(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_simple_office_site ecdService.DescribeEcdSimpleOfficeSite Failed!!! %s", err)
 			d.SetId("")
 			return nil

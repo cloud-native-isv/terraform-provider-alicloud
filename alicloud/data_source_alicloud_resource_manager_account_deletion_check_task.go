@@ -106,7 +106,7 @@ func dataSourceAliCloudResourceManagerAccountDeletionCheckTaskRead(d *schema.Res
 
 	object, err := resourceManagerService.DescribeResourceManagerAccountDeletionCheckTask(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

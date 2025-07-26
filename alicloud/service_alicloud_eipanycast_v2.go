@@ -62,7 +62,7 @@ func (s *EipanycastServiceV2) EipanycastAnycastEipAddressStateRefreshFunc(id str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEipanycastAnycastEipAddress(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -235,7 +235,7 @@ func (s *EipanycastServiceV2) EipanycastAnycastEipAddressAttachmentStateRefreshF
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEipanycastAnycastEipAddressAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

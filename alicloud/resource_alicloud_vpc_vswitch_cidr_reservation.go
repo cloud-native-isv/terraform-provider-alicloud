@@ -159,7 +159,7 @@ func resourceAliCloudVpcVswitchCidrReservationRead(d *schema.ResourceData, meta 
 
 	objectRaw, err := vpcServiceV2.DescribeVpcVswitchCidrReservation(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_vswitch_cidr_reservation DescribeVpcVswitchCidrReservation Failed!!! %s", err)
 			d.SetId("")
 			return nil

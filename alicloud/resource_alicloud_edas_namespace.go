@@ -92,7 +92,7 @@ func resourceAliCloudEdasNamespaceRead(d *schema.ResourceData, meta interface{})
 	edasService := EdasService{client}
 	object, err := edasService.DescribeEdasNamespace(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_edas_namespace edasService.DescribeEdasNamespace Failed!!! %s", err)
 			d.SetId("")
 			return nil

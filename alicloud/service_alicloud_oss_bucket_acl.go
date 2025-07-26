@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-
 func (s *OssService) DescribeOssBucketAcl(id string) (object map[string]interface{}, err error) {
 	client := s.client
 	var request map[string]interface{}
@@ -57,7 +56,7 @@ func (s *OssService) OssBucketAclStateRefreshFunc(id string, field string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketAcl(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -74,4 +73,3 @@ func (s *OssService) OssBucketAclStateRefreshFunc(id string, field string, failS
 		return object, currentStatus, nil
 	}
 }
-

@@ -90,7 +90,7 @@ func resourceAliCloudEcdImageRead(d *schema.ResourceData, meta interface{}) erro
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdImage(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_image ecdService.DescribeEcdImage Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -80,7 +80,7 @@ func resourceAliCloudEcsSessionManagerStatusRead(d *schema.ResourceData, meta in
 
 	object, err := ecsService.DescribeEcsSessionManagerStatus(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_session_manager_status ecsService.DescribeEcsSessionManagerStatus Failed!!! %s", err)
 			d.SetId("")
 			return nil

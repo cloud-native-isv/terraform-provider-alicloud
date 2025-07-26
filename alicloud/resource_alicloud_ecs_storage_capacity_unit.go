@@ -125,7 +125,7 @@ func resourceAliCloudEcsStorageCapacityUnitRead(d *schema.ResourceData, meta int
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsStorageCapacityUnit(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_storage_capacity_unit ecsService.DescribeEcsStorageCapacityUnit Failed!!! %s", err)
 			d.SetId("")
 			return nil

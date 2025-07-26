@@ -62,7 +62,7 @@ func (s *EcsServiceV2) EcsImageComponentStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsImageComponent(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -219,7 +219,7 @@ func (s *EcsServiceV2) EcsImageStateRefreshFunc(id string, field string, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsImage(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -336,7 +336,7 @@ func (s *EcsServiceV2) EcsImagePipelineExecutionStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsImagePipelineExecution(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -465,7 +465,7 @@ func (s *EcsServiceV2) EcsDiskStateRefreshFunc(id string, field string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsDisk(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -627,7 +627,7 @@ func (s *EcsServiceV2) EcsSnapshotStateRefreshFunc(id string, field string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsSnapshot(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -717,7 +717,7 @@ func (s *EcsServiceV2) EcsRamRoleAttachmentStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsRamRoleAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

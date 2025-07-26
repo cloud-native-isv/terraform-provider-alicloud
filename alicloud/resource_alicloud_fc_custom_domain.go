@@ -151,7 +151,7 @@ func resourceAliCloudFCCustomDomainRead(d *schema.ResourceData, meta interface{}
 
 	object, err := fcService.DescribeFcCustomDomain(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_custom_domain fcService.DescribeFcCustomDomain Failed!!! %s", err)
 			d.SetId("")
 			return nil

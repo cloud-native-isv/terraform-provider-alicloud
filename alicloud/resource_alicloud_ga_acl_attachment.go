@@ -103,7 +103,7 @@ func resourceAliCloudGaAclAttachmentRead(d *schema.ResourceData, meta interface{
 	gaService := GaService{client}
 	object, err := gaService.DescribeGaAclAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ga_acl_attachment gaService.DescribeGaAclAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

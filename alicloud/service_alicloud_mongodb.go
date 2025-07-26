@@ -79,7 +79,7 @@ func (s *MongoDBService) RdsMongodbDBInstanceStateRefreshFunc(id string, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMongoDBInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -99,7 +99,7 @@ func (s *MongoDBService) RdsMongodbDBInstanceOrderStateRefreshFunc(id string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMongoDBInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -119,7 +119,7 @@ func (s *MongoDBService) RdsMongoDBPublicNetworkAddressStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeReplicaSetRole(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -982,7 +982,7 @@ func (s *MongoDBService) MongodbAccountStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMongodbAccount(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1074,7 +1074,7 @@ func (s *MongoDBService) MongodbServerlessInstanceStateRefreshFunc(id string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMongodbServerlessInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1327,7 +1327,7 @@ func (s *MongoDBService) MongodbShardingNetworkPublicAddressStateRefreshFunc(id,
 		}
 		object, err := s.DescribeMongodbServerlessInstance(parts[0])
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1489,7 +1489,7 @@ func (s *MongoDBService) RdsMongodbDBShardingInstanceStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMongoDBShardingInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

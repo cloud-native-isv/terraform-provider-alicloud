@@ -2,9 +2,10 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/alibabacloud-go/tea/tea"
 	"log"
 	"time"
+
+	"github.com/alibabacloud-go/tea/tea"
 
 	"github.com/PaesslerAG/jsonpath"
 
@@ -303,7 +304,7 @@ func resourceAliCloudGaForwardingRuleRead(d *schema.ResourceData, meta interface
 
 	object, err := gaService.DescribeGaForwardingRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ga_ip_set gaService.DescribeGaForwardingRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

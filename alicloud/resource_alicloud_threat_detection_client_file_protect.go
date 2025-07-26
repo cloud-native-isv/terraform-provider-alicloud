@@ -140,7 +140,7 @@ func resourceAliCloudThreatDetectionClientFileProtectRead(d *schema.ResourceData
 
 	objectRaw, err := threatDetectionServiceV2.DescribeThreatDetectionClientFileProtect(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_client_file_protect DescribeThreatDetectionClientFileProtect Failed!!! %s", err)
 			d.SetId("")
 			return nil

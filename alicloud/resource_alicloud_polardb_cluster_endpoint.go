@@ -151,7 +151,7 @@ func resourceAliCloudPolarDBClusterEndpointRead(d *schema.ResourceData, meta int
 	object, err := polarDBService.DescribePolarDBClusterEndpoint(d.Id())
 
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

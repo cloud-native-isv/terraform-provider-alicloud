@@ -146,7 +146,7 @@ func resourceAliCloudRamAccessKeyRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := ramServiceV2.DescribeRamAccessKey(d.Id(), userName)
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_access_key DescribeRamAccessKey Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -236,7 +236,7 @@ func resourceAliCloudRamAccessKeyDelete(d *schema.ResourceData, meta interface{}
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExist.User.AccessKey", "EntityNotExist.User"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExist.User.AccessKey", "EntityNotExist.User"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

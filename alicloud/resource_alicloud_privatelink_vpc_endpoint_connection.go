@@ -112,7 +112,7 @@ func resourceAliCloudPrivateLinkVpcEndpointConnectionRead(d *schema.ResourceData
 
 	objectRaw, err := privateLinkServiceV2.DescribePrivateLinkVpcEndpointConnection(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_privatelink_vpc_endpoint_connection DescribePrivateLinkVpcEndpointConnection Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -224,7 +224,7 @@ func resourceAliCloudPrivateLinkVpcEndpointConnectionDelete(d *schema.ResourceDa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

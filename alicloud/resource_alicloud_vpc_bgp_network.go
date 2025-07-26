@@ -82,7 +82,7 @@ func resourceAliCloudVpcBgpNetworkRead(d *schema.ResourceData, meta interface{})
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpcBgpNetwork(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_bgp_network vpcService.DescribeVpcBgpNetwork Failed!!! %s", err)
 			d.SetId("")
 			return nil

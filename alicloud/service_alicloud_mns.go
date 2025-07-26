@@ -46,7 +46,7 @@ func (s *MnsService) WaitForMnsQueue(id string, status Status, timeout int) erro
 	for {
 		object, err := s.DescribeMnsQueue(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -87,7 +87,7 @@ func (s *MnsService) WaitForMnsTopic(id string, status Status, timeout int) erro
 	for {
 		object, err := s.DescribeMnsTopic(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -135,7 +135,7 @@ func (s *MnsService) WaitForMnsTopicSubscription(id string, status Status, timeo
 	for {
 		object, err := s.DescribeMnsTopicSubscription(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

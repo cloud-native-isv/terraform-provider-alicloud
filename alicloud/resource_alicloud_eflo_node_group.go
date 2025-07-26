@@ -5,10 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -313,7 +314,7 @@ func resourceAliCloudEfloNodeGroupRead(d *schema.ResourceData, meta interface{})
 
 	objectRaw, err := efloServiceV2.DescribeEfloNodeGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eflo_node_group DescribeEfloNodeGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -331,7 +332,7 @@ func resourceAliCloudEfloNodeGroupRead(d *schema.ResourceData, meta interface{})
 	d.Set("node_group_id", objectRaw["GroupId"])
 
 	objectRaw, err = efloServiceV2.DescribeNodeGroupListClusterNodes(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -711,7 +712,7 @@ func resourceAliCloudEfloNodeGroupDelete(d *schema.ResourceData, meta interface{
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

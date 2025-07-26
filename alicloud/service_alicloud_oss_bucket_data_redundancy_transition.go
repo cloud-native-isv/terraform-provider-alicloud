@@ -58,7 +58,7 @@ func (s *OssService) OssBucketDataRedundancyTransitionStateRefreshFunc(id string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketDataRedundancyTransition(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

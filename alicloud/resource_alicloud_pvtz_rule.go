@@ -107,7 +107,7 @@ func resourceAliCloudPvtzRuleRead(d *schema.ResourceData, meta interface{}) erro
 	pvtzService := PvtzService{client}
 	object, err := pvtzService.DescribePvtzRule(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_pvtz_rule pvtzService.DescribePvtzRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

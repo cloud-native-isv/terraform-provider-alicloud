@@ -62,7 +62,7 @@ func (s *RealtimeComputeServiceV2) RealtimeComputeVvpInstanceStateRefreshFunc(id
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRealtimeComputeVvpInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

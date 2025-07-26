@@ -96,7 +96,7 @@ func (s *CbwpServiceV2) CbwpCommonBandwidthPackageStateRefreshFunc(id string, fi
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCbwpCommonBandwidthPackage(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -352,7 +352,7 @@ func (s *CbwpServiceV2) CbwpCommonBandwidthPackageAttachmentStateRefreshFunc(id 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCbwpCommonBandwidthPackageAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

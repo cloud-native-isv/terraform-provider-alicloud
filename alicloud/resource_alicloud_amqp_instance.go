@@ -2,9 +2,10 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"log"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -272,7 +273,7 @@ func resourceAliCloudAmqpInstanceRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := amqpServiceV2.DescribeAmqpInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_amqp_instance DescribeAmqpInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

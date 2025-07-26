@@ -179,7 +179,7 @@ func resourceAliCloudCSApplicationRead(d *schema.ResourceData, meta interface{})
 	application, err := csService.DescribeContainerApplication(parts[0], parts[1])
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

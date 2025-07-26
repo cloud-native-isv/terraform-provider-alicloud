@@ -107,7 +107,7 @@ func resourceAliCloudEsaWaitingRoomRuleRead(d *schema.ResourceData, meta interfa
 
 	objectRaw, err := esaServiceV2.DescribeEsaWaitingRoomRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_waiting_room_rule DescribeEsaWaitingRoomRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -206,7 +206,7 @@ func resourceAliCloudEsaWaitingRoomRuleDelete(d *schema.ResourceData, meta inter
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

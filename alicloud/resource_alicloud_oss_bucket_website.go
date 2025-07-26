@@ -832,7 +832,7 @@ func resourceAliCloudOssBucketWebsiteRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketWebsite(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_website DescribeOssBucketWebsite Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -1545,7 +1545,7 @@ func resourceAliCloudOssBucketWebsiteDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NoSuchBucket", "NoSuchWebsiteConfiguration"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NoSuchBucket", "NoSuchWebsiteConfiguration"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -83,7 +83,7 @@ func resourceAliCloudOosDefaultPatchBaselineRead(d *schema.ResourceData, meta in
 
 	object, err := oosService.DescribeOosDefaultPatchBaseline(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oos_default_patch_baseline oosService.DescribeOosDefaultPatchBaseline Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -131,7 +131,7 @@ func resourceAliCloudOosDefaultPatchBaselineDelete(d *schema.ResourceData, meta 
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

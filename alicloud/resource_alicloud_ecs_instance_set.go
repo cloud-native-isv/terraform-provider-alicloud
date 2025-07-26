@@ -652,7 +652,7 @@ func resourceAliCloudEcsInstanceSetRead(d *schema.ResourceData, meta interface{}
 
 	objects, err := ecsService.DescribeEcsInstanceSet(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_instance ecsService.DescribeInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -712,7 +712,7 @@ func resourceAliCloudEcsInstanceSetRead(d *schema.ResourceData, meta interface{}
 	err = resource.Retry(2*time.Minute, func() *resource.RetryError {
 		disk, err = ecsService.DescribeInstanceSystemDisk(fmt.Sprint(instance["InstanceId"]), fmt.Sprint(instance["ResourceGroupId"]), "")
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)

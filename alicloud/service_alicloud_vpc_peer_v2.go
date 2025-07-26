@@ -55,7 +55,7 @@ func (s *VpcPeerServiceV2) VpcPeerPeerConnectionStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcPeerPeerConnection(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -211,7 +211,7 @@ func (s *VpcPeerServiceV2) VpcPeerPeerConnectionAccepterStateRefreshFunc(id stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcPeerPeerConnectionAccepter(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

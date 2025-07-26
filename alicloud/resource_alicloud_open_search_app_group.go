@@ -180,7 +180,7 @@ func resourceAliCloudOpenSearchAppGroupRead(d *schema.ResourceData, meta interfa
 	openSearchService := OpenSearchService{client}
 	object, err := openSearchService.DescribeOpenSearchAppGroup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_open_search_app_group openSearchService.DescribeOpenSearchAppGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

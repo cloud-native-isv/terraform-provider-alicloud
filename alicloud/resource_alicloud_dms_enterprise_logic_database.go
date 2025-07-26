@@ -125,7 +125,7 @@ func resourceAliCloudDmsEnterpriseLogicDatabaseRead(d *schema.ResourceData, meta
 
 	object, err := dmsEnterpriseService.DescribeDmsEnterpriseLogicDatabase(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dms_enterprise_logic_database dmsEnterpriseService.DescribeDmsEnterpriseLogicDatabase Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -217,7 +217,7 @@ func resourceAliCloudDmsEnterpriseLogicDatabaseDelete(d *schema.ResourceData, me
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

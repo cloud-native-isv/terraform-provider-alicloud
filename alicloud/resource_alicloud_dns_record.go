@@ -156,7 +156,7 @@ func resourceAliCloudDnsRecordRead(d *schema.ResourceData, meta interface{}) err
 	dnsService := &DnsService{client: client}
 	object, err := dnsService.DescribeDnsRecord(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -197,7 +197,7 @@ func resourceAliCloudDnsRecordDelete(d *schema.ResourceData, meta interface{}) e
 		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 		_, err = dnsService.DescribeDnsRecord(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return resource.NonRetryableError(WrapError(err))

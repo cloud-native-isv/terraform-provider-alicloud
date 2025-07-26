@@ -142,7 +142,7 @@ func resourceAliCloudEipSegmentAddressRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := eipServiceV2.DescribeEipSegmentAddress(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eip_segment_address DescribeEipSegmentAddress Failed!!! %s", err)
 			d.SetId("")
 			return nil

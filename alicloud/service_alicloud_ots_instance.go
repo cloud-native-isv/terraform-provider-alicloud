@@ -122,7 +122,7 @@ func (s *OtsService) DescribeOtsInstance(instanceName string) (*tablestoreAPI.Ta
 
 	instance, err := api.GetInstance(instanceName)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, instanceName, "GetInstance", AlibabaCloudSdkGoERROR)
@@ -151,7 +151,7 @@ func (s *OtsService) DeleteOtsInstance(instanceName string) error {
 	}
 
 	if err := api.DeleteInstance(instanceName); err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, instanceName, "DeleteInstance", AlibabaCloudSdkGoERROR)
@@ -164,7 +164,7 @@ func (s *OtsService) OtsInstanceStateRefreshFunc(instanceName string, failStates
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOtsInstance(instanceName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, tablestoreAPI.InstanceStatusNotFound.String(), nil
 			}
 			return nil, tablestoreAPI.InstanceStatusFailed.String(), WrapError(err)
@@ -249,7 +249,7 @@ func (s *OtsService) DescribeOtsInstanceAttachment(instanceName string) (*tables
 	// Get all VPC attachments for the instance
 	attachments, err := api.ListInstanceAttachments(instanceName)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, instanceName, "ListInstanceAttachments", AlibabaCloudSdkGoERROR)
@@ -270,7 +270,7 @@ func (s *OtsService) WaitForOtsInstanceVpc(instanceName string, status Status, t
 	for {
 		object, err := s.DescribeOtsInstanceAttachment(instanceName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

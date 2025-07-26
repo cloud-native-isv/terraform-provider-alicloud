@@ -210,7 +210,7 @@ func resourceAliCloudCenBandwidthPackageRead(d *schema.ResourceData, meta interf
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenBandwidthPackage(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_bandwidth_package cbnService.DescribeCenBandwidthPackage Failed!!! %s", err)
 			d.SetId("")
 			return nil

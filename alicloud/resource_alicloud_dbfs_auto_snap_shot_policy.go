@@ -126,7 +126,7 @@ func resourceAliCloudDbfsAutoSnapShotPolicyRead(d *schema.ResourceData, meta int
 
 	object, err := dbfsService.DescribeDbfsAutoSnapShotPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dbfs_auto_snap_shot_policy dbfsService.DescribeDbfsAutoSnapShotPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -230,7 +230,7 @@ func resourceAliCloudDbfsAutoSnapShotPolicyDelete(d *schema.ResourceData, meta i
 		return nil
 	})
 	if err != nil {
-		if IsExpectedErrors(err, []string{"AutoSnapshotPolicyNotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"AutoSnapshotPolicyNotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

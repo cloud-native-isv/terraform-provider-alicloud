@@ -726,7 +726,7 @@ func resourceAliCloudVPNGatewayVpnConnectionRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := vPNGatewayServiceV2.DescribeVPNGatewayVpnConnection(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpn_connection DescribeVPNGatewayVpnConnection Failed!!! %s", err)
 			d.SetId("")
 			return nil

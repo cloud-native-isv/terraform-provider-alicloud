@@ -19,23 +19,23 @@ func (s *ArmsService) DescribeArmsPrometheusInstance(id string) (object map[stri
 		if err == nil {
 			// Convert to map[string]interface{} format expected by Terraform
 			return map[string]interface{}{
-				"ClusterId":           instance.ClusterId,
-				"ClusterName":         instance.ClusterName,
-				"ClusterType":         instance.ClusterType,
-				"VpcId":               instance.VpcId,
-				"VSwitchId":           instance.VSwitchId,
-				"SecurityGroupId":     instance.SecurityGroupId,
+				"ClusterId":       instance.ClusterId,
+				"ClusterName":     instance.ClusterName,
+				"ClusterType":     instance.ClusterType,
+				"VpcId":           instance.VpcId,
+				"VSwitchId":       instance.VSwitchId,
+				"SecurityGroupId": instance.SecurityGroupId,
 
-				"GrafanaInstanceId":   instance.GrafanaInstanceId,
-				"HttpApiInterUrl":     instance.HttpApiInterUrl,
+				"GrafanaInstanceId": instance.GrafanaInstanceId,
+				"HttpApiInterUrl":   instance.HttpApiInterUrl,
 
 				"PushGatewayInterUrl": instance.PushGatewayInterUrl,
 
-				"RemoteReadInterUrl":  instance.RemoteReadInterUrl,
+				"RemoteReadInterUrl": instance.RemoteReadInterUrl,
 
 				"RemoteWriteInterUrl": instance.RemoteWriteInterUrl,
 
-				"SubClustersJson":     instance.SubClustersJson,
+				"SubClustersJson": instance.SubClustersJson,
 			}, nil
 		}
 	}
@@ -151,7 +151,7 @@ func (s *ArmsService) ArmsPrometheusInstanceStateRefreshFunc(id string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeArmsPrometheusInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -90,7 +90,7 @@ func resourceAliCloudSddpConfigRead(d *schema.ResourceData, meta interface{}) er
 	sddpService := SddpService{client}
 	object, err := sddpService.DescribeSddpConfig(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sddp_config sddpService.DescribeSddpConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil

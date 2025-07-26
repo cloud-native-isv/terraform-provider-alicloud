@@ -115,7 +115,7 @@ func resourceAliCloudImpAppTemplateRead(d *schema.ResourceData, meta interface{}
 	impService := ImpService{client}
 	object, err := impService.DescribeImpAppTemplate(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_imp_app_template impService.DescribeImpAppTemplate Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -245,7 +245,7 @@ func resourceAliCloudImpAppTemplateDelete(d *schema.ResourceData, meta interface
 		return nil
 	})
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidAppTemplateId.App.NotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidAppTemplateId.App.NotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

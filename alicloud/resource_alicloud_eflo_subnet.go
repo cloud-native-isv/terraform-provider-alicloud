@@ -138,7 +138,7 @@ func resourceAliCloudEfloSubnetRead(d *schema.ResourceData, meta interface{}) er
 
 	object, err := efloService.DescribeEfloSubnet(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eflo_subnet efloService.DescribeEfloSubnet Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -239,7 +239,7 @@ func resourceAliCloudEfloSubnetDelete(d *schema.ResourceData, meta interface{}) 
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) || IsExpectedErrors(err, []string{"1003"}) {
+		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"1003"}) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

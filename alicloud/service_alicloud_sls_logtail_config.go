@@ -81,7 +81,7 @@ func (s *SlsService) LogtailConfigStateRefreshFunc(id string, field string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSlsLogtailConfig(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -907,7 +907,7 @@ func resourceAliCloudRdsDdrInstanceUpdate(d *schema.ResourceData, meta interface
 
 		instance, err := rdsService.DescribeDBInstance(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				d.SetId("")
 				return nil
 			}
@@ -1381,7 +1381,7 @@ func resourceAliCloudRdsDdrInstanceRead(d *schema.ResourceData, meta interface{}
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -1588,7 +1588,7 @@ func resourceAliCloudRdsDdrInstanceDelete(d *schema.ResourceData, meta interface
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
@@ -1608,7 +1608,7 @@ func resourceAliCloudRdsDdrInstanceDelete(d *schema.ResourceData, meta interface
 	}
 	err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutDelete)), func() *resource.RetryError {
 		response, err := client.RpcPost("Rds", "2014-08-15", action, nil, request, false)
-		if err != nil && !NotFoundError(err) {
+		if err != nil && !IsNotFoundError(err) {
 			if IsExpectedErrors(err, []string{"OperationDenied.DBInstanceStatus", "OperationDenied.ReadDBInstanceStatus"}) || NeedRetry(err) {
 				return resource.RetryableError(err)
 			}

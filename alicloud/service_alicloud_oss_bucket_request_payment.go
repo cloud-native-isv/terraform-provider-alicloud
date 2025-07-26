@@ -54,7 +54,7 @@ func (s *OssService) OssBucketRequestPaymentStateRefreshFunc(id string, field st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketRequestPayment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -71,4 +71,3 @@ func (s *OssService) OssBucketRequestPaymentStateRefreshFunc(id string, field st
 		return object, currentStatus, nil
 	}
 }
-

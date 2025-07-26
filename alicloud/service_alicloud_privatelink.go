@@ -64,7 +64,7 @@ func (s *PrivatelinkService) PrivatelinkVpcEndpointServiceStateRefreshFunc(id st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePrivatelinkVpcEndpointService(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -118,7 +118,7 @@ func (s *PrivatelinkService) PrivatelinkVpcEndpointConnectionStateRefreshFunc(id
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePrivatelinkVpcEndpointConnection(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -214,7 +214,7 @@ func (s *PrivatelinkService) PrivatelinkVpcEndpointStateRefreshFunc(id string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePrivatelinkVpcEndpoint(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -360,7 +360,7 @@ func (s *PrivatelinkService) PrivatelinkVpcEndpointZoneStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePrivatelinkVpcEndpointZone(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

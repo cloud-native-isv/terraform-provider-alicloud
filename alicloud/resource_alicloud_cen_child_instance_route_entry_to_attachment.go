@@ -124,7 +124,7 @@ func resourceAliCloudCenChildInstanceRouteEntryToAttachmentRead(d *schema.Resour
 
 	object, err := cbnService.DescribeCenChildInstanceRouteEntryToAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_child_instance_route_entry_to_attachment cbnService.DescribeCenChildInstanceRouteEntryToAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -180,7 +180,7 @@ func resourceAliCloudCenChildInstanceRouteEntryToAttachmentDelete(d *schema.Reso
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

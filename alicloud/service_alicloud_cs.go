@@ -511,7 +511,7 @@ func (s *CsClient) DescribeCsKubernetesAllAvailableAddons(clusterId string) (map
 		}
 		addonInstance, err := s.DescribeCsKubernetesAddonInstance(clusterId, name)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				continue
 			}
 			return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "DescribeCsKubernetesExistedAddons", err)
@@ -574,7 +574,7 @@ func (s *CsClient) DescribeCsKubernetesAddon(id string) (*Component, error) {
 
 	addonInstance, err := s.DescribeCsKubernetesAddonInstance(clusterId, addonName)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"AddonNotFound", "ErrorClusterNotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"AddonNotFound", "ErrorClusterNotFound"}) || IsNotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("alicloud_cs_kubernetes_addon", id), ResourceNotfound)
 		}
 		return nil, err
@@ -607,7 +607,7 @@ func (s *CsClient) CsKubernetesAddonTaskRefreshFunc(clusterId string, addonName 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsKubernetesAddonStatus(clusterId, addonName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -625,7 +625,7 @@ func (s *CsClient) CsKubernetesAddonStateRefreshFunc(clusterId string, addonName
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsKubernetesAddonInstance(clusterId, addonName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -644,7 +644,7 @@ func (s *CsClient) CsKubernetesAddonExistRefreshFunc(clusterId string, addonName
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsKubernetesAddonInstance(clusterId, addonName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return object, "deleted", nil
 			}
@@ -893,7 +893,7 @@ func (s *CsService) WaitForCsKubernetes(id string, status Status, timeout int) e
 	for {
 		object, err := s.DescribeCsKubernetes(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -949,7 +949,7 @@ func (s *CsService) WaitForCSManagedKubernetes(id string, status Status, timeout
 	for {
 		object, err := s.DescribeCsManagedKubernetes(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -972,7 +972,7 @@ func (s *CsService) CsKubernetesInstanceStateRefreshFunc(id string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsKubernetes(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -992,7 +992,7 @@ func (s *CsService) CsKubernetesNodePoolStateRefreshFunc(id string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsKubernetesNodePool(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1012,7 +1012,7 @@ func (s *CsService) CsManagedKubernetesInstanceStateRefreshFunc(id string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsManagedKubernetes(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1032,7 +1032,7 @@ func (s *CsService) CsServerlessKubernetesInstanceStateRefreshFunc(id string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsServerlessKubernetes(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1086,7 +1086,7 @@ func (s *CsService) WaitForCSServerlessKubernetes(id string, status Status, time
 	for {
 		object, err := s.DescribeCsServerlessKubernetes(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1237,7 +1237,7 @@ func (s *CsClient) DescribeTaskRefreshFunc(d *schema.ResourceData, taskId string
 		})
 
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return taskInfo, "", nil
 			}
 			return nil, "", WrapError(err)

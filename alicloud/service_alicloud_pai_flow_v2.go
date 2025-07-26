@@ -2,11 +2,12 @@ package alicloud
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"strings"
-	"time"
 )
 
 type PaiFlowServiceV2 struct {
@@ -55,7 +56,7 @@ func (s *PaiFlowServiceV2) PaiFlowPipelineStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePaiFlowPipeline(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

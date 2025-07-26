@@ -251,7 +251,7 @@ func resourceAliCloudDtsInstanceRead(d *schema.ResourceData, meta interface{}) e
 
 	object, err := dtsService.DescribeDtsInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dts_instance dtsService.DescribeDtsInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -370,7 +370,7 @@ func resourceAliCloudDtsInstanceDelete(d *schema.ResourceData, meta interface{})
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

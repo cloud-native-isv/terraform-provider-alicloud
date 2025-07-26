@@ -71,7 +71,7 @@ func resourceAliCloudCloudConnectNetworkAttachmentRead(d *schema.ResourceData, m
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeCloudConnectNetworkAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

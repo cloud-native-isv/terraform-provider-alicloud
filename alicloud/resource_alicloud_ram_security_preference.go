@@ -172,7 +172,7 @@ func resourceAliCloudRamSecurityPreferenceRead(d *schema.ResourceData, meta inte
 
 	objectRaw, err := ramServiceV2.DescribeRamSecurityPreference(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_security_preference DescribeRamSecurityPreference Failed!!! %s", err)
 			d.SetId("")
 			return nil

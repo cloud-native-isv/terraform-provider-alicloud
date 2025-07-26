@@ -126,7 +126,7 @@ func resourceAliCloudEcsDeploymentSetRead(d *schema.ResourceData, meta interface
 
 	object, err := ecsService.DescribeEcsDeploymentSet(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_deployment_set ecsService.DescribeEcsDeploymentSet Failed!!! %s", err)
 			d.SetId("")
 			return nil

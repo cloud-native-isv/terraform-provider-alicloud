@@ -117,7 +117,7 @@ func resourceAliCloudArmsPrometheusMonitoringRead(d *schema.ResourceData, meta i
 
 	objectRaw, err := armsService.DescribeArmsPrometheusMonitoring(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_prometheus_monitoring DescribeArmsPrometheusMonitoring Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -89,7 +89,7 @@ func resourceAliCloudSimpleApplicationServerFirewallRuleRead(d *schema.ResourceD
 	swasOpenService := SwasOpenService{client}
 	object, err := swasOpenService.DescribeSimpleApplicationServerFirewallRule(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_simple_application_server_firewall_rule swasOpenService.DescribeSimpleApplicationServerFirewallRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

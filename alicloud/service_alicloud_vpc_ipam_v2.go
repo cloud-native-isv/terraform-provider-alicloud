@@ -67,7 +67,7 @@ func (s *VpcIpamServiceV2) VpcIpamIpamStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpamIpam(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -232,7 +232,7 @@ func (s *VpcIpamServiceV2) VpcIpamIpamScopeStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpamIpamScope(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -311,7 +311,7 @@ func (s *VpcIpamServiceV2) VpcIpamIpamPoolStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpamIpamPool(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -390,7 +390,7 @@ func (s *VpcIpamServiceV2) VpcIpamIpamPoolCidrStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpamIpamPoolCidr(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -458,7 +458,7 @@ func (s *VpcIpamServiceV2) VpcIpamIpamPoolAllocationStateRefreshFunc(id string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpamIpamPoolAllocation(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -524,7 +524,7 @@ func (s *VpcIpamServiceV2) VpcIpamServiceStateRefreshFunc(id string, field strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpamService(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -603,7 +603,7 @@ func (s *VpcIpamServiceV2) VpcIpamIpamResourceDiscoveryStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpamIpamResourceDiscovery(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

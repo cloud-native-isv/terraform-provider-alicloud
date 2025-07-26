@@ -1546,7 +1546,7 @@ func resourceAliCloudPolarDBClusterRead(d *schema.ResourceData, meta interface{}
 
 	clusterAttribute, err := polarDBService.DescribePolarDBClusterAttribute(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -1673,7 +1673,7 @@ func resourceAliCloudPolarDBClusterRead(d *schema.ResourceData, meta interface{}
 	if clusterAttribute.PayType == string(Prepaid) {
 		clusterAutoRenew, err := polarDBService.DescribePolarDBAutoRenewAttribute(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				d.SetId("")
 				return nil
 			}
@@ -1830,7 +1830,7 @@ func resourceAliCloudPolarDBClusterDelete(d *schema.ResourceData, meta interface
 
 	cluster, err := polarDBService.DescribePolarDBClusterAttribute(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
@@ -1852,7 +1852,7 @@ func resourceAliCloudPolarDBClusterDelete(d *schema.ResourceData, meta interface
 			return polarDBClient.DeleteDBCluster(request)
 		})
 
-		if err != nil && !NotFoundError(err) {
+		if err != nil && !IsNotFoundError(err) {
 			if IsExpectedErrors(err, []string{"OperationDenied.DBClusterStatus", "OperationDenied.PolarDBClusterStatus", "OperationDenied.ReadPolarDBClusterStatus"}) {
 				return resource.RetryableError(err)
 			}

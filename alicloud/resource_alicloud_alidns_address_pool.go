@@ -132,7 +132,7 @@ func resourceAliCloudAlidnsAddressPoolRead(d *schema.ResourceData, meta interfac
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsAddressPool(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alidns_address_pool alidnsService.DescribeAlidnsAddressPool Failed!!! %s", err)
 			d.SetId("")
 			return nil

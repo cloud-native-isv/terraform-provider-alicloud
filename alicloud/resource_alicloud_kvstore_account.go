@@ -145,7 +145,7 @@ func resourceAliCloudKvstoreAccountRead(d *schema.ResourceData, meta interface{}
 	r_kvstoreService := R_kvstoreService{client}
 	object, err := r_kvstoreService.DescribeKvstoreAccount(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_kvstore_account r_kvstoreService.DescribeKvstoreAccount Failed!!! %s", err)
 			d.SetId("")
 			return nil

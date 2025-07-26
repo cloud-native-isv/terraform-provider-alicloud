@@ -293,7 +293,7 @@ func resourceAliCloudHbrRestoreJobRead(d *schema.ResourceData, meta interface{})
 	hbrService := HbrService{client}
 	object, err := hbrService.DescribeHbrRestoreJob(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_hbr_restore_job hbrService.DescribeHbrRestoreJob Failed!!! %s", err)
 			d.SetId("")
 			return nil

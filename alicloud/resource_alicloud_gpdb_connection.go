@@ -113,7 +113,7 @@ func resourceAliCloudGpdbConnectionRead(d *schema.ResourceData, meta interface{}
 	gpdbService := GpdbService{client}
 	object, err := gpdbService.DescribeGpdbConnection(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

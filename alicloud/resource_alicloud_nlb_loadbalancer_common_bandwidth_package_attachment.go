@@ -95,7 +95,7 @@ func resourceAliCloudNlbLoadbalancerCommonBandwidthPackageAttachmentRead(d *sche
 
 	objectRaw, err := nlbServiceV2.DescribeNlbLoadbalancerCommonBandwidthPackageAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nlb_loadbalancer_common_bandwidth_package_attachment DescribeNlbLoadbalancerCommonBandwidthPackageAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

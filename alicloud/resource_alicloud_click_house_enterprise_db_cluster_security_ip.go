@@ -113,7 +113,7 @@ func resourceAliCloudClickHouseEnterpriseDbClusterSecurityIPRead(d *schema.Resou
 
 	objectRaw, err := clickHouseServiceV2.DescribeClickHouseEnterpriseDbClusterSecurityIP(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_click_house_enterprise_db_cluster_security_ip DescribeClickHouseEnterpriseDbClusterSecurityIP Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -204,7 +204,7 @@ func resourceAliCloudClickHouseEnterpriseDbClusterSecurityIPDelete(d *schema.Res
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -91,7 +91,7 @@ func resourceAliyunSlbDomainExtensionRead(d *schema.ResourceData, meta interface
 
 	domainExtension, err := slbService.DescribeDomainExtensionAttribute(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -142,7 +142,7 @@ func resourceAliyunSlbDomainExtensionDelete(d *schema.ResourceData, meta interfa
 		lbId := d.Get("load_balancer_id").(string)
 		lbInstance, err := slbService.DescribeSlb(lbId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return WrapError(err)

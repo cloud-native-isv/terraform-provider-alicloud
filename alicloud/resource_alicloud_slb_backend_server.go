@@ -105,7 +105,7 @@ func resourceAliyunSlbBackendServersRead(d *schema.ResourceData, meta interface{
 	object, err := slbService.DescribeSlb(resource_id)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -285,7 +285,7 @@ func resourceAliyunSlbBackendServersDelete(d *schema.ResourceData, meta interfac
 		if d.Get("delete_protection_validation").(bool) {
 			lbInstance, err := slbService.DescribeSlb(d.Id())
 			if err != nil {
-				if NotFoundError(err) {
+				if IsNotFoundError(err) {
 					return nil
 				}
 				return WrapError(err)

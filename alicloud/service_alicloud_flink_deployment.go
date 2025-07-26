@@ -81,7 +81,7 @@ func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		deployment, err := s.GetDeployment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "NotFound", nil
 			}
 			return nil, "FAILED", WrapErrorf(err, DefaultErrorMsg, id, "GetDeployment", AlibabaCloudSdkGoERROR)

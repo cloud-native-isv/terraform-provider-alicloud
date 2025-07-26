@@ -339,7 +339,7 @@ func resourceAliCloudNatGatewayRead(d *schema.ResourceData, meta interface{}) er
 
 	object, err := vpcService.DescribeNatGateway(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nat_gateway vpcService.DescribeNatGateway Failed!!! %s", err)
 			d.SetId("")
 			return nil

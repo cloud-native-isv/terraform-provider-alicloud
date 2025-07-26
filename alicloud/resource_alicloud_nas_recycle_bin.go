@@ -80,7 +80,7 @@ func resourceAliCloudNasRecycleBinRead(d *schema.ResourceData, meta interface{})
 
 	object, err := nasService.DescribeNasRecycleBin(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_recycle_bin nasService.DescribeNasRecycleBin Failed!!! %s", err)
 			d.SetId("")
 			return nil

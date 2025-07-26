@@ -281,7 +281,7 @@ func (s *RamService) WaitForRamUser(id string, status Status, timeout int) error
 	for {
 		object, err := s.DescribeRamUser(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -337,7 +337,7 @@ func (s *RamService) WaitForRamGroupMembership(id string, status Status, timeout
 	for {
 		object, err := s.DescribeRamGroupMembership(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -382,7 +382,7 @@ func (s *RamService) WaitForRamLoginProfile(id string, status Status, timeout in
 	for {
 		object, err := s.DescribeRamLoginProfile(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -438,7 +438,7 @@ func (s *RamService) WaitForRamGroupPolicyAttachment(id string, status Status, t
 	for {
 		object, err := s.DescribeRamGroupPolicyAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -516,7 +516,7 @@ func (s *RamService) WaitForRamAccessKey(id, useName string, status Status, time
 	for {
 		object, err := s.DescribeRamAccessKey(id, useName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -614,7 +614,7 @@ func (s *RamService) WaitForRamRoleAttachment(id string, status Status, timeout 
 	for {
 		object, err := s.DescribeRamRoleAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -665,7 +665,7 @@ func (s *RamService) WaitForRamRole(id string, status Status, timeout int) error
 	for {
 		object, err := s.DescribeRamRole(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -734,7 +734,7 @@ func (s *RamService) WaitForRamUserPolicyAttachment(id string, status Status, ti
 	for {
 		object, err := s.DescribeRamUserPolicyAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -803,7 +803,7 @@ func (s *RamService) WaitForRamRolePolicyAttachment(id string, status Status, ti
 	for {
 		object, err := s.DescribeRamRolePolicyAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 
 				}
@@ -849,7 +849,7 @@ func (s *RamService) WaitForRamGroup(id string, status Status, timeout int) erro
 	for {
 		object, err := s.DescribeRamGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

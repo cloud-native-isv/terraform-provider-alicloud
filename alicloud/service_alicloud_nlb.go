@@ -188,7 +188,7 @@ func (s *NlbService) NlbServerGroupStateRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbServerGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -255,7 +255,7 @@ func (s *NlbService) NlbSecurityPolicyStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbSecurityPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -311,7 +311,7 @@ func (s *NlbService) NlbLoadBalancerStateRefreshFunc(d *schema.ResourceData, fai
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbLoadBalancer(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -366,7 +366,7 @@ func (s *NlbService) NlbListenerStateRefreshFunc(d *schema.ResourceData, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbListener(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -435,7 +435,7 @@ func (s *NlbService) NlbServerGroupServerAttachmentStateRefreshFunc(d *schema.Re
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbServerGroupServerAttachment(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -539,7 +539,7 @@ func (s *NlbService) NlbLoadBalancerSecurityGroupAttachmentStateRefreshFunc(id s
 	return func() (interface{}, string, error) {
 		object, err := s.GetJobStatus(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

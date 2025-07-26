@@ -266,7 +266,7 @@ func resourceAliyunEssScalingRuleRead(d *schema.ResourceData, meta interface{}) 
 		object, err = essService.DescribeEssScalingRuleWithAlarm(d.Id())
 	}
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

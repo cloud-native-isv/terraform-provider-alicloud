@@ -48,7 +48,7 @@ func (s *FcService) WaitForFcService(id string, status Status, timeout int) erro
 	for {
 		object, err := s.DescribeFcService(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -107,7 +107,7 @@ func (s *FcService) WaitForFcFunction(id string, status Status, timeout int) err
 	for {
 		object, err := s.DescribeFcFunction(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -321,7 +321,7 @@ func (s *FcService) WaitForFcTrigger(id string, status Status, timeout int) erro
 	for {
 		object, err := s.DescribeFcTrigger(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -370,7 +370,7 @@ func (s *FcService) WaitForFcCustomDomain(id string, status Status, timeout int)
 	for {
 		object, err := s.DescribeFcCustomDomain(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -469,7 +469,7 @@ func (s *FcService) WaitForFcFunctionAsyncInvokeConfig(id string, status Status,
 	for {
 		_, err := s.DescribeFcFunctionAsyncInvokeConfig(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

@@ -285,7 +285,7 @@ func resourceAliCloudCloudMonitorServiceGroupMonitoringAgentProcessRead(d *schem
 
 	object, err := cloudMonitorServiceServiceV2.DescribeCloudMonitorServiceGroupMonitoringAgentProcess(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_monitor_service_group_monitoring_agent_process DescribeCloudMonitorServiceGroupMonitoringAgentProcess Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -542,7 +542,7 @@ func resourceAliCloudCloudMonitorServiceGroupMonitoringAgentProcessDelete(d *sch
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

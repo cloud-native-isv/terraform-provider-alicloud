@@ -110,7 +110,7 @@ func resourceAliCloudArmsAlertContactScheduleRead(d *schema.ResourceData, meta i
 	armsService := NewArmsService(client)
 	_, err := armsService.DescribeArmsAlertContactSchedule(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_contact_schedule armsService.DescribeArmsAlertContactSchedule Failed!!! %s", err)
 			d.SetId("")
 			return nil

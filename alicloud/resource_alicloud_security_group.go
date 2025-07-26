@@ -3,9 +3,10 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"log"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -151,7 +152,7 @@ func resourceAliCloudEcsSecurityGroupRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := ecsServiceV2.DescribeEcsSecurityGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_security_group DescribeEcsSecurityGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -183,7 +184,7 @@ func resourceAliCloudEcsSecurityGroupRead(d *schema.ResourceData, meta interface
 	d.Set("tags", tagsToMap(tagsMaps))
 
 	objectRaw, err = ecsServiceV2.DescribeSecurityGroupDescribeSecurityGroupAttribute(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -369,7 +370,7 @@ func resourceAliCloudEcsSecurityGroupDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

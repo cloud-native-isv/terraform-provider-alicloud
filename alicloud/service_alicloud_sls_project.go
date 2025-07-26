@@ -62,7 +62,7 @@ func (s *SlsService) LogProjectStateRefreshFunc(id string, field string, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeLogProject(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "deleted", nil
 			}
 			return nil, "", WrapError(err)
@@ -145,7 +145,7 @@ func (s *SlsService) CreateProjectIfNotExist(project *aliyunSlsAPI.LogProject) (
 	// Check if project exists
 	_, err := s.DescribeLogProject(project.ProjectName)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			// Project doesn't exist, create it with provided configuration
 			if err := s.CreateProject(project); err != nil {
 				return nil, WrapErrorf(err, DefaultErrorMsg, project.ProjectName, "CreateProject", AlibabaCloudSdkGoERROR)

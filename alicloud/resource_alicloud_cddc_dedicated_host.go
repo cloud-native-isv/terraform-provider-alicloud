@@ -164,7 +164,7 @@ func resourceAliCloudCddcDedicatedHostRead(d *schema.ResourceData, meta interfac
 	cddcService := CddcService{client}
 	object, err := cddcService.DescribeCddcDedicatedHost(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cddc_dedicated_host cddcService.DescribeCddcDedicatedHost Failed!!! %s", err)
 			d.SetId("")
 			return nil

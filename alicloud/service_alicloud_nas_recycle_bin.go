@@ -121,7 +121,7 @@ func (s *NasService) NasRecycleBinStateRefreshFunc(fileSystemId string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.GetNasRecycleBinAttribute(fileSystemId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Recycle bin is disabled
 				return nil, "Disabled", nil
 			}
@@ -143,7 +143,7 @@ func (s *NasService) NasRecycleBinJobStateRefreshFunc(fileSystemId, jobId string
 	return func() (interface{}, string, error) {
 		object, err := s.GetNasRecycleBinJob(fileSystemId, jobId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -163,7 +163,7 @@ func (s *NasService) NasRecycleBinJobStateRefreshFunc(fileSystemId, jobId string
 func (s *NasService) DescribeNasRecycleBin(id string) (object map[string]interface{}, err error) {
 	attr, err := s.GetNasRecycleBinAttribute(id)
 	if err != nil {
-		if common.NotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("NAS:RecycleBin", id), NotFoundMsg, ProviderERROR, "")
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetRecycleBinAttribute", AlibabaCloudSdkGoERROR)
@@ -189,7 +189,7 @@ func (s *NasService) DescribeNasRecycleBin(id string) (object map[string]interfa
 func (s *NasService) DescribeFileSystemGetRecycleBinAttribute(id string) (object map[string]interface{}, err error) {
 	attr, err := s.GetNasRecycleBinAttribute(id)
 	if err != nil {
-		if common.NotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("NAS:RecycleBin", id), NotFoundMsg, ProviderERROR, "")
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetRecycleBinAttribute", AlibabaCloudSdkGoERROR)

@@ -105,7 +105,7 @@ func resourceAliCloudCenTransitRouterRouteTableAssociationRead(d *schema.Resourc
 
 	objectRaw, err := cenServiceV2.DescribeCenTransitRouterRouteTableAssociation(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_transit_router_route_table_association DescribeCenTransitRouterRouteTableAssociation Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -196,7 +196,7 @@ func resourceAliCloudCenTransitRouterRouteTableAssociationDelete(d *schema.Resou
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

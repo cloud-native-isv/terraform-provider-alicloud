@@ -176,7 +176,7 @@ func resourceAliCloudRouterInterfaceConnectionRead(d *schema.ResourceData, meta 
 	object, err := vpcService.DescribeRouterInterfaceConnection(d.Id(), client.RegionId)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -206,7 +206,7 @@ func resourceAliCloudRouterInterfaceConnectionDelete(d *schema.ResourceData, met
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeRouterInterfaceConnection(d.Id(), client.RegionId)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

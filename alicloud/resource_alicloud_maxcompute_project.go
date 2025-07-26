@@ -306,7 +306,7 @@ func resourceAliCloudMaxComputeProjectRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := maxComputeServiceV2.DescribeMaxComputeProject(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_maxcompute_project DescribeMaxComputeProject Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -440,7 +440,7 @@ func resourceAliCloudMaxComputeProjectRead(d *schema.ResourceData, meta interfac
 	}
 
 	objectRaw, err = maxComputeServiceV2.DescribeProjectListTagResources(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -812,7 +812,7 @@ func resourceAliCloudMaxComputeProjectDelete(d *schema.ResourceData, meta interf
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

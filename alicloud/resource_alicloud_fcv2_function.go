@@ -538,7 +538,7 @@ func resourceAliCloudFcv2FunctionRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := fcv2ServiceV2.DescribeFcv2Function(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fcv2_function DescribeFcv2Function Failed!!! %s", err)
 			d.SetId("")
 			return nil

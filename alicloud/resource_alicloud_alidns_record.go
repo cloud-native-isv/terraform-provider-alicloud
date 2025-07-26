@@ -143,7 +143,7 @@ func resourceAliCloudAlidnsRecordRead(d *schema.ResourceData, meta interface{}) 
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsRecord(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alidns_record alidnsService.DescribeAlidnsRecord Failed!!! %s", err)
 			d.SetId("")
 			return nil

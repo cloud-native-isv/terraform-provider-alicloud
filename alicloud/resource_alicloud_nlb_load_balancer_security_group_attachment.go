@@ -100,7 +100,7 @@ func resourceAliCloudNlbLoadBalancerSecurityGroupAttachmentRead(d *schema.Resour
 
 	_, err := nlbServiceV2.DescribeNlbLoadBalancerSecurityGroupAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nlb_load_balancer_security_group_attachment DescribeNlbLoadBalancerSecurityGroupAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

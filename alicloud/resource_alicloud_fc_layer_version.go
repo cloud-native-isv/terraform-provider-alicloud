@@ -147,7 +147,7 @@ func resourceAliCloudFcLayerVersionRead(d *schema.ResourceData, meta interface{}
 
 	object, err := fcOpenService.DescribeFcLayerVersion(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_layer_version fcOpenService.DescribeFcLayerVersion Failed!!! %s", err)
 			d.SetId("")
 			return nil

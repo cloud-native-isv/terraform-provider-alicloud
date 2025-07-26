@@ -256,7 +256,7 @@ func (s *YundunBastionhostService) BastionhostInstanceRefreshFunc(id string, fai
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeBastionhostInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil if nothing matched
 				return nil, "", nil
 			}

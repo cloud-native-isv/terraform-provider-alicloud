@@ -80,7 +80,7 @@ func resourceAliCloudSaeConfigMapRead(d *schema.ResourceData, meta interface{}) 
 	saeService := SaeService{client}
 	object, err := saeService.DescribeSaeConfigMap(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sae_config_map saeService.DescribeSaeConfigMap Failed!!! %s", err)
 			d.SetId("")
 			return nil

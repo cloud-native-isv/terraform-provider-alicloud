@@ -167,7 +167,7 @@ func resourceAliCloudDrdsPolardbxInstanceRead(d *schema.ResourceData, meta inter
 
 	objectRaw, err := drdsServiceV2.DescribeDrdsPolardbxInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_drds_polardbx_instance DescribeDrdsPolardbxInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

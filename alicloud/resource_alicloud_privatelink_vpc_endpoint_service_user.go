@@ -99,7 +99,7 @@ func resourceAliCloudPrivateLinkVpcEndpointServiceUserRead(d *schema.ResourceDat
 
 	objectRaw, err := privateLinkServiceV2.DescribePrivateLinkVpcEndpointServiceUser(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_privatelink_vpc_endpoint_service_user DescribePrivateLinkVpcEndpointServiceUser Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -160,7 +160,7 @@ func resourceAliCloudPrivateLinkVpcEndpointServiceUserDelete(d *schema.ResourceD
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

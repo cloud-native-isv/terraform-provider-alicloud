@@ -128,7 +128,7 @@ func resourceAliCloudVpcBgpGroupRead(d *schema.ResourceData, meta interface{}) e
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpcBgpGroup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_bgp_group vpcService.DescribeVpcBgpGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

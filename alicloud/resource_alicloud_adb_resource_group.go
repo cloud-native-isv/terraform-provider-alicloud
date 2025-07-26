@@ -119,7 +119,7 @@ func resourceAliCloudAdbResourceGroupRead(d *schema.ResourceData, meta interface
 
 	object, err := adbService.DescribeAdbResourceGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_adb_resource_group adbService.DescribeAdbResourceGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -234,7 +234,7 @@ func resourceAliCloudAdbResourceGroupDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidDBCluster.NotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidDBCluster.NotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

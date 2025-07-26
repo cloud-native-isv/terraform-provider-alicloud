@@ -265,7 +265,7 @@ func resourceAliCloudLogETLRead(d *schema.ResourceData, meta interface{}) error 
 	}
 	etl, err := logService.DescribeSlsETL(parts[0], parts[1])
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_log_etl SlsService.DescribeLogEtl Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -61,7 +61,7 @@ func (s *DMSEnterpriseServiceV2) DMSEnterpriseAuthorityTemplateStateRefreshFunc(
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDMSEnterpriseAuthorityTemplate(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

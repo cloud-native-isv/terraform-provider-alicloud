@@ -559,7 +559,7 @@ func dataSourceAliCloudKvstoreInstancesRead(d *schema.ResourceData, meta interfa
 		mapping["secondary_zone_id"] = resp1["SecondaryZoneId"]
 
 		resp2, err := rKvstoreService.DescribeInstanceAutoRenewalAttribute(fmt.Sprint(object["InstanceId"]))
-		if err != nil && !NotFoundError(err) {
+		if err != nil && !IsNotFoundError(err) {
 			return WrapError(err)
 		}
 
@@ -572,21 +572,21 @@ func dataSourceAliCloudKvstoreInstancesRead(d *schema.ResourceData, meta interfa
 		}
 
 		resp3, err := rKvstoreService.DescribeInstanceSSL(fmt.Sprint(object["InstanceId"]))
-		if err != nil && !NotFoundError(err) {
+		if err != nil && !IsNotFoundError(err) {
 			return WrapError(err)
 		}
 
 		mapping["ssl_enable"] = resp3["SSLEnabled"]
 
 		resp4, err := rKvstoreService.DescribeSecurityGroupConfiguration(fmt.Sprint(object["InstanceId"]))
-		if err != nil && !NotFoundError(err) {
+		if err != nil && !IsNotFoundError(err) {
 			return WrapError(err)
 		}
 
 		mapping["security_group_id"] = resp4["SecurityGroupId"]
 
 		resp5, err := rKvstoreService.DescribeSecurityIps(fmt.Sprint(object["InstanceId"]))
-		if err != nil && !NotFoundError(err) {
+		if err != nil && !IsNotFoundError(err) {
 			return WrapError(err)
 		}
 

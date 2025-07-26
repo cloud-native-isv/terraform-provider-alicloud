@@ -3,12 +3,13 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceAliCloudPaiWorkspaceModel() *schema.Resource {
@@ -180,7 +181,7 @@ func resourceAliCloudPaiWorkspaceModelRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := paiWorkspaceServiceV2.DescribePaiWorkspaceModel(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_pai_workspace_model DescribePaiWorkspaceModel Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -424,7 +425,7 @@ func resourceAliCloudPaiWorkspaceModelDelete(d *schema.ResourceData, meta interf
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

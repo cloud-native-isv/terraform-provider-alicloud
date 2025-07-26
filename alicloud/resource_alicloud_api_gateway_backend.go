@@ -99,7 +99,7 @@ func resourceAliCloudApiGatewayBackendRead(d *schema.ResourceData, meta interfac
 
 	object, err := cloudApiService.DescribeApiGatewayBackend(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_api_gateway_backend cloudApiService.DescribeApiGatewayBackend Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -179,7 +179,7 @@ func resourceAliCloudApiGatewayBackendDelete(d *schema.ResourceData, meta interf
 		return nil
 	})
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotFoundBackend"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NotFoundBackend"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

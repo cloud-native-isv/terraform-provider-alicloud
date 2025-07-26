@@ -115,7 +115,6 @@ func resourceAliCloudArmsGrafanaWorkspaceCreate(d *schema.ResourceData, meta int
 	request["GrafanaWorkspaceEdition"] = d.Get("grafana_workspace_edition")
 	request["GrafanaWorkspaceName"] = d.Get("grafana_workspace_name")
 
-
 	if v, ok := d.GetOkExists("auto_renew"); ok {
 		request["AutoRenew"] = v
 	}
@@ -173,7 +172,7 @@ func resourceAliCloudArmsGrafanaWorkspaceRead(d *schema.ResourceData, meta inter
 
 	objectRaw, err := armsService.DescribeArmsGrafanaWorkspace(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_grafana_workspace DescribeArmsGrafanaWorkspace Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -330,7 +329,7 @@ func resourceAliCloudArmsGrafanaWorkspaceDelete(d *schema.ResourceData, meta int
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

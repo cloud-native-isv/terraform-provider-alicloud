@@ -124,7 +124,7 @@ func resourceAliCloudGaCustomRoutingEndpointGroupRead(d *schema.ResourceData, me
 
 	object, err := gaService.DescribeGaCustomRoutingEndpointGroup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -227,7 +227,7 @@ func resourceAliCloudGaCustomRoutingEndpointGroupDelete(d *schema.ResourceData, 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotExist.EndPointGroup"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NotExist.EndPointGroup"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

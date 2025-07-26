@@ -109,7 +109,7 @@ func resourceAliCloudSaeNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	saeService := SaeService{client}
 	object, err := saeService.DescribeSaeNamespace(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sae_namespace saeService.DescribeSaeNamespace Failed!!! %s", err)
 			d.SetId("")
 			return nil

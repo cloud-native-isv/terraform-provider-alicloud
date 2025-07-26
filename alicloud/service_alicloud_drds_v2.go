@@ -63,7 +63,7 @@ func (s *DrdsServiceV2) DrdsPolardbxInstanceStateRefreshFunc(id string, field st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDrdsPolardbxInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -126,7 +126,7 @@ func (s *DrdsServiceV2) DrdsPolardbxInstanceJobStateRefreshFunc(d *schema.Resour
 	return func() (interface{}, string, error) {
 		object, err := s.DrdsPolardbxInstanceAsynJobs(d, response)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -191,7 +191,7 @@ func (s *DrdsServiceV2) DrdsPolardbxInstanceDeleteJobStateRefreshFunc(d *schema.
 	return func() (interface{}, string, error) {
 		object, err := s.DrdsPolardbxInstanceAsynDeleteJobs(d, response)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

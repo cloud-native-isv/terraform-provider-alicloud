@@ -103,7 +103,7 @@ func resourceAliCloudCenTransitRouterMulticastDomainSourceRead(d *schema.Resourc
 
 	object, err := cbnService.DescribeCenTransitRouterMulticastDomainSource(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_transit_router_multicast_domain_source cbnService.DescribeCenTransitRouterMulticastDomainSource Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -154,7 +154,7 @@ func resourceAliCloudCenTransitRouterMulticastDomainSourceDelete(d *schema.Resou
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

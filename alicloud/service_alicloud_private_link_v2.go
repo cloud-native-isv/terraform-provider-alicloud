@@ -90,7 +90,7 @@ func (s *PrivateLinkServiceV2) PrivateLinkVpcEndpointServiceStateRefreshFunc(id 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePrivateLinkVpcEndpointService(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -271,7 +271,7 @@ func (s *PrivateLinkServiceV2) PrivateLinkVpcEndpointServiceUserStateRefreshFunc
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePrivateLinkVpcEndpointServiceUser(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -356,7 +356,7 @@ func (s *PrivateLinkServiceV2) PrivateLinkVpcEndpointServiceResourceStateRefresh
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePrivateLinkVpcEndpointServiceResource(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -445,7 +445,7 @@ func (s *PrivateLinkServiceV2) PrivateLinkVpcEndpointZoneStateRefreshFunc(id str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePrivateLinkVpcEndpointZone(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -522,7 +522,7 @@ func (s *PrivateLinkServiceV2) PrivateLinkVpcEndpointConnectionStateRefreshFunc(
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePrivateLinkVpcEndpointConnection(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -662,7 +662,7 @@ func (s *PrivateLinkServiceV2) PrivateLinkVpcEndpointStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePrivateLinkVpcEndpoint(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

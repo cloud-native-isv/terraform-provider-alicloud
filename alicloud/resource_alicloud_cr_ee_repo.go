@@ -2,8 +2,9 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cr_ee"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -111,7 +112,7 @@ func resourceAliCloudCrEERepoRead(d *schema.ResourceData, meta interface{}) erro
 
 	resp, err := crService.DescribeCrEERepo(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -201,7 +202,7 @@ func resourceAliCloudCrEERepoDelete(d *schema.ResourceData, meta interface{}) er
 	repoId := d.Get("repo_id").(string)
 	_, err := crService.DeleteCrEERepo(d.Id(), repoId)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		} else {
 			return WrapError(err)

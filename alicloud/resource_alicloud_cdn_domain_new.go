@@ -237,7 +237,7 @@ func resourceAliCloudCdnDomainRead(d *schema.ResourceData, meta interface{}) err
 
 	objectRaw, err := cdnServiceV2.DescribeCdnDomain(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cdn_domain_new DescribeCdnDomain Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -613,7 +613,7 @@ func resourceAliCloudCdnDomainDelete(d *schema.ResourceData, meta interface{}) e
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

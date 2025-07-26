@@ -71,7 +71,7 @@ func (s *CloudFirewallServiceV2) CloudFirewallNatFirewallControlPolicyStateRefre
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudFirewallNatFirewallControlPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -138,7 +138,7 @@ func (s *CloudFirewallServiceV2) CloudFirewallNatFirewallStateRefreshFunc(id str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudFirewallNatFirewall(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -206,7 +206,7 @@ func (s *CloudFirewallServiceV2) CloudFirewallVpcCenTrFirewallStateRefreshFunc(i
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudFirewallVpcCenTrFirewall(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -347,7 +347,7 @@ func (s *CloudFirewallServiceV2) CloudFirewallIPSConfigStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudFirewallIPSConfig(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

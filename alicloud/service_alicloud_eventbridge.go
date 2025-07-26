@@ -98,7 +98,7 @@ func (s *EventbridgeService) EventBridgeRuleStateRefreshFunc(id string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEventBridgeRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -156,7 +156,7 @@ func (s *EventbridgeService) CheckRoleForProductRefreshFunc(id string, failState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEventBridgeServiceLinkedRole(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

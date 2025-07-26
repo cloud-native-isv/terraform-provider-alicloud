@@ -152,7 +152,7 @@ func resourceAliCloudMongodbShardingNetworkPrivateAddressRead(d *schema.Resource
 
 	object, err := ddsService.DescribeMongodbShardingNetworkPrivateAddress(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mongodb_sharding_network_private_address MongoDBService.DescribeMongodbShardingNetworkPrivateAddress Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -265,7 +265,7 @@ func resourceAliCloudMongodbShardingNetworkPrivateAddressDelete(d *schema.Resour
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidStatus.NotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidStatus.NotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

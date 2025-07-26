@@ -245,7 +245,7 @@ func (s *AmqpOpenService) AmqpInstanceStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAmqpInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -385,7 +385,7 @@ func (s *AmqpOpenService) AmqpStaticAccountStateRefreshFunc(d *schema.ResourceDa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAmqpStaticAccount(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

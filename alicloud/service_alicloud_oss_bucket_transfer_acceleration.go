@@ -57,7 +57,7 @@ func (s *OssService) OssBucketTransferAccelerationStateRefreshFunc(id string, fi
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketTransferAcceleration(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -74,4 +74,3 @@ func (s *OssService) OssBucketTransferAccelerationStateRefreshFunc(id string, fi
 		return object, currentStatus, nil
 	}
 }
-

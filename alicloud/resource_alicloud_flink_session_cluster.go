@@ -287,7 +287,7 @@ func resourceAliCloudFlinkSessionClusterRead(d *schema.ResourceData, meta interf
 
 	object, err := flinkService.DescribeSessionCluster(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -452,7 +452,7 @@ func resourceAliCloudFlinkSessionClusterDelete(d *schema.ResourceData, meta inte
 	// First, get the current session cluster to check its status
 	currentCluster, err := flinkService.DescribeSessionCluster(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
@@ -468,7 +468,7 @@ func resourceAliCloudFlinkSessionClusterDelete(d *schema.ResourceData, meta inte
 	if currentStatus == "RUNNING" {
 		err = flinkService.StopSessionCluster(workspaceId, namespaceName, sessionClusterName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "StopSessionCluster", AlibabaCloudSdkGoERROR)

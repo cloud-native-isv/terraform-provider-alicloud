@@ -175,7 +175,7 @@ func resourceAliCloudEsaHttpsBasicConfigurationRead(d *schema.ResourceData, meta
 
 	objectRaw, err := esaServiceV2.DescribeEsaHttpsBasicConfiguration(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_https_basic_configuration DescribeEsaHttpsBasicConfiguration Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -336,7 +336,7 @@ func resourceAliCloudEsaHttpsBasicConfigurationDelete(d *schema.ResourceData, me
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -102,7 +102,7 @@ func (s *FlinkDeploymentTargetService) DeploymentTargetStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFlinkDeploymentTarget(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Return nil, empty state when resource is deleted
 				return nil, "", nil
 			}

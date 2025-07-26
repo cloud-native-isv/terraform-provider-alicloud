@@ -19,7 +19,7 @@ func (s *SlsService) DescribeSlsDashboard(projectName, dashboardName string) (*a
 
 	dashboard, err := slsAPI.GetDashboard(projectName, dashboardName)
 	if err != nil {
-		if common.NotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("SlsDashboard", fmt.Sprintf("%s:%s", projectName, dashboardName)), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%s:%s", projectName, dashboardName), "GetDashboard", AlibabaCloudSdkGoERROR)
@@ -80,7 +80,7 @@ func (s *SlsService) DeleteSlsDashboard(projectName, dashboardName string) error
 
 	err = slsAPI.DeleteDashboard(projectName, dashboardName)
 	if err != nil {
-		if common.NotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, dashboardName, "DeleteDashboard", AlibabaCloudSdkGoERROR)
@@ -139,7 +139,7 @@ func (s *SlsService) SlsDashboardStateRefreshFunc(projectName, dashboardName str
 	return func() (interface{}, string, error) {
 		dashboard, err := s.DescribeSlsDashboard(projectName, dashboardName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

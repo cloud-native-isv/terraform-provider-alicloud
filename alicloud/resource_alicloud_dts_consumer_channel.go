@@ -92,7 +92,7 @@ func resourceAliCloudDtsConsumerChannelRead(d *schema.ResourceData, meta interfa
 	dtsService := DtsService{client}
 	object, err := dtsService.DescribeDtsConsumerChannel(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dts_consumer_channel dtsService.DescribeDtsConsumerChannel Failed!!! %s", err)
 			d.SetId("")
 			return nil

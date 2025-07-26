@@ -540,7 +540,7 @@ func resourceAliCloudCSServerlessKubernetesRead(d *schema.ResourceData, meta int
 
 	object, err := csClient.DescribeClusterDetail(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

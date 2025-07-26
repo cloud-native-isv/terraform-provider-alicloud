@@ -282,7 +282,7 @@ func resourceAliCloudCloudFirewallNatFirewallControlPolicyRead(d *schema.Resourc
 
 	objectRaw, err := cloudFirewallServiceV2.DescribeCloudFirewallNatFirewallControlPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_firewall_nat_firewall_control_policy DescribeCloudFirewallNatFirewallControlPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

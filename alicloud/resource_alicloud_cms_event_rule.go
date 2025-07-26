@@ -333,7 +333,7 @@ func resourceAliCloudCloudMonitorServiceEventRuleRead(d *schema.ResourceData, me
 
 	object, err := cmsService.DescribeCmsEventRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

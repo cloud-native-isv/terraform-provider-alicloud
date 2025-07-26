@@ -50,7 +50,7 @@ func resourceAliCloudSagAclRead(d *schema.ResourceData, meta interface{}) error 
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeSagAcl(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

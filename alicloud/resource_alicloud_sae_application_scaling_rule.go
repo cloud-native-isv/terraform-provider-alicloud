@@ -331,7 +331,7 @@ func resourceAliCloudSaeApplicationScalingRuleRead(d *schema.ResourceData, meta 
 	saeService := SaeService{client}
 	object, err := saeService.DescribeSaeApplicationScalingRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sae_application_scaling_rule saeService.DescribeSaeApplicationScalingRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

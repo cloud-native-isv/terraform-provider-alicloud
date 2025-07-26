@@ -187,7 +187,7 @@ func resourceAliCloudFcv3LayerVersionRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := fcv3ServiceV2.DescribeFcv3LayerVersion(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fcv3_layer_version DescribeFcv3LayerVersion Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -311,7 +311,7 @@ func resourceAliCloudFcv3LayerVersionDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"LayerNotFound", "LayerVersionNotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"LayerNotFound", "LayerVersionNotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

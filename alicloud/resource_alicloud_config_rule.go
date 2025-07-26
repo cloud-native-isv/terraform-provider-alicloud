@@ -274,7 +274,7 @@ func resourceAliCloudConfigRuleRead(d *schema.ResourceData, meta interface{}) er
 
 	objectRaw, err := configServiceV2.DescribeConfigRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_config_rule .DescribeConfigRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

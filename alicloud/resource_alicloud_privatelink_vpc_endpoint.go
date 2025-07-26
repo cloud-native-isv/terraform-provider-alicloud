@@ -215,7 +215,7 @@ func resourceAliCloudPrivateLinkVpcEndpointRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := privateLinkServiceV2.DescribePrivateLinkVpcEndpoint(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_privatelink_vpc_endpoint DescribePrivateLinkVpcEndpoint Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -276,7 +276,7 @@ func resourceAliCloudPrivateLinkVpcEndpointRead(d *schema.ResourceData, meta int
 	}
 
 	objectRaw, err = privateLinkServiceV2.DescribeVpcEndpointListTagResources(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -284,7 +284,7 @@ func resourceAliCloudPrivateLinkVpcEndpointRead(d *schema.ResourceData, meta int
 	d.Set("tags", tagsToMap(tagsMaps))
 
 	objectRaw, err = privateLinkServiceV2.DescribeVpcEndpointListVpcEndpointSecurityGroups(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -514,7 +514,7 @@ func resourceAliCloudPrivateLinkVpcEndpointDelete(d *schema.ResourceData, meta i
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EndpointNotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EndpointNotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

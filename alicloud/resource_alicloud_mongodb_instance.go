@@ -504,7 +504,7 @@ func resourceAliCloudMongoDBInstanceRead(d *schema.ResourceData, meta interface{
 
 	object, err := ddsService.DescribeMongoDBInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -1251,7 +1251,7 @@ func resourceAliCloudMongoDBInstanceDelete(d *schema.ResourceData, meta interfac
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidDBInstanceId.NotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidDBInstanceId.NotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

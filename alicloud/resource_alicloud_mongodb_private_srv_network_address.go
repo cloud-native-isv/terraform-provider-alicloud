@@ -89,7 +89,7 @@ func resourceAliCloudMongodbPrivateSrvNetworkAddressRead(d *schema.ResourceData,
 
 	objectRaw, err := mongodbServiceV2.DescribeMongodbPrivateSrvNetworkAddress(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mongodb_private_srv_network_address DescribeMongodbPrivateSrvNetworkAddress Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -137,7 +137,7 @@ func resourceAliCloudMongodbPrivateSrvNetworkAddressDelete(d *schema.ResourceDat
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

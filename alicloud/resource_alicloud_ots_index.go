@@ -184,7 +184,7 @@ func resourceAlicloudOtsIndexRead(d *schema.ResourceData, meta interface{}) erro
 
 	object, err := otsService.DescribeOtsIndex(instanceName, tableName, indexName)
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ots_index DescribeOtsIndex Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -246,7 +246,7 @@ func resourceAlicloudOtsIndexDelete(d *schema.ResourceData, meta interface{}) er
 
 	err = otsService.DeleteOtsIndex(instanceName, index)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteOtsIndex", AlibabaCloudSdkGoERROR)

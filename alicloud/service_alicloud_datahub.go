@@ -45,7 +45,7 @@ func (s *DatahubService) WaitForDatahubProject(id string, status Status, timeout
 	for {
 		object, err := s.DescribeDatahubProject(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -109,7 +109,7 @@ func (s *DatahubService) WaitForDatahubSubscription(id string, status Status, ti
 	for {
 		object, err := s.DescribeDatahubSubscription(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -170,7 +170,7 @@ func (s *DatahubService) WaitForDatahubTopic(id string, status Status, timeout i
 	for {
 		object, err := s.DescribeDatahubTopic(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

@@ -59,7 +59,7 @@ func (s *OssService) OssAccountPublicAccessBlockStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssAccountPublicAccessBlock(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

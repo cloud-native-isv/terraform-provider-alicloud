@@ -84,7 +84,7 @@ func resourceAliCloudFcv3VpcBindingRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := fcv3ServiceV2.DescribeFcv3VpcBinding(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fcv3_vpc_binding DescribeFcv3VpcBinding Failed!!! %s", err)
 			d.SetId("")
 			return nil

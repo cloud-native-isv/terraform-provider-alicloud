@@ -102,7 +102,7 @@ func resourceAliCloudSslCertificatesServiceCertificateRead(d *schema.ResourceDat
 
 	object, err := casService.DescribeSslCertificatesServiceCertificate(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ssl_certificates_service_certificate casService.DescribeSslCertificatesServiceCertificate Failed!!! %s", err)
 			d.SetId("")
 			return nil

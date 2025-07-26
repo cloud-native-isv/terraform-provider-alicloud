@@ -167,7 +167,7 @@ func resourceAliCloudPvtzZoneRead(d *schema.ResourceData, meta interface{}) erro
 	pvtzService := PvtzService{client}
 	object, err := pvtzService.DescribePvtzZone(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_private_zone_zone pvtzService.DescribePvtzZone Failed!!! %s", err)
 			d.SetId("")
 			return nil

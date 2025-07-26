@@ -109,7 +109,7 @@ func resourceAliCloudBrainIndustrialPidLoopRead(d *schema.ResourceData, meta int
 	brain_industrialService := Brain_industrialService{client}
 	object, err := brain_industrialService.DescribeBrainIndustrialPidLoop(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_brain_industrial_pid_loop brain_industrialService.DescribeBrainIndustrialPidLoop Failed!!! %s", err)
 			d.SetId("")
 			return nil

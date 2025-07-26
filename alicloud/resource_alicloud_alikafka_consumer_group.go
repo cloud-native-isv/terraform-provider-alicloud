@@ -84,7 +84,7 @@ func resourceAliCloudAlikafkaConsumerGroupRead(d *schema.ResourceData, meta inte
 	alikafkaService := AlikafkaService{client}
 	object, err := alikafkaService.DescribeAliKafkaConsumerGroup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ali_kafka_consumer_group alikafkaService.DescribeAliKafkaConsumerGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

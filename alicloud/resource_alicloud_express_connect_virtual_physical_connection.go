@@ -220,7 +220,7 @@ func resourceAliCloudExpressConnectVirtualPhysicalConnectionRead(d *schema.Resou
 
 	object, err := expressConnectService.DescribeExpressConnectVirtualPhysicalConnection(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_express_connect_virtual_physical_connection vpcService.DescribeExpressConnectVirtualPhysicalConnection Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -330,7 +330,7 @@ func resourceAliCloudExpressConnectVirtualPhysicalConnectionDelete(d *schema.Res
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

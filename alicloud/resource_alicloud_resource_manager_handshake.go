@@ -102,7 +102,7 @@ func resourceAliCloudResourceManagerHandshakeRead(d *schema.ResourceData, meta i
 	resourcemanagerService := ResourcemanagerService{client}
 	object, err := resourcemanagerService.DescribeResourceManagerHandshake(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_resource_manager_handshake resourcemanagerService.DescribeResourceManagerHandshake Failed!!! %s", err)
 			d.SetId("")
 			return nil

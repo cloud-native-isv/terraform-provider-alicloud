@@ -250,7 +250,7 @@ func resourceAliyunSlbRuleRead(d *schema.ResourceData, meta interface{}) error {
 	object, err := slbService.DescribeSlbRule(d.Id())
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -386,7 +386,7 @@ func resourceAliyunSlbRuleDelete(d *schema.ResourceData, meta interface{}) error
 		lbId := d.Get("load_balancer_id").(string)
 		lbInstance, err := slbService.DescribeSlbLoadBalancer(lbId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return WrapError(err)

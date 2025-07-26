@@ -258,7 +258,7 @@ func (s *SlbService) WaitForSlb(id string, status Status, timeout int) error {
 		object, err := s.DescribeSlb(id)
 
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -282,7 +282,7 @@ func (s *SlbService) WaitForSlbListener(id string, status Status, timeout int) e
 	for {
 		object, err := s.DescribeSlbListener(id)
 		if err != nil && !IsExpectedErrors(err, []string{"InvalidLoadBalancerId.NotFound"}) {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -312,7 +312,7 @@ func (s *SlbService) WaitForSlbRule(id string, status Status, timeout int) error
 		object, err := s.DescribeSlbRule(id)
 
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -337,7 +337,7 @@ func (s *SlbService) WaitForSlbServerGroup(id string, status Status, timeout int
 	for {
 		object, err := s.DescribeSlbServerGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -361,7 +361,7 @@ func (s *SlbService) WaitForSlbMasterSlaveServerGroup(id string, status Status, 
 	for {
 		object, err := s.DescribeSlbMasterSlaveServerGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -386,7 +386,7 @@ func (s *SlbService) WaitSlbAttribute(id string, instanceSet *schema.Set, timeou
 RETRY:
 	object, err := s.DescribeSlb(id)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
@@ -550,7 +550,7 @@ func (s *SlbService) WaitForSlbCACertificate(id string, status Status, timeout i
 	for {
 		object, err := s.DescribeSlbCACertificate(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -594,7 +594,7 @@ func (s *SlbService) WaitForSlbServerCertificate(id string, status Status, timeo
 	for {
 		object, err := s.DescribeSlbServerCertificate(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -668,7 +668,7 @@ func (s *SlbService) WaitForSlbDomainExtension(id string, status Status, timeout
 	for {
 		_, err := s.DescribeDomainExtensionAttribute(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -969,7 +969,7 @@ func (s *SlbService) SlbLoadBalancerStateRefreshFunc(id string, failStates []str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSlbLoadBalancer(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

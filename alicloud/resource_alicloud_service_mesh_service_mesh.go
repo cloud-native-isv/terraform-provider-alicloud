@@ -774,7 +774,7 @@ func resourceAliCloudServiceMeshServiceMeshRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := serviceMeshServiceV2.DescribeServiceMeshServiceMesh(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_service_mesh_service_mesh DescribeServiceMeshServiceMesh Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -1958,7 +1958,7 @@ func resourceAliCloudServiceMeshServiceMeshDelete(d *schema.ResourceData, meta i
 	})
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"StatusForbidden", "403"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"StatusForbidden", "403"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

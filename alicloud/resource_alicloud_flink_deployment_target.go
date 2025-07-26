@@ -136,7 +136,7 @@ func resourceAliCloudFlinkDeploymentTargetRead(d *schema.ResourceData, meta inte
 
 	object, err := deploymentTargetService.DescribeFlinkDeploymentTarget(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

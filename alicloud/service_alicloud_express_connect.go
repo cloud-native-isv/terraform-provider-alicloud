@@ -69,7 +69,7 @@ func (s *ExpressConnectService) ExpressConnectVbrPconnAssociationStateRefreshFun
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectVbrPconnAssociation(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

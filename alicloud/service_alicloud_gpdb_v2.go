@@ -81,7 +81,7 @@ func (s *GpdbServiceV2) GpdbLogBackupStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbLogBackup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -141,7 +141,7 @@ func (s *GpdbServiceV2) GpdbBackupPolicyStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbBackupPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -212,7 +212,7 @@ func (s *GpdbServiceV2) GpdbDbResourceGroupStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbDbResourceGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -293,7 +293,7 @@ func (s *GpdbServiceV2) GpdbRemoteADBDataSourceStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbRemoteADBDataSource(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -359,7 +359,7 @@ func (s *GpdbServiceV2) GpdbExternalDataServiceStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbExternalDataService(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -425,7 +425,7 @@ func (s *GpdbServiceV2) GpdbStreamingDataServiceStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbStreamingDataService(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -491,7 +491,7 @@ func (s *GpdbServiceV2) GpdbStreamingDataSourceStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbStreamingDataSource(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -556,7 +556,7 @@ func (s *GpdbServiceV2) GpdbAccountStateRefreshFunc(id string, field string, fai
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbAccount(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -618,7 +618,7 @@ func (s *GpdbServiceV2) GpdbJdbcDataSourceStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbJdbcDataSource(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -681,7 +681,7 @@ func (s *GpdbServiceV2) GpdbHadoopDataSourceStateRefreshFunc(id string, field st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbHadoopDataSource(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -748,7 +748,7 @@ func (s *GpdbServiceV2) GpdbStreamingJobStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbStreamingJob(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -819,7 +819,7 @@ func (s *GpdbServiceV2) GpdbDBInstanceIPArrayStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbDBInstanceIPArray(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -889,7 +889,7 @@ func (s *GpdbServiceV2) GpdbDatabaseStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbDatabase(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

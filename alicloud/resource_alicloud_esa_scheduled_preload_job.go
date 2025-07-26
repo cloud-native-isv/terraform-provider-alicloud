@@ -115,7 +115,7 @@ func resourceAliCloudEsaScheduledPreloadJobRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := esaServiceV2.DescribeEsaScheduledPreloadJob(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_scheduled_preload_job DescribeEsaScheduledPreloadJob Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -166,7 +166,7 @@ func resourceAliCloudEsaScheduledPreloadJobDelete(d *schema.ResourceData, meta i
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

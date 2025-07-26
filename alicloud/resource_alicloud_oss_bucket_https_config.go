@@ -107,7 +107,7 @@ func resourceAliCloudOssBucketHttpsConfigRead(d *schema.ResourceData, meta inter
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketHttpsConfig(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_https_config DescribeOssBucketHttpsConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil

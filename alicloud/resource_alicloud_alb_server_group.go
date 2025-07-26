@@ -520,7 +520,7 @@ func resourceAliCloudAlbServerGroupRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := albServiceV2.DescribeAlbServerGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alb_server_group DescribeAlbServerGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -636,7 +636,7 @@ func resourceAliCloudAlbServerGroupRead(d *schema.ResourceData, meta interface{}
 	}
 
 	objectRaw, err = albServiceV2.DescribeServerGroupListServerGroupServers(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -1062,7 +1062,7 @@ func resourceAliCloudAlbServerGroupDelete(d *schema.ResourceData, meta interface
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ResourceNotFound.ServerGroup"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ResourceNotFound.ServerGroup"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

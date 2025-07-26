@@ -455,7 +455,7 @@ func resourceAliCloudThreatDetectionInstanceRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := threatDetectionServiceV2.DescribeThreatDetectionInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_instance DescribeThreatDetectionInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -496,7 +496,7 @@ func resourceAliCloudThreatDetectionInstanceRead(d *schema.ResourceData, meta in
 	d.Set("vul_switch", instanceComponentValueRaw["VulSwitch"])
 
 	objectRaw, err = threatDetectionServiceV2.DescribeInstanceQueryAvailableInstances(d)
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 

@@ -92,7 +92,7 @@ func resourceAliCloudRdsInstanceCrossBackupPolicyRead(d *schema.ResourceData, me
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeInstanceCrossBackupPolicy(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -160,7 +160,7 @@ func resourceAliCloudRdsInstanceCrossBackupPolicyDelete(d *schema.ResourceData, 
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeInstanceCrossBackupPolicy(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -183,7 +183,7 @@ func resourceAliCloudRdsInstanceCrossBackupPolicyDelete(d *schema.ResourceData, 
 			if NeedRetry(err) {
 				return resource.RetryableError(err)
 			}
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return resource.NonRetryableError(err)

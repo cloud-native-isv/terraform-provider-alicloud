@@ -95,7 +95,7 @@ func resourceAliCloudArmsRemoteWriteRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := armsService.DescribeArmsRemoteWrite(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_remote_write DescribeArmsRemoteWrite Failed!!! %s", err)
 			d.SetId("")
 			return nil

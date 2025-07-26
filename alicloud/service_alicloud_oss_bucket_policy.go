@@ -50,7 +50,7 @@ func (s *OssService) OssBucketPolicyStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -85,4 +85,3 @@ func (s *OssService) OssBucketPolicyStateRefreshFunc(id string, field string, fa
 		return object, currentStatus, nil
 	}
 }
-

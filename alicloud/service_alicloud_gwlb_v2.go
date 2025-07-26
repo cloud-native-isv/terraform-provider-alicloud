@@ -55,7 +55,7 @@ func (s *GwlbServiceV2) GwlbLoadBalancerStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGwlbLoadBalancer(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -210,7 +210,7 @@ func (s *GwlbServiceV2) GwlbListenerStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGwlbListener(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -313,7 +313,7 @@ func (s *GwlbServiceV2) GwlbServerGroupStateRefreshFunc(id string, field string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGwlbServerGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -368,7 +368,7 @@ func (s *GwlbServiceV2) DescribeAsyncGwlbServerGroupStateRefreshFunc(d *schema.R
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncServerGroupListServerGroupServers(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -1,11 +1,12 @@
 package alicloud
 
 import (
+	"log"
+	"time"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceAliCloudCloudFirewallIPSConfig() *schema.Resource {
@@ -70,7 +71,7 @@ func resourceAliCloudCloudFirewallIPSConfigRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := cloudFirewallServiceV2.DescribeCloudFirewallIPSConfig(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_firewall_ips_config DescribeCloudFirewallIPSConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil

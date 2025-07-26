@@ -823,7 +823,7 @@ func resourceAliCloudAlbRuleRead(d *schema.ResourceData, meta interface{}) error
 
 	object, err := albService.DescribeAlbRule(d.Id(), direction)
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alb_rule albService.DescribeAlbRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

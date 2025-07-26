@@ -105,7 +105,7 @@ func resourceAliCloudAlidnsDomainRead(d *schema.ResourceData, meta interface{}) 
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsDomain(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alidns_domain alidnsService.DescribeAlidnsDomain Failed!!! %s", err)
 			d.SetId("")
 			return nil

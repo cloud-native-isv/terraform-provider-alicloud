@@ -240,7 +240,7 @@ func (s *ExpressConnectRouterServiceV2) ExpressConnectRouterExpressConnectRouter
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectRouterExpressConnectRouter(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -301,7 +301,7 @@ func (s *ExpressConnectRouterServiceV2) DescribeAsyncExpressConnectRouterExpress
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncDescribeInstanceGrantedToExpressConnectRouter(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -520,7 +520,7 @@ func (s *ExpressConnectRouterServiceV2) ExpressConnectRouterExpressConnectRouter
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectRouterExpressConnectRouterVbrChildInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -589,7 +589,7 @@ func (s *ExpressConnectRouterServiceV2) DescribeAsyncExpressConnectRouterExpress
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncExpressConnectRouterVbrChildInstanceDescribeExpressConnectRouterChildInstance(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 		}
@@ -691,7 +691,7 @@ func (s *ExpressConnectRouterServiceV2) ExpressConnectRouterExpressConnectRouter
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectRouterExpressConnectRouterTrAssociation(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -832,7 +832,7 @@ func (s *ExpressConnectRouterServiceV2) ExpressConnectRouterExpressConnectRouter
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectRouterExpressConnectRouterVpcAssociation(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -929,7 +929,7 @@ func (s *ExpressConnectRouterServiceV2) ExpressConnectRouterGrantAssociationStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectRouterGrantAssociation(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

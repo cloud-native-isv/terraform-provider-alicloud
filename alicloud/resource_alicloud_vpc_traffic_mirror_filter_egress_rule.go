@@ -184,7 +184,7 @@ func resourceAliCloudVpcTrafficMirrorFilterEgressRuleRead(d *schema.ResourceData
 
 	objectRaw, err := vpcServiceV2.DescribeVpcTrafficMirrorFilterEgressRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_traffic_mirror_filter_egress_rule DescribeVpcTrafficMirrorFilterEgressRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -319,7 +319,7 @@ func resourceAliCloudVpcTrafficMirrorFilterEgressRuleDelete(d *schema.ResourceDa
 	})
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

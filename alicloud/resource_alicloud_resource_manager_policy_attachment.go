@@ -92,7 +92,7 @@ func resourceAliCloudResourceManagerPolicyAttachmentRead(d *schema.ResourceData,
 	}
 	_, err := resourcemanagerService.DescribeResourceManagerPolicyAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_resource_manager_policy_attachment resourcemanagerService.DescribeResourceManagerPolicyAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -525,7 +525,7 @@ func resourceAliCloudSelectDBClusterDelete(d *schema.ResourceData, meta interfac
 
 	// _, err := selectDBService.DescribeSelectDBCluster(d.Id())
 	// if err != nil {
-	// 	if NotFoundError(err) {
+	// 	if IsNotFoundError(err) {
 	// 		return nil
 	// 	}
 	// 	return WrapError(err)

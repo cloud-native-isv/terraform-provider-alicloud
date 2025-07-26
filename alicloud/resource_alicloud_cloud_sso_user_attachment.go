@@ -77,7 +77,7 @@ func resourceAliCloudCloudSsoUserAttachmentRead(d *schema.ResourceData, meta int
 	cloudssoService := CloudssoService{client}
 	_, err := cloudssoService.DescribeCloudSsoUserAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_sso_user_attachment cloudssoService.DescribeCloudSsoUserAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

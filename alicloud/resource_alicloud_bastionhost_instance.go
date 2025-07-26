@@ -359,7 +359,7 @@ func resourceAliCloudBastionhostInstanceRead(d *schema.ResourceData, meta interf
 	BastionhostService := YundunBastionhostService{client}
 	instance, err := BastionhostService.DescribeBastionhostInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

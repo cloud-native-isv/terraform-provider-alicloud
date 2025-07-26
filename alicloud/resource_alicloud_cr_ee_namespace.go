@@ -2,9 +2,10 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cr_ee"
@@ -100,7 +101,7 @@ func resourceAliCloudCrEENamespaceRead(d *schema.ResourceData, meta interface{})
 
 	object, err := crService.DescribeCrEENamespace(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -183,7 +184,7 @@ func resourceAliCloudCrEENamespaceDelete(d *schema.ResourceData, meta interface{
 
 	_, err := crService.DeleteCrEENamespace(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		} else {
 			return WrapError(err)

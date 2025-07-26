@@ -93,7 +93,7 @@ func resourceAliCloudApiGatewayAclEntryAttachmentRead(d *schema.ResourceData, me
 
 	objectRaw, err := apiGatewayServiceV2.DescribeApiGatewayAclEntryAttachmentAttribute(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

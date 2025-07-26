@@ -136,7 +136,7 @@ func resourceAliCloudNasDataFlowRead(d *schema.ResourceData, meta interface{}) e
 
 	object, err := nasService.DescribeNasDataFlow(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_data_flow nasService.DescribeNasDataFlow Failed!!! %s", err)
 			d.SetId("")
 			return nil

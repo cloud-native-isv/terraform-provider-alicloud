@@ -66,7 +66,7 @@ func dataSourceAliCloudClickHouseBackupPoliciesRead(d *schema.ResourceData, meta
 	clickhouseService := ClickhouseService{client}
 	object, err := clickhouseService.DescribeClickHouseBackupPolicy(dbClusterId.(string))
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("ClickHouseBackupPolicy")
 			return nil
 		}

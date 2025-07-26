@@ -140,7 +140,7 @@ func resourceAliCloudImageCopyRead(d *schema.ResourceData, meta interface{}) err
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeImageById(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

@@ -234,7 +234,7 @@ func (s *GpdbService) GpdbInstanceStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -254,7 +254,7 @@ func (s *GpdbService) GpdbElasticInstanceStateRefreshFunc(id string, failStates 
 	return func() (interface{}, string, error) {
 		instance, err := s.DescribeGpdbElasticInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -275,7 +275,7 @@ func (s *GpdbService) WaitForGpdbConnection(id string, status Status, timeout in
 	for {
 		object, err := s.DescribeGpdbConnection(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -413,7 +413,7 @@ func (s *GpdbService) GpdbAccountStateRefreshFunc(id string, failStates []string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbAccount(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -693,7 +693,7 @@ func (s *GpdbService) DBInstanceSSLStateRefreshFunc(d *schema.ResourceData, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDBInstanceSSL(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -756,7 +756,7 @@ func (s *GpdbService) GpdbDbInstanceStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbDbInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -832,7 +832,7 @@ func (s *GpdbService) GpdbDbInstancePlanStateRefreshFunc(id string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbDbInstancePlan(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -909,7 +909,7 @@ func (s *GpdbService) GpdbDbInstanceDataShareStatusStateRefreshFunc(id string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGpdbDbInstanceDataShareStatus(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

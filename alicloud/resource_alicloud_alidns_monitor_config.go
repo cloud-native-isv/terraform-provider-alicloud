@@ -127,7 +127,7 @@ func resourceAliCloudAlidnsMonitorConfigRead(d *schema.ResourceData, meta interf
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsMonitorConfig(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alidns_monitor_config alidnsService.DescribeAlidnsMonitorConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil

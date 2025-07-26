@@ -212,7 +212,7 @@ func dataSourceAliCloudOtsTablesRead(d *schema.ResourceData, meta interface{}) e
 	for _, tableName := range filteredTableNames {
 		object, err := otsService.DescribeOtsTable(instanceName, tableName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Skip tables that are not found (may have been deleted)
 				continue
 			}

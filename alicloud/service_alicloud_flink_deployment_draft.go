@@ -44,7 +44,7 @@ func (s *FlinkService) FlinkDeploymentDraftStateRefreshFunc(workspaceId string, 
 	return func() (interface{}, string, error) {
 		draft, err := s.GetDeploymentDraft(workspaceId, namespaceName, draftId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "NotFound", nil
 			}
 			return nil, "", WrapError(err)

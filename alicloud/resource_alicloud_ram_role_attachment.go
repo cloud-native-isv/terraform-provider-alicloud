@@ -73,7 +73,7 @@ func resourceAliCloudInstanceRoleAttachmentRead(d *schema.ResourceData, meta int
 	ramService := RamService{client}
 	object, err := ramService.DescribeRamRoleAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

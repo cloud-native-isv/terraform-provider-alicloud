@@ -88,7 +88,7 @@ func resourceAliCloudApiGatewayModelRead(d *schema.ResourceData, meta interface{
 	cloudApiService := CloudApiService{client}
 	object, err := cloudApiService.DescribeApiGatewayModel(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

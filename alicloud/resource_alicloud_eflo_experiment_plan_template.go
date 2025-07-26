@@ -4,12 +4,13 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceAliCloudEfloExperimentPlanTemplate() *schema.Resource {
@@ -232,7 +233,7 @@ func resourceAliCloudEfloExperimentPlanTemplateRead(d *schema.ResourceData, meta
 
 	objectRaw, err := efloServiceV2.DescribeEfloExperimentPlanTemplate(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eflo_experiment_plan_template DescribeEfloExperimentPlanTemplate Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -433,7 +434,7 @@ func resourceAliCloudEfloExperimentPlanTemplateDelete(d *schema.ResourceData, me
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

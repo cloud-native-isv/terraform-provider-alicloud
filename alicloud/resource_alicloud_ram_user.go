@@ -226,7 +226,7 @@ func resourceAliCloudRamUserRead(d *schema.ResourceData, meta interface{}) error
 	ramService := &RamService{client: client}
 	object, err := ramService.DescribeRamUser(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -252,7 +252,7 @@ func resourceAliCloudRamUserDelete(d *schema.ResourceData, meta interface{}) err
 	ramService := &RamService{client: client}
 	object, err := ramService.DescribeRamUser(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

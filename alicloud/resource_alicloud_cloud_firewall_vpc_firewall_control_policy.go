@@ -225,7 +225,7 @@ func resourceAliCloudCloudFirewallVpcFirewallControlPolicyRead(d *schema.Resourc
 
 	object, err := cloudfwService.DescribeCloudFirewallVpcFirewallControlPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_firewall_vpc_firewall_control_policy cloudfwService.DescribeCloudFirewallVpcFirewallControlPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -429,7 +429,7 @@ func resourceAliCloudCloudFirewallVpcFirewallControlPolicyDelete(d *schema.Resou
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

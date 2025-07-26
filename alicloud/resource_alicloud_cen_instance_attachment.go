@@ -118,7 +118,7 @@ func resourceAliCloudCenInstanceAttachmentRead(d *schema.ResourceData, meta inte
 
 	object, err := cbnService.DescribeCenInstanceAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_instance_attachment cbnService.DescribeCenInstanceAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

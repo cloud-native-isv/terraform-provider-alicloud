@@ -82,7 +82,7 @@ func (s *ServicemeshService) ServiceMeshServiceMeshStateRefreshFunc(id string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeServiceMeshServiceMesh(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

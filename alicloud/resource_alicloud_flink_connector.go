@@ -158,7 +158,7 @@ func resourceAliCloudFlinkConnectorRead(d *schema.ResourceData, meta interface{}
 
 	connector, err := flinkService.GetConnector(workspaceId, namespaceName, connectorName)
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_flink_connector GetConnector Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -273,7 +273,7 @@ func resourceAliCloudFlinkConnectorDelete(d *schema.ResourceData, meta interface
 
 	err = flinkService.DeleteCustomConnector(workspaceId, namespaceName, connectorName)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteCustomConnector", AlibabaCloudSdkGoERROR)
@@ -286,7 +286,7 @@ func resourceAliCloudFlinkConnectorDelete(d *schema.ResourceData, meta interface
 		Refresh: func() (interface{}, string, error) {
 			connector, err := flinkService.GetConnector(workspaceId, namespaceName, connectorName)
 			if err != nil {
-				if NotFoundError(err) {
+				if IsNotFoundError(err) {
 					return nil, "", nil
 				}
 				return nil, "", WrapError(err)

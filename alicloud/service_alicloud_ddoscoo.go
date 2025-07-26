@@ -82,7 +82,7 @@ func (s *DdoscooService) DdosStateRefreshFunc(id string, failStates []string) re
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDdoscooInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -122,7 +122,7 @@ func (s *DdoscooService) DescribeDdoscooInstanceSpec(id string) (object map[stri
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InstanceNotFound", "ddos_coop3301"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InstanceNotFound", "ddos_coop3301"}) || IsNotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("DdosCoo:Instance", id), NotFoundWithResponse, response)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
@@ -386,7 +386,7 @@ func (s *DdoscooService) DescribeDdoscooPort(id string) (object map[string]inter
 		return nil
 	})
 	if err != nil {
-		if IsExpectedErrors(err, []string{"anycast_controller3006"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"anycast_controller3006"}) || IsNotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("DdosCoo", id), NotFoundWithResponse, response)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)

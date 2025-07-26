@@ -3,11 +3,12 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceAliCloudMessageServiceEndpoint() *schema.Resource {
@@ -50,7 +51,7 @@ func resourceAliCloudMessageServiceEndpointRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := messageServiceServiceV2.DescribeMessageServiceEndpoint(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_message_service_endpoint DescribeMessageServiceEndpoint Failed!!! %s", err)
 			d.SetId("")
 			return nil

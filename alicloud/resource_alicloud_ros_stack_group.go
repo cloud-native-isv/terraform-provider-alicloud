@@ -183,7 +183,7 @@ func resourceAliCloudRosStackGroupRead(d *schema.ResourceData, meta interface{})
 	rosService := RosService{client}
 	object, err := rosService.DescribeRosStackGroup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ros_stack_group rosService.DescribeRosStackGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

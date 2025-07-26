@@ -171,7 +171,7 @@ func resourceAliCloudVpcHaVipRead(d *schema.ResourceData, meta interface{}) erro
 
 	objectRaw, err := vpcServiceV2.DescribeVpcHaVip(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_ha_vip DescribeVpcHaVip Failed!!! %s", err)
 			d.SetId("")
 			return nil

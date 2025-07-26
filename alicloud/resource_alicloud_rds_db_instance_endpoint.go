@@ -301,7 +301,7 @@ func resourceAliCloudRdsDBInstanceEndpointRead(d *schema.ResourceData, meta inte
 	rdsService := RdsService{client}
 	object, endpointErr := rdsService.DescribeDBInstanceEndpoints(d.Id())
 	if endpointErr != nil {
-		if !d.IsNewResource() && NotFoundError(endpointErr) {
+		if !d.IsNewResource() && IsNotFoundError(endpointErr) {
 			log.Printf("[DEBUG] Resource alicloud_rds_db_instance_endpoint rdsService.DescribeDBInstanceEndpoints Failed!!! %s", endpointErr)
 			d.SetId("")
 			return nil
@@ -332,7 +332,7 @@ func resourceAliCloudRdsDBInstanceEndpointDelete(d *schema.ResourceData, meta in
 	}
 	_, err = rdsService.DescribeDBInstance(parts[0])
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

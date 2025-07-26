@@ -3,12 +3,13 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -164,7 +165,7 @@ func resourceAliCloudEcsKeyPairRead(d *schema.ResourceData, meta interface{}) er
 
 	objectRaw, err := ecsServiceV2.DescribeEcsKeyPair(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_key_pair DescribeEcsKeyPair Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -270,7 +271,7 @@ func resourceAliCloudEcsKeyPairDelete(d *schema.ResourceData, meta interface{}) 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

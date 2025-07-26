@@ -230,7 +230,7 @@ func resourceAliCloudAlidnsGtmInstanceRead(d *schema.ResourceData, meta interfac
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsGtmInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alidns_gtm_instance alidnsService.DescribeAlidnsGtmInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -113,7 +113,7 @@ func resourceAliCloudEnsSnapshotRead(d *schema.ResourceData, meta interface{}) e
 
 	objectRaw, err := ensServiceV2.DescribeEnsSnapshot(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ens_snapshot DescribeEnsSnapshot Failed!!! %s", err)
 			d.SetId("")
 			return nil

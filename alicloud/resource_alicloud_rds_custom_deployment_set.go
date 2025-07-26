@@ -118,7 +118,7 @@ func resourceAliCloudRdsCustomDeploymentSetRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := rdsServiceV2.DescribeRdsCustomDeploymentSet(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_rds_custom_deployment_set DescribeRdsCustomDeploymentSet Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -175,7 +175,7 @@ func resourceAliCloudRdsCustomDeploymentSetDelete(d *schema.ResourceData, meta i
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

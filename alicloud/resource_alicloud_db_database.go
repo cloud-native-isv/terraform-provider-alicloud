@@ -110,7 +110,7 @@ func resourceAliCloudDBDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	rsdService := RdsService{client}
 	object, err := rsdService.DescribeDBDatabase(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -176,7 +176,7 @@ func resourceAliCloudDBDatabaseDelete(d *schema.ResourceData, meta interface{}) 
 	}
 	response, err := client.RpcPost("Rds", "2014-08-15", action, nil, request, false)
 	if err != nil {
-		if NotFoundError(err) || IsExpectedErrors(err, []string{"InvalidDBName.NotFound"}) {
+		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"InvalidDBName.NotFound"}) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

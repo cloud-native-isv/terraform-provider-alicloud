@@ -132,7 +132,7 @@ func resourceAliCloudAmqpExchangeRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := amqpServiceV2.DescribeAmqpExchange(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_amqp_exchange DescribeAmqpExchange Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -188,7 +188,7 @@ func resourceAliCloudAmqpExchangeDelete(d *schema.ResourceData, meta interface{}
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

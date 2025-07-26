@@ -103,7 +103,7 @@ func resourceAliCloudRamUserPolicyAttachmentRead(d *schema.ResourceData, meta in
 	}
 	objectRaw, err := ramServiceV2.DescribeRamUserPolicyAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_user_policy_attachment DescribeRamUserPolicyAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -165,7 +165,7 @@ func resourceAliCloudRamUserPolicyAttachmentDelete(d *schema.ResourceData, meta 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExist.User", "EntityNotExist.User.Policy"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExist.User", "EntityNotExist.User.Policy"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -4,9 +4,10 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"log"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -161,7 +162,7 @@ func resourceAliCloudMessageServiceSubscriptionRead(d *schema.ResourceData, meta
 
 	objectRaw, err := messageServiceServiceV2.DescribeMessageServiceSubscription(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_message_service_subscription DescribeMessageServiceSubscription Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -299,7 +300,7 @@ func resourceAliCloudMessageServiceSubscriptionDelete(d *schema.ResourceData, me
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

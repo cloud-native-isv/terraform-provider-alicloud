@@ -95,7 +95,7 @@ func (s *DcdnService) DcdnDomainStateRefreshFunc(id string, failStates []string)
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDcdnDomain(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -174,7 +174,7 @@ func (s *DcdnService) DcdnDomainConfigStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDcdnDomainConfig(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -229,7 +229,7 @@ func (s *DcdnService) DcdnIpaDomainStateRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDcdnIpaDomain(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -486,7 +486,7 @@ func (s *DcdnService) DcdnKvNamespaceStateRefreshFunc(id string, failStates []st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDcdnKvNamespace(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

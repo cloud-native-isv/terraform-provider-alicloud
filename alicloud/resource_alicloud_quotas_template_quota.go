@@ -154,7 +154,7 @@ func resourceAliCloudQuotasTemplateQuotaRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := quotasServiceV2.DescribeQuotasTemplateQuota(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_quotas_template_quota DescribeQuotasTemplateQuota Failed!!! %s", err)
 			d.SetId("")
 			return nil

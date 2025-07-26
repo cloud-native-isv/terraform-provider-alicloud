@@ -123,7 +123,7 @@ func resourceAliCloudAlbAclRead(d *schema.ResourceData, meta interface{}) error 
 	albService := AlbService{client}
 	object, err := albService.DescribeAlbAcl(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alb_acl albService.DescribeAlbAcl Failed!!! %s", err)
 			d.SetId("")
 			return nil

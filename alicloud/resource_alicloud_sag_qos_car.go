@@ -125,7 +125,7 @@ func resourceAliCloudSagQosCarRead(d *schema.ResourceData, meta interface{}) err
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeSagQosCar(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

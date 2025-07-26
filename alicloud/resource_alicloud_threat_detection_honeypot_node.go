@@ -111,7 +111,7 @@ func resourceAliCloudThreatDetectionHoneypotNodeRead(d *schema.ResourceData, met
 
 	object, err := threatDetectionService.DescribeThreatDetectionHoneypotNode(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_honeypot_node threatDetectionService.DescribeThreatDetectionHoneypotNode Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -206,7 +206,7 @@ func resourceAliCloudThreatDetectionHoneypotNodeDelete(d *schema.ResourceData, m
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

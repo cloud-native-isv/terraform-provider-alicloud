@@ -91,7 +91,7 @@ func resourceAliCloudSimpleApplicationServerCustomImageRead(d *schema.ResourceDa
 	swasOpenService := SwasOpenService{client}
 	object, err := swasOpenService.DescribeSimpleApplicationServerCustomImage(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_simple_application_server_custom_image swasOpenService.DescribeSimpleApplicationServerCustomImage Failed!!! %s", err)
 			d.SetId("")
 			return nil

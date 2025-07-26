@@ -104,7 +104,7 @@ func resourceAliCloudVpcIpv6InternetBandwidthRead(d *schema.ResourceData, meta i
 
 	objectRaw, err := vpcServiceV2.DescribeVpcIpv6InternetBandwidth(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_ipv6_internet_bandwidth DescribeVpcIpv6InternetBandwidth Failed!!! %s", err)
 			d.SetId("")
 			return nil

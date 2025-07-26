@@ -91,7 +91,7 @@ func (s *SlsService) SlsCollectionPolicyStateRefreshFunc(policyName string, fail
 	return func() (interface{}, string, error) {
 		policy, err := s.DescribeSlsCollectionPolicy(policyName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -118,7 +118,7 @@ func (s *SlsService) SlsCollectionPolicyStateRefreshFunc(policyName string, fail
 func (s *SlsService) CheckSlsCollectionPolicyExists(policyName string) (bool, error) {
 	_, err := s.DescribeSlsCollectionPolicy(policyName)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return false, nil
 		}
 		return false, err
@@ -132,7 +132,7 @@ func (s *SlsService) WaitForSlsCollectionPolicy(policyName string, status Status
 	for {
 		policy, err := s.DescribeSlsCollectionPolicy(policyName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

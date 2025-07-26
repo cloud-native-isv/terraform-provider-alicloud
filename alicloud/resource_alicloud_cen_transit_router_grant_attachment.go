@@ -110,7 +110,7 @@ func resourceAliCloudCenTransitRouterGrantAttachmentRead(d *schema.ResourceData,
 
 	object, err := cbnService.DescribeCenTransitRouterGrantAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_transit_router_grant_attachment cbnService.DescribeCenTransitRouterGrantAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -161,7 +161,7 @@ func resourceAliCloudCenTransitRouterGrantAttachmentDelete(d *schema.ResourceDat
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

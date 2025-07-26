@@ -112,7 +112,7 @@ func resourceAliCloudThreatDetectionBackupPolicyRead(d *schema.ResourceData, met
 
 	object, err := threatDetectionService.DescribeThreatDetectionBackupPolicy(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -221,7 +221,7 @@ func resourceAliCloudThreatDetectionBackupPolicyDelete(d *schema.ResourceData, m
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

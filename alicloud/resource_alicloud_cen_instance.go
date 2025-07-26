@@ -131,7 +131,7 @@ func resourceAliCloudCenCenInstanceRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := cenServiceV2.DescribeCenCenInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_instance DescribeCenCenInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -278,7 +278,7 @@ func resourceAliCloudCenCenInstanceDelete(d *schema.ResourceData, meta interface
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ParameterCenInstanceId"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ParameterCenInstanceId"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

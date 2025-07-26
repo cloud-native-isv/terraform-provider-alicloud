@@ -127,7 +127,7 @@ func resourceAliCloudThreatDetectionWebLockConfigRead(d *schema.ResourceData, me
 
 	object, err := sasService.DescribeThreatDetectionWebLockConfig(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_web_lock_config sasService.DescribeThreatDetectionWebLockConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -170,7 +170,7 @@ func resourceAliCloudThreatDetectionWebLockConfigDelete(d *schema.ResourceData, 
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

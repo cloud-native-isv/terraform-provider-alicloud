@@ -87,7 +87,7 @@ func resourceAliCloudMongodbAuditPolicyRead(d *schema.ResourceData, meta interfa
 	MongoDBService := MongoDBService{client}
 	object, err := MongoDBService.DescribeMongodbAuditPolicy(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mongodb_audit_policy MongoDBService.DescribeMongodbAuditPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

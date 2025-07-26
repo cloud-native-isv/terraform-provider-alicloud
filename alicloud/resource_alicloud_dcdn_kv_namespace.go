@@ -92,7 +92,7 @@ func resourceAliCloudDcdnKvNamespaceRead(d *schema.ResourceData, meta interface{
 
 	object, err := dcdnService.DescribeDcdnKvNamespace(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dcdn_kv_namespace dcdnService.DescribeDcdnKvNamespace Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -130,7 +130,7 @@ func resourceAliCloudDcdnKvNamespaceDelete(d *schema.ResourceData, meta interfac
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

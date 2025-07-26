@@ -255,7 +255,7 @@ func resourceAliCloudApigGatewayRead(d *schema.ResourceData, meta interface{}) e
 
 	objectRaw, err := apigServiceV2.DescribeApigGateway(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_apig_gateway DescribeApigGateway Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -443,7 +443,7 @@ func resourceAliCloudApigGatewayDelete(d *schema.ResourceData, meta interface{})
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotFound.GatewayNotFound", "Conflict.GatewayIsDeleted"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NotFound.GatewayNotFound", "Conflict.GatewayIsDeleted"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -101,7 +101,7 @@ func resourceAliCloudQuickBiUserRead(d *schema.ResourceData, meta interface{}) e
 	quickbiPublicService := QuickbiPublicService{client}
 	object, err := quickbiPublicService.DescribeQuickBiUser(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_quick_bi_user quickbiPublicService.DescribeQuickBiUser Failed!!! %s", err)
 			d.SetId("")
 			return nil

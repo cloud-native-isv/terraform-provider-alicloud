@@ -92,7 +92,7 @@ func (s *HaVipService) WaitForHaVipAttachment(haVipId string, instanceId string,
 		err := s.DescribeHaVipAttachment(haVipId, instanceId)
 
 		if err != nil {
-			if !NotFoundError(err) {
+			if !IsNotFoundError(err) {
 				return err
 			}
 		} else {

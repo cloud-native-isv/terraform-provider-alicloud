@@ -153,7 +153,7 @@ func resourceAliCloudDcdnDomainConfigRead(d *schema.ResourceData, meta interface
 
 	object, err := dcdnService.DescribeDcdnDomainConfig(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

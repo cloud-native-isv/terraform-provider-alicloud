@@ -233,7 +233,7 @@ func dataSourceAliCloudLogLogtailConfigsRead(d *schema.ResourceData, meta interf
 		})
 
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				continue
 			}
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_logtail_configs", "GetConfig", AliyunLogGoSdkERROR)

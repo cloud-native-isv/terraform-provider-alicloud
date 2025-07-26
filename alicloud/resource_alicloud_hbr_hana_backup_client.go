@@ -137,7 +137,7 @@ func resourceAliCloudHbrHanaBackupClientRead(d *schema.ResourceData, meta interf
 
 	object, err := hbrService.DescribeHbrHanaBackupClient(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -193,7 +193,7 @@ func resourceAliCloudHbrHanaBackupClientDelete(d *schema.ResourceData, meta inte
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

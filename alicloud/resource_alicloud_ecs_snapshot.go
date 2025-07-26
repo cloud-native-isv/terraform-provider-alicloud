@@ -3,9 +3,10 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"log"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -166,7 +167,7 @@ func resourceAliCloudEcsSnapshotRead(d *schema.ResourceData, meta interface{}) e
 
 	objectRaw, err := ecsServiceV2.DescribeEcsSnapshot(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_snapshot DescribeEcsSnapshot Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -345,7 +346,7 @@ func resourceAliCloudEcsSnapshotDelete(d *schema.ResourceData, meta interface{})
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidResource.NotFound", "InvalidParameter"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidResource.NotFound", "InvalidParameter"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

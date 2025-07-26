@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/PaesslerAG/jsonpath"
 	"strconv"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cms"
@@ -943,7 +944,7 @@ func (s *CmsService) CmsMetricRuleBlackListStateRefreshFunc(d *schema.ResourceDa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCmsMetricRuleBlackList(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -961,7 +962,7 @@ func (s *CmsService) CmsDynamicTagGroupStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCmsDynamicTagGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

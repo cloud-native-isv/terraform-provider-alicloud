@@ -134,7 +134,7 @@ func resourceAliCloudCenTransitRouteTableAggregationRead(d *schema.ResourceData,
 
 	objectRaw, err := cenServiceV2.DescribeCenTransitRouteTableAggregation(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_transit_route_table_aggregation DescribeCenTransitRouteTableAggregation Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -267,7 +267,7 @@ func resourceAliCloudCenTransitRouteTableAggregationDelete(d *schema.ResourceDat
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InstanceNotExist.AggregationRoute"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InstanceNotExist.AggregationRoute"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

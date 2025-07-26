@@ -1102,7 +1102,7 @@ func resourceAliCloudCSKubernetesRead(d *schema.ResourceData, meta interface{}) 
 
 	object, err := csService.DescribeCsKubernetes(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cs_kubernetes DescribeCsKubernetes Failed!!! %s", err)
 			d.SetId("")
 			return nil

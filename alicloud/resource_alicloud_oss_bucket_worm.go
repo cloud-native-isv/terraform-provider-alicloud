@@ -105,7 +105,7 @@ func resourceAliCloudOssBucketWormRead(d *schema.ResourceData, meta interface{})
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketWorm(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_worm DescribeOssBucketWorm Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -263,7 +263,7 @@ func resourceAliCloudOssBucketWormDelete(d *schema.ResourceData, meta interface{
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NoSuchBucket", "NoSuchWORMConfiguration"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NoSuchBucket", "NoSuchWORMConfiguration"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

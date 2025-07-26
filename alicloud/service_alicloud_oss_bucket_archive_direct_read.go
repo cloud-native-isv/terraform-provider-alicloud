@@ -52,7 +52,7 @@ func (s *OssService) OssBucketArchiveDirectReadStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketArchiveDirectRead(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

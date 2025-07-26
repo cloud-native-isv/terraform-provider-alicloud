@@ -108,7 +108,7 @@ func resourceAliCloudApiGatewayPluginRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := apiGatewayServiceV2.DescribeApiGatewayPlugin(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_api_gateway_plugin DescribeApiGatewayPlugin Failed!!! %s", err)
 			d.SetId("")
 			return nil

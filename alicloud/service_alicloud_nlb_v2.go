@@ -66,7 +66,7 @@ func (s *NlbServiceV2) NlbLoadbalancerCommonBandwidthPackageAttachmentStateRefre
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbLoadbalancerCommonBandwidthPackageAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -145,7 +145,7 @@ func (s *NlbServiceV2) NlbListenerAdditionalCertificateAttachmentStateRefreshFun
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbListenerAdditionalCertificateAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -174,7 +174,7 @@ func (s *NlbServiceV2) DescribeAsyncNlbListenerAdditionalCertificateAttachmentSt
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncGetJobStatus(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 		}
@@ -254,7 +254,7 @@ func (s *NlbServiceV2) NlbLoadBalancerSecurityGroupAttachmentStateRefreshFunc(id
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbLoadBalancerSecurityGroupAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -276,7 +276,7 @@ func (s *NlbServiceV2) DescribeAsyncNlbLoadBalancerSecurityGroupAttachmentStateR
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncGetJobStatus(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -343,7 +343,7 @@ func (s *NlbServiceV2) NlbSecurityPolicyStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbSecurityPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -508,7 +508,7 @@ func (s *NlbServiceV2) NlbServerGroupStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbServerGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -537,7 +537,7 @@ func (s *NlbServiceV2) DescribeAsyncNlbServerGroupStateRefreshFunc(d *schema.Res
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncGetJobStatus(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 		}
@@ -633,7 +633,7 @@ func (s *NlbServiceV2) NlbServerGroupServerAttachmentStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbServerGroupServerAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -703,7 +703,7 @@ func (s *NlbServiceV2) NlbListenerStateRefreshFunc(id string, field string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbListener(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -732,7 +732,7 @@ func (s *NlbServiceV2) DescribeAsyncNlbListenerStateRefreshFunc(d *schema.Resour
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncGetJobStatus(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 		}
@@ -804,7 +804,7 @@ func (s *NlbServiceV2) NlbLoadBalancerStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbLoadBalancer(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -833,7 +833,7 @@ func (s *NlbServiceV2) DescribeAsyncNlbLoadBalancerStateRefreshFunc(d *schema.Re
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncGetJobStatus(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 		}
@@ -960,7 +960,7 @@ func (s *NlbServiceV2) NlbLoadBalancerZoneShiftedAttachmentStateRefreshFunc(id s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNlbLoadBalancerZoneShiftedAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

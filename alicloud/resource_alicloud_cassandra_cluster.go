@@ -213,7 +213,7 @@ func resourceAliCloudCassandraClusterRead(d *schema.ResourceData, meta interface
 	cassandraService := CassandraService{client}
 	object, err := cassandraService.DescribeCassandraCluster(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cassandra_cluster cassandraService.DescribeCassandraCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil

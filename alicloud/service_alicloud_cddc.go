@@ -231,7 +231,7 @@ func (s *CddcService) CddcDedicatedHostStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCddcDedicatedHost(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -295,7 +295,7 @@ func (s *CddcService) CddcDedicatedHostAccountStateRefreshFunc(d *schema.Resourc
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCddcDedicatedHostAccount(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

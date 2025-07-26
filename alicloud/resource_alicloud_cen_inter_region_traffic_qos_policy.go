@@ -117,7 +117,7 @@ func resourceAliCloudCenInterRegionTrafficQosPolicyRead(d *schema.ResourceData, 
 
 	objectRaw, err := cenServiceV2.DescribeCenInterRegionTrafficQosPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_inter_region_traffic_qos_policy DescribeCenInterRegionTrafficQosPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -211,7 +211,7 @@ func resourceAliCloudCenInterRegionTrafficQosPolicyDelete(d *schema.ResourceData
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

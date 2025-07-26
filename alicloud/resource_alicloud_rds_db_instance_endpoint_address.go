@@ -161,7 +161,7 @@ func resourceAliCloudRdsDBInstanceEndpointAddressRead(d *schema.ResourceData, me
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeDBInstanceEndpointPublicAddress(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_rds_db_instance_endpoint_address rdsService.DescribeDBInstanceEndpointPublicAddress Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -187,7 +187,7 @@ func resourceAliCloudRdsDBInstanceEndpointAddressDelete(d *schema.ResourceData, 
 	}
 	_, err = rdsService.DescribeDBInstance(parts[0])
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

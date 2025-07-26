@@ -1188,7 +1188,7 @@ func resourceAliCloudInstanceRead(d *schema.ResourceData, meta interface{}) erro
 
 	instance, err := ecsService.DescribeInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_instance ecsService.DescribeInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -1200,7 +1200,7 @@ func resourceAliCloudInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	disk, err := ecsService.DescribeEcsSystemDisk(d.Id())
 	if err != nil {
 		// if old resource happenes an not found error, there may system has been detached
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[WARNING] describing instance %s system disk failed. Error: %v", d.Id(), err)
 		} else {
 			return WrapError(err)

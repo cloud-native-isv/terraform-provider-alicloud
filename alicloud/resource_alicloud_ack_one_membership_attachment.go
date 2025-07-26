@@ -92,7 +92,7 @@ func resourceAliCloudAckOneMembershipAttachmentRead(d *schema.ResourceData, meta
 
 	objectRaw, err := ackOneServiceV2.DescribeAckOneMembershipAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ack_one_membership_attachment DescribeAckOneMembershipAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -132,7 +132,7 @@ func resourceAliCloudAckOneMembershipAttachmentDelete(d *schema.ResourceData, me
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

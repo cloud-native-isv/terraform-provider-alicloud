@@ -214,7 +214,7 @@ func resourceAliCloudOtsInstanceRead(d *schema.ResourceData, meta interface{}) e
 
 	instance, err := otsService.DescribeOtsInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -284,7 +284,7 @@ func resourceAliCloudOtsInstanceDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	if err := otsService.DeleteOtsInstance(d.Id()); err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteInstance", AlibabaCloudSdkGoERROR)

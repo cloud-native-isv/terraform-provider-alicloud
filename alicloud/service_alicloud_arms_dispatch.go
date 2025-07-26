@@ -45,7 +45,7 @@ func (s *ArmsService) ArmsDispatchRuleStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeArmsDispatchRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

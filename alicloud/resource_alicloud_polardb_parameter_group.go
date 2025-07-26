@@ -120,7 +120,7 @@ func resourceAliCloudPolarDBParameterGroupRead(d *schema.ResourceData, meta inte
 	polarDBService := PolarDBService{client}
 	object, err := polarDBService.DescribePolarDBParameterGroup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

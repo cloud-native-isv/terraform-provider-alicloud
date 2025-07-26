@@ -2,12 +2,13 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceAliCloudMaxComputeQuota() *schema.Resource {
@@ -171,7 +172,7 @@ func resourceAliCloudMaxComputeQuotaRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := maxComputeServiceV2.DescribeMaxComputeQuota(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_max_compute_quota DescribeMaxComputeQuota Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -220,7 +221,7 @@ func resourceAliCloudMaxComputeQuotaRead(d *schema.ResourceData, meta interface{
 	}
 
 	objectRaw, err = maxComputeServiceV2.DescribeQuotaListTagResources(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 

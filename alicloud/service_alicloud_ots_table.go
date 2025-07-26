@@ -83,7 +83,7 @@ func (s *OtsService) OtsTableStateRefreshFunc(instanceName, tableName string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOtsTable(instanceName, tableName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// 资源已删除，返回 nil, "", nil 表示目标达成
 				return nil, "", nil
 			}

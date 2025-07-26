@@ -84,7 +84,7 @@ func resourceAliCloudDirectMailReceiversRead(d *schema.ResourceData, meta interf
 	dmService := DmService{client}
 	object, err := dmService.DescribeDirectMailReceivers(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_direct_mail_receivers dmService.DescribeDirectMailReceivers Failed!!! %s", err)
 			d.SetId("")
 			return nil

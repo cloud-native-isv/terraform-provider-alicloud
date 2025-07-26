@@ -91,7 +91,7 @@ func resourceAliCloudMessageServiceEndpointAclRead(d *schema.ResourceData, meta 
 
 	objectRaw, err := messageServiceServiceV2.DescribeMessageServiceEndpointAcl(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_message_service_endpoint_acl DescribeMessageServiceEndpointAcl Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -143,7 +143,7 @@ func resourceAliCloudMessageServiceEndpointAclDelete(d *schema.ResourceData, met
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -87,7 +87,7 @@ func resourceAliCloudPvtzRuleAttachmentRead(d *schema.ResourceData, meta interfa
 	pvtzService := PvtzService{client}
 	object, err := pvtzService.DescribePvtzRuleAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_pvtz_rule_attachment pvtzService.DescribePvtzRuleAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -209,7 +209,7 @@ func resourceAliCloudEcsCapacityReservationRead(d *schema.ResourceData, meta int
 
 	object, err := ecsService.DescribeEcsCapacityReservation(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_capacity_reservation ecsService.DescribeEcsCapacityReservation Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -359,7 +359,7 @@ func resourceAliCloudEcsCapacityReservationDelete(d *schema.ResourceData, meta i
 		return nil
 	})
 	if err != nil {
-		if IsExpectedErrors(err, []string{"Invalid.PrivatePoolOptions.Ids"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"Invalid.PrivatePoolOptions.Ids"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -133,7 +133,7 @@ func resourceAliCloudImsOidcProviderRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := imsServiceV2.DescribeImsOidcProvider(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ims_oidc_provider DescribeImsOidcProvider Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -320,7 +320,7 @@ func resourceAliCloudImsOidcProviderDelete(d *schema.ResourceData, meta interfac
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExist.OIDCProvider"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExist.OIDCProvider"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

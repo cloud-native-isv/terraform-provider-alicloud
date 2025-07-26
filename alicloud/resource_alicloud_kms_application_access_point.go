@@ -98,7 +98,7 @@ func resourceAliCloudKmsApplicationAccessPointRead(d *schema.ResourceData, meta 
 
 	objectRaw, err := kmsServiceV2.DescribeKmsApplicationAccessPoint(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_kms_application_access_point DescribeKmsApplicationAccessPoint Failed!!! %s", err)
 			d.SetId("")
 			return nil

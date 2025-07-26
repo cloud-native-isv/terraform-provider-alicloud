@@ -140,7 +140,7 @@ func resourceAliyunSslVpnServerRead(d *schema.ResourceData, meta interface{}) er
 	object, err := vpnGatewayService.DescribeSslVpnServer(d.Id())
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

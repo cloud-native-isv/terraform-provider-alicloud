@@ -75,7 +75,7 @@ func resourceAliCloudRamAccountAliasRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := ramServiceV2.DescribeRamAccountAlias(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_account_alias DescribeRamAccountAlias Failed!!! %s", err)
 			d.SetId("")
 			return nil

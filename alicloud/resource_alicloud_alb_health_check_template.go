@@ -197,7 +197,7 @@ func resourceAliCloudAlbHealthCheckTemplateRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := albServiceV2.DescribeAlbHealthCheckTemplate(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alb_health_check_template DescribeAlbHealthCheckTemplate Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -363,7 +363,7 @@ func resourceAliCloudAlbHealthCheckTemplateDelete(d *schema.ResourceData, meta i
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

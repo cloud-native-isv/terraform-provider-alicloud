@@ -64,7 +64,7 @@ func (s *KmsServiceV2) KmsInstanceStateRefreshFunc(id string, field string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKmsInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -133,7 +133,7 @@ func (s *KmsServiceV2) KmsNetworkRuleStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKmsNetworkRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -193,7 +193,7 @@ func (s *KmsServiceV2) KmsPolicyStateRefreshFunc(id string, field string, failSt
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKmsPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -253,7 +253,7 @@ func (s *KmsServiceV2) KmsClientKeyStateRefreshFunc(id string, field string, fai
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKmsClientKey(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -313,7 +313,7 @@ func (s *KmsServiceV2) KmsApplicationAccessPointStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKmsApplicationAccessPoint(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -382,7 +382,7 @@ func (s *KmsServiceV2) KmsKeyStateRefreshFunc(id string, field string, failState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKmsKey(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

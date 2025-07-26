@@ -320,7 +320,7 @@ func resourceAliCloudCloudSSODirectoryRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := cloudSSOServiceV2.DescribeCloudSSODirectory(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_sso_directory DescribeCloudSSODirectory Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -344,7 +344,7 @@ func resourceAliCloudCloudSSODirectoryRead(d *schema.ResourceData, meta interfac
 	}
 
 	objectRaw, err = cloudSSOServiceV2.DescribeDirectoryGetPasswordPolicy(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -370,7 +370,7 @@ func resourceAliCloudCloudSSODirectoryRead(d *schema.ResourceData, meta interfac
 	}
 
 	objectRaw, err = cloudSSOServiceV2.DescribeDirectoryGetExternalSAMLIdentityProvider(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -394,7 +394,7 @@ func resourceAliCloudCloudSSODirectoryRead(d *schema.ResourceData, meta interfac
 	}
 
 	objectRaw, err = cloudSSOServiceV2.DescribeDirectoryGetDirectory(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -402,7 +402,7 @@ func resourceAliCloudCloudSSODirectoryRead(d *schema.ResourceData, meta interfac
 	d.Set("directory_name", objectRaw["DirectoryName"])
 
 	objectRaw, err = cloudSSOServiceV2.DescribeDirectoryGetUserProvisioningConfiguration(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -418,7 +418,7 @@ func resourceAliCloudCloudSSODirectoryRead(d *schema.ResourceData, meta interfac
 	}
 
 	objectRaw, err = cloudSSOServiceV2.DescribeDirectoryGetMFAAuthenticationSettingInfo(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -434,7 +434,7 @@ func resourceAliCloudCloudSSODirectoryRead(d *schema.ResourceData, meta interfac
 	}
 
 	objectRaw, err = cloudSSOServiceV2.DescribeDirectoryGetLoginPreference(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -450,21 +450,21 @@ func resourceAliCloudCloudSSODirectoryRead(d *schema.ResourceData, meta interfac
 	}
 
 	objectRaw, err = cloudSSOServiceV2.DescribeDirectoryGetSCIMSynchronizationStatus(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
 	d.Set("scim_synchronization_status", objectRaw["SCIMSynchronizationStatus"])
 
 	objectRaw, err = cloudSSOServiceV2.DescribeDirectoryGetMFAAuthenticationStatus(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
 	d.Set("mfa_authentication_status", objectRaw["MFAAuthenticationStatus"])
 
 	objectRaw, err = cloudSSOServiceV2.DescribeDirectoryGetDirectoryGlobalAccessStatus(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -974,7 +974,7 @@ func resourceAliCloudCloudSSODirectoryDelete(d *schema.ResourceData, meta interf
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExists.Directory"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExists.Directory"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

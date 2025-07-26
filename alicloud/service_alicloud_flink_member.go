@@ -43,7 +43,7 @@ func (s *FlinkService) FlinkMemberStateRefreshFunc(workspaceId string, namespace
 	return func() (interface{}, string, error) {
 		member, err := s.GetMember(workspaceId, namespaceName, memberId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Member not found, still being created or deleted
 				return nil, "", nil
 			}

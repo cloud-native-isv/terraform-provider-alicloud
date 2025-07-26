@@ -160,7 +160,7 @@ func resourceAliCloudAdbLakeAccountRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := adbServiceV2.DescribeAdbLakeAccount(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_adb_lake_account DescribeAdbLakeAccount Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -203,7 +203,7 @@ func resourceAliCloudAdbLakeAccountRead(d *schema.ResourceData, meta interface{}
 	}
 
 	objectRaw, err = adbServiceV2.DescribeLakeAccountDescribeAccounts(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -378,7 +378,7 @@ func resourceAliCloudAdbLakeAccountDelete(d *schema.ResourceData, meta interface
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -377,7 +377,7 @@ func resourceAliCloudEdasK8sApplicationRead(d *schema.ResourceData, meta interfa
 
 	response, err := edasService.DescribeEdasK8sApplication(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_edas_k8s_application ecsService.DescribeEdasK8sApplication Failed!!! %s", err)
 			d.SetId("")
 			return nil

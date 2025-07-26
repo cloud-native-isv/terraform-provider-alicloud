@@ -162,7 +162,7 @@ func resourceAliCloudCenFlowLogRead(d *schema.ResourceData, meta interface{}) er
 
 	objectRaw, err := cenServiceV2.DescribeCenFlowLog(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_flowlog DescribeCenFlowLog Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -377,7 +377,7 @@ func resourceAliCloudCenFlowLogDelete(d *schema.ResourceData, meta interface{}) 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"SourceProjectNotExist", "InvalidFlowlogId.NotFound", "ProjectOrLogstoreNotExist", "SourceProjectNotExist"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"SourceProjectNotExist", "InvalidFlowlogId.NotFound", "ProjectOrLogstoreNotExist", "SourceProjectNotExist"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

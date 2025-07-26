@@ -101,7 +101,7 @@ func resourceAliCloudAlbListenerAclAttachmentRead(d *schema.ResourceData, meta i
 
 	objectRaw, err := albServiceV2.DescribeAlbListenerAclAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alb_listener_acl_attachment DescribeAlbListenerAclAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -166,7 +166,7 @@ func resourceAliCloudAlbListenerAclAttachmentDelete(d *schema.ResourceData, meta
 	})
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

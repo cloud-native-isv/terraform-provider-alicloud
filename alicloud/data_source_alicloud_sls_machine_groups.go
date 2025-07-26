@@ -185,7 +185,7 @@ func dataSourceAliCloudLogMachineGroupsRead(d *schema.ResourceData, meta interfa
 		// Get detailed information for each machine group
 		machineGroup, err := logService.DescribeLogMachineGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				continue
 			}
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_machine_groups", "DescribeLogMachineGroup", AliyunLogGoSdkERROR)

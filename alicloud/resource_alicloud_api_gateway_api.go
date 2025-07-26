@@ -393,7 +393,7 @@ func resourceAliyunApigatewayApiRead(d *schema.ResourceData, meta interface{}) e
 	apiGatewayServiceV2 := ApiGatewayServiceV2{client}
 	objectRaw, err := apiGatewayServiceV2.DescribeApiGatewayApi(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_api_gateway_api DescribeApiGatewayApi Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -402,7 +402,7 @@ func resourceAliyunApigatewayApiRead(d *schema.ResourceData, meta interface{}) e
 	}
 	stageNames, err := getStageNameList(d, cloudApiService)
 	if err != nil {
-		if !NotFoundError(err) {
+		if !IsNotFoundError(err) {
 			return WrapError(err)
 		}
 	}
@@ -591,7 +591,7 @@ func resourceAliyunApigatewayApiDelete(d *schema.ResourceData, meta interface{})
 		}
 		_, err = cloudApiService.DescribeDeployedApi(d.Id(), stageName)
 		if err != nil {
-			if !NotFoundError(err) {
+			if !IsNotFoundError(err) {
 				return WrapError(err)
 			}
 		}
@@ -978,7 +978,7 @@ func getStageNameList(d *schema.ResourceData, cloudApiService CloudApiService) (
 	for _, stageName := range ApiGatewayStageNames {
 		_, err := cloudApiService.DescribeDeployedApi(d.Id(), stageName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				continue
 			}
 			return nil, WrapError(err)
@@ -1013,7 +1013,7 @@ func updateApiStages(d *schema.ResourceData, stageNames *schema.Set, meta interf
 			}
 			_, err = cloudApiService.DescribeDeployedApi(d.Id(), stageName)
 			if err != nil {
-				if !NotFoundError(err) {
+				if !IsNotFoundError(err) {
 					return WrapError(err)
 				}
 			}

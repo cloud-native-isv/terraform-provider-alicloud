@@ -54,7 +54,7 @@ func (s *PaiWorkspaceServiceV2) PaiWorkspaceWorkspaceStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePaiWorkspaceWorkspace(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -113,7 +113,7 @@ func (s *PaiWorkspaceServiceV2) PaiWorkspaceDatasetStateRefreshFunc(id string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePaiWorkspaceDataset(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -179,7 +179,7 @@ func (s *PaiWorkspaceServiceV2) PaiWorkspaceExperimentStateRefreshFunc(id string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePaiWorkspaceExperiment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -249,7 +249,7 @@ func (s *PaiWorkspaceServiceV2) PaiWorkspaceDatasetversionStateRefreshFunc(id st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePaiWorkspaceDatasetversion(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -317,7 +317,7 @@ func (s *PaiWorkspaceServiceV2) PaiWorkspaceRunStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePaiWorkspaceRun(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -384,7 +384,7 @@ func (s *PaiWorkspaceServiceV2) PaiWorkspaceCodeSourceStateRefreshFunc(id string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePaiWorkspaceCodeSource(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -457,7 +457,7 @@ func (s *PaiWorkspaceServiceV2) PaiWorkspaceMemberStateRefreshFunc(id string, fi
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePaiWorkspaceMember(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -526,7 +526,7 @@ func (s *PaiWorkspaceServiceV2) PaiWorkspaceModelStateRefreshFunc(id string, fie
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePaiWorkspaceModel(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -599,7 +599,7 @@ func (s *PaiWorkspaceServiceV2) PaiWorkspaceModelVersionStateRefreshFunc(id stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePaiWorkspaceModelVersion(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -678,7 +678,7 @@ func (s *PaiWorkspaceServiceV2) PaiWorkspaceUserConfigStateRefreshFunc(id string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePaiWorkspaceUserConfig(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

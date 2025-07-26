@@ -244,7 +244,7 @@ func resourceAliCloudEcdDesktopRead(d *schema.ResourceData, meta interface{}) er
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdDesktop(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_desktop ecdService.DescribeEcdDesktop Failed!!! %s", err)
 			d.SetId("")
 			return nil

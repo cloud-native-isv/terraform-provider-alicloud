@@ -615,7 +615,7 @@ func resourceAliCloudKvstoreInstanceRead(d *schema.ResourceData, meta interface{
 	r_kvstoreService := R_kvstoreService{client}
 	object, err := r_kvstoreService.DescribeKvstoreInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_kvstore_instance r_kvstoreService.DescribeKvstoreInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -1699,7 +1699,7 @@ func resourceAliCloudKvstoreInstanceDelete(d *schema.ResourceData, meta interfac
 	r_kvstoreService := R_kvstoreService{client}
 	instance, err := r_kvstoreService.DescribeKvstoreInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

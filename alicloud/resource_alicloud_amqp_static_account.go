@@ -121,7 +121,7 @@ func resourceAliCloudAmqpStaticAccountRead(d *schema.ResourceData, meta interfac
 
 	object, err := amqpOpenService.DescribeAmqpStaticAccount(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_amqp_static_account amqpOpenService.DescribeAmqpStaticAccount Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -174,7 +174,7 @@ func resourceAliCloudAmqpStaticAccountDelete(d *schema.ResourceData, meta interf
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

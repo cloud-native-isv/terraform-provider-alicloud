@@ -84,7 +84,7 @@ func resourceAliCloudWafv3InstanceRead(d *schema.ResourceData, meta interface{})
 
 	object, err := wafOpenapiService.DescribeWafv3Instance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_wafv3_instance wafOpenapiService.DescribeWafv3Instance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -129,7 +129,7 @@ func resourceAliCloudWafv3InstanceDelete(d *schema.ResourceData, meta interface{
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

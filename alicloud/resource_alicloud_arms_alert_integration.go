@@ -141,7 +141,7 @@ func resourceAliCloudArmsAlertIntegrationRead(d *schema.ResourceData, meta inter
 
 	integration, err := armsAPI.GetIntegrationById(integrationId, true)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_integration GetIntegrationByID Failed!!! %s", err)
 			d.SetId("")
 			return nil

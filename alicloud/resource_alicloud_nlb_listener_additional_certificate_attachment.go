@@ -102,7 +102,7 @@ func resourceAliCloudNlbListenerAdditionalCertificateAttachmentRead(d *schema.Re
 
 	objectRaw, err := nlbServiceV2.DescribeNlbListenerAdditionalCertificateAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nlb_listener_additional_certificate_attachment DescribeNlbListenerAdditionalCertificateAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -163,7 +163,7 @@ func resourceAliCloudNlbListenerAdditionalCertificateAttachmentDelete(d *schema.
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ResourceNotFound.listener", "ResourceNotFound.loadbalancer"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ResourceNotFound.listener", "ResourceNotFound.loadbalancer"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

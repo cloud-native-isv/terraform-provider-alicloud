@@ -173,7 +173,7 @@ func resourceAliCloudGwlbLoadBalancerRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := gwlbServiceV2.DescribeGwlbLoadBalancer(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_gwlb_load_balancer DescribeGwlbLoadBalancer Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -407,7 +407,7 @@ func resourceAliCloudGwlbLoadBalancerDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ResourceNotFound.LoadBalancer"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ResourceNotFound.LoadBalancer"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -150,7 +150,7 @@ func resourceAliyunRouteEntryRead(d *schema.ResourceData, meta interface{}) erro
 	}
 	object, err := vpcService.DescribeRouteEntry(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

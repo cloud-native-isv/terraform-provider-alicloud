@@ -56,7 +56,7 @@ func (s *CbnService) WaitForCenFlowlog(id string, expected map[string]interface{
 	for {
 		object, err := s.DescribeCenFlowlog(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if isDelete {
 					return nil
 				}
@@ -149,7 +149,7 @@ func (s *CbnService) CenInstanceStateRefreshFunc(d *schema.ResourceData, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenInstance(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -254,7 +254,7 @@ func (s *CbnService) CenRouteMapStateRefreshFunc(id string, failStates []string)
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenRouteMap(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -318,7 +318,7 @@ func (s *CbnService) CenPrivateZoneStateRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenPrivateZone(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -421,7 +421,7 @@ func (s *CbnService) CenInstanceAttachmentStateRefreshFunc(id string, failStates
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenInstanceAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -481,7 +481,7 @@ func (s *CbnService) CenBandwidthPackageStateRefreshFunc(id string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenBandwidthPackage(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -708,7 +708,7 @@ func (s *CbnService) CenRouteServiceStateRefreshFunc(id string, failStates []str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenRouteService(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -776,7 +776,7 @@ func (s *CbnService) CenTransitRouterStateRefreshFunc(id string, failStates []st
 
 		object, err := s.DescribeCenTransitRouter(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -843,7 +843,7 @@ func (s *CbnService) CenTransitRouterPeerAttachmentStateRefreshFunc(id string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterPeerAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -933,7 +933,7 @@ func (s *CbnService) CenTransitRouterVbrAttachmentStateRefreshFunc(id string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterVbrAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1024,7 +1024,7 @@ func (s *CbnService) CenTransitRouterVpcAttachmentStateRefreshFunc(id string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterVpcAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1094,7 +1094,7 @@ func (s *CbnService) CenTransitRouterRouteEntryStateRefreshFunc(id string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterRouteEntry(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1162,7 +1162,7 @@ func (s *CbnService) CenTransitRouterRouteTableStateRefreshFunc(id string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterRouteTable(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1229,7 +1229,7 @@ func (s *CbnService) CenTransitRouterRouteTableAssociationStateRefreshFunc(id st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterRouteTableAssociation(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1296,7 +1296,7 @@ func (s *CbnService) CenTransitRouterRouteTablePropagationStateRefreshFunc(id st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterRouteTablePropagation(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1360,7 +1360,7 @@ func (s *CbnService) CenTrafficMarkingPolicyStateRefreshFunc(id string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTrafficMarkingPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1418,7 +1418,7 @@ func (s *CbnService) CenTransitRouterVpnAttachmentStateRefreshFunc(id string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterVpnAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1547,7 +1547,7 @@ func (s *CbnService) CenTransitRouterPrefixListAssociationStateRefreshFunc(d *sc
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterPrefixListAssociation(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1674,7 +1674,7 @@ func (s *CbnService) CenTransitRouterMulticastDomainSourceStateRefreshFunc(d *sc
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterMulticastDomainSource(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1745,7 +1745,7 @@ func (s *CbnService) CenTransitRouterMulticastDomainStateRefreshFunc(id string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterMulticastDomain(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1805,7 +1805,7 @@ func (s *CbnService) CenInterRegionTrafficQosQueueStateRefreshFunc(d *schema.Res
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenInterRegionTrafficQosQueue(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1874,7 +1874,7 @@ func (s *CbnService) CenInterRegionTrafficQosPolicyStateRefreshFunc(id string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenInterRegionTrafficQosPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1944,7 +1944,7 @@ func (s *CbnService) CenTransitRouterMulticastDomainPeerMemberStateRefreshFunc(d
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterMulticastDomainPeerMember(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2046,7 +2046,7 @@ func (s *CbnService) CenTransitRouterMulticastDomainMemberStateRefreshFunc(d *sc
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterMulticastDomainMember(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2121,7 +2121,7 @@ func (s *CbnService) CenChildInstanceRouteEntryToAttachmentStateRefreshFunc(d *s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenChildInstanceRouteEntryToAttachment(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2197,7 +2197,7 @@ func (s *CbnService) CenTransitRouterMulticastDomainAssociationStateRefreshFunc(
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterMulticastDomainAssociation(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -2283,7 +2283,7 @@ func (s *CbnService) CenTransitRouteTableAggregationStateRefreshFunc(d *schema.R
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouteTableAggregation(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

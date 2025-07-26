@@ -117,7 +117,7 @@ func resourceAliCloudGwlbListenerRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := gwlbServiceV2.DescribeGwlbListener(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_gwlb_listener DescribeGwlbListener Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -239,7 +239,7 @@ func resourceAliCloudGwlbListenerDelete(d *schema.ResourceData, meta interface{}
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ResourceNotFound.Listener"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ResourceNotFound.Listener"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -88,7 +88,7 @@ func resourceAliCloudCloudStorageGatewayGatewaySmbUserRead(d *schema.ResourceDat
 	sgwService := SgwService{client}
 	_, err := sgwService.DescribeCloudStorageGatewayGatewaySmbUser(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_storage_gateway_gateway_smb_user sgwService.DescribeCloudStorageGatewayGatewaySmbUser Failed!!! %s", err)
 			d.SetId("")
 			return nil

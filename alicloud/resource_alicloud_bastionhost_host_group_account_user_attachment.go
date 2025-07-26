@@ -54,7 +54,7 @@ func resourceAliCloudBastionhostHostGroupAccountUserAttachmentRead(d *schema.Res
 	yundunBastionhostService := YundunBastionhostService{client}
 	object, err := yundunBastionhostService.DescribeBastionhostHostGroupAccountUserAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_bastionhost_host_group_account_user_attachment yundunBastionhostService.DescribeBastionhostHostGroupAccountUserAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

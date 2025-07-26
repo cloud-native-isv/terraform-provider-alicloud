@@ -176,7 +176,7 @@ func resourceAliCloudEciVirtualNodeRead(d *schema.ResourceData, meta interface{}
 	eciService := EciService{client}
 	object, err := eciService.DescribeEciVirtualNode(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eci_virtual_node eciService.DescribeEciVirtualNode Failed!!! %s", err)
 			d.SetId("")
 			return nil

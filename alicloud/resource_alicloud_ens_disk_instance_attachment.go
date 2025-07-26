@@ -97,7 +97,7 @@ func resourceAliCloudEnsDiskInstanceAttachmentRead(d *schema.ResourceData, meta 
 
 	objectRaw, err := ensServiceV2.DescribeEnsDiskInstanceAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ens_disk_instance_attachment DescribeEnsDiskInstanceAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

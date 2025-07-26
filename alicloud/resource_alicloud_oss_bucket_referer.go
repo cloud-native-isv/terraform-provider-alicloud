@@ -130,7 +130,7 @@ func resourceAliCloudOssBucketRefererRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketReferer(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_referer DescribeOssBucketReferer Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -290,7 +290,7 @@ func resourceAliCloudOssBucketRefererDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -164,7 +164,7 @@ func resourceAliCloudHbrHanaInstanceRead(d *schema.ResourceData, meta interface{
 	hbrService := HbrService{client}
 	object, err := hbrService.DescribeHbrHanaInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_hbr_hana_instance hbrService.DescribeHbrHanaInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

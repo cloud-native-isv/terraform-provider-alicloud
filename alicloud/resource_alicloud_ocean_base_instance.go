@@ -250,7 +250,7 @@ func resourceAliCloudOceanBaseInstanceRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := oceanBaseServiceV2.DescribeOceanBaseInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ocean_base_instance DescribeOceanBaseInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

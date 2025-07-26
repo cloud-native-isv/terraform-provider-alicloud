@@ -138,7 +138,7 @@ func resourceAliCloudEcdBundleRead(d *schema.ResourceData, meta interface{}) err
 
 	object, err := ecdService.DescribeEcdBundle(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_bundle ecdService.DescribeEcdBundle Failed!!! %s", err)
 			d.SetId("")
 			return nil

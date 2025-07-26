@@ -232,7 +232,7 @@ func resourceAliCloudThreatDetectionHoneypotProbeRead(d *schema.ResourceData, me
 
 	object, err := sasService.DescribeThreatDetectionHoneypotProbe(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_honeypot_probe sasService.DescribeThreatDetectionHoneypotProbe Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -360,7 +360,7 @@ func resourceAliCloudThreatDetectionHoneypotProbeDelete(d *schema.ResourceData, 
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

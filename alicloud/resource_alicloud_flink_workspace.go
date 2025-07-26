@@ -314,7 +314,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		resp, err := flinkService.CreateInstance(workspaceRequest)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
@@ -352,7 +352,7 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 
 	workspace, err := flinkService.DescribeFlinkWorkspace(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_flink_workspace DescribeFlinkWorkspace Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -483,10 +483,10 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 
 	err = flinkService.DeleteInstance(d.Id())
 	if err != nil {
-		if !NotFoundError(err) {
+		if !IsNotFoundError(err) {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteInstance", AlibabaCloudSdkGoERROR)
 		}
-		// NotFoundError means deletion was successful or resource already gone
+		// IsNotFoundError means deletion was successful or resource already gone
 	}
 
 	// Wait for the workspace to be completely deleted using service layer function

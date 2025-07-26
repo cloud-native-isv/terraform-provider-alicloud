@@ -101,7 +101,7 @@ func resourceAliCloudAlbLoadBalancerAccessLogConfigAttachmentRead(d *schema.Reso
 
 	objectRaw, err := albServiceV2.DescribeAlbLoadBalancerAccessLogConfigAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alb_load_balancer_access_log_config_attachment DescribeAlbLoadBalancerAccessLogConfigAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -160,7 +160,7 @@ func resourceAliCloudAlbLoadBalancerAccessLogConfigAttachmentDelete(d *schema.Re
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

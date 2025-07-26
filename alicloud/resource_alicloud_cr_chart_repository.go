@@ -92,7 +92,7 @@ func resourceAliCloudCrChartRepositoryRead(d *schema.ResourceData, meta interfac
 	crService := CrService{client}
 	object, err := crService.DescribeCrChartRepository(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cr_chart_repository crService.DescribeCrChartRepository Failed!!! %s", err)
 			d.SetId("")
 			return nil

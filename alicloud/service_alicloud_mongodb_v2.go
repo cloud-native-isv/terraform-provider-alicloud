@@ -57,7 +57,7 @@ func (s *MongodbServiceV2) MongodbPrivateSrvNetworkAddressStateRefreshFunc(id st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMongodbPrivateSrvNetworkAddress(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -136,7 +136,7 @@ func (s *MongodbServiceV2) MongodbAccountStateRefreshFunc(id string, field strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMongodbAccount(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

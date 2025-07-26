@@ -54,7 +54,7 @@ func (s *ArmsService) ArmsAlertRuleStateRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeArmsAlertRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

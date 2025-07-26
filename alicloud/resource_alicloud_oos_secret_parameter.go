@@ -2,9 +2,10 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"log"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -151,7 +152,7 @@ func resourceAliCloudOosSecretParameterRead(d *schema.ResourceData, meta interfa
 
 	objectRaw, err := oosServiceV2.DescribeOosSecretParameter(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oos_secret_parameter DescribeOosSecretParameter Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -188,7 +189,7 @@ func resourceAliCloudOosSecretParameterRead(d *schema.ResourceData, meta interfa
 	}
 
 	objectRaw, err = oosServiceV2.DescribeSecretParameterListTagResources(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -288,7 +289,7 @@ func resourceAliCloudOosSecretParameterDelete(d *schema.ResourceData, meta inter
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

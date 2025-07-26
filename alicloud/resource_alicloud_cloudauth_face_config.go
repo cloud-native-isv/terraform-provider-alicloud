@@ -71,7 +71,7 @@ func resourceAliCloudCloudauthFaceConfigRead(d *schema.ResourceData, meta interf
 	cloudauthService := CloudauthService{client}
 	object, err := cloudauthService.DescribeCloudauthFaceConfig(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloudauth_face_config cloudauthService.DescribeCloudauthFaceConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil

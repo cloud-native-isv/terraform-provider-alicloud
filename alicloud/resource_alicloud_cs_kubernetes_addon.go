@@ -84,7 +84,7 @@ func resourceAliCloudCSKubernetesAddonRead(d *schema.ResourceData, meta interfac
 
 	addon, err := csClient.DescribeCsKubernetesAddon(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -138,7 +138,7 @@ func resourceAliCloudCSKubernetesAddonCreate(d *schema.ResourceData, meta interf
 	d.SetId(fmt.Sprintf("%s%s%s", clusterId, COLON_SEPARATED, name))
 	addon, err := csClient.DescribeCsKubernetesAddon(d.Id())
 	if err != nil {
-		if !NotFoundError(err) {
+		if !IsNotFoundError(err) {
 			return WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "DescribeCsKubernetesAddonStatus", err)
 		} else {
 			// Addon not installed
@@ -156,7 +156,7 @@ func resourceAliCloudCSKubernetesAddonCreate(d *schema.ResourceData, meta interf
 			}
 			// double check addon installed
 			_, err = csClient.DescribeCsKubernetesAddon(d.Id())
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "installAddon", "Unknown Reason. Please check addon config value type first")
 			}
 		}
@@ -179,7 +179,7 @@ func resourceAliCloudCSKubernetesAddonUpdate(d *schema.ResourceData, meta interf
 	csClient := CsClient{client}
 
 	addon, err := csClient.DescribeCsKubernetesAddon(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "DescribeCsKubernetesAddonStatus", err)
 	}
 

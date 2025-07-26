@@ -137,7 +137,7 @@ func (s *CrServiceV2) CrInstanceStateRefreshFunc(id string, field string, failSt
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCrInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -201,7 +201,7 @@ func (s *CrServiceV2) DescribeAsyncCrInstanceStateRefreshFunc(d *schema.Resource
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncGetInstance(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 		}

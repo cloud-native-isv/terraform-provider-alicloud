@@ -93,7 +93,7 @@ func resourceAliCloudFcv3FunctionVersionRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := fcv3ServiceV2.DescribeFcv3FunctionVersion(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fcv3_function_version DescribeFcv3FunctionVersion Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -149,7 +149,7 @@ func resourceAliCloudFcv3FunctionVersionDelete(d *schema.ResourceData, meta inte
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

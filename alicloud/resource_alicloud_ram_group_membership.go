@@ -93,7 +93,7 @@ func resourceAliCloudRamGroupMembershipRead(d *schema.ResourceData, meta interfa
 
 	object, err := ramService.DescribeRamGroupMembership(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

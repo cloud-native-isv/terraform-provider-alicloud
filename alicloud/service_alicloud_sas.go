@@ -89,7 +89,7 @@ func (s *SasService) SecurityCenterServiceLinkedRoleStateRefreshFunc(id string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSecurityCenterServiceLinkedRole(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -213,7 +213,7 @@ func (s *SasService) ThreatDetectionBaselineStrategyStateRefreshFunc(d *schema.R
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionBaselineStrategy(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -271,7 +271,7 @@ func (s *SasService) ThreatDetectionAntiBruteForceRuleStateRefreshFunc(d *schema
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionAntiBruteForceRule(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -329,7 +329,7 @@ func (s *SasService) ThreatDetectionHoneyPotStateRefreshFunc(d *schema.ResourceD
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionHoneyPot(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -391,7 +391,7 @@ func (s *SasService) ThreatDetectionHoneypotProbeStateRefreshFunc(d *schema.Reso
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionHoneypotProbe(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

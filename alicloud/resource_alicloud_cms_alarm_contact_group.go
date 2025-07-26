@@ -98,7 +98,7 @@ func resourceAliCloudCmsAlarmContactGroupRead(d *schema.ResourceData, meta inter
 	cmsService := CmsService{client}
 	object, err := cmsService.DescribeCmsAlarmContactGroup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_monitor_service_alarm_contact_group cmsService.DescribeCmsAlarmContactGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

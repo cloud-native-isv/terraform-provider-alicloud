@@ -220,7 +220,7 @@ func resourceAliCloudRdsAccountRead(d *schema.ResourceData, meta interface{}) er
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeRdsAccount(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_rds_account rdsService.DescribeRdsAccount Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -420,7 +420,7 @@ func resourceAliCloudRdsAccountDelete(d *schema.ResourceData, meta interface{}) 
 		addDebug(action, response, request)
 		object, err := rdsService.DescribeRdsAccount(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return resource.NonRetryableError(err)

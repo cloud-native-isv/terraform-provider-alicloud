@@ -128,7 +128,7 @@ func resourceAliCloudBastionhostHostRead(d *schema.ResourceData, meta interface{
 	yundunBastionhostService := YundunBastionhostService{client}
 	object, err := yundunBastionhostService.DescribeBastionhostHost(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_bastionhost_host yundunBastionhostService.DescribeBastionhostHost Failed!!! %s", err)
 			d.SetId("")
 			return nil

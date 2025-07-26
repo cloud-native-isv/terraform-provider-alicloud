@@ -862,7 +862,7 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 	instanceId := d.Id()
 	instance, err := selectDBService.DescribeSelectDBInstance(instanceId)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -1059,7 +1059,7 @@ func resourceAliCloudSelectDBInstanceDelete(d *schema.ResourceData, meta interfa
 	// Delete the instance
 	err = selectDBService.DeleteSelectDBInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDBInstance", AlibabaCloudSdkGoERROR)

@@ -107,7 +107,7 @@ func resourceAliCloudCdnRealTimeLogDeliveryRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := cdnServiceV2.DescribeCdnRealTimeLogDelivery(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cdn_real_time_log_delivery DescribeCdnRealTimeLogDelivery Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -298,7 +298,7 @@ func resourceAliCloudCdnRealTimeLogDeliveryDelete(d *schema.ResourceData, meta i
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

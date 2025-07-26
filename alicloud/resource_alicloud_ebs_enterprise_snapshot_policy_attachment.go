@@ -87,7 +87,7 @@ func resourceAliCloudEbsEnterpriseSnapshotPolicyAttachmentRead(d *schema.Resourc
 
 	objectRaw, err := ebsServiceV2.DescribeEbsEnterpriseSnapshotPolicyAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ebs_enterprise_snapshot_policy_attachment DescribeEbsEnterpriseSnapshotPolicyAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

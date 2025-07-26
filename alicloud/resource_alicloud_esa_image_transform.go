@@ -122,7 +122,7 @@ func resourceAliCloudEsaImageTransformRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := esaServiceV2.DescribeEsaImageTransform(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_image_transform DescribeEsaImageTransform Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -230,7 +230,7 @@ func resourceAliCloudEsaImageTransformDelete(d *schema.ResourceData, meta interf
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

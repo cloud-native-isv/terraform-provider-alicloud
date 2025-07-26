@@ -196,7 +196,7 @@ func (s *CloudfwService) CloudFirewallInstanceMemberStateRefreshFunc(d *schema.R
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudFirewallInstanceMember(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -339,7 +339,7 @@ func (s *CloudfwService) CloudFirewallVpcFirewallCenStateRefreshFunc(d *schema.R
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudFirewallVpcFirewallCen(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -458,7 +458,7 @@ func (s *CloudfwService) CloudFirewallVpcFirewallStateRefreshFunc(d *schema.Reso
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudFirewallVpcFirewall(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -581,7 +581,7 @@ func (s *CloudfwService) CloudFirewallInstanceStateRefreshFunc(id string, failSt
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudFirewallInstanceUserBuyVersion(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

@@ -94,7 +94,7 @@ func resourceAliCloudRdsDBProxyPublicRead(d *schema.ResourceData, meta interface
 	rdsService := RdsService{client}
 	proxy, proxyErr := rdsService.DescribeDBProxy(d.Id())
 	if proxyErr != nil {
-		if NotFoundError(proxyErr) {
+		if IsNotFoundError(proxyErr) {
 			d.SetId("")
 			return nil
 		}
@@ -183,7 +183,7 @@ func resourceAliCloudRdsDBProxyPublicDelete(d *schema.ResourceData, meta interfa
 			if IsExpectedErrors(err, OperationDeniedDBStatus) || NeedRetry(err) {
 				return resource.RetryableError(err)
 			}
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return resource.NonRetryableError(err)

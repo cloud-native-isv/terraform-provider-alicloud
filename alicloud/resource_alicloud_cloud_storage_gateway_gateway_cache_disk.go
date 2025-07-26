@@ -126,7 +126,7 @@ func resourceAliCloudCloudStorageGatewayGatewayCacheDiskRead(d *schema.ResourceD
 
 	object, err := sgwService.DescribeCloudStorageGatewayGatewayCacheDisk(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_storage_gateway_gateway_cache_disk sgwService.DescribeCloudStorageGatewayGatewayCacheDisk Failed!!! %s", err)
 			d.SetId("")
 			return nil

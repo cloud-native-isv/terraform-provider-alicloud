@@ -207,7 +207,7 @@ func resourceAliCloudEcpInstanceRead(d *schema.ResourceData, meta interface{}) e
 
 	object, err := cloudPhoneService.DescribeEcpInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecp_instance cloudPhoneService.DescribeEcpInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -426,7 +426,7 @@ func resourceAliCloudEcpInstanceDelete(d *schema.ResourceData, meta interface{})
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"CloudPhoneInstances.NotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"CloudPhoneInstances.NotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

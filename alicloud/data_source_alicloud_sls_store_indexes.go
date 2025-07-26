@@ -134,7 +134,7 @@ func dataSourceAliCloudLogStoreIndexesRead(d *schema.ResourceData, meta interfac
 	// Get logstore index configuration
 	index, err := slsService.GetSlsLogStoreIndex(project, logstore)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

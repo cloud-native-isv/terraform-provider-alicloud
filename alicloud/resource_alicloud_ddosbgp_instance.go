@@ -181,7 +181,7 @@ func resourceAliCloudDdosbgpInstanceRead(d *schema.ResourceData, meta interface{
 	ddosbgpService := DdosbgpService{client}
 	object, err := ddosbgpService.DescribeDdosbgpInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ddosbgp_instance DescribeInstanceList Failed!!! %s", err)
 			d.SetId("")
 			return nil

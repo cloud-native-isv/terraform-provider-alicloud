@@ -87,7 +87,7 @@ func resourceAliCloudEbsReplicaPairDrillRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := ebsServiceV2.DescribeEbsReplicaPairDrill(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ebs_replica_pair_drill DescribeEbsReplicaPairDrill Failed!!! %s", err)
 			d.SetId("")
 			return nil

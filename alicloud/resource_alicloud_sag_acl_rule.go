@@ -104,7 +104,7 @@ func resourceAliCloudSagAclRuleRead(d *schema.ResourceData, meta interface{}) er
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeSagAclRule(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

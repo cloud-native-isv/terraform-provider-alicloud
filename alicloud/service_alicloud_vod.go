@@ -53,7 +53,7 @@ func (s *VodService) VodStateRefreshFunc(id string, failStates []string) resourc
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVodDomain(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

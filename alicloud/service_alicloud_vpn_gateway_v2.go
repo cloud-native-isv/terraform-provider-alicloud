@@ -58,7 +58,7 @@ func (s *VPNGatewayServiceV2) VPNGatewayVPNGatewayStateRefreshFunc(id string, fi
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVPNGatewayVPNGateway(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -126,7 +126,7 @@ func (s *VPNGatewayServiceV2) VPNGatewayCustomerGatewayStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVPNGatewayCustomerGateway(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -186,7 +186,7 @@ func (s *VPNGatewayServiceV2) VPNGatewayVpnConnectionStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVPNGatewayVpnConnection(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -254,7 +254,7 @@ func (s *VPNGatewayServiceV2) VPNGatewayZoneStateRefreshFunc(id string, field st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVPNGatewayZone(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -315,7 +315,7 @@ func (s *VPNGatewayServiceV2) VpnGatewayVpnAttachmentStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpnGatewayVpnAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

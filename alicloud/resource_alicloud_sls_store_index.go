@@ -127,7 +127,7 @@ func resourceAliCloudLogStoreIndexCreate(d *schema.ResourceData, meta interface{
 	if err := resource.Retry(5*time.Minute, func() *resource.RetryError {
 		_, err := slsService.DescribeLogStore(project, logstore)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return resource.RetryableError(WrapErrorf(err, DefaultErrorMsg, logstore, "DescribeLogStore", AlibabaCloudSdkGoERROR))
 			}
 			return resource.NonRetryableError(WrapErrorf(err, DefaultErrorMsg, logstore, "DescribeLogStore", AlibabaCloudSdkGoERROR))
@@ -221,7 +221,7 @@ func resourceAliCloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
 		_, err := slsService.DescribeLogStore(projectName, logstoreName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Log store doesn't exist, remove index from state
 				d.SetId("")
 				return nil
@@ -250,7 +250,7 @@ func resourceAliCloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 			// Handle IndexConfigNotExist and similar errors
 			if strings.Contains(err.Error(), "IndexConfigNotExist") ||
 				strings.Contains(err.Error(), "not found") ||
-				NotFoundError(err) {
+				IsNotFoundError(err) {
 				// Index doesn't exist, remove from state
 				d.SetId("")
 				return nil
@@ -354,7 +354,7 @@ func resourceAliCloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{
 	if err := resource.Retry(2*time.Minute, func() *resource.RetryError {
 		_, err := slsService.DescribeLogStore(project, logstore)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Log store doesn't exist, remove index from state
 				d.SetId("")
 				return nil
@@ -382,7 +382,7 @@ func resourceAliCloudLogStoreIndexUpdate(d *schema.ResourceData, meta interface{
 		if err != nil {
 			if strings.Contains(err.Error(), "IndexConfigNotExist") ||
 				strings.Contains(err.Error(), "not found") ||
-				NotFoundError(err) {
+				IsNotFoundError(err) {
 				// Index doesn't exist, remove from state
 				d.SetId("")
 				return nil

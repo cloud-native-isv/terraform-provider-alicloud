@@ -63,7 +63,7 @@ func (s *SlsService) LogStoreIndexStateRefreshFunc(id string, field string, fail
 		logstore := parts[1]
 		object, err := s.GetSlsLogStoreIndex(project, logstore)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -95,7 +95,7 @@ func (s *SlsService) LogStoreIndexAvailabilityStateRefreshFunc(id string, expect
 		// First check if log store exists
 		_, err := s.DescribeLogStore(projectName, logstoreName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "LogStoreNotFound", nil
 			}
 			return nil, "", WrapError(err)
@@ -104,7 +104,7 @@ func (s *SlsService) LogStoreIndexAvailabilityStateRefreshFunc(id string, expect
 		// Then check log store index
 		object, err := s.GetSlsLogStoreIndex(projectName, logstoreName)
 		if err != nil {
-			if NotFoundError(err) || IsExpectedErrors(err, []string{"IndexConfigNotExist"}) {
+			if IsNotFoundError(err) || IsExpectedErrors(err, []string{"IndexConfigNotExist"}) {
 				if expectExists {
 					return object, "IndexNotFound", nil
 				} else {

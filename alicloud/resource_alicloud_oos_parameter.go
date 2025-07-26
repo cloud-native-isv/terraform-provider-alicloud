@@ -118,7 +118,7 @@ func resourceAliCloudOosParameterRead(d *schema.ResourceData, meta interface{}) 
 	oosService := OosService{client}
 	object, err := oosService.DescribeOosParameter(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oos_parameter oosService.DescribeOosParameter Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -84,7 +84,7 @@ func (s *SlsService) LogStoreStateRefreshFunc(id string, field string, failState
 		// Use the new structured method
 		logstore, err := s.DescribeLogStoreById(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "deleted", nil
 			}
 			return nil, "", WrapError(err)

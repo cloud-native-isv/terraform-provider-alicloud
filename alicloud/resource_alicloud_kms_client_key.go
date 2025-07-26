@@ -118,7 +118,7 @@ func resourceAliCloudKmsClientKeyRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := kmsServiceV2.DescribeKmsClientKey(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_kms_client_key DescribeKmsClientKey Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -165,7 +165,7 @@ func resourceAliCloudKmsClientKeyDelete(d *schema.ResourceData, meta interface{}
 	})
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

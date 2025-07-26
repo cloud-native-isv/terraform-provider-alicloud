@@ -288,7 +288,7 @@ func resourceAliCloudOtsSearchIndexRead(d *schema.ResourceData, meta interface{}
 
 	index, err := otsService.DescribeOtsSearchIndex(instanceName, tableName, indexName)
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -411,7 +411,7 @@ func resourceAliCloudOtsSearchIndexDelete(d *schema.ResourceData, meta interface
 
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		if err := otsService.DeleteOtsSearchIndex(instanceName, index); err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable"}) {

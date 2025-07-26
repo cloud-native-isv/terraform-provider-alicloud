@@ -101,7 +101,7 @@ func resourceAliCloudCdnFcTriggerRead(d *schema.ResourceData, meta interface{}) 
 	cdnService := CdnService{client}
 	object, err := cdnService.DescribeCdnFcTrigger(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cdn_fc_trigger cdnService.DescribeCdnFcTrigger Failed!!! %s", err)
 			d.SetId("")
 			return nil

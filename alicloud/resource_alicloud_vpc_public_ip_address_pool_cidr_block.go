@@ -109,7 +109,7 @@ func resourceAliCloudVpcPublicIpAddressPoolCidrBlockRead(d *schema.ResourceData,
 
 	objectRaw, err := vpcServiceV2.DescribeVpcPublicIpAddressPoolCidrBlock(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_public_ip_address_pool_cidr_block DescribeVpcPublicIpAddressPoolCidrBlock Failed!!! %s", err)
 			d.SetId("")
 			return nil

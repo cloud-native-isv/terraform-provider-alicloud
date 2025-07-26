@@ -86,7 +86,7 @@ func resourceAliCloudCrChartNamespaceRead(d *schema.ResourceData, meta interface
 	crService := CrService{client}
 	object, err := crService.DescribeCrChartNamespace(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cr_chart_namespace crService.DescribeCrChartNamespace Failed!!! %s", err)
 			d.SetId("")
 			return nil

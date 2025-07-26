@@ -80,7 +80,7 @@ func resourceAliCloudTagPolicyAttachmentRead(d *schema.ResourceData, meta interf
 	policyId := parts[0]
 	object, err := tagService.DescribeTagPolicyAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

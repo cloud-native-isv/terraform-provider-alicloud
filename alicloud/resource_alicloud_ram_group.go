@@ -3,9 +3,10 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"log"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -105,7 +106,7 @@ func resourceAliCloudRamGroupRead(d *schema.ResourceData, meta interface{}) erro
 
 	objectRaw, err := ramServiceV2.DescribeRamGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_group DescribeRamGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -326,7 +327,7 @@ func resourceAliCloudRamGroupDelete(d *schema.ResourceData, meta interface{}) er
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExist.Group"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExist.Group"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -114,7 +114,7 @@ func resourceAliCloudGpdbStreamingDataServiceRead(d *schema.ResourceData, meta i
 
 	objectRaw, err := gpdbServiceV2.DescribeGpdbStreamingDataService(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_gpdb_streaming_data_service DescribeGpdbStreamingDataService Failed!!! %s", err)
 			d.SetId("")
 			return nil

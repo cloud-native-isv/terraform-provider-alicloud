@@ -49,7 +49,7 @@ func (s *CloudApiService) WaitForApiGatewayGroup(id string, status Status, timeo
 	for {
 		object, err := s.DescribeApiGatewayGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -91,7 +91,7 @@ func (s *CloudApiService) WaitForApiGatewayApp(id string, status Status, timeout
 	for {
 		object, err := s.DescribeApiGatewayApp(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -141,7 +141,7 @@ func (s *CloudApiService) WaitForApiGatewayApi(id string, status Status, timeout
 	for {
 		object, err := s.DescribeApiGatewayApi(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -326,7 +326,7 @@ func (s *CloudApiService) WaitForApiGatewayAppAttachment(id string, status Statu
 	for {
 		object, err := s.DescribeApiGatewayAppAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

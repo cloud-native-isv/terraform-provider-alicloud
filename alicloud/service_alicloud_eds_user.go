@@ -70,7 +70,7 @@ func (s *EdsUserService) EcdUserStateRefreshFunc(id string) resource.StateRefres
 		object, err := s.DescribeEcdUser(id)
 		status := convertEcdUserStatusResponse(strconv.Itoa(formatInt(object["Status"])))
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

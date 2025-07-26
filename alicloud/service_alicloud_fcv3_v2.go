@@ -57,7 +57,7 @@ func (s *Fcv3ServiceV2) Fcv3FunctionStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFcv3Function(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -125,7 +125,7 @@ func (s *Fcv3ServiceV2) Fcv3CustomDomainStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFcv3CustomDomain(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -190,7 +190,7 @@ func (s *Fcv3ServiceV2) Fcv3FunctionVersionStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFcv3FunctionVersion(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -255,7 +255,7 @@ func (s *Fcv3ServiceV2) Fcv3AliasStateRefreshFunc(id string, field string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFcv3Alias(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -316,7 +316,7 @@ func (s *Fcv3ServiceV2) Fcv3AsyncInvokeConfigStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFcv3AsyncInvokeConfig(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -377,7 +377,7 @@ func (s *Fcv3ServiceV2) Fcv3ConcurrencyConfigStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFcv3ConcurrencyConfig(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -443,7 +443,7 @@ func (s *Fcv3ServiceV2) Fcv3TriggerStateRefreshFunc(id string, field string, fai
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFcv3Trigger(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -513,7 +513,7 @@ func (s *Fcv3ServiceV2) Fcv3ProvisionConfigStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFcv3ProvisionConfig(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -578,7 +578,7 @@ func (s *Fcv3ServiceV2) Fcv3LayerVersionStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFcv3LayerVersion(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -652,7 +652,7 @@ func (s *Fcv3ServiceV2) Fcv3VpcBindingStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFcv3VpcBinding(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

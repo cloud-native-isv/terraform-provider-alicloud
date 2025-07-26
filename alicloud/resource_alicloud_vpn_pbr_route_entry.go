@@ -113,7 +113,7 @@ func resourceAliCloudVpnPbrRouteEntryRead(d *schema.ResourceData, meta interface
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpnPbrRouteEntry(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpn_pbr_route_entry VpcService.DescribeVpnPbrRouteEntry Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -95,7 +95,7 @@ func resourceAliCloudMNSQueueRead(d *schema.ResourceData, meta interface{}) erro
 
 	object, err := mnsService.DescribeMnsQueue(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

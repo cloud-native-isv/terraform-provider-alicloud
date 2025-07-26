@@ -108,7 +108,7 @@ func resourceAliCloudEcdNasFileSystemRead(d *schema.ResourceData, meta interface
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdNasFileSystem(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_nas_file_system ecdService.DescribeEcdNasFileSystem Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -236,7 +236,7 @@ func resourceAliCloudEfloNodeRead(d *schema.ResourceData, meta interface{}) erro
 
 	objectRaw, err := efloServiceV2.DescribeEfloNode(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eflo_node DescribeEfloNode Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -249,7 +249,7 @@ func resourceAliCloudEfloNodeRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("status", objectRaw["OperatingState"])
 
 	objectRaw, err = efloServiceV2.DescribeNodeListTagResources(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -348,7 +348,7 @@ func resourceAliCloudEfloNodeDelete(d *schema.ResourceData, meta interface{}) er
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"RESOURCE_NOT_FOUND"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"RESOURCE_NOT_FOUND"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

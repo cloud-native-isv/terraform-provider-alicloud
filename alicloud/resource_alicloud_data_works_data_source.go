@@ -138,7 +138,7 @@ func resourceAliCloudDataWorksDataSourceRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := dataWorksServiceV2.DescribeDataWorksDataSource(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_data_works_data_source DescribeDataWorksDataSource Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -265,7 +265,7 @@ func resourceAliCloudDataWorksDataSourceDelete(d *schema.ResourceData, meta inte
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

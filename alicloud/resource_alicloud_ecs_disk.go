@@ -3,9 +3,10 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"log"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -309,7 +310,7 @@ func resourceAliCloudEcsDiskRead(d *schema.ResourceData, meta interface{}) error
 
 	objectRaw, err := ecsServiceV2.DescribeEcsDisk(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_disk DescribeEcsDisk Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -633,7 +634,7 @@ func resourceAliCloudEcsDiskDelete(d *schema.ResourceData, meta interface{}) err
 
 	objectRaw, err := ecsServiceV2.DescribeEcsDisk(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_disk DescribeEcsDisk Failed!!! %s", err)
 			return nil
 		}
@@ -668,7 +669,7 @@ func resourceAliCloudEcsDiskDelete(d *schema.ResourceData, meta interface{}) err
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidDiskId.NotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidDiskId.NotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

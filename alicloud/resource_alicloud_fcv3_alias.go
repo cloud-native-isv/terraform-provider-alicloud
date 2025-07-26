@@ -115,7 +115,7 @@ func resourceAliCloudFcv3AliasRead(d *schema.ResourceData, meta interface{}) err
 
 	objectRaw, err := fcv3ServiceV2.DescribeFcv3Alias(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fcv3_alias DescribeFcv3Alias Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -231,7 +231,7 @@ func resourceAliCloudFcv3AliasDelete(d *schema.ResourceData, meta interface{}) e
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -110,7 +110,7 @@ func resourceAliCloudArmsEnvFeatureRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := armsService.DescribeArmsEnvFeature(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_env_feature DescribeArmsEnvFeature Failed!!! %s", err)
 			d.SetId("")
 			return nil

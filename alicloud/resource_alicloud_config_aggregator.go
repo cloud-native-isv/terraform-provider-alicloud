@@ -134,7 +134,7 @@ func resourceAliCloudConfigAggregatorRead(d *schema.ResourceData, meta interface
 	configService := ConfigService{client}
 	object, err := configService.DescribeConfigAggregator(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_config_aggregator configService.DescribeConfigAggregator Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -102,7 +102,7 @@ func resourceAliCloudEcdSnapshotRead(d *schema.ResourceData, meta interface{}) e
 
 	object, err := ecdService.DescribeEcdSnapshot(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_snapshot ecdService.DescribeEcdSnapshot Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -141,7 +141,7 @@ func resourceAliCloudEcdSnapshotDelete(d *schema.ResourceData, meta interface{})
 		return nil
 	})
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

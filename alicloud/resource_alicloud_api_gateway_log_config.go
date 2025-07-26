@@ -81,7 +81,7 @@ func resourceAliCloudApiGatewayLogConfigRead(d *schema.ResourceData, meta interf
 	cloudApiService := CloudApiService{client}
 	object, err := cloudApiService.DescribeApiGatewayLogConfig(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

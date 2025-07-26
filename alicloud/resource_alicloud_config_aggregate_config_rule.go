@@ -184,7 +184,7 @@ func resourceAliCloudConfigAggregateConfigRuleRead(d *schema.ResourceData, meta 
 	configService := ConfigService{client}
 	object, err := configService.DescribeConfigAggregateConfigRule(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_config_aggregate_config_rule configService.DescribeConfigAggregateConfigRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

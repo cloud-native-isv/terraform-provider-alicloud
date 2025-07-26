@@ -108,7 +108,7 @@ func resourceAliCloudAmqpBindingRead(d *schema.ResourceData, meta interface{}) e
 
 	object, err := amqpOpenService.DescribeAmqpBinding(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_amqp_binding amqpOpenService.DescribeAmqpBinding Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -167,7 +167,7 @@ func resourceAliCloudAmqpBindingDelete(d *schema.ResourceData, meta interface{})
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) || IsExpectedErrors(err, []string{"ExchangeNotExist"}) {
+		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"ExchangeNotExist"}) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -57,7 +57,7 @@ func resourceAliCloudImageSharePermissionRead(d *schema.ResourceData, meta inter
 	ecsService := EcsService{client: client}
 	object, err := ecsService.DescribeImageShareByImageId(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_image_share_permission ecsService.DescribeImageShareByImageId Failed!!! %s", err)
 			d.SetId("")
 			return nil

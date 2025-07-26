@@ -238,7 +238,7 @@ func resourceAliCloudSaeGreyTagRouteRead(d *schema.ResourceData, meta interface{
 	saeService := SaeService{client}
 	object, err := saeService.DescribeSaeGreyTagRoute(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sae_grey_tag_route saeService.DescribeSaeGreyTagRoute Failed!!! %s", err)
 			d.SetId("")
 			return nil

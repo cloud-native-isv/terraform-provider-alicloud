@@ -104,7 +104,7 @@ func resourceAliCloudAlbLoadBalancerSecurityGroupAttachmentRead(d *schema.Resour
 
 	objectRaw, err := albServiceV2.DescribeAlbLoadBalancerSecurityGroupAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alb_load_balancer_security_group_attachment DescribeAlbLoadBalancerSecurityGroupAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -160,7 +160,7 @@ func resourceAliCloudAlbLoadBalancerSecurityGroupAttachmentDelete(d *schema.Reso
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

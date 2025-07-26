@@ -106,7 +106,7 @@ func resourceAliCloudEcdUserRead(d *schema.ResourceData, meta interface{}) error
 	edsUserService := EdsUserService{client}
 	object, err := edsUserService.DescribeEcdUser(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_user edsUserService.DescribeEcdUser Failed!!! %s", err)
 			d.SetId("")
 			return nil

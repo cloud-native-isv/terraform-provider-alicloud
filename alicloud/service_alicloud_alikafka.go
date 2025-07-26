@@ -368,7 +368,7 @@ func (s *AlikafkaService) WaitForAlikafkaInstance(id string, status Status, time
 	for {
 		object, err := s.DescribeAlikafkaInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -410,7 +410,7 @@ func (s *AlikafkaService) WaitForAlikafkaConsumerGroup(id string, status Status,
 	for {
 		object, err := s.DescribeAlikafkaConsumerGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -452,7 +452,7 @@ func (s *AlikafkaService) WaitForAlikafkaTopic(id string, status Status, timeout
 	for {
 		object, err := s.DescribeAlikafkaTopic(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -482,7 +482,7 @@ func (s *AlikafkaService) WaitForAlikafkaSaslUser(id string, status Status, time
 	for {
 		object, err := s.DescribeAlikafkaSaslUser(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -513,7 +513,7 @@ func (s *AlikafkaService) WaitForAlikafkaSaslAcl(id string, status Status, timeo
 		object, err := s.DescribeAlikafkaSaslAcl(id)
 		if err != nil {
 
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1145,7 +1145,7 @@ func (s *AlikafkaService) AliKafkaInstanceStateRefreshFunc(id, attribute string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAliKafkaInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1166,7 +1166,7 @@ func (s *AlikafkaService) AliKafkaConsumerStateRefreshFunc(id, attribute string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAliKafkaConsumerGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1187,7 +1187,7 @@ func (s *AlikafkaService) AliKafkaTopicStateRefreshFunc(id, attribute string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlikafkaTopic(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

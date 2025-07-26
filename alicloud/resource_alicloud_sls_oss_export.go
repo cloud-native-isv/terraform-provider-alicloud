@@ -191,7 +191,7 @@ func resourceAliCloudLogOssExportRead(d *schema.ResourceData, meta interface{}) 
 
 	object, err := slsService.DescribeSlsOSSExport(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_log_oss_export DescribeSlsOSSExport Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -305,7 +305,7 @@ func resourceAliCloudLogOssExportDelete(d *schema.ResourceData, meta interface{}
 	// Wait for deletion to complete
 	stateConf := BuildStateConf([]string{"RUNNING", "STOPPED", "DELETING"}, []string{}, d.Timeout(schema.TimeoutDelete), 10*time.Second, slsService.SlsOSSExportStateRefreshFunc(d.Id(), "status", []string{"FAILED", "ERROR"}))
 	if _, err := stateConf.WaitForState(); err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, IdMsg, d.Id())

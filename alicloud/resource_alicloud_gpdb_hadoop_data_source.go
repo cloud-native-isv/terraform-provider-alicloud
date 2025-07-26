@@ -174,7 +174,7 @@ func resourceAliCloudGpdbHadoopDataSourceRead(d *schema.ResourceData, meta inter
 
 	objectRaw, err := gpdbServiceV2.DescribeGpdbHadoopDataSource(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_gpdb_hadoop_data_source DescribeGpdbHadoopDataSource Failed!!! %s", err)
 			d.SetId("")
 			return nil

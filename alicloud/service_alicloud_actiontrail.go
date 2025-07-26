@@ -46,7 +46,7 @@ func (s *ActiontrailService) ActiontrailTrailStateRefreshFunc(id string, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeActiontrailTrail(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -100,7 +100,7 @@ func (s *ActiontrailService) ActiontrailHistoryDeliveryJobStateRefreshFunc(id st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeActiontrailHistoryDeliveryJob(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

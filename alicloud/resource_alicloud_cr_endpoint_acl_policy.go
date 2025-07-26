@@ -101,7 +101,7 @@ func resourceAliCloudCrEndpointAclPolicyRead(d *schema.ResourceData, meta interf
 	crService := CrService{client}
 	object, err := crService.DescribeCrEndpointAclPolicy(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cr_instance_endpoint_acl_policy crService.DescribeCrEndpointAclPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

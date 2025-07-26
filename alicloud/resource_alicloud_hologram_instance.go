@@ -254,7 +254,7 @@ func resourceAliCloudHologramInstanceRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := hologramServiceV2.DescribeHologramInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_hologram_instance DescribeHologramInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

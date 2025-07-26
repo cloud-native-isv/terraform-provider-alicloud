@@ -204,7 +204,7 @@ func resourceAliCloudMongodbServerlessInstanceRead(d *schema.ResourceData, meta 
 	mongoDBService := MongoDBService{client}
 	object, err := mongoDBService.DescribeMongodbServerlessInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mongodb_serverless_instance MongoDBService.DescribeMongodbServerlessInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

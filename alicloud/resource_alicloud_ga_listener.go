@@ -274,7 +274,7 @@ func resourceAliCloudGaListenerRead(d *schema.ResourceData, meta interface{}) er
 
 	object, err := gaService.DescribeGaListener(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ga_listener gaService.DescribeGaListener Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -57,7 +57,7 @@ func (s *ServicecatalogService) ServiceCatalogProvisionedProductStateRefreshFunc
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeServiceCatalogProvisionedProduct(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

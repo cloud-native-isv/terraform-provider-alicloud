@@ -158,7 +158,7 @@ func resourceAliCloudTsdbInstanceRead(d *schema.ResourceData, meta interface{}) 
 	hitsdbService := HitsdbService{client}
 	object, err := hitsdbService.DescribeTsdbInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_tsdb_instance hitsdbService.DescribeTsdbInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

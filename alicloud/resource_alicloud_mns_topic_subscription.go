@@ -101,7 +101,7 @@ func resourceAliCloudMNSSubscriptionRead(d *schema.ResourceData, meta interface{
 
 	object, err := mnsService.DescribeMnsTopicSubscription(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

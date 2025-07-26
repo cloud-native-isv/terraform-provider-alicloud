@@ -131,7 +131,7 @@ func (s *SlsService) SlsOSSIngestionStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		ingestion, err := s.DescribeSlsOSSIngestion(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return ingestion, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -433,7 +433,7 @@ func (s *SlsService) SlsIngestionStateRefreshFunc(id string, field string, failS
 	return func() (interface{}, string, error) {
 		ingestion, err := s.DescribeSlsIngestion(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return ingestion, "", nil
 			}
 			return nil, "", WrapError(err)

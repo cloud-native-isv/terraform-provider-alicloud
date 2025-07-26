@@ -116,7 +116,7 @@ func resourceAliCloudConfigDeliveryChannelRead(d *schema.ResourceData, meta inte
 	configService := ConfigService{client}
 	object, err := configService.DescribeConfigDeliveryChannel(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_config_delivery_channel configService.DescribeConfigDeliveryChannel Failed!!! %s", err)
 			d.SetId("")
 			return nil

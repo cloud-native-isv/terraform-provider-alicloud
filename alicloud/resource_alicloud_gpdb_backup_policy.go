@@ -110,7 +110,7 @@ func resourceAliCloudGpdbBackupPolicyRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := gpdbServiceV2.DescribeGpdbBackupPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_gpdb_backup_policy DescribeGpdbBackupPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

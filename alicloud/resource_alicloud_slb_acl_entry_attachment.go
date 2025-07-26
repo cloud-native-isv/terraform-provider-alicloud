@@ -92,7 +92,7 @@ func resourceAliCloudSlbAclEntryAttachmentRead(d *schema.ResourceData, meta inte
 	slbService := SlbService{client}
 	object, err := slbService.DescribeSlbAclEntryAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_slb_acl_entry_attachment slbService.DescribeSlbAclEntryAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

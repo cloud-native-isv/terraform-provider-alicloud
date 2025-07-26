@@ -72,7 +72,7 @@ func resourceAliCloudBrainIndustrialPidOrganizationRead(d *schema.ResourceData, 
 	brain_industrialService := Brain_industrialService{client}
 	object, err := brain_industrialService.DescribeBrainIndustrialPidOrganization(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_brain_industrial_pid_organization brain_industrialService.DescribeBrainIndustrialPidOrganization Failed!!! %s", err)
 			d.SetId("")
 			return nil

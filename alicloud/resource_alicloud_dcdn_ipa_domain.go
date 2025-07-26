@@ -134,7 +134,7 @@ func resourceAliCloudDcdnIpaDomainRead(d *schema.ResourceData, meta interface{})
 	dcdnService := DcdnService{client}
 	object, err := dcdnService.DescribeDcdnIpaDomain(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dcdn_ipa_domain dcdnService.DescribeDcdnIpaDomain Failed!!! %s", err)
 			d.SetId("")
 			return nil

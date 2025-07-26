@@ -169,7 +169,7 @@ func resourceAliCloudNlbServerGroupServerAttachmentRead(d *schema.ResourceData, 
 
 	objectRaw, err := nlbServiceV2.DescribeNlbServerGroupServerAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nlb_server_group_server_attachment DescribeNlbServerGroupServerAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -348,7 +348,7 @@ func resourceAliCloudNlbServerGroupServerAttachmentDelete(d *schema.ResourceData
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ResourceNotFound.serverGroup", "ResourceNotFound.BackendServer"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ResourceNotFound.serverGroup", "ResourceNotFound.BackendServer"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

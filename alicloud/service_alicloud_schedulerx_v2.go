@@ -66,7 +66,7 @@ func (s *SchedulerxServiceV2) SchedulerxJobStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSchedulerxJob(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -140,7 +140,7 @@ func (s *SchedulerxServiceV2) SchedulerxNamespaceStateRefreshFunc(id string, fie
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSchedulerxNamespace(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -218,7 +218,7 @@ func (s *SchedulerxServiceV2) SchedulerxAppGroupStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSchedulerxAppGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

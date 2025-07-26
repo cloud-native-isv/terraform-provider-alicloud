@@ -73,7 +73,7 @@ func projectLoggingStateRefreshFunc(d *schema.ResourceData, meta interface{}, pr
 		// Check if the main project exists
 		_, err = slsService.DescribeLogProject(projectName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "ProjectNotFound", nil
 			}
 			return nil, "", WrapError(err)
@@ -82,7 +82,7 @@ func projectLoggingStateRefreshFunc(d *schema.ResourceData, meta interface{}, pr
 		// Check project logging configuration
 		logging, err := slsService.GetProjectLogging(projectName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "LoggingNotFound", nil
 			}
 			return nil, "", WrapError(err)
@@ -91,7 +91,7 @@ func projectLoggingStateRefreshFunc(d *schema.ResourceData, meta interface{}, pr
 		// Check if logging project exists
 		_, err = slsService.DescribeLogProject(logging.LoggingProject)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "LoggingProjectNotFound", nil
 			}
 			return nil, "", WrapError(err)
@@ -101,7 +101,7 @@ func projectLoggingStateRefreshFunc(d *schema.ResourceData, meta interface{}, pr
 		for _, detail := range logging.LoggingDetails {
 			_, err = slsService.DescribeLogStore(logging.LoggingProject, detail.Logstore)
 			if err != nil {
-				if NotFoundError(err) {
+				if IsNotFoundError(err) {
 					return nil, "LogstoreNotFound", nil
 				}
 				return nil, "", WrapError(err)
@@ -125,7 +125,7 @@ func resourceAliCloudLogProjectLoggingCreate(d *schema.ResourceData, meta interf
 
 	// Check if project logging already exists
 	existingLogging, err := slsService.GetProjectLogging(projectName)
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -185,7 +185,7 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	// Check if the main project exists
 	_, err = slsService.DescribeLogProject(projectName)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -195,7 +195,7 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	// Check project logging configuration
 	logging, err := slsService.GetProjectLogging(projectName)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -205,7 +205,7 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	// Check if logging project exists
 	_, err = slsService.DescribeLogProject(logging.LoggingProject)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -216,7 +216,7 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	for _, detail := range logging.LoggingDetails {
 		_, err = slsService.DescribeLogStore(logging.LoggingProject, detail.Logstore)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				d.SetId("")
 				return nil
 			}

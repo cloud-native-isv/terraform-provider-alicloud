@@ -293,7 +293,7 @@ func resourceAliCloudFCServiceRead(d *schema.ResourceData, meta interface{}) err
 
 	object, err := fcService.DescribeFcService(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -642,7 +642,7 @@ func parseLogConfig(d *schema.ResourceData, meta interface{}) (project, logstore
 		err = resource.Retry(2*time.Minute, func() *resource.RetryError {
 			_, e := slsService.DescribeLogProject(project)
 			if e != nil {
-				if NotFoundError(e) {
+				if IsNotFoundError(e) {
 					return resource.RetryableError(e)
 				}
 				return resource.NonRetryableError(e)
@@ -667,7 +667,7 @@ func parseLogConfig(d *schema.ResourceData, meta interface{}) (project, logstore
 		err = resource.Retry(2*time.Minute, func() *resource.RetryError {
 			_, e := slsService.aliyunSlsAPI.GetLogStore(project, logstore)
 			if e != nil {
-				if NotFoundError(e) {
+				if IsNotFoundError(e) {
 					return resource.RetryableError(e)
 				}
 				return resource.NonRetryableError(e)

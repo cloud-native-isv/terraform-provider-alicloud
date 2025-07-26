@@ -264,7 +264,7 @@ func (s *RedisServiceV2) RedisTairInstanceStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRedisTairInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

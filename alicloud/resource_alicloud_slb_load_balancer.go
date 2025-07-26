@@ -344,7 +344,7 @@ func resourceAliCloudSlbLoadBalancerRead(d *schema.ResourceData, meta interface{
 	slbService := SlbService{client}
 	object, err := slbService.DescribeSlbLoadBalancer(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_slb_load_balancer slbService.DescribeSlbLoadBalancer Failed!!! %s", err)
 			d.SetId("")
 			return nil

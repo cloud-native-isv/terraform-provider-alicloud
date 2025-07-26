@@ -68,7 +68,7 @@ func (s *OssService) OssBucketCnameTokenStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketCnameToken(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -85,4 +85,3 @@ func (s *OssService) OssBucketCnameTokenStateRefreshFunc(id string, field string
 		return object, currentStatus, nil
 	}
 }
-

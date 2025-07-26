@@ -130,7 +130,7 @@ func resourceAliCloudEipAssociationRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := eipServiceV2.DescribeEipAssociation(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eip_association DescribeEipAssociation Failed!!! %s", err)
 			d.SetId("")
 			return nil

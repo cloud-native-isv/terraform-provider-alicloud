@@ -588,7 +588,7 @@ func resourceAliCloudRdsCloneDbInstanceRead(d *schema.ResourceData, meta interfa
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeRdsCloneDbInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_rds_clone_db_instance rdsService.DescribeRdsCloneDbInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

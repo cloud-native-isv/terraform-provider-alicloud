@@ -452,7 +452,7 @@ func (s *SagService) WaitForCloudConnectNetwork(id string, status Status, timeou
 	for {
 		object, err := s.DescribeCloudConnectNetwork(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -479,7 +479,7 @@ func (s *SagService) WaitForCloudConnectNetworkGrant(id string, status Status, t
 	for {
 		object, err := s.DescribeCloudConnectNetworkGrant(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -507,7 +507,7 @@ func (s *SagService) WaitForCloudConnectNetworkAttachment(id string, status Stat
 	for {
 		object, err := s.DescribeCloudConnectNetworkAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -530,7 +530,7 @@ func (s *SagService) WaitForSagAcl(id string, status Status, timeout int) error 
 	for {
 		object, err := s.DescribeSagAcl(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -558,7 +558,7 @@ func (s *SagService) WaitForSagAclRule(id string, status Status, timeout int) er
 	for {
 		object, err := s.DescribeSagAclRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -582,7 +582,7 @@ func (s *SagService) WaitForSagQos(id string, status Status, timeout int) error 
 	for {
 		object, err := s.DescribeSagQos(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -610,7 +610,7 @@ func (s *SagService) WaitForSagQosPolicy(id string, status Status, timeout int) 
 	for {
 		object, err := s.DescribeSagQosPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -637,7 +637,7 @@ func (s *SagService) WaitForSagQosCar(id string, status Status, timeout int) err
 	for {
 		object, err := s.DescribeSagQosCar(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -664,7 +664,7 @@ func (s *SagService) WaitForSagSnatEntry(id string, status Status, timeout int) 
 	for {
 		object, err := s.DescribeSagSnatEntry(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -691,7 +691,7 @@ func (s *SagService) WaitForSagDnatEntry(id string, status Status, timeout int) 
 	for {
 		object, err := s.DescribeSagDnatEntry(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -718,7 +718,7 @@ func (s *SagService) WaitForSagClientUser(id string, status Status, timeout int)
 	for {
 		object, err := s.DescribeSagClientUser(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -779,7 +779,7 @@ func (s *SagService) SmartagFlowLogStateRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSmartagFlowLog(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

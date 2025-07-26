@@ -120,7 +120,7 @@ func resourceAliCloudCenVbrHealthCheckRead(d *schema.ResourceData, meta interfac
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenVbrHealthCheck(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_vbr_health_check cbnService.DescribeCenVbrHealthCheck Failed!!! %s", err)
 			d.SetId("")
 			return nil

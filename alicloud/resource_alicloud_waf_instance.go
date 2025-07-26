@@ -194,7 +194,7 @@ func resourceAliCloudWafInstanceRead(d *schema.ResourceData, meta interface{}) e
 	waf_openapiService := WafOpenapiService{client}
 	object, err := waf_openapiService.DescribeWafInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_waf_instance waf_openapiService.DescribeWafInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

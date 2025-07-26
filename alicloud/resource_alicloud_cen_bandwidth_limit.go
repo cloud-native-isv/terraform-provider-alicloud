@@ -77,7 +77,7 @@ func resourceAliCloudCenBandwidthLimitRead(d *schema.ResourceData, meta interfac
 
 	object, err := cenService.DescribeCenBandwidthLimit(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

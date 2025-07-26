@@ -113,7 +113,7 @@ func (s *ConfigService) ConfigConfigurationRecorderStateRefreshFunc(id string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeConfigConfigurationRecorder(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -184,7 +184,7 @@ func (s *ConfigService) ConfigAggregatorStateRefreshFunc(d *schema.ResourceData,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeConfigAggregator(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -290,7 +290,7 @@ func (s *ConfigService) ConfigAggregateCompliancePackStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeConfigAggregateCompliancePack(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -346,7 +346,7 @@ func (s *ConfigService) ConfigCompliancePackStateRefreshFunc(id string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeConfigCompliancePack(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -366,7 +366,7 @@ func (s *ConfigService) ConfigAggregateConfigRuleStateRefreshFunc(id string, fai
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeConfigAggregateConfigRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -386,7 +386,7 @@ func (s *ConfigService) ConfigRuleStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeConfigRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

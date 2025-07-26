@@ -46,7 +46,7 @@ func (s *ArmsService) ArmsAddonReleaseStateRefreshFunc(id string, jsonPath strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeArmsAddonRelease(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -136,7 +136,7 @@ func (s *ArmsService) ArmsEnvFeatureStateRefreshFunc(id string, jsonPath string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeArmsEnvFeature(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -187,7 +187,7 @@ func resourceAliCloudAlbAScriptRead(d *schema.ResourceData, meta interface{}) er
 
 	objectRaw, err := albServiceV2.DescribeAlbAScript(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alb_ascript DescribeAlbAScript Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -376,7 +376,7 @@ func resourceAliCloudAlbAScriptDelete(d *schema.ResourceData, meta interface{}) 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -110,7 +110,7 @@ func resourceAliCloudOnsInstanceRead(d *schema.ResourceData, meta interface{}) e
 	onsService := OnsService{client}
 	object, err := onsService.DescribeOnsInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ons_instance onsService.DescribeOnsInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

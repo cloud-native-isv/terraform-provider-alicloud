@@ -59,7 +59,7 @@ func (s *SwasOpenService) SimpleApplicationServerInstanceStateRefreshFunc(id str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSimpleApplicationServerInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -177,7 +177,7 @@ func (s *SwasOpenService) SimpleApplicationServerSnapshotStateRefreshFunc(id str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSimpleApplicationServerSnapshot(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

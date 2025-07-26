@@ -21,7 +21,7 @@ func (s *NasService) DescribeNasAccessRule(id string) (*aliyunNasAPI.AccessRule,
 
 	accessRule, err := nasAPI.GetAccessRule(accessGroupName, accessRuleId)
 	if err != nil {
-		if common.NotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil, WrapErrorf(Error(GetNotFoundMessage("NasAccessRule", id)), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetAccessRule", AlibabaCloudSdkGoERROR)
@@ -57,7 +57,7 @@ func (s *NasService) DeleteNasAccessRule(accessGroupName, accessRuleId string) e
 
 	err := nasAPI.DeleteAccessRule(accessGroupName, accessRuleId)
 	if err != nil {
-		if common.NotFoundError(err) {
+		if common.IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, accessRuleId, "DeleteAccessRule", AlibabaCloudSdkGoERROR)
@@ -81,7 +81,7 @@ func (s *NasService) NasAccessRuleStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		accessRule, err := s.DescribeNasAccessRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -107,7 +107,7 @@ func (s *NasService) WaitForNasAccessRule(id string, status Status, timeout int)
 	for {
 		accessRule, err := s.DescribeNasAccessRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

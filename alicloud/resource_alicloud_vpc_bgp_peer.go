@@ -130,7 +130,7 @@ func resourceAliCloudExpressConnectBgpPeerRead(d *schema.ResourceData, meta inte
 
 	objectRaw, err := expressConnectServiceV2.DescribeExpressConnectBgpPeer(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_bgp_peer DescribeExpressConnectBgpPeer Failed!!! %s", err)
 			d.SetId("")
 			return nil

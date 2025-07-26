@@ -100,7 +100,7 @@ func resourceAliCloudVodEditingProjectRead(d *schema.ResourceData, meta interfac
 	vodService := VodService{client}
 	object, err := vodService.DescribeVodEditingProject(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vod_editing_project vodService.DescribeVodEditingProject Failed!!! %s", err)
 			d.SetId("")
 			return nil

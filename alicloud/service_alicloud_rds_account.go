@@ -170,7 +170,7 @@ func (s *RdsService) WaitForAccountPrivilege(id, dbName string, status Status, t
 	for {
 		object, err := s.DescribeDBDatabase(parts[0] + ":" + dbName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -213,7 +213,7 @@ func (s *RdsService) WaitForAccountPrivilegeRevoked(id, dbName string, timeout i
 	for {
 		object, err := s.DescribeDBDatabase(parts[0] + ":" + dbName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return WrapError(err)
@@ -246,7 +246,7 @@ func (s *RdsService) RdsAccountStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRdsAccount(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

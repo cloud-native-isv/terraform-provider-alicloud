@@ -129,7 +129,7 @@ func resourceAliCloudMongodbShardingNetworkPublicAddressRead(d *schema.ResourceD
 	MongoDBService := MongoDBService{client}
 	object, err := MongoDBService.DescribeMongodbShardingNetworkPublicAddress(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mongodb_sharding_network_public_address MongoDBService.DescribeMongodbShardingNetworkPublicAddress Failed!!! %s", err)
 			d.SetId("")
 			return nil

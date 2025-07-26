@@ -346,7 +346,7 @@ func resourceAliCloudCddcDedicatedPropreHostRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := cddcServiceV2.DescribeCddcDedicatedPropreHost(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cddc_dedicated_propre_host DescribeCddcDedicatedPropreHost Failed!!! %s", err)
 			d.SetId("")
 			return nil

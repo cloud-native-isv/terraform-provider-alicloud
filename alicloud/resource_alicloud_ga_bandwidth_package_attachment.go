@@ -101,7 +101,7 @@ func resourceAliCloudGaBandwidthPackageAttachmentRead(d *schema.ResourceData, me
 
 	object, err := gaService.DescribeGaBandwidthPackageAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ga_bandwidth_package_attachment gaService.DescribeGaBandwidthPackageAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -222,7 +222,7 @@ func resourceAliCloudGaBandwidthPackageAttachmentDelete(d *schema.ResourceData, 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotExist.BandwidthPackage", "Exist.EndpointGroup"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NotExist.BandwidthPackage", "Exist.EndpointGroup"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -120,7 +120,7 @@ func resourceAliCloudVpcIpamIpamPoolAllocationRead(d *schema.ResourceData, meta 
 
 	objectRaw, err := vpcIpamServiceV2.DescribeVpcIpamIpamPoolAllocation(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_ipam_ipam_pool_allocation DescribeVpcIpamIpamPoolAllocation Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -229,7 +229,7 @@ func resourceAliCloudVpcIpamIpamPoolAllocationDelete(d *schema.ResourceData, met
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ResourceNotFound.IpamPoolAllocation"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ResourceNotFound.IpamPoolAllocation"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

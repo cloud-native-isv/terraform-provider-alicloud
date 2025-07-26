@@ -335,7 +335,7 @@ func resourceAliCloudArmsDispatchRuleRead(d *schema.ResourceData, meta interface
 	armsService := NewArmsService(client)
 	object, err := armsService.DescribeArmsDispatchRule(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_dispatch_rule armsService.DescribeArmsDispatchRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -344,7 +344,7 @@ func resourceAliCloudArmsDispatchRuleRead(d *schema.ResourceData, meta interface
 	}
 	notifyPolicy, err := armsService.DescribeArmsAlertNotificationPolicy(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_dispatch_rule armsService.DescribeArmsAlertNotificationPolicy Failed!!! %s", err)
 			// Set empty notify policy if not found
 			notifyPolicy = make(map[string]interface{})

@@ -75,7 +75,7 @@ func (s *PvtzService) WaitForZoneAttachment(id string, vpcIdMap map[string]strin
 	var vpcId string
 	for {
 		object, err := s.DescribePvtzZoneAttachment(id)
-		if err != nil && !NotFoundError(err) {
+		if err != nil && !IsNotFoundError(err) {
 			return WrapError(err)
 		}
 
@@ -166,7 +166,7 @@ func (s *PvtzService) WaitForPvtzZone(id string, status Status, timeout int) err
 	for {
 		object, err := s.DescribePvtzZone(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -190,7 +190,7 @@ func (s *PvtzService) WaitForPvtzZoneAttachment(id string, status Status, timeou
 	for {
 		object, err := s.DescribePvtzZoneAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -218,7 +218,7 @@ func (s *PvtzService) WaitForPvtzZoneRecord(id string, status Status, timeout in
 	for {
 		object, err := s.DescribePvtzZoneRecord(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -322,7 +322,7 @@ func (s *PvtzService) PvtzEndpointStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePvtzEndpoint(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -439,7 +439,7 @@ func (s *PvtzService) DescribePvtzZone(id string) (object map[string]interface{}
 	}
 	syncObj, err := s.DescribeSyncEcsHostTask(id)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_pvtz_zone pvtzService.DescribeSyncEcsHostTask Failed!!! %s", err)
 			return object, nil
 		}

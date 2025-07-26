@@ -409,7 +409,7 @@ func (s *VpcService) WaitForCenInstanceGrant(id string, status Status, timeout i
 	for {
 		object, err := s.DescribeCenInstanceGrant(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -493,7 +493,7 @@ func (s *VpcService) WaitForRouteEntry(id string, status Status, timeout int) er
 	for {
 		object, err := s.DescribeRouteEntry(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -541,7 +541,7 @@ func (s *VpcService) WaitForRouterInterface(id, regionId string, status Status, 
 	for {
 		object, err := s.DescribeRouterInterface(id, regionId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -564,7 +564,7 @@ func (s *VpcService) WaitForRouterInterfaceConnection(id, regionId string, statu
 	for {
 		object, err := s.DescribeRouterInterfaceConnection(id, regionId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -679,7 +679,7 @@ func (s *VpcService) WaitForNetworkAcl(networkAclId string, status Status, timeo
 	for {
 		object, err := s.DescribeNetworkAcl(networkAclId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -711,7 +711,7 @@ func (s *VpcService) WaitForNetworkAclAttachment(id string, resource []vpc.Resou
 	for {
 		err := s.DescribeNetworkAclAttachment(id, resource)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -819,7 +819,7 @@ func (s *VpcService) ForwardEntryStateRefreshFunc(id string, failStates []string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeForwardEntry(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -880,7 +880,7 @@ func (s *VpcService) HavipStateRefreshFunc(id string, failStates []string) resou
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeHavip(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -900,7 +900,7 @@ func (s *VpcService) NatGatewayStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNatGateway(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -920,7 +920,7 @@ func (s *VpcService) NetworkAclStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNetworkAcl(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1073,7 +1073,7 @@ func (s *VpcService) ExpressConnectPhysicalConnectionStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectPhysicalConnection(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1146,7 +1146,7 @@ func (s *VpcService) ExpressConnectVirtualBorderRouterStateRefreshFunc(id string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectVirtualBorderRouter(id, includeCrossAccountVbr)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1205,7 +1205,7 @@ func (s *VpcService) VpcDhcpOptionsSetStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcDhcpOptionsSet(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1241,7 +1241,7 @@ func (s *VpcService) DescribeVpcDhcpOptionsSetAttachmentStateRefreshFunc(id stri
 		}
 		object, err := s.DescribeVpcDhcpOptionsSetAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1365,7 +1365,7 @@ func (s *VpcService) VpcNatIpStateRefreshFunc(id string, failStates []string) re
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcNatIp(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1423,7 +1423,7 @@ func (s *VpcService) VpcBgpGroupStateRefreshFunc(id string, failStates []string)
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcBgpGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1479,7 +1479,7 @@ func (s *VpcService) VpcVbrHaStateRefreshFunc(id string, failStates []string) re
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcVbrHa(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1556,7 +1556,7 @@ func (s *VpcService) VpcBgpNetworkStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcBgpNetwork(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1632,7 +1632,7 @@ func (s *VpcService) VpnRouteEntryStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpnRouteEntry(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1747,7 +1747,7 @@ func (s *VpcService) VpnPbrRouteEntryStateRefreshFunc(id string, failStates []st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpnPbrRouteEntry(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1802,7 +1802,7 @@ func (s *VpcService) VpnGatewayVpnAttachmentStateRefreshFunc(id string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpnGatewayVpnAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

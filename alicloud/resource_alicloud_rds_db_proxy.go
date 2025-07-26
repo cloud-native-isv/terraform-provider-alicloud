@@ -222,7 +222,7 @@ func resourceAliCloudRdsDBProxyRead(d *schema.ResourceData, meta interface{}) er
 	rdsService := RdsService{client}
 	proxy, proxyErr := rdsService.DescribeDBProxy(d.Id())
 	if proxyErr != nil {
-		if NotFoundError(proxyErr) {
+		if IsNotFoundError(proxyErr) {
 			d.SetId("")
 			return nil
 		}
@@ -235,7 +235,7 @@ func resourceAliCloudRdsDBProxyRead(d *schema.ResourceData, meta interface{}) er
 
 	endpointInfo, endpointError := rdsService.DescribeRdsProxyEndpoint(d.Id())
 	if endpointError != nil {
-		if NotFoundError(endpointError) {
+		if IsNotFoundError(endpointError) {
 			d.SetId("")
 			return nil
 		}
@@ -283,7 +283,7 @@ func resourceAliCloudRdsDBProxyRead(d *schema.ResourceData, meta interface{}) er
 	}
 	proxySsl, proxySslError := rdsService.GetDbProxyInstanceSsl(d.Id())
 	if proxySslError != nil {
-		if NotFoundError(endpointError) {
+		if IsNotFoundError(endpointError) {
 			d.SetId("")
 			return nil
 		}
@@ -300,7 +300,7 @@ func resourceAliCloudRdsDBProxyUpdate(d *schema.ResourceData, meta interface{}) 
 	rdsService := RdsService{client}
 	proxy, proxyErr := rdsService.DescribeDBProxy(d.Id())
 	if proxyErr != nil {
-		if NotFoundError(proxyErr) {
+		if IsNotFoundError(proxyErr) {
 			d.SetId("")
 			return nil
 		}
@@ -466,7 +466,7 @@ func resourceAliCloudRdsDBProxyUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 		ProxyEndpoint, ProxyEndpointErr := rdsService.DescribeRdsProxyEndpoint(d.Id())
 		if ProxyEndpointErr != nil {
-			if NotFoundError(ProxyEndpointErr) {
+			if IsNotFoundError(ProxyEndpointErr) {
 				d.SetId("")
 				return nil
 			}
@@ -539,7 +539,7 @@ func resourceAliCloudRdsDBProxyDelete(d *schema.ResourceData, meta interface{}) 
 	}
 	_, proxyErr := rdsService.DescribeDBProxy(d.Id())
 	if proxyErr != nil {
-		if NotFoundError(proxyErr) {
+		if IsNotFoundError(proxyErr) {
 			return nil
 		}
 		return WrapError(proxyErr)
@@ -557,7 +557,7 @@ func resourceAliCloudRdsDBProxyDelete(d *schema.ResourceData, meta interface{}) 
 			if IsExpectedErrors(err, OperationDeniedDBStatus) || NeedRetry(err) {
 				return resource.RetryableError(err)
 			}
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return resource.NonRetryableError(err)

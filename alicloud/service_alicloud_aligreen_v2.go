@@ -68,7 +68,7 @@ func (s *AligreenServiceV2) AligreenAuditCallbackStateRefreshFunc(id string, fie
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAligreenAuditCallback(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -142,7 +142,7 @@ func (s *AligreenServiceV2) AligreenCallbackStateRefreshFunc(id string, field st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAligreenCallback(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -215,7 +215,7 @@ func (s *AligreenServiceV2) AligreenBizTypeStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAligreenBizType(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -293,7 +293,7 @@ func (s *AligreenServiceV2) AligreenImageLibStateRefreshFunc(id string, field st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAligreenImageLib(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -370,7 +370,7 @@ func (s *AligreenServiceV2) AligreenKeywordLibStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAligreenKeywordLib(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -428,7 +428,7 @@ func (s *AligreenServiceV2) AligreenOssStockTaskStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAligreenOssStockTask(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

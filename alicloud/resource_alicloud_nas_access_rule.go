@@ -153,7 +153,7 @@ func resourceAliCloudNasAccessRuleRead(d *schema.ResourceData, meta interface{})
 	// Use service layer to get access rule details
 	accessRule, err := nasService.DescribeNasAccessRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_access_rule DescribeNasAccessRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

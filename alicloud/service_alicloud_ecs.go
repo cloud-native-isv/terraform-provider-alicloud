@@ -710,7 +710,7 @@ func (s *EcsService) deleteImage(d *schema.ResourceData) error {
 
 	object, err := s.DescribeImageById(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -924,7 +924,7 @@ func (s *EcsService) WaitForEcsInstance(instanceId string, status Status, timeou
 	}
 	for {
 		instance, err := s.DescribeInstance(instanceId)
-		if err != nil && !NotFoundError(err) {
+		if err != nil && !IsNotFoundError(err) {
 			return err
 		}
 		if instance.Status == string(status) {
@@ -947,7 +947,7 @@ func (s *EcsService) InstanceStateRefreshFunc(id string, failStates []string) re
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -970,7 +970,7 @@ func (s *EcsService) WaitForDisk(id string, status Status, timeout int) error {
 	for {
 		object, err := s.DescribeDisk(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -995,7 +995,7 @@ func (s *EcsService) WaitForSecurityGroup(id string, status Status, timeout int)
 	for {
 		_, err := s.DescribeSecurityGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1016,7 +1016,7 @@ func (s *EcsService) WaitForKeyPair(id string, status Status, timeout int) error
 	for {
 		_, err := s.DescribeKeyPair(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1037,7 +1037,7 @@ func (s *EcsService) WaitForNetworkInterface(id string, status Status, timeout i
 	for {
 		object, err := s.DescribeNetworkInterface(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1197,7 +1197,7 @@ func (s *EcsService) SnapshotStateRefreshFunc(id string, failStates []string) re
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSnapshot(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1217,7 +1217,7 @@ func (s *EcsService) ImageStateRefreshFunc(id string, failStates []string) resou
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeImageById(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1237,7 +1237,7 @@ func (s *EcsService) TaskStateRefreshFunc(id string, failStates []string) resour
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeTaskById(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1392,7 +1392,7 @@ func (s *EcsService) WaitForLaunchTemplate(id string, status Status, timeout int
 	for {
 		object, err := s.DescribeLaunchTemplate(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1651,7 +1651,7 @@ func (s *EcsService) EcsDedicatedHostStateRefreshFunc(id string, failStates []st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsDedicatedHost(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1672,7 +1672,7 @@ func (s *EcsService) WaitForAutoProvisioningGroup(id string, status Status, time
 	for {
 		object, err := s.DescribeAutoProvisioningGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1800,7 +1800,7 @@ func (s *EcsService) EcsAutoSnapshotPolicyStateRefreshFunc(id string, failStates
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsAutoSnapshotPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -2031,7 +2031,7 @@ func (s *EcsService) EcsSnapshotStateRefreshFunc(id string, failStates []string)
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsSnapshot(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -2168,7 +2168,7 @@ func (s *EcsService) EcsDiskStateRefreshFunc(id string, failStates []string) res
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsDisk(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -2188,7 +2188,7 @@ func (s *EcsService) EcsDiskPropertyRefreshFunc(id, property string) resource.St
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsDisk(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -2244,7 +2244,7 @@ func (s *EcsService) EcsNetworkInterfaceStateRefreshFunc(id string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsNetworkInterface(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -2400,7 +2400,7 @@ func (s *EcsService) EcsSessionManagerStatusStateRefreshFunc(id string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsSessionManagerStatus(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -2495,7 +2495,7 @@ func (s *EcsService) EcsStorageCapacityUnitStateRefreshFunc(id string, failState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsStorageCapacityUnit(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -2606,7 +2606,7 @@ func (s *EcsService) EcsSnapshotGroupStateRefreshFunc(id string, failStates []st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsSnapshotGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -2701,7 +2701,7 @@ func (s *EcsService) EcsNetworkInterfacePermissionStateRefreshFunc(id string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsNetworkInterfacePermission(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -2760,7 +2760,7 @@ func (s *EcsService) EcsInvocationStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsInvocation(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -2962,7 +2962,7 @@ func (s *EcsService) EcsInstanceSetStateRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		objects, err := s.DescribeEcsInstanceSetCloudAssistantStatus(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -3044,7 +3044,7 @@ func (s *EcsService) EcsInstanceVmSetStateRefreshFuncWithoutOsCheck(id string, f
 	return func() (interface{}, string, error) {
 		objects, err := s.DescribeEcsInstanceVmSetStatus(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -3332,7 +3332,7 @@ func (s *EcsService) EcsReservedInstanceStateRefreshFunc(d *schema.ResourceData,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsReservedInstance(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -3535,7 +3535,7 @@ func (s *EcsService) EcsCapacityReservationStateRefreshFunc(d *schema.ResourceDa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsCapacityReservation(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -3594,7 +3594,7 @@ func (s *EcsService) EcsElasticityAssuranceStateRefreshFunc(d *schema.ResourceDa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcsElasticityAssurance(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -131,7 +131,7 @@ func resourceAliCloudExpressConnectRouterExpressConnectRouterVpcAssociationRead(
 
 	objectRaw, err := expressConnectRouterServiceV2.DescribeExpressConnectRouterExpressConnectRouterVpcAssociation(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_express_connect_router_vpc_association DescribeExpressConnectRouterExpressConnectRouterVpcAssociation Failed!!! %s", err)
 			d.SetId("")
 			return nil

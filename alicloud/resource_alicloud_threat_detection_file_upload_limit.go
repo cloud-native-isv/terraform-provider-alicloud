@@ -78,7 +78,7 @@ func resourceAliCloudThreatDetectionFileUploadLimitRead(d *schema.ResourceData, 
 
 	objectRaw, err := threatDetectionServiceV2.DescribeThreatDetectionFileUploadLimit(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_file_upload_limit DescribeThreatDetectionFileUploadLimit Failed!!! %s", err)
 			d.SetId("")
 			return nil

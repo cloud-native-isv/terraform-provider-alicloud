@@ -210,7 +210,7 @@ func (s *SgwService) CloudStorageGatewayTaskStateRefreshFunc(id, taskId string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeTasks(id, taskId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

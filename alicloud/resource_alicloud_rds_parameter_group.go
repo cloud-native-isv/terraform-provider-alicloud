@@ -110,7 +110,7 @@ func resourceAliCloudRdsParameterGroupRead(d *schema.ResourceData, meta interfac
 	rdsService := RdsService{client}
 	object, err := rdsService.DescribeRdsParameterGroup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_rds_parameter_group rdsService.DescribeRdsParameterGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

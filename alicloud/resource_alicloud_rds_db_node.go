@@ -105,7 +105,7 @@ func resourceAliCloudRdsDBNodeRead(d *schema.ResourceData, meta interface{}) err
 	rdsService := RdsService{client}
 	dbNode, nodeErr := rdsService.DescribeRdsNode(d.Id())
 	if nodeErr != nil {
-		if !d.IsNewResource() && NotFoundError(nodeErr) {
+		if !d.IsNewResource() && IsNotFoundError(nodeErr) {
 			d.SetId("")
 			return nil
 		}
@@ -129,7 +129,7 @@ func resourceAliCloudRdsDBNodeDelete(d *schema.ResourceData, meta interface{}) e
 	}
 	_, err = rdsService.DescribeDBInstance(parts[0])
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

@@ -138,7 +138,7 @@ func resourceAliCloudNATGatewaySnatEntryRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := nATGatewayServiceV2.DescribeNATGatewaySnatEntry(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_snat_entry DescribeNATGatewaySnatEntry Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -285,7 +285,7 @@ func resourceAliCloudNATGatewaySnatEntryDelete(d *schema.ResourceData, meta inte
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidSnatTableId.NotFound", "InvalidSnatEntryId.NotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidSnatTableId.NotFound", "InvalidSnatEntryId.NotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -63,7 +63,7 @@ func (s *AlbServiceV2) AlbJobStateRefreshFunc(id string, resourceType string, jo
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbListAsynJobs(id, resourceType, jobId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -141,7 +141,7 @@ func (s *AlbServiceV2) AlbListenerAclAttachmentStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbListenerAclAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -201,7 +201,7 @@ func (s *AlbServiceV2) AlbLoadBalancerStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbLoadBalancer(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -230,7 +230,7 @@ func (s *AlbServiceV2) DescribeAsyncAlbLoadBalancerStateRefreshFunc(d *schema.Re
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncListAsynJobs(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 		}
@@ -407,7 +407,7 @@ func (s *AlbServiceV2) AlbLoadBalancerSecurityGroupAttachmentStateRefreshFunc(id
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbLoadBalancerSecurityGroupAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -436,7 +436,7 @@ func (s *AlbServiceV2) DescribeAsyncAlbLoadBalancerSecurityGroupAttachmentStateR
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncListAsynJobs(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 		}
@@ -514,7 +514,7 @@ func (s *AlbServiceV2) AlbAScriptStateRefreshFunc(id string, field string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbAScript(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -583,7 +583,7 @@ func (s *AlbServiceV2) AlbLoadBalancerAccessLogConfigAttachmentStateRefreshFunc(
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbLoadBalancerAccessLogConfigAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -612,7 +612,7 @@ func (s *AlbServiceV2) DescribeAsyncAlbLoadBalancerAccessLogConfigAttachmentStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncListAsynJobs(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 		}
@@ -727,7 +727,7 @@ func (s *AlbServiceV2) AlbServerGroupStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbServerGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -794,7 +794,7 @@ func (s *AlbServiceV2) AlbListenerStateRefreshFunc(id string, field string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbListener(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -823,7 +823,7 @@ func (s *AlbServiceV2) DescribeAsyncAlbListenerStateRefreshFunc(d *schema.Resour
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncListAsynJobs(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 		}
@@ -913,7 +913,7 @@ func (s *AlbServiceV2) AlbLoadBalancerZoneShiftedAttachmentStateRefreshFunc(id s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbLoadBalancerZoneShiftedAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1020,7 +1020,7 @@ func (s *AlbServiceV2) AlbHealthCheckTemplateStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbHealthCheckTemplate(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

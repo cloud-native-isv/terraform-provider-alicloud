@@ -10,12 +10,13 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
-	"golang.org/x/tools/imports"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"golang.org/x/tools/imports"
 )
 
 var (
@@ -1152,7 +1153,7 @@ func modifyResourceFile(filePath, namespace, resource string) error {
 		line = strings.ReplaceAll(line, " FailedGetAttributeMsg", " tferr.FailedGetAttributeMsg")
 		line = strings.ReplaceAll(line, "AlibabaCloudSdkGoERROR", "tferr.SdkGoERROR")
 		line = strings.ReplaceAll(line, "IsExpectedErrors", "tferr.IsExpectedErrors")
-		line = strings.ReplaceAll(line, "NotFoundError", "tferr.NotFoundError")
+		line = strings.ReplaceAll(line, "IsNotFoundError", "tferr.IsNotFoundError")
 		line = strings.ReplaceAll(line, "FailedToReachTargetStatus", "tferr.FailedToReachTargetStatus")
 		line = strings.ReplaceAll(line, "BuildStateConf", "helper.BuildStateConf")
 
@@ -1394,7 +1395,7 @@ func modifyServiceFunctionLine(line, version string) string {
 	line = strings.ReplaceAll(line, "DefaultErrorMsg", "tferr.DefaultErrorMsg")
 	line = strings.ReplaceAll(line, "AlibabaCloudSdkGoERROR", "tferr.SdkGoERROR")
 	line = strings.ReplaceAll(line, "IsExpectedErrors", "tferr.IsExpectedErrors")
-	line = strings.ReplaceAll(line, "NotFoundError", "tferr.NotFoundError")
+	line = strings.ReplaceAll(line, "IsNotFoundError", "tferr.IsNotFoundError")
 	line = strings.ReplaceAll(line, "NotFoundErr(", "tferr.NotFoundErr(")
 	line = strings.ReplaceAll(line, "NotFoundMsg", "tferr.NotFoundMsg")
 	line = strings.ReplaceAll(line, "ProviderERROR", "tferr.ProviderERROR")

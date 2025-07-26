@@ -94,7 +94,7 @@ func resourceAliCloudSchedulerxNamespaceRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := schedulerxServiceV2.DescribeSchedulerxNamespace(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_schedulerx_namespace DescribeSchedulerxNamespace Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -135,7 +135,7 @@ func resourceAliyunNetworkAclEntriesRead(d *schema.ResourceData, meta interface{
 
 	object, err := vpcService.DescribeNetworkAcl(parts[0])
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

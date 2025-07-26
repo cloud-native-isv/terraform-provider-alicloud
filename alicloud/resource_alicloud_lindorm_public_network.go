@@ -100,7 +100,7 @@ func resourceAliCloudLindormPublicNetworkRead(d *schema.ResourceData, meta inter
 
 	objectRaw, err := lindormServiceV2.DescribeLindormPublicNetwork(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_lindorm_public_network DescribeLindormPublicNetwork Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -112,7 +112,7 @@ func resourceAliCloudLindormPublicNetworkRead(d *schema.ResourceData, meta inter
 	d.Set("instance_id", objectRaw["InstanceId"])
 
 	objectRaw, err = lindormServiceV2.DescribePublicNetworkGetLindormInstanceEngineList(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 

@@ -132,7 +132,7 @@ func resourceAliCloudDBReadWriteSplittingConnectionRead(d *schema.ResourceData, 
 
 	object, err := rdsService.DescribeDBReadWriteSplittingConnection(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -264,7 +264,7 @@ func resourceAliCloudDBReadWriteSplittingConnectionDelete(d *schema.ResourceData
 			if IsExpectedErrors(err, OperationDeniedDBStatus) || NeedRetry(err) {
 				return resource.RetryableError(err)
 			}
-			if NotFoundError(err) || IsExpectedErrors(err, []string{"InvalidRwSplitNetType.NotFound"}) {
+			if IsNotFoundError(err) || IsExpectedErrors(err, []string{"InvalidRwSplitNetType.NotFound"}) {
 				return nil
 			}
 			return resource.NonRetryableError(err)

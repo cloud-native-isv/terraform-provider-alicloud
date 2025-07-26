@@ -216,7 +216,7 @@ func resourceAliCloudEcsElasticityAssuranceRead(d *schema.ResourceData, meta int
 
 	object, err := ecsService.DescribeEcsElasticityAssurance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_elasticity_assurance ecsService.DescribeEcsElasticityAssurance Failed!!! %s", err)
 			d.SetId("")
 			return nil

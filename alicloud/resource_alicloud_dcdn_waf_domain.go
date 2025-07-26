@@ -75,7 +75,7 @@ func resourceAliCloudDcdnWafDomainRead(d *schema.ResourceData, meta interface{})
 	dcdnService := DcdnService{client}
 	object, err := dcdnService.DescribeDcdnWafDomain(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dcdn_waf_domain dcdnService.DescribeDcdnWafDomain Failed!!! %s", err)
 			d.SetId("")
 			return nil

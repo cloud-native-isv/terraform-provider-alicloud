@@ -82,7 +82,7 @@ func (s *SlsService) SlsLogtailAttachmentStateRefreshFunc(id string, field strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSlsLogtailAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// When resource is not found during deletion, this is the expected success state
 				return nil, "deleted", nil
 			}

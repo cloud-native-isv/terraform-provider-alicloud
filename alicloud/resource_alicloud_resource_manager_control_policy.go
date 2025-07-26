@@ -88,7 +88,7 @@ func resourceAliCloudResourceManagerControlPolicyRead(d *schema.ResourceData, me
 	resourcemanagerService := ResourcemanagerService{client}
 	object, err := resourcemanagerService.DescribeResourceManagerControlPolicy(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_resource_manager_control_policy resourcemanagerService.DescribeResourceManagerControlPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

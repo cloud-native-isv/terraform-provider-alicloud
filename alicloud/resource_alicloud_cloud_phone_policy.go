@@ -210,7 +210,7 @@ func resourceAliCloudCloudPhonePolicyRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := cloudPhoneServiceV2.DescribeCloudPhonePolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_phone_policy DescribeCloudPhonePolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -389,7 +389,7 @@ func resourceAliCloudCloudPhonePolicyDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

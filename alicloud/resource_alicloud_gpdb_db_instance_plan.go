@@ -419,7 +419,7 @@ func resourceAliCloudGpdbDbInstancePlanRead(d *schema.ResourceData, meta interfa
 
 	object, err := gpdbService.DescribeGpdbDbInstancePlan(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_gpdb_db_instance_plan gpdbService.DescribeGpdbDbInstancePlan Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -896,7 +896,7 @@ func resourceAliCloudGpdbDbInstancePlanDelete(d *schema.ResourceData, meta inter
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

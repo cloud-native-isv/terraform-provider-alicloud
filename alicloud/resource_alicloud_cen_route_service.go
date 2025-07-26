@@ -108,7 +108,7 @@ func resourceAliCloudCenRouteServiceRead(d *schema.ResourceData, meta interface{
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenRouteService(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_route_service cbnService.DescribeCenRouteService Failed!!! %s", err)
 			d.SetId("")
 			return nil

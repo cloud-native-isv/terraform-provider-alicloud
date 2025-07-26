@@ -84,7 +84,7 @@ func resourceAliCloudSmsShortUrlRead(d *schema.ResourceData, meta interface{}) e
 	dysmsapiService := DysmsapiService{client}
 	object, err := dysmsapiService.DescribeSmsShortUrl(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sms_short_url dysmsapiService.DescribeSmsShortUrl Failed!!! %s", err)
 			d.SetId("")
 			return nil

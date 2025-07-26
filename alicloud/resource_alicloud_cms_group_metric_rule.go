@@ -374,7 +374,7 @@ func resourceAliCloudCmsGroupMetricRuleRead(d *schema.ResourceData, meta interfa
 
 	object, err := cmsService.DescribeCmsGroupMetricRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cms_group_metric_rule cmsService.DescribeCmsGroupMetricRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -487,7 +487,7 @@ func resourceAliCloudCmsGroupMetricRuleRead(d *schema.ResourceData, meta interfa
 
 	targetsList, err := cmsService.DescribeMetricRuleTargets(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

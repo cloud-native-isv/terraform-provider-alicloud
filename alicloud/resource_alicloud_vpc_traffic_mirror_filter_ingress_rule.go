@@ -181,7 +181,7 @@ func resourceAliCloudVpcTrafficMirrorFilterIngressRuleRead(d *schema.ResourceDat
 
 	objectRaw, err := vpcServiceV2.DescribeVpcTrafficMirrorFilterIngressRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_traffic_mirror_filter_ingress_rule DescribeVpcTrafficMirrorFilterIngressRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -316,7 +316,7 @@ func resourceAliCloudVpcTrafficMirrorFilterIngressRuleDelete(d *schema.ResourceD
 	})
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

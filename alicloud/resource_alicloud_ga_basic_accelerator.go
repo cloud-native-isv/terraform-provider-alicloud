@@ -179,7 +179,7 @@ func resourceAliCloudGaBasicAcceleratorRead(d *schema.ResourceData, meta interfa
 
 	object, err := gaService.DescribeGaBasicAccelerator(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -370,7 +370,7 @@ func resourceAliCloudGaBasicAcceleratorDelete(d *schema.ResourceData, meta inter
 
 	object, err := gaService.DescribeGaBasicAccelerator(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

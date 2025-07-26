@@ -62,7 +62,7 @@ func (s *ClickHouseServiceV2) ClickHouseEnterpriseDBClusterStateRefreshFunc(id s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeClickHouseEnterpriseDBCluster(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -191,7 +191,7 @@ func (s *ClickHouseServiceV2) ClickHouseEnterpriseDBClusterAccountStateRefreshFu
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeClickHouseEnterpriseDBClusterAccount(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -276,7 +276,7 @@ func (s *ClickHouseServiceV2) ClickHouseEnterpriseDbClusterPublicEndpointStateRe
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeClickHouseEnterpriseDbClusterPublicEndpoint(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -310,7 +310,7 @@ func (s *ClickHouseServiceV2) DescribeAsyncClickHouseEnterpriseDbClusterPublicEn
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncDescribeDBInstanceAttribute(d, res)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 		}
@@ -425,7 +425,7 @@ func (s *ClickHouseServiceV2) ClickHouseEnterpriseDbClusterBackupPolicyStateRefr
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeClickHouseEnterpriseDbClusterBackupPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -510,7 +510,7 @@ func (s *ClickHouseServiceV2) ClickHouseEnterpriseDbClusterSecurityIPStateRefres
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeClickHouseEnterpriseDbClusterSecurityIP(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

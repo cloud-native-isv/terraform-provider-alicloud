@@ -150,7 +150,7 @@ func resourceAliCloudConfigAggregateDeliveryRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := configServiceV2.DescribeConfigAggregateDelivery(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_config_aggregate_delivery DescribeConfigAggregateDelivery Failed!!! %s", err)
 			d.SetId("")
 			return nil

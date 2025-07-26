@@ -411,7 +411,7 @@ func resourceAliCloudCloudStorageGatewayGatewayFileShareRead(d *schema.ResourceD
 	sgwService := SgwService{client}
 	object, err := sgwService.DescribeCloudStorageGatewayGatewayFileShare(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_storage_gateway_gateway_file_share sgwService.DescribeCloudStorageGatewayGatewayFileShare Failed!!! %s", err)
 			d.SetId("")
 			return nil

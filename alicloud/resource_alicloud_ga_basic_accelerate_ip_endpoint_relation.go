@@ -93,7 +93,7 @@ func resourceAliCloudGaBasicAccelerateIpEndpointRelationRead(d *schema.ResourceD
 
 	object, err := gaService.DescribeGaBasicAccelerateIpEndpointRelation(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -144,7 +144,7 @@ func resourceAliCloudGaBasicAccelerateIpEndpointRelationDelete(d *schema.Resourc
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

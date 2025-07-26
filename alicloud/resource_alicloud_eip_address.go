@@ -306,7 +306,7 @@ func resourceAliCloudEipAddressRead(d *schema.ResourceData, meta interface{}) er
 
 	objectRaw, err := eipServiceV2.DescribeEipAddress(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eip_address DescribeEipAddress Failed!!! %s", err)
 			d.SetId("")
 			return nil

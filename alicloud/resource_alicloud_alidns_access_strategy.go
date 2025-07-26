@@ -276,7 +276,7 @@ func resourceAliCloudAlidnsAccessStrategyRead(d *schema.ResourceData, meta inter
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsAccessStrategy(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alidns_access_strategy alidnsService.DescribeAlidnsAccessStrategy Failed!!! %s", err)
 			d.SetId("")
 			return nil

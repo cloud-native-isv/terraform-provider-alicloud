@@ -73,7 +73,7 @@ func (s *SlsService) SlsMachineGroupStateRefreshFunc(projectName, machineGroupNa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSlsMachineGroup(projectName, machineGroupName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Return nil for not found, allowing create operations to proceed
 				return nil, "", nil
 			}
@@ -98,7 +98,7 @@ func (s *SlsService) WaitForSlsMachineGroup(projectName, machineGroupName string
 	for {
 		object, err := s.DescribeSlsMachineGroup(projectName, machineGroupName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == "Deleted" {
 					return nil
 				}

@@ -168,7 +168,7 @@ func resourceAliCloudRocketmqConsumerGroupRead(d *schema.ResourceData, meta inte
 
 	objectRaw, err := rocketmqServiceV2.DescribeRocketmqConsumerGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_rocketmq_consumer_group DescribeRocketmqConsumerGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -321,7 +321,7 @@ func resourceAliCloudRocketmqConsumerGroupDelete(d *schema.ResourceData, meta in
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

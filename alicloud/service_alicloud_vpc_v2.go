@@ -65,7 +65,7 @@ func (s *VpcServiceV2) VpcPublicIpAddressPoolStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcPublicIpAddressPool(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -304,7 +304,7 @@ func (s *VpcServiceV2) VpcPrefixListStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcPrefixList(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -378,7 +378,7 @@ func (s *VpcServiceV2) VpcHaVipStateRefreshFunc(id string, field string, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcHaVip(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -452,7 +452,7 @@ func (s *VpcServiceV2) VpcVswitchCidrReservationStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcVswitchCidrReservation(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -519,7 +519,7 @@ func (s *VpcServiceV2) VpcFlowLogStateRefreshFunc(id string, field string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcFlowLog(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -587,7 +587,7 @@ func (s *VpcServiceV2) VpcIpv4GatewayStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpv4Gateway(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -661,7 +661,7 @@ func (s *VpcServiceV2) VpcIpv6GatewayStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpv6Gateway(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -732,7 +732,7 @@ func (s *VpcServiceV2) VpcPublicIpAddressPoolCidrBlockStateRefreshFunc(id string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcPublicIpAddressPoolCidrBlock(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -800,7 +800,7 @@ func (s *VpcServiceV2) VpcVswitchStateRefreshFunc(id string, field string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcVswitch(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -912,7 +912,7 @@ func (s *VpcServiceV2) VpcVpcStateRefreshFunc(id string, field string, failState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcVpc(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -991,7 +991,7 @@ func (s *VpcServiceV2) VpcRouteTableStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcRouteTable(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1066,7 +1066,7 @@ func (s *VpcServiceV2) VpcGatewayRouteTableAttachmentStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcGatewayRouteTableAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1133,7 +1133,7 @@ func (s *VpcServiceV2) VpcNetworkAclStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcNetworkAcl(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1206,7 +1206,7 @@ func (s *VpcServiceV2) VpcIpv6EgressRuleStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpv6EgressRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1278,7 +1278,7 @@ func (s *VpcServiceV2) VpcTrafficMirrorFilterStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcTrafficMirrorFilter(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1348,7 +1348,7 @@ func (s *VpcServiceV2) VpcTrafficMirrorSessionStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcTrafficMirrorSession(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1418,7 +1418,7 @@ func (s *VpcServiceV2) VpcIpv6InternetBandwidthStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpv6InternetBandwidth(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1480,7 +1480,7 @@ func (s *VpcServiceV2) VpcDhcpOptionsSetStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcDhcpOptionsSet(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1582,7 +1582,7 @@ func (s *VpcServiceV2) VpcGatewayEndpointStateRefreshFunc(id string, field strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcGatewayEndpoint(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1667,7 +1667,7 @@ func (s *VpcServiceV2) VpcGatewayEndpointRouteTableAttachmentStateRefreshFunc(id
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcGatewayEndpointRouteTableAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1749,7 +1749,7 @@ func (s *VpcServiceV2) VpcNetworkAclAttachmentStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcNetworkAclAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1834,7 +1834,7 @@ func (s *VpcServiceV2) VpcTrafficMirrorFilterEgressRuleStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcTrafficMirrorFilterEgressRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1920,7 +1920,7 @@ func (s *VpcServiceV2) VpcTrafficMirrorFilterIngressRuleStateRefreshFunc(id stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcTrafficMirrorFilterIngressRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2022,7 +2022,7 @@ func (s *VpcServiceV2) VpcHaVipAttachmentStateRefreshFunc(id string, field strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcHaVipAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2117,7 +2117,7 @@ func (s *VpcServiceV2) VpcRouteTableAttachmentStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcRouteTableAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2207,7 +2207,7 @@ func (s *VpcServiceV2) VpcIpv4CidrBlockStateRefreshFunc(id string, field string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpv4CidrBlock(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2286,7 +2286,7 @@ func (s *VpcServiceV2) VpcIpv6AddressStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcIpv6Address(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2414,7 +2414,7 @@ func (s *VpcServiceV2) VpcRouteEntryStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcRouteEntry(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

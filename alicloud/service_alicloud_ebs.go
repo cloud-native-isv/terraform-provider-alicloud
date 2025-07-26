@@ -58,7 +58,7 @@ func (s *EbsService) EbsDiskReplicaGroupStateRefreshFunc(d *schema.ResourceData,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEbsDiskReplicaGroup(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -113,7 +113,7 @@ func (s *EbsService) EbsDedicatedBlockStorageClusterStateRefreshFunc(d *schema.R
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEbsDedicatedBlockStorageCluster(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -168,7 +168,7 @@ func (s *EbsService) EbsDiskReplicaPairStateRefreshFunc(d *schema.ResourceData, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEbsDiskReplicaPair(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

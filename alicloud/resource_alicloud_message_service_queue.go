@@ -186,7 +186,7 @@ func resourceAliCloudMessageServiceQueueRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := messageServiceServiceV2.DescribeMessageServiceQueue(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_message_service_queue DescribeMessageServiceQueue Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -370,7 +370,7 @@ func resourceAliCloudMessageServiceQueueDelete(d *schema.ResourceData, meta inte
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -180,7 +180,7 @@ func resourceAliCloudFcv3AsyncInvokeConfigRead(d *schema.ResourceData, meta inte
 
 	objectRaw, err := fcv3ServiceV2.DescribeFcv3AsyncInvokeConfig(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fcv3_async_invoke_config DescribeFcv3AsyncInvokeConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -365,7 +365,7 @@ func resourceAliCloudFcv3AsyncInvokeConfigDelete(d *schema.ResourceData, meta in
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

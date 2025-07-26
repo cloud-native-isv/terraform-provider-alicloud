@@ -109,7 +109,7 @@ func resourceAliCloudExpressConnectRouterGrantAssociationRead(d *schema.Resource
 
 	objectRaw, err := expressConnectRouterServiceV2.DescribeExpressConnectRouterGrantAssociation(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_express_connect_router_grant_association DescribeExpressConnectRouterGrantAssociation Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -176,7 +176,7 @@ func resourceAliCloudExpressConnectRouterGrantAssociationDelete(d *schema.Resour
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

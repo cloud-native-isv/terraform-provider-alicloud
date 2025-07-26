@@ -88,7 +88,7 @@ func resourceAliyunDatahubProjectRead(d *schema.ResourceData, meta interface{}) 
 	datahubService := DatahubService{client}
 	object, err := datahubService.DescribeDatahubProject(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

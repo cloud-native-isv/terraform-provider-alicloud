@@ -1643,7 +1643,7 @@ func resourceAliCloudAckNodepoolRead(d *schema.ResourceData, meta interface{}) e
 
 	objectRaw, err := ackServiceV2.DescribeAckNodepool(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cs_kubernetes_node_pool DescribeAckNodepool Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -2926,7 +2926,7 @@ func resourceAliCloudAckNodepoolDelete(d *schema.ResourceData, meta interface{})
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

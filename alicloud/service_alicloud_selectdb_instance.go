@@ -33,7 +33,7 @@ func (s *SelectDBService) DescribeSelectDBInstance(instanceId string) (*selectdb
 
 	instance, err := s.selectdbAPI.GetInstance(instanceId)
 	if err != nil {
-		if selectdb.NotFoundError(err) {
+		if selectdb.IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)
@@ -74,7 +74,7 @@ func (s *SelectDBService) DeleteSelectDBInstance(instanceId string, regionId ...
 
 	err := s.selectdbAPI.DeleteInstance(instanceId, regionId...)
 	if err != nil {
-		if selectdb.NotFoundError(err) {
+		if selectdb.IsNotFoundError(err) {
 			return nil // Instance already deleted
 		}
 		return WrapError(err)
@@ -118,7 +118,7 @@ func (s *SelectDBService) SelectDBInstanceStateRefreshFunc(instanceId string, fa
 	return func() (interface{}, string, error) {
 		instance, err := s.DescribeSelectDBInstance(instanceId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", WrapErrorf(Error(GetNotFoundMessage("SelectDB Instance", instanceId)), NotFoundMsg, ProviderERROR)
 			}
 			return nil, "", WrapError(err)
@@ -141,7 +141,7 @@ func (s *SelectDBService) WaitForSelectDBInstance(instanceId string, status Stat
 	for {
 		instance, err := s.DescribeSelectDBInstance(instanceId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -170,7 +170,7 @@ func (s *SelectDBService) WaitForSelectDBInstanceStatus(instanceId string, targe
 		Refresh: func() (interface{}, string, error) {
 			instance, err := s.DescribeSelectDBInstance(instanceId)
 			if err != nil {
-				if selectdb.NotFoundError(err) {
+				if selectdb.IsNotFoundError(err) {
 					if targetStatus == "DELETED" {
 						return nil, "DELETED", nil
 					}
@@ -267,7 +267,7 @@ func (s *SelectDBService) ReleaseSelectDBConnection(instanceId, connectionString
 
 // IsSelectDBNotFoundError checks if the error indicates a resource was not found
 func IsSelectDBNotFoundError(err error) bool {
-	return selectdb.NotFoundError(err)
+	return selectdb.IsNotFoundError(err)
 }
 
 // IsSelectDBInvalidParameterError checks if the error indicates invalid parameters

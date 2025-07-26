@@ -98,7 +98,7 @@ func resourceAliCloudDnsRead(d *schema.ResourceData, meta interface{}) error {
 	dnsService := &DnsService{client: client}
 	object, err := dnsService.DescribeDns(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

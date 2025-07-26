@@ -122,7 +122,7 @@ func resourceAliCloudVpcIpamIpamResourceDiscoveryRead(d *schema.ResourceData, me
 
 	objectRaw, err := vpcIpamServiceV2.DescribeVpcIpamIpamResourceDiscovery(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_ipam_ipam_resource_discovery DescribeVpcIpamIpamResourceDiscovery Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -330,7 +330,7 @@ func resourceAliCloudVpcIpamIpamResourceDiscoveryDelete(d *schema.ResourceData, 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -1,9 +1,10 @@
 package alicloud
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	r_kvstore "github.com/aliyun/alibaba-cloud-sdk-go/services/r-kvstore"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -59,7 +60,7 @@ func resourceAliCloudKvStoreBackupPolicyRead(d *schema.ResourceData, meta interf
 
 	object, err := kvstoreService.DescribeKVstoreBackupPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

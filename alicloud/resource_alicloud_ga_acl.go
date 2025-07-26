@@ -141,7 +141,7 @@ func resourceAliCloudGaAclRead(d *schema.ResourceData, meta interface{}) error {
 	gaService := GaService{client}
 	object, err := gaService.DescribeGaAcl(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ga_acl gaService.DescribeGaAcl Failed!!! %s", err)
 			d.SetId("")
 			return nil

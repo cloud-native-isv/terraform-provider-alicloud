@@ -346,7 +346,7 @@ func (s *AlbService) AlbSecurityPolicyStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbSecurityPolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -490,7 +490,7 @@ func (s *AlbService) AlbServerGroupStateRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbServerGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -579,7 +579,7 @@ func (s *AlbService) AlbLoadBalancerStateRefreshFunc(id string, failStates []str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbLoadBalancer(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -599,7 +599,7 @@ func (s *AlbService) AlbLoadBalancerEditionRefreshFunc(d *schema.ResourceData, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbLoadBalancer(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -619,7 +619,7 @@ func (s *AlbService) AlbAclStateRefreshFunc(id string, failStates []string) reso
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbAcl(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -640,7 +640,7 @@ func (s *AlbService) AlbListenerStateRefreshFunc(id string, failStates []string)
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbListener(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -751,7 +751,7 @@ func (s *AlbService) AlbRuleStateRefreshFunc(id, direction string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbRule(id, direction)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -870,7 +870,7 @@ func (s *AlbService) AlbListenerAdditionalCertificateAttachmentStateRefreshFunc(
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbListenerAdditionalCertificateAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1015,7 +1015,7 @@ func (s *AlbService) AlbAclEntryAttachmentStateRefreshFunc(id string, failStates
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbAclEntryAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1077,7 +1077,7 @@ func (s *AlbService) AlbAscriptStateRefreshFunc(d *schema.ResourceData, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbAscript(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1132,7 +1132,7 @@ func (s *AlbService) AlbLoadBalancerCommonBandwidthPackageAttachmentStateRefresh
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlbLoadBalancerCommonBandwidthPackageAttachment(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

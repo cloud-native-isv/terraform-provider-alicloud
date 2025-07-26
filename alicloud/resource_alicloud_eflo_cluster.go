@@ -677,7 +677,7 @@ func resourceAliCloudEfloClusterRead(d *schema.ResourceData, meta interface{}) e
 
 	objectRaw, err := efloServiceV2.DescribeEfloCluster(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eflo_cluster DescribeEfloCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -693,7 +693,7 @@ func resourceAliCloudEfloClusterRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("status", objectRaw["OperatingState"])
 
 	objectRaw, err = efloServiceV2.DescribeClusterListTagResources(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -777,7 +777,7 @@ func resourceAliCloudEfloClusterDelete(d *schema.ResourceData, meta interface{})
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

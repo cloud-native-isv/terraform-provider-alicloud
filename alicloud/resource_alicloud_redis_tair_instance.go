@@ -393,7 +393,7 @@ func resourceAliCloudRedisTairInstanceRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := redisServiceV2.DescribeRedisTairInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_redis_tair_instance DescribeRedisTairInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -478,7 +478,7 @@ func resourceAliCloudRedisTairInstanceRead(d *schema.ResourceData, meta interfac
 	d.Set("tags", tagsToMap(tagsMaps))
 
 	objectRaw, err = redisServiceV2.DescribeTairInstanceDescribeInstanceConfig(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -506,7 +506,7 @@ func resourceAliCloudRedisTairInstanceRead(d *schema.ResourceData, meta interfac
 		securityIpGroupName = v.(string)
 	}
 	objectRaw, err = redisServiceV2.DescribeDescribeSecurityIps(d.Id(), securityIpGroupName)
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -518,7 +518,7 @@ func resourceAliCloudRedisTairInstanceRead(d *schema.ResourceData, meta interfac
 	}
 
 	objectRaw, err = redisServiceV2.DescribeTairInstanceDescribeSecurityGroupConfiguration(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -530,7 +530,7 @@ func resourceAliCloudRedisTairInstanceRead(d *schema.ResourceData, meta interfac
 	}
 
 	objectRaw, err = redisServiceV2.DescribeTairInstanceDescribeInstanceSSL(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -542,7 +542,7 @@ func resourceAliCloudRedisTairInstanceRead(d *schema.ResourceData, meta interfac
 	}
 
 	objectRaw, err = redisServiceV2.DescribeTairInstanceDescribeIntranetAttribute(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -1133,7 +1133,7 @@ func resourceAliCloudRedisTairInstanceDelete(d *schema.ResourceData, meta interf
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

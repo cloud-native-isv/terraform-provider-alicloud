@@ -83,7 +83,7 @@ func (s *FlinkService) DeploymentFolderStateRefreshFunc(workspaceId, namespace, 
 	return func() (interface{}, string, error) {
 		object, err := s.GetDeploymentFolder(workspaceId, namespace, folderId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

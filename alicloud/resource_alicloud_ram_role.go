@@ -216,7 +216,7 @@ func resourceAliCloudRamRoleRead(d *schema.ResourceData, meta interface{}) error
 
 	objectRaw, err := ramServiceV2.DescribeRamRole(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_role DescribeRamRole Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -248,7 +248,7 @@ func resourceAliCloudRamRoleRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	objectRaw, err = ramServiceV2.DescribeRoleListTagResources(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -365,7 +365,7 @@ func resourceAliCloudRamRoleDelete(d *schema.ResourceData, meta interface{}) err
 		addDebug(listAction, response, listRequest)
 
 		if err != nil {
-			if IsExpectedErrors(err, []string{"EntityNotExist.Role"}) || NotFoundError(err) {
+			if IsExpectedErrors(err, []string{"EntityNotExist.Role"}) || IsNotFoundError(err) {
 				return nil
 			}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
@@ -400,7 +400,7 @@ func resourceAliCloudRamRoleDelete(d *schema.ResourceData, meta interface{}) err
 				addDebug(action, response, policyRequest)
 
 				if err != nil {
-					if IsExpectedErrors(err, []string{"EntityNotExist"}) || NotFoundError(err) {
+					if IsExpectedErrors(err, []string{"EntityNotExist"}) || IsNotFoundError(err) {
 						return nil
 					}
 					return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
@@ -426,7 +426,7 @@ func resourceAliCloudRamRoleDelete(d *schema.ResourceData, meta interface{}) err
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExist.Role"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExist.Role"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

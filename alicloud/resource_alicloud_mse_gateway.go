@@ -182,7 +182,7 @@ func resourceAliCloudMseGatewayRead(d *schema.ResourceData, meta interface{}) er
 	mseService := MseService{client}
 	object, err := mseService.DescribeMseGateway(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mse_gateway mseService.DescribeMseGateway Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -199,7 +199,7 @@ func resourceAliCloudMseGatewayRead(d *schema.ResourceData, meta interface{}) er
 
 	slbListObject, err := mseService.ListGatewaySlb(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mse_gateway mseService.ListGatewaySlb Failed!!! %s", err)
 			return nil
 		}

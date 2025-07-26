@@ -59,7 +59,7 @@ func (s *BpStudioService) BpStudioApplicationStateRefreshFunc(id string, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeBpStudioApplication(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

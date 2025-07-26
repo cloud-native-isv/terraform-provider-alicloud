@@ -104,7 +104,7 @@ func dataSourceAliCloudCRNamespacesRead(d *schema.ResourceData, meta interface{}
 
 		raw, err := crService.DescribeCrNamespace(ns.Namespace)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				continue
 			}
 			return WrapError(err)

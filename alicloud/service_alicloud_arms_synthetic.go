@@ -46,7 +46,7 @@ func (s *ArmsService) ArmsSyntheticTaskStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeArmsSyntheticTask(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

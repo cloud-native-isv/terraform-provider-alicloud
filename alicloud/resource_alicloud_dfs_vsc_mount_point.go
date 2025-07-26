@@ -131,7 +131,7 @@ func resourceAliCloudDfsVscMountPointRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := dfsServiceV2.DescribeDfsVscMountPoint(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dfs_vsc_mount_point DescribeDfsVscMountPoint Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -289,7 +289,7 @@ func resourceAliCloudDfsVscMountPointDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

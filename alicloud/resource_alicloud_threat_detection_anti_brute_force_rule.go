@@ -109,7 +109,7 @@ func resourceAliCloudThreatDetectionAntiBruteForceRuleRead(d *schema.ResourceDat
 
 	objectRaw, err := threatDetectionServiceV2.DescribeThreatDetectionAntiBruteForceRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_anti_brute_force_rule DescribeThreatDetectionAntiBruteForceRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -227,7 +227,7 @@ func resourceAliCloudThreatDetectionAntiBruteForceRuleDelete(d *schema.ResourceD
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

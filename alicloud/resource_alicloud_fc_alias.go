@@ -114,7 +114,7 @@ func resourceAliCloudFCAliasRead(d *schema.ResourceData, meta interface{}) error
 	id := d.Id()
 	response, err := fcService.DescribeFcAlias(id)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_alias fcService.DescribeFcAlias Failed!!! %s", err)
 			d.SetId("")
 			return nil

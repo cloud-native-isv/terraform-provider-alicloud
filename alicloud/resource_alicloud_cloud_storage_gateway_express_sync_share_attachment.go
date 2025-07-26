@@ -92,7 +92,7 @@ func resourceAliCloudCloudStorageGatewayExpressSyncShareAttachmentRead(d *schema
 	sgwService := SgwService{client}
 	object, err := sgwService.DescribeExpressSyncShares(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_storage_gateway_express_sync sgwService.DescribeExpressSyncShares Failed!!! %s", err)
 			d.SetId("")
 			return nil

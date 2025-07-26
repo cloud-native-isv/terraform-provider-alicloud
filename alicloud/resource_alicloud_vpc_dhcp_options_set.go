@@ -174,7 +174,7 @@ func resourceAliCloudVpcDhcpOptionsSetRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := vpcServiceV2.DescribeVpcDhcpOptionsSet(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_dhcp_options_set DescribeVpcDhcpOptionsSet Failed!!! %s", err)
 			d.SetId("")
 			return nil

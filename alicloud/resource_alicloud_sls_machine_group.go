@@ -107,7 +107,7 @@ func resourceAliCloudLogMachineGroupRead(d *schema.ResourceData, meta interface{
 	// Get machine group details
 	machineGroup, err := slsService.DescribeSlsMachineGroup(projectName, machineGroupName)
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

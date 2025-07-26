@@ -61,7 +61,7 @@ func (s *CloudPhoneServiceV2) CloudPhonePolicyStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudPhonePolicy(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -135,7 +135,7 @@ func (s *CloudPhoneServiceV2) CloudPhoneInstanceGroupStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudPhoneInstanceGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -208,7 +208,7 @@ func (s *CloudPhoneServiceV2) CloudPhoneInstanceStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudPhoneInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -281,7 +281,7 @@ func (s *CloudPhoneServiceV2) CloudPhoneKeyPairStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudPhoneKeyPair(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -351,7 +351,7 @@ func (s *CloudPhoneServiceV2) CloudPhoneImageStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudPhoneImage(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

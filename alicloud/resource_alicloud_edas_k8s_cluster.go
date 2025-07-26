@@ -127,7 +127,7 @@ func resourceAliCloudEdasK8sClusterRead(d *schema.ResourceData, meta interface{}
 
 	object, err := edasService.DescribeEdasK8sCluster(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

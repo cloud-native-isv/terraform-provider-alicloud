@@ -4,12 +4,13 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceAliCloudEfloResource() *schema.Resource {
@@ -268,7 +269,7 @@ func resourceAliCloudEfloResourceRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := efloServiceV2.DescribeEfloResource(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eflo_resource DescribeEfloResource Failed!!! %s", err)
 			d.SetId("")
 			return nil

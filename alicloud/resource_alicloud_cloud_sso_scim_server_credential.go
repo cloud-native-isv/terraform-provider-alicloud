@@ -3,9 +3,10 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/PaesslerAG/jsonpath"
 	"log"
 	"time"
+
+	"github.com/PaesslerAG/jsonpath"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -117,7 +118,7 @@ func resourceAliCloudCloudSsoScimServerCredentialRead(d *schema.ResourceData, me
 
 	object, err := cloudssoService.DescribeCloudSsoScimServerCredential(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_sso_scim_server_credential cloudssoService.DescribeCloudSsoScimServerCredential Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -211,7 +212,7 @@ func resourceAliCloudCloudSsoScimServerCredentialDelete(d *schema.ResourceData, 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExists.SCIMCredential"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExists.SCIMCredential"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -252,7 +252,7 @@ func resourceAliCloudDmsEnterpriseInstanceRead(d *schema.ResourceData, meta inte
 	dmsEnterpriseService := DmsEnterpriseService{client}
 	object, err := dmsEnterpriseService.DescribeDmsEnterpriseInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dms_enterprise_instance dmsEnterpriseService.DescribeDmsEnterpriseInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

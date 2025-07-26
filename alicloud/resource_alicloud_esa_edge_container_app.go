@@ -198,7 +198,7 @@ func resourceAliCloudEsaEdgeContainerAppRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := esaServiceV2.DescribeEsaEdgeContainerApp(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_edge_container_app DescribeEsaEdgeContainerApp Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -265,7 +265,7 @@ func resourceAliCloudEsaEdgeContainerAppDelete(d *schema.ResourceData, meta inte
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

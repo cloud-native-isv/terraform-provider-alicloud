@@ -96,7 +96,7 @@ func resourceAliCloudAliKafkaInstanceAllowedIpAttachmentRead(d *schema.ResourceD
 
 	object, err := alikafkaService.DescribeAliKafkaInstanceAllowedIpAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alikafka_instance_allowed_ip_attachment alikafkaService.DescribeAliKafkaInstanceAllowedIpAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -153,7 +153,7 @@ func resourceAliCloudAliKafkaInstanceAllowedIpAttachmentDelete(d *schema.Resourc
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

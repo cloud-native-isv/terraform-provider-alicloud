@@ -100,7 +100,7 @@ func resourceAliCloudFnfFlowRead(d *schema.ResourceData, meta interface{}) error
 	fnfService := FnfService{client}
 	object, err := fnfService.DescribeFnfFlow(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fnf_flow fnfService.DescribeFnfFlow Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -183,7 +183,7 @@ func resourceAliCloudArmsPrometheusAlertRuleRead(d *schema.ResourceData, meta in
 	armsService := NewArmsService(client)
 	object, err := armsService.DescribeArmsPrometheusAlertRule(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_prometheus_alert_rule armsService.DescribeArmsPrometheusAlertRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -3,12 +3,13 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"log"
-	"time"
 )
 
 func resourceAliCloudEfloVsc() *schema.Resource {
@@ -120,7 +121,7 @@ func resourceAliCloudEfloVscRead(d *schema.ResourceData, meta interface{}) error
 
 	objectRaw, err := efloServiceV2.DescribeEfloVsc(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eflo_vsc DescribeEfloVsc Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -135,7 +136,7 @@ func resourceAliCloudEfloVscRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("vsc_type", objectRaw["VscType"])
 
 	objectRaw, err = efloServiceV2.DescribeVscListTagResources(d.Id())
-	if err != nil && !NotFoundError(err) {
+	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -221,7 +222,7 @@ func resourceAliCloudEfloVscDelete(d *schema.ResourceData, meta interface{}) err
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"Resource.NotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"Resource.NotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

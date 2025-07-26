@@ -167,7 +167,7 @@ func resourceAliCloudFcv3TriggerRead(d *schema.ResourceData, meta interface{}) e
 
 	objectRaw, err := fcv3ServiceV2.DescribeFcv3Trigger(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fcv3_trigger DescribeFcv3Trigger Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -320,7 +320,7 @@ func resourceAliCloudFcv3TriggerDelete(d *schema.ResourceData, meta interface{})
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"TriggerNotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"TriggerNotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

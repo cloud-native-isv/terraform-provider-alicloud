@@ -81,8 +81,8 @@ func GetNotFoundErrorFromString(str string) error {
 	}
 }
 
-// NotFoundError checks if the error indicates a resource was not found
-func NotFoundError(err error) bool {
+// IsNotFoundError checks if the error indicates a resource was not found
+func IsNotFoundError(err error) bool {
 	if err == nil {
 		return false
 	}
@@ -92,11 +92,11 @@ func NotFoundError(err error) bool {
 		if e.Err != nil && strings.HasPrefix(e.Err.Error(), ResourceNotfound) {
 			return true
 		}
-		return NotFoundError(e.Cause)
+		return IsNotFoundError(e.Cause)
 	}
 
 	// Use unified error checking from cws-lib-go for all supported service types
-	if commonErrors.NotFoundError(err) {
+	if commonErrors.IsNotFoundError(err) {
 		return true
 	}
 

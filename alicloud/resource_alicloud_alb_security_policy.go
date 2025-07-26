@@ -97,7 +97,7 @@ func resourceAliCloudAlbSecurityPolicyRead(d *schema.ResourceData, meta interfac
 	albService := AlbService{client}
 	object, err := albService.DescribeAlbSecurityPolicy(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alb_security_policy albService.DescribeAlbSecurityPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

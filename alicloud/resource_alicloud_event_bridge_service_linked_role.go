@@ -79,7 +79,7 @@ func resourceAliCloudEventBridgeServiceLinkedRoleRead(d *schema.ResourceData, me
 
 	object, err := eventbridgeService.DescribeEventBridgeServiceLinkedRole(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_event_bridge_event_bus eventbridgeService.DescribeEventBridgeServiceLinkedRole Failed!!! %s", err)
 			d.SetId("")
 			return nil

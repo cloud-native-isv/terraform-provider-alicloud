@@ -2,8 +2,9 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -164,7 +165,7 @@ func (s *MseService) MseClusterStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMseCluster(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -221,7 +222,7 @@ func (s *MseService) MseGatewayStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMseGateway(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

@@ -122,7 +122,7 @@ func resourceAliCloudCloudPhoneKeyPairRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := cloudPhoneServiceV2.DescribeCloudPhoneKeyPair(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_phone_key_pair DescribeCloudPhoneKeyPair Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -201,7 +201,7 @@ func resourceAliCloudCloudPhoneKeyPairDelete(d *schema.ResourceData, meta interf
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

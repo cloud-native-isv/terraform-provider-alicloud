@@ -70,7 +70,7 @@ func resourceAliyunApigatewayVpcAccessRead(d *schema.ResourceData, meta interfac
 
 	vpc, err := cloudApiService.DescribeApiGatewayVpcAccess(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

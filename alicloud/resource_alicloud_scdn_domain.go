@@ -180,7 +180,7 @@ func resourceAliCloudScdnDomainRead(d *schema.ResourceData, meta interface{}) er
 	scdnService := ScdnService{client}
 	object, err := scdnService.DescribeScdnDomain(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_scdn_domain scdnService.DescribeScdnDomain Failed!!! %s", err)
 			d.SetId("")
 			return nil

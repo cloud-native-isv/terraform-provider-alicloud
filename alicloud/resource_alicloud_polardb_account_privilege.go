@@ -93,7 +93,7 @@ func resourceAliCloudPolarDBAccountPrivilegeRead(d *schema.ResourceData, meta in
 	}
 	object, err := polarDBService.DescribePolarDBAccountPrivilege(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -167,7 +167,7 @@ func resourceAliCloudPolarDBAccountPrivilegeDelete(d *schema.ResourceData, meta 
 	}
 	object, err := PolarDBService.DescribePolarDBAccountPrivilege(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

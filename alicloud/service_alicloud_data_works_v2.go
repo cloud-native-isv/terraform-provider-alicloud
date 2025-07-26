@@ -56,7 +56,7 @@ func (s *DataWorksServiceV2) DataWorksProjectStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDataWorksProject(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -218,7 +218,7 @@ func (s *DataWorksServiceV2) DataWorksProjectMemberStateRefreshFunc(id string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDataWorksProjectMember(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -295,7 +295,7 @@ func (s *DataWorksServiceV2) DataWorksDataSourceStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDataWorksDataSource(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -387,7 +387,7 @@ func (s *DataWorksServiceV2) DataWorksDataSourceSharedRuleStateRefreshFunc(id st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDataWorksDataSourceSharedRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -469,7 +469,7 @@ func (s *DataWorksServiceV2) DataWorksDiAlarmRuleStateRefreshFunc(id string, fie
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDataWorksDiAlarmRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -547,7 +547,7 @@ func (s *DataWorksServiceV2) DataWorksDiJobStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDataWorksDiJob(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -622,7 +622,7 @@ func (s *DataWorksServiceV2) DataWorksNetworkStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDataWorksNetwork(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -697,7 +697,7 @@ func (s *DataWorksServiceV2) DataWorksDwResourceGroupStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDataWorksDwResourceGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

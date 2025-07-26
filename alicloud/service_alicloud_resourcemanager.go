@@ -91,7 +91,7 @@ func (s *ResourcemanagerService) ResourceManagerResourceGroupStateRefreshFunc(id
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeResourceManagerResourceGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -302,7 +302,7 @@ func (s *ResourcemanagerService) AccountDeletionStateRefreshFunc(id string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.GetAccountDeletionStatus(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -507,7 +507,7 @@ func (s *ResourcemanagerService) ResourceManagerResourceDirectoryStateRefreshFun
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeResourceManagerResourceDirectory(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -709,7 +709,7 @@ func (s *ResourcemanagerService) ResourceManagerAccountDeletionCheckTaskStateRef
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeResourceManagerAccountDeletionCheckTask(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

@@ -61,7 +61,7 @@ func (s *AckOneServiceV2) AckOneClusterStateRefreshFunc(id string, field string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAckOneCluster(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

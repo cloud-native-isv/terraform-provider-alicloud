@@ -61,7 +61,7 @@ func (s *ConfigServiceV2) ConfigRuleStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeConfigRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -126,7 +126,7 @@ func (s *ConfigServiceV2) ConfigRemediationStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeConfigRemediation(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -190,7 +190,7 @@ func (s *ConfigServiceV2) ConfigDeliveryStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeConfigDelivery(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -261,7 +261,7 @@ func (s *ConfigServiceV2) ConfigAggregateDeliveryStateRefreshFunc(id string, fie
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeConfigAggregateDelivery(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -99,7 +99,7 @@ func (s *AdbService) WaitForAdbConnection(id string, status Status, timeout int)
 	for {
 		object, err := s.DescribeAdbConnection(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -127,7 +127,7 @@ func (s *AdbService) DescribeAdbConnection(id string) (*adb.Address, error) {
 		object, err := s.DescribeAdbClusterNetInfo(parts[0])
 
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 			}
 			return nil, WrapError(err)
@@ -180,7 +180,7 @@ func (s *AdbService) WaitForAdbAccount(id string, status Status, timeout int) er
 	for {
 		object, err := s.DescribeAdbAccount(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -243,7 +243,7 @@ func (s *AdbService) WaitForAdbInstance(id string, status Status, timeout int) e
 	for {
 		object, err := s.DescribeAdbCluster(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -388,7 +388,7 @@ func (s *AdbService) WaitForCluster(id string, status Status, timeout int) error
 	for {
 		object, err := s.DescribeAdbClusterAttribute(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -517,7 +517,7 @@ func (s *AdbService) AdbClusterStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAdbClusterAttribute(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -571,7 +571,7 @@ func (s *AdbService) AdbTaskStateRefreshFunc(id, taskId string) resource.StateRe
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeTask(id, taskId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -737,7 +737,7 @@ func (s *AdbService) DescribeAdbDbCluster(id string) (object map[string]interfac
 	}
 	response, err = s.client.RpcPost("adb", "2019-03-15", action, nil, request, true)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidDBCluster.NotFound", "InvalidDBClusterId.NotFoundError"}) {
+		if IsExpectedErrors(err, []string{"InvalidDBCluster.NotFound", "InvalidDBClusterId.IsNotFoundError"}) {
 			err = WrapErrorf(NotFoundErr("AdbDbCluster", id), NotFoundMsg, ProviderERROR)
 			return object, err
 		}
@@ -792,7 +792,7 @@ func (s *AdbService) AdbDbClusterStateRefreshFunc(id string, stateField string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAdbDbCluster(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -867,7 +867,7 @@ func (s *AdbService) AdbDbClusterLakeVersionStateRefreshFunc(d *schema.ResourceD
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAdbDbClusterLakeVersion(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1104,7 +1104,7 @@ func (s *AdbService) AdbDbClusterLakeVersionDBClusterSSLStateRefreshFunc(d *sche
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAdbDbClusterLakeVersionDBClusterSSL(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

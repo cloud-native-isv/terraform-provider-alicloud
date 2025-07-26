@@ -34,7 +34,7 @@ func (s *FlinkService) FlinkVariableStateRefreshFunc(workspaceId string, namespa
 	return func() (interface{}, string, error) {
 		variable, err := s.GetVariable(workspaceId, namespaceName, variableName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Variable not found, still being created
 				return nil, "", nil
 			}

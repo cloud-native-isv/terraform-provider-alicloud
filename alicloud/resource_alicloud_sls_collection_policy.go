@@ -283,7 +283,7 @@ func resourceAliCloudSlsCollectionPolicyRead(d *schema.ResourceData, meta interf
 
 	policy, err := slsService.DescribeSlsCollectionPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sls_collection_policy DescribeSlsCollectionPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -547,7 +547,7 @@ func resourceAliCloudSlsCollectionPolicyDelete(d *schema.ResourceData, meta inte
 	})
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"PolicyNotExist"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"PolicyNotExist"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

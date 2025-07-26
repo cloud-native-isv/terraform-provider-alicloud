@@ -68,7 +68,7 @@ func resourceAliCloudEcpKeyPairRead(d *schema.ResourceData, meta interface{}) er
 	cloudphoneService := CloudphoneService{client}
 	_, err := cloudphoneService.DescribeEcpKeyPair(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecp_key_pair cloudphoneService.DescribeEcpKeyPair Failed!!! %s", err)
 			d.SetId("")
 			return nil

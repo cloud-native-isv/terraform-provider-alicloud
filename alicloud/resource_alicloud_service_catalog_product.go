@@ -97,7 +97,7 @@ func resourceAliCloudServiceCatalogProductRead(d *schema.ResourceData, meta inte
 
 	objectRaw, err := serviceCatalogServiceV2.DescribeServiceCatalogProduct(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_service_catalog_product DescribeServiceCatalogProduct Failed!!! %s", err)
 			d.SetId("")
 			return nil

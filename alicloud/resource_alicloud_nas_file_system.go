@@ -281,7 +281,7 @@ func resourceAliCloudNasFileSystemRead(d *schema.ResourceData, meta interface{})
 	// Use strong type from NAS service
 	fileSystem, err := nasService.DescribeNasFileSystem(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_file_system DescribeNasFileSystem Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -731,7 +731,7 @@ func resourceAliCloudNasFileSystemDelete(d *schema.ResourceData, meta interface{
 	// Delete file system using NAS service
 	err = nasService.DeleteNasFileSystem(d.Id())
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidFileSystem.NotFound"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidFileSystem.NotFound"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
@@ -741,7 +741,7 @@ func resourceAliCloudNasFileSystemDelete(d *schema.ResourceData, meta interface{
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		_, err := nasService.DescribeNasFileSystem(d.Id())
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Resource is deleted successfully
 				return nil
 			}

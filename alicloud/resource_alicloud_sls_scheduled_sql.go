@@ -296,7 +296,7 @@ func resourceAliCloudSlsScheduledSQLRead(d *schema.ResourceData, meta interface{
 
 	scheduledSQL, err := slsService.DescribeSlsScheduledSQL(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sls_scheduled_sql DescribeSlsScheduledSQL Failed!!! %s", err)
 			d.SetId("")
 			return nil

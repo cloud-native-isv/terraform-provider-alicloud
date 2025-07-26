@@ -85,7 +85,7 @@ func (s *NasService) NasMountTargetStateRefreshFunc(id string, field string, fai
 	return func() (interface{}, string, error) {
 		mountTarget, err := s.DescribeNasMountTarget(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return mountTarget, "", nil
 			}
 			return nil, "", WrapError(err)

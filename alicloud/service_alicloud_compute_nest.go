@@ -59,7 +59,7 @@ func (s *ComputeNestService) ComputeNestServiceInstanceStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeComputeNestServiceInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

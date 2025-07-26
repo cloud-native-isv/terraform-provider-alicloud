@@ -151,7 +151,7 @@ func resourceAliCloudNasMountTargetRead(d *schema.ResourceData, meta interface{}
 
 	mountTarget, err := nasService.DescribeNasMountTarget(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_mount_target DescribeNasMountTarget Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -263,7 +263,7 @@ func resourceAliCloudNasMountTargetDelete(d *schema.ResourceData, meta interface
 	// Wait for deletion to complete
 	stateConf := BuildStateConf([]string{"Active", "Inactive"}, []string{""}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasService.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, IdMsg, d.Id())

@@ -103,7 +103,7 @@ func (s *EssService) WaitForEssLifecycleHook(id string, status Status, timeout i
 	for {
 		object, err := s.DescribeEssLifecycleHook(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -169,7 +169,7 @@ func (s *EssService) WaitForEssNotification(id string, status Status, timeout in
 	for {
 		object, err := s.DescribeEssNotification(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -422,7 +422,7 @@ func (s *EssService) WaitForScalingConfiguration(id string, status Status, timeo
 	for {
 		object, err := s.DescribeEssScalingConfiguration(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -590,7 +590,7 @@ func (s *EssService) WaitForEssScalingRule(id string, status Status, timeout int
 	for {
 		object, err := s.DescribeEssScalingRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -646,7 +646,7 @@ func (s *EssService) WaitForEssScheduledTask(id string, status Status, timeout i
 	for {
 		object, err := s.DescribeEssScheduledTask(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -747,7 +747,7 @@ func (srv *EssService) EssRemoveInstances(client *connectivity.AliyunClient, d *
 		return WrapError(Error("Scaling group current status is %s, please active it before attaching or removing ECS instances.", group.LifecycleState))
 	} else {
 		if err := srv.WaitForEssScalingGroup(group.ScalingGroupId, Active, DefaultTimeout); err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return WrapError(err)
@@ -798,7 +798,7 @@ func (srv *EssService) EssRemoveInstances(client *connectivity.AliyunClient, d *
 		time.Sleep(3 * time.Second)
 		instances, err := srv.DescribeEssAttachment(id, instanceIds)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil
 			}
 			return resource.NonRetryableError(WrapError(err))
@@ -825,7 +825,7 @@ func (s *EssService) WaitForEssScalingGroup(id string, status Status, timeout in
 	for {
 		object, err := s.DescribeEssScalingGroup(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -861,7 +861,7 @@ func (s *EssService) WaitForEssAttachment(id string, status Status, timeout int)
 	for {
 		object, err := s.DescribeEssAttachment(id, make([]string, 0))
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -884,7 +884,7 @@ func (s *EssService) WaitForEssAlarm(id string, status Status, timeout int) erro
 	for {
 		object, err := s.DescribeEssAlarm(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

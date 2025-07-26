@@ -91,7 +91,7 @@ func resourceAliCloudResourceManagerSavedQueryRead(d *schema.ResourceData, meta 
 
 	objectRaw, err := resourceManagerServiceV2.DescribeResourceManagerSavedQuery(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_resource_manager_saved_query DescribeResourceManagerSavedQuery Failed!!! %s", err)
 			d.SetId("")
 			return nil

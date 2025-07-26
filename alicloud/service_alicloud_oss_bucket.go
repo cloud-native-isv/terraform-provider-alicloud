@@ -32,7 +32,7 @@ func (s *OssService) WaitForOssBucket(id string, status Status, timeout int) err
 	for {
 		object, err := s.DescribeOssBucket(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -52,4 +52,3 @@ func (s *OssService) WaitForOssBucket(id string, status Status, timeout int) err
 		}
 	}
 }
-

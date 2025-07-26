@@ -199,7 +199,7 @@ func dataSourceAliCloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 						time.Sleep(5 * time.Second)
 						return resource.RetryableError(err)
 					}
-					if NotFoundError(err) {
+					if IsNotFoundError(err) {
 						return resource.NonRetryableError(err)
 					}
 					return resource.NonRetryableError(err)
@@ -208,7 +208,7 @@ func dataSourceAliCloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 				return nil
 			})
 			if err != nil {
-				if NotFoundError(err) {
+				if IsNotFoundError(err) {
 					continue
 				}
 				return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_stores", "GetLogStore", AliyunLogGoSdkERROR)
@@ -222,7 +222,7 @@ func dataSourceAliCloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 				if IsExpectedErrors(err, []string{LogClientTimeout}) {
 					time.Sleep(5 * time.Second)
 					return resource.RetryableError(err)
-				} else if NotFoundError(err) {
+				} else if IsNotFoundError(err) {
 					return nil
 				} else {
 					return resource.NonRetryableError(err)

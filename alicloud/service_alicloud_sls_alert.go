@@ -196,7 +196,7 @@ func (s *SlsService) SlsAlertStateRefreshFunc(projectName string, alertName stri
 	return func() (interface{}, string, error) {
 		alert, err := s.GetSlsAlert(projectName, alertName)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

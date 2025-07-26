@@ -84,7 +84,7 @@ func (s *KvstoreService) WaitForKVstoreInstance(id string, status Status, timeou
 	for {
 		object, err := s.DescribeKVstoreInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -106,7 +106,7 @@ func (s *KvstoreService) RdsKvstoreInstanceStateRefreshFunc(id string, failState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKVstoreInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -126,7 +126,7 @@ func (s *KvstoreService) WaitForKVstoreInstanceVpcAuthMode(id string, status str
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
 		object, err := s.DescribeKVstoreInstance(id)
-		if err != nil && !NotFoundError(err) {
+		if err != nil && !IsNotFoundError(err) {
 			return err
 		}
 		if object.VpcAuthMode == string(status) {
@@ -303,7 +303,7 @@ func (s *KvstoreService) WaitForKVstoreAccount(id string, status Status, timeout
 	for {
 		object, err := s.DescribeKVstoreAccount(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

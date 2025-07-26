@@ -96,7 +96,7 @@ func resourceAliCloudVpcDhcpOptionsSetAttachmentRead(d *schema.ResourceData, met
 	}
 	object, err := vpcService.DescribeVpcDhcpOptionsSetAttachment(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_dhcp_options_set_attachment vpcService.DescribeVpcDhcpOptionsSetAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

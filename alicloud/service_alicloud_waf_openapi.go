@@ -266,7 +266,7 @@ func (s *WafOpenapiService) Wafv3InstanceStateRefreshFunc(id string, failStates 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeWafv3Instance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -329,7 +329,7 @@ func (s *WafOpenapiService) Wafv3DomainStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeWafv3Domain(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

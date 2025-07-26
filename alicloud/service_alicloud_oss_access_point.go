@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-
 func (s *OssService) DescribeOssAccessPoint(id string) (object map[string]interface{}, err error) {
 	client := s.client
 	var request map[string]interface{}
@@ -61,7 +60,7 @@ func (s *OssService) OssAccessPointStateRefreshFunc(id string, field string, fai
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssAccessPoint(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -85,4 +84,3 @@ func (s *OssService) OssAccessPointStateRefreshFunc(id string, field string, fai
 		return object, currentStatus, nil
 	}
 }
-

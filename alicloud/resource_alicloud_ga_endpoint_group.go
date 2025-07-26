@@ -307,7 +307,7 @@ func resourceAliCloudGaEndpointGroupRead(d *schema.ResourceData, meta interface{
 
 	object, err := gaService.DescribeGaEndpointGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ga_endpoint_group gaService.DescribeGaEndpointGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

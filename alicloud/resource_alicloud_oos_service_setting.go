@@ -112,7 +112,7 @@ func resourceAliCloudOosServiceSettingRead(d *schema.ResourceData, meta interfac
 	oosService := OosService{client}
 	object, err := oosService.DescribeOosServiceSetting(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oos_service_setting oosService.DescribeOosServiceSetting Failed!!! %s", err)
 			d.SetId("")
 			return nil

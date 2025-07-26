@@ -268,7 +268,7 @@ func resourceAliCloudFCFunctionRead(d *schema.ResourceData, meta interface{}) er
 
 	object, err := fcService.DescribeFcFunction(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

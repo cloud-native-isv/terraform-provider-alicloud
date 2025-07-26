@@ -89,7 +89,7 @@ func resourceAliCloudEsaKvNamespaceRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := esaServiceV2.DescribeEsaKvNamespace(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_kv_namespace DescribeEsaKvNamespace Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -134,7 +134,7 @@ func resourceAliCloudEsaKvNamespaceDelete(d *schema.ResourceData, meta interface
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

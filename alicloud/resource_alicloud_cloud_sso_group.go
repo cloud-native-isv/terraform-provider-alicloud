@@ -83,7 +83,7 @@ func resourceAliCloudCloudSsoGroupRead(d *schema.ResourceData, meta interface{})
 	cloudssoService := CloudssoService{client}
 	object, err := cloudssoService.DescribeCloudSsoGroup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_sso_group cloudssoService.DescribeCloudSsoGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -172,7 +172,7 @@ func resourceAliCloudCloudSsoGroupDelete(d *schema.ResourceData, meta interface{
 		return nil
 	})
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExists.Group"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExists.Group"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

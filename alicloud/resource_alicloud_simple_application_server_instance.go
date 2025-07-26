@@ -133,7 +133,7 @@ func resourceAliCloudSimpleApplicationServerInstanceRead(d *schema.ResourceData,
 	swasOpenService := SwasOpenService{client}
 	object, err := swasOpenService.DescribeSimpleApplicationServerInstance(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_simple_application_server_instance swasOpenService.DescribeSimpleApplicationServerInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

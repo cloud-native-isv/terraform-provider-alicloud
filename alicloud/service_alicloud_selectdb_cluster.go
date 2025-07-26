@@ -40,7 +40,7 @@ func (s *SelectDBService) DescribeSelectDBCluster(instanceId, clusterId string) 
 		DBClusterId:  clusterId,
 	})
 	if err != nil {
-		if selectdb.NotFoundError(err) {
+		if selectdb.IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)
@@ -81,7 +81,7 @@ func (s *SelectDBService) DeleteSelectDBCluster(instanceId, clusterId string, re
 
 	err := s.selectdbAPI.DeleteCluster(instanceId, clusterId, regionId...)
 	if err != nil {
-		if selectdb.NotFoundError(err) {
+		if selectdb.IsNotFoundError(err) {
 			return nil // Cluster already deleted
 		}
 		return WrapError(err)
@@ -144,7 +144,7 @@ func (s *SelectDBService) DescribeSelectDBClusterConfig(id *selectdb.ClusterConf
 
 	config, err := s.selectdbAPI.GetClusterConfig(id)
 	if err != nil {
-		if selectdb.NotFoundError(err) {
+		if selectdb.IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)
@@ -284,7 +284,7 @@ func (s *SelectDBService) SelectDBClusterStateRefreshFunc(instanceId, clusterId 
 	return func() (interface{}, string, error) {
 		cluster, err := s.DescribeSelectDBCluster(instanceId, clusterId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return nil, "", WrapErrorf(Error(GetNotFoundMessage("SelectDB Cluster", clusterId)), NotFoundMsg, ProviderERROR)
 			}
 			return nil, "", WrapError(err)
@@ -307,7 +307,7 @@ func (s *SelectDBService) WaitForSelectDBCluster(instanceId, clusterId string, s
 	for {
 		cluster, err := s.DescribeSelectDBCluster(instanceId, clusterId)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

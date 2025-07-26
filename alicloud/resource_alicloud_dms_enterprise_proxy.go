@@ -85,7 +85,7 @@ func resourceAliCloudDmsEnterpriseProxyRead(d *schema.ResourceData, meta interfa
 	dmsEnterpriseService := DmsEnterpriseService{client}
 	object, err := dmsEnterpriseService.DescribeDmsEnterpriseProxy(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dms_enterprise_proxy dmsEnterpriseService.DescribeDmsEnterpriseProxy Failed!!! %s", err)
 			d.SetId("")
 			return nil

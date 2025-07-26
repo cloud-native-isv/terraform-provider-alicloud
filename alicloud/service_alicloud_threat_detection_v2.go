@@ -2,9 +2,10 @@ package alicloud
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/PaesslerAG/jsonpath"
 	util "github.com/alibabacloud-go/tea-utils/service"
@@ -136,7 +137,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionInstanceStateRefreshFunc(id st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionInstance(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -213,7 +214,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionClientUserDefineRuleStateRefre
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionClientUserDefineRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -280,7 +281,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionLogMetaStateRefreshFunc(id str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionLogMeta(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -352,7 +353,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionClientFileProtectStateRefreshF
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionClientFileProtect(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -424,7 +425,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionFileUploadLimitStateRefreshFun
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionFileUploadLimit(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -488,7 +489,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionMaliciousFileWhitelistConfigSt
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionMaliciousFileWhitelistConfig(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -555,7 +556,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionImageEventOperationStateRefres
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionImageEventOperation(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -628,7 +629,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionSasTrailStateRefreshFunc(id st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionSasTrail(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -697,7 +698,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionOssScanConfigStateRefreshFunc(
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionOssScanConfig(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -769,7 +770,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionAntiBruteForceRuleStateRefresh
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionAntiBruteForceRule(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -844,7 +845,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionAssetSelectionConfigStateRefre
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionAssetSelectionConfig(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -913,7 +914,7 @@ func (s *ThreatDetectionServiceV2) ThreatDetectionAssetBindStateRefreshFunc(id s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeThreatDetectionAssetBind(id)
 		if err != nil {
-			if NotFoundError(err) {
+			if IsNotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

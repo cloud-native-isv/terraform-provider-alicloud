@@ -4,9 +4,10 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -175,7 +176,7 @@ func resourceAliCloudOosPatchBaselineRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := oosServiceV2.DescribeOosPatchBaseline(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oos_patch_baseline DescribeOosPatchBaseline Failed!!! %s", err)
 			d.SetId("")
 			return nil

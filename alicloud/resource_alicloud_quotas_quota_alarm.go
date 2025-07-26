@@ -151,7 +151,7 @@ func resourceAliCloudQuotasQuotaAlarmRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := quotasServiceV2.DescribeQuotasQuotaAlarm(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_quotas_quota_alarm DescribeQuotasQuotaAlarm Failed!!! %s", err)
 			d.SetId("")
 			return nil

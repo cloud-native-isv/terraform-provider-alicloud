@@ -239,7 +239,7 @@ func resourceAliCloudRealtimeComputeVvpInstanceRead(d *schema.ResourceData, meta
 
 	objectRaw, err := realtimeComputeServiceV2.DescribeRealtimeComputeVvpInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_realtime_compute_vvp_instance DescribeRealtimeComputeVvpInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

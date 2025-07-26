@@ -94,7 +94,7 @@ func resourceAliCloudCenInstanceGrantRead(d *schema.ResourceData, meta interface
 
 	object, err := vpcService.DescribeCenInstanceGrant(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

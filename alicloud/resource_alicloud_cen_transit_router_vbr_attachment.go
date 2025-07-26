@@ -181,7 +181,7 @@ func resourceAliCloudCenTransitRouterVbrAttachmentRead(d *schema.ResourceData, m
 
 	object, err := cbnService.DescribeCenTransitRouterVbrAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_transit_router_vbr_attachment cbnService.DescribeCenTransitRouterVbrAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

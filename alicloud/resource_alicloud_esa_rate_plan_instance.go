@@ -140,7 +140,7 @@ func resourceAliCloudEsaRatePlanInstanceRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := esaServiceV2.DescribeEsaRatePlanInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_rate_plan_instance DescribeEsaRatePlanInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -265,7 +265,7 @@ func resourceAliCloudEsaRatePlanInstanceDelete(d *schema.ResourceData, meta inte
 	addDebug(action, response, request)
 
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

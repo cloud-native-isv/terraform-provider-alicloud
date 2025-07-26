@@ -2,8 +2,9 @@ package alicloud
 
 import (
 	"encoding/json"
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"time"
+
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/cloudapi"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -126,7 +127,7 @@ func resourceAliyunApigatewayGroupRead(d *schema.ResourceData, meta interface{})
 	cloudApiService := CloudApiService{client}
 	apiGroup, err := cloudApiService.DescribeApiGatewayGroup(d.Id())
 	if err != nil {
-		if NotFoundError(err) {
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

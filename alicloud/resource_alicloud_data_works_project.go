@@ -140,7 +140,7 @@ func resourceAliCloudDataWorksProjectRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := dataWorksServiceV2.DescribeDataWorksProject(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && NotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_data_works_project DescribeDataWorksProject Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -317,7 +317,7 @@ func resourceAliCloudDataWorksProjectDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"1101080008"}) || NotFoundError(err) {
+		if IsExpectedErrors(err, []string{"1101080008"}) || IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
