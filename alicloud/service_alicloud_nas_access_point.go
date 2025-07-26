@@ -25,7 +25,7 @@ func (s *NasService) DescribeNasAccessGroup(id string) (accessGroup *aliyunNasAP
 	// List access groups and find the specific one
 	accessGroups, err := nasAPI.ListAccessGroups()
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if common.NotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("AccessGroup", id), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "ListAccessGroups", AlibabaCloudSdkGoERROR)
@@ -111,7 +111,7 @@ func (s *NasService) DeleteNasAccessGroup(accessGroupName string) error {
 
 	err := nasAPI.DeleteAccessGroup(accessGroupName)
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if common.NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, accessGroupName, "DeleteAccessGroup", AlibabaCloudSdkGoERROR)
@@ -147,7 +147,7 @@ func (s *NasService) DeleteNasAccessPoint(fileSystemId, accessPointId string) er
 
 	err := nasAPI.DeleteAccessPoint(fileSystemId, accessPointId)
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if common.NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, accessPointId, "DeleteAccessPoint", AlibabaCloudSdkGoERROR)
@@ -188,7 +188,7 @@ func (s *NasService) DescribeNasAccessPoint(fileSystemId, accessPointId string) 
 
 	accessPoint, err = nasAPI.GetAccessPoint(fileSystemId, accessPointId)
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if common.NotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("AccessPoint", accessPointId), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, accessPointId, "GetAccessPoint", AlibabaCloudSdkGoERROR)

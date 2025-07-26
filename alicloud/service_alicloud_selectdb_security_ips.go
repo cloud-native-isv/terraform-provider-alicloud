@@ -20,7 +20,7 @@ func (s *SelectDBService) DescribeSelectDBSecurityIPList(query *selectdb.Securit
 
 	result, err := s.selectdbAPI.GetSecurityIPList(query)
 	if err != nil {
-		if selectdb.IsNotFoundError(err) {
+		if selectdb.NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)
@@ -58,7 +58,7 @@ func (s *SelectDBService) DescribeSelectDBSecurityIPGroup(instanceId, groupName 
 
 	result, err := s.selectdbAPI.GetSecurityIPList(query)
 	if err != nil {
-		if selectdb.IsNotFoundError(err) {
+		if selectdb.NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)

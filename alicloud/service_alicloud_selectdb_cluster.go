@@ -40,7 +40,7 @@ func (s *SelectDBService) DescribeSelectDBCluster(instanceId, clusterId string) 
 		DBClusterId:  clusterId,
 	})
 	if err != nil {
-		if selectdb.IsNotFoundError(err) {
+		if selectdb.NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)
@@ -81,7 +81,7 @@ func (s *SelectDBService) DeleteSelectDBCluster(instanceId, clusterId string, re
 
 	err := s.selectdbAPI.DeleteCluster(instanceId, clusterId, regionId...)
 	if err != nil {
-		if selectdb.IsNotFoundError(err) {
+		if selectdb.NotFoundError(err) {
 			return nil // Cluster already deleted
 		}
 		return WrapError(err)
@@ -144,7 +144,7 @@ func (s *SelectDBService) DescribeSelectDBClusterConfig(id *selectdb.ClusterConf
 
 	config, err := s.selectdbAPI.GetClusterConfig(id)
 	if err != nil {
-		if selectdb.IsNotFoundError(err) {
+		if selectdb.NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)

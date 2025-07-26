@@ -12,12 +12,12 @@ import (
 // Public Connection Management Operations
 
 // AllocateSelectDBPublicConnection allocates public connection for a SelectDB instance
-func (s *SelectDBService) AllocateSelectDBPublicConnection(options *selectdb.PublicConnectionOptions) (*selectdb.PublicConnectionResult, error) {
-	if options == nil {
-		return nil, WrapError(fmt.Errorf("public connection options cannot be nil"))
+func (s *SelectDBService) AllocateSelectDBPublicConnection(connection *selectdb.PublicConnection) (*selectdb.PublicConnection, error) {
+	if connection == nil {
+		return nil, WrapError(fmt.Errorf("public connection cannot be nil"))
 	}
 
-	result, err := s.selectdbAPI.AllocatePublicConnection(options)
+	result, err := s.selectdbAPI.AllocatePublicConnection(connection)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -26,14 +26,14 @@ func (s *SelectDBService) AllocateSelectDBPublicConnection(options *selectdb.Pub
 }
 
 // ReleaseSelectDBPublicConnection releases public connection for a SelectDB instance
-func (s *SelectDBService) ReleaseSelectDBPublicConnection(options *selectdb.ReleaseConnectionOptions) error {
-	if options == nil {
-		return WrapError(fmt.Errorf("release connection options cannot be nil"))
+func (s *SelectDBService) ReleaseSelectDBPublicConnection(connection *selectdb.PublicConnection) error {
+	if connection == nil {
+		return WrapError(fmt.Errorf("release connection cannot be nil"))
 	}
 
-	err := s.selectdbAPI.ReleasePublicConnection(options)
+	err := s.selectdbAPI.ReleasePublicConnection(connection)
 	if err != nil {
-		if selectdb.IsNotFoundError(err) {
+		if selectdb.NotFoundError(err) {
 			return nil // Connection already released
 		}
 		return WrapError(err)
@@ -121,51 +121,42 @@ func (s *SelectDBService) WaitForSelectDBPublicConnection(instanceId string, sta
 
 // Helper functions for converting between Terraform schema and API types
 
-// ConvertToPublicConnectionOptions converts schema data to API public connection options
-func ConvertToPublicConnectionOptions(d *schema.ResourceData) *selectdb.PublicConnectionOptions {
-	options := &selectdb.PublicConnectionOptions{}
+// ConvertToPublicConnection converts schema data to API public connection
+func ConvertToPublicConnection(d *schema.ResourceData) *selectdb.PublicConnection {
+	connection := &selectdb.PublicConnection{}
 
 	if v, ok := d.GetOk("db_instance_id"); ok {
-		options.DBInstanceId = v.(string)
+		connection.DBInstanceId = v.(string)
 	}
 	if v, ok := d.GetOk("connection_string_prefix"); ok {
-		options.ConnectionStringPrefix = v.(string)
-	}
-	if v, ok := d.GetOk("net_type"); ok {
-		options.NetType = v.(string)
-	}
-	if v, ok := d.GetOk("region_id"); ok {
-		options.RegionId = v.(string)
-	}
-
-	return options
-}
-
-// ConvertToReleaseConnectionOptions converts schema data to API release connection options
-func ConvertToReleaseConnectionOptions(d *schema.ResourceData) *selectdb.ReleaseConnectionOptions {
-	options := &selectdb.ReleaseConnectionOptions{}
-
-	if v, ok := d.GetOk("db_instance_id"); ok {
-		options.DBInstanceId = v.(string)
+		connection.ConnectionStringPrefix = v.(string)
 	}
 	if v, ok := d.GetOk("connection_string"); ok {
-		options.ConnectionString = v.(string)
+		connection.ConnectionString = v.(string)
+	}
+	if v, ok := d.GetOk("net_type"); ok {
+		connection.NetType = v.(string)
 	}
 	if v, ok := d.GetOk("region_id"); ok {
-		options.RegionId = v.(string)
+		connection.RegionId = v.(string)
 	}
 
-	return options
+	return connection
 }
 
-// ConvertPublicConnectionResultToMap converts API public connection result to Terraform map
-func ConvertPublicConnectionResultToMap(result *selectdb.PublicConnectionResult) map[string]interface{} {
-	if result == nil {
+// ConvertPublicConnectionToMap converts API public connection to Terraform map
+func ConvertPublicConnectionToMap(connection *selectdb.PublicConnection) map[string]interface{} {
+	if connection == nil {
 		return nil
 	}
 
 	return map[string]interface{}{
-		"instance_name": result.InstanceName,
-		"task_id":       result.TaskId,
+		"db_instance_id":           connection.DBInstanceId,
+		"connection_string":        connection.ConnectionString,
+		"connection_string_prefix": connection.ConnectionStringPrefix,
+		"net_type":                 connection.NetType,
+		"region_id":                connection.RegionId,
+		"instance_name":            connection.InstanceName,
+		"task_id":                  connection.TaskId,
 	}
 }

@@ -21,7 +21,7 @@ func (s *NasService) DescribeNasAccessRule(id string) (*aliyunNasAPI.AccessRule,
 
 	accessRule, err := nasAPI.GetAccessRule(accessGroupName, accessRuleId)
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if common.NotFoundError(err) {
 			return nil, WrapErrorf(Error(GetNotFoundMessage("NasAccessRule", id)), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetAccessRule", AlibabaCloudSdkGoERROR)
@@ -57,7 +57,7 @@ func (s *NasService) DeleteNasAccessRule(accessGroupName, accessRuleId string) e
 
 	err := nasAPI.DeleteAccessRule(accessGroupName, accessRuleId)
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if common.NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, accessRuleId, "DeleteAccessRule", AlibabaCloudSdkGoERROR)

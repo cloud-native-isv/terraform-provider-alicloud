@@ -17,7 +17,7 @@ func (s *NasService) DescribeNasFileSystem(id string) (fileSystem *aliyunNasAPI.
 
 	fileSystem, err = nasAPI.GetFileSystem(id)
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if common.NotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("FileSystem", id), NotFoundMsg, err)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetFileSystem", AlibabaCloudSdkGoERROR)
@@ -213,7 +213,7 @@ func (s *NasService) DeleteNasFileSystem(fileSystemId string) error {
 
 	err := nasAPI.DeleteFileSystem(fileSystemId)
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if common.NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, fileSystemId, "DeleteFileSystem", AlibabaCloudSdkGoERROR)

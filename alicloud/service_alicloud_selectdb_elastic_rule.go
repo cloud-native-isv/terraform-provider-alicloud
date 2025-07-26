@@ -46,7 +46,7 @@ func (s *SelectDBService) DescribeSelectDBElasticRule(dbClusterId, dbInstanceId,
 
 	result, err := s.selectdbAPI.ListElasticRules(options)
 	if err != nil {
-		if selectdb.IsNotFoundError(err) {
+		if selectdb.NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)
@@ -107,7 +107,7 @@ func (s *SelectDBService) DeleteSelectDBElasticRule(dbClusterId, dbInstanceId, p
 
 	err := s.selectdbAPI.DeleteElasticRule(dbClusterId, dbInstanceId, product, ruleId, regionId...)
 	if err != nil {
-		if selectdb.IsNotFoundError(err) {
+		if selectdb.NotFoundError(err) {
 			return nil // Rule already deleted
 		}
 		return WrapError(err)

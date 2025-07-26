@@ -96,7 +96,7 @@ func NotFoundError(err error) bool {
 	}
 
 	// Use unified error checking from cws-lib-go for all supported service types
-	if commonErrors.IsNotFoundError(err) {
+	if commonErrors.NotFoundError(err) {
 		return true
 	}
 

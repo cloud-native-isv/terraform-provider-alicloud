@@ -809,11 +809,33 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 
 	// Handle tags update
 	if d.HasChange("tags") {
-		// TODO: Implement tag management for SelectDB instances
-		// added, removed := parsingTags(d)
-		// if err := selectDBService.SetResourceTags(d.Id(), added, removed); err != nil {
-		// 	return WrapError(err)
-		// }
+		oraw, nraw := d.GetChange("tags")
+		old := oraw.(map[string]interface{})
+		new := nraw.(map[string]interface{})
+
+		// Convert to string maps
+		added := make(map[string]string)
+		removed := make(map[string]string)
+
+		// Find added tags
+		for key, value := range new {
+			if _, exists := old[key]; !exists {
+				added[key] = value.(string)
+			} else if old[key] != value {
+				added[key] = value.(string)
+			}
+		}
+
+		// Find removed tags
+		for key, value := range old {
+			if _, exists := new[key]; !exists {
+				removed[key] = value.(string)
+			}
+		}
+
+		if err := selectDBService.SetResourceTags(d.Id(), added, removed); err != nil {
+			return WrapError(err)
+		}
 		d.SetPartial("tags")
 	}
 

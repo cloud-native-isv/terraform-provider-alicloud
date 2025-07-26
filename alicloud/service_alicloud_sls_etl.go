@@ -20,7 +20,7 @@ func (s *SlsService) DescribeSlsETL(projectName, etlName string) (*aliyunSlsAPI.
 
 	etl, err := slsAPI.GetETL(projectName, etlName)
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if common.NotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("SlsETL", fmt.Sprintf("%s:%s", projectName, etlName)), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%s:%s", projectName, etlName), "GetETL", AlibabaCloudSdkGoERROR)
@@ -68,7 +68,7 @@ func (s *SlsService) DeleteSlsETL(projectName, etlName string) error {
 
 	err = slsAPI.DeleteETL(projectName, etlName)
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if common.NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, etlName, "DeleteETL", AlibabaCloudSdkGoERROR)
