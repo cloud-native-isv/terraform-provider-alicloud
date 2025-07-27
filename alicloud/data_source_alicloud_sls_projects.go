@@ -23,13 +23,13 @@ func dataSourceAliCloudLogProjects() *schema.Resource {
 			},
 			"names": {
 				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Computed: true,
 			},
 			"ids": {
 				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Computed: true,
 			},
@@ -38,12 +38,6 @@ func dataSourceAliCloudLogProjects() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"Normal", "Disable"}, true),
 				ForceNew:     true,
-			},
-			"disable": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
 			},
 			"output_file": {
 				Type:     schema.TypeString,
@@ -96,80 +90,66 @@ func dataSourceAliCloudLogProjects() *schema.Resource {
 func dataSourceAliCloudLogProjectsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
-	// Check if disable parameter is set to true
-	if disable, ok := d.GetOk("disable"); ok && disable.(bool) {
-		// Return empty result without calling SLS service
-		var emptyProjects []map[string]interface{}
-		return logProjectsDecriptionAttributes(d, emptyProjects, meta)
-	}
-
 	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	request := map[string]interface{}{}
-	if v, ok := d.GetOk("name_regex"); ok {
-		request["projectName"] = v.(string)
-	}
-
 	var allProjects []map[string]interface{}
 
-	var projectNames []string
-	if v, ok := d.GetOk("ids"); ok {
-		for _, item := range v.([]interface{}) {
-			if item != nil {
-				projectNames = append(projectNames, strings.Trim(item.(string), `"`))
-			}
-		}
-	}
+	// Check if name_regex is provided
+	nameRegex, hasNameRegex := d.GetOk("name_regex")
 
-	if len(projectNames) > 0 {
-		// Get specific projects by names
-		for _, name := range projectNames {
-			project, err := slsService.DescribeLogProject(name)
-			if err != nil {
-				if IsNotFoundError(err) {
-					continue
-				}
-				return WrapError(err)
-			}
-			// Convert LogProject to map[string]interface{}
-			projectMap := convertLogProjectToMap(project)
-			allProjects = append(allProjects, projectMap)
-		}
-	} else {
-		// List all projects
+	if hasNameRegex && nameRegex.(string) != "" {
+		// If name_regex is provided, use ListProjects and filter by regex
 		projects, err := slsService.ListProjects()
 		if err != nil {
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_projects", "ListProjects", AliyunLogGoSdkERROR)
 		}
 
-		for _, project := range projects {
-			projectMap := convertLogProjectToMap(project)
-			allProjects = append(allProjects, projectMap)
-		}
-	}
-
-	var filteredProjects []map[string]interface{}
-	nameRegex, ok := d.GetOk("name_regex")
-	if ok && nameRegex.(string) != "" {
+		// Compile regex pattern
 		r, err := regexp.Compile(nameRegex.(string))
 		if err != nil {
 			return WrapError(err)
 		}
-		for _, project := range allProjects {
-			if projectName, exists := project["project_name"]; exists {
-				if r.MatchString(projectName.(string)) {
-					filteredProjects = append(filteredProjects, project)
-				}
+
+		// Filter projects by regex pattern
+		for _, project := range projects {
+			if r.MatchString(project.ProjectName) {
+				projectMap := convertLogProjectToMap(project)
+				allProjects = append(allProjects, projectMap)
 			}
 		}
 	} else {
-		filteredProjects = allProjects
+		// If name_regex is empty, iterate through "names" list
+		var projectNames []string
+		if v, ok := d.GetOk("names"); ok {
+			for _, item := range v.([]interface{}) {
+				if item != nil {
+					projectNames = append(projectNames, strings.Trim(item.(string), `"`))
+				}
+			}
+		}
+
+		if len(projectNames) > 0 {
+			// Get specific projects by names
+			for _, name := range projectNames {
+				project, err := slsService.DescribeLogProject(name)
+				if err != nil {
+					if IsNotFoundError(err) {
+						continue
+					}
+					return WrapError(err)
+				}
+				// Convert LogProject to map[string]interface{}
+				projectMap := convertLogProjectToMap(project)
+				allProjects = append(allProjects, projectMap)
+			}
+		}
+		// When projectNames is empty, return empty list without calling API
 	}
 
-	return logProjectsDecriptionAttributes(d, filteredProjects, meta)
+	return logProjectsDecriptionAttributes(d, allProjects, meta)
 }
 
 // convertLogProjectToMap converts aliyunSlsAPI.LogProject to map[string]interface{} for compatibility

@@ -23,13 +23,13 @@ func dataSourceAliCloudLogStores() *schema.Resource {
 			},
 			"names": {
 				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Computed: true,
 			},
 			"ids": {
 				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Computed: true,
 			},
@@ -37,10 +37,6 @@ func dataSourceAliCloudLogStores() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-			},
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 			"stores": {
 				Type:     schema.TypeList,
@@ -167,55 +163,14 @@ func dataSourceAliCloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 		return WrapError(err)
 	}
 
-	var logStoreNameRegex *regexp.Regexp
-	if v, ok := d.GetOk("name_regex"); ok {
-		r, err := regexp.Compile(v.(string))
-		if err != nil {
-			return WrapError(err)
-		}
-		logStoreNameRegex = r
-	}
-
 	project := d.Get("project").(string)
 	var stores []*aliyunSlsAPI.LogStore
 
-	// Check if specific store names are provided
-	var storeNames []string
-	if v, ok := d.GetOk("ids"); ok {
-		for _, item := range v.([]interface{}) {
-			if item != nil {
-				storeNames = append(storeNames, item.(string))
-			}
-		}
-	}
+	// Check if name_regex is provided
+	nameRegex, hasNameRegex := d.GetOk("name_regex")
 
-	if len(storeNames) > 0 {
-		// Get specific stores by names
-		for _, storeName := range storeNames {
-			err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-				store, err := slsService.GetLogStore(project, storeName)
-				if err != nil {
-					if IsExpectedErrors(err, []string{LogClientTimeout}) {
-						time.Sleep(5 * time.Second)
-						return resource.RetryableError(err)
-					}
-					if IsNotFoundError(err) {
-						return resource.NonRetryableError(err)
-					}
-					return resource.NonRetryableError(err)
-				}
-				stores = append(stores, store)
-				return nil
-			})
-			if err != nil {
-				if IsNotFoundError(err) {
-					continue
-				}
-				return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_stores", "GetLogStore", AliyunLogGoSdkERROR)
-			}
-		}
-	} else {
-		// List all stores
+	if hasNameRegex && nameRegex.(string) != "" {
+		// If name_regex is provided, use ListLogStores and filter by regex
 		err = resource.Retry(2*time.Minute, func() *resource.RetryError {
 			response, err := slsService.ListLogStores(project, "", "", "")
 			if err != nil {
@@ -234,25 +189,67 @@ func dataSourceAliCloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_stores", "ListLogStore", AliyunLogGoSdkERROR)
 		}
+
+		// Compile regex pattern
+		r, err := regexp.Compile(nameRegex.(string))
+		if err != nil {
+			return WrapError(err)
+		}
+
+		// Filter stores by regex pattern
+		var filteredStores []*aliyunSlsAPI.LogStore
+		for _, store := range stores {
+			if r.MatchString(store.LogstoreName) {
+				filteredStores = append(filteredStores, store)
+			}
+		}
+		stores = filteredStores
+	} else {
+		// If name_regex is empty, iterate through "names" list
+		var storeNames []string
+		if v, ok := d.GetOk("names"); ok {
+			for _, item := range v.([]interface{}) {
+				if item != nil {
+					storeNames = append(storeNames, item.(string))
+				}
+			}
+		}
+
+		if len(storeNames) > 0 {
+			// Get specific stores by names
+			for _, storeName := range storeNames {
+				err = resource.Retry(2*time.Minute, func() *resource.RetryError {
+					store, err := slsService.GetLogStore(project, storeName)
+					if err != nil {
+						if IsExpectedErrors(err, []string{LogClientTimeout}) {
+							time.Sleep(5 * time.Second)
+							return resource.RetryableError(err)
+						}
+						if IsNotFoundError(err) {
+							return resource.NonRetryableError(err)
+						}
+						return resource.NonRetryableError(err)
+					}
+					stores = append(stores, store)
+					return nil
+				})
+				if err != nil {
+					if IsNotFoundError(err) {
+						continue
+					}
+					return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_stores", "GetLogStore", AliyunLogGoSdkERROR)
+				}
+			}
+		}
+		// When storeNames is empty, return empty list without calling API
 	}
 
 	addDebug("LogStores", stores)
 
-	// Filter stores based on name regex
-	var filteredStores []*aliyunSlsAPI.LogStore
-	for _, store := range stores {
-		if logStoreNameRegex != nil {
-			if !logStoreNameRegex.MatchString(store.LogstoreName) {
-				continue
-			}
-		}
-		filteredStores = append(filteredStores, store)
-	}
-
 	ids := make([]string, 0)
 	names := make([]interface{}, 0)
 	s := make([]map[string]interface{}, 0)
-	for _, store := range filteredStores {
+	for _, store := range stores {
 		mapping := map[string]interface{}{
 			"id":                    store.LogstoreName,
 			"store_name":            store.LogstoreName,
@@ -307,9 +304,6 @@ func dataSourceAliCloudLogStoresRead(d *schema.ResourceData, meta interface{}) e
 
 	if err := d.Set("stores", s); err != nil {
 		return WrapError(err)
-	}
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
 	}
 
 	return nil

@@ -3,7 +3,7 @@ module github.com/aliyun/terraform-provider-alicloud
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/alibabacloud-go/cs-20151215/v5 v5.8.12
-	github.com/alibabacloud-go/tea v1.3.8
+	github.com/alibabacloud-go/tea v1.3.10
 	github.com/alibabacloud-go/tea-roa v1.3.4
 	github.com/alibabacloud-go/tea-rpc v1.2.0
 	github.com/alibabacloud-go/tea-utils v1.4.5
@@ -39,10 +39,9 @@ require (
 require (
 	github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.18
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.3.0
-	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.6
+	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.9
 	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
-	github.com/alibabacloud-go/tablestore-20201209 v0.0.0-00010101000000-000000000000
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.7
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v0.0.0-00010101000000-000000000000
 	github.com/blues/jsonata-go v1.5.4
@@ -83,6 +82,7 @@ require (
 	github.com/alibabacloud-go/rds-20140815/v5 v5.0.5 // indirect
 	github.com/alibabacloud-go/selectdb-20230522/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/sls-20201230/v6 v6.0.0-00010101000000-000000000000 // indirect
+	github.com/alibabacloud-go/tablestore-20201209 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/tea-oss-utils v1.1.0 // indirect
 	github.com/alibabacloud-go/tea-roa-utils v1.1.5 // indirect
 	github.com/alibabacloud-go/tea-rpc-utils v1.1.2 // indirect
@@ -243,7 +243,7 @@ replace github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api => ../cws-
 replace (
 	github.com/alibabacloud-go/alikafka-20190916/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/alikafka-20190916
 	github.com/alibabacloud-go/arms-20190808/v9 => ../cws-lib-go/lib/cloud/aliyun/sdk/arms-20190808
-	github.com/alibabacloud-go/darabonba-openapi/v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/darabonba-openapi
+	github.com/alibabacloud-go/darabonba-openapi/v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/darabonba-openapi/golang
 	github.com/alibabacloud-go/foasconsole-20211028 => ../cws-lib-go/lib/cloud/aliyun/sdk/foasconsole-20211028
 	github.com/alibabacloud-go/nas-20170626/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/nas-20170626
 	github.com/alibabacloud-go/ons-20190214/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/ons-20190214
