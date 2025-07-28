@@ -213,6 +213,7 @@ func (s *FlinkService) WaitForFlinkJobCreating(id string, timeout time.Duration)
 
 func (s *FlinkService) WaitForFlinkJobStopping(id string, timeout time.Duration) error {
 	stopPendingStatus := aliyunFlinkAPI.FlinkJobStatusesToStrings([]aliyunFlinkAPI.FlinkJobStatus{
+		aliyunFlinkAPI.FlinkJobStatusStarting,
 		aliyunFlinkAPI.FlinkJobStatusRunning,
 		aliyunFlinkAPI.FlinkJobStatusStopping,
 		aliyunFlinkAPI.FlinkJobStatusCancelling,

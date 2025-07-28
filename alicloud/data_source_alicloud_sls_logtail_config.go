@@ -140,71 +140,86 @@ func dataSourceAliCloudLogLogtailConfigs() *schema.Resource {
 
 func dataSourceAliCloudLogLogtailConfigsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-
 	projectName := d.Get("project_name").(string)
 	logstoreName := d.Get("logstore_name").(string)
-	nameRegex := d.Get("name_regex").(string)
+	nameRegex, hasNameRegex := d.GetOk("name_regex")
 
-	var nameRegexp *regexp.Regexp
-	if nameRegex != "" {
-		var err error
-		nameRegexp, err = regexp.Compile(nameRegex)
+	var allConfigNames []string
+	var err error
+
+	if hasNameRegex && nameRegex.(string) != "" {
+		// name_regex 模式：获取所有 config 并正则过滤
+		err = resource.Retry(2*time.Minute, func() *resource.RetryError {
+			var requestInfo *sls.Client
+			raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
+				requestInfo = slsClient
+				configs, _, err := slsClient.ListConfig(projectName, 0, 500)
+				return configs, err
+			})
+			if err != nil {
+				if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			if debugOn() {
+				addDebug("ListConfig", raw, requestInfo, map[string]string{"project": projectName})
+			}
+			if configs, ok := raw.([]string); ok {
+				allConfigNames = configs
+			} else {
+				return resource.NonRetryableError(fmt.Errorf("unexpected response type from ListConfig"))
+			}
+			return nil
+		})
+		if err != nil {
+			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_logtail_configs", "ListConfig", AliyunLogGoSdkERROR)
+		}
+
+		// 正则过滤
+		r, err := regexp.Compile(nameRegex.(string))
 		if err != nil {
 			return WrapError(err)
 		}
-	}
-
-	// List all logtail configs in the project
-	var allConfigNames []string
-	var requestInfo *sls.Client
-	err := resource.Retry(2*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-			requestInfo = slsClient
-			configs, _, err := slsClient.ListConfig(projectName, 0, 500)
-			return configs, err
-		})
-		if err != nil {
-			if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
-				return resource.RetryableError(err)
+		var filteredConfigs []string
+		for _, configName := range allConfigNames {
+			if r.MatchString(configName) {
+				filteredConfigs = append(filteredConfigs, configName)
 			}
-			return resource.NonRetryableError(err)
 		}
-		if debugOn() {
-			addDebug("ListConfig", raw, requestInfo, map[string]string{
-				"project": projectName,
-			})
+		allConfigNames = filteredConfigs
+	} else {
+		// names 模式：遍历 names 列表，单独获取
+		var configNames []string
+		if v, ok := d.GetOk("names"); ok {
+			for _, item := range v.([]interface{}) {
+				if item != nil {
+					configNames = append(configNames, item.(string))
+				}
+			}
 		}
-		// raw should be []string now
-		if configs, ok := raw.([]string); ok {
-			allConfigNames = configs
-		} else {
-			return resource.NonRetryableError(fmt.Errorf("unexpected response type from ListConfig"))
+		if len(configNames) == 0 {
+			// 没有 names，直接返回空
+			d.SetId("")
+			d.Set("ids", []string{})
+			d.Set("names", []string{})
+			d.Set("configs", []map[string]interface{}{})
+			return nil
 		}
-		return nil
-	})
-
-	if err != nil {
-		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_logtail_configs", "ListConfig", AliyunLogGoSdkERROR)
-	}
-
-	var filteredConfigs []string
-	for _, configName := range allConfigNames {
-		if nameRegexp != nil && !nameRegexp.MatchString(configName) {
-			continue
-		}
-		filteredConfigs = append(filteredConfigs, configName)
+		allConfigNames = configNames
 	}
 
 	var ids []string
 	var names []string
 	var configs []map[string]interface{}
 
-	for _, configName := range filteredConfigs {
+	for _, configName := range allConfigNames {
 		id := fmt.Sprintf("%s:%s", projectName, configName)
 
-		// Get detailed information for each logtail config using slsClient.GetConfig
+		// 获取详细信息
 		var logtailConfig *sls.LogConfig
 		err := resource.Retry(2*time.Minute, func() *resource.RetryError {
+			var requestInfo *sls.Client
 			raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
 				requestInfo = slsClient
 				return slsClient.GetConfig(projectName, configName)
@@ -219,10 +234,7 @@ func dataSourceAliCloudLogLogtailConfigsRead(d *schema.ResourceData, meta interf
 				return resource.NonRetryableError(err)
 			}
 			if debugOn() {
-				addDebug("GetConfig", raw, requestInfo, map[string]string{
-					"project": projectName,
-					"config":  configName,
-				})
+				addDebug("GetConfig", raw, requestInfo, map[string]string{"project": projectName, "config": configName})
 			}
 			if config, ok := raw.(*sls.LogConfig); ok {
 				logtailConfig = config
@@ -239,12 +251,10 @@ func dataSourceAliCloudLogLogtailConfigsRead(d *schema.ResourceData, meta interf
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_log_logtail_configs", "GetConfig", AliyunLogGoSdkERROR)
 		}
 
-		// Filter by logstore name if specified
 		if logstoreName != "" && logtailConfig.OutputDetail.LogStoreName != logstoreName {
 			continue
 		}
 
-		// Convert InputDetail to JSON string
 		var inputDetailStr string
 		if logtailConfig.InputDetail != nil {
 			if inputDetailBytes, err := json.Marshal(logtailConfig.InputDetail); err == nil {
@@ -252,7 +262,6 @@ func dataSourceAliCloudLogLogtailConfigsRead(d *schema.ResourceData, meta interf
 			}
 		}
 
-		// Prepare output detail
 		outputDetailList := make([]map[string]interface{}, 1)
 		outputDetailList[0] = map[string]interface{}{
 			"project_name":  logtailConfig.OutputDetail.ProjectName,
