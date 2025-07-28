@@ -438,14 +438,16 @@ func IsAlreadyExistError(err error) bool {
 	if err == nil {
 		return false
 	}
-
+	log.Printf("[INFO] IsAlreadyExistError: Handle ComplexError recursively")
 	// Handle ComplexError recursively
 	if e, ok := err.(*ComplexError); ok {
+		log.Printf("[DEBUG] IsAlreadyExistError: ComplexError branch hit, recurse")
 		return IsAlreadyExistError(e.Cause)
 	}
 
 	// Use unified conflict error checking from cws-lib-go
 	if commonErrors.IsConflictError(err) {
+		log.Printf("[DEBUG] IsAlreadyExistError: cws-lib-go IsConflictError branch hit")
 		return true
 	}
 
@@ -455,9 +457,11 @@ func IsAlreadyExistError(err error) bool {
 			code := strings.ToLower(*e.Code)
 			// Check for specific Flink error code
 			if *e.Code == "990002" {
+				log.Printf("[DEBUG] IsAlreadyExistError: tea.SDKError code=990002 branch hit")
 				return true
 			}
 			if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") {
+				log.Printf("[DEBUG] IsAlreadyExistError: tea.SDKError code contains alreadyexist/duplicate branch hit")
 				return true
 			}
 		}
@@ -466,9 +470,11 @@ func IsAlreadyExistError(err error) bool {
 			// Check for specific Flink folder duplicate error messages
 			if strings.Contains(message, "the same folder name is already existing") ||
 				strings.Contains(message, "already existing in the parent folder") {
+				log.Printf("[DEBUG] IsAlreadyExistError: tea.SDKError message contains folder duplicate branch hit")
 				return true
 			}
 			if strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
+				log.Printf("[DEBUG] IsAlreadyExistError: tea.SDKError message contains already exist/duplicate branch hit")
 				return true
 			}
 		}
@@ -479,15 +485,18 @@ func IsAlreadyExistError(err error) bool {
 		message := strings.ToLower(e.Message())
 		// Check for specific Flink error code
 		if e.ErrorCode() == "990002" {
+			log.Printf("[DEBUG] IsAlreadyExistError: ServerError code=990002 branch hit")
 			return true
 		}
 		// Check for specific Flink folder duplicate error messages
 		if strings.Contains(message, "the same folder name is already existing") ||
 			strings.Contains(message, "already existing in the parent folder") {
+			log.Printf("[DEBUG] IsAlreadyExistError: ServerError message contains folder duplicate branch hit")
 			return true
 		}
 		if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") ||
 			strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
+			log.Printf("[DEBUG] IsAlreadyExistError: ServerError code/message contains alreadyexist/duplicate branch hit")
 			return true
 		}
 	}
@@ -497,15 +506,18 @@ func IsAlreadyExistError(err error) bool {
 		message := strings.ToLower(e.Message())
 		// Check for specific Flink error code
 		if e.ErrorCode() == "990002" {
+			log.Printf("[DEBUG] IsAlreadyExistError: ProviderError code=990002 branch hit")
 			return true
 		}
 		// Check for specific Flink folder duplicate error messages
 		if strings.Contains(message, "the same folder name is already existing") ||
 			strings.Contains(message, "already existing in the parent folder") {
+			log.Printf("[DEBUG] IsAlreadyExistError: ProviderError message contains folder duplicate branch hit")
 			return true
 		}
 		if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") ||
 			strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
+			log.Printf("[DEBUG] IsAlreadyExistError: ProviderError code/message contains alreadyexist/duplicate branch hit")
 			return true
 		}
 	}
@@ -515,15 +527,18 @@ func IsAlreadyExistError(err error) bool {
 		message := strings.ToLower(e.Message)
 		// Check for specific Flink error code
 		if e.Code == "990002" {
+			log.Printf("[DEBUG] IsAlreadyExistError: common.Error code=990002 branch hit")
 			return true
 		}
 		// Check for specific Flink folder duplicate error messages
 		if strings.Contains(message, "the same folder name is already existing") ||
 			strings.Contains(message, "already existing in the parent folder") {
+			log.Printf("[DEBUG] IsAlreadyExistError: common.Error message contains folder duplicate branch hit")
 			return true
 		}
 		if strings.Contains(code, "alreadyexist") || strings.Contains(code, "duplicate") ||
 			strings.Contains(message, "already exist") || strings.Contains(message, "duplicate") {
+			log.Printf("[DEBUG] IsAlreadyExistError: common.Error code/message contains alreadyexist/duplicate branch hit")
 			return true
 		}
 	}
@@ -535,6 +550,7 @@ func IsAlreadyExistError(err error) bool {
 	if strings.Contains(err.Error(), "990002") ||
 		strings.Contains(errorMsg, "the same folder name is already existing") ||
 		strings.Contains(errorMsg, "already existing in the parent folder") {
+		log.Printf("[DEBUG] IsAlreadyExistError: error string contains 990002/folder duplicate branch hit")
 		return true
 	}
 
@@ -546,11 +562,11 @@ func IsAlreadyExistError(err error) bool {
 		"duplicate",
 		"conflict",
 		"exists",
-		"409", // HTTP Conflict status code
 	}
 
 	for _, pattern := range alreadyExistPatterns {
 		if strings.Contains(errorMsg, pattern) {
+			log.Printf("[DEBUG] IsAlreadyExistError: error string contains pattern '%s' branch hit", pattern)
 			return true
 		}
 	}

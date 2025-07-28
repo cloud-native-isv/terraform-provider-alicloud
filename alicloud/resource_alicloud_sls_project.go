@@ -229,6 +229,8 @@ func resourceAliCloudLogProjectRead(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
+	log.Printf("[INFO] read Project %s, save resource into Terraform state", d.Id())
+
 	// Set basic project attributes
 	d.Set("create_time", project.CreateTime)
 	d.Set("description", project.Description)
