@@ -30,9 +30,6 @@ func (s *SlsService) DescribeSlsOSSExport(id string) (object map[string]interfac
 
 	ossExport, err := s.aliyunSlsAPI.GetOSSExport(projectName, exportName)
 	if err != nil {
-		if strings.Contains(err.Error(), "JobNotExist") || strings.Contains(err.Error(), "not found") {
-			return object, WrapErrorf(NotFoundErr("OSSExport", id), NotFoundMsg, "")
-		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetOSSExport", AlibabaCloudSdkGoERROR)
 	}
 

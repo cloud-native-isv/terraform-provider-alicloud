@@ -47,7 +47,7 @@ func (s *SlsService) DescribeSlsCollectionPolicy(policyName string) (*aliyunSlsA
 
 	policy, err := s.aliyunSlsAPI.GetCollectionPolicy(policyName)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ProjectNotExist", "PolicyNotExist", "ResourceNotExist"}) {
+		if IsNotFoundError(err) {
 			return nil, WrapErrorf(Error(GetNotFoundMessage("SlsCollectionPolicy", policyName)), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, policyName, "DescribeSlsCollectionPolicy", AlibabaCloudSdkGoERROR)

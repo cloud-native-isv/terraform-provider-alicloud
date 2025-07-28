@@ -46,7 +46,7 @@ func (s *SlsService) DeleteSlsLogStoreIndex(projectName string, logstoreName str
 
 	err := s.aliyunSlsAPI.DeleteLogStoreIndex(projectName, logstoreName)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"IndexConfigNotExist"}) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store_index", "DeleteLogStoreIndex", AlibabaCloudSdkGoERROR)

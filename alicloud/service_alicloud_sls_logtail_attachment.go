@@ -28,9 +28,6 @@ func (s *SlsService) DescribeSlsLogtailAttachment(id string) (object map[string]
 	// Use cws-lib-go API method to get attachment
 	attachment, err := s.aliyunSlsAPI.GetAttachment(projectName, configName, machineGroupName)
 	if err != nil {
-		if strings.Contains(err.Error(), "attachment not found") || strings.Contains(err.Error(), "ConfigNotExist") {
-			return object, WrapErrorf(NotFoundErr("LogtailAttachment", id), NotFoundMsg, "")
-		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetAttachment", AlibabaCloudSdkGoERROR)
 	}
 

@@ -13,9 +13,6 @@ import (
 func (s *SlsService) DescribeSlsMachineGroup(projectName, machineGroupName string) (*aliyunSlsAPI.MachineGroup, error) {
 	machineGroup, err := s.aliyunSlsAPI.GetMachineGroup(projectName, machineGroupName)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"MachineGroupNotExist", "ProjectNotExist"}) {
-			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
-		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_log_machine_group", "GetMachineGroup", AlibabaCloudSdkGoERROR)
 	}
 

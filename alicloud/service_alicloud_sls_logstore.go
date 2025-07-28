@@ -30,9 +30,6 @@ func (s *SlsService) DescribeLogStore(projectName, logstoreName string) (*aliyun
 
 	logstore, err := s.aliyunSlsAPI.GetLogStore(projectName, logstoreName)
 	if err != nil {
-		if strings.Contains(err.Error(), "LogStoreNotExist") {
-			return nil, WrapErrorf(NotFoundErr("LogStore", projectName, logstoreName), NotFoundMsg, "")
-		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, logstoreName, "GetLogStore", AlibabaCloudSdkGoERROR)
 	}
 
@@ -55,7 +52,7 @@ func (s *SlsService) DescribeGetLogStoreMeteringMode(id string) (*aliyunSlsAPI.L
 
 	meteringMode, err := s.aliyunSlsAPI.GetLogStoreMeteringMode(projectName, logstoreName)
 	if err != nil {
-		if strings.Contains(err.Error(), "LogStoreNotExist") {
+		if IsNotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("LogStore", id), NotFoundMsg, "")
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetLogStoreMeteringMode", AlibabaCloudSdkGoERROR)
@@ -174,7 +171,7 @@ func (s *SlsService) CreateLogStoreIfNotExist(projectName string, logstore *aliy
 	// Check if logstore exists
 	_, err := s.aliyunSlsAPI.GetLogStore(projectName, logstore.LogstoreName)
 	if err != nil {
-		if strings.Contains(err.Error(), "LogStoreNotExist") || strings.Contains(err.Error(), "does not exist") {
+		if IsNotFoundError(err) {
 			// Logstore doesn't exist, create it with provided configuration
 			if err := s.aliyunSlsAPI.CreateLogStore(projectName, logstore); err != nil {
 				return nil, WrapErrorf(err, DefaultErrorMsg, logstore.LogstoreName, "CreateLogStore", AlibabaCloudSdkGoERROR)

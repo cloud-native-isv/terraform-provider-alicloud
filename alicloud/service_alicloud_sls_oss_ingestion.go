@@ -29,9 +29,6 @@ func (s *SlsService) DescribeSlsOSSIngestion(id string) (*aliyunSlsAPI.Ingestion
 
 	ingestion, err := s.aliyunSlsAPI.GetOSSIngestion(projectName, ingestionName)
 	if err != nil {
-		if strings.Contains(err.Error(), "JobNotExist") || strings.Contains(err.Error(), "not found") {
-			return nil, WrapErrorf(NotFoundErr("OSSIngestion", id), NotFoundMsg, "")
-		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetOSSIngestion", AlibabaCloudSdkGoERROR)
 	}
 

@@ -222,8 +222,7 @@ func resourceAliCloudLogProjectRead(d *schema.ResourceData, meta interface{}) er
 	// Get project details
 	project, err := slsService.DescribeLogProject(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_log_project DescribeLogProject Failed!!! %s", err)
+		if IsNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

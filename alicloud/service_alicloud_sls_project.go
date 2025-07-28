@@ -19,9 +19,6 @@ func (s *SlsService) DescribeLogProject(id string) (*aliyunSlsAPI.LogProject, er
 
 	project, err := s.aliyunSlsAPI.GetLogProject(id)
 	if err != nil {
-		if strings.Contains(err.Error(), "ProjectNotExist") {
-			return nil, WrapErrorf(NotFoundErr("Project", id), NotFoundMsg, "")
-		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetProject", AlibabaCloudSdkGoERROR)
 	}
 

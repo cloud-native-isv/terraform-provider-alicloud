@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	common "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -19,7 +18,7 @@ func (s *SlsService) DescribeSlsDashboard(projectName, dashboardName string) (*a
 
 	dashboard, err := slsAPI.GetDashboard(projectName, dashboardName)
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("SlsDashboard", fmt.Sprintf("%s:%s", projectName, dashboardName)), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%s:%s", projectName, dashboardName), "GetDashboard", AlibabaCloudSdkGoERROR)
@@ -80,7 +79,7 @@ func (s *SlsService) DeleteSlsDashboard(projectName, dashboardName string) error
 
 	err = slsAPI.DeleteDashboard(projectName, dashboardName)
 	if err != nil {
-		if common.IsNotFoundError(err) {
+		if IsNotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, dashboardName, "DeleteDashboard", AlibabaCloudSdkGoERROR)

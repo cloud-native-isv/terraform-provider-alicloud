@@ -24,9 +24,6 @@ func (s *SlsService) DescribeSlsLogtailConfig(id string) (*slsAPI.LogtailConfig,
 
 	config, err := s.aliyunSlsAPI.GetLogtailConfig(projectName, configName)
 	if err != nil {
-		if strings.Contains(err.Error(), "ConfigNotExist") || strings.Contains(err.Error(), "config not found") {
-			return nil, WrapErrorf(NotFoundErr("LogtailConfig", id), NotFoundMsg, "")
-		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetLogtailConfig", AlibabaCloudSdkGoERROR)
 	}
 
