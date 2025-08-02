@@ -30,7 +30,7 @@ func (s *FlinkDeploymentTargetService) DescribeFlinkDeploymentTarget(id string) 
 		return object, WrapError(err)
 	}
 
-	target, err := flinkService.flinkAPI.GetDeploymentTarget(workspaceId, namespaceName, targetName)
+	target, err := flinkService.GetAPI().GetDeploymentTarget(workspaceId, namespaceName, targetName)
 	if err != nil {
 		return object, WrapError(err)
 	}
@@ -48,7 +48,7 @@ func (s *FlinkDeploymentTargetService) DescribeFlinkDeploymentTargets(workspaceI
 		return objects, WrapError(err)
 	}
 
-	targets, err := flinkService.flinkAPI.ListDeploymentTargets(workspaceId, namespaceName)
+	targets, err := flinkService.GetAPI().ListDeploymentTargets(workspaceId, namespaceName)
 	if err != nil {
 		return objects, WrapError(err)
 	}
@@ -62,7 +62,7 @@ func (s *FlinkDeploymentTargetService) CreateFlinkDeploymentTarget(workspaceId, 
 		return nil, WrapError(err)
 	}
 
-	result, err := flinkService.flinkAPI.CreateDeploymentTarget(workspaceId, namespaceName, target)
+	result, err := flinkService.GetAPI().CreateDeploymentTarget(workspaceId, namespaceName, target)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -76,7 +76,7 @@ func (s *FlinkDeploymentTargetService) UpdateFlinkDeploymentTarget(workspaceId, 
 		return nil, WrapError(err)
 	}
 
-	result, err := flinkService.flinkAPI.UpdateDeploymentTarget(workspaceId, namespaceName, target)
+	result, err := flinkService.GetAPI().UpdateDeploymentTarget(workspaceId, namespaceName, target)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -90,7 +90,7 @@ func (s *FlinkDeploymentTargetService) DeleteFlinkDeploymentTarget(workspaceId, 
 		return WrapError(err)
 	}
 
-	err = flinkService.flinkAPI.DeleteDeploymentTarget(workspaceId, namespaceName, targetName)
+	err = flinkService.GetAPI().DeleteDeploymentTarget(workspaceId, namespaceName, targetName)
 	if err != nil {
 		return WrapError(err)
 	}

@@ -11,10 +11,6 @@ import (
 
 // DescribeSlsLogtailAttachment retrieves logtail attachment details
 func (s *SlsService) DescribeSlsLogtailAttachment(id string) (object map[string]interface{}, err error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	parts := strings.Split(id, ":")
 	if len(parts) != 3 {
 		err = WrapError(fmt.Errorf("invalid Resource Id %s. Expected parts' length %d, got %d", id, 3, len(parts)))
@@ -26,7 +22,7 @@ func (s *SlsService) DescribeSlsLogtailAttachment(id string) (object map[string]
 	machineGroupName := parts[2]
 
 	// Use cws-lib-go API method to get attachment
-	attachment, err := s.aliyunSlsAPI.GetAttachment(projectName, configName, machineGroupName)
+	attachment, err := s.GetAPI().GetAttachment(projectName, configName, machineGroupName)
 	if err != nil {
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetAttachment", AlibabaCloudSdkGoERROR)
 	}
@@ -46,32 +42,20 @@ func (s *SlsService) DescribeSlsLogtailAttachment(id string) (object map[string]
 
 // CreateSlsLogtailAttachment creates a new logtail attachment
 func (s *SlsService) CreateSlsLogtailAttachment(projectName string, configName string, machineGroup string) (*slsAPI.LogtailAttachment, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	// Use cws-lib-go API method
-	return s.aliyunSlsAPI.ApplyConfigToMachineGroup(projectName, configName, machineGroup)
+	return s.GetAPI().ApplyConfigToMachineGroup(projectName, configName, machineGroup)
 }
 
 // UpdateSlsLogtailAttachment updates an existing logtail attachment
 func (s *SlsService) UpdateSlsLogtailAttachment(projectName string, configName string, machineGroup string) (*slsAPI.LogtailAttachment, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	// Use cws-lib-go API method (internally handles remove and re-apply)
-	return s.aliyunSlsAPI.UpdateAttachment(projectName, configName, machineGroup)
+	return s.GetAPI().UpdateAttachment(projectName, configName, machineGroup)
 }
 
 // DeleteSlsLogtailAttachment deletes a logtail attachment
 func (s *SlsService) DeleteSlsLogtailAttachment(projectName string, configName string, machineGroup string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	// Use cws-lib-go API method
-	return s.aliyunSlsAPI.RemoveConfigFromMachineGroup(projectName, configName, machineGroup)
+	return s.GetAPI().RemoveConfigFromMachineGroup(projectName, configName, machineGroup)
 }
 
 // SlsLogtailAttachmentStateRefreshFunc returns a StateRefreshFunc for logtail attachment status monitoring
@@ -187,45 +171,29 @@ func (s *SlsService) ConvertSlsLogtailAttachmentToMap(attachment *slsAPI.Logtail
 
 // SlsLogtailAttachmentExists checks if a logtail attachment exists
 func (s *SlsService) SlsLogtailAttachmentExists(projectName string, configName string, machineGroup string) (bool, error) {
-	if s.aliyunSlsAPI == nil {
-		return false, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	// Use cws-lib-go API method
-	return s.aliyunSlsAPI.AttachmentExists(projectName, configName, machineGroup)
+	return s.GetAPI().AttachmentExists(projectName, configName, machineGroup)
 }
 
 // GetSlsLogtailConfigAttachments gets all attachments for a specific logtail config
 func (s *SlsService) GetSlsLogtailConfigAttachments(projectName string, configName string) ([]*slsAPI.LogtailAttachment, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	// Use cws-lib-go API method
-	return s.aliyunSlsAPI.GetAppliedMachineGroups(projectName, configName)
+	return s.GetAPI().GetAppliedMachineGroups(projectName, configName)
 }
 
 // GetSlsMachineGroupAttachments gets all attachments for a specific machine group
 func (s *SlsService) GetSlsMachineGroupAttachments(projectName string, machineGroup string) ([]*slsAPI.LogtailAttachment, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	// Use cws-lib-go API method
-	return s.aliyunSlsAPI.GetAppliedConfigs(projectName, machineGroup)
+	return s.GetAPI().GetAppliedConfigs(projectName, machineGroup)
 }
 
 // BatchCreateSlsLogtailAttachments creates multiple logtail attachments for a config
 func (s *SlsService) BatchCreateSlsLogtailAttachments(projectName string, configName string, machineGroups []string) ([]*slsAPI.LogtailAttachment, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	var attachments []*slsAPI.LogtailAttachment
 	var errors []error
 
 	for _, machineGroup := range machineGroups {
-		attachment, err := s.aliyunSlsAPI.ApplyConfigToMachineGroup(projectName, configName, machineGroup)
+		attachment, err := s.GetAPI().ApplyConfigToMachineGroup(projectName, configName, machineGroup)
 		if err != nil {
 			errors = append(errors, fmt.Errorf("failed to attach config %s to machine group %s: %w", configName, machineGroup, err))
 			continue
@@ -247,14 +215,10 @@ func (s *SlsService) BatchCreateSlsLogtailAttachments(projectName string, config
 
 // BatchDeleteSlsLogtailAttachments deletes multiple logtail attachments for a config
 func (s *SlsService) BatchDeleteSlsLogtailAttachments(projectName string, configName string, machineGroups []string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	var errors []error
 
 	for _, machineGroup := range machineGroups {
-		err := s.aliyunSlsAPI.RemoveConfigFromMachineGroup(projectName, configName, machineGroup)
+		err := s.GetAPI().RemoveConfigFromMachineGroup(projectName, configName, machineGroup)
 		if err != nil {
 			errors = append(errors, fmt.Errorf("failed to remove config %s from machine group %s: %w", configName, machineGroup, err))
 		}
@@ -273,12 +237,8 @@ func (s *SlsService) BatchDeleteSlsLogtailAttachments(projectName string, config
 
 // SyncSlsLogtailAttachments synchronizes logtail attachments to match desired state
 func (s *SlsService) SyncSlsLogtailAttachments(projectName string, configName string, desiredMachineGroups []string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	// Get current attachments
-	currentAttachments, err := s.aliyunSlsAPI.GetAppliedMachineGroups(projectName, configName)
+	currentAttachments, err := s.GetAPI().GetAppliedMachineGroups(projectName, configName)
 	if err != nil {
 		return fmt.Errorf("failed to get current attachments: %w", err)
 	}

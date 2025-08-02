@@ -12,10 +12,7 @@ import (
 // Table management functions
 
 func (s *OtsService) CreateOtsTable(instanceName string, table *tablestoreAPI.TablestoreTable) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.CreateTable(instanceName, table); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, table.GetName(), "CreateTable", AlibabaCloudSdkGoERROR)
@@ -25,10 +22,7 @@ func (s *OtsService) CreateOtsTable(instanceName string, table *tablestoreAPI.Ta
 }
 
 func (s *OtsService) DescribeOtsTable(instanceName, tableName string) (*tablestoreAPI.TablestoreTable, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	api := s.GetAPI()
 
 	table, err := api.GetTable(instanceName, tableName)
 	if err != nil {
@@ -39,10 +33,7 @@ func (s *OtsService) DescribeOtsTable(instanceName, tableName string) (*tablesto
 }
 
 func (s *OtsService) UpdateOtsTable(instanceName string, table *tablestoreAPI.TablestoreTable) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.UpdateTable(instanceName, table); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, table.GetName(), "UpdateTable", AlibabaCloudSdkGoERROR)
@@ -52,10 +43,7 @@ func (s *OtsService) UpdateOtsTable(instanceName string, table *tablestoreAPI.Ta
 }
 
 func (s *OtsService) DeleteOtsTable(instanceName, tableName string) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.DeleteTable(instanceName, tableName); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, tableName, "DeleteTable", AlibabaCloudSdkGoERROR)
@@ -65,10 +53,7 @@ func (s *OtsService) DeleteOtsTable(instanceName, tableName string) error {
 }
 
 func (s *OtsService) ListOtsTables(instanceName string) ([]*tablestoreAPI.TablestoreTable, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	api := s.GetAPI()
 
 	tables, err := api.ListTables(instanceName)
 	if err != nil {

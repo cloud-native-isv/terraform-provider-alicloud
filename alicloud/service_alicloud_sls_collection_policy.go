@@ -15,11 +15,7 @@ import (
 
 // CreateSlsCollectionPolicy creates a new SLS collection policy
 func (s *SlsService) CreateSlsCollectionPolicy(policy *aliyunSlsAPI.CollectionPolicy) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.UpsertCollectionPolicy(policy)
+	err := s.GetAPI().UpsertCollectionPolicy(policy)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, policy.PolicyName, "CreateSlsCollectionPolicy", AlibabaCloudSdkGoERROR)
 	}
@@ -28,11 +24,7 @@ func (s *SlsService) CreateSlsCollectionPolicy(policy *aliyunSlsAPI.CollectionPo
 
 // UpdateSlsCollectionPolicy updates an existing SLS collection policy
 func (s *SlsService) UpdateSlsCollectionPolicy(policy *aliyunSlsAPI.CollectionPolicy) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.UpsertCollectionPolicy(policy)
+	err := s.GetAPI().UpsertCollectionPolicy(policy)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, policy.PolicyName, "UpdateSlsCollectionPolicy", AlibabaCloudSdkGoERROR)
 	}
@@ -41,11 +33,7 @@ func (s *SlsService) UpdateSlsCollectionPolicy(policy *aliyunSlsAPI.CollectionPo
 
 // DescribeSlsCollectionPolicy retrieves a collection policy by name
 func (s *SlsService) DescribeSlsCollectionPolicy(policyName string) (*aliyunSlsAPI.CollectionPolicy, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	policy, err := s.aliyunSlsAPI.GetCollectionPolicy(policyName)
+	policy, err := s.GetAPI().GetCollectionPolicy(policyName)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil, WrapErrorf(Error(GetNotFoundMessage("SlsCollectionPolicy", policyName)), NotFoundMsg, ProviderERROR)
@@ -58,11 +46,7 @@ func (s *SlsService) DescribeSlsCollectionPolicy(policyName string) (*aliyunSlsA
 
 // DeleteSlsCollectionPolicy deletes a collection policy
 func (s *SlsService) DeleteSlsCollectionPolicy(policyName string, dataCode string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.DeleteCollectionPolicy(policyName, dataCode)
+	err := s.GetAPI().DeleteCollectionPolicy(policyName, dataCode)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"ProjectNotExist", "PolicyNotExist", "ResourceNotExist"}) {
 			return nil
@@ -74,11 +58,7 @@ func (s *SlsService) DeleteSlsCollectionPolicy(policyName string, dataCode strin
 
 // ListSlsCollectionPolicies lists collection policies with filters
 func (s *SlsService) ListSlsCollectionPolicies(policyName, instanceId, centralProject, dataCode, productCode string) ([]*aliyunSlsAPI.CollectionPolicy, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	policies, err := s.aliyunSlsAPI.ListCollectionPolicies(policyName, instanceId, centralProject, dataCode, productCode)
+	policies, err := s.GetAPI().ListCollectionPolicies(policyName, instanceId, centralProject, dataCode, productCode)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, "collection_policies", "ListSlsCollectionPolicies", AlibabaCloudSdkGoERROR)
 	}

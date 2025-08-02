@@ -12,10 +12,7 @@ import (
 
 // DescribeSlsETL retrieves an ETL task by project and ETL name
 func (s *SlsService) DescribeSlsETL(projectName, etlName string) (*aliyunSlsAPI.ETL, error) {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	etl, err := slsAPI.GetETL(projectName, etlName)
 	if err != nil {
@@ -30,12 +27,9 @@ func (s *SlsService) DescribeSlsETL(projectName, etlName string) (*aliyunSlsAPI.
 
 // CreateSlsETL creates a new ETL task in the specified project
 func (s *SlsService) CreateSlsETL(projectName string, etl *aliyunSlsAPI.ETL) error {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
-	err = slsAPI.CreateETL(projectName, etl)
+	err := slsAPI.CreateETL(projectName, etl)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, etl.Name, "CreateETL", AlibabaCloudSdkGoERROR)
 	}
@@ -45,12 +39,9 @@ func (s *SlsService) CreateSlsETL(projectName string, etl *aliyunSlsAPI.ETL) err
 
 // UpdateSlsETL updates an existing ETL task in the specified project
 func (s *SlsService) UpdateSlsETL(projectName, etlName string, etl *aliyunSlsAPI.ETL) error {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
-	err = slsAPI.UpdateETL(projectName, etlName, etl)
+	err := slsAPI.UpdateETL(projectName, etlName, etl)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, etlName, "UpdateETL", AlibabaCloudSdkGoERROR)
 	}
@@ -60,12 +51,9 @@ func (s *SlsService) UpdateSlsETL(projectName, etlName string, etl *aliyunSlsAPI
 
 // DeleteSlsETL deletes an ETL task from the specified project
 func (s *SlsService) DeleteSlsETL(projectName, etlName string) error {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
-	err = slsAPI.DeleteETL(projectName, etlName)
+	err := slsAPI.DeleteETL(projectName, etlName)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil
@@ -78,12 +66,9 @@ func (s *SlsService) DeleteSlsETL(projectName, etlName string) error {
 
 // StartSlsETL starts an ETL task
 func (s *SlsService) StartSlsETL(projectName, etlName string) error {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
-	err = slsAPI.StartETL(projectName, etlName)
+	err := slsAPI.StartETL(projectName, etlName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, etlName, "StartETL", AlibabaCloudSdkGoERROR)
 	}
@@ -93,12 +78,9 @@ func (s *SlsService) StartSlsETL(projectName, etlName string) error {
 
 // StopSlsETL stops an ETL task
 func (s *SlsService) StopSlsETL(projectName, etlName string) error {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
-	err = slsAPI.StopETL(projectName, etlName)
+	err := slsAPI.StopETL(projectName, etlName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, etlName, "StopETL", AlibabaCloudSdkGoERROR)
 	}
@@ -108,10 +90,7 @@ func (s *SlsService) StopSlsETL(projectName, etlName string) error {
 
 // ListSlsETLs lists ETL tasks in the specified project with optional filtering
 func (s *SlsService) ListSlsETLs(projectName, etlName, logstore string) ([]*aliyunSlsAPI.ETL, error) {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	etls, err := slsAPI.ListETLs(projectName, etlName, logstore)
 	if err != nil {

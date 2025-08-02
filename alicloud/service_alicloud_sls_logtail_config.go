@@ -9,10 +9,6 @@ import (
 )
 
 func (s *SlsService) DescribeSlsLogtailConfig(id string) (*slsAPI.LogtailConfig, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	parts := strings.Split(id, ":")
 	if len(parts) != 3 {
 		err := WrapError(fmt.Errorf("invalid Resource Id %s. Expected parts' length %d, got %d", id, 3, len(parts)))
@@ -22,7 +18,7 @@ func (s *SlsService) DescribeSlsLogtailConfig(id string) (*slsAPI.LogtailConfig,
 	projectName := parts[0]
 	configName := parts[2]
 
-	config, err := s.aliyunSlsAPI.GetLogtailConfig(projectName, configName)
+	config, err := s.GetAPI().GetLogtailConfig(projectName, configName)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetLogtailConfig", AlibabaCloudSdkGoERROR)
 	}
@@ -31,11 +27,7 @@ func (s *SlsService) DescribeSlsLogtailConfig(id string) (*slsAPI.LogtailConfig,
 }
 
 func (s *SlsService) CreateSlsLogtailConfig(projectName string, config *slsAPI.LogtailConfig) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.CreateLogtailConfig(projectName, config)
+	err := s.GetAPI().CreateLogtailConfig(projectName, config)
 	if err == nil {
 		addDebugJson("CreateSlsLogtailConfig", config)
 	}
@@ -43,11 +35,7 @@ func (s *SlsService) CreateSlsLogtailConfig(projectName string, config *slsAPI.L
 }
 
 func (s *SlsService) UpdateSlsLogtailConfig(projectName string, configName string, config *slsAPI.LogtailConfig) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.UpdateLogtailConfig(projectName, configName, config)
+	err := s.GetAPI().UpdateLogtailConfig(projectName, configName, config)
 	if err == nil {
 		addDebugJson("UpdateSlsLogtailConfig", config)
 	}
@@ -55,11 +43,7 @@ func (s *SlsService) UpdateSlsLogtailConfig(projectName string, configName strin
 }
 
 func (s *SlsService) DeleteSlsLogtailConfig(projectName string, configName string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.DeleteLogtailConfig(projectName, configName)
+	err := s.GetAPI().DeleteLogtailConfig(projectName, configName)
 	if err == nil {
 		addDebugJson("DeleteSlsLogtailConfig", fmt.Sprintf("Config %s deleted successfully", configName))
 	}
@@ -67,11 +51,7 @@ func (s *SlsService) DeleteSlsLogtailConfig(projectName string, configName strin
 }
 
 func (s *SlsService) ListSlsLogtailConfigs(projectName string, configNameFilter string) ([]*slsAPI.LogtailConfig, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	return s.aliyunSlsAPI.ListLogtailConfigs(projectName, configNameFilter)
+	return s.GetAPI().ListLogtailConfigs(projectName, configNameFilter)
 }
 
 func (s *SlsService) LogtailConfigStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {

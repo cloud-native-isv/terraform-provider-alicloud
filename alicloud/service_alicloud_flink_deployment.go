@@ -21,7 +21,7 @@ func (s *FlinkService) GetDeployment(id string) (*aliyunFlinkAPI.Deployment, err
 	if err != nil {
 		return nil, err
 	}
-	return s.flinkAPI.GetDeployment(workspaceId, namespaceName, deploymentId)
+	return s.GetAPI().GetDeployment(workspaceId, namespaceName, deploymentId)
 }
 
 func (s *FlinkService) CreateDeployment(id string, deployment *aliyunFlinkAPI.Deployment) (*aliyunFlinkAPI.Deployment, error) {
@@ -32,7 +32,7 @@ func (s *FlinkService) CreateDeployment(id string, deployment *aliyunFlinkAPI.De
 
 	deployment.Workspace = workspaceId
 	deployment.Namespace = namespaceName
-	result, err := s.flinkAPI.CreateDeployment(deployment)
+	result, err := s.GetAPI().CreateDeployment(deployment)
 	if err == nil && result != nil {
 		addDebugJson("CreateDeployment", result)
 	}
@@ -48,7 +48,7 @@ func (s *FlinkService) UpdateDeployment(id string, deployment *aliyunFlinkAPI.De
 	deployment.Workspace = workspaceId
 	deployment.Namespace = namespaceName
 	deployment.DeploymentId = deploymentId
-	result, err := s.flinkAPI.UpdateDeployment(deployment)
+	result, err := s.GetAPI().UpdateDeployment(deployment)
 	if err == nil && result != nil {
 		addDebugJson("UpdateDeployment", result)
 	}
@@ -60,7 +60,7 @@ func (s *FlinkService) DeleteDeployment(id string) error {
 	if err != nil {
 		return err
 	}
-	err = s.flinkAPI.DeleteDeployment(workspaceId, namespaceName, deploymentId)
+	err = s.GetAPI().DeleteDeployment(workspaceId, namespaceName, deploymentId)
 	if err == nil {
 		addDebugJson("DeleteDeployment", fmt.Sprintf("Deployment %s deleted successfully", deploymentId))
 	}
@@ -74,7 +74,7 @@ func (s *FlinkService) ListDeployments(id string) ([]aliyunFlinkAPI.Deployment, 
 	}
 	workspaceId := parts[0]
 	namespaceName := parts[1]
-	return s.flinkAPI.ListDeployments(workspaceId, namespaceName)
+	return s.GetAPI().ListDeployments(workspaceId, namespaceName)
 }
 
 func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {

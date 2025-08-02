@@ -43,10 +43,10 @@ func (service *FlinkService) GetAPI() *aliyunFlinkAPI.FlinkAPI {
 
 // Zone methods
 func (s *FlinkService) DescribeSupportedZones() ([]*aliyunFlinkAPI.ZoneInfo, error) {
-	return s.flinkAPI.ListSupportedZones(s.client.RegionId)
+	return s.GetAPI().ListSupportedZones(s.client.RegionId)
 }
 
 // Engine methods
 func (s *FlinkService) ListEngines(workspaceId string) ([]*aliyunFlinkAPI.FlinkEngine, error) {
-	return s.flinkAPI.ListEngines(workspaceId)
+	return s.GetAPI().ListEngines(workspaceId)
 }

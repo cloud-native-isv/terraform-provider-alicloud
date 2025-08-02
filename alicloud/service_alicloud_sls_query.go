@@ -8,10 +8,7 @@ import (
 
 // QuerySlsLogs executes a log query and returns the results
 func (s *SlsService) QuerySlsLogs(projectName, logstoreName string, from, to int32, query string, lineNum int64) (*sls.LogResult, error) {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	// Validate required parameters
 	if projectName == "" {

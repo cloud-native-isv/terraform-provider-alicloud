@@ -11,7 +11,7 @@ import (
 
 // DescribeSlsMachineGroup retrieves a machine group by project and name
 func (s *SlsService) DescribeSlsMachineGroup(projectName, machineGroupName string) (*aliyunSlsAPI.MachineGroup, error) {
-	machineGroup, err := s.aliyunSlsAPI.GetMachineGroup(projectName, machineGroupName)
+	machineGroup, err := s.GetAPI().GetMachineGroup(projectName, machineGroupName)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_log_machine_group", "GetMachineGroup", AlibabaCloudSdkGoERROR)
 	}
@@ -21,7 +21,7 @@ func (s *SlsService) DescribeSlsMachineGroup(projectName, machineGroupName strin
 
 // CreateSlsMachineGroup creates a new machine group
 func (s *SlsService) CreateSlsMachineGroup(projectName string, machineGroup *aliyunSlsAPI.MachineGroup) error {
-	err := s.aliyunSlsAPI.CreateMachineGroup(projectName, machineGroup)
+	err := s.GetAPI().CreateMachineGroup(projectName, machineGroup)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_machine_group", "CreateMachineGroup", AlibabaCloudSdkGoERROR)
 	}
@@ -31,7 +31,7 @@ func (s *SlsService) CreateSlsMachineGroup(projectName string, machineGroup *ali
 
 // UpdateSlsMachineGroup updates an existing machine group
 func (s *SlsService) UpdateSlsMachineGroup(projectName, machineGroupName string, machineGroup *aliyunSlsAPI.MachineGroup) error {
-	err := s.aliyunSlsAPI.UpdateMachineGroup(projectName, machineGroupName, machineGroup)
+	err := s.GetAPI().UpdateMachineGroup(projectName, machineGroupName, machineGroup)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_machine_group", "UpdateMachineGroup", AlibabaCloudSdkGoERROR)
 	}
@@ -41,7 +41,7 @@ func (s *SlsService) UpdateSlsMachineGroup(projectName, machineGroupName string,
 
 // DeleteSlsMachineGroup deletes a machine group
 func (s *SlsService) DeleteSlsMachineGroup(projectName, machineGroupName string) error {
-	err := s.aliyunSlsAPI.DeleteMachineGroup(projectName, machineGroupName)
+	err := s.GetAPI().DeleteMachineGroup(projectName, machineGroupName)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"MachineGroupNotExist", "ProjectNotExist"}) {
 			return nil
@@ -54,7 +54,7 @@ func (s *SlsService) DeleteSlsMachineGroup(projectName, machineGroupName string)
 
 // ListSlsMachineGroups lists all machine groups in a project
 func (s *SlsService) ListSlsMachineGroups(projectName string) ([]*aliyunSlsAPI.MachineGroup, error) {
-	machineGroups, err := s.aliyunSlsAPI.ListMachineGroups(projectName, "")
+	machineGroups, err := s.GetAPI().ListMachineGroups(projectName, "")
 	if err != nil {
 		if IsExpectedErrors(err, []string{"ProjectNotExist"}) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -124,7 +124,7 @@ func (s *SlsService) GetMachineGroupAppliedConfigs(projectName, machineGroupName
 
 // ApplyConfigToMachineGroup applies a logtail config to a machine group
 func (s *SlsService) ApplyConfigToMachineGroup(projectName, configName, machineGroupName string) error {
-	_, err := s.aliyunSlsAPI.ApplyConfigToMachineGroup(projectName, configName, machineGroupName)
+	_, err := s.GetAPI().ApplyConfigToMachineGroup(projectName, configName, machineGroupName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_machine_group", "ApplyConfigToMachineGroup", AlibabaCloudSdkGoERROR)
 	}
@@ -134,7 +134,7 @@ func (s *SlsService) ApplyConfigToMachineGroup(projectName, configName, machineG
 
 // RemoveConfigFromMachineGroup removes a logtail config from a machine group
 func (s *SlsService) RemoveConfigFromMachineGroup(projectName, configName, machineGroupName string) error {
-	err := s.aliyunSlsAPI.RemoveConfigFromMachineGroup(projectName, configName, machineGroupName)
+	err := s.GetAPI().RemoveConfigFromMachineGroup(projectName, configName, machineGroupName)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"MachineGroupNotExist", "ProjectNotExist", "ConfigNotExist"}) {
 			return nil

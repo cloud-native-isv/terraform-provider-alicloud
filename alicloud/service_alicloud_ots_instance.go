@@ -102,10 +102,7 @@ func convertTablestoreInstanceToSchema(d *schema.ResourceData, instance *tablest
 // Instance management functions
 
 func (s *OtsService) CreateOtsInstance(instance *tablestoreAPI.TablestoreInstance) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.CreateInstance(instance); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, instance.InstanceName, "CreateInstance", AlibabaCloudSdkGoERROR)
@@ -115,10 +112,7 @@ func (s *OtsService) CreateOtsInstance(instance *tablestoreAPI.TablestoreInstanc
 }
 
 func (s *OtsService) DescribeOtsInstance(instanceName string) (*tablestoreAPI.TablestoreInstance, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	api := s.GetAPI()
 
 	instance, err := api.GetInstance(instanceName)
 	if err != nil {
@@ -132,10 +126,7 @@ func (s *OtsService) DescribeOtsInstance(instanceName string) (*tablestoreAPI.Ta
 }
 
 func (s *OtsService) UpdateOtsInstance(instance *tablestoreAPI.TablestoreInstance) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.UpdateInstance(instance); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, instance.InstanceName, "UpdateInstance", AlibabaCloudSdkGoERROR)
@@ -145,10 +136,7 @@ func (s *OtsService) UpdateOtsInstance(instance *tablestoreAPI.TablestoreInstanc
 }
 
 func (s *OtsService) DeleteOtsInstance(instanceName string) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.DeleteInstance(instanceName); err != nil {
 		if IsNotFoundError(err) {
@@ -213,10 +201,7 @@ func (s *OtsService) WaitForOtsInstanceDeleting(instanceName string, timeout tim
 }
 
 func (s *OtsService) TagOtsInstance(instanceName string, tags []tablestoreAPI.TablestoreInstanceTag) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.TagResources([]string{instanceName}, tags); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, instanceName, "TagResources", AlibabaCloudSdkGoERROR)
@@ -226,10 +211,7 @@ func (s *OtsService) TagOtsInstance(instanceName string, tags []tablestoreAPI.Ta
 }
 
 func (s *OtsService) UntagOtsInstance(instanceName string, tagKeys []string) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.UntagResources([]string{instanceName}, tagKeys, false); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, instanceName, "UntagResources", AlibabaCloudSdkGoERROR)
@@ -241,10 +223,7 @@ func (s *OtsService) UntagOtsInstance(instanceName string, tagKeys []string) err
 // Instance VPC Attachment management functions
 
 func (s *OtsService) DescribeOtsInstanceAttachment(instanceName string) (*tablestoreAPI.TablestoreInstanceAttachment, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	api := s.GetAPI()
 
 	// Get all VPC attachments for the instance
 	attachments, err := api.ListInstanceAttachments(instanceName)
@@ -290,10 +269,7 @@ func (s *OtsService) WaitForOtsInstanceVpc(instanceName string, status Status, t
 
 // List OTS instances for data source support
 func (s *OtsService) ListOtsInstance() ([]tablestoreAPI.TablestoreInstance, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	api := s.GetAPI()
 
 	instances, err := api.ListAllInstances(nil)
 	if err != nil {

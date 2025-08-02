@@ -15,7 +15,7 @@ func (s *ArmsService) DescribeArmsPrometheus(id string) (object map[string]inter
 func (s *ArmsService) DescribeArmsPrometheusInstance(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
-		instance, err := s.armsAPI.GetPrometheusInstance(id)
+		instance, err := s.GetAPI().GetPrometheusInstance(id)
 		if err == nil {
 			// Convert to map[string]interface{} format expected by Terraform
 			return map[string]interface{}{
@@ -56,7 +56,7 @@ func (s *ArmsService) DescribeArmsPrometheusMonitoring(id string) (object map[st
 	if s.armsAPI != nil {
 		parts, err := ParseResourceId(id, 3)
 		if err == nil && len(parts) >= 3 {
-			monitoring, err := s.armsAPI.GetPrometheusMonitoring(parts[0], parts[1], parts[2])
+			monitoring, err := s.GetAPI().GetPrometheusMonitoring(parts[0], parts[1], parts[2])
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				return map[string]interface{}{
@@ -93,7 +93,7 @@ func (s *ArmsService) DescribeArmsPrometheusAlertRule(id string) (object map[str
 	if s.armsAPI != nil {
 		parts, err := ParseResourceId(id, 2)
 		if err == nil && len(parts) >= 2 {
-			alertRule, err := s.armsAPI.GetPrometheusAlertRule(parts[0], parts[1])
+			alertRule, err := s.GetAPI().GetPrometheusAlertRule(parts[0], parts[1])
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				return map[string]interface{}{

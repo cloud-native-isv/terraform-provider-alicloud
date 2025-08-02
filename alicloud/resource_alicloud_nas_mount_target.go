@@ -111,7 +111,7 @@ func resourceAliCloudNasMountTargetCreate(d *schema.ResourceData, meta interface
 
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		createdMountTarget, createErr := nasService.nasAPI.CreateMountTarget(fileSystemId, mountTarget)
+		createdMountTarget, createErr := nasService.GetAPI().CreateMountTarget(fileSystemId, mountTarget)
 		if createErr != nil {
 			if NeedRetry(createErr) || IsExpectedErrors(createErr, []string{"OperationDenied.InvalidState"}) {
 				wait()
@@ -195,7 +195,7 @@ func resourceAliCloudNasMountTargetUpdate(d *schema.ResourceData, meta interface
 	if update {
 		wait := incrementalWait(3*time.Second, 5*time.Second)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			modifyErr := nasService.nasAPI.ModifyMountTarget(fileSystemId, mountTargetDomain, accessGroupName, status)
+			modifyErr := nasService.GetAPI().ModifyMountTarget(fileSystemId, mountTargetDomain, accessGroupName, status)
 			if modifyErr != nil {
 				if NeedRetry(modifyErr) || IsExpectedErrors(modifyErr, []string{"OperationDenied.InvalidState"}) {
 					wait()
@@ -234,7 +234,7 @@ func resourceAliCloudNasMountTargetDelete(d *schema.ResourceData, meta interface
 
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		deleteErr := nasService.nasAPI.DeleteMountTarget(fileSystemId, mountTargetDomain)
+		deleteErr := nasService.GetAPI().DeleteMountTarget(fileSystemId, mountTargetDomain)
 		if deleteErr != nil {
 			if IsExpectedErrors(deleteErr, []string{"Forbidden.NasNotFound"}) {
 				return nil

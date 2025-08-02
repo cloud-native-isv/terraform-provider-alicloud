@@ -17,7 +17,7 @@ func (s *NasService) DescribeNasAccessRule(id string) (*aliyunNasAPI.AccessRule,
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "ParseResourceId", AlibabaCloudSdkGoERROR)
 	}
 
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	accessRule, err := nasAPI.GetAccessRule(accessGroupName, accessRuleId)
 	if err != nil {
@@ -31,7 +31,7 @@ func (s *NasService) DescribeNasAccessRule(id string) (*aliyunNasAPI.AccessRule,
 }
 
 func (s *NasService) CreateNasAccessRule(accessGroupName, sourceCidrIp, rwAccessType, userAccessType string, priority int32, fileSystemType, ipv6SourceCidrIp string) (*aliyunNasAPI.AccessRule, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	accessRule, err := nasAPI.CreateAccessRule(accessGroupName, sourceCidrIp, rwAccessType, userAccessType, priority, fileSystemType, ipv6SourceCidrIp)
 	if err != nil {
@@ -42,7 +42,7 @@ func (s *NasService) CreateNasAccessRule(accessGroupName, sourceCidrIp, rwAccess
 }
 
 func (s *NasService) UpdateNasAccessRule(accessGroupName, accessRuleId, sourceCidrIp, rwAccessType, userAccessType string, priority int32, fileSystemType, ipv6SourceCidrIp string) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.ModifyAccessRule(accessGroupName, accessRuleId, sourceCidrIp, rwAccessType, userAccessType, priority, fileSystemType, ipv6SourceCidrIp)
 	if err != nil {
@@ -53,7 +53,7 @@ func (s *NasService) UpdateNasAccessRule(accessGroupName, accessRuleId, sourceCi
 }
 
 func (s *NasService) DeleteNasAccessRule(accessGroupName, accessRuleId string) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.DeleteAccessRule(accessGroupName, accessRuleId)
 	if err != nil {
@@ -67,7 +67,7 @@ func (s *NasService) DeleteNasAccessRule(accessGroupName, accessRuleId string) e
 }
 
 func (s *NasService) ListNasAccessRules(accessGroupName string) ([]aliyunNasAPI.AccessRule, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	accessRules, err := nasAPI.ListAccessRules(accessGroupName)
 	if err != nil {

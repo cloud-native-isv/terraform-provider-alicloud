@@ -9,7 +9,7 @@ import (
 )
 
 func (s *FlinkService) CreateDeploymentDraft(workspaceID string, namespaceName string, draft *flinkAPI.DeploymentDraft) (*flinkAPI.DeploymentDraft, error) {
-	result, err := s.flinkAPI.CreateDeploymentDraft(workspaceID, namespaceName, draft)
+	result, err := s.GetAPI().CreateDeploymentDraft(workspaceID, namespaceName, draft)
 	if err == nil && result != nil {
 		addDebugJson("CreateDeploymentDraft", result)
 	}
@@ -17,11 +17,11 @@ func (s *FlinkService) CreateDeploymentDraft(workspaceID string, namespaceName s
 }
 
 func (s *FlinkService) GetDeploymentDraft(workspaceId string, namespaceName string, draftId string) (*flinkAPI.DeploymentDraft, error) {
-	return s.flinkAPI.GetDeploymentDraft(workspaceId, namespaceName, draftId)
+	return s.GetAPI().GetDeploymentDraft(workspaceId, namespaceName, draftId)
 }
 
 func (s *FlinkService) UpdateDeploymentDraft(workspaceId string, namespaceName string, draft *flinkAPI.DeploymentDraft) (*flinkAPI.DeploymentDraft, error) {
-	result, err := s.flinkAPI.UpdateDeploymentDraft(workspaceId, namespaceName, draft)
+	result, err := s.GetAPI().UpdateDeploymentDraft(workspaceId, namespaceName, draft)
 	if err == nil && result != nil {
 		addDebugJson("UpdateDeploymentDraft", result)
 	}
@@ -29,7 +29,7 @@ func (s *FlinkService) UpdateDeploymentDraft(workspaceId string, namespaceName s
 }
 
 func (s *FlinkService) DeleteDeploymentDraft(workspaceId string, namespaceName string, draftId string) error {
-	err := s.flinkAPI.DeleteDeploymentDraft(workspaceId, namespaceName, draftId)
+	err := s.GetAPI().DeleteDeploymentDraft(workspaceId, namespaceName, draftId)
 	if err == nil {
 		addDebugJson("DeleteDeploymentDraft", fmt.Sprintf("Draft %s deleted successfully", draftId))
 	}
@@ -37,7 +37,7 @@ func (s *FlinkService) DeleteDeploymentDraft(workspaceId string, namespaceName s
 }
 
 func (s *FlinkService) ListDeploymentDrafts(workspaceId, namespaceName string) ([]flinkAPI.DeploymentDraft, error) {
-	return s.flinkAPI.ListDeploymentDrafts(workspaceId, namespaceName)
+	return s.GetAPI().ListDeploymentDrafts(workspaceId, namespaceName)
 }
 
 func (s *FlinkService) FlinkDeploymentDraftStateRefreshFunc(workspaceId string, namespaceName string, draftId string, failStates []string) resource.StateRefreshFunc {

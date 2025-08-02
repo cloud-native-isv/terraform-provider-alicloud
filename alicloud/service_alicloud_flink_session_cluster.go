@@ -11,7 +11,7 @@ import (
 
 // CreateSessionCluster creates a new session cluster
 func (s *FlinkService) CreateSessionCluster(workspaceId string, namespaceName string, sessionCluster *flinkAPI.SessionCluster) (*flinkAPI.SessionCluster, error) {
-	return s.flinkAPI.CreateSessionCluster(workspaceId, namespaceName, sessionCluster)
+	return s.GetAPI().CreateSessionCluster(workspaceId, namespaceName, sessionCluster)
 }
 
 // DescribeSessionCluster retrieves a session cluster by name
@@ -21,32 +21,32 @@ func (s *FlinkService) DescribeSessionCluster(id string) (*flinkAPI.SessionClust
 		return nil, err
 	}
 
-	return s.flinkAPI.GetSessionCluster(workspaceId, namespaceName, sessionClusterName)
+	return s.GetAPI().GetSessionCluster(workspaceId, namespaceName, sessionClusterName)
 }
 
 // UpdateSessionCluster updates an existing session cluster
 func (s *FlinkService) UpdateSessionCluster(workspaceId string, namespaceName string, sessionClusterName string, sessionCluster *flinkAPI.SessionCluster) (*flinkAPI.SessionCluster, error) {
-	return s.flinkAPI.UpdateSessionCluster(workspaceId, namespaceName, sessionClusterName, sessionCluster)
+	return s.GetAPI().UpdateSessionCluster(workspaceId, namespaceName, sessionClusterName, sessionCluster)
 }
 
 // DeleteSessionCluster deletes a session cluster
 func (s *FlinkService) DeleteSessionCluster(workspaceId string, namespaceName string, sessionClusterName string) (*flinkAPI.SessionCluster, error) {
-	return s.flinkAPI.DeleteSessionCluster(workspaceId, namespaceName, sessionClusterName)
+	return s.GetAPI().DeleteSessionCluster(workspaceId, namespaceName, sessionClusterName)
 }
 
 // ListSessionClusters lists all session clusters in a namespace
 func (s *FlinkService) ListSessionClusters(workspaceId string, namespaceName string) ([]*flinkAPI.SessionCluster, error) {
-	return s.flinkAPI.ListSessionClusters(workspaceId, namespaceName)
+	return s.GetAPI().ListSessionClusters(workspaceId, namespaceName)
 }
 
 // StartSessionCluster starts a session cluster
 func (s *FlinkService) StartSessionCluster(workspaceId string, namespaceName string, sessionClusterName string) error {
-	return s.flinkAPI.StartSessionCluster(workspaceId, namespaceName, sessionClusterName)
+	return s.GetAPI().StartSessionCluster(workspaceId, namespaceName, sessionClusterName)
 }
 
 // StopSessionCluster stops a session cluster
 func (s *FlinkService) StopSessionCluster(workspaceId string, namespaceName string, sessionClusterName string) error {
-	return s.flinkAPI.StopSessionCluster(workspaceId, namespaceName, sessionClusterName)
+	return s.GetAPI().StopSessionCluster(workspaceId, namespaceName, sessionClusterName)
 }
 
 // SessionClusterStateRefreshFunc returns a StateRefreshFunc that tracks session cluster status

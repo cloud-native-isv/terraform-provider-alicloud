@@ -7,28 +7,28 @@ import (
 
 // Namespace methods
 func (s *FlinkService) ListNamespaces(workspaceId string) ([]aliyunFlinkAPI.Namespace, error) {
-	return s.flinkAPI.ListNamespaces(workspaceId)
+	return s.GetAPI().ListNamespaces(workspaceId)
 }
 
 func (s *FlinkService) CreateNamespace(workspaceId string, namespace *aliyunFlinkAPI.Namespace) (*aliyunFlinkAPI.Namespace, error) {
 	// Create namespace using the flinkAPI directly
-	result, err := s.flinkAPI.CreateNamespace(workspaceId, namespace)
+	result, err := s.GetAPI().CreateNamespace(workspaceId, namespace)
 	return result, err
 }
 
 func (s *FlinkService) GetNamespace(workspaceId, namespaceName string) (*aliyunFlinkAPI.Namespace, error) {
 	// Fetch the namespace using the API
-	return s.flinkAPI.GetNamespace(workspaceId, namespaceName)
+	return s.GetAPI().GetNamespace(workspaceId, namespaceName)
 }
 
 func (s *FlinkService) DeleteNamespace(workspaceId string, namespaceName string) error {
 	// Delete the namespace using flinkAPI
-	return s.flinkAPI.DeleteNamespace(workspaceId, namespaceName)
+	return s.GetAPI().DeleteNamespace(workspaceId, namespaceName)
 }
 
 func (s *FlinkService) UpdateNamespace(workspaceId string, namespace *aliyunFlinkAPI.Namespace) (*aliyunFlinkAPI.Namespace, error) {
 	// Update namespace using the flinkAPI directly
-	result, err := s.flinkAPI.UpdateNamespace(workspaceId, namespace)
+	result, err := s.GetAPI().UpdateNamespace(workspaceId, namespace)
 	return result, err
 }
 

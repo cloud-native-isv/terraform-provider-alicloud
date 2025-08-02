@@ -12,7 +12,7 @@ func (s *ArmsService) DescribeArmsAddonRelease(id string) (object map[string]int
 	if s.armsAPI != nil {
 		parts, err := ParseResourceId(id, 2)
 		if err == nil && len(parts) >= 2 {
-			addon, err := s.armsAPI.GetAddonRelease(parts[0], parts[1])
+			addon, err := s.GetAPI().GetAddonRelease(parts[0], parts[1])
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				return map[string]interface{}{
@@ -68,7 +68,7 @@ func (s *ArmsService) DescribeArmsEnvCustomJob(id string) (object map[string]int
 	if s.armsAPI != nil {
 		parts, err := ParseResourceId(id, 2)
 		if err == nil && len(parts) >= 2 {
-			customJob, err := s.armsAPI.GetEnvCustomJob(parts[0], parts[1])
+			customJob, err := s.GetAPI().GetEnvCustomJob(parts[0], parts[1])
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				return map[string]interface{}{
@@ -102,7 +102,7 @@ func (s *ArmsService) DescribeArmsEnvFeature(id string) (object map[string]inter
 	// if s.armsAPI != nil {
 	// 	parts, err := ParseResourceId(id, 2)
 	// 	if err == nil && len(parts) >= 2 {
-	// 		feature, err := s.armsAPI.GetEnvFeature(parts[0], parts[1])
+	// 		feature, err := s.GetAPI().GetEnvFeature(parts[0], parts[1])
 	// 		if err == nil {
 	// 			// Convert to map[string]interface{} format expected by Terraform
 	// 			return map[string]interface{}{
@@ -158,7 +158,7 @@ func (s *ArmsService) DescribeArmsEnvPodMonitor(id string) (object map[string]in
 	if s.armsAPI != nil {
 		parts, err := ParseResourceId(id, 3)
 		if err == nil && len(parts) >= 3 {
-			podMonitor, err := s.armsAPI.GetEnvPodMonitor(parts[0], parts[1], parts[2])
+			podMonitor, err := s.GetAPI().GetEnvPodMonitor(parts[0], parts[1], parts[2])
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				return map[string]interface{}{
@@ -194,7 +194,7 @@ func (s *ArmsService) DescribeArmsEnvServiceMonitor(id string) (object map[strin
 	if s.armsAPI != nil {
 		parts, err := ParseResourceId(id, 3)
 		if err == nil && len(parts) >= 3 {
-			serviceMonitor, err := s.armsAPI.GetEnvServiceMonitor(parts[0], parts[1], parts[2])
+			serviceMonitor, err := s.GetAPI().GetEnvServiceMonitor(parts[0], parts[1], parts[2])
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				return map[string]interface{}{
@@ -228,7 +228,7 @@ func (s *ArmsService) DescribeArmsEnvServiceMonitor(id string) (object map[strin
 func (s *ArmsService) DescribeArmsEnvironment(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
-		environment, err := s.armsAPI.GetEnvironment(id)
+		environment, err := s.GetAPI().GetEnvironment(id)
 		if err == nil {
 			// Convert to map[string]interface{} format expected by Terraform
 			return map[string]interface{}{

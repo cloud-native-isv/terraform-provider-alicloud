@@ -18,7 +18,7 @@ func (s *SlsService) DescribeSlsScheduledSQL(id string) (*aliyunSlsAPI.Scheduled
 	scheduledSQLName := parts[1]
 
 	// Get scheduled SQL from API
-	scheduledSQL, err := s.aliyunSlsAPI.GetScheduledSQL(projectName, scheduledSQLName)
+	scheduledSQL, err := s.GetAPI().GetScheduledSQL(projectName, scheduledSQLName)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "GetScheduledSQL", AlibabaCloudSdkGoERROR)
 	}
@@ -33,7 +33,7 @@ func (s *SlsService) DescribeSlsScheduledSQL(id string) (*aliyunSlsAPI.Scheduled
 // CreateSlsScheduledSQL creates a new scheduled SQL job
 func (s *SlsService) CreateSlsScheduledSQL(projectName string, scheduledSQL *aliyunSlsAPI.ScheduledSQL) error {
 	// Create scheduled SQL
-	err := s.aliyunSlsAPI.CreateScheduledSQL(projectName, scheduledSQL)
+	err := s.GetAPI().CreateScheduledSQL(projectName, scheduledSQL)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "CreateScheduledSQL", AlibabaCloudSdkGoERROR)
 	}
@@ -44,7 +44,7 @@ func (s *SlsService) CreateSlsScheduledSQL(projectName string, scheduledSQL *ali
 // UpdateSlsScheduledSQL updates an existing scheduled SQL job
 func (s *SlsService) UpdateSlsScheduledSQL(projectName string, scheduledSQLName string, scheduledSQL *aliyunSlsAPI.ScheduledSQL) error {
 	// Update scheduled SQL
-	err := s.aliyunSlsAPI.UpdateScheduledSQL(projectName, scheduledSQLName, scheduledSQL)
+	err := s.GetAPI().UpdateScheduledSQL(projectName, scheduledSQLName, scheduledSQL)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "UpdateScheduledSQL", AlibabaCloudSdkGoERROR)
 	}
@@ -55,7 +55,7 @@ func (s *SlsService) UpdateSlsScheduledSQL(projectName string, scheduledSQLName 
 // DeleteSlsScheduledSQL deletes a scheduled SQL job
 func (s *SlsService) DeleteSlsScheduledSQL(projectName string, scheduledSQLName string) error {
 	// Delete scheduled SQL
-	err := s.aliyunSlsAPI.DeleteScheduledSQL(projectName, scheduledSQLName)
+	err := s.GetAPI().DeleteScheduledSQL(projectName, scheduledSQLName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "DeleteScheduledSQL", AlibabaCloudSdkGoERROR)
 	}
@@ -66,7 +66,7 @@ func (s *SlsService) DeleteSlsScheduledSQL(projectName string, scheduledSQLName 
 // EnableSlsScheduledSQL enables a scheduled SQL job
 func (s *SlsService) EnableSlsScheduledSQL(projectName string, scheduledSQLName string) error {
 	// Enable scheduled SQL
-	err := s.aliyunSlsAPI.EnableScheduledSQL(projectName, scheduledSQLName)
+	err := s.GetAPI().EnableScheduledSQL(projectName, scheduledSQLName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "EnableScheduledSQL", AlibabaCloudSdkGoERROR)
 	}
@@ -77,7 +77,7 @@ func (s *SlsService) EnableSlsScheduledSQL(projectName string, scheduledSQLName 
 // DisableSlsScheduledSQL disables a scheduled SQL job
 func (s *SlsService) DisableSlsScheduledSQL(projectName string, scheduledSQLName string) error {
 	// Disable scheduled SQL
-	err := s.aliyunSlsAPI.DisableScheduledSQL(projectName, scheduledSQLName)
+	err := s.GetAPI().DisableScheduledSQL(projectName, scheduledSQLName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "DisableScheduledSQL", AlibabaCloudSdkGoERROR)
 	}
@@ -88,7 +88,7 @@ func (s *SlsService) DisableSlsScheduledSQL(projectName string, scheduledSQLName
 // ListSlsScheduledSQLs lists all scheduled SQL jobs in a project
 func (s *SlsService) ListSlsScheduledSQLs(projectName string, scheduledSQLName string, logstore string) ([]*aliyunSlsAPI.ScheduledSQL, error) {
 	// List scheduled SQLs
-	scheduledSQLs, err := s.aliyunSlsAPI.ListScheduledSQLs(projectName, scheduledSQLName, logstore)
+	scheduledSQLs, err := s.GetAPI().ListScheduledSQLs(projectName, scheduledSQLName, logstore)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "ListScheduledSQLs", AlibabaCloudSdkGoERROR)
 	}
@@ -109,7 +109,7 @@ func (s *SlsService) SlsScheduledSQLStateRefreshFunc(id string, field string, fa
 		scheduledSQLName := parts[1]
 
 		// Get scheduled SQL from API
-		scheduledSQL, err := s.aliyunSlsAPI.GetScheduledSQL(projectName, scheduledSQLName)
+		scheduledSQL, err := s.GetAPI().GetScheduledSQL(projectName, scheduledSQLName)
 		if err != nil {
 			if IsNotFoundError(err) {
 				return nil, "", nil

@@ -7,7 +7,7 @@ import (
 )
 
 func (s *NasService) EnableNasRecycleBin(fileSystemId string, reservedDays int64) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.EnableRecycleBin(fileSystemId, reservedDays)
 	if err != nil {
@@ -18,7 +18,7 @@ func (s *NasService) EnableNasRecycleBin(fileSystemId string, reservedDays int64
 }
 
 func (s *NasService) DisableAndCleanNasRecycleBin(fileSystemId string) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.DisableAndCleanRecycleBin(fileSystemId)
 	if err != nil {
@@ -29,7 +29,7 @@ func (s *NasService) DisableAndCleanNasRecycleBin(fileSystemId string) error {
 }
 
 func (s *NasService) GetNasRecycleBinAttribute(fileSystemId string) (*aliyunNasAPI.RecycleBinAttribute, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	attr, err := nasAPI.GetRecycleBinAttribute(fileSystemId)
 	if err != nil {
@@ -40,7 +40,7 @@ func (s *NasService) GetNasRecycleBinAttribute(fileSystemId string) (*aliyunNasA
 }
 
 func (s *NasService) UpdateNasRecycleBinAttribute(fileSystemId string, reservedDays int64) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.UpdateRecycleBinAttribute(fileSystemId, reservedDays)
 	if err != nil {
@@ -51,7 +51,7 @@ func (s *NasService) UpdateNasRecycleBinAttribute(fileSystemId string, reservedD
 }
 
 func (s *NasService) ListNasRecycledDirectoriesAndFiles(fileSystemId, nextToken, fileId string, maxResults int64) ([]aliyunNasAPI.RecycledDirectoryOrFile, string, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	entries, token, err := nasAPI.ListRecycledDirectoriesAndFiles(fileSystemId, nextToken, fileId, maxResults)
 	if err != nil {
@@ -62,7 +62,7 @@ func (s *NasService) ListNasRecycledDirectoriesAndFiles(fileSystemId, nextToken,
 }
 
 func (s *NasService) CreateNasRecycleBinRestoreJob(fileSystemId, fileId, targetFileId, clientToken string) (string, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	jobId, err := nasAPI.CreateRecycleBinRestoreJob(fileSystemId, fileId, targetFileId, clientToken)
 	if err != nil {
@@ -73,7 +73,7 @@ func (s *NasService) CreateNasRecycleBinRestoreJob(fileSystemId, fileId, targetF
 }
 
 func (s *NasService) CreateNasRecycleBinDeleteJob(fileSystemId, fileId, clientToken string) (string, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	jobId, err := nasAPI.CreateRecycleBinDeleteJob(fileSystemId, fileId, clientToken)
 	if err != nil {
@@ -84,7 +84,7 @@ func (s *NasService) CreateNasRecycleBinDeleteJob(fileSystemId, fileId, clientTo
 }
 
 func (s *NasService) ListNasRecycleBinJobs(fileSystemId, jobId, status string, pageNumber, pageSize int64) ([]aliyunNasAPI.RecycleBinJob, int64, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	jobs, totalCount, err := nasAPI.ListRecycleBinJobs(fileSystemId, jobId, status, pageNumber, pageSize)
 	if err != nil {
@@ -95,7 +95,7 @@ func (s *NasService) ListNasRecycleBinJobs(fileSystemId, jobId, status string, p
 }
 
 func (s *NasService) GetNasRecycleBinJob(fileSystemId, jobId string) (*aliyunNasAPI.RecycleBinJob, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	job, err := nasAPI.GetRecycleBinJob(fileSystemId, jobId)
 	if err != nil {
@@ -106,7 +106,7 @@ func (s *NasService) GetNasRecycleBinJob(fileSystemId, jobId string) (*aliyunNas
 }
 
 func (s *NasService) CancelNasRecycleBinJob(jobId string) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.CancelRecycleBinJob(jobId)
 	if err != nil {

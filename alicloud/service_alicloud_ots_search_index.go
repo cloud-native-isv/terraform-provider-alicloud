@@ -10,10 +10,7 @@ import (
 // Search Index management functions
 
 func (s *OtsService) CreateOtsSearchIndex(instanceName string, index *tablestoreAPI.TablestoreSearchIndex) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.CreateSearchIndex(instanceName, index); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, index.IndexName, "CreateSearchIndex", AlibabaCloudSdkGoERROR)
@@ -23,10 +20,7 @@ func (s *OtsService) CreateOtsSearchIndex(instanceName string, index *tablestore
 }
 
 func (s *OtsService) DescribeOtsSearchIndex(instanceName, tableName, indexName string) (*tablestoreAPI.TablestoreSearchIndex, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	api := s.GetAPI()
 
 	index, err := api.GetSearchIndex(instanceName, tableName, indexName)
 	if err != nil {
@@ -37,10 +31,7 @@ func (s *OtsService) DescribeOtsSearchIndex(instanceName, tableName, indexName s
 }
 
 func (s *OtsService) UpdateOtsSearchIndex(instanceName string, index *tablestoreAPI.TablestoreSearchIndex) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.UpdateSearchIndex(instanceName, index); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, index.IndexName, "UpdateSearchIndex", AlibabaCloudSdkGoERROR)
@@ -50,10 +41,7 @@ func (s *OtsService) UpdateOtsSearchIndex(instanceName string, index *tablestore
 }
 
 func (s *OtsService) DeleteOtsSearchIndex(instanceName string, index *tablestoreAPI.TablestoreSearchIndex) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.DeleteSearchIndex(instanceName, index); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, index.IndexName, "DeleteSearchIndex", AlibabaCloudSdkGoERROR)
@@ -63,10 +51,7 @@ func (s *OtsService) DeleteOtsSearchIndex(instanceName string, index *tablestore
 }
 
 func (s *OtsService) ListOtsSearchIndexes(instanceName, tableName string) ([]*tablestoreAPI.TablestoreSearchIndex, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	api := s.GetAPI()
 
 	indexes, err := api.ListSearchIndexes(instanceName, tableName)
 	if err != nil {

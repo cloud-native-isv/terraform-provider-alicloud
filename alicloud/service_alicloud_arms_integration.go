@@ -15,7 +15,7 @@ func (s *ArmsService) DescribeArmsIntegration(id string) (object map[string]inte
 		// Convert string ID to int64
 		integrationIdInt, parseErr := strconv.ParseInt(id, 10, 64)
 		if parseErr == nil {
-			integration, err := s.armsAPI.GetIntegrationById(integrationIdInt, true)
+			integration, err := s.GetAPI().GetIntegrationById(integrationIdInt, true)
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				result := map[string]interface{}{
@@ -81,7 +81,7 @@ func (s *ArmsService) DescribeArmsIntegration(id string) (object map[string]inte
 func (s *ArmsService) ListArmsIntegrations() (objects []interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
-		integrations, err := s.armsAPI.ListAllIntegrations(1, PageSizeXLarge)
+		integrations, err := s.GetAPI().ListAllIntegrations(1, PageSizeXLarge)
 		if err == nil {
 			// Convert to the format expected by Terraform
 			var result []interface{}

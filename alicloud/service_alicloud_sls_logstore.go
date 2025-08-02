@@ -24,11 +24,7 @@ func (s *SlsService) DescribeLogStoreById(id string) (*aliyunSlsAPI.LogStore, er
 
 // DescribeLogStore returns LogStore information using structured data
 func (s *SlsService) DescribeLogStore(projectName, logstoreName string) (*aliyunSlsAPI.LogStore, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	logstore, err := s.aliyunSlsAPI.GetLogStore(projectName, logstoreName)
+	logstore, err := s.GetAPI().GetLogStore(projectName, logstoreName)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, logstoreName, "GetLogStore", AlibabaCloudSdkGoERROR)
 	}
@@ -38,10 +34,6 @@ func (s *SlsService) DescribeLogStore(projectName, logstoreName string) (*aliyun
 
 // DescribeGetLogStoreMeteringMode returns LogStore metering mode information using structured data
 func (s *SlsService) DescribeGetLogStoreMeteringMode(id string) (*aliyunSlsAPI.LogStoreMeteringMode, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	parts := strings.Split(id, ":")
 	if len(parts) != 2 {
 		return nil, WrapError(fmt.Errorf("invalid Resource Id %s. Expected parts' length %d, got %d", id, 2, len(parts)))
@@ -50,7 +42,7 @@ func (s *SlsService) DescribeGetLogStoreMeteringMode(id string) (*aliyunSlsAPI.L
 	projectName := parts[0]
 	logstoreName := parts[1]
 
-	meteringMode, err := s.aliyunSlsAPI.GetLogStoreMeteringMode(projectName, logstoreName)
+	meteringMode, err := s.GetAPI().GetLogStoreMeteringMode(projectName, logstoreName)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("LogStore", id), NotFoundMsg, "")
@@ -141,25 +133,21 @@ func (s *SlsService) LogStoreStateRefreshFunc(id string, field string, failState
 
 // ListLogStores encapsulates the call to aliyunSlsAPI.ListLogStores
 func (s *SlsService) ListLogStores(project, logstoreName, mode, telemetryType string) ([]*aliyunSlsAPI.LogStore, error) {
-	return s.aliyunSlsAPI.ListLogStores(project, logstoreName, mode, telemetryType)
+	return s.GetAPI().ListLogStores(project, logstoreName, mode, telemetryType)
 }
 
 // GetLogStore encapsulates the call to aliyunSlsAPI.GetLogStore
 func (s *SlsService) GetLogStore(project, logstore string) (*aliyunSlsAPI.LogStore, error) {
-	return s.aliyunSlsAPI.GetLogStore(project, logstore)
+	return s.GetAPI().GetLogStore(project, logstore)
 }
 
 // CreateLogStore encapsulates the call to aliyunSlsAPI.CreateLogStore
 func (s *SlsService) CreateLogStore(project string, logstore *aliyunSlsAPI.LogStore) error {
-	return s.aliyunSlsAPI.CreateLogStore(project, logstore)
+	return s.GetAPI().CreateLogStore(project, logstore)
 }
 
 // CreateLogStoreIfNotExist creates a logstore if it does not exist
 func (s *SlsService) CreateLogStoreIfNotExist(projectName string, logstore *aliyunSlsAPI.LogStore) (*aliyunSlsAPI.LogStore, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	if logstore == nil {
 		return nil, fmt.Errorf("logstore parameter cannot be nil")
 	}
@@ -169,11 +157,11 @@ func (s *SlsService) CreateLogStoreIfNotExist(projectName string, logstore *aliy
 	}
 
 	// Check if logstore exists
-	_, err := s.aliyunSlsAPI.GetLogStore(projectName, logstore.LogstoreName)
+	_, err := s.GetAPI().GetLogStore(projectName, logstore.LogstoreName)
 	if err != nil {
 		if IsNotFoundError(err) {
 			// Logstore doesn't exist, create it with provided configuration
-			if err := s.aliyunSlsAPI.CreateLogStore(projectName, logstore); err != nil {
+			if err := s.GetAPI().CreateLogStore(projectName, logstore); err != nil {
 				return nil, WrapErrorf(err, DefaultErrorMsg, logstore.LogstoreName, "CreateLogStore", AlibabaCloudSdkGoERROR)
 			}
 			// Return the created logstore
@@ -189,35 +177,35 @@ func (s *SlsService) CreateLogStoreIfNotExist(projectName string, logstore *aliy
 
 // UpdateLogStore encapsulates the call to aliyunSlsAPI.UpdateLogStore
 func (s *SlsService) UpdateLogStore(project, logstoreName string, logstore *aliyunSlsAPI.LogStore) error {
-	return s.aliyunSlsAPI.UpdateLogStore(project, logstoreName, logstore)
+	return s.GetAPI().UpdateLogStore(project, logstoreName, logstore)
 }
 
 // DeleteLogStore encapsulates the call to aliyunSlsAPI.DeleteLogStore
 func (s *SlsService) DeleteLogStore(project, logstoreName string) error {
-	return s.aliyunSlsAPI.DeleteLogStore(project, logstoreName)
+	return s.GetAPI().DeleteLogStore(project, logstoreName)
 }
 
 // UpdateLogStoreMeteringMode encapsulates the call to aliyunSlsAPI.UpdateLogStoreMeteringMode
 func (s *SlsService) UpdateLogStoreMeteringMode(project, logstoreName string, meteringMode *aliyunSlsAPI.LogStoreMeteringMode) error {
-	return s.aliyunSlsAPI.UpdateLogStoreMeteringMode(project, logstoreName, meteringMode)
+	return s.GetAPI().UpdateLogStoreMeteringMode(project, logstoreName, meteringMode)
 }
 
 // GetLogStoreShards encapsulates the call to aliyunSlsAPI.ListLogStoreShards
 func (s *SlsService) GetLogStoreShards(project, logstoreName string) ([]*aliyunSlsAPI.LogStoreShard, error) {
-	return s.aliyunSlsAPI.ListLogStoreShards(project, logstoreName)
+	return s.GetAPI().ListLogStoreShards(project, logstoreName)
 }
 
 // GetLogStoreShard encapsulates the call to aliyunSlsAPI.GetLogStoreShard
 func (s *SlsService) GetLogStoreShard(project, logstoreName string, shardId int32) (*aliyunSlsAPI.LogStoreShard, error) {
-	return s.aliyunSlsAPI.GetLogStoreShard(project, logstoreName, shardId)
+	return s.GetAPI().GetLogStoreShard(project, logstoreName, shardId)
 }
 
 // SplitLogStoreShard encapsulates the call to aliyunSlsAPI.SplitLogStoreShard
 func (s *SlsService) SplitLogStoreShard(project, logstoreName string, shardId int32, splitKey string) ([]*aliyunSlsAPI.LogStoreShard, error) {
-	return s.aliyunSlsAPI.SplitLogStoreShard(project, logstoreName, shardId, splitKey)
+	return s.GetAPI().SplitLogStoreShard(project, logstoreName, shardId, splitKey)
 }
 
 // MergeLogStoreShards encapsulates the call to aliyunSlsAPI.MergeLogStoreShards
 func (s *SlsService) MergeLogStoreShards(project, logstoreName string, shardId int32) ([]*aliyunSlsAPI.LogStoreShard, error) {
-	return s.aliyunSlsAPI.MergeLogStoreShards(project, logstoreName, shardId)
+	return s.GetAPI().MergeLogStoreShards(project, logstoreName, shardId)
 }

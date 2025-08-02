@@ -39,7 +39,7 @@ func (s *FlinkService) DescribeFlinkJob(id string) (*aliyunFlinkAPI.Job, error) 
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "DecodeJobId", AlibabaCloudSdkGoERROR)
 	}
 
-	job, err := s.flinkAPI.GetJob(workspaceId, namespaceName, jobId)
+	job, err := s.GetAPI().GetJob(workspaceId, namespaceName, jobId)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetJob", AlibabaCloudSdkGoERROR)
 	}
@@ -59,7 +59,7 @@ func (s *FlinkService) StartJob(params *aliyunFlinkAPI.JobStartParameters) (*ali
 		return nil, fmt.Errorf("Namespace is required in JobStartParameters")
 	}
 
-	job, err := s.flinkAPI.StartJob(params)
+	job, err := s.GetAPI().StartJob(params)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%s:%s", params.WorkspaceId, params.Namespace), "StartJob", AlibabaCloudSdkGoERROR)
 	}
@@ -82,7 +82,7 @@ func (s *FlinkService) UpdateJob(stateId string, updateParams *aliyunFlinkAPI.Ho
 		return nil, WrapErrorf(err, DefaultErrorMsg, stateId, "DecodeJobId", AlibabaCloudSdkGoERROR)
 	}
 
-	result, err := s.flinkAPI.UpdateJob(workspaceId, namespaceName, jobId, updateParams)
+	result, err := s.GetAPI().UpdateJob(workspaceId, namespaceName, jobId, updateParams)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, stateId, "UpdateJob", AlibabaCloudSdkGoERROR)
 	}
@@ -102,7 +102,7 @@ func (s *FlinkService) StopJob(stateId string, withSavepoint bool) error {
 	}
 
 	// First get the current job status
-	job, err := s.flinkAPI.GetJob(workspaceId, namespaceName, jobId)
+	job, err := s.GetAPI().GetJob(workspaceId, namespaceName, jobId)
 	if err != nil {
 		if IsNotFoundError(err) {
 			// Job doesn't exist, no need to stop
@@ -115,7 +115,7 @@ func (s *FlinkService) StopJob(stateId string, withSavepoint bool) error {
 	if job != nil {
 		jobStatus := job.GetStatus()
 		if jobStatus == aliyunFlinkAPI.FlinkJobStatusRunning.String() {
-			err = s.flinkAPI.StopJob(workspaceId, namespaceName, jobId, withSavepoint)
+			err = s.GetAPI().StopJob(workspaceId, namespaceName, jobId, withSavepoint)
 			if err != nil {
 				return WrapErrorf(err, DefaultErrorMsg, stateId, "StopJob", AlibabaCloudSdkGoERROR)
 			}
@@ -137,7 +137,7 @@ func (s *FlinkService) DeleteJob(stateId string) error {
 		return WrapErrorf(err, DefaultErrorMsg, stateId, "DecodeJobId", AlibabaCloudSdkGoERROR)
 	}
 
-	err = s.flinkAPI.DeleteJob(workspaceId, namespaceName, jobId)
+	err = s.GetAPI().DeleteJob(workspaceId, namespaceName, jobId)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, stateId, "DeleteJob", AlibabaCloudSdkGoERROR)
 	}
@@ -154,7 +154,7 @@ func (s *FlinkService) ListJobs(workspaceId, namespaceName, deploymentId string)
 		return nil, fmt.Errorf("namespaceName cannot be empty")
 	}
 
-	jobs, err := s.flinkAPI.ListJobs(workspaceId, namespaceName, deploymentId)
+	jobs, err := s.GetAPI().ListJobs(workspaceId, namespaceName, deploymentId)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%s:%s", workspaceId, namespaceName), "ListJobs", AlibabaCloudSdkGoERROR)
 	}

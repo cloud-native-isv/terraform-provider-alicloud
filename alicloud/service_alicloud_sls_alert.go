@@ -18,13 +18,9 @@ func (s *SlsService) CreateSlsAlert(projectName string, alert *aliyunSlsAPI.Aler
 	if alert == nil {
 		return WrapError(fmt.Errorf("alert cannot be nil"))
 	}
+	slsAPI := s.GetAPI()
 
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
-
-	err = slsAPI.CreateAlert(projectName, alert)
+	err := slsAPI.CreateAlert(projectName, alert)
 	if err == nil {
 		addDebugJson("CreateSlsAlert", alert)
 	} else {
@@ -43,10 +39,7 @@ func (s *SlsService) GetSlsAlert(projectName string, alertName string) (*aliyunS
 		return nil, WrapError(fmt.Errorf("alert name is required"))
 	}
 
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	// Get the alert
 	alert, err := slsAPI.GetAlert(projectName, alertName)
@@ -68,14 +61,10 @@ func (s *SlsService) UpdateSlsAlert(projectName string, alertName string, alert 
 	if alert == nil {
 		return WrapError(fmt.Errorf("alert cannot be nil"))
 	}
-
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	// Update the alert
-	err = slsAPI.UpdateAlert(projectName, alertName, alert)
+	err := slsAPI.UpdateAlert(projectName, alertName, alert)
 	if err != nil {
 		return WrapError(fmt.Errorf("failed to update alert %s: %w", alertName, err))
 	}
@@ -91,14 +80,10 @@ func (s *SlsService) DeleteSlsAlert(projectName string, alertName string) error 
 	if alertName == "" {
 		return WrapError(fmt.Errorf("alert name is required"))
 	}
-
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	// Delete the alert
-	err = slsAPI.DeleteAlert(projectName, alertName)
+	err := slsAPI.DeleteAlert(projectName, alertName)
 	if err != nil {
 		return WrapError(fmt.Errorf("failed to delete alert %s: %w", alertName, err))
 	}
@@ -112,10 +97,7 @@ func (s *SlsService) ListSlsAlerts(projectName string, pagination *common.Pagina
 		return nil, WrapError(fmt.Errorf("project name is required"))
 	}
 
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	// List alerts
 	alerts, err := slsAPI.ListAlerts(projectName, pagination)
@@ -134,14 +116,10 @@ func (s *SlsService) EnableSlsAlert(projectName string, alertName string) error 
 	if alertName == "" {
 		return WrapError(fmt.Errorf("alert name is required"))
 	}
-
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	// Enable the alert
-	err = slsAPI.EnableAlert(projectName, alertName)
+	err := slsAPI.EnableAlert(projectName, alertName)
 	if err != nil {
 		return WrapError(fmt.Errorf("failed to enable alert %s: %w", alertName, err))
 	}
@@ -157,14 +135,10 @@ func (s *SlsService) DisableSlsAlert(projectName string, alertName string) error
 	if alertName == "" {
 		return WrapError(fmt.Errorf("alert name is required"))
 	}
-
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	// Disable the alert
-	err = slsAPI.DisableAlert(projectName, alertName)
+	err := slsAPI.DisableAlert(projectName, alertName)
 	if err != nil {
 		return WrapError(fmt.Errorf("failed to disable alert %s: %w", alertName, err))
 	}

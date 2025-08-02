@@ -20,7 +20,7 @@ func (s *NasService) DescribeNasAccessGroup(id string) (accessGroup *aliyunNasAP
 	accessGroupName := parts[0]
 	fileSystemType := parts[1]
 
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	// List access groups and find the specific one
 	accessGroups, err := nasAPI.ListAccessGroups()
@@ -85,7 +85,7 @@ func (s *NasService) NasAccessGroupStateRefreshFunc(id string, field string, fai
 }
 
 func (s *NasService) CreateNasAccessGroup(request *aliyunNasAPI.AccessGroup) (*aliyunNasAPI.AccessGroup, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	accessGroup, err := nasAPI.CreateAccessGroup(request)
 	if err != nil {
@@ -96,7 +96,7 @@ func (s *NasService) CreateNasAccessGroup(request *aliyunNasAPI.AccessGroup) (*a
 }
 
 func (s *NasService) UpdateNasAccessGroup(accessGroupName string, request *aliyunNasAPI.AccessGroup) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.ModifyAccessGroup(accessGroupName, request)
 	if err != nil {
@@ -107,7 +107,7 @@ func (s *NasService) UpdateNasAccessGroup(accessGroupName string, request *aliyu
 }
 
 func (s *NasService) DeleteNasAccessGroup(accessGroupName string) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.DeleteAccessGroup(accessGroupName)
 	if err != nil {
@@ -121,7 +121,7 @@ func (s *NasService) DeleteNasAccessGroup(accessGroupName string) error {
 }
 
 func (s *NasService) CreateNasAccessPoint(fileSystemId, accessPointName, accessGroup, rootPath string, enabledRam bool, vpcId, vSwitchId string, ownerUid, ownerGid int64, permission string, posixUser *aliyunNasAPI.PosixUser) (*aliyunNasAPI.AccessPoint, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	accessPoint, err := nasAPI.CreateAccessPoint(fileSystemId, accessPointName, accessGroup, rootPath, enabledRam, vpcId, vSwitchId, ownerUid, ownerGid, permission, posixUser)
 	if err != nil {
@@ -132,7 +132,7 @@ func (s *NasService) CreateNasAccessPoint(fileSystemId, accessPointName, accessG
 }
 
 func (s *NasService) UpdateNasAccessPoint(fileSystemId, accessPointId, accessPointName, accessGroup string, enabledRam bool) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.ModifyAccessPoint(fileSystemId, accessPointId, accessPointName, accessGroup, enabledRam)
 	if err != nil {
@@ -143,7 +143,7 @@ func (s *NasService) UpdateNasAccessPoint(fileSystemId, accessPointId, accessPoi
 }
 
 func (s *NasService) DeleteNasAccessPoint(fileSystemId, accessPointId string) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.DeleteAccessPoint(fileSystemId, accessPointId)
 	if err != nil {
@@ -184,7 +184,7 @@ func (s *NasService) NasAccessPointStateRefreshFunc(id string, failStates []stri
 }
 
 func (s *NasService) DescribeNasAccessPoint(fileSystemId, accessPointId string) (accessPoint *aliyunNasAPI.AccessPoint, err error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	accessPoint, err = nasAPI.GetAccessPoint(fileSystemId, accessPointId)
 	if err != nil {

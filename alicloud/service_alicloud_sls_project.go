@@ -13,11 +13,7 @@ import (
 // DescribeLogProject <<< Encapsulated get interface for Sls Project.
 
 func (s *SlsService) DescribeLogProject(id string) (*aliyunSlsAPI.LogProject, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	project, err := s.aliyunSlsAPI.GetLogProject(id)
+	project, err := s.GetAPI().GetLogProject(id)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetProject", AlibabaCloudSdkGoERROR)
 	}
@@ -26,11 +22,7 @@ func (s *SlsService) DescribeLogProject(id string) (*aliyunSlsAPI.LogProject, er
 }
 
 func (s *SlsService) DescribeListTagResources(id string) (object map[string]interface{}, err error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	tagResources, err := s.aliyunSlsAPI.ListTagResources("PROJECT", []string{id}, nil)
+	tagResources, err := s.GetAPI().ListTagResources("PROJECT", []string{id}, nil)
 	if err != nil {
 		if strings.Contains(err.Error(), "ProjectNotExist") {
 			return object, WrapErrorf(NotFoundErr("Project", id), NotFoundMsg, "")
@@ -116,10 +108,6 @@ func (s *SlsService) LogProjectStateRefreshFunc(id string, field string, failSta
 
 // SetResourceTags <<< Encapsulated tag function for Sls.
 func (s *SlsService) SetResourceTags(d *schema.ResourceData, resourceType string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	return nil
 }
 
@@ -127,10 +115,6 @@ func (s *SlsService) SetResourceTags(d *schema.ResourceData, resourceType string
 
 // CreateProjectIfNotExist creates a project if it does not exist
 func (s *SlsService) CreateProjectIfNotExist(project *aliyunSlsAPI.LogProject) (*aliyunSlsAPI.LogProject, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	if project == nil {
 		return nil, fmt.Errorf("project parameter cannot be nil")
 	}
@@ -162,11 +146,7 @@ func (s *SlsService) CreateProjectIfNotExist(project *aliyunSlsAPI.LogProject) (
 
 // CreateProject creates a new SLS project
 func (s *SlsService) CreateProject(project *aliyunSlsAPI.LogProject) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.CreateLogProject(project)
+	err := s.GetAPI().CreateLogProject(project)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, project.ProjectName, "CreateProject", AlibabaCloudSdkGoERROR)
 	}
@@ -175,10 +155,6 @@ func (s *SlsService) CreateProject(project *aliyunSlsAPI.LogProject) error {
 
 // UpdateProject updates an existing SLS project
 func (s *SlsService) UpdateProject(request map[string]interface{}) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	projectName := request["projectName"].(string)
 	project := &aliyunSlsAPI.LogProject{}
 
@@ -186,7 +162,7 @@ func (s *SlsService) UpdateProject(request map[string]interface{}) error {
 		project.Description = description.(string)
 	}
 
-	err := s.aliyunSlsAPI.UpdateLogProject(projectName, project)
+	err := s.GetAPI().UpdateLogProject(projectName, project)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "UpdateProject", AlibabaCloudSdkGoERROR)
 	}
@@ -195,14 +171,10 @@ func (s *SlsService) UpdateProject(request map[string]interface{}) error {
 
 // ChangeResourceGroup changes the resource group of an SLS project
 func (s *SlsService) ChangeResourceGroup(request map[string]interface{}) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	resourceId := request["resourceId"].(string)
 	resourceGroupId := request["resourceGroupId"].(string)
 
-	err := s.aliyunSlsAPI.ChangeResourceGroup(resourceId, resourceGroupId)
+	err := s.GetAPI().ChangeResourceGroup(resourceId, resourceGroupId)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, resourceId, "ChangeResourceGroup", AlibabaCloudSdkGoERROR)
 	}
@@ -211,11 +183,7 @@ func (s *SlsService) ChangeResourceGroup(request map[string]interface{}) error {
 
 // UpdateProjectPolicy updates the policy of an SLS project
 func (s *SlsService) UpdateProjectPolicy(projectName string, policy string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.UpdateProjectPolicy(projectName, policy)
+	err := s.GetAPI().UpdateProjectPolicy(projectName, policy)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "UpdateProjectPolicy", AlibabaCloudSdkGoERROR)
 	}
@@ -224,11 +192,7 @@ func (s *SlsService) UpdateProjectPolicy(projectName string, policy string) erro
 
 // DeleteProject deletes an SLS project
 func (s *SlsService) DeleteProject(projectName string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.DeleteLogProject(projectName, false)
+	err := s.GetAPI().DeleteLogProject(projectName, false)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "DeleteProject", AlibabaCloudSdkGoERROR)
 	}
@@ -237,11 +201,7 @@ func (s *SlsService) DeleteProject(projectName string) error {
 
 // ListProjects lists SLS projects - alias for ListLogProjects for compatibility
 func (s *SlsService) ListProjects() ([]*aliyunSlsAPI.LogProject, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	projects, err := s.aliyunSlsAPI.ListLogProjects("", "")
+	projects, err := s.GetAPI().ListLogProjects("", "")
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, "", "ListLogProjects", AlibabaCloudSdkGoERROR)
 	}

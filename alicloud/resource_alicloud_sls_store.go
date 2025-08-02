@@ -224,7 +224,7 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 
 		logstore := buildLogStore(d)
 		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			err := slsService.aliyunSlsAPI.CreateLogStore(projectName, logstore)
+			err := slsService.GetAPI().CreateLogStore(projectName, logstore)
 			if err != nil {
 				// Handle LogStoreAlreadyExist error by importing existing resource
 				if IsExpectedErrors(err, []string{"LogStoreAlreadyExist"}) {
@@ -596,7 +596,7 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			err := slsService.aliyunSlsAPI.UpdateLogStore(projectName, logstore.LogstoreName, logstore)
+			err := slsService.GetAPI().UpdateLogStore(projectName, logstore.LogstoreName, logstore)
 			if err != nil {
 				if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
 					time.Sleep(10 * time.Second)

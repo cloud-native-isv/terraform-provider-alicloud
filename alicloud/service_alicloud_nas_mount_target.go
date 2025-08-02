@@ -10,7 +10,7 @@ import (
 )
 
 func (s *NasService) CreateNasMountTarget(fileSystemId string, mountTarget *aliyunNasAPI.MountTarget) (*aliyunNasAPI.MountTarget, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	createdMountTarget, err := nasAPI.CreateMountTarget(fileSystemId, mountTarget)
 	if err != nil {
@@ -21,7 +21,7 @@ func (s *NasService) CreateNasMountTarget(fileSystemId string, mountTarget *aliy
 }
 
 func (s *NasService) DeleteNasMountTarget(fileSystemId, mountTargetDomain string) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.DeleteMountTarget(fileSystemId, mountTargetDomain)
 	if err != nil {
@@ -40,7 +40,7 @@ func (s *NasService) DescribeNasMountTarget(id string) (*aliyunNasAPI.MountTarge
 	fileSystemId := parts[0]
 	mountTargetDomain := parts[1]
 
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	mountTargets, err := nasAPI.ListMountTargets(fileSystemId, mountTargetDomain)
 	if err != nil {
@@ -60,7 +60,7 @@ func (s *NasService) DescribeNasMountTarget(id string) (*aliyunNasAPI.MountTarge
 }
 
 func (s *NasService) ListNasMountTargets(fileSystemId string) ([]aliyunNasAPI.MountTarget, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	mountTargets, err := nasAPI.ListMountTargets(fileSystemId, "")
 	if err != nil {
@@ -71,7 +71,7 @@ func (s *NasService) ListNasMountTargets(fileSystemId string) ([]aliyunNasAPI.Mo
 }
 
 func (s *NasService) UpdateNasMountTarget(fileSystemId, mountTargetDomain, accessGroupName, status string) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.ModifyMountTarget(fileSystemId, mountTargetDomain, accessGroupName, status)
 	if err != nil {

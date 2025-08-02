@@ -17,7 +17,7 @@ func (s *SelectDBService) CreateSelectDBElasticRule(options *selectdb.CreateElas
 		return nil, WrapError(fmt.Errorf("create elastic rule options cannot be nil"))
 	}
 
-	result, err := s.selectdbAPI.CreateElasticRule(options)
+	result, err := s.GetAPI().CreateElasticRule(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -44,7 +44,7 @@ func (s *SelectDBService) DescribeSelectDBElasticRule(dbClusterId, dbInstanceId,
 		RuleId:       ruleId,
 	}
 
-	result, err := s.selectdbAPI.ListElasticRules(options)
+	result, err := s.GetAPI().ListElasticRules(options)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -68,7 +68,7 @@ func (s *SelectDBService) DescribeSelectDBElasticRules(options *selectdb.ListEla
 		return nil, WrapError(fmt.Errorf("list elastic rules options cannot be nil"))
 	}
 
-	result, err := s.selectdbAPI.ListElasticRules(options)
+	result, err := s.GetAPI().ListElasticRules(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -82,7 +82,7 @@ func (s *SelectDBService) ModifySelectDBElasticRule(options *selectdb.ModifyElas
 		return nil, WrapError(fmt.Errorf("modify elastic rule options cannot be nil"))
 	}
 
-	result, err := s.selectdbAPI.ModifyElasticRule(options)
+	result, err := s.GetAPI().ModifyElasticRule(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -105,7 +105,7 @@ func (s *SelectDBService) DeleteSelectDBElasticRule(dbClusterId, dbInstanceId, p
 		return WrapError(fmt.Errorf("rule ID must be positive"))
 	}
 
-	err := s.selectdbAPI.DeleteElasticRule(dbClusterId, dbInstanceId, product, ruleId, regionId...)
+	err := s.GetAPI().DeleteElasticRule(dbClusterId, dbInstanceId, product, ruleId, regionId...)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil // Rule already deleted
@@ -122,7 +122,7 @@ func (s *SelectDBService) EnableSelectDBElasticRule(options *selectdb.EnableDisa
 		return nil, WrapError(fmt.Errorf("enable/disable elastic rule options cannot be nil"))
 	}
 
-	result, err := s.selectdbAPI.EnableDisableElasticRule(options)
+	result, err := s.GetAPI().EnableDisableElasticRule(options)
 	if err != nil {
 		return nil, WrapError(err)
 	}

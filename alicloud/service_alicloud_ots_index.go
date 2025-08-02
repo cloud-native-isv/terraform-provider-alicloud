@@ -13,10 +13,7 @@ import (
 // Secondary Index management functions
 
 func (s *OtsService) CreateOtsIndex(instanceName string, index *tablestoreAPI.TablestoreIndex) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.CreateIndex(instanceName, index); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, index.IndexName, "CreateIndex", AlibabaCloudSdkGoERROR)
@@ -26,10 +23,7 @@ func (s *OtsService) CreateOtsIndex(instanceName string, index *tablestoreAPI.Ta
 }
 
 func (s *OtsService) DescribeOtsIndex(instanceName, tableName, indexName string) (*tablestoreAPI.TablestoreIndex, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	api := s.GetAPI()
 
 	index, err := api.GetIndex(instanceName, tableName, indexName)
 	if err != nil {
@@ -40,10 +34,7 @@ func (s *OtsService) DescribeOtsIndex(instanceName, tableName, indexName string)
 }
 
 func (s *OtsService) DeleteOtsIndex(instanceName string, index *tablestoreAPI.TablestoreIndex) error {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	api := s.GetAPI()
 
 	if err := api.DeleteIndex(instanceName, index); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, index.IndexName, "DeleteIndex", AlibabaCloudSdkGoERROR)
@@ -114,10 +105,7 @@ func (s *OtsService) OtsIndexStateRefreshFunc(instanceName, tableName, indexName
 }
 
 func (s *OtsService) ListOtsIndex(instanceName, tableName string) ([]*tablestoreSDK.IndexMeta, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	api := s.GetAPI()
 
 	indexes, err := api.ListIndexes(instanceName, tableName)
 	if err != nil {
@@ -136,10 +124,7 @@ func (s *OtsService) ListOtsIndex(instanceName, tableName string) ([]*tablestore
 }
 
 func (s *OtsService) ListOtsIndexes(instanceName, tableName string) ([]*tablestoreAPI.TablestoreIndex, error) {
-	api, err := s.getTablestoreAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	api := s.GetAPI()
 
 	indexes, err := api.ListIndexes(instanceName, tableName)
 	if err != nil {

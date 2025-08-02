@@ -26,37 +26,37 @@ func (s *FlinkService) ParseDeploymentFolderId(id string) (workspaceId, namespac
 
 // CreateDeploymentFolder creates a new deployment folder
 func (s *FlinkService) CreateDeploymentFolder(workspaceId, namespace, folderName, parentId string) (*aliyunFlinkAPI.DeploymentFolder, error) {
-	return s.flinkAPI.CreateDeploymentFolder(workspaceId, namespace, folderName, parentId)
+	return s.GetAPI().CreateDeploymentFolder(workspaceId, namespace, folderName, parentId)
 }
 
 // GetDeploymentRootFolder retrieves the root deployment folder for a namespace
 func (s *FlinkService) GetDeploymentRootFolder(workspaceId, namespace string) (*aliyunFlinkAPI.DeploymentFolder, error) {
-	return s.flinkAPI.GetDeploymentRootFolder(workspaceId, namespace)
+	return s.GetAPI().GetDeploymentRootFolder(workspaceId, namespace)
 }
 
 // GetDeploymentFolder retrieves a deployment folder by ID
 func (s *FlinkService) GetDeploymentFolder(workspaceId, namespace, folderId string) (*aliyunFlinkAPI.DeploymentFolder, error) {
-	return s.flinkAPI.GetDeploymentFolder(workspaceId, namespace, folderId)
+	return s.GetAPI().GetDeploymentFolder(workspaceId, namespace, folderId)
 }
 
 // UpdateDeploymentFolder updates a deployment folder's properties
 func (s *FlinkService) UpdateDeploymentFolder(workspaceId, namespace, folderId, newName string) (*aliyunFlinkAPI.DeploymentFolder, error) {
-	return s.flinkAPI.UpdateDeploymentFolder(workspaceId, namespace, folderId, newName)
+	return s.GetAPI().UpdateDeploymentFolder(workspaceId, namespace, folderId, newName)
 }
 
 // DeleteDeploymentFolder deletes a deployment folder
 func (s *FlinkService) DeleteDeploymentFolder(workspaceId, namespace, folderId string) error {
-	return s.flinkAPI.DeleteDeploymentFolder(workspaceId, namespace, folderId)
+	return s.GetAPI().DeleteDeploymentFolder(workspaceId, namespace, folderId)
 }
 
 // ListDeploymentFolders lists all deployment folders in a namespace
 func (s *FlinkService) ListDeploymentFolders(workspaceId, namespace string) ([]*aliyunFlinkAPI.DeploymentFolder, error) {
-	return s.flinkAPI.ListDeploymentFolders(workspaceId, namespace)
+	return s.GetAPI().ListDeploymentFolders(workspaceId, namespace)
 }
 
 // GetDeploymentFoldersByParent retrieves all folders under a specific parent folder
 func (s *FlinkService) GetDeploymentFoldersByParent(workspaceId, namespace, parentId string) ([]*aliyunFlinkAPI.DeploymentFolder, error) {
-	return s.flinkAPI.GetDeploymentFoldersByParent(workspaceId, namespace, parentId)
+	return s.GetAPI().GetDeploymentFoldersByParent(workspaceId, namespace, parentId)
 }
 
 // FindDeploymentFolderByName finds a deployment folder by name within a specific parent folder

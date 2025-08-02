@@ -410,14 +410,14 @@ func resourceAliCloudLogETLUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 		status := d.Get("status").(string)
 		if status == "STOPPING" || status == "STOPPED" {
-			err = slsService.slsAPI.UpdateETL(parts[0], parts[1], &etl)
+			err = slsService.GetAPI().UpdateETL(parts[0], parts[1], &etl)
 		} else {
 			// For running ETL, we need to stop, update, then start again
-			err = slsService.slsAPI.StopETL(parts[0], parts[1])
+			err = slsService.GetAPI().StopETL(parts[0], parts[1])
 			if err == nil {
-				err = slsService.slsAPI.UpdateETL(parts[0], parts[1], &etl)
+				err = slsService.GetAPI().UpdateETL(parts[0], parts[1], &etl)
 				if err == nil {
-					err = slsService.slsAPI.StartETL(parts[0], parts[1])
+					err = slsService.GetAPI().StartETL(parts[0], parts[1])
 					if err == nil {
 						// Use the correct state refresh function
 						logService, err := NewSlsService(client)
@@ -463,7 +463,7 @@ func resourceAliCloudLogETLDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		err := slsService.aliyunSlsAPI.DeleteETL(parts[0], parts[1])
+		err := slsService.GetAPI().DeleteETL(parts[0], parts[1])
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				wait()

@@ -7,19 +7,19 @@ import (
 
 // Connector methods
 func (s *FlinkService) ListCustomConnectors(workspaceId string, namespaceName string) ([]*flinkAPI.Connector, error) {
-	return s.flinkAPI.ListConnectors(workspaceId, namespaceName)
+	return s.GetAPI().ListConnectors(workspaceId, namespaceName)
 }
 
 func (s *FlinkService) RegisterCustomConnector(workspaceId string, namespaceName string, connector *flinkAPI.Connector) (*flinkAPI.Connector, error) {
-	return s.flinkAPI.RegisterConnector(workspaceId, namespaceName, connector)
+	return s.GetAPI().RegisterConnector(workspaceId, namespaceName, connector)
 }
 
 func (s *FlinkService) GetConnector(workspaceId string, namespaceName string, connectorName string) (*flinkAPI.Connector, error) {
-	return s.flinkAPI.GetConnector(workspaceId, namespaceName, connectorName)
+	return s.GetAPI().GetConnector(workspaceId, namespaceName, connectorName)
 }
 
 func (s *FlinkService) DeleteCustomConnector(workspaceId string, namespaceName string, connectorName string) error {
-	return s.flinkAPI.DeleteConnector(workspaceId, namespaceName, connectorName)
+	return s.GetAPI().DeleteConnector(workspaceId, namespaceName, connectorName)
 }
 
 func (s *FlinkService) FlinkConnectorStateRefreshFunc(workspaceId string, namespaceName string, connectorName string, failStates []string) resource.StateRefreshFunc {

@@ -14,10 +14,6 @@ import (
 
 // DescribeSlsOSSIngestion - Get OSS ingestion job configuration
 func (s *SlsService) DescribeSlsOSSIngestion(id string) (*aliyunSlsAPI.Ingestion, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
 	parts := strings.Split(id, ":")
 	if len(parts) != 2 {
 		err := WrapError(fmt.Errorf("invalid Resource Id %s. Expected parts' length %d, got %d", id, 2, len(parts)))
@@ -27,7 +23,7 @@ func (s *SlsService) DescribeSlsOSSIngestion(id string) (*aliyunSlsAPI.Ingestion
 	projectName := parts[0]
 	ingestionName := parts[1]
 
-	ingestion, err := s.aliyunSlsAPI.GetOSSIngestion(projectName, ingestionName)
+	ingestion, err := s.GetAPI().GetOSSIngestion(projectName, ingestionName)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetOSSIngestion", AlibabaCloudSdkGoERROR)
 	}
@@ -37,11 +33,7 @@ func (s *SlsService) DescribeSlsOSSIngestion(id string) (*aliyunSlsAPI.Ingestion
 
 // CreateSlsOSSIngestion creates a new OSS ingestion
 func (s *SlsService) CreateSlsOSSIngestion(project string, ingestion *aliyunSlsAPI.Ingestion) (*aliyunSlsAPI.Ingestion, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	result, err := s.aliyunSlsAPI.CreateOSSIngestion(project, ingestion)
+	result, err := s.GetAPI().CreateOSSIngestion(project, ingestion)
 	if err != nil {
 		ingestionName := "unknown"
 		if ingestion != nil {
@@ -55,11 +47,7 @@ func (s *SlsService) CreateSlsOSSIngestion(project string, ingestion *aliyunSlsA
 
 // UpdateSlsOSSIngestion updates an existing OSS ingestion
 func (s *SlsService) UpdateSlsOSSIngestion(project, ingestionName string, ingestion *aliyunSlsAPI.Ingestion) (*aliyunSlsAPI.Ingestion, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	result, err := s.aliyunSlsAPI.UpdateOSSIngestion(project, ingestionName, ingestion)
+	result, err := s.GetAPI().UpdateOSSIngestion(project, ingestionName, ingestion)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, ingestionName, "UpdateOSSIngestion", AlibabaCloudSdkGoERROR)
 	}
@@ -69,11 +57,7 @@ func (s *SlsService) UpdateSlsOSSIngestion(project, ingestionName string, ingest
 
 // DeleteSlsOSSIngestion deletes an OSS ingestion
 func (s *SlsService) DeleteSlsOSSIngestion(project, ingestionName string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.DeleteOSSIngestion(project, ingestionName)
+	err := s.GetAPI().DeleteOSSIngestion(project, ingestionName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, ingestionName, "DeleteOSSIngestion", AlibabaCloudSdkGoERROR)
 	}
@@ -83,11 +67,7 @@ func (s *SlsService) DeleteSlsOSSIngestion(project, ingestionName string) error 
 
 // StartSlsOSSIngestion starts an OSS ingestion
 func (s *SlsService) StartSlsOSSIngestion(project, ingestionName string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.StartOSSIngestion(project, ingestionName)
+	err := s.GetAPI().StartOSSIngestion(project, ingestionName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, ingestionName, "StartOSSIngestion", AlibabaCloudSdkGoERROR)
 	}
@@ -97,11 +77,7 @@ func (s *SlsService) StartSlsOSSIngestion(project, ingestionName string) error {
 
 // StopSlsOSSIngestion stops an OSS ingestion
 func (s *SlsService) StopSlsOSSIngestion(project, ingestionName string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.StopOSSIngestion(project, ingestionName)
+	err := s.GetAPI().StopOSSIngestion(project, ingestionName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, ingestionName, "StopOSSIngestion", AlibabaCloudSdkGoERROR)
 	}
@@ -111,11 +87,7 @@ func (s *SlsService) StopSlsOSSIngestion(project, ingestionName string) error {
 
 // ListSlsOSSIngestions lists OSS ingestions in a project
 func (s *SlsService) ListSlsOSSIngestions(project, logstore string, offset, size int32) ([]*aliyunSlsAPI.Ingestion, int32, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, 0, fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	ingestions, total, err := s.aliyunSlsAPI.ListOSSIngestions(project, logstore, offset, size)
+	ingestions, total, err := s.GetAPI().ListOSSIngestions(project, logstore, offset, size)
 	if err != nil {
 		return nil, 0, WrapErrorf(err, DefaultErrorMsg, project, "ListOSSIngestions", AlibabaCloudSdkGoERROR)
 	}
@@ -186,10 +158,6 @@ func (s *SlsService) SlsOSSIngestionStateRefreshFunc(id string, field string, fa
 
 // WaitForSlsOSSIngestionStatus waits for OSS ingestion to reach target status
 func (s *SlsService) WaitForSlsOSSIngestionStatus(project, ingestionName, targetStatus string, timeout time.Duration) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"STARTING", "STOPPING", "CREATING", "UPDATING"},
 		Target:     []string{targetStatus},
@@ -402,10 +370,6 @@ func buildOSSIngestionFromMap(configMap map[string]interface{}, scheduleMap map[
 
 // DescribeSlsIngestion - Get ingestion job configuration
 func (s *SlsService) DescribeSlsIngestion(id string) (*aliyunSlsAPI.Ingestion, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	parts := strings.Split(id, ":")
 	if len(parts) != 3 {
 		err := WrapError(fmt.Errorf("invalid Resource Id %s. Expected parts' length %d, got %d", id, 3, len(parts)))
@@ -415,7 +379,7 @@ func (s *SlsService) DescribeSlsIngestion(id string) (*aliyunSlsAPI.Ingestion, e
 	projectName := parts[0]
 	ingestionName := parts[2]
 
-	ingestion, err := s.aliyunSlsAPI.GetOSSIngestion(projectName, ingestionName)
+	ingestion, err := s.GetAPI().GetOSSIngestion(projectName, ingestionName)
 	if err != nil {
 		if strings.Contains(err.Error(), "JobNotExist") {
 			return nil, WrapErrorf(NotFoundErr("Ingestion", id), NotFoundMsg, "")

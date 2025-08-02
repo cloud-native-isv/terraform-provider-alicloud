@@ -17,7 +17,7 @@ func (s *SelectDBService) AllocateSelectDBPublicConnection(connection *selectdb.
 		return nil, WrapError(fmt.Errorf("public connection cannot be nil"))
 	}
 
-	result, err := s.selectdbAPI.AllocatePublicConnection(connection)
+	result, err := s.GetAPI().AllocatePublicConnection(connection)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -31,7 +31,7 @@ func (s *SelectDBService) ReleaseSelectDBPublicConnection(connection *selectdb.P
 		return WrapError(fmt.Errorf("release connection cannot be nil"))
 	}
 
-	err := s.selectdbAPI.ReleasePublicConnection(connection)
+	err := s.GetAPI().ReleasePublicConnection(connection)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil // Connection already released

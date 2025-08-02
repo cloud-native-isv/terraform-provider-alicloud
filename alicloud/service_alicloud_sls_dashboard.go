@@ -11,10 +11,7 @@ import (
 
 // DescribeSlsDashboard retrieves a dashboard by project and dashboard name
 func (s *SlsService) DescribeSlsDashboard(projectName, dashboardName string) (*aliyunSlsAPI.Dashboard, error) {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	dashboard, err := slsAPI.GetDashboard(projectName, dashboardName)
 	if err != nil {
@@ -29,12 +26,9 @@ func (s *SlsService) DescribeSlsDashboard(projectName, dashboardName string) (*a
 
 // CreateSlsDashboard creates a new dashboard in the specified project
 func (s *SlsService) CreateSlsDashboard(projectName string, dashboard *aliyunSlsAPI.Dashboard) error {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
-	err = slsAPI.CreateDashboard(projectName, dashboard)
+	err := slsAPI.CreateDashboard(projectName, dashboard)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, dashboard.Name, "CreateDashboard", AlibabaCloudSdkGoERROR)
 	}
@@ -44,12 +38,9 @@ func (s *SlsService) CreateSlsDashboard(projectName string, dashboard *aliyunSls
 
 // UpdateSlsDashboard updates an existing dashboard in the specified project
 func (s *SlsService) UpdateSlsDashboard(projectName, dashboardName string, dashboard *aliyunSlsAPI.Dashboard) error {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
-	err = slsAPI.UpdateDashboard(projectName, dashboardName, dashboard)
+	err := slsAPI.UpdateDashboard(projectName, dashboardName, dashboard)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, dashboardName, "UpdateDashboard", AlibabaCloudSdkGoERROR)
 	}
@@ -59,11 +50,7 @@ func (s *SlsService) UpdateSlsDashboard(projectName, dashboardName string, dashb
 
 // DeleteDashboard deletes an SLS dashboard
 func (s *SlsService) DeleteDashboard(projectName, dashboardName string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.DeleteDashboard(projectName, dashboardName)
+	err := s.GetAPI().DeleteDashboard(projectName, dashboardName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, dashboardName, "DeleteDashboard", AlibabaCloudSdkGoERROR)
 	}
@@ -72,12 +59,9 @@ func (s *SlsService) DeleteDashboard(projectName, dashboardName string) error {
 
 // DeleteSlsDashboard deletes a dashboard from the specified project
 func (s *SlsService) DeleteSlsDashboard(projectName, dashboardName string) error {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
-	err = slsAPI.DeleteDashboard(projectName, dashboardName)
+	err := slsAPI.DeleteDashboard(projectName, dashboardName)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil
@@ -90,10 +74,7 @@ func (s *SlsService) DeleteSlsDashboard(projectName, dashboardName string) error
 
 // ListSlsDashboards lists dashboards in the specified project with pagination
 func (s *SlsService) ListSlsDashboards(projectName string, offset, size int32) ([]*aliyunSlsAPI.Dashboard, error) {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	dashboards, err := slsAPI.ListDashboard(projectName, offset, size)
 	if err != nil {
@@ -105,10 +86,7 @@ func (s *SlsService) ListSlsDashboards(projectName string, offset, size int32) (
 
 // ListAllSlsDashboards lists all dashboards in the specified project (handles pagination automatically)
 func (s *SlsService) ListAllSlsDashboards(projectName string) ([]*aliyunSlsAPI.Dashboard, error) {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return nil, WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	dashboards, err := slsAPI.ListAllDashboards(projectName)
 	if err != nil {
@@ -120,10 +98,7 @@ func (s *SlsService) ListAllSlsDashboards(projectName string) ([]*aliyunSlsAPI.D
 
 // SlsDashboardExists checks if a dashboard exists in the specified project
 func (s *SlsService) SlsDashboardExists(projectName, dashboardName string) (bool, error) {
-	slsAPI, err := s.getSlsAPI()
-	if err != nil {
-		return false, WrapError(err)
-	}
+	slsAPI := s.GetAPI()
 
 	exists, err := slsAPI.DashboardExists(projectName, dashboardName)
 	if err != nil {

@@ -9,20 +9,20 @@ import (
 
 // Workspace methods
 func (s *FlinkService) DescribeFlinkWorkspace(id string) (*aliyunFlinkAPI.Workspace, error) {
-	return s.flinkAPI.GetWorkspace(id)
+	return s.GetAPI().GetWorkspace(id)
 }
 
 func (s *FlinkService) CreateInstance(workspace *aliyunFlinkAPI.Workspace) (*aliyunFlinkAPI.Workspace, error) {
-	return s.flinkAPI.CreateWorkspace(workspace)
+	return s.GetAPI().CreateWorkspace(workspace)
 }
 
 func (s *FlinkService) DeleteInstance(id string) error {
-	return s.flinkAPI.DeleteWorkspace(id)
+	return s.GetAPI().DeleteWorkspace(id)
 }
 
 func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		workspace, err := s.flinkAPI.GetWorkspace(id)
+		workspace, err := s.GetAPI().GetWorkspace(id)
 		if err != nil {
 			// Handle the case where workspace is temporarily not found after creation
 			// This is common with cloud resources that have async creation processes
@@ -79,5 +79,5 @@ func (s *FlinkService) WaitForWorkspaceDeleting(id string, timeout time.Duration
 
 // Instance/Workspace methods (aliases for workspace methods)
 func (s *FlinkService) ListInstances() ([]aliyunFlinkAPI.Workspace, error) {
-	return s.flinkAPI.ListWorkspaces()
+	return s.GetAPI().ListWorkspaces()
 }

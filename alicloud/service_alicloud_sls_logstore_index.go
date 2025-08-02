@@ -12,11 +12,7 @@ import (
 
 // CreateSlsLogStoreIndex creates a new log store index
 func (s *SlsService) CreateSlsLogStoreIndex(projectName string, logstoreName string, index *aliyunSlsAPI.LogStoreIndex) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.CreateLogStoreIndex(projectName, logstoreName, index)
+	err := s.GetAPI().CreateLogStoreIndex(projectName, logstoreName, index)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store_index", "CreateLogStoreIndex", AlibabaCloudSdkGoERROR)
 	}
@@ -26,11 +22,7 @@ func (s *SlsService) CreateSlsLogStoreIndex(projectName string, logstoreName str
 
 // UpdateSlsLogStoreIndex updates an existing log store index
 func (s *SlsService) UpdateSlsLogStoreIndex(projectName string, logstoreName string, index *aliyunSlsAPI.LogStoreIndex) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.UpdateLogStoreIndex(projectName, logstoreName, index)
+	err := s.GetAPI().UpdateLogStoreIndex(projectName, logstoreName, index)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store_index", "UpdateLogStoreIndex", AlibabaCloudSdkGoERROR)
 	}
@@ -40,11 +32,7 @@ func (s *SlsService) UpdateSlsLogStoreIndex(projectName string, logstoreName str
 
 // DeleteSlsLogStoreIndex deletes a log store index
 func (s *SlsService) DeleteSlsLogStoreIndex(projectName string, logstoreName string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.DeleteLogStoreIndex(projectName, logstoreName)
+	err := s.GetAPI().DeleteLogStoreIndex(projectName, logstoreName)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil
@@ -155,5 +143,5 @@ func (s *SlsService) WaitForLogStoreIndexDeleted(id string, timeout int) error {
 
 // GetSlsLogStoreIndex encapsulates the call to aliyunSlsAPI.GetLogStoreIndex
 func (s *SlsService) GetSlsLogStoreIndex(projectName, logstoreName string) (*aliyunSlsAPI.LogStoreIndex, error) {
-	return s.aliyunSlsAPI.GetLogStoreIndex(projectName, logstoreName)
+	return s.GetAPI().GetLogStoreIndex(projectName, logstoreName)
 }

@@ -87,7 +87,7 @@ func (s *ArmsService) DescribeArmsAlertSilencePolicy(id string) (object map[stri
 		// Convert string ID to int64
 		silenceIdInt, parseErr := strconv.ParseInt(id, 10, 64)
 		if parseErr == nil {
-			silencePolicy, err := s.armsAPI.GetAlertSilencePolicy(silenceIdInt)
+			silencePolicy, err := s.GetAPI().GetAlertSilencePolicy(silenceIdInt)
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				return map[string]interface{}{

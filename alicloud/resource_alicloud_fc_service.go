@@ -665,7 +665,7 @@ func parseLogConfig(d *schema.ResourceData, meta interface{}) (project, logstore
 		}
 
 		err = resource.Retry(2*time.Minute, func() *resource.RetryError {
-			_, e := slsService.slsAPI.GetLogStore(project, logstore)
+			_, e := slsService.GetAPI().GetLogStore(project, logstore)
 			if e != nil {
 				if IsNotFoundError(e) {
 					return resource.RetryableError(e)

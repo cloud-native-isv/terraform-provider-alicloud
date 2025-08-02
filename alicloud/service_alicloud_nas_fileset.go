@@ -9,7 +9,7 @@ import (
 
 // CreateNasFileset creates a new NAS fileset
 func (s *NasService) CreateNasFileset(fileSystemId, fileSystemPath, description string, deletionProtection bool) (*aliyunNasAPI.Fileset, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	fileset, err := nasAPI.CreateFileset(fileSystemId, fileSystemPath, description, deletionProtection)
 	if err != nil {
@@ -29,7 +29,7 @@ func (s *NasService) DescribeNasFileset(id string) (*aliyunNasAPI.Fileset, error
 	fileSystemId := parts[0]
 	fsetId := parts[1]
 
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	fileset, err := nasAPI.GetFileset(fileSystemId, fsetId)
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *NasService) DescribeNasFileset(id string) (*aliyunNasAPI.Fileset, error
 
 // UpdateNasFileset updates a NAS fileset
 func (s *NasService) UpdateNasFileset(fileSystemId, fsetId, description string, deletionProtection bool) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.ModifyFileset(fileSystemId, fsetId, description, deletionProtection)
 	if err != nil {
@@ -56,7 +56,7 @@ func (s *NasService) UpdateNasFileset(fileSystemId, fsetId, description string, 
 
 // DeleteNasFileset deletes a NAS fileset
 func (s *NasService) DeleteNasFileset(fileSystemId, fsetId string) error {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	err := nasAPI.DeleteFileset(fileSystemId, fsetId)
 	if err != nil {
@@ -71,7 +71,7 @@ func (s *NasService) DeleteNasFileset(fileSystemId, fsetId string) error {
 
 // ListNasFilesets lists all filesets in a file system
 func (s *NasService) ListNasFilesets(fileSystemId string) ([]aliyunNasAPI.Fileset, error) {
-	nasAPI := s.aliyunNasAPI
+	nasAPI := s.GetAPI()
 
 	filesets, err := nasAPI.ListFilesets(fileSystemId)
 	if err != nil {

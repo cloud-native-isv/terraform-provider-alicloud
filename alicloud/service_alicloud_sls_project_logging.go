@@ -803,10 +803,6 @@ var InternalDiagnosticLogStoreIndex = &aliyunSlsAPI.LogStoreIndex{
 }
 
 func (s *SlsService) CreateProjectLogging(projectName string, logging *aliyunSlsAPI.LogProjectLogging) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	// Ensure logging project exists
 	if logging != nil && logging.LoggingProject != "" {
 		// Create project with region-aware configuration
@@ -843,12 +839,12 @@ func (s *SlsService) CreateProjectLogging(projectName string, logging *aliyunSls
 					switch detail.Logstore {
 					case "internal-diagnostic_log":
 						defaultIndex := InternalDiagnosticLogStoreIndex
-						if err := s.aliyunSlsAPI.CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
+						if err := s.GetAPI().CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
 							fmt.Printf("Warning: Failed to create or update index for logstore %s: %v\n", detail.Logstore, err)
 						}
 					case "internal-operation_log":
 						defaultIndex := InternalOperationLogStoreIndex
-						if err := s.aliyunSlsAPI.CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
+						if err := s.GetAPI().CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
 							fmt.Printf("Warning: Failed to create or update index for logstore %s: %v\n", detail.Logstore, err)
 						}
 					}
@@ -857,7 +853,7 @@ func (s *SlsService) CreateProjectLogging(projectName string, logging *aliyunSls
 		}
 	}
 
-	err := s.aliyunSlsAPI.CreateLogProjectLogging(projectName, logging)
+	err := s.GetAPI().CreateLogProjectLogging(projectName, logging)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "CreateLogging", AlibabaCloudSdkGoERROR)
 	}
@@ -866,10 +862,6 @@ func (s *SlsService) CreateProjectLogging(projectName string, logging *aliyunSls
 }
 
 func (s *SlsService) UpdateProjectLogging(projectName string, logging *aliyunSlsAPI.LogProjectLogging) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
 	// Ensure logging project exists
 	if logging != nil && logging.LoggingProject != "" {
 		// Create project with region-aware configuration
@@ -906,12 +898,12 @@ func (s *SlsService) UpdateProjectLogging(projectName string, logging *aliyunSls
 					switch detail.Logstore {
 					case "internal-diagnostic_log":
 						defaultIndex := InternalDiagnosticLogStoreIndex
-						if err := s.aliyunSlsAPI.CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
+						if err := s.GetAPI().CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
 							fmt.Printf("Warning: Failed to create or update index for logstore %s: %v\n", detail.Logstore, err)
 						}
 					case "internal-operation_log":
 						defaultIndex := InternalOperationLogStoreIndex
-						if err := s.aliyunSlsAPI.CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
+						if err := s.GetAPI().CreateOrUpdateLogStoreIndex(logging.LoggingProject, detail.Logstore, defaultIndex); err != nil {
 							fmt.Printf("Warning: Failed to create or update index for logstore %s: %v\n", detail.Logstore, err)
 						}
 					}
@@ -920,7 +912,7 @@ func (s *SlsService) UpdateProjectLogging(projectName string, logging *aliyunSls
 		}
 	}
 
-	err := s.aliyunSlsAPI.UpdateLogProjectLogging(projectName, logging)
+	err := s.GetAPI().UpdateLogProjectLogging(projectName, logging)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "UpdateLogging", AlibabaCloudSdkGoERROR)
 	}
@@ -929,11 +921,7 @@ func (s *SlsService) UpdateProjectLogging(projectName string, logging *aliyunSls
 }
 
 func (s *SlsService) DeleteProjectLogging(projectName string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.DeleteLogProjectLogging(projectName)
+	err := s.GetAPI().DeleteLogProjectLogging(projectName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "DeleteLogging", AlibabaCloudSdkGoERROR)
 	}
@@ -942,11 +930,7 @@ func (s *SlsService) DeleteProjectLogging(projectName string) error {
 }
 
 func (s *SlsService) GetProjectLogging(projectName string) (*aliyunSlsAPI.LogProjectLogging, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI client is not initialized")
-	}
-
-	logging, err := s.aliyunSlsAPI.GetLogProjectLogging(projectName)
+	logging, err := s.GetAPI().GetLogProjectLogging(projectName)
 	if err != nil {
 		if strings.Contains(err.Error(), "LoggingNotExist") {
 			return nil, WrapErrorf(NotFoundErr("LogProjectLogging", projectName), NotFoundMsg, "")

@@ -8,26 +8,26 @@ import (
 // Variable methods
 func (s *FlinkService) GetVariable(workspaceId string, namespaceName string, variableName string) (*flinkAPI.Variable, error) {
 	// Call the underlying API to get variable
-	return s.flinkAPI.GetVariable(workspaceId, namespaceName, variableName)
+	return s.GetAPI().GetVariable(workspaceId, namespaceName, variableName)
 }
 
 func (s *FlinkService) CreateVariable(workspaceId string, namespaceName string, variable *flinkAPI.Variable) (*flinkAPI.Variable, error) {
 	// Call underlying API
-	return s.flinkAPI.CreateVariable(workspaceId, namespaceName, variable)
+	return s.GetAPI().CreateVariable(workspaceId, namespaceName, variable)
 }
 
 func (s *FlinkService) UpdateVariable(workspaceId string, namespaceName string, variable *flinkAPI.Variable) (*flinkAPI.Variable, error) {
 	// Call underlying API
-	return s.flinkAPI.UpdateVariable(workspaceId, namespaceName, variable)
+	return s.GetAPI().UpdateVariable(workspaceId, namespaceName, variable)
 }
 
 func (s *FlinkService) DeleteVariable(workspaceId string, namespaceName string, variableName string) error {
 	// Call the underlying API
-	return s.flinkAPI.DeleteVariable(workspaceId, namespaceName, variableName)
+	return s.GetAPI().DeleteVariable(workspaceId, namespaceName, variableName)
 }
 
 func (s *FlinkService) ListVariables(workspaceId string, namespaceName string) ([]flinkAPI.Variable, error) {
-	return s.flinkAPI.ListVariables(workspaceId, namespaceName)
+	return s.GetAPI().ListVariables(workspaceId, namespaceName)
 }
 
 func (s *FlinkService) FlinkVariableStateRefreshFunc(workspaceId string, namespaceName string, variableName string, failStates []string) resource.StateRefreshFunc {

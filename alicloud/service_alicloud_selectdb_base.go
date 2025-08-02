@@ -69,7 +69,7 @@ func (s *SelectDBService) DescribeSelectDBInstance(instanceId string) (*selectdb
 		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	instance, err := s.selectdbAPI.GetInstance(instanceId, s.client.RegionId)
+	instance, err := s.GetAPI().GetInstance(instanceId, s.client.RegionId)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -82,7 +82,7 @@ func (s *SelectDBService) DescribeSelectDBInstance(instanceId string) (*selectdb
 
 // DescribeSelectDBInstances retrieves list of SelectDB instances
 func (s *SelectDBService) DescribeSelectDBInstances(pageNumber, pageSize int32) ([]selectdb.Instance, error) {
-	instances, err := s.selectdbAPI.ListInstances(s.client.RegionId, pageNumber, pageSize)
+	instances, err := s.GetAPI().ListInstances(s.client.RegionId, pageNumber, pageSize)
 	if err != nil {
 		return nil, WrapError(err)
 	}

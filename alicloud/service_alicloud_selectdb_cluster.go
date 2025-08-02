@@ -22,7 +22,7 @@ func (s *SelectDBService) CreateSelectDBCluster(instanceId, clusterClass, cacheS
 		return nil, WrapError(fmt.Errorf("cache size cannot be empty"))
 	}
 
-	result, err := s.selectdbAPI.CreateCluster(instanceId, clusterClass, cacheSize, options...)
+	result, err := s.GetAPI().CreateCluster(instanceId, clusterClass, cacheSize, options...)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -40,7 +40,7 @@ func (s *SelectDBService) DescribeSelectDBCluster(instanceId, clusterId string) 
 	}
 
 	// Since there's no direct GetCluster API, we use the config API to check cluster existence
-	config, err := s.selectdbAPI.GetClusterConfig(clusterId, instanceId)
+	config, err := s.GetAPI().GetClusterConfig(clusterId, instanceId)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -67,7 +67,7 @@ func (s *SelectDBService) ModifySelectDBCluster(instanceId, clusterId string, op
 		return nil, WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
 
-	result, err := s.selectdbAPI.ModifyCluster(instanceId, clusterId, options...)
+	result, err := s.GetAPI().ModifyCluster(instanceId, clusterId, options...)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -84,7 +84,7 @@ func (s *SelectDBService) DeleteSelectDBCluster(instanceId, clusterId string, re
 		return WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
 
-	err := s.selectdbAPI.DeleteCluster(instanceId, clusterId, regionId...)
+	err := s.GetAPI().DeleteCluster(instanceId, clusterId, regionId...)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -101,7 +101,7 @@ func (s *SelectDBService) RestartSelectDBCluster(instanceId, clusterId string, p
 		return WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
 
-	err := s.selectdbAPI.RestartCluster(instanceId, clusterId, parallelOperation, regionId...)
+	err := s.GetAPI().RestartCluster(instanceId, clusterId, parallelOperation, regionId...)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -120,7 +120,7 @@ func (s *SelectDBService) DescribeSelectDBClusterConfig(clusterId, instanceId st
 		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	config, err := s.selectdbAPI.GetClusterConfig(clusterId, instanceId, configKey...)
+	config, err := s.GetAPI().GetClusterConfig(clusterId, instanceId, configKey...)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -140,7 +140,7 @@ func (s *SelectDBService) DescribeSelectDBClusterConfigChangeLogs(clusterId, ins
 		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	logs, err := s.selectdbAPI.GetClusterConfigChangeLogs(clusterId, instanceId)
+	logs, err := s.GetAPI().GetClusterConfigChangeLogs(clusterId, instanceId)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -165,7 +165,7 @@ func (s *SelectDBService) ModifySelectDBBEClusterAttribute(clusterId, instanceId
 		return WrapError(fmt.Errorf("attribute value cannot be empty"))
 	}
 
-	err := s.selectdbAPI.ModifyBEClusterAttribute(clusterId, instanceId, attributeType, attributeValue)
+	err := s.GetAPI().ModifyBEClusterAttribute(clusterId, instanceId, attributeType, attributeValue)
 	if err != nil {
 		return WrapError(err)
 	}

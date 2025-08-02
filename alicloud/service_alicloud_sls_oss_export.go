@@ -15,10 +15,6 @@ import (
 
 // DescribeSlsOSSExport - Get OSS export job configuration
 func (s *SlsService) DescribeSlsOSSExport(id string) (object map[string]interface{}, err error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
 	parts := strings.Split(id, ":")
 	if len(parts) != 2 {
 		err = WrapError(fmt.Errorf("invalid Resource Id %s. Expected parts' length %d, got %d", id, 2, len(parts)))
@@ -28,7 +24,7 @@ func (s *SlsService) DescribeSlsOSSExport(id string) (object map[string]interfac
 	projectName := parts[0]
 	exportName := parts[1]
 
-	ossExport, err := s.aliyunSlsAPI.GetOSSExport(projectName, exportName)
+	ossExport, err := s.GetAPI().GetOSSExport(projectName, exportName)
 	if err != nil {
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetOSSExport", AlibabaCloudSdkGoERROR)
 	}
@@ -62,11 +58,7 @@ func (s *SlsService) DescribeSlsOSSExport(id string) (object map[string]interfac
 
 // CreateSlsOSSExport creates a new OSS export
 func (s *SlsService) CreateSlsOSSExport(projectName string, ossExport *aliyunSlsAPI.OSSExport) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.CreateOSSExport(projectName, ossExport)
+	err := s.GetAPI().CreateOSSExport(projectName, ossExport)
 	if err != nil {
 		exportName := "unknown"
 		if ossExport.Name != nil {
@@ -80,11 +72,7 @@ func (s *SlsService) CreateSlsOSSExport(projectName string, ossExport *aliyunSls
 
 // UpdateSlsOSSExport updates an existing OSS export
 func (s *SlsService) UpdateSlsOSSExport(projectName, exportName string, ossExport *aliyunSlsAPI.OSSExport) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.UpdateOSSExport(projectName, exportName, ossExport)
+	err := s.GetAPI().UpdateOSSExport(projectName, exportName, ossExport)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, exportName, "UpdateOSSExport", AlibabaCloudSdkGoERROR)
 	}
@@ -94,11 +82,7 @@ func (s *SlsService) UpdateSlsOSSExport(projectName, exportName string, ossExpor
 
 // DeleteSlsOSSExport deletes an OSS export
 func (s *SlsService) DeleteSlsOSSExport(projectName, exportName string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.DeleteOSSExport(projectName, exportName)
+	err := s.GetAPI().DeleteOSSExport(projectName, exportName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, exportName, "DeleteOSSExport", AlibabaCloudSdkGoERROR)
 	}
@@ -108,11 +92,7 @@ func (s *SlsService) DeleteSlsOSSExport(projectName, exportName string) error {
 
 // StartSlsOSSExport starts an OSS export
 func (s *SlsService) StartSlsOSSExport(projectName, exportName string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.StartOSSExport(projectName, exportName)
+	err := s.GetAPI().StartOSSExport(projectName, exportName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, exportName, "StartOSSExport", AlibabaCloudSdkGoERROR)
 	}
@@ -122,11 +102,7 @@ func (s *SlsService) StartSlsOSSExport(projectName, exportName string) error {
 
 // StopSlsOSSExport stops an OSS export
 func (s *SlsService) StopSlsOSSExport(projectName, exportName string) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	err := s.aliyunSlsAPI.StopOSSExport(projectName, exportName)
+	err := s.GetAPI().StopOSSExport(projectName, exportName)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, exportName, "StopOSSExport", AlibabaCloudSdkGoERROR)
 	}
@@ -136,11 +112,7 @@ func (s *SlsService) StopSlsOSSExport(projectName, exportName string) error {
 
 // ListSlsOSSExports lists OSS exports in a project
 func (s *SlsService) ListSlsOSSExports(projectName, ossExportName, logstore string) ([]*aliyunSlsAPI.OSSExport, error) {
-	if s.aliyunSlsAPI == nil {
-		return nil, fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
-	exports, err := s.aliyunSlsAPI.ListOSSExports(projectName, ossExportName, logstore)
+	exports, err := s.GetAPI().ListOSSExports(projectName, ossExportName, logstore)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, projectName, "ListOSSExports", AlibabaCloudSdkGoERROR)
 	}
@@ -184,10 +156,6 @@ func (s *SlsService) SlsOSSExportStateRefreshFunc(id string, field string, failS
 
 // WaitForSlsOSSExportStatus waits for OSS export to reach target status
 func (s *SlsService) WaitForSlsOSSExportStatus(projectName, exportName, targetStatus string, timeout time.Duration) error {
-	if s.aliyunSlsAPI == nil {
-		return fmt.Errorf("aliyunSlsAPI is not initialized")
-	}
-
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"STARTING", "STOPPING", "CREATING", "UPDATING"},
 		Target:     []string{targetStatus},

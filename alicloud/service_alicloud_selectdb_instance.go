@@ -17,7 +17,7 @@ func (s *SelectDBService) CreateSelectDBInstance(instance *selectdb.Instance) (*
 		return nil, WrapError(fmt.Errorf("instance cannot be nil"))
 	}
 
-	result, err := s.selectdbAPI.CreateInstance(instance)
+	result, err := s.GetAPI().CreateInstance(instance)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -31,7 +31,7 @@ func (s *SelectDBService) ModifySelectDBInstance(instanceId, attributeType, valu
 		return WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	err := s.selectdbAPI.ModifyInstance(instanceId, attributeType, value, regionId)
+	err := s.GetAPI().ModifyInstance(instanceId, attributeType, value, regionId)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -45,7 +45,7 @@ func (s *SelectDBService) DeleteSelectDBInstance(instanceId string, regionId ...
 		return WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	err := s.selectdbAPI.DeleteInstance(instanceId, regionId...)
+	err := s.GetAPI().DeleteInstance(instanceId, regionId...)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil // Instance already deleted
@@ -62,7 +62,7 @@ func (s *SelectDBService) CheckCreateSelectDBInstance(instance *selectdb.Instanc
 		return WrapError(fmt.Errorf("instance cannot be nil"))
 	}
 
-	err := s.selectdbAPI.CheckCreateInstance(instance)
+	err := s.GetAPI().CheckCreateInstance(instance)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -76,7 +76,7 @@ func (s *SelectDBService) UpgradeSelectDBInstanceEngineVersion(instanceId, engin
 		return WrapError(fmt.Errorf("instance ID and engine version cannot be empty"))
 	}
 
-	err := s.selectdbAPI.UpgradeInstanceEngineVersion(instanceId, engineVersion, regionId)
+	err := s.GetAPI().UpgradeInstanceEngineVersion(instanceId, engineVersion, regionId)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -183,7 +183,7 @@ func (s *SelectDBService) resetSelectDBInstancePassword(instanceId, accountName,
 		RegionId:        regionId,
 	}
 
-	err := s.selectdbAPI.ResetInstanceAccountPassword(instanceId, account)
+	err := s.GetAPI().ResetInstanceAccountPassword(instanceId, account)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -195,7 +195,7 @@ func (s *SelectDBService) resetSelectDBInstancePassword(instanceId, accountName,
 
 // DescribeSelectDBRegions retrieves available regions for SelectDB
 func (s *SelectDBService) DescribeSelectDBRegions() ([]selectdb.RegionInfo, error) {
-	regions, err := s.selectdbAPI.ListRegions()
+	regions, err := s.GetAPI().ListRegions()
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -213,7 +213,7 @@ func (s *SelectDBService) CreateSelectDBConnection(instanceId, connectionStringP
 	// 	NetType:                netType,
 	// }
 
-	// err := s.selectdbAPI.CreateConnection(options)
+	// err := s.GetAPI().CreateConnection(options)
 	// if err != nil {
 	// 	return WrapError(err)
 	// }
@@ -228,7 +228,7 @@ func (s *SelectDBService) ReleaseSelectDBConnection(instanceId, connectionString
 	// 	ConnectionString: connectionString,
 	// }
 
-	// err := s.selectdbAPI.ReleaseConnection(options)
+	// err := s.GetAPI().ReleaseConnection(options)
 	// if err != nil {
 	// 	return WrapError(err)
 	// }

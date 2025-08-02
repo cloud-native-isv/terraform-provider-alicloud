@@ -16,7 +16,7 @@ func (s *ArmsService) DescribeArmsAlertRule(id string) (object map[string]interf
 	if s.armsAPI != nil {
 		alertId, parseErr := strconv.ParseInt(id, 10, 64)
 		if parseErr == nil {
-			alertRule, err := s.armsAPI.GetAlertRule(alertId)
+			alertRule, err := s.GetAPI().GetAlertRule(alertId)
 			if err == nil {
 				// Convert to map[string]interface{} format expected by Terraform
 				return map[string]interface{}{
@@ -284,7 +284,7 @@ func (s *ArmsService) CreateArmsAlertRule(alertName, severity, description, inte
 			alertRule.AlertCheckType = "CUSTOM"
 		}
 
-		createdRule, err := s.armsAPI.CreateAlertRule(alertRule)
+		createdRule, err := s.GetAPI().CreateAlertRule(alertRule)
 		if err == nil && createdRule != nil {
 			return createdRule.AlertId, nil
 		}
@@ -404,7 +404,7 @@ func (s *ArmsService) CreateArmsAlertRule(alertName, severity, description, inte
 func (s *ArmsService) UpdateArmsAlertRule(alertId int64, alertName, severity, description, integrationType, clusterId string, rule map[string]interface{}) error {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
-		_, err := s.armsAPI.UpdateAlertRule(&aliyunArmsAPI.AlertRule{
+		_, err := s.GetAPI().UpdateAlertRule(&aliyunArmsAPI.AlertRule{
 			AlertId:   alertId,
 			AlertName: alertName,
 			Level:     severity,
@@ -524,7 +524,7 @@ func (s *ArmsService) UpdateArmsAlertRule(alertId int64, alertName, severity, de
 func (s *ArmsService) DescribeArmsAlertNotificationPolicy(id string) (object map[string]interface{}, err error) {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
-		policy, err := s.armsAPI.GetAlertNotificationPolicy(id)
+		policy, err := s.GetAPI().GetAlertNotificationPolicy(id)
 		if err == nil {
 			// Convert to map[string]interface{} format expected by Terraform
 			return map[string]interface{}{

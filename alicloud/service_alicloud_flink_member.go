@@ -12,12 +12,12 @@ func (s *FlinkService) CreateMember(workspaceId string, namespaceName string, me
 	member.NamespaceName = namespaceName
 
 	// Call the underlying API
-	return s.flinkAPI.CreateMember(member)
+	return s.GetAPI().CreateMember(member)
 }
 
 func (s *FlinkService) GetMember(workspaceId string, namespaceName string, memberId string) (*flinkAPI.Member, error) {
 	// Call the underlying API
-	return s.flinkAPI.GetMember(workspaceId, namespaceName, memberId)
+	return s.GetAPI().GetMember(workspaceId, namespaceName, memberId)
 }
 
 func (s *FlinkService) UpdateMember(workspaceId string, namespaceName string, member *flinkAPI.Member) (*flinkAPI.Member, error) {
@@ -26,16 +26,16 @@ func (s *FlinkService) UpdateMember(workspaceId string, namespaceName string, me
 	member.NamespaceName = namespaceName
 
 	// Call the underlying API
-	return s.flinkAPI.UpdateMember(member)
+	return s.GetAPI().UpdateMember(member)
 }
 
 func (s *FlinkService) DeleteMember(workspaceId string, namespaceName string, memberId string) error {
 	// Call the underlying API
-	return s.flinkAPI.DeleteMember(workspaceId, namespaceName, memberId)
+	return s.GetAPI().DeleteMember(workspaceId, namespaceName, memberId)
 }
 
 func (s *FlinkService) ListMembers(workspaceId, namespaceName string) ([]flinkAPI.Member, error) {
-	return s.flinkAPI.ListMembers(workspaceId, namespaceName)
+	return s.GetAPI().ListMembers(workspaceId, namespaceName)
 }
 
 // FlinkMemberStateRefreshFunc provides state refresh for members
