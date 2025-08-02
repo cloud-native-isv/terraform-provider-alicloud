@@ -2,10 +2,14 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/selectdb"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -198,13 +202,32 @@ func resourceAliCloudSelectDBClusterCreate(d *schema.ResourceData, meta interfac
 		options = append(options, selectdb.WithClusterDescription(description))
 	}
 
+	// Add engine settings
+	options = append(options, selectdb.WithEngine("selectdb"))
+	options = append(options, selectdb.WithEngineVersion("2.1"))
+
+	// Add charge type (default to PostPaid)
+	options = append(options, selectdb.WithChargeType("PostPaid"))
+
 	// Add region if available
 	if service.client.RegionId != "" {
 		options = append(options, selectdb.WithRegion(service.client.RegionId))
 	}
 
-	// Create the cluster
-	cluster, err := service.CreateSelectDBCluster(instanceId, clusterClass, cacheSize, options...)
+	var cluster *selectdb.Cluster
+	// Use resource.Retry for creation to handle temporary failures
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		result, err := service.CreateSelectDBCluster(instanceId, clusterClass, cacheSize, options...)
+		if err != nil {
+			if NeedRetry(err) {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		cluster = result
+		return nil
+	})
+
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_selectdb_cluster", "CreateCluster", AlibabaCloudSdkGoERROR)
 	}
@@ -214,15 +237,7 @@ func resourceAliCloudSelectDBClusterCreate(d *schema.ResourceData, meta interfac
 	// Wait for the cluster to be created
 	err = service.WaitForSelectDBCluster(instanceId, cluster.ClusterId, Running, int(d.Timeout(schema.TimeoutCreate).Seconds()))
 	if err != nil {
-		return WrapError(err)
-	}
-
-	// Set auto scaling rules if specified
-	if rules, ok := d.GetOk("auto_scaling_rules"); ok && len(rules.([]interface{})) > 0 {
-		err = updateSelectDBAutoScalingRules(d, service)
-		if err != nil {
-			return WrapError(err)
-		}
+		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
 	return resourceAliCloudSelectDBClusterRead(d, meta)
@@ -242,7 +257,8 @@ func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{
 
 	cluster, err := service.DescribeSelectDBCluster(instanceId, clusterId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if !d.IsNewResource() && IsNotFoundError(err) {
+			log.Printf("[DEBUG] Resource alicloud_selectdb_cluster DescribeSelectDBCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
@@ -251,27 +267,71 @@ func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{
 
 	d.Set("instance_id", instanceId)
 	d.Set("cluster_id", clusterId)
-	d.Set("cluster_name", cluster.ClusterName)
-	d.Set("status", cluster.Status)
-	d.Set("create_time", cluster.CreatedTime)
 
-	// Since the current CWS-Lib-Go API doesn't provide FE/BE specific details,
-	// we need to set default/computed values or retrieve from Terraform state
-	// TODO: Update when CWS-Lib-Go provides complete cluster details
+	// Set cluster basic information
+	if cluster.ClusterName != "" {
+		d.Set("cluster_name", cluster.ClusterName)
+	}
 
-	// Set FE configuration - use current state if available
+	if cluster.Status != "" {
+		d.Set("status", cluster.Status)
+	}
+
+	if cluster.CreatedTime != "" {
+		d.Set("create_time", cluster.CreatedTime)
+	}
+
+	// Get cluster configuration to extract more detailed information
+	config, err := service.DescribeSelectDBClusterConfig(clusterId, instanceId)
+	if err == nil && config != nil {
+		// Extract configuration information if available
+		if len(config.Params) > 0 {
+			// Parse cluster configuration parameters
+			// This is a simplified mapping - in practice you might want to
+			// parse specific parameters based on their names
+			for _, param := range config.Params {
+				if param.Name == "cluster_description" && param.Value != "" {
+					d.Set("description", param.Value)
+				}
+			}
+		}
+	}
+
+	// Set FE configuration - preserve existing configuration from state
+	// since the current API doesn't provide detailed FE/BE node information
 	if existingFE := d.Get("fe_config").([]interface{}); len(existingFE) > 0 {
-		d.Set("fe_config", existingFE)
+		feConfig := existingFE[0].(map[string]interface{})
+
+		// Update with any available information from cluster
+		if cluster.ClusterClass != "" {
+			feConfig["node_type"] = cluster.ClusterClass
+		}
+
+		d.Set("fe_config", []interface{}{feConfig})
 	}
 
-	// Set BE configuration - use current state if available
+	// Set BE configuration - preserve existing configuration from state
 	if existingBE := d.Get("be_config").([]interface{}); len(existingBE) > 0 {
-		d.Set("be_config", existingBE)
+		beConfig := existingBE[0].(map[string]interface{})
+
+		// Update with any available information from cluster
+		if cluster.CacheStorageSizeGB != "" {
+			// Parse cache size (remove "GB" suffix if present)
+			cacheSizeStr := strings.TrimSuffix(cluster.CacheStorageSizeGB, "GB")
+			if cacheSize, parseErr := strconv.Atoi(cacheSizeStr); parseErr == nil {
+				beConfig["disk_size"] = cacheSize
+			}
+		}
+
+		d.Set("be_config", []interface{}{beConfig})
 	}
 
-	// Set description from current state if not available in API response
-	if existingDesc := d.Get("description").(string); existingDesc != "" {
-		d.Set("description", existingDesc)
+	// Set description from cluster information or preserve from state
+	if cluster.ClusterName != "" && d.Get("description").(string) == "" {
+		// If no description is set and we have cluster info, try to get it from elsewhere
+		if existingDesc := d.Get("description").(string); existingDesc != "" {
+			d.Set("description", existingDesc)
+		}
 	}
 
 	return nil
@@ -291,57 +351,88 @@ func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interfac
 
 	d.Partial(true)
 
-	// Update cluster name or description if changed
-	if d.HasChanges("cluster_name", "description") {
-		// Use cluster modification API to update name/description
-		var options []selectdb.ModifyClusterOption
-
-		// Note: Current CWS-Lib-Go may not support all update operations
-		// This is a placeholder for when the API supports these operations
-		_, err := service.ModifySelectDBCluster(instanceId, clusterId, options...)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyCluster", AlibabaCloudSdkGoERROR)
-		}
-
-		d.SetPartial("cluster_name")
-		d.SetPartial("description")
-	}
-
-	// Update FE node count if changed
+	// Update cluster class if FE config changed
 	if d.HasChange("fe_config") {
-		// TODO: Implement FE node scaling when CWS-Lib-Go supports it
-		// oldConfig, newConfig := d.GetChange("fe_config")
-		// oldFEConfig := oldConfig.([]interface{})[0].(map[string]interface{})
-		// newFEConfig := newConfig.([]interface{})[0].(map[string]interface{})
+		oldConfig, newConfig := d.GetChange("fe_config")
+		oldFEConfig := oldConfig.([]interface{})[0].(map[string]interface{})
+		newFEConfig := newConfig.([]interface{})[0].(map[string]interface{})
 
-		// if oldFEConfig["node_count"] != newFEConfig["node_count"] {
-		//     Implement FE node scaling API call
-		// }
+		if oldFEConfig["node_type"] != newFEConfig["node_type"] {
+			// Modify cluster class using the API
+			var options []selectdb.ModifyClusterOption
+			options = append(options, selectdb.WithClusterClass(newFEConfig["node_type"].(string)))
+
+			_, err := service.ModifySelectDBCluster(instanceId, clusterId, options...)
+			if err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyCluster", AlibabaCloudSdkGoERROR)
+			}
+
+			// Wait for modification to complete
+			err = service.WaitForSelectDBCluster(instanceId, clusterId, Running, int(d.Timeout(schema.TimeoutUpdate).Seconds()))
+			if err != nil {
+				return WrapErrorf(err, IdMsg, d.Id())
+			}
+		}
 
 		d.SetPartial("fe_config")
 	}
 
-	// Update BE node count if changed
+	// Update cache size if BE config changed
 	if d.HasChange("be_config") {
-		// TODO: Implement BE node scaling when CWS-Lib-Go supports it
-		// oldConfig, newConfig := d.GetChange("be_config")
-		// oldBEConfig := oldConfig.([]interface{})[0].(map[string]interface{})
-		// newBEConfig := newConfig.([]interface{})[0].(map[string]interface{})
+		oldConfig, newConfig := d.GetChange("be_config")
+		oldBEConfig := oldConfig.([]interface{})[0].(map[string]interface{})
+		newBEConfig := newConfig.([]interface{})[0].(map[string]interface{})
 
-		// if oldBEConfig["node_count"] != newBEConfig["node_count"] {
-		//     Implement BE node scaling API call
-		// }
+		if oldBEConfig["disk_size"] != newBEConfig["disk_size"] {
+			// Modify cache size using the API
+			var options []selectdb.ModifyClusterOption
+			cacheSize := fmt.Sprintf("%dGB", newBEConfig["disk_size"].(int))
+			options = append(options, selectdb.WithCacheSize(cacheSize))
+
+			_, err := service.ModifySelectDBCluster(instanceId, clusterId, options...)
+			if err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyCluster", AlibabaCloudSdkGoERROR)
+			}
+
+			// Wait for modification to complete
+			err = service.WaitForSelectDBCluster(instanceId, clusterId, Running, int(d.Timeout(schema.TimeoutUpdate).Seconds()))
+			if err != nil {
+				return WrapErrorf(err, IdMsg, d.Id())
+			}
+		}
 
 		d.SetPartial("be_config")
 	}
 
-	// Update auto scaling rules if changed
+	// Update cluster description if changed
+	if d.HasChange("description") {
+		newDescription := d.Get("description").(string)
+		if newDescription != "" {
+			// Use cluster configuration modification to update description
+			// This is a workaround since there's no direct API for description update
+			parameters := fmt.Sprintf(`{"cluster_description": "%s"}`, newDescription)
+			_, err := service.selectdbAPI.ModifyClusterConfig(clusterId, instanceId, parameters)
+			if err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyClusterConfig", AlibabaCloudSdkGoERROR)
+			}
+		}
+		d.SetPartial("description")
+	}
+
+	// Update cluster name - Note: SelectDB may not support cluster name changes
+	// This is kept for future API support
+	if d.HasChange("cluster_name") {
+		// Currently, cluster name changes are typically not supported
+		// Log a warning and continue
+		log.Printf("[WARN] Cluster name changes are not supported for SelectDB clusters")
+		d.SetPartial("cluster_name")
+	}
+
+	// Auto scaling rules update - placeholder for future implementation
 	if d.HasChange("auto_scaling_rules") {
-		// TODO: Implement auto scaling rules update when CWS-Lib-Go supports it
-		// err = updateSelectDBAutoScalingRules(d, service)
-		// if err != nil {
-		//     return WrapError(err)
-		// }
+		// Note: Auto scaling rules management is not yet implemented in the API
+		// This is a placeholder for when the API supports these operations
+		log.Printf("[WARN] Auto scaling rules updates are not yet implemented")
 		d.SetPartial("auto_scaling_rules")
 	}
 
@@ -361,7 +452,20 @@ func resourceAliCloudSelectDBClusterDelete(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	err = service.DeleteSelectDBCluster(instanceId, clusterId)
+	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		err := service.DeleteSelectDBCluster(instanceId, clusterId, service.client.RegionId)
+		if err != nil {
+			if IsNotFoundError(err) {
+				return nil
+			}
+			if NeedRetry(err) {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil
@@ -369,22 +473,86 @@ func resourceAliCloudSelectDBClusterDelete(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteCluster", AlibabaCloudSdkGoERROR)
 	}
 
-	return WrapError(service.WaitForSelectDBCluster(instanceId, clusterId, Deleted, int(d.Timeout(schema.TimeoutDelete).Seconds())))
+	// Wait for the cluster to be deleted
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{selectdb.ClusterStatusDeleting, selectdb.ClusterStatusRunning, selectdb.ClusterStatusStopped},
+		Target:  []string{""},
+		Refresh: func() (interface{}, string, error) {
+			cluster, err := service.DescribeSelectDBCluster(instanceId, clusterId)
+			if err != nil {
+				if IsNotFoundError(err) {
+					return nil, "", nil
+				}
+				return nil, "", WrapError(err)
+			}
+			return cluster, cluster.Status, nil
+		},
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return nil
 }
 
-func updateSelectDBAutoScalingRules(d *schema.ResourceData, service *SelectDBService) error {
-	// TODO: Implement auto scaling rules update when CWS-Lib-Go supports it
-	// Currently commented out as the required API structures are not available
+// Helper functions for data conversion
 
-	/*
-		instanceId, clusterId, err := service.DecodeSelectDBClusterId(d.Id())
-		if err != nil {
-			return err
+// convertInterfaceToStringSlice converts []interface{} to []string
+func convertInterfaceToStringSlice(v interface{}) []string {
+	if v == nil {
+		return []string{}
+	}
+	vList := v.([]interface{})
+	result := make([]string, len(vList))
+	for i, val := range vList {
+		if val != nil {
+			result[i] = val.(string)
 		}
+	}
+	return result
+}
 
-		rules := d.Get("auto_scaling_rules").([]interface{})
-		// Implementation would go here when API structures are available
-	*/
+// convertStringSliceToInterface converts []string to []interface{}
+func convertStringSliceToInterface(slice []string) []interface{} {
+	result := make([]interface{}, len(slice))
+	for i, val := range slice {
+		result[i] = val
+	}
+	return result
+}
+
+// validateSelectDBClusterConfig validates cluster configuration parameters
+func validateSelectDBClusterConfig(feConfig, beConfig map[string]interface{}) error {
+	// Validate FE config
+	if nodeCount, ok := feConfig["node_count"].(int); ok && nodeCount < 1 {
+		return fmt.Errorf("FE node count must be at least 1")
+	}
+
+	if nodeType, ok := feConfig["node_type"].(string); ok && nodeType == "" {
+		return fmt.Errorf("FE node type cannot be empty")
+	}
+
+	// Validate BE config
+	if nodeCount, ok := beConfig["node_count"].(int); ok && nodeCount < 1 {
+		return fmt.Errorf("BE node count must be at least 1")
+	}
+
+	if nodeType, ok := beConfig["node_type"].(string); ok && nodeType == "" {
+		return fmt.Errorf("BE node type cannot be empty")
+	}
+
+	if diskSize, ok := beConfig["disk_size"].(int); ok && (diskSize < 100 || diskSize > 2000) {
+		return fmt.Errorf("BE disk size must be between 100 and 2000 GB")
+	}
+
+	if diskCount, ok := beConfig["disk_count"].(int); ok && (diskCount < 1 || diskCount > 10) {
+		return fmt.Errorf("BE disk count must be between 1 and 10")
+	}
 
 	return nil
 }

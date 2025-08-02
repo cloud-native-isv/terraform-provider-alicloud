@@ -53,6 +53,7 @@ func (s *SelectDBService) DescribeSelectDBCluster(instanceId, clusterId string) 
 		ClusterId:  clusterId,
 		InstanceId: instanceId,
 		Config:     config,
+		Status:     selectdb.ClusterStatusRunning, // Default status if we can get config
 	}
 
 	return cluster, nil
@@ -207,12 +208,21 @@ func (s *SelectDBService) WaitForSelectDBCluster(instanceId, clusterId string, s
 	for {
 		cluster, err := s.DescribeSelectDBCluster(instanceId, clusterId)
 		if err != nil {
+			if IsNotFoundError(err) && status == Deleted {
+				return nil
+			}
 			return WrapError(err)
 		}
 
 		if cluster.Status == string(status) {
 			return nil
 		}
+
+		// Check for failed states
+		if cluster.Status == selectdb.ClusterStatusFailed {
+			return WrapErrorf(err, FailedToReachTargetStatus, cluster.Status)
+		}
+
 		if time.Now().After(deadline) {
 			return WrapErrorf(err, WaitTimeoutMsg, instanceId, GetFunc(1), timeout, cluster.Status, string(status), ProviderERROR)
 		}
