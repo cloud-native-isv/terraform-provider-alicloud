@@ -39,6 +39,12 @@ func NewOssService(client *connectivity.AliyunClient) *OssService {
 	}
 }
 
+// GetAPI returns the OSS v2 Client instance for direct API access
+func (service *OssService) GetAPI() *ossv2.Client {
+	// add some customize logic for this API object
+	return service.v2Client
+}
+
 // Main OSS service file
 // Individual resource functions have been moved to separate files:
 // - service_alicloud_oss_bucketacl.go

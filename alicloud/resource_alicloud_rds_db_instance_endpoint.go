@@ -97,7 +97,10 @@ func resourceAliCloudRdsDBInstanceEndpoint() *schema.Resource {
 
 func resourceAliCloudRdsDBInstanceEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	var response map[string]interface{}
 	action := "CreateDBInstanceEndpoint"
 	request := map[string]interface{}{
@@ -110,8 +113,6 @@ func resourceAliCloudRdsDBInstanceEndpointCreate(d *schema.ResourceData, meta in
 		"DBInstanceEndpointType": "Readonly",
 		"SourceIp":               client.SourceIp,
 	}
-
-	var err error
 	if v, ok := d.GetOk("db_instance_endpoint_description"); ok {
 		request["DBInstanceEndpointDescription"] = v
 	}
@@ -169,7 +170,10 @@ func resourceAliCloudRdsDBInstanceEndpointUpdate(d *schema.ResourceData, meta in
 	if err != nil {
 		return WrapError(err)
 	}
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	if !d.IsNewResource() && d.HasChanges("db_instance_endpoint_description", "node_items") {
 		action := "ModifyDBInstanceEndpoint"
 		request := map[string]interface{}{
@@ -298,7 +302,10 @@ func resourceAliCloudRdsDBInstanceEndpointUpdate(d *schema.ResourceData, meta in
 
 func resourceAliCloudRdsDBInstanceEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, endpointErr := rdsService.DescribeDBInstanceEndpoints(d.Id())
 	if endpointErr != nil {
 		if !d.IsNewResource() && IsNotFoundError(endpointErr) {
@@ -325,7 +332,10 @@ func resourceAliCloudRdsDBInstanceEndpointRead(d *schema.ResourceData, meta inte
 
 func resourceAliCloudRdsDBInstanceEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)

@@ -113,7 +113,10 @@ func resourceAliCloudArmsPrometheusMonitoringCreate(d *schema.ResourceData, meta
 
 func resourceAliCloudArmsPrometheusMonitoringRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	objectRaw, err := armsService.DescribeArmsPrometheusMonitoring(d.Id())
 	if err != nil {

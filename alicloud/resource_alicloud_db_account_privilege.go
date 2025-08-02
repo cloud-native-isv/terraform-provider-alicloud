@@ -56,7 +56,10 @@ func resourceAliCloudDBAccountPrivilege() *schema.Resource {
 
 func resourceAliCloudDBAccountPrivilegeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	instanceId := d.Get("instance_id").(string)
 	account := d.Get("account_name").(string)
 	privilege := d.Get("privilege").(string)
@@ -88,7 +91,10 @@ func resourceAliCloudDBAccountPrivilegeCreate(d *schema.ResourceData, meta inter
 
 func resourceAliCloudDBAccountPrivilegeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rsdService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
@@ -97,7 +103,7 @@ func resourceAliCloudDBAccountPrivilegeRead(d *schema.ResourceData, meta interfa
 		log.Println("[WARN] Resource alicloud_db_account_privilege has no any databaces in this state.")
 		return nil
 	}
-	object, err := rsdService.DescribeDBAccountPrivilege(d.Id())
+	object, err := rdsService.DescribeDBAccountPrivilege(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {
 			d.SetId("")
@@ -168,7 +174,10 @@ func resourceAliCloudDBAccountPrivilegeRead(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudDBAccountPrivilegeUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	d.Partial(true)
 
 	if d.HasChange("db_names") {
@@ -215,7 +224,10 @@ func resourceAliCloudDBAccountPrivilegeUpdate(d *schema.ResourceData, meta inter
 
 func resourceAliCloudDBAccountPrivilegeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)

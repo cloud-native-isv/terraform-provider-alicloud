@@ -74,7 +74,10 @@ func resourceAliCloudRdsServiceLinkedRoleCreate(d *schema.ResourceData, meta int
 }
 func resourceAliCloudRdsServiceLinkedRoleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := rdsService.DescribeRdsServiceLinkedRole(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {

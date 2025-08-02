@@ -332,7 +332,10 @@ func resourceAliCloudArmsDispatchRuleCreate(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudArmsDispatchRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := armsService.DescribeArmsDispatchRule(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {

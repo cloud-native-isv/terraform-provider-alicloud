@@ -1,6 +1,8 @@
 package alicloud
 
 import (
+	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/selectdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -32,7 +34,7 @@ func dataSourceAliCloudSelectDBInstances() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"db_instance_id": {
+						"instance_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -48,7 +50,7 @@ func dataSourceAliCloudSelectDBInstances() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"db_instance_description": {
+						"instance_description": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -140,126 +142,97 @@ func dataSourceAliCloudSelectDBInstances() *schema.Resource {
 }
 
 func dataSourceAliCloudSelectDBInstancesRead(d *schema.ResourceData, meta interface{}) error {
-	// client := meta.(*connectivity.AliyunClient)
-	// selectDBService, err := NewSelectDBService(client)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
+	client := meta.(*connectivity.AliyunClient)
+	selectDBService, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	// tags := make([]map[string]interface{}, 0)
-	// if v, ok := d.GetOk("tags"); ok {
-	// 	for key, value := range v.(map[string]interface{}) {
-	// 		tags = append(tags, map[string]interface{}{
-	// 			"Key":   key,
-	// 			"Value": value.(string),
-	// 		})
-	// 	}
-	// }
+	// Get filter parameters
+	var idsFilter []string
+	if v, ok := d.GetOk("ids"); ok {
+		for _, vv := range v.([]interface{}) {
+			if vv != nil {
+				idsFilter = append(idsFilter, vv.(string))
+			}
+		}
+	}
 
-	// idsStr := ""
-	// if v, ok := d.GetOk("ids"); ok {
-	// 	for _, vv := range v.([]interface{}) {
-	// 		if idsStr == "" {
-	// 			idsStr = vv.(string)
-	// 		} else {
-	// 			idsStr = idsStr + ":" + vv.(string)
-	// 		}
-	// 	}
-	// }
+	// List all instances
+	instances, err := selectDBService.DescribeSelectDBInstances(1, 50)
+	if err != nil {
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_instances", AlibabaCloudSdkGoERROR)
+	}
 
-	// var objects []map[string]interface{}
+	var filteredInstances []selectdb.Instance
+	for _, instance := range instances {
+		// Apply ID filter if specified
+		if len(idsFilter) > 0 {
+			found := false
+			for _, filterId := range idsFilter {
+				if instance.Id == filterId {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+		filteredInstances = append(filteredInstances, instance)
+	}
 
-	// ids := make([]string, 0)
-	// s := make([]map[string]interface{}, 0)
-	// for _, object := range objects {
-	// 	// summary
-	// 	mapping := map[string]interface{}{
-	// 		"db_instance_id": object["DBInstanceId"],
-	// 		"engine":         object["Engine"],
-	// 		"engine_version": object["EngineVersion"],
+	ids := make([]string, 0)
+	s := make([]map[string]interface{}, 0)
 
-	// 		"db_instance_description": object["Description"],
-	// 		"status":                  object["Status"],
-	// 		"payment_type":            convertChargeTypeToPaymentType(object["ChargeType"]),
+	for _, instance := range filteredInstances {
+		mapping := map[string]interface{}{
+			// New field names
+			"instance_id":          instance.Id,
+			"instance_description": instance.Description,
+			"engine":               instance.Engine,
+			"engine_version":       instance.EngineVersion,
+			"engine_minor_version": instance.EngineMinorVersion,
+			"status":               instance.Status,
+			"payment_type":         convertChargeTypeToPaymentType(instance.ChargeType),
+			"region_id":            instance.RegionId,
+			"zone_id":              instance.ZoneId,
+			"vpc_id":               instance.VpcId,
+			"vswitch_id":           instance.VswitchId,
+			"sub_domain":           instance.SubDomain,
+			"gmt_created":          instance.GmtCreated,
+			"gmt_modified":         instance.GmtModified,
+			"gmt_expired":          instance.ExpireTime,
+			"lock_mode":            "", // Default empty
+			"lock_reason":          "", // Default empty
 
-	// 		"region_id":    object["RegionId"],
-	// 		"zone_id":      object["ZoneId"],
-	// 		"vpc_id":       object["VpcId"],
-	// 		"vswitch_id":   object["VswitchId"],
-	// 		"gmt_created":  object["GmtCreated"],
-	// 		"gmt_modified": object["GmtModified"],
-	// 		"gmt_expired":  object["ExpireTime"],
-	// 		"lock_mode":    object["LockMode"],
-	// 		"lock_reason":  object["LockReason"],
-	// 	}
-	// 	// cpu,mem,cache
-	// 	instanceResp, err := selectDBService.DescribeSelectDBInstance(object["DBInstanceId"].(string))
-	// 	if err != nil {
-	// 		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_db_instance", AlibabaCloudSdkGoERROR)
-	// 	}
-	// 	// result := instanceResp["DBClusterList"]
-	// 	cpuPrepaid := 0
-	// 	cpuPostpaid := 0
-	// 	memPrepaid := 0
-	// 	memPostpaid := 0
-	// 	cachePrepaid := 0
-	// 	cachePostpaid := 0
+			// Resource configuration
+			"cpu_prepaid":            0,
+			"memory_prepaid":         0,
+			"cache_size_prepaid":     0,
+			"cluster_count_prepaid":  0,
+			"cpu_postpaid":           instance.ResourceCpu,
+			"memory_postpaid":        instance.ResourceMemory,
+			"cache_size_postpaid":    instance.StorageSize,
+			"cluster_count_postpaid": instance.ClusterCount,
+		}
 
-	// 	clusterPrepaidCount := 0
-	// 	clusterPostpaidCount := 0
+		ids = append(ids, instance.Id)
+		s = append(s, mapping)
+	}
 
-	// 	for _, v := range result.([]interface{}) {
-	// 		item := v.(map[string]interface{})
-	// 		if item["ChargeType"].(string) == "Postpaid" {
-	// 			cpuP, _ := item["CpuCores"].(json.Number).Int64()
-	// 			cpuPostpaid += int(cpuP)
-	// 			memP, _ := item["Memory"].(json.Number).Int64()
-	// 			memPostpaid += int(memP)
-	// 			cacheP, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
-	// 			cachePostpaid += int(cacheP)
-	// 			clusterPostpaidCount += 1
-	// 		}
-	// 		if item["ChargeType"].(string) == "Prepaid" {
-	// 			cpuP, _ := item["CpuCores"].(json.Number).Int64()
-	// 			cpuPrepaid += int(cpuP)
-	// 			memP, _ := item["Memory"].(json.Number).Int64()
-	// 			memPrepaid += int(memP)
-	// 			cacheP, _ := item["CacheStorageSizeGB"].(json.Number).Int64()
-	// 			cachePrepaid += int(cacheP)
-	// 			clusterPrepaidCount += 1
-	// 		}
-	// 	}
-	// 	mapping["cpu_prepaid"] = cpuPrepaid
-	// 	mapping["memory_prepaid"] = memPrepaid
-	// 	mapping["cache_size_prepaid"] = cachePrepaid
-	// 	mapping["cpu_postpaid"] = cpuPostpaid
-	// 	mapping["memory_postpaid"] = memPostpaid
-	// 	mapping["cache_size_postpaid"] = cachePostpaid
+	d.SetId(dataResourceIdHash(ids))
+	if err := d.Set("ids", ids); err != nil {
+		return WrapError(err)
+	}
 
-	// 	mapping["cluster_count_prepaid"] = clusterPrepaidCount
-	// 	mapping["cluster_count_postpaid"] = clusterPostpaidCount
+	if err := d.Set("instances", s); err != nil {
+		return WrapError(err)
+	}
 
-	// 	// mapping["engine_minor_version"] = instanceResp["EngineMinorVersion"]
-	// 	// mapping["sub_domain"] = instanceResp["SubDomain"]
-
-	// 	id := fmt.Sprint(object["DBInstanceId"])
-	// 	mapping["id"] = id
-	// 	ids = append(ids, id)
-
-	// 	s = append(s, mapping)
-	// }
-
-	// d.SetId(dataResourceIdHash(ids))
-	// if err := d.Set("ids", ids); err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// if err := d.Set("instances", s); err != nil {
-	// 	return WrapError(err)
-	// }
-	// if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-	// 	writeToFile(output.(string), s)
-	// }
+	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
+		writeToFile(output.(string), s)
+	}
 
 	return nil
 }

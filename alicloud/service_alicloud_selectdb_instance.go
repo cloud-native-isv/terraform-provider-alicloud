@@ -25,33 +25,6 @@ func (s *SelectDBService) CreateSelectDBInstance(instance *selectdb.Instance) (*
 	return result, nil
 }
 
-// DescribeSelectDBInstance retrieves information about a SelectDB instance
-func (s *SelectDBService) DescribeSelectDBInstance(instanceId string) (*selectdb.Instance, error) {
-	if instanceId == "" {
-		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
-	}
-
-	instance, err := s.selectdbAPI.GetInstance(instanceId)
-	if err != nil {
-		if selectdb.IsNotFoundError(err) {
-			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
-		}
-		return nil, WrapError(err)
-	}
-
-	return instance, nil
-}
-
-// DescribeSelectDBInstances lists SelectDB instances with pagination
-func (s *SelectDBService) DescribeSelectDBInstances(regionId string) ([]selectdb.Instance, error) {
-	instances, err := s.selectdbAPI.ListInstances(regionId, 1, 50)
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	return instances, nil
-}
-
 // ModifySelectDBInstance modifies attributes of a SelectDB instance
 func (s *SelectDBService) ModifySelectDBInstance(instanceId, attributeType, value, regionId string) error {
 	if instanceId == "" {

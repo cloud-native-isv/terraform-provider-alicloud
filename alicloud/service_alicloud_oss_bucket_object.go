@@ -27,4 +27,3 @@ func (s *OssService) WaitForOssBucketObject(bucket *oss.Bucket, id string, statu
 		}
 	}
 }
-

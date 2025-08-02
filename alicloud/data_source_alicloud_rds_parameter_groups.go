@@ -182,7 +182,10 @@ func dataSourceAliCloudRdsParameterGroupsRead(d *schema.ResourceData, meta inter
 			continue
 		}
 
-		rdsService := RdsService{client}
+		rdsService, err := NewRdsService(client)
+		if err != nil {
+			return WrapError(err)
+		}
 		id := fmt.Sprint(object["ParameterGroupId"])
 		getResp, err := rdsService.DescribeRdsParameterGroup(id)
 		if err != nil {

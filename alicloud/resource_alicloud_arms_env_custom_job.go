@@ -115,7 +115,10 @@ func resourceAliCloudArmsEnvCustomJobCreate(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudArmsEnvCustomJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	objectRaw, err := armsService.DescribeArmsEnvCustomJob(d.Id())
 	if err != nil {

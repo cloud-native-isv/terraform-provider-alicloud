@@ -89,7 +89,10 @@ func resourceAliCloudRdsInstanceCrossBackupPolicyCreate(d *schema.ResourceData, 
 
 func resourceAliCloudRdsInstanceCrossBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := rdsService.DescribeInstanceCrossBackupPolicy(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {
@@ -157,7 +160,10 @@ func resourceAliCloudRdsInstanceCrossBackupPolicyUpdate(d *schema.ResourceData, 
 
 func resourceAliCloudRdsInstanceCrossBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := rdsService.DescribeInstanceCrossBackupPolicy(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {

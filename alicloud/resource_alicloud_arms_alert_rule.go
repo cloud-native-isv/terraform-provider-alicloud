@@ -136,7 +136,10 @@ func resourceAliCloudArmsAlertRule() *schema.Resource {
 
 func resourceAliCloudArmsAlertRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	// Prepare rule parameters
 	rule := make(map[string]interface{})
@@ -191,7 +194,10 @@ func resourceAliCloudArmsAlertRuleCreate(d *schema.ResourceData, meta interface{
 
 func resourceAliCloudArmsAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	alertId, err := strconv.ParseInt(d.Id(), 10, 64)
 	if err != nil {

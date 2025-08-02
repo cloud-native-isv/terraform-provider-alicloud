@@ -674,8 +674,10 @@ func parameterToHash(v interface{}) int {
 
 func resourceAliCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
-	var err error
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	action := "CreateDBInstance"
 	request, err := buildDBCreateRequest(d, meta)
 	if err != nil {
@@ -699,7 +701,10 @@ func resourceAliCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAliCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	d.Partial(true)
 	stateConf := BuildStateConf([]string{"DBInstanceClassChanging", "DBInstanceNetTypeChanging", "CONFIG_ENCRYPTING", "SSL_MODIFYING", "TDE_MODIFYING"}, []string{"Running"}, d.Timeout(schema.TimeoutUpdate), 60*time.Second, rdsService.RdsDBInstanceStateRefreshFunc(d.Id(), []string{"Deleting"}))
 	if d.HasChange("parameters") {
@@ -731,7 +736,6 @@ func resourceAliCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) 
 	if err := rdsService.setInstanceTags(d); err != nil {
 		return WrapError(err)
 	}
-	var err error
 
 	if d.HasChanges("storage_auto_scale", "storage_threshold", "storage_upper_bound") {
 		stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, rdsService.RdsDBInstanceStateRefreshFunc(d.Id(), []string{"Deleting"}))
@@ -1731,7 +1735,10 @@ func resourceAliCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAliCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
@@ -2016,7 +2023,10 @@ func resourceAliCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceAliCloudDBInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {

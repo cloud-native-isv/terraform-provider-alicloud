@@ -1,9 +1,11 @@
 package alicloud
 
 import (
+	"fmt"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
+	aliyunCommonAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 )
 
 type ArmsService struct {
@@ -11,22 +13,30 @@ type ArmsService struct {
 	armsAPI *aliyunArmsAPI.ArmsAPI
 }
 
-// NewArmsService creates a new ArmsService instance
-func NewArmsService(client *connectivity.AliyunClient) *ArmsService {
-	// Initialize the ARMS API client
-	armsAPI, err := aliyunArmsAPI.NewARMSClientWithCredentials(&common.Credentials{
+// NewArmsService creates a new ArmsService using cws-lib-go implementation
+func NewArmsService(client *connectivity.AliyunClient) (*ArmsService, error) {
+	// Convert AliyunClient credentials to Credentials
+	credentials := &aliyunCommonAPI.Credentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,
 		SecurityToken: client.SecurityToken,
-	})
+	}
+
+	// Create the cws-lib-go ArmsAPI
+	armsAPI, err := aliyunArmsAPI.NewARMSClientWithCredentials(credentials)
 	if err != nil {
-		// Log error but continue with nil API (will fall back to direct RPC calls)
-		addDebug("NewArmsService", "Failed to initialize ARMS API client", err)
+		return nil, fmt.Errorf("failed to create cws-lib-go ArmsAPI: %w", err)
 	}
 
 	return &ArmsService{
 		client:  client,
 		armsAPI: armsAPI,
-	}
+	}, nil
+}
+
+// GetAPI returns the ArmsAPI instance for direct API access
+func (service *ArmsService) GetAPI() *aliyunArmsAPI.ArmsAPI {
+	// add some customize logic for this API object
+	return service.armsAPI
 }

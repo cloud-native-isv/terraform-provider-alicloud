@@ -489,8 +489,10 @@ func parameterToHashDdr(v interface{}) int {
 
 func resourceAliCloudRdsDdrInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
-	var err error
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	action := "CheckCreateDdrDBInstance"
 	request := map[string]interface{}{
 		"RegionId":          client.RegionId,
@@ -566,7 +568,10 @@ func resourceAliCloudRdsDdrInstanceCreate(d *schema.ResourceData, meta interface
 
 func resourceAliCloudRdsDdrInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	d.Partial(true)
 	if d.HasChange("parameters") {
 		if err := rdsService.ModifyParameters(d, "parameters"); err != nil {
@@ -597,7 +602,6 @@ func resourceAliCloudRdsDdrInstanceUpdate(d *schema.ResourceData, meta interface
 	if err := rdsService.setInstanceTags(d); err != nil {
 		return WrapError(err)
 	}
-	var err error
 
 	if d.HasChanges("storage_auto_scale", "storage_threshold", "storage_upper_bound") {
 		stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutUpdate), 3*time.Minute, rdsService.RdsDBInstanceStateRefreshFunc(d.Id(), []string{"Deleting"}))
@@ -1377,7 +1381,10 @@ func resourceAliCloudRdsDdrInstanceUpdate(d *schema.ResourceData, meta interface
 
 func resourceAliCloudRdsDdrInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
@@ -1584,7 +1591,10 @@ func resourceAliCloudRdsDdrInstanceRead(d *schema.ResourceData, meta interface{}
 
 func resourceAliCloudRdsDdrInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
@@ -1631,7 +1641,10 @@ func resourceAliCloudRdsDdrInstanceDelete(d *schema.ResourceData, meta interface
 
 func buildRdsDdrDBInstanceRequest(d *schema.ResourceData, meta interface{}) (map[string]interface{}, error) {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return nil, WrapError(err)
+	}
 	vpcService := VpcService{client}
 	request := map[string]interface{}{
 		"RegionId":          client.RegionId,

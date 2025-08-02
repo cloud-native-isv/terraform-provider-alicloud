@@ -67,12 +67,14 @@ func resourceAliCloudRdsBackup() *schema.Resource {
 
 func resourceAliCloudRdsBackupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	var response map[string]interface{}
 	action := "CreateBackup"
 	request := make(map[string]interface{})
 	request["SourceIp"] = client.SourceIp
-	var err error
 	if v, ok := d.GetOk("backup_method"); ok {
 		request["BackupMethod"] = v
 	}
@@ -115,7 +117,10 @@ func resourceAliCloudRdsBackupCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAliCloudRdsBackupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := rdsService.DescribeRdsBackup(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {

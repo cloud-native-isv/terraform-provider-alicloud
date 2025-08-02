@@ -214,7 +214,10 @@ func resourceAliCloudDBBackupPolicyCreate(d *schema.ResourceData, meta interface
 
 func resourceAliCloudDBBackupPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := rdsService.DescribeBackupPolicy(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {
@@ -269,7 +272,10 @@ func resourceAliCloudDBBackupPolicyRead(d *schema.ResourceData, meta interface{}
 
 func resourceAliCloudDBBackupPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	updateForData := false
 	updateForLog := false
 
@@ -311,14 +317,16 @@ func resourceAliCloudDBBackupPolicyUpdate(d *schema.ResourceData, meta interface
 
 func resourceAliCloudDBBackupPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutUpdate), 60*time.Second, rdsService.RdsDBInstanceStateRefreshFunc(d.Id(), []string{"Deleting"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	var err error
 	action := "ModifyBackupPolicy"
 	request := map[string]interface{}{
 		"RegionId":              client.RegionId,

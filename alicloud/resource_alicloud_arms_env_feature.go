@@ -95,7 +95,10 @@ func resourceAliCloudArmsEnvFeatureCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprintf("%v:%v", query["EnvironmentId"], query["FeatureName"]))
 
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	stateConf := BuildStateConf([]string{}, []string{"Success"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, armsService.ArmsEnvFeatureStateRefreshFunc(d.Id(), "$.Feature.Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -106,7 +109,10 @@ func resourceAliCloudArmsEnvFeatureCreate(d *schema.ResourceData, meta interface
 
 func resourceAliCloudArmsEnvFeatureRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	objectRaw, err := armsService.DescribeArmsEnvFeature(d.Id())
 	if err != nil {
@@ -173,7 +179,10 @@ func resourceAliCloudArmsEnvFeatureUpdate(d *schema.ResourceData, meta interface
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
-		armsService := NewArmsService(client)
+		armsService, err := NewArmsService(client)
+		if err != nil {
+			return WrapError(err)
+		}
 		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("feature_version"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, armsService.ArmsEnvFeatureStateRefreshFunc(d.Id(), "$.Feature.Version", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
@@ -216,7 +225,10 @@ func resourceAliCloudArmsEnvFeatureDelete(d *schema.ResourceData, meta interface
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	stateConf := BuildStateConf([]string{}, []string{""}, d.Timeout(schema.TimeoutDelete), 5*time.Second, armsService.ArmsEnvFeatureStateRefreshFunc(d.Id(), "$.Feature.Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())

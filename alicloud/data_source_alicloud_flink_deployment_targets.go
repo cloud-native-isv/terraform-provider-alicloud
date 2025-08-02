@@ -161,8 +161,8 @@ func dataSourceAliCloudFlinkDeploymentTargetsRead(d *schema.ResourceData, meta i
 	targets := make([]map[string]interface{}, 0)
 	for _, target := range filteredTargets {
 		mapping := map[string]interface{}{
-			"id":        formatDeploymentTargetId(workspaceId, namespaceName, target.Name),
-			"name":      target.Name,
+			"id":             formatDeploymentTargetId(workspaceId, namespaceName, target.Name),
+			"name":           target.Name,
 			"namespace_name": target.Namespace,
 		}
 

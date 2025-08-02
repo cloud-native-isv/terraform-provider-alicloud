@@ -101,7 +101,10 @@ func resourceAliCloudArmsAlertNotificationPolicyCreate(d *schema.ResourceData, m
 
 func resourceAliCloudArmsAlertNotificationPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := armsService.DescribeArmsAlertNotificationPolicy(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {

@@ -449,12 +449,14 @@ func resourceAliCloudRdsCloneDbInstance() *schema.Resource {
 
 func resourceAliCloudRdsCloneDbInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	var response map[string]interface{}
 	action := "CloneDBInstance"
 	request := make(map[string]interface{})
 	request["SourceIp"] = client.SourceIp
-	var err error
 	if v, ok := d.GetOk("backup_id"); ok {
 		request["BackupId"] = v
 	}
@@ -585,7 +587,10 @@ func resourceAliCloudRdsCloneDbInstanceCreate(d *schema.ResourceData, meta inter
 }
 func resourceAliCloudRdsCloneDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := rdsService.DescribeRdsCloneDbInstance(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {
@@ -709,9 +714,11 @@ func resourceAliCloudRdsCloneDbInstanceRead(d *schema.ResourceData, meta interfa
 }
 func resourceAliCloudRdsCloneDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	var response map[string]interface{}
-	var err error
 	d.Partial(true)
 	if d.HasChange("parameters") {
 		if err := rdsService.ModifyParameters(d, "parameters"); err != nil {

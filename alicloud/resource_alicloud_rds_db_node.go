@@ -57,7 +57,10 @@ func resourceAliCloudRdsDBNode() *schema.Resource {
 
 func resourceAliCloudRdsDBNodeCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	var response map[string]interface{}
 	action := "CreateDBNodes"
 	request := map[string]interface{}{
@@ -65,7 +68,6 @@ func resourceAliCloudRdsDBNodeCreate(d *schema.ResourceData, meta interface{}) e
 		"DBInstanceId": Trim(d.Get("db_instance_id").(string)),
 		"SourceIp":     client.SourceIp,
 	}
-	var err error
 	objects := make([]interface{}, 0)
 	dbNodesMap := make(map[string]interface{})
 	dbNodesMap["classCode"] = d.Get("class_code").(string)
@@ -102,7 +104,10 @@ func resourceAliCloudRdsDBNodeCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceAliCloudRdsDBNodeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	dbNode, nodeErr := rdsService.DescribeRdsNode(d.Id())
 	if nodeErr != nil {
 		if !d.IsNewResource() && IsNotFoundError(nodeErr) {
@@ -122,7 +127,10 @@ func resourceAliCloudRdsDBNodeRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceAliCloudRdsDBNodeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)

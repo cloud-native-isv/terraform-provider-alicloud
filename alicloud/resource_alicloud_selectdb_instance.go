@@ -963,9 +963,9 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 
 		for _, cluster := range instance.DBClusterList {
 			clusterInfo := map[string]interface{}{
-				"db_cluster_id":         cluster.DbClusterId,
-				"db_cluster_name":       cluster.DbClusterName,
-				"db_cluster_class":      cluster.DbClusterClass,
+				"db_cluster_id":         cluster.ClusterId,
+				"db_cluster_name":       cluster.ClusterName,
+				"db_cluster_class":      cluster.ClusterClass,
 				"status":                cluster.Status,
 				"charge_type":           cluster.ChargeType,
 				"cpu_cores":             cluster.CpuCores,
@@ -980,8 +980,8 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 			clusterList = append(clusterList, clusterInfo)
 
 			// Set instance class and cache size from default BE cluster
-			if cluster.DbClusterId == defaultBeClusterId {
-				d.Set("db_instance_class", cluster.DbClusterClass)
+			if cluster.ClusterId == defaultBeClusterId {
+				d.Set("db_instance_class", cluster.ClusterClass)
 				if cacheSize, err := strconv.Atoi(cluster.CacheStorageSizeGB); err == nil {
 					defaultCacheSize = cacheSize
 				}

@@ -2,54 +2,43 @@ package alicloud
 
 import (
 	"fmt"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
+	aliyunCommonAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 )
 
 type SlsService struct {
-	client       *connectivity.AliyunClient
-	aliyunSlsAPI *aliyunSlsAPI.SlsAPI
+	client *connectivity.AliyunClient
+	slsAPI *aliyunSlsAPI.SlsAPI
 }
 
-// NewSlsService creates a new SlsService instance with initialized clients
+// NewSlsService creates a new SlsService using cws-lib-go implementation
 func NewSlsService(client *connectivity.AliyunClient) (*SlsService, error) {
-	credentials := &common.Credentials{
+	// Convert AliyunClient credentials to Credentials
+	credentials := &aliyunCommonAPI.Credentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,
 		SecurityToken: client.SecurityToken,
 	}
 
+	// Create the cws-lib-go SlsAPI
 	slsAPI, err := aliyunSlsAPI.NewSlsAPI(credentials)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create SLS API client: %w", err)
+		return nil, fmt.Errorf("failed to create cws-lib-go SlsAPI: %w", err)
 	}
 
 	return &SlsService{
-		client:       client,
-		aliyunSlsAPI: slsAPI,
+		client: client,
+		slsAPI: slsAPI,
 	}, nil
 }
 
-
-// getSlsAPI creates and returns an SLS API client using CWS-Lib-Go
-func (s *SlsService) getSlsAPI() (*aliyunSlsAPI.SlsAPI, error) {
-	// Create credentials from the AliyunClient
-	credentials := &common.Credentials{
-		AccessKey:     s.client.AccessKey,
-		SecretKey:     s.client.SecretKey,
-		RegionId:      s.client.RegionId,
-		SecurityToken: s.client.SecurityToken,
-	}
-
-	// Create SLS API client
-	slsAPI, err := aliyunSlsAPI.NewSlsAPI(credentials)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create SLS API client: %w", err)
-	}
-
-	return slsAPI, nil
+// GetAPI returns the SlsAPI instance for direct API access
+func (service *SlsService) GetAPI() *aliyunSlsAPI.SlsAPI {
+	// add some customize logic for this API object
+	return service.slsAPI
 }
 
 // Only set dataRedundancyType for regions that support it

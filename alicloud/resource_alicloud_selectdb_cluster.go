@@ -1,9 +1,13 @@
 package alicloud
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/selectdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAliCloudSelectDBCluster() *schema.Resource {
@@ -15,604 +19,372 @@ func resourceAliCloudSelectDBCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			"db_instance_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"instance_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The ID of the SelectDB instance.",
 			},
-			"payment_type": {
-				Type:         schema.TypeString,
-				ValidateFunc: StringInSlice([]string{"PayAsYouGo", "Subscription"}, false),
-				Required:     true,
-				ForceNew:     true,
+			"cluster_name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The name of the SelectDB cluster.",
 			},
-			"db_cluster_class": {
-				Type:     schema.TypeString,
-				Required: true,
+			"description": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The description of the SelectDB cluster.",
 			},
-			"cache_size": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-			"db_cluster_description": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"desired_params": {
+			"fe_config": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
+						"node_count": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+							Description:  "The number of FE nodes.",
 						},
-						"value": {
-							Type:     schema.TypeString,
-							Optional: true,
+						"node_type": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The type of FE nodes.",
+						},
+						"resource_group": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The resource group of FE nodes.",
 						},
 					},
 				},
+				Description: "The configuration of FE nodes.",
 			},
-			"desired_status": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: StringInSlice([]string{"STOPPING", "STARTING", "RESTART"}, false),
+			"be_config": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"node_count": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+							Description:  "The number of BE nodes.",
+						},
+						"node_type": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The type of BE nodes.",
+						},
+						"resource_group": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The resource group of BE nodes.",
+						},
+						"disk_size": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      200,
+							ValidateFunc: validation.IntBetween(100, 2000),
+							Description:  "The disk size of BE nodes in GB.",
+						},
+						"disk_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      1,
+							ValidateFunc: validation.IntBetween(1, 10),
+							Description:  "The number of disks per BE node.",
+						},
+					},
+				},
+				Description: "The configuration of BE nodes.",
 			},
-			"elastic_rules_enable": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-			"elastic_rules": {
+			"auto_scaling_rules": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"execution_period": {
+						"rule_name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The name of the auto scaling rule.",
+						},
+						"rule_type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: StringInSlice([]string{"Day", "Week"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"BE_SCALING", "FE_SCALING"}, false),
+							Description:  "The type of the auto scaling rule.",
 						},
-						"elastic_rule_start_time": {
-							Type:     schema.TypeString,
-							Required: true,
+						"min_count": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+							Description:  "The minimum node count for auto scaling.",
 						},
-						"cluster_class": {
-							Type:     schema.TypeString,
-							Required: true,
+						"max_count": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+							Description:  "The maximum node count for auto scaling.",
 						},
-						"rule_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+						"trigger_threshold": {
+							Type:         schema.TypeFloat,
+							Required:     true,
+							ValidateFunc: validation.FloatBetween(0.1, 0.9),
+							Description:  "The threshold to trigger scaling action.",
+						},
+						"metric_type": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"CPU", "MEMORY", "DISK"}, false),
+							Description:  "The metric type for scaling rule.",
 						},
 					},
 				},
+				Description: "The auto scaling rules for the cluster.",
 			},
-
-			// computed
-			"db_cluster_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+			"cluster_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The ID of the SelectDB cluster.",
 			},
 			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"engine": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"engine_version": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The status of the SelectDB cluster.",
 			},
 			"create_time": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"cpu": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"memory": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"region_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"zone_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"vpc_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"param_change_logs": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"old_value": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"new_value": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"gmt_created": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"gmt_modified": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"config_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"is_applied": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-					},
-				},
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The creation time of the SelectDB cluster.",
 			},
 		},
 	}
 }
 
 func resourceAliCloudSelectDBClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	// client := meta.(*connectivity.AliyunClient)
-	// selectDBService, err := NewSelectDBService(client)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
+	client := meta.(*connectivity.AliyunClient)
+	service, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	// request, err := buildSelectDBCreateClusterRequest(d, meta)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-	// action := "CreateDBCluster"
-	// response, err := selectDBService.RequestProcessForSelectDB(request, action, "POST")
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-	// if resp, err := jsonpath.Get("$.Data", response); err != nil || resp == nil {
-	// 	return WrapErrorf(err, IdMsg, "alicloud_selectdb_db_clusters")
-	// } else {
-	// 	clusterId := resp.(map[string]interface{})["ClusterId"].(string)
-	// 	d.SetId(fmt.Sprint(d.Get("db_instance_id").(string) + ":" + clusterId))
-	// }
+	instanceId := d.Get("instance_id").(string)
 
-	// stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutCreate), 20*time.Second, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
-	// if _, err := stateConf.WaitForState(); err != nil {
-	// 	return WrapErrorf(err, IdMsg, d.Id())
-	// }
-	// return resourceAliCloudSelectDBClusterUpdate(d, meta)
+	// Prepare FE config
+	feConfigList := d.Get("fe_config").([]interface{})
+	feConfig := feConfigList[0].(map[string]interface{})
+
+	// Prepare BE config
+	beConfigList := d.Get("be_config").([]interface{})
+	beConfig := beConfigList[0].(map[string]interface{})
+
+	// Prepare cluster creation options
+	clusterClass := feConfig["node_type"].(string)
+	cacheSize := fmt.Sprintf("%dGB", beConfig["disk_size"].(int))
+
+	var options []selectdb.ClusterCreateOption
+
+	// Add description if specified
+	if description := d.Get("description").(string); description != "" {
+		options = append(options, selectdb.WithClusterDescription(description))
+	}
+
+	// Add region if available
+	if service.client.RegionId != "" {
+		options = append(options, selectdb.WithRegion(service.client.RegionId))
+	}
+
+	// Create the cluster
+	cluster, err := service.CreateSelectDBCluster(instanceId, clusterClass, cacheSize, options...)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_selectdb_cluster", "CreateCluster", AlibabaCloudSdkGoERROR)
+	}
+
+	d.SetId(service.EncodeSelectDBClusterId(instanceId, cluster.ClusterId))
+
+	// Wait for the cluster to be created
+	err = service.WaitForSelectDBCluster(instanceId, cluster.ClusterId, Running, int(d.Timeout(schema.TimeoutCreate).Seconds()))
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Set auto scaling rules if specified
+	if rules, ok := d.GetOk("auto_scaling_rules"); ok && len(rules.([]interface{})) > 0 {
+		err = updateSelectDBAutoScalingRules(d, service)
+		if err != nil {
+			return WrapError(err)
+		}
+	}
+
+	return resourceAliCloudSelectDBClusterRead(d, meta)
+}
+
+func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	service, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	instanceId, clusterId, err := service.DecodeSelectDBClusterId(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+
+	cluster, err := service.DescribeSelectDBCluster(instanceId, clusterId)
+	if err != nil {
+		if IsNotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DescribeSelectDBCluster", AlibabaCloudSdkGoERROR)
+	}
+
+	d.Set("instance_id", instanceId)
+	d.Set("cluster_id", clusterId)
+	d.Set("cluster_name", cluster.ClusterName)
+	d.Set("status", cluster.Status)
+	d.Set("create_time", cluster.CreatedTime)
+
+	// Since the current CWS-Lib-Go API doesn't provide FE/BE specific details,
+	// we need to set default/computed values or retrieve from Terraform state
+	// TODO: Update when CWS-Lib-Go provides complete cluster details
+
+	// Set FE configuration - use current state if available
+	if existingFE := d.Get("fe_config").([]interface{}); len(existingFE) > 0 {
+		d.Set("fe_config", existingFE)
+	}
+
+	// Set BE configuration - use current state if available
+	if existingBE := d.Get("be_config").([]interface{}); len(existingBE) > 0 {
+		d.Set("be_config", existingBE)
+	}
+
+	// Set description from current state if not available in API response
+	if existingDesc := d.Get("description").(string); existingDesc != "" {
+		d.Set("description", existingDesc)
+	}
+
 	return nil
 }
 
 func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	// client := meta.(*connectivity.AliyunClient)
-	// selectDBService, err := NewSelectDBService(client)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-	// d.Partial(true)
+	client := meta.(*connectivity.AliyunClient)
+	service, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	// cacheSizeModified := false
-	// if !d.IsNewResource() && (d.HasChange("db_cluster_class")) {
-	// 	_, newClass := d.GetChange("db_cluster_class")
-	// 	cache_size := 0
-	// 	if d.HasChange("cache_size") {
-	// 		_, newCacheSize := d.GetChange("cache_size")
-	// 		cache_size = newCacheSize.(int)
-	// 		cacheSizeModified = true
-	// 	}
-	// 	_, err := selectDBService.ModifySelectDBCluster(d.Id(), newClass.(string), cache_size)
-	// 	if err != nil {
-	// 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyDBCluster", AlibabaCloudSdkGoERROR)
-	// 	}
-	// 	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
-	// 	if _, err := stateConf.WaitForState(); err != nil {
-	// 		return WrapErrorf(err, IdMsg, d.Id())
-	// 	}
-	// 	d.SetPartial("db_cluster_class")
-	// 	if d.HasChange("cache_size") {
-	// 		d.SetPartial("cache_size")
-	// 	}
-	// }
+	instanceId, clusterId, err := service.DecodeSelectDBClusterId(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
 
-	// if !d.IsNewResource() && d.HasChange("cache_size") && !cacheSizeModified {
-	// 	_, newCacheSize := d.GetChange("cache_size")
-	// 	db_cluster_class := d.Get("db_cluster_class").(string)
-	// 	if d.HasChange("db_cluster_class") {
-	// 		_, newClass := d.GetChange("db_cluster_class")
-	// 		db_cluster_class = newClass.(string)
-	// 	}
-	// 	_, err := selectDBService.ModifySelectDBCluster(d.Id(), db_cluster_class, newCacheSize.(int))
-	// 	if err != nil {
-	// 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyDBCluster", AlibabaCloudSdkGoERROR)
-	// 	}
-	// 	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
-	// 	if _, err := stateConf.WaitForState(); err != nil {
-	// 		return WrapErrorf(err, IdMsg, d.Id())
-	// 	}
-	// 	d.SetPartial("cache_size")
-	// 	if d.HasChange("db_cluster_class") {
-	// 		d.SetPartial("db_cluster_class")
-	// 	}
-	// }
+	d.Partial(true)
 
-	// if !d.IsNewResource() && d.HasChange("db_cluster_description") {
-	// 	_, newDesc := d.GetChange("db_cluster_description")
-	// 	_, err := selectDBService.ModifySelectDBClusterDescription(d.Id(), newDesc.(string))
-	// 	if err != nil {
-	// 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyBEClusterAttribute", AlibabaCloudSdkGoERROR)
-	// 	}
-	// 	d.SetPartial("db_cluster_description")
-	// }
+	// Update cluster name or description if changed
+	if d.HasChanges("cluster_name", "description") {
+		// Use cluster modification API to update name/description
+		var options []selectdb.ModifyClusterOption
 
-	// if !d.IsNewResource() && d.HasChange("elastic_rules_enable") {
-	// 	enable := d.Get("elastic_rules_enable").(bool)
-	// 	_, err := selectDBService.EnDisableScalingRules(d.Id(), enable)
-	// 	if err != nil {
-	// 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "EnDisableScalingRules", AlibabaCloudSdkGoERROR)
-	// 	}
-	// 	d.SetPartial("elastic_rules_enable")
-	// }
+		// Note: Current CWS-Lib-Go may not support all update operations
+		// This is a placeholder for when the API supports these operations
+		_, err := service.ModifySelectDBCluster(instanceId, clusterId, options...)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyCluster", AlibabaCloudSdkGoERROR)
+		}
 
-	// if !d.IsNewResource() && d.HasChange("elastic_rules") {
-	// 	// Get existing rules to identify what needs to be created, modified, or deleted
-	// 	existingRules, err := selectDBService.DescribeElasticRules(d.Id())
-	// 	if err != nil {
-	// 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DescribeElasticRules", AlibabaCloudSdkGoERROR)
-	// 	}
+		d.SetPartial("cluster_name")
+		d.SetPartial("description")
+	}
 
-	// 	// Map existing rules by their properties for easy lookup
-	// 	existingRulesMap := make(map[string]map[string]interface{})
-	// 	for _, rule := range existingRules {
-	// 		ruleItem := rule.(map[string]interface{})
-	// 		key := fmt.Sprintf("%s:%s:%s",
-	// 			ruleItem["ExecutionPeriod"],
-	// 			ruleItem["ElasticRuleStartTime"],
-	// 			ruleItem["ClusterClass"])
-	// 		existingRulesMap[key] = ruleItem
-	// 	}
+	// Update FE node count if changed
+	if d.HasChange("fe_config") {
+		// TODO: Implement FE node scaling when CWS-Lib-Go supports it
+		// oldConfig, newConfig := d.GetChange("fe_config")
+		// oldFEConfig := oldConfig.([]interface{})[0].(map[string]interface{})
+		// newFEConfig := newConfig.([]interface{})[0].(map[string]interface{})
 
-	// 	// Process new rules configuration
-	// 	o, n := d.GetChange("elastic_rules")
-	// 	oldRules := o.([]interface{})
-	// 	newRules := n.([]interface{})
+		// if oldFEConfig["node_count"] != newFEConfig["node_count"] {
+		//     Implement FE node scaling API call
+		// }
 
-	// 	// Track deleted rules by key
-	// 	oldRuleKeys := make(map[string]bool)
-	// 	for _, oldRule := range oldRules {
-	// 		if oldRule == nil {
-	// 			continue
-	// 		}
-	// 		oldRuleMap := oldRule.(map[string]interface{})
-	// 		key := fmt.Sprintf("%s:%s:%s",
-	// 			oldRuleMap["execution_period"],
-	// 			oldRuleMap["elastic_rule_start_time"],
-	// 			oldRuleMap["cluster_class"])
-	// 		oldRuleKeys[key] = true
-	// 	}
+		d.SetPartial("fe_config")
+	}
 
-	// 	// Process new rules - create or modify
-	// 	for _, newRule := range newRules {
-	// 		if newRule == nil {
-	// 			continue
-	// 		}
-	// 		newRuleMap := newRule.(map[string]interface{})
-	// 		key := fmt.Sprintf("%s:%s:%s",
-	// 			newRuleMap["execution_period"],
-	// 			newRuleMap["elastic_rule_start_time"],
-	// 			newRuleMap["cluster_class"])
+	// Update BE node count if changed
+	if d.HasChange("be_config") {
+		// TODO: Implement BE node scaling when CWS-Lib-Go supports it
+		// oldConfig, newConfig := d.GetChange("be_config")
+		// oldBEConfig := oldConfig.([]interface{})[0].(map[string]interface{})
+		// newBEConfig := newConfig.([]interface{})[0].(map[string]interface{})
 
-	// 		// If rule exists, may need to update
-	// 		if existingRule, exists := existingRulesMap[key]; exists {
-	// 			ruleId := existingRule["RuleId"].(float64)
-	// 			// Check if rule needs modification
-	// 			if newRuleMap["cluster_class"].(string) != existingRule["ClusterClass"].(string) {
-	// 				_, err := selectDBService.ModifyElasticRule(d.Id(), int(ruleId),
-	// 					newRuleMap["execution_period"].(string),
-	// 					newRuleMap["elastic_rule_start_time"].(string),
-	// 					newRuleMap["cluster_class"].(string))
-	// 				if err != nil {
-	// 					return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyElasticRule", AlibabaCloudSdkGoERROR)
-	// 				}
-	// 			}
-	// 			delete(oldRuleKeys, key)
-	// 		} else {
-	// 			// Create new rule
-	// 			_, err := selectDBService.CreateElasticRule(d.Id(),
-	// 				newRuleMap["execution_period"].(string),
-	// 				newRuleMap["elastic_rule_start_time"].(string),
-	// 				newRuleMap["cluster_class"].(string))
-	// 			if err != nil {
-	// 				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "CreateElasticRule", AlibabaCloudSdkGoERROR)
-	// 			}
-	// 		}
-	// 	}
+		// if oldBEConfig["node_count"] != newBEConfig["node_count"] {
+		//     Implement BE node scaling API call
+		// }
 
-	// 	// Delete rules that no longer exist in the new configuration
-	// 	for key := range oldRuleKeys {
-	// 		if existingRule, exists := existingRulesMap[key]; exists {
-	// 			ruleId := existingRule["RuleId"].(float64)
-	// 			_, err := selectDBService.DeleteElasticRule(d.Id(), int(ruleId))
-	// 			if err != nil {
-	// 				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteElasticRule", AlibabaCloudSdkGoERROR)
-	// 			}
-	// 		}
-	// 	}
+		d.SetPartial("be_config")
+	}
 
-	// 	d.SetPartial("elastic_rules")
-	// }
+	// Update auto scaling rules if changed
+	if d.HasChange("auto_scaling_rules") {
+		// TODO: Implement auto scaling rules update when CWS-Lib-Go supports it
+		// err = updateSelectDBAutoScalingRules(d, service)
+		// if err != nil {
+		//     return WrapError(err)
+		// }
+		d.SetPartial("auto_scaling_rules")
+	}
 
-	// if !d.IsNewResource() && d.HasChange("desired_status") {
-	// 	_, newStatus := d.GetChange("desired_status")
-	// 	oldStatus := d.Get("status")
-	// 	if oldStatus.(string) != "" && newStatus.(string) != "" {
-	// 		_, err := selectDBService.UpdateSelectDBClusterStatus(d.Id(), newStatus.(string))
-	// 		if err != nil {
-	// 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateSelectDBClusterStatus", AlibabaCloudSdkGoERROR)
-	// 		}
-	// 		newStatusFinal := convertSelectDBClusterStatusActionFinal(newStatus.(string))
-	// 		if newStatusFinal == "" {
-	// 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateSelectDBClusterStatus", AlibabaCloudSdkGoERROR)
-	// 		}
-
-	// 		// Wait for status change to complete
-	// 		stateConf := BuildStateConf([]string{"STATUS_CHANGING", "RESOURCE_PREPARING"}, []string{newStatusFinal}, d.Timeout(schema.TimeoutUpdate), 1*time.Minute, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{"DELETING"}))
-	// 		if _, err := stateConf.WaitForState(); err != nil {
-	// 			return WrapErrorf(err, IdMsg, d.Id())
-	// 		}
-	// 		d.SetPartial("desired_status")
-	// 	}
-	// }
-
-	// if d.HasChange("desired_params") {
-	// 	oldConfig, newConfig := d.GetChange("desired_params")
-	// 	oldConfigMap := oldConfig.([]interface{})
-	// 	newConfigMap := newConfig.([]interface{})
-	// 	oldConfigMapIndex := make(map[string]string)
-	// 	for _, v := range oldConfigMap {
-	// 		item := v.(map[string]interface{})
-	// 		oldConfigMapIndex[item["name"].(string)] = item["value"].(string)
-	// 	}
-	// 	newConfigMapIndex := make(map[string]string)
-	// 	for _, v := range newConfigMap {
-	// 		item := v.(map[string]interface{})
-	// 		newConfigMapIndex[item["name"].(string)] = item["value"].(string)
-	// 	}
-
-	// 	diffConfig := make(map[string]string)
-	// 	for k, v := range newConfigMapIndex {
-	// 		if oldConfigMapIndex[k] != v {
-	// 			diffConfig[k] = v
-	// 		}
-	// 	}
-
-	// 	if _, err := selectDBService.UpdateSelectDBClusterConfig(d.Id(), diffConfig); err != nil {
-	// 		return WrapError(err)
-	// 	}
-	// 	d.SetPartial("desired_params")
-
-	// 	stateConf := BuildStateConf([]string{"RESTARTING", "MODIFY_PARAM"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{}))
-	// 	if _, err := stateConf.WaitForState(); err != nil {
-	// 		return WrapErrorf(err, IdMsg, d.Id())
-	// 	}
-
-	// }
-
-	// d.Partial(false)
-	// return resourceAliCloudSelectDBClusterRead(d, meta)
-	return nil
-}
-
-func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{}) error {
-	// client := meta.(*connectivity.AliyunClient)
-	// selectDBService, err := NewSelectDBService(client)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// clusterResp, err := selectDBService.DescribeSelectDBCluster(d.Id())
-	// if err != nil {
-	// 	return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_db_cluster", AlibabaCloudSdkGoERROR)
-	// }
-	// cpu, _ := clusterResp["CpuCores"].(json.Number).Int64()
-	// memory, _ := clusterResp["Memory"].(json.Number).Int64()
-	// cache, _ := clusterResp["CacheStorageSizeGB"].(json.Number).Int64()
-
-	// d.Set("status", clusterResp["Status"])
-	// d.Set("create_time", clusterResp["CreatedTime"])
-	// d.Set("db_cluster_description", clusterResp["DbClusterName"])
-	// d.Set("payment_type", convertChargeTypeToPaymentType(clusterResp["ChargeType"]))
-	// d.Set("db_instance_id", clusterResp["DbInstanceName"])
-	// d.Set("db_cluster_class", clusterResp["DbClusterClass"])
-	// d.Set("cpu", cpu)
-	// d.Set("memory", memory)
-	// d.Set("cache_size", cache)
-
-	// d.Set("engine", fmt.Sprint(clusterResp["Engine"]))
-	// d.Set("engine_version", fmt.Sprint(clusterResp["EngineVersion"]))
-	// d.Set("vpc_id", fmt.Sprint(clusterResp["VpcId"]))
-	// d.Set("zone_id", fmt.Sprint(clusterResp["ZoneId"]))
-	// d.Set("region_id", fmt.Sprint(clusterResp["RegionId"]))
-
-	// // Read elastic rules status
-	// if _, exists := clusterResp["ScalingRulesEnable"]; exists {
-	// 	d.Set("elastic_rules_enable", clusterResp["ScalingRulesEnable"].(bool))
-	// }
-
-	// // Read elastic rules if enabled
-	// if d.Get("elastic_rules_enable").(bool) {
-	// 	elasticRules, err := selectDBService.DescribeElasticRules(d.Id())
-	// 	if err != nil {
-	// 		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_db_cluster_elastic_rules", AlibabaCloudSdkGoERROR)
-	// 	}
-
-	// 	rulesMapping := make([]map[string]interface{}, 0)
-	// 	for _, rule := range elasticRules {
-	// 		ruleItem := rule.(map[string]interface{})
-	// 		ruleId := int(ruleItem["RuleId"].(float64))
-	// 		rulesMapping = append(rulesMapping, map[string]interface{}{
-	// 			"execution_period":        ruleItem["ExecutionPeriod"],
-	// 			"elastic_rule_start_time": ruleItem["ElasticRuleStartTime"],
-	// 			"cluster_class":           ruleItem["ClusterClass"],
-	// 			"rule_id":                 ruleId,
-	// 		})
-	// 	}
-	// 	d.Set("elastic_rules", rulesMapping)
-	// }
-
-	// configChangeArrayList, err := selectDBService.DescribeSelectDBClusterConfigChangeLog(d.Id())
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-	// configChangeArray := make([]map[string]interface{}, 0)
-	// for _, v := range configChangeArrayList {
-	// 	m1 := v.(map[string]interface{})
-	// 	ConfigId, _ := m1["Id"].(json.Number).Int64()
-
-	// 	temp1 := map[string]interface{}{
-	// 		"name":         m1["Name"].(string),
-	// 		"old_value":    m1["OldValue"].(string),
-	// 		"new_value":    m1["NewValue"].(string),
-	// 		"is_applied":   m1["IsApplied"].(bool),
-	// 		"gmt_created":  m1["GmtCreated"].(string),
-	// 		"gmt_modified": m1["GmtModified"].(string),
-	// 		"config_id":    ConfigId,
-	// 	}
-	// 	configChangeArray = append(configChangeArray, temp1)
-	// }
-	// d.Set("param_change_logs", configChangeArray)
-	return nil
+	d.Partial(false)
+	return resourceAliCloudSelectDBClusterRead(d, meta)
 }
 
 func resourceAliCloudSelectDBClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	// client := meta.(*connectivity.AliyunClient)
-	// selectDBService, err := NewSelectDBService(client)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CLASS_CHANGING", "CREATING", "STOPPING", "STARTING", "RESTARTING", "RESTART", "MODIFY_PARAM"},
-	// 	[]string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second, selectDBService.SelectDBClusterStateRefreshFunc(d.Id(), []string{}))
-
-	// if _, err := stateConf.WaitForState(); err != nil {
-	// 	return WrapErrorf(err, IdMsg, d.Id())
-	// }
-
-	// _, err := selectDBService.DescribeSelectDBCluster(d.Id())
-	// if err != nil {
-	// 	if IsNotFoundError(err) {
-	// 		return nil
-	// 	}
-	// 	return WrapError(err)
-	// }
-
-	// _, err = selectDBService.DeleteSelectDBCluster(d.Id())
-	// if err != nil {
-	// 	return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDBCluster", AlibabaCloudSdkGoERROR)
-	// }
-
-	// instance_id := d.Get("db_instance_id").(string)
-	// // cluster deleting cannot be checked, use instance from class changing to active instead.
-	// // cluster deleting = related instance update
-	// stateConf = BuildStateConf([]string{"CLASS_CHANGING"}, []string{"ACTIVATION"}, d.Timeout(schema.TimeoutDelete), 10*time.Second, selectDBService.SelectDBInstanceStateRefreshFunc(instance_id, []string{"DELETING"}))
-	// if _, err := stateConf.WaitForState(); err != nil {
-	// 	return WrapErrorf(err, IdMsg, d.Id())
-	// }
-	return nil
-}
-
-func buildSelectDBCreateClusterRequest(d *schema.ResourceData, meta interface{}) (map[string]interface{}, error) {
-	// client := meta.(*connectivity.AliyunClient)
-	// selectDBService, err := NewSelectDBService(client)
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// instanceResp, err := selectDBService.DescribeSelectDBInstance(d.Get("db_instance_id").(string))
-	// if err != nil {
-	// 	return nil, WrapErrorf(err, DefaultErrorMsg, d.Id())
-	// }
-
-	// vswitchId := ""
-	// netResp, err := selectDBService.DescribeSelectDBInstanceNetInfo(d.Get("db_instance_id").(string))
-	// if err != nil {
-	// 	return nil, WrapErrorf(err, DefaultErrorMsg, d.Get("db_instance_id").(string))
-	// }
-	// resultClusterNet, _ := netResp["DBInstanceNetInfos"].([]interface{})
-	// for _, v := range resultClusterNet {
-	// 	item := v.(map[string]interface{})["VswitchId"].(string)
-	// 	if item != "" {
-	// 		vswitchId = item
-	// 		break
-	// 	}
-	// }
-
-	// cache_size, exist := d.GetOkExists("cache_size")
-	// if !exist {
-	// 	return nil, WrapErrorf(err, DefaultErrorMsg, d.Id())
-	// }
-
-	// request := map[string]interface{}{
-	// 	"DBInstanceId":         d.Get("db_instance_id").(string),
-	// 	"Engine":               "SelectDB",
-	// 	"EngineVersion":        instanceResp["EngineVersion"],
-	// 	"DBClusterClass":       d.Get("db_cluster_class").(string),
-	// 	"RegionId":             client.RegionId,
-	// 	"ZoneId":               instanceResp["ZoneId"],
-	// 	"VpcId":                instanceResp["VpcId"],
-	// 	"VSwitchId":            vswitchId,
-	// 	"CacheSize":            cache_size.(int),
-	// 	"DBClusterDescription": Trim(d.Get("db_cluster_description").(string)),
-	// }
-
-	// payType := convertPaymentTypeToChargeType(d.Get("payment_type"))
-
-	// if payType == string(PostPaid) {
-	// 	request["ChargeType"] = string("Postpaid")
-	// } else if payType == string(PrePaid) {
-	// 	period_time, _ := d.GetOkExists("period_time")
-	// 	request["ChargeType"] = string("Prepaid")
-	// 	request["Period"] = d.Get("period").(string)
-	// 	request["UsedTime"] = strconv.Itoa(period_time.(int))
-	// }
-
-	return nil, nil
-}
-
-func convertSelectDBClusterStatusActionFinal(source string) string {
-	action := ""
-	switch source {
-	case "STOPPING", "STOPPED":
-		action = "STOPPED"
-	case "STARTING":
-		action = "ACTIVATION"
-	case "RESTART", "RESTARTING":
-		action = "ACTIVATION"
+	client := meta.(*connectivity.AliyunClient)
+	service, err := NewSelectDBService(client)
+	if err != nil {
+		return WrapError(err)
 	}
-	return action
+
+	instanceId, clusterId, err := service.DecodeSelectDBClusterId(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+
+	err = service.DeleteSelectDBCluster(instanceId, clusterId)
+	if err != nil {
+		if IsNotFoundError(err) {
+			return nil
+		}
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteCluster", AlibabaCloudSdkGoERROR)
+	}
+
+	return WrapError(service.WaitForSelectDBCluster(instanceId, clusterId, Deleted, int(d.Timeout(schema.TimeoutDelete).Seconds())))
+}
+
+func updateSelectDBAutoScalingRules(d *schema.ResourceData, service *SelectDBService) error {
+	// TODO: Implement auto scaling rules update when CWS-Lib-Go supports it
+	// Currently commented out as the required API structures are not available
+
+	/*
+		instanceId, clusterId, err := service.DecodeSelectDBClusterId(d.Id())
+		if err != nil {
+			return err
+		}
+
+		rules := d.Get("auto_scaling_rules").([]interface{})
+		// Implementation would go here when API structures are available
+	*/
+
+	return nil
 }

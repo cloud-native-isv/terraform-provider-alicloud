@@ -283,7 +283,10 @@ func resourceAliCloudDBReadonlyInstance() *schema.Resource {
 
 func resourceAliCloudDBReadonlyInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	request, err := buildDBReadonlyCreateRequest(d, meta)
 	if err != nil {
@@ -324,7 +327,10 @@ func resourceAliCloudDBReadonlyInstanceCreate(d *schema.ResourceData, meta inter
 
 func resourceAliCloudDBReadonlyInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	d.Partial(true)
 	runtime := util.RuntimeOptions{}
 	runtime.SetAutoretry(true)
@@ -338,7 +344,6 @@ func resourceAliCloudDBReadonlyInstanceUpdate(d *schema.ResourceData, meta inter
 		return WrapError(err)
 	}
 
-	var err error
 	sslUpdate := false
 	sslAction := "ModifyDBInstanceSSL"
 	sslRequest := map[string]interface{}{
@@ -721,7 +726,10 @@ func resourceAliCloudDBReadonlyInstanceUpdate(d *schema.ResourceData, meta inter
 
 func resourceAliCloudDBReadonlyInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
@@ -828,7 +836,10 @@ func resourceAliCloudDBReadonlyInstanceRead(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudDBReadonlyInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {

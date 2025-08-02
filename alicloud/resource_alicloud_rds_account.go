@@ -133,12 +133,14 @@ func resourceAliCloudRdsAccount() *schema.Resource {
 
 func resourceAliCloudRdsAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	var response map[string]interface{}
 	action := "CreateAccount"
 	request := make(map[string]interface{})
 	request["SourceIp"] = client.SourceIp
-	var err error
 	if v, ok := d.GetOk("account_description"); ok {
 		request["AccountDescription"] = v
 	} else if v, ok := d.GetOk("description"); ok {
@@ -217,7 +219,10 @@ func resourceAliCloudRdsAccountCreate(d *schema.ResourceData, meta interface{}) 
 }
 func resourceAliCloudRdsAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := rdsService.DescribeRdsAccount(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {
@@ -244,8 +249,10 @@ func resourceAliCloudRdsAccountRead(d *schema.ResourceData, meta interface{}) er
 }
 func resourceAliCloudRdsAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
-	var err error
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	var response map[string]interface{}
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -399,7 +406,10 @@ func resourceAliCloudRdsAccountDelete(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return WrapError(err)
 	}
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	action := "DeleteAccount"
 	var response map[string]interface{}
 	request := map[string]interface{}{

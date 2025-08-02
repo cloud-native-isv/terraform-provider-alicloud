@@ -64,7 +64,10 @@ func resourceAliCloudDBConnection() *schema.Resource {
 
 func resourceAliCloudDBConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	instanceId := d.Get("instance_id").(string)
 	prefix := d.Get("connection_prefix").(string)
 	if prefix == "" {
@@ -83,7 +86,6 @@ func resourceAliCloudDBConnectionCreate(d *schema.ResourceData, meta interface{}
 		request["BabelfishPort"] = v
 	}
 
-	var err error
 	err = resource.Retry(8*time.Minute, func() *resource.RetryError {
 		response, err := client.RpcPost("Rds", "2014-08-15", action, nil, request, false)
 		if err != nil {
@@ -120,7 +122,10 @@ func resourceAliCloudDBConnectionRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := rdsService.DescribeDBConnection(d.Id())
 
 	if err != nil {
@@ -147,7 +152,10 @@ func resourceAliCloudDBConnectionRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceAliCloudDBConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	submatch := dbConnectionIdWithSuffixRegexp.FindStringSubmatch(d.Id())
 	if len(submatch) > 1 {
@@ -200,7 +208,10 @@ func resourceAliCloudDBConnectionUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceAliCloudDBConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	submatch := dbConnectionIdWithSuffixRegexp.FindStringSubmatch(d.Id())
 	if len(submatch) > 1 {
@@ -214,7 +225,6 @@ func resourceAliCloudDBConnectionDelete(d *schema.ResourceData, meta interface{}
 		"DBInstanceId": split[0],
 		"SourceIp":     client.SourceIp,
 	}
-	var err error
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
 		object, err := rdsService.DescribeDBConnection(d.Id())
 		if err != nil {

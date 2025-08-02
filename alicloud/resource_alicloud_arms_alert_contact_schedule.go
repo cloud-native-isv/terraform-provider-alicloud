@@ -107,8 +107,11 @@ func resourceAliCloudArmsAlertContactScheduleCreate(d *schema.ResourceData, meta
 
 func resourceAliCloudArmsAlertContactScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
-	_, err := armsService.DescribeArmsAlertContactSchedule(d.Id())
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+	_, err = armsService.DescribeArmsAlertContactSchedule(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_contact_schedule armsService.DescribeArmsAlertContactSchedule Failed!!! %s", err)

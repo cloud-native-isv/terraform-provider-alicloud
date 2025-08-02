@@ -48,14 +48,14 @@ if res == nil && len(conf.Target) == 0 {
 if res == nil {
     notfoundTick++
     if notfoundTick > conf.NotFoundChecks {
-        result.Error = &NotFoundError{...}
+        result.Error = &IsNotFoundError{...}
         return
     }
 }
 ```
 
 - 允许一定次数的 "未找到" 错误
-- 超过阈值后返回 `NotFoundError`
+- 超过阈值后返回 `IsNotFoundError`
 
 #### 2.3 目标状态匹配
 
@@ -135,7 +135,7 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(id string, failStates []string) 
         object, err := s.DescribeFlinkJob(id)
         if err != nil {
             // 2. 资源未找到时返回 nil，让框架处理 NotFound 逻辑
-            if NotFoundError(err) {
+            if IsNotFoundError(err) {
                 return nil, "", nil
             }
             // 3. 其他错误直接返回，停止轮询
@@ -218,7 +218,7 @@ func (s *FlinkService) WaitForFlinkJobDeleting(id string, timeout time.Duration)
 ```go
 // ✅ 正确：区分不同错误类型
 if err != nil {
-    if NotFoundError(err) {
+    if IsNotFoundError(err) {
         return nil, "", nil  // 让框架处理
     }
     if IsRetryableError(err) {
@@ -241,7 +241,7 @@ func (s *EcsService) EcsInstanceStateRefreshFunc(id string) resource.StateRefres
     return func() (interface{}, string, error) {
         object, err := s.DescribeEcsInstance(id)
         if err != nil {
-            if NotFoundError(err) {
+            if IsNotFoundError(err) {
                 // 资源已删除，返回 nil 表示目标达成
                 return nil, "", nil
             }
@@ -292,13 +292,13 @@ stateConf := &resource.StateChangeConf{
 
 ```go
 // 在资源创建等待期间，资源不存在是错误
-if !d.IsNewResource() && NotFoundError(err) {
+if !d.IsNewResource() && IsNotFoundError(err) {
     d.SetId("")
     return nil
 }
 
 // 在资源删除等待期间，资源不存在是期望的
-if NotFoundError(err) {
+if IsNotFoundError(err) {
     return nil, "", nil  // 表示删除成功
 }
 ```

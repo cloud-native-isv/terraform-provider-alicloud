@@ -149,7 +149,7 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(id string, failStates []string) 
     return func() (interface{}, string, error) {
         object, err := s.DescribeFlinkJob(id)
         if err != nil {
-            if NotFoundError(err) {
+            if IsNotFoundError(err) {
                 return nil, "", nil
             }
             return nil, "", WrapError(err)
@@ -246,7 +246,7 @@ func resourceAlicloudEcsInstance() *schema.Resource {
 
 ```go
 if err != nil {
-    if NotFoundError(err) {
+    if IsNotFoundError(err) {
         log.Printf("[WARN] Resource (%s) not found, removing from state", d.Id())
         d.SetId("")
         return nil
@@ -259,7 +259,7 @@ if err != nil {
 
 ```go
 // 资源不存在错误判断
-if NotFoundError(err) {
+if IsNotFoundError(err) {
     d.SetId("")
     return nil
 }
@@ -311,7 +311,7 @@ if IsExpectedErrors(err, []string{"InvalidInstance.NotFound", "Forbidden.Instanc
 }
 
 // ✅ 推荐的方式
-if NotFoundError(err) {
+if IsNotFoundError(err) {
     d.SetId("")
     return nil
 }
@@ -322,7 +322,7 @@ if NotFoundError(err) {
 ```go
 if err != nil {
     // 首先检查是否为资源不存在错误
-    if NotFoundError(err) {
+    if IsNotFoundError(err) {
         if !d.IsNewResource() {
             log.Printf("[DEBUG] Resource alicloud_service_resource DescribeResource Failed!!! %s", err)
             d.SetId("")
@@ -350,7 +350,7 @@ if err != nil {
 #### 3.3.6 错误处理最佳实践
 
 1. **优先使用封装的错误判断函数**：
-   - `NotFoundError(err)` - 检查资源不存在
+   - `IsNotFoundError(err)` - 检查资源不存在
    - `IsAlreadyExistError(err)` - 检查资源已存在  
    - `NeedRetry(err)` - 检查是否需要重试
 
@@ -555,7 +555,7 @@ func resourceAliCloudServiceResourceRead(d *schema.ResourceData, meta interface{
 
     object, err := service.DescribeResource(d.Id())
     if err != nil {
-        if !d.IsNewResource() && NotFoundError(err) {
+        if !d.IsNewResource() && IsNotFoundError(err) {
             log.Printf("[DEBUG] Resource alicloud_service_resource DescribeResource Failed!!! %s", err)
             d.SetId("")
             return nil
@@ -584,7 +584,7 @@ func resourceAliCloudServiceResourceDelete(d *schema.ResourceData, meta interfac
 
     err = service.DeleteResource(d.Id())
     if err != nil {
-        if NotFoundError(err) {
+        if IsNotFoundError(err) {
             return nil
         }
         return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteResource", AlibabaCloudSdkGoERROR)
@@ -597,7 +597,7 @@ func resourceAliCloudServiceResourceDelete(d *schema.ResourceData, meta interfac
         Refresh: func() (interface{}, string, error) {
             obj, err := service.DescribeResource(d.Id())
             if err != nil {
-                if NotFoundError(err) {
+                if IsNotFoundError(err) {
                     return nil, "", nil
                 }
                 return nil, "", WrapError(err)

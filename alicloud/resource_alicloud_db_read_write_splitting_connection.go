@@ -68,7 +68,10 @@ func resourceAliCloudDBReadWriteSplittingConnection() *schema.Resource {
 
 func resourceAliCloudDBReadWriteSplittingConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	action := "AllocateReadWriteSplittingConnection"
 	request := map[string]interface{}{
 		"RegionId":     client.RegionId,
@@ -123,9 +126,12 @@ func resourceAliCloudDBReadWriteSplittingConnectionCreate(d *schema.ResourceData
 func resourceAliCloudDBReadWriteSplittingConnectionRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	err := rdsService.WaitForDBReadWriteSplitting(d.Id(), "", DefaultLongTimeout)
+	err = rdsService.WaitForDBReadWriteSplitting(d.Id(), "", DefaultLongTimeout)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -183,7 +189,10 @@ func resourceAliCloudDBReadWriteSplittingConnectionRead(d *schema.ResourceData, 
 
 func resourceAliCloudDBReadWriteSplittingConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	action := "ModifyReadWriteSplittingConnection"
 	request := map[string]interface{}{
 		"RegionId":     client.RegionId,
@@ -251,7 +260,10 @@ func resourceAliCloudDBReadWriteSplittingConnectionUpdate(d *schema.ResourceData
 
 func resourceAliCloudDBReadWriteSplittingConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	action := "ReleaseReadWriteSplittingConnection"
 	request := map[string]interface{}{
 		"RegionId":     client.RegionId,

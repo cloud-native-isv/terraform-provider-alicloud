@@ -35,6 +35,12 @@ func NewFlinkService(client *connectivity.AliyunClient) (*FlinkService, error) {
 	}, nil
 }
 
+// GetAPI returns the FlinkAPI instance for direct API access
+func (service *FlinkService) GetAPI() *aliyunFlinkAPI.FlinkAPI {
+	// add some customize logic for this API object
+	return service.flinkAPI
+}
+
 // Zone methods
 func (s *FlinkService) DescribeSupportedZones() ([]*aliyunFlinkAPI.ZoneInfo, error) {
 	return s.flinkAPI.ListSupportedZones(s.client.RegionId)

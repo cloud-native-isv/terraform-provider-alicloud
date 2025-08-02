@@ -64,7 +64,10 @@ func resourceAliCloudRdsDBInstanceEndpointAddress() *schema.Resource {
 
 func resourceAliCloudRdsDBInstanceEndpointAddressCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	var response map[string]interface{}
 	action := "CreateDBInstanceEndpointAddress"
 	request := map[string]interface{}{
@@ -76,8 +79,6 @@ func resourceAliCloudRdsDBInstanceEndpointAddressCreate(d *schema.ResourceData, 
 		"IpType":                 "Public",
 		"SourceIp":               client.SourceIp,
 	}
-
-	var err error
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutCreate)), func() *resource.RetryError {
 		response, err = client.RpcPost("Rds", "2014-08-15", action, nil, request, false)
@@ -115,7 +116,10 @@ func resourceAliCloudRdsDBInstanceEndpointAddressUpdate(d *schema.ResourceData, 
 	if err != nil {
 		return WrapError(err)
 	}
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	if !d.IsNewResource() && d.HasChanges("connection_string_prefix", "port") {
 		action := "ModifyDBInstanceEndpointAddress"
 		request := map[string]interface{}{
@@ -158,7 +162,10 @@ func resourceAliCloudRdsDBInstanceEndpointAddressUpdate(d *schema.ResourceData, 
 
 func resourceAliCloudRdsDBInstanceEndpointAddressRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := rdsService.DescribeDBInstanceEndpointPublicAddress(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
@@ -180,7 +187,10 @@ func resourceAliCloudRdsDBInstanceEndpointAddressRead(d *schema.ResourceData, me
 
 func resourceAliCloudRdsDBInstanceEndpointAddressDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)

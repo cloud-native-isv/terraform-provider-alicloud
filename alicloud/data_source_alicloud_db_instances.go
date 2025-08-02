@@ -529,7 +529,10 @@ func dataSourceAliCloudDBInstancesRead(d *schema.ResourceData, meta interface{})
 
 func rdsInstancesDescription(d *schema.ResourceData, meta interface{}, objects []interface{}, totalCount int) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	var ids []string
 	var names []string

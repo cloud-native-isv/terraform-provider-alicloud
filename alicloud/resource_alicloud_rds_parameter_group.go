@@ -107,7 +107,10 @@ func resourceAliCloudRdsParameterGroupCreate(d *schema.ResourceData, meta interf
 }
 func resourceAliCloudRdsParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := rdsService.DescribeRdsParameterGroup(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {

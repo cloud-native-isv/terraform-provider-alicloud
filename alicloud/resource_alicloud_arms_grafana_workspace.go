@@ -157,7 +157,10 @@ func resourceAliCloudArmsGrafanaWorkspaceCreate(d *schema.ResourceData, meta int
 	id, _ := jsonpath.Get("$.Data.grafanaWorkspaceId", response)
 	d.SetId(fmt.Sprint(id))
 
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, armsService.ArmsGrafanaWorkspaceStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -168,7 +171,10 @@ func resourceAliCloudArmsGrafanaWorkspaceCreate(d *schema.ResourceData, meta int
 
 func resourceAliCloudArmsGrafanaWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	objectRaw, err := armsService.DescribeArmsGrafanaWorkspace(d.Id())
 	if err != nil {
@@ -335,7 +341,10 @@ func resourceAliCloudArmsGrafanaWorkspaceDelete(d *schema.ResourceData, meta int
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	stateConf := BuildStateConf([]string{}, []string{""}, d.Timeout(schema.TimeoutDelete), 10*time.Second, armsService.ArmsGrafanaWorkspaceStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())

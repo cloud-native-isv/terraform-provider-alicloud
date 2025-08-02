@@ -107,8 +107,11 @@ func resourceAliCloudDBDatabaseCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAliCloudDBDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rsdService := RdsService{client}
-	object, err := rsdService.DescribeDBDatabase(d.Id())
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+	object, err := rdsService.DescribeDBDatabase(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {
 			d.SetId("")
@@ -158,7 +161,10 @@ func resourceAliCloudDBDatabaseUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAliCloudDBDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)

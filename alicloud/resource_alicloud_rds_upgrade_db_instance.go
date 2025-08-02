@@ -362,8 +362,10 @@ func resourceAliCloudRdsUpgradeDbInstance() *schema.Resource {
 
 func resourceAliCloudRdsUpgradeDbInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
-	var err error
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	action := "UpgradeDBInstanceMajorVersionPrecheck"
 	request := map[string]interface{}{
 		"RegionId":     client.RegionId,
@@ -469,7 +471,10 @@ func resourceAliCloudRdsUpgradeDbInstanceCreate(d *schema.ResourceData, meta int
 }
 func resourceAliCloudRdsUpgradeDbInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := rdsService.DescribeRdsCloneDbInstance(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {
@@ -566,9 +571,11 @@ func resourceAliCloudRdsUpgradeDbInstanceRead(d *schema.ResourceData, meta inter
 }
 func resourceAliCloudRdsUpgradeDbInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	var response map[string]interface{}
-	var err error
 	d.Partial(true)
 	if d.HasChange("deletion_protection") && d.Get("payment_type") == "PayAsYouGo" {
 		err := rdsService.ModifyDBInstanceDeletionProtection(d, "deletion_protection")

@@ -180,7 +180,10 @@ func resourceAliCloudArmsPrometheusAlertRuleCreate(d *schema.ResourceData, meta 
 }
 func resourceAliCloudArmsPrometheusAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService := NewArmsService(client)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	object, err := armsService.DescribeArmsPrometheusAlertRule(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {

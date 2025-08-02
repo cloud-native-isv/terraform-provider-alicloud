@@ -37,12 +37,12 @@ func (s *ArmsService) DescribeArmsAlertRule(id string) (object map[string]interf
 					"Tags":                  alertRule.Tags,
 					"Filters":               alertRule.Filters,
 					"AlertRuleContent":      alertRule.AlertRuleContent,
-					"Describe":              alertRule.Message,     // Map Message to Describe for backward compatibility
-					"Owner":                 "",                    // Default empty, can be extracted from Extend if needed
-					"Handler":               "",                    // Default empty, can be extracted from Extend if needed
-					"Solution":              "",                    // Default empty, can be extracted from Extend if needed
-					"DispatchRuleId":        0,                     // Default 0, will be set if available
-					"DispatchRuleName":      "",                    // Default empty, will be set if available
+					"Describe":              alertRule.Message, // Map Message to Describe for backward compatibility
+					"Owner":                 "",                // Default empty, can be extracted from Extend if needed
+					"Handler":               "",                // Default empty, can be extracted from Extend if needed
+					"Solution":              "",                // Default empty, can be extracted from Extend if needed
+					"DispatchRuleId":        0,                 // Default 0, will be set if available
+					"DispatchRuleName":      "",                // Default empty, will be set if available
 				}, nil
 			}
 		}
@@ -267,7 +267,6 @@ func (s *ArmsService) CreateArmsAlertRule(alertName, severity, description, inte
 			} else {
 				alertRule.AlertCheckType = "CUSTOM"
 			}
-
 
 			// Set labels if provided in rule
 			if labels, ok := rule["labels"].(map[string]interface{}); ok && len(labels) > 0 {

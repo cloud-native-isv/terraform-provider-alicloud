@@ -55,7 +55,10 @@ func resourceAliCloudRdsDBProxyPublic() *schema.Resource {
 
 func resourceAliCloudRdsDBProxyPublicCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	action := "CreateDBProxyEndpointAddress"
 	request := map[string]interface{}{
 		"RegionId":                    client.RegionId,
@@ -91,7 +94,10 @@ func resourceAliCloudRdsDBProxyPublicCreate(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudRdsDBProxyPublicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	proxy, proxyErr := rdsService.DescribeDBProxy(d.Id())
 	if proxyErr != nil {
 		if IsNotFoundError(proxyErr) {
@@ -119,7 +125,10 @@ func resourceAliCloudRdsDBProxyPublicRead(d *schema.ResourceData, meta interface
 
 func resourceAliCloudRdsDBProxyPublicUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	if d.IsNewResource() {
 		d.Partial(false)
 		return resourceAliCloudRdsDBProxyPublicRead(d, meta)
@@ -166,7 +175,10 @@ func resourceAliCloudRdsDBProxyPublicUpdate(d *schema.ResourceData, meta interfa
 }
 func resourceAliCloudRdsDBProxyPublicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	rdsService := RdsService{client}
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	if d.Id() == "" {
 		return nil
 	}
