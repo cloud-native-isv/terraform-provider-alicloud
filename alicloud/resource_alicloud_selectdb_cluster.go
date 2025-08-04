@@ -369,7 +369,7 @@ func resourceAliCloudSelectDBClusterDelete(d *schema.ResourceData, meta interfac
 	}
 
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		err := service.DeleteSelectDBCluster(instanceId, clusterId, service.client.RegionId)
+		err := service.DeleteSelectDBCluster(instanceId, clusterId)
 		if err != nil {
 			if IsNotFoundError(err) {
 				return nil

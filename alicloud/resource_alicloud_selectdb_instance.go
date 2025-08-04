@@ -29,7 +29,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			// ======== Basic Instance Information ========
-			"description": {
+			"instance_name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The description of the SelectDB instance.",
@@ -49,7 +49,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				ForceNew:    true,
-				Default:     "SelectDB",
+				Default:     "selectdb",
 				Description: "The engine type of the SelectDB instance. Default is SelectDB.",
 			},
 			"engine_version": {
@@ -201,11 +201,6 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 			},
 
 			// ======== Computed Information - Basic Instance ========
-			"region_id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The region ID where the instance is located.",
-			},
 			"status": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -523,9 +518,9 @@ func resourceAliCloudSelectDBInstanceCreate(d *schema.ResourceData, meta interfa
 
 	// Build instance directly using Instance struct fields
 	instance := &selectdb.Instance{
-		Engine:      "SelectDB",
-		Description: d.Get("description").(string),
-		RegionId:    client.RegionId,
+		Engine:   "selectdb",
+		Name:     d.Get("instance_name").(string),
+		RegionId: client.RegionId,
 	}
 
 	// Set basic configuration
@@ -618,16 +613,16 @@ func resourceAliCloudSelectDBInstanceCreate(d *schema.ResourceData, meta interfa
 	}
 
 	// Create instance
-	result, err := selectDBService.CreateSelectDBInstance(instance)
+	instanceId, err := selectDBService.CreateSelectDBInstance(instance)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	if result == nil || result.Id == "" {
+	if instanceId == nil {
 		return WrapErrorf(fmt.Errorf("create result is nil or instance ID is empty"), IdMsg, "alicloud_selectdb_instance")
 	}
 
-	d.SetId(result.Id)
+	d.SetId(*instanceId)
 
 	// Wait for instance to be ready
 	err = selectDBService.WaitForSelectDBInstanceCreated(d.Id(), d.Timeout(schema.TimeoutCreate))
@@ -648,15 +643,14 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 	d.Partial(true)
 
 	// Handle description update
-	if d.HasChange("description") {
-		description := d.Get("description").(string)
-		regionId := d.Get("region_id").(string)
+	if d.HasChange("instance_name") {
+		description := d.Get("instance_name").(string)
 
-		err := selectDBService.ModifySelectDBInstance(d.Id(), "DBInstanceDescription", description, regionId)
+		err := selectDBService.ModifySelectDBInstance(d.Id(), "DBInstanceDescription", description)
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifySelectDBInstanceDescription", AlibabaCloudSdkGoERROR)
 		}
-		d.SetPartial("description")
+		d.SetPartial("instance_name")
 	}
 
 	// Handle engine version upgrade
@@ -695,9 +689,7 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 			}
 
 			if canUpgrade {
-				regionId := d.Get("region_id").(string)
-
-				err = selectDBService.UpgradeSelectDBInstanceEngineVersion(d.Id(), upgradeTargetVersion, regionId)
+				err = selectDBService.UpgradeSelectDBInstanceEngineVersion(d.Id(), upgradeTargetVersion)
 				if err != nil {
 					return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpgradeSelectDBInstanceEngineVersion", AlibabaCloudSdkGoERROR)
 				}
@@ -718,9 +710,8 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 	// Handle maintenance time update
 	if d.HasChange("maintain_start_time") || d.HasChange("maintain_end_time") {
 		maintainTime := fmt.Sprintf("%s-%s", d.Get("maintain_start_time").(string), d.Get("maintain_end_time").(string))
-		regionId := d.Get("region_id").(string)
 
-		err := selectDBService.ModifySelectDBInstance(d.Id(), "MaintainTime", maintainTime, regionId)
+		err := selectDBService.ModifySelectDBInstance(d.Id(), "MaintainTime", maintainTime)
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifySelectDBInstanceMaintainTime", AlibabaCloudSdkGoERROR)
 		}
@@ -860,11 +851,10 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 	}
 
 	// Set basic information
-	d.Set("description", instance.Description)
+	d.Set("instance_name", instance.Name)
 	d.Set("engine", instance.Engine)
 	d.Set("engine_version", instance.EngineVersion)
 	d.Set("status", instance.Status)
-	d.Set("region_id", instance.RegionId)
 	d.Set("zone_id", instance.ZoneId)
 	d.Set("vpc_id", instance.VpcId)
 	d.Set("vswitch_id", instance.VswitchId)

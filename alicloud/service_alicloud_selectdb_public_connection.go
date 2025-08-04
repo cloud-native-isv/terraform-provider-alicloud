@@ -122,7 +122,7 @@ func (s *SelectDBService) WaitForSelectDBPublicConnection(instanceId string, sta
 // Helper functions for converting between Terraform schema and API types
 
 // ConvertToPublicConnection converts schema data to API public connection
-func ConvertToPublicConnection(d *schema.ResourceData) *selectdb.PublicConnection {
+func ConvertToPublicConnection(d *schema.ResourceData, service *SelectDBService) *selectdb.PublicConnection {
 	connection := &selectdb.PublicConnection{}
 
 	if v, ok := d.GetOk("db_instance_id"); ok {
@@ -137,9 +137,8 @@ func ConvertToPublicConnection(d *schema.ResourceData) *selectdb.PublicConnectio
 	if v, ok := d.GetOk("net_type"); ok {
 		connection.NetType = v.(string)
 	}
-	if v, ok := d.GetOk("region_id"); ok {
-		connection.RegionId = v.(string)
-	}
+	// Use service's GetRegionId() instead of schema field
+	connection.RegionId = service.GetRegionId()
 
 	return connection
 }

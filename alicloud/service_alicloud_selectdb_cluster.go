@@ -77,7 +77,7 @@ func (s *SelectDBService) ModifySelectDBCluster(instanceId, clusterId string, op
 }
 
 // DeleteSelectDBCluster deletes a SelectDB cluster
-func (s *SelectDBService) DeleteSelectDBCluster(instanceId, clusterId string, regionId ...string) error {
+func (s *SelectDBService) DeleteSelectDBCluster(instanceId, clusterId string) error {
 	if instanceId == "" {
 		return WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
@@ -85,7 +85,7 @@ func (s *SelectDBService) DeleteSelectDBCluster(instanceId, clusterId string, re
 		return WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
 
-	err := s.GetAPI().DeleteCluster(instanceId, clusterId, regionId...)
+	err := s.GetAPI().DeleteCluster(instanceId, clusterId, s.GetRegionId())
 	if err != nil {
 		return WrapError(err)
 	}
@@ -94,7 +94,7 @@ func (s *SelectDBService) DeleteSelectDBCluster(instanceId, clusterId string, re
 }
 
 // RestartSelectDBCluster restarts a SelectDB cluster
-func (s *SelectDBService) RestartSelectDBCluster(instanceId, clusterId string, parallelOperation bool, regionId ...string) error {
+func (s *SelectDBService) RestartSelectDBCluster(instanceId, clusterId string, parallelOperation bool) error {
 	if instanceId == "" {
 		return WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
@@ -102,7 +102,7 @@ func (s *SelectDBService) RestartSelectDBCluster(instanceId, clusterId string, p
 		return WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
 
-	err := s.GetAPI().RestartCluster(instanceId, clusterId, parallelOperation, regionId...)
+	err := s.GetAPI().RestartCluster(instanceId, clusterId, parallelOperation, s.GetRegionId())
 	if err != nil {
 		return WrapError(err)
 	}
@@ -218,7 +218,10 @@ func (s *SelectDBService) WaitForSelectDBClusterCreated(instanceId, clusterId st
 	}
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", instanceId, clusterId))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", instanceId, clusterId))
+	}
+	return nil
 }
 
 // WaitForSelectDBClusterUpdated waits for SelectDB cluster update operations to complete
@@ -239,7 +242,10 @@ func (s *SelectDBService) WaitForSelectDBClusterUpdated(instanceId, clusterId st
 	}
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", instanceId, clusterId))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", instanceId, clusterId))
+	}
+	return nil
 }
 
 // WaitForSelectDBClusterDeleted waits for SelectDB cluster to be deleted
@@ -276,5 +282,8 @@ func (s *SelectDBService) WaitForSelectDBClusterDeleted(instanceId, clusterId st
 	}
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", instanceId, clusterId))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", instanceId, clusterId))
+	}
+	return nil
 }

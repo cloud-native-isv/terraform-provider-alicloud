@@ -189,7 +189,7 @@ func dataSourceAliCloudSelectDBInstancesRead(d *schema.ResourceData, meta interf
 		mapping := map[string]interface{}{
 			// New field names
 			"instance_id":          instance.Id,
-			"instance_description": instance.Description,
+			"instance_name":        instance.Name,
 			"engine":               instance.Engine,
 			"engine_version":       instance.EngineVersion,
 			"engine_minor_version": instance.EngineMinorVersion,

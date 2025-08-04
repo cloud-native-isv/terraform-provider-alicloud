@@ -12,7 +12,7 @@ import (
 // Instance Management Operations
 
 // CreateSelectDBInstance creates a new SelectDB instance
-func (s *SelectDBService) CreateSelectDBInstance(instance *selectdb.Instance) (*selectdb.Instance, error) {
+func (s *SelectDBService) CreateSelectDBInstance(instance *selectdb.Instance) (*string, error) {
 	if instance == nil {
 		return nil, WrapError(fmt.Errorf("instance cannot be nil"))
 	}
@@ -26,12 +26,12 @@ func (s *SelectDBService) CreateSelectDBInstance(instance *selectdb.Instance) (*
 }
 
 // ModifySelectDBInstance modifies attributes of a SelectDB instance
-func (s *SelectDBService) ModifySelectDBInstance(instanceId, attributeType, value, regionId string) error {
+func (s *SelectDBService) ModifySelectDBInstance(instanceId, attributeType, value string) error {
 	if instanceId == "" {
 		return WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	err := s.GetAPI().ModifyInstance(instanceId, attributeType, value, regionId)
+	err := s.GetAPI().ModifyInstance(instanceId, attributeType, value, s.GetRegionId())
 	if err != nil {
 		return WrapError(err)
 	}
@@ -40,12 +40,12 @@ func (s *SelectDBService) ModifySelectDBInstance(instanceId, attributeType, valu
 }
 
 // DeleteSelectDBInstance deletes a SelectDB instance
-func (s *SelectDBService) DeleteSelectDBInstance(instanceId string, regionId ...string) error {
+func (s *SelectDBService) DeleteSelectDBInstance(instanceId string) error {
 	if instanceId == "" {
 		return WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	err := s.GetAPI().DeleteInstance(instanceId, regionId...)
+	err := s.GetAPI().DeleteInstance(instanceId, s.GetRegionId())
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil // Instance already deleted
@@ -71,12 +71,12 @@ func (s *SelectDBService) CheckCreateSelectDBInstance(instance *selectdb.Instanc
 }
 
 // UpgradeSelectDBInstanceEngineVersion upgrades the engine version of a SelectDB instance
-func (s *SelectDBService) UpgradeSelectDBInstanceEngineVersion(instanceId, engineVersion, regionId string) error {
+func (s *SelectDBService) UpgradeSelectDBInstanceEngineVersion(instanceId, engineVersion string) error {
 	if instanceId == "" || engineVersion == "" {
 		return WrapError(fmt.Errorf("instance ID and engine version cannot be empty"))
 	}
 
-	err := s.GetAPI().UpgradeInstanceEngineVersion(instanceId, engineVersion, regionId)
+	err := s.GetAPI().UpgradeInstanceEngineVersion(instanceId, engineVersion, s.GetRegionId())
 	if err != nil {
 		return WrapError(err)
 	}
@@ -92,7 +92,7 @@ func (s *SelectDBService) SelectDBInstanceStateRefreshFunc(instanceId string, fa
 		instance, err := s.DescribeSelectDBInstance(instanceId)
 		if err != nil {
 			if IsNotFoundError(err) {
-				return nil, "", WrapErrorf(Error(GetNotFoundMessage("SelectDB Instance", instanceId)), NotFoundMsg, ProviderERROR)
+				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
 		}
@@ -113,6 +113,7 @@ func (s *SelectDBService) WaitForSelectDBInstanceCreated(instanceId string, time
 		Pending: []string{
 			selectdb.InstanceStatusCreating,
 			selectdb.InstanceStatusOrderPreparing,
+			selectdb.InstanceStatusResourcePreparing,
 		},
 		Target: []string{selectdb.InstanceStatusActivation},
 		Refresh: s.SelectDBInstanceStateRefreshFunc(instanceId, []string{
@@ -124,7 +125,10 @@ func (s *SelectDBService) WaitForSelectDBInstanceCreated(instanceId string, time
 	}
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, instanceId)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, instanceId)
+	}
+	return nil
 }
 
 // WaitForSelectDBInstanceUpdated waits for SelectDB instance update operations to complete
@@ -145,7 +149,10 @@ func (s *SelectDBService) WaitForSelectDBInstanceUpdated(instanceId string, time
 	}
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, instanceId)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, instanceId)
+	}
+	return nil
 }
 
 // WaitForSelectDBInstanceDeleted waits for SelectDB instance to be deleted
@@ -182,13 +189,16 @@ func (s *SelectDBService) WaitForSelectDBInstanceDeleted(instanceId string, time
 	}
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, instanceId)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, instanceId)
+	}
+	return nil
 }
 
 // Utility Functions
 
 // resetSelectDBInstancePassword resets account password for SelectDB instance
-func (s *SelectDBService) resetSelectDBInstancePassword(instanceId, accountName, accountPassword, regionId string) error {
+func (s *SelectDBService) resetSelectDBInstancePassword(instanceId, accountName, accountPassword string) error {
 	if instanceId == "" || accountName == "" || accountPassword == "" {
 		return WrapError(fmt.Errorf("instance ID, account name, and password cannot be empty"))
 	}
@@ -196,7 +206,7 @@ func (s *SelectDBService) resetSelectDBInstancePassword(instanceId, accountName,
 	account := &selectdb.Account{
 		AccountName:     accountName,
 		AccountPassword: accountPassword,
-		RegionId:        regionId,
+		RegionId:        s.GetRegionId(),
 	}
 
 	err := s.GetAPI().ResetInstanceAccountPassword(instanceId, account)

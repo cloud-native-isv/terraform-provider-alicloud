@@ -91,7 +91,7 @@ func (s *SelectDBService) ModifySelectDBElasticRule(options *selectdb.ModifyElas
 }
 
 // DeleteSelectDBElasticRule deletes a SelectDB elastic scaling rule
-func (s *SelectDBService) DeleteSelectDBElasticRule(dbClusterId, dbInstanceId, product string, ruleId int64, regionId ...string) error {
+func (s *SelectDBService) DeleteSelectDBElasticRule(dbClusterId, dbInstanceId, product string, ruleId int64) error {
 	if dbClusterId == "" {
 		return WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
@@ -105,7 +105,7 @@ func (s *SelectDBService) DeleteSelectDBElasticRule(dbClusterId, dbInstanceId, p
 		return WrapError(fmt.Errorf("rule ID must be positive"))
 	}
 
-	err := s.GetAPI().DeleteElasticRule(dbClusterId, dbInstanceId, product, ruleId, regionId...)
+	err := s.GetAPI().DeleteElasticRule(dbClusterId, dbInstanceId, product, ruleId, s.GetRegionId())
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil // Rule already deleted
@@ -184,7 +184,7 @@ func (s *SelectDBService) WaitForSelectDBElasticRule(dbClusterId, dbInstanceId, 
 // Helper functions for converting between Terraform schema and API types
 
 // ConvertToCreateElasticRuleOptions converts schema data to API create elastic rule options
-func ConvertToCreateElasticRuleOptions(d *schema.ResourceData) *selectdb.CreateElasticRuleOptions {
+func ConvertToCreateElasticRuleOptions(d *schema.ResourceData, service *SelectDBService) *selectdb.CreateElasticRuleOptions {
 	options := &selectdb.CreateElasticRuleOptions{}
 
 	if v, ok := d.GetOk("db_cluster_id"); ok {
@@ -208,15 +208,14 @@ func ConvertToCreateElasticRuleOptions(d *schema.ResourceData) *selectdb.CreateE
 	if v, ok := d.GetOk("execution_period"); ok {
 		options.ExecutionPeriod = v.(string)
 	}
-	if v, ok := d.GetOk("region_id"); ok {
-		options.RegionId = v.(string)
-	}
+	// Use service's GetRegionId() instead of schema field
+	options.RegionId = service.GetRegionId()
 
 	return options
 }
 
 // ConvertToModifyElasticRuleOptions converts schema data to API modify elastic rule options
-func ConvertToModifyElasticRuleOptions(d *schema.ResourceData, ruleId int64) *selectdb.ModifyElasticRuleOptions {
+func ConvertToModifyElasticRuleOptions(d *schema.ResourceData, ruleId int64, service *SelectDBService) *selectdb.ModifyElasticRuleOptions {
 	options := &selectdb.ModifyElasticRuleOptions{
 		RuleId: ruleId,
 	}
@@ -242,9 +241,8 @@ func ConvertToModifyElasticRuleOptions(d *schema.ResourceData, ruleId int64) *se
 	if v, ok := d.GetOk("execution_period"); ok {
 		options.ExecutionPeriod = v.(string)
 	}
-	if v, ok := d.GetOk("region_id"); ok {
-		options.RegionId = v.(string)
-	}
+	// Use service's GetRegionId() instead of schema field
+	options.RegionId = service.GetRegionId()
 
 	return options
 }
@@ -273,7 +271,7 @@ func ConvertElasticRuleToMap(rule *selectdb.ElasticRule) map[string]interface{} 
 }
 
 // ConvertToEnableDisableElasticRuleOptions converts schema data to API enable/disable elastic rule options
-func ConvertToEnableDisableElasticRuleOptions(d *schema.ResourceData, ruleId int64, enable bool) *selectdb.EnableDisableElasticRuleOptions {
+func ConvertToEnableDisableElasticRuleOptions(d *schema.ResourceData, ruleId int64, enable bool, service *SelectDBService) *selectdb.EnableDisableElasticRuleOptions {
 	options := &selectdb.EnableDisableElasticRuleOptions{
 		RuleId: ruleId,
 		Enable: enable,
@@ -288,15 +286,14 @@ func ConvertToEnableDisableElasticRuleOptions(d *schema.ResourceData, ruleId int
 	if v, ok := d.GetOk("product"); ok {
 		options.Product = v.(string)
 	}
-	if v, ok := d.GetOk("region_id"); ok {
-		options.RegionId = v.(string)
-	}
+	// Use service's GetRegionId() instead of schema field
+	options.RegionId = service.GetRegionId()
 
 	return options
 }
 
 // ConvertToListElasticRulesOptions converts schema data to API list elastic rules options
-func ConvertToListElasticRulesOptions(d *schema.ResourceData) *selectdb.ListElasticRulesOptions {
+func ConvertToListElasticRulesOptions(d *schema.ResourceData, service *SelectDBService) *selectdb.ListElasticRulesOptions {
 	options := &selectdb.ListElasticRulesOptions{}
 
 	if v, ok := d.GetOk("db_cluster_id"); ok {
@@ -311,9 +308,8 @@ func ConvertToListElasticRulesOptions(d *schema.ResourceData) *selectdb.ListElas
 	if v, ok := d.GetOk("rule_id"); ok {
 		options.RuleId = int64(v.(int))
 	}
-	if v, ok := d.GetOk("region_id"); ok {
-		options.RegionId = v.(string)
-	}
+	// Use service's GetRegionId() instead of schema field
+	options.RegionId = service.GetRegionId()
 
 	return options
 }

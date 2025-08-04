@@ -137,8 +137,8 @@ func resourceAliCloudSelectDBClusterBindingRead(d *schema.ResourceData, meta int
 	// Try to get instance information for instance name
 	instance, err := service.DescribeSelectDBInstance(instanceId)
 	if err == nil && instance != nil {
-		if instance.Description != "" {
-			d.Set("instance_name", instance.Description)
+		if instance.Name != "" {
+			d.Set("instance_name", instance.Name)
 		}
 	}
 

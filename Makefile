@@ -166,7 +166,7 @@ clean:
 #-----------------------------------
 mac:
 	$(Q)echo "$(PREFIX_BUILD) 构建 macOS (amd64) 版本..."
-	$(Q)if GOOS=darwin GOARCH=amd64 go build -o bin/terraform-provider-alicloud 2>&1 | sed 's/^/$(PREFIX_BUILD) /'; then \
+	$(Q)if GOOS=darwin GOARCH=amd64 go build -o bin/terraform-provider-alicloud; then \
 		echo "$(PREFIX_SUCCESS) macOS 版本构建成功"; \
 	else \
 		echo "$(PREFIX_ERROR) macOS 版本构建失败"; \
@@ -175,7 +175,7 @@ mac:
 
 windows:
 	$(Q)echo "$(PREFIX_BUILD) 构建 Windows (amd64) 版本..."
-	$(Q)if GOOS=windows GOARCH=amd64 go build -o bin/terraform-provider-alicloud.exe 2>&1 | sed 's/^/$(PREFIX_BUILD) /'; then \
+	$(Q)if GOOS=windows GOARCH=amd64 go build -o bin/terraform-provider-alicloud.exe; then \
 		echo "$(PREFIX_SUCCESS) Windows 版本构建成功"; \
 	else \
 		echo "$(PREFIX_ERROR) Windows 版本构建失败"; \
@@ -184,7 +184,7 @@ windows:
 
 linux:
 	$(Q)echo "$(PREFIX_BUILD) 构建 Linux (amd64) 版本..."
-	$(Q)if GOOS=linux GOARCH=amd64 go build -o bin/terraform-provider-alicloud 2>&1 | sed 's/^/$(PREFIX_BUILD) /'; then \
+	$(Q)if GOOS=linux GOARCH=amd64 go build -o bin/terraform-provider-alicloud; then \
 		echo "$(PREFIX_SUCCESS) Linux 版本构建成功"; \
 	else \
 		echo "$(PREFIX_ERROR) Linux 版本构建失败"; \
@@ -193,7 +193,7 @@ linux:
 
 macarm:
 	$(Q)echo "$(PREFIX_BUILD) 构建 macOS ARM64 版本并安装到插件目录..."
-	$(Q)if GOOS=darwin GOARCH=arm64 go build -o bin/terraform-provider-alicloud_v1.0.0 2>&1 | sed 's/^/$(PREFIX_BUILD) /'; then \
+	$(Q)if GOOS=darwin GOARCH=arm64 go build -o bin/terraform-provider-alicloud_v1.0.0; then \
 		cp bin/terraform-provider-alicloud_v1.0.0 ~/.terraform.d/plugins/registry.terraform.io/aliyun/alicloud/1.0.0/darwin_arm64/ 2>/dev/null || true; \
 		mv bin/terraform-provider-alicloud_v1.0.0 ~/.terraform.d/plugins/registry.terraform.io/hashicorp/alicloud/1.0.0/darwin_arm64/ 2>/dev/null || true; \
 		echo "$(PREFIX_SUCCESS) macOS ARM64 版本构建并安装成功"; \
@@ -204,9 +204,9 @@ macarm:
 
 alpha:
 	$(Q)echo "$(PREFIX_BUILD) 构建 Alpha 版本并上传到 OSS..."
-	$(Q)if GOOS=linux GOARCH=amd64 go build -o bin/$(RELEASE_ALPHA_NAME) 2>&1 | sed 's/^/$(PREFIX_BUILD) /'; then \
+	$(Q)if GOOS=linux GOARCH=amd64 go build -o bin/$(RELEASE_ALPHA_NAME); then \
 		echo "$(PREFIX_INFO) 上传到阿里云 OSS..."; \
-		if aliyun oss cp bin/$(RELEASE_ALPHA_NAME) oss://iac-service-terraform/terraform/alphaplugins/registry.terraform.io/aliyun/alicloud/$(RELEASE_ALPHA_VERSION)/linux_amd64/$(RELEASE_ALPHA_NAME) --profile terraformer --region cn-hangzhou 2>&1 | sed 's/^/$(PREFIX_INFO) OSS: /'; then \
+		if aliyun oss cp bin/$(RELEASE_ALPHA_NAME) oss://iac-service-terraform/terraform/alphaplugins/registry.terraform.io/aliyun/alicloud/$(RELEASE_ALPHA_VERSION)/linux_amd64/$(RELEASE_ALPHA_NAME) --profile terraformer --region cn-hangzhou; then \
 			echo "$(PREFIX_SUCCESS) Alpha 版本构建并上传成功"; \
 		else \
 			echo "$(PREFIX_ERROR) OSS 上传失败"; \
@@ -216,20 +216,24 @@ alpha:
 	else \
 		echo "$(PREFIX_ERROR) Alpha 版本构建失败"; \
 		exit 1; \
-	fi
+	fi \
+	else \
+		echo '$(PREFIX_ERROR) Alpha 版本构建失败'; \
+		exit 1; \
+	fi"
 
 #-----------------------------------
 # 代码质量工具
 #-----------------------------------
 fmt:
 	$(Q)echo "$(PREFIX_FMT) 格式化 Go 代码..."
-	$(Q)if gofmt -w $(GOFMT_FILES) 2>&1 | sed 's/^/$(PREFIX_FMT) gofmt: /' | grep -v '^$(PREFIX_FMT) gofmt: $$'; then :; fi
-	$(Q)if goimports -w $(GOFMT_FILES) 2>&1 | sed 's/^/$(PREFIX_FMT) goimports: /' | grep -v '^$(PREFIX_FMT) goimports: $$'; then :; fi
+	$(Q)gofmt -w $(GOFMT_FILES)
+	$(Q)goimports -w $(GOFMT_FILES)
 	$(Q)echo "$(PREFIX_SUCCESS) 代码格式化完成"
 
 fmtcheck:
 	$(Q)echo "$(PREFIX_FMT) 检查代码格式..."
-	$(Q)if "$(CURDIR)/scripts/gofmtcheck.sh" 2>&1 | sed 's/^/$(PREFIX_FMT) /'; then \
+	$(Q)if "$(CURDIR)/scripts/gofmtcheck.sh"; then \
 		echo "$(PREFIX_SUCCESS) 代码格式检查通过"; \
 	else \
 		echo "$(PREFIX_ERROR) 代码格式检查失败"; \
@@ -238,7 +242,7 @@ fmtcheck:
 
 vet:
 	$(Q)echo "$(PREFIX_INFO) 执行 go vet 静态分析..."
-	$(Q)if go vet $$(go list ./... | grep -v scripts | grep -v vendor/) 2>&1 | sed 's/^/$(PREFIX_INFO) vet: /'; then \
+	$(Q)if go vet $$(go list ./... | grep -v scripts | grep -v vendor/); then \
 		echo "$(PREFIX_SUCCESS) go vet 检查通过"; \
 	else \
 		echo "$(PREFIX_ERROR) go vet 发现问题，请检查并修复"; \
@@ -247,7 +251,7 @@ vet:
 
 errcheck:
 	$(Q)echo "$(PREFIX_INFO) 检查错误处理..."
-	$(Q)if sh -c "'$(CURDIR)/scripts/errcheck.sh'" 2>&1 | sed 's/^/$(PREFIX_INFO) errcheck: /'; then \
+	$(Q)if sh -c "$(CURDIR)/scripts/errcheck.sh"; then \
 		echo "$(PREFIX_SUCCESS) 错误处理检查通过"; \
 	else \
 		echo "$(PREFIX_ERROR) 错误处理检查失败"; \
@@ -256,7 +260,7 @@ errcheck:
 
 importscheck:
 	$(Q)echo "$(PREFIX_FMT) 检查 imports 格式..."
-	$(Q)if "$(CURDIR)/scripts/goimportscheck.sh" 2>&1 | sed 's/^/$(PREFIX_FMT) /'; then \
+	$(Q)if "$(CURDIR)/scripts/goimportscheck.sh"; then \
 		echo "$(PREFIX_SUCCESS) imports 格式检查通过"; \
 	else \
 		echo "$(PREFIX_ERROR) imports 格式检查失败"; \
@@ -268,21 +272,21 @@ importscheck:
 #-----------------------------------
 test: fmtcheck
 	$(Q)echo "$(PREFIX_INFO) 运行单元测试..."
-	$(Q)if go test $(TEST) -timeout=30s -parallel=4 2>&1 | sed 's/^/$(PREFIX_INFO) test: /'; then \
-		echo "$(PREFIX_SUCCESS) 单元测试通过"; \
+	$(Q)bash -c "set -o pipefail; if go test $(TEST) -timeout=30s -parallel=4 2>&1 | sed 's/^/$(PREFIX_INFO) test: /'; then \
+		echo '$(PREFIX_SUCCESS) 单元测试通过'; \
 	else \
-		echo "$(PREFIX_ERROR) 单元测试失败"; \
+		echo '$(PREFIX_ERROR) 单元测试失败'; \
 		exit 1; \
-	fi
+	fi"
 
 testacc: fmtcheck
 	$(Q)echo "$(PREFIX_INFO) 运行验收测试..."
-	$(Q)if TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m 2>&1 | sed 's/^/$(PREFIX_INFO) testacc: /'; then \
-		echo "$(PREFIX_SUCCESS) 验收测试通过"; \
+	$(Q)bash -c "set -o pipefail; if TF_ACC=1 go test $(TEST) -v \$(TESTARGS) -timeout 120m 2>&1 | sed 's/^/$(PREFIX_INFO) testacc: /'; then \
+		echo '$(PREFIX_SUCCESS) 验收测试通过'; \
 	else \
-		echo "$(PREFIX_ERROR) 验收测试失败"; \
+		echo '$(PREFIX_ERROR) 验收测试失败'; \
 		exit 1; \
-	fi
+	fi"
 
 test-compile:
 	$(Q)if [ "$(TEST)" = "./..." ]; then \
@@ -291,12 +295,12 @@ test-compile:
 		exit 1; \
 	fi
 	$(Q)echo "$(PREFIX_INFO) 编译测试二进制文件..."
-	$(Q)if go test -c $(TEST) $(TESTARGS) 2>&1 | sed 's/^/$(PREFIX_INFO) test-compile: /'; then \
-		echo "$(PREFIX_SUCCESS) 测试编译完成"; \
+	$(Q)bash -c "set -o pipefail; if go test -c $(TEST) \$(TESTARGS) 2>&1 | sed 's/^/$(PREFIX_INFO) test-compile: /'; then \
+		echo '$(PREFIX_SUCCESS) 测试编译完成'; \
 	else \
-		echo "$(PREFIX_ERROR) 测试编译失败"; \
+		echo '$(PREFIX_ERROR) 测试编译失败'; \
 		exit 1; \
-	fi
+	fi"
 
 #-----------------------------------
 # 文档

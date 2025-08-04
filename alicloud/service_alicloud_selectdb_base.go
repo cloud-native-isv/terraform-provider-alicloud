@@ -46,6 +46,11 @@ func (service *SelectDBService) GetAPI() *selectdb.SelectDBAPI {
 	return service.selectdbAPI
 }
 
+// GetRegionId returns the region ID from the client
+func (service *SelectDBService) GetRegionId() string {
+	return service.client.RegionId
+}
+
 // EncodeSelectDBClusterId encodes instance ID and cluster ID into a single ID string
 // Format: instanceId:clusterId
 func (s *SelectDBService) EncodeSelectDBClusterId(instanceId, clusterId string) string {
