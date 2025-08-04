@@ -53,7 +53,7 @@ func (s *SelectDBService) DescribeSelectDBCluster(instanceId, clusterId string) 
 		ClusterId:  clusterId,
 		InstanceId: instanceId,
 		Config:     config,
-		Status:     selectdb.ClusterStatusRunning, // Default status if we can get config
+		Status:     selectdb.ClusterStatusActivation, // Default status if we can get config
 	}
 
 	return cluster, nil
@@ -201,83 +201,80 @@ func (s *SelectDBService) SelectDBClusterStateRefreshFunc(instanceId, clusterId 
 	}
 }
 
-// WaitForSelectDBCluster waits for SelectDB cluster to reach expected status
-func (s *SelectDBService) WaitForSelectDBCluster(instanceId, clusterId string, status Status, timeout int) error {
-	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
-
-	for {
-		cluster, err := s.DescribeSelectDBCluster(instanceId, clusterId)
-		if err != nil {
-			if IsNotFoundError(err) && status == Deleted {
-				return nil
-			}
-			return WrapError(err)
-		}
-
-		if cluster.Status == string(status) {
-			return nil
-		}
-
-		// Check for failed states
-		if cluster.Status == selectdb.ClusterStatusFailed {
-			return WrapErrorf(err, FailedToReachTargetStatus, cluster.Status)
-		}
-
-		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, instanceId, GetFunc(1), timeout, cluster.Status, string(status), ProviderERROR)
-		}
-		time.Sleep(DefaultIntervalShort * time.Second)
+// WaitForSelectDBClusterCreated waits for SelectDB cluster to be created and active
+func (s *SelectDBService) WaitForSelectDBClusterCreated(instanceId, clusterId string, timeout time.Duration) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			selectdb.ClusterStatusCreating,
+			selectdb.ClusterStatusOrderPreparing,
+		},
+		Target: []string{selectdb.ClusterStatusActivation},
+		Refresh: s.SelectDBClusterStateRefreshFunc(instanceId, clusterId, []string{
+			"FAILED", "ERROR", "EXCEPTION",
+		}),
+		Timeout:    timeout,
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", instanceId, clusterId))
 }
 
-// Helper functions for converting between Terraform schema and API types
-
-// ConvertClusterToMap converts API cluster to Terraform map
-func ConvertClusterToMap(cluster *selectdb.Cluster) map[string]interface{} {
-	if cluster == nil {
-		return nil
+// WaitForSelectDBClusterUpdated waits for SelectDB cluster update operations to complete
+func (s *SelectDBService) WaitForSelectDBClusterUpdated(instanceId, clusterId string, timeout time.Duration) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			selectdb.ClusterStatusResourceChanging,
+			selectdb.ClusterStatusReadonlyResourceChanging,
+			selectdb.ClusterStatusOrderPreparing,
+		},
+		Target: []string{selectdb.ClusterStatusActivation},
+		Refresh: s.SelectDBClusterStateRefreshFunc(instanceId, clusterId, []string{
+			"FAILED", "ERROR", "EXCEPTION",
+		}),
+		Timeout:    timeout,
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
 
-	result := map[string]interface{}{
-		"cluster_id":           cluster.ClusterId,
-		"instance_id":          cluster.InstanceId,
-		"cluster_name":         cluster.ClusterName,
-		"status":               cluster.Status,
-		"cluster_class":        cluster.ClusterClass,
-		"charge_type":          cluster.ChargeType,
-		"cluster_binding":      cluster.ClusterBinding,
-		"cpu_cores":            cluster.CpuCores,
-		"memory":               cluster.Memory,
-		"cache_storage_size":   cluster.CacheStorageSizeGB,
-		"cache_storage_type":   cluster.CacheStorageType,
-		"performance_level":    cluster.PerformanceLevel,
-		"scaling_rules_enable": cluster.ScalingRulesEnable,
-		"vswitch_id":           cluster.VSwitchId,
-		"zone_id":              cluster.ZoneId,
-		"sub_domain":           cluster.SubDomain,
-		"created_time":         cluster.CreatedTime,
-		"modified_time":        cluster.ModifiedTime,
-		"start_time":           cluster.StartTime,
-	}
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", instanceId, clusterId))
+}
 
-	// Convert configuration parameters
-	if cluster.Config != nil && len(cluster.Config.Params) > 0 {
-		params := make([]map[string]interface{}, 0)
-		for _, param := range cluster.Config.Params {
-			p := map[string]interface{}{
-				"name":               param.Name,
-				"value":              param.Value,
-				"default_value":      param.DefaultValue,
-				"comment":            param.Comment,
-				"is_dynamic":         param.IsDynamic,
-				"is_user_modifiable": param.IsUserModifiable,
-				"optional":           param.Optional,
-				"param_category":     param.ParamCategory,
+// WaitForSelectDBClusterDeleted waits for SelectDB cluster to be deleted
+func (s *SelectDBService) WaitForSelectDBClusterDeleted(instanceId, clusterId string, timeout time.Duration) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			selectdb.ClusterStatusActivation,
+			selectdb.ClusterStatusDeleting,
+			selectdb.ClusterStatusResourceChanging,
+		},
+		Target: []string{},
+		Refresh: func() (interface{}, string, error) {
+			cluster, err := s.DescribeSelectDBCluster(instanceId, clusterId)
+			if err != nil {
+				if IsNotFoundError(err) {
+					return nil, "", nil
+				}
+				return nil, "", WrapError(err)
 			}
-			params = append(params, p)
-		}
-		result["params"] = params
+
+			// Check for failed states
+			failStates := []string{"FAILED", "ERROR", "EXCEPTION"}
+			for _, failState := range failStates {
+				if cluster.Status == failState {
+					return cluster, cluster.Status, WrapError(Error(FailedToReachTargetStatus, cluster.Status))
+				}
+			}
+
+			return cluster, cluster.Status, nil
+		},
+		Timeout:    timeout,
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
 
-	return result
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", instanceId, clusterId))
 }

@@ -35,7 +35,7 @@ data "alicloud_vswitches" "default" {
   zone_id = data.alicloud_zones.default.zones.0.id
 }
 
-resource "alicloud_selectdb_db_instance" "default" {
+resource "alicloud_selectdb_instance" "default" {
   db_instance_class       = "selectdb.xlarge"
   db_instance_description = var.name
   cache_size              = 200
@@ -45,8 +45,8 @@ resource "alicloud_selectdb_db_instance" "default" {
   zone_id                 = data.alicloud_vswitches.default.vswitches.0.zone_id
   vswitch_id              = data.alicloud_vswitches.default.vswitches.0.id
 }
-resource "alicloud_selectdb_db_cluster" "default" {
-  db_instance_id         = alicloud_selectdb_db_instance.default.id
+resource "alicloud_selectdb_cluster" "default" {
+  db_instance_id         = alicloud_selectdb_instance.default.id
   db_cluster_description = var.name
   db_cluster_class       = "selectdb.2xlarge"
   cache_size             = 400
@@ -54,7 +54,7 @@ resource "alicloud_selectdb_db_cluster" "default" {
 }
 
 data "alicloud_selectdb_db_clusters" "default" {
-  ids = [alicloud_selectdb_db_cluster.default.id]
+  ids = [alicloud_selectdb_cluster.default.id]
 }
 output "db_cluster" {
   value = data.alicloud_selectdb_db_clusters.default.ids.0

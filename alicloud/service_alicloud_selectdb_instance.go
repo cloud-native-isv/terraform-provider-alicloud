@@ -107,50 +107,73 @@ func (s *SelectDBService) SelectDBInstanceStateRefreshFunc(instanceId string, fa
 	}
 }
 
-// WaitForSelectDBInstance waits for SelectDB instance to reach expected status
-func (s *SelectDBService) WaitForSelectDBInstance(instanceId string, status Status, timeout int) error {
-	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
-
-	for {
-		instance, err := s.DescribeSelectDBInstance(instanceId)
-		if err != nil {
-			if IsNotFoundError(err) {
-				if status == Deleted {
-					return nil
-				}
-			} else {
-				return WrapError(err)
-			}
-		}
-
-		if instance != nil && instance.Status == string(status) {
-			return nil
-		}
-
-		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, instanceId, GetFunc(1), timeout, instance.Status, string(status), ProviderERROR)
-		}
-
-		time.Sleep(DefaultIntervalShort * time.Second)
+// WaitForSelectDBInstanceCreated waits for SelectDB instance to be created and active
+func (s *SelectDBService) WaitForSelectDBInstanceCreated(instanceId string, timeout time.Duration) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			selectdb.InstanceStatusCreating,
+			selectdb.InstanceStatusOrderPreparing,
+		},
+		Target: []string{selectdb.InstanceStatusActivation},
+		Refresh: s.SelectDBInstanceStateRefreshFunc(instanceId, []string{
+			"FAILED", "ERROR", "EXCEPTION",
+		}),
+		Timeout:    timeout,
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
 	}
+
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, instanceId)
 }
 
-// WaitForSelectDBInstanceStatus waits for instance to reach desired status using polling
-func (s *SelectDBService) WaitForSelectDBInstanceStatus(instanceId string, targetStatus string, timeout time.Duration) (*selectdb.Instance, error) {
+// WaitForSelectDBInstanceUpdated waits for SelectDB instance update operations to complete
+func (s *SelectDBService) WaitForSelectDBInstanceUpdated(instanceId string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"CREATING", "STARTING", "STOPPING", "DELETING", "RESTARTING", "UPGRADING", "RESOURCE_CHANGING"},
-		Target:  []string{targetStatus},
+		Pending: []string{
+			selectdb.InstanceStatusResourceChanging,
+			selectdb.InstanceStatusReadonlyResourceChanging,
+			selectdb.InstanceStatusOrderPreparing,
+		},
+		Target: []string{selectdb.InstanceStatusActivation},
+		Refresh: s.SelectDBInstanceStateRefreshFunc(instanceId, []string{
+			"FAILED", "ERROR", "EXCEPTION",
+		}),
+		Timeout:    timeout,
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, instanceId)
+}
+
+// WaitForSelectDBInstanceDeleted waits for SelectDB instance to be deleted
+func (s *SelectDBService) WaitForSelectDBInstanceDeleted(instanceId string, timeout time.Duration) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			selectdb.InstanceStatusActivation,
+			selectdb.InstanceStatusDeleting,
+			selectdb.InstanceStatusResourceChanging,
+		},
+		Target: []string{},
 		Refresh: func() (interface{}, string, error) {
 			instance, err := s.DescribeSelectDBInstance(instanceId)
 			if err != nil {
-				if selectdb.IsNotFoundError(err) {
-					if targetStatus == "DELETED" {
-						return nil, "DELETED", nil
-					}
-					return nil, "", err
+				if IsNotFoundError(err) {
+					return nil, "", nil
 				}
-				return nil, "", err
+				return nil, "", WrapError(err)
 			}
+
+			// Check for failed states
+			failStates := []string{"FAILED", "ERROR", "EXCEPTION"}
+			for _, failState := range failStates {
+				if instance.Status == failState {
+					return instance, instance.Status, WrapError(Error(FailedToReachTargetStatus, instance.Status))
+				}
+			}
+
 			return instance, instance.Status, nil
 		},
 		Timeout:    timeout,
@@ -158,15 +181,8 @@ func (s *SelectDBService) WaitForSelectDBInstanceStatus(instanceId string, targe
 		MinTimeout: 3 * time.Second,
 	}
 
-	result, err := stateConf.WaitForState()
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	if result != nil {
-		return result.(*selectdb.Instance), nil
-	}
-	return nil, nil
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, instanceId)
 }
 
 // Utility Functions
@@ -236,20 +252,6 @@ func (s *SelectDBService) ReleaseSelectDBConnection(instanceId, connectionString
 	return nil
 }
 
-// Error handling utilities
-
-// IsSelectDBNotFoundError checks if the error indicates a resource was not found
-func IsSelectDBNotFoundError(err error) bool {
-	return selectdb.IsNotFoundError(err)
-}
-
-// IsSelectDBInvalidParameterError checks if the error indicates invalid parameters
-func IsSelectDBInvalidParameterError(err error) bool {
-	return selectdb.IsInvalidParameterError(err)
-}
-
-// Helper functions for converting between Terraform schema and API types
-
 // SetResourceTags manages tags for SelectDB instance
 func (s *SelectDBService) SetResourceTags(instanceId string, added, removed map[string]string) error {
 	if instanceId == "" {
@@ -274,63 +276,4 @@ func (s *SelectDBService) SetResourceTags(instanceId string, added, removed map[
 	// when the generic tag management API is available in cws-lib-go
 
 	return nil
-}
-
-// ConvertInstanceToMap converts API instance to Terraform map
-func ConvertInstanceToMap(instance *selectdb.Instance) map[string]interface{} {
-	if instance == nil {
-		return nil
-	}
-
-	result := map[string]interface{}{
-		"db_instance_id":       instance.Id,
-		"description":          instance.Description,
-		"engine":               instance.Engine,
-		"engine_version":       instance.EngineVersion,
-		"engine_minor_version": instance.EngineMinorVersion,
-		"status":               instance.Status,
-		"category":             instance.Category,
-		"charge_type":          instance.ChargeType,
-		"vpc_id":               instance.VpcId,
-		"vswitch_id":           instance.VswitchId,
-		"zone_id":              instance.ZoneId,
-		"region_id":            instance.RegionId,
-		"connection_string":    instance.ConnectionString,
-		"sub_domain":           instance.SubDomain,
-		"resource_cpu":         instance.ResourceCpu,
-		"resource_memory":      instance.ResourceMemory,
-		"storage_size":         instance.StorageSize,
-		"storage_type":         instance.StorageType,
-		"object_store_size":    instance.ObjectStoreSize,
-		"cluster_count":        instance.ClusterCount,
-		"gmt_created":          instance.GmtCreated,
-		"gmt_modified":         instance.GmtModified,
-		"expire_time":          instance.ExpireTime,
-	}
-
-	// Convert tags
-	if len(instance.Tags) > 0 {
-		tags := make(map[string]interface{})
-		for _, tag := range instance.Tags {
-			tags[tag.Key] = tag.Value
-		}
-		result["tags"] = tags
-	}
-
-	// Convert multi-zone information
-	if len(instance.MultiZone) > 0 {
-		multiZones := make([]map[string]interface{}, 0, len(instance.MultiZone))
-		for _, mz := range instance.MultiZone {
-			multiZone := map[string]interface{}{
-				"zone_id":            mz.ZoneId,
-				"vswitch_ids":        mz.VSwitchIds,
-				"cidr":               mz.Cidr,
-				"available_ip_count": mz.AvailableIpCount,
-			}
-			multiZones = append(multiZones, multiZone)
-		}
-		result["multi_zone"] = multiZones
-	}
-
-	return result
 }

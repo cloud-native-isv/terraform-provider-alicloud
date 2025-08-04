@@ -89,3 +89,13 @@ func (s *SelectDBService) DescribeSelectDBInstances(pageNumber, pageSize int32) 
 
 	return instances, nil
 }
+
+// DescribeSelectDBInstanceClasses retrieves list of available SelectDB instance classes
+func (s *SelectDBService) DescribeSelectDBInstanceClasses() ([]selectdb.InstanceClass, error) {
+	instanceClasses, err := s.GetAPI().ListInstanceClass(s.client.RegionId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return instanceClasses, nil
+}

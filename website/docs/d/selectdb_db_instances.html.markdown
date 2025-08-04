@@ -35,7 +35,7 @@ data "alicloud_vswitches" "default" {
   zone_id = data.alicloud_zones.default.zones.0.id
 }
 
-resource "alicloud_selectdb_db_instance" "default" {
+resource "alicloud_selectdb_instance" "default" {
   db_instance_class       = "selectdb.xlarge"
   db_instance_description = var.name
   cache_size              = 200
@@ -47,7 +47,7 @@ resource "alicloud_selectdb_db_instance" "default" {
 }
 
 data "alicloud_selectdb_db_instances" "default" {
-  ids = [alicloud_selectdb_db_instance.default.id]
+  ids = [alicloud_selectdb_instance.default.id]
 }
 output "db_instance" {
   value = data.alicloud_selectdb_db_instances.default.ids.0

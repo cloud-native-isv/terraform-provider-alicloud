@@ -1,13 +1,13 @@
 ---
 subcategory: "SelectDB"
 layout: "alicloud"
-page_title: "Alicloud: alicloud_selectdb_db_cluster"
+page_title: "Alicloud: alicloud_selectdb_cluster"
 sidebar_current: "docs-alicloud-resource-selectdb-db-cluster"
 description: |-
   Provides a Alicloud SelectDB DBCluster resource.
 ---
 
-# alicloud_selectdb_db_cluster
+# alicloud_selectdb_cluster
 
 Provides a SelectDB DBCluster resource.
 
@@ -20,7 +20,7 @@ For information about SelectDB DBCluster and how to use it, see [What is DBClust
 Basic Usage
 
 <div style="display: block;margin-bottom: 40px;"><div class="oics-button" style="float: right;position: absolute;margin-bottom: 10px;">
-  <a href="https://api.aliyun.com/terraform?resource=alicloud_selectdb_db_cluster&exampleId=5026dad8-b91e-71fc-1ec4-72a6e0b0d9ba442fe8d7&activeTab=example&spm=docs.r.selectdb_db_cluster.0.5026dad8b9&intl_lang=EN_US" target="_blank">
+  <a href="https://api.aliyun.com/terraform?resource=alicloud_selectdb_cluster&exampleId=5026dad8-b91e-71fc-1ec4-72a6e0b0d9ba442fe8d7&activeTab=example&spm=docs.r.selectdb_db_cluster.0.5026dad8b9&intl_lang=EN_US" target="_blank">
     <img alt="Open in AliCloud" src="https://img.alicdn.com/imgextra/i1/O1CN01hjjqXv1uYUlY56FyX_!!6000000006049-55-tps-254-36.svg" style="max-height: 44px; max-width: 100%;">
   </a>
 </div></div>
@@ -44,7 +44,7 @@ data "alicloud_vswitches" "default" {
   zone_id = data.alicloud_zones.default.zones.0.id
 }
 
-resource "alicloud_selectdb_db_instance" "default" {
+resource "alicloud_selectdb_instance" "default" {
   db_instance_class       = "selectdb.xlarge"
   db_instance_description = var.name
   cache_size              = 200
@@ -55,8 +55,8 @@ resource "alicloud_selectdb_db_instance" "default" {
   vswitch_id              = data.alicloud_vswitches.default.vswitches.0.id
 }
 
-resource "alicloud_selectdb_db_cluster" "default" {
-  db_instance_id         = alicloud_selectdb_db_instance.default.id
+resource "alicloud_selectdb_cluster" "default" {
+  db_instance_id         = alicloud_selectdb_instance.default.id
   db_cluster_description = var.name
   db_cluster_class       = "selectdb.2xlarge"
   cache_size             = 400
@@ -121,5 +121,5 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 SelectDB DBCluster can be imported using the id, e.g.
 
 ```shell
-$ terraform import alicloud_selectdb_db_cluster.example <db_instance_id>:<db_cluster_id>
+$ terraform import alicloud_selectdb_cluster.example <db_instance_id>:<db_cluster_id>
 ```

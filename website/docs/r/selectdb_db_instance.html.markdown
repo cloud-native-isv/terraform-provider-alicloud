@@ -1,13 +1,13 @@
 ---
 subcategory: "SelectDB"
 layout: "alicloud"
-page_title: "Alicloud: alicloud_selectdb_db_instance"
+page_title: "Alicloud: alicloud_selectdb_instance"
 sidebar_current: "docs-alicloud-resource-selectdb-db-instance"
 description: |-
   Provides a Alicloud SelectDB DBInstance resource.
 ---
 
-# alicloud_selectdb_db_instance
+# alicloud_selectdb_instance
 
 Provides a SelectDB DBInstance resource.
 
@@ -20,7 +20,7 @@ For information about SelectDB DBInstance and how to use it, see [What is DBInst
 Basic Usage
 
 <div style="display: block;margin-bottom: 40px;"><div class="oics-button" style="float: right;position: absolute;margin-bottom: 10px;">
-  <a href="https://api.aliyun.com/terraform?resource=alicloud_selectdb_db_instance&exampleId=28f6d0af-3c3a-d2ab-1cf8-ffa3a1c01b03249fea15&activeTab=example&spm=docs.r.selectdb_db_instance.0.28f6d0af3c&intl_lang=EN_US" target="_blank">
+  <a href="https://api.aliyun.com/terraform?resource=alicloud_selectdb_instance&exampleId=28f6d0af-3c3a-d2ab-1cf8-ffa3a1c01b03249fea15&activeTab=example&spm=docs.r.selectdb_db_instance.0.28f6d0af3c&intl_lang=EN_US" target="_blank">
     <img alt="Open in AliCloud" src="https://img.alicdn.com/imgextra/i1/O1CN01hjjqXv1uYUlY56FyX_!!6000000006049-55-tps-254-36.svg" style="max-height: 44px; max-width: 100%;">
   </a>
 </div></div>
@@ -43,7 +43,7 @@ data "alicloud_vswitches" "default" {
   zone_id = data.alicloud_zones.default.zones.0.id
 }
 
-resource "alicloud_selectdb_db_instance" "default" {
+resource "alicloud_selectdb_instance" "default" {
   db_instance_class       = "selectdb.xlarge"
   db_instance_description = var.name
   cache_size              = 200
@@ -136,5 +136,5 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 SelectDB DBInstance can be imported using the id, e.g.
 
 ```shell
-$ terraform import alicloud_selectdb_db_instance.example <id>
+$ terraform import alicloud_selectdb_instance.example <id>
 ```

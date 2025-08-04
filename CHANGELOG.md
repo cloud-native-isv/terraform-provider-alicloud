@@ -159,7 +159,7 @@ ENHANCEMENTS:
 - resource/alicloud_ens_eip: Refactored the resource alicloud_ens_eip; Improved alicloud_ens_eip testcase; Fixed resource alicloud_ens_eip document error. ([#8599](https://github.com/aliyun/terraform-provider-alicloud/issues/8599))
 - resource/alicloud_cloud_sso_directory: Add new attribute directory_global_access_status, login_preference, mfa_authentication_setting_info etc. ([#8601](https://github.com/aliyun/terraform-provider-alicloud/issues/8601))
 - resource/alicloud_kvstore_instance: Supported instance_type set to Memcache. ([#8602](https://github.com/aliyun/terraform-provider-alicloud/issues/8602))
-- resource/alicloud_selectdb_db_instance: Optimize creating 4.0.X instance. resource/alicloud_selectdb_db_cluster: fix config Optional scope bug. data-source/alicloud_selectdb_db_clusters: fix flavor bug in memory. ([#8603](https://github.com/aliyun/terraform-provider-alicloud/issues/8603))
+- resource/alicloud_selectdb_instance: Optimize creating 4.0.X instance. resource/alicloud_selectdb_cluster: fix config Optional scope bug. data-source/alicloud_selectdb_db_clusters: fix flavor bug in memory. ([#8603](https://github.com/aliyun/terraform-provider-alicloud/issues/8603))
 - resource/alicloud_oss_bucket_access_monitor: add wait for status while create and update opertion; resource/alicloud_oss_bucket_cors: add wait for status while create and update opertion. ([#8607](https://github.com/aliyun/terraform-provider-alicloud/issues/8607))
 - resource/alicloud_oss_bucket_https_config: add wait for status while create and update opertion. ([#8608](https://github.com/aliyun/terraform-provider-alicloud/issues/8608))
 - resource/alicloud_ddoscoo_instance: Added the field tags, modify_type, status, create_time; Removed the ForceNew for field normal_bandwidth, normal_qps, product_plan, function_version. ([#8609](https://github.com/aliyun/terraform-provider-alicloud/issues/8609))
@@ -327,7 +327,7 @@ ENHANCEMENTS:
 - resource/alicloud_ram_role_policy_attachment: Refactored the resource alicloud_ram_role_policy_attachment. ([#8476](https://github.com/aliyun/terraform-provider-alicloud/issues/8476))
 - resource/alicloud_ebs_disk_replica_pair: Add new attributes one_shot, reverse_replicate and tags. ([#8478](https://github.com/aliyun/terraform-provider-alicloud/issues/8478))
 - resource/alicloud_ebs_disk_replica_group: Add new attributes disk_replica_group_name, one_shot, pair_ids, resource_group_id, tags and reverse_replicate. ([#8479](https://github.com/aliyun/terraform-provider-alicloud/issues/8479))
-- resource/alicloud_selectdb_db_instance: Add attributes of admin_pass, support creating 4.0 instance, fix instance status. resource/alicloud_selectdb_db_cluster: fix instance status. ([#8485](https://github.com/aliyun/terraform-provider-alicloud/issues/8485))
+- resource/alicloud_selectdb_instance: Add attributes of admin_pass, support creating 4.0 instance, fix instance status. resource/alicloud_selectdb_cluster: fix instance status. ([#8485](https://github.com/aliyun/terraform-provider-alicloud/issues/8485))
 - resource/alicloud_adb_db_cluster_lake_version: Added the field period; Supported payment_type set to Subscription. ([#8490](https://github.com/aliyun/terraform-provider-alicloud/issues/8490))
 - resource/alicloud_oss_bucket: Create bucket with server side encryption. ([#8494](https://github.com/aliyun/terraform-provider-alicloud/issues/8494))
 - resource/alicloud_nlb_load_balancer: Add new attribute cps, zone_mappings.ipv6_local_addresses. ([#8496](https://github.com/aliyun/terraform-provider-alicloud/issues/8496))
@@ -1260,8 +1260,8 @@ BUG FIXES:
 
 ## 1.229.0 (August 21, 2024)
 
-- **New Resource:** `alicloud_selectdb_db_cluster` ([#7537](https://github.com/aliyun/terraform-provider-alicloud/issues/7537))
-- **New Resource:** `alicloud_selectdb_db_instance` ([#7537](https://github.com/aliyun/terraform-provider-alicloud/issues/7537))
+- **New Resource:** `alicloud_selectdb_cluster` ([#7537](https://github.com/aliyun/terraform-provider-alicloud/issues/7537))
+- **New Resource:** `alicloud_selectdb_instance` ([#7537](https://github.com/aliyun/terraform-provider-alicloud/issues/7537))
 - **New Resource:** `alicloud_data_works_project` ([#7568](https://github.com/aliyun/terraform-provider-alicloud/issues/7568))
 - **New Data Source:** `alicloud_selectdb_db_clusters` ([#7537](https://github.com/aliyun/terraform-provider-alicloud/issues/7537))
 - **New Data Source:** `alicloud_selectdb_db_instances` ([#7537](https://github.com/aliyun/terraform-provider-alicloud/issues/7537))

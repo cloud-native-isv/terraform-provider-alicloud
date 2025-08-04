@@ -3,10 +3,12 @@ package alicloud
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/selectdb"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -26,11 +28,29 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			// Updatable fields based on Instance struct
-			"db_instance_description": {
+			// ======== Basic Instance Information ========
+			"description": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The description of the SelectDB instance.",
+			},
+
+			// ======== Resource Organization ========
+			"resource_group_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "The resource group ID.",
+			},
+			"tags": tagsSchema(),
+
+			// ======== Database Engine Configuration ========
+			"engine": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Default:     "SelectDB",
+				Description: "The engine type of the SelectDB instance. Default is SelectDB.",
 			},
 			"engine_version": {
 				Type:        schema.TypeString,
@@ -38,49 +58,8 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Computed:    true,
 				Description: "The engine version of the SelectDB instance. Can be updated to upgrade the engine version.",
 			},
-			"maintain_start_time": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "The maintenance start time of the SelectDB instance in HH:MM format.",
-			},
-			"maintain_end_time": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "The maintenance end time of the SelectDB instance in HH:MM format.",
-			},
 
-			// Force new fields - cannot be updated after creation
-			"db_instance_class": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "The instance class of the SelectDB instance.",
-			},
-			"payment_type": {
-				Type:         schema.TypeString,
-				ValidateFunc: StringInSlice([]string{"PayAsYouGo", "Subscription"}, false),
-				Required:     true,
-				ForceNew:     true,
-				Description:  "The payment type of the SelectDB instance. Valid values: PayAsYouGo, Subscription.",
-			},
-			"period": {
-				Type:             schema.TypeString,
-				ValidateFunc:     StringInSlice([]string{string(Year), string(Month)}, false),
-				Optional:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: selectdbPostPaidDiffSuppressFunc,
-				Description:      "The billing period for Subscription instances. Valid values: Month, Year.",
-			},
-			"period_time": {
-				Type:             schema.TypeInt,
-				ValidateFunc:     IntInSlice([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 24, 36}),
-				Optional:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: selectdbPostPaidDiffSuppressFunc,
-				Description:      "The period time for Subscription instances.",
-			},
+			// ======== Network Configuration ========
 			"zone_id": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -98,37 +77,6 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 				Description: "The VSwitch ID where the SelectDB instance is located.",
-			},
-			"cache_size": {
-				Type:        schema.TypeInt,
-				Required:    true,
-				ForceNew:    true,
-				Description: "The cache size of the SelectDB instance in GB.",
-			},
-			"engine": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Default:     "SelectDB",
-				Description: "The engine type of the SelectDB instance. Default is SelectDB.",
-			},
-			"resource_group_id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "The resource group ID.",
-			},
-			"deploy_scheme": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "The deployment scheme of the SelectDB instance.",
-			},
-			"security_ip_list": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "The security IP list for accessing the instance.",
 			},
 			"multi_zone": {
 				Type:        schema.TypeList,
@@ -162,65 +110,97 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				},
 			},
 
-			// Deprecated fields for backward compatibility
-			"engine_minor_version": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"engine_version"},
-				Deprecated:    "Field `engine_minor_version` has been deprecated. Use `engine_version` instead.",
-				Description:   "Deprecated: Use engine_version instead.",
+			// ======== Compute and Storage Resources ========
+			"instance_class": {
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The instance class of the SelectDB instance.",
 			},
-			"upgraded_engine_minor_version": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"engine_version", "engine_minor_version"},
-				Deprecated:    "Field `upgraded_engine_minor_version` has been deprecated. Use `engine_version` instead.",
-				Description:   "Deprecated: Use engine_version instead.",
+			"cache_size": {
+				Type:        schema.TypeInt,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The cache size of the SelectDB instance in GB.",
 			},
-			"maintenance_window": {
+			"deploy_scheme": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Deprecated:  "Field `maintenance_window` has been deprecated. Use `maintain_start_time` and `maintain_end_time` instead.",
-				Description: "Deprecated: Use maintain_start_time and maintain_end_time instead.",
+				ForceNew:    true,
+				Description: "The deployment scheme of the SelectDB instance.",
 			},
-			"enable_public_network": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Deprecated:  "Field `enable_public_network` has been deprecated. Use separate connection management resources instead.",
-				Description: "Deprecated: Use separate connection management resources instead.",
+
+			// ======== Billing Configuration ========
+			"payment_type": {
+				Type:         schema.TypeString,
+				ValidateFunc: StringInSlice([]string{"PayAsYouGo", "Subscription"}, false),
+				Required:     true,
+				ForceNew:     true,
+				Description:  "The payment type of the SelectDB instance. Valid values: PayAsYouGo, Subscription.",
 			},
-			"admin_pass": {
+			"period": {
+				Type:             schema.TypeString,
+				ValidateFunc:     StringInSlice([]string{string(Year), string(Month)}, false),
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: selectdbPostPaidDiffSuppressFunc,
+				Description:      "The billing period for Subscription instances. Valid values: Month, Year.",
+			},
+			"period_time": {
+				Type:             schema.TypeInt,
+				ValidateFunc:     IntInSlice([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 24, 36}),
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: selectdbPostPaidDiffSuppressFunc,
+				Description:      "The period time for Subscription instances.",
+			},
+
+			// ======== Maintenance Configuration ========
+			"maintain_start_time": {
 				Type:        schema.TypeString,
-				Sensitive:   true,
 				Optional:    true,
-				Deprecated:  "Field `admin_pass` has been deprecated. Use separate account management resources instead.",
-				Description: "Deprecated: Use separate account management resources instead.",
+				Computed:    true,
+				Description: "The maintenance start time of the SelectDB instance in HH:MM format.",
 			},
-			"desired_security_ip_lists": {
-				Type:        schema.TypeList,
+			"maintain_end_time": {
+				Type:        schema.TypeString,
 				Optional:    true,
-				Deprecated:  "Field `desired_security_ip_lists` has been deprecated. Use separate security IP management resources instead.",
-				Description: "Deprecated: Use separate security IP management resources instead.",
+				Computed:    true,
+				Description: "The maintenance end time of the SelectDB instance in HH:MM format.",
+			},
+
+			// ======== Security Configuration ========
+			"security_ip_groups": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "Security IP groups for controlling access to the instance.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"group_name": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "default",
+							Description: "The name of the security IP group. Default value: default.",
 						},
 						"security_ip_list": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Description: "List of IP addresses or CIDR blocks allowed to access the SelectDB instance.",
+						},
+						"modify_mode": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "Cover",
+							Description: "The modification mode. Valid values: Cover, Append, Delete. Default value: Cover.",
 						},
 					},
 				},
 			},
 
-			// Tags support
-			"tags": tagsSchema(),
-
-			// Computed values - instance information
+			// ======== Computed Information - Basic Instance ========
 			"region_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -246,6 +226,8 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Computed:    true,
 				Description: "The instance used type.",
 			},
+
+			// ======== Computed Information - Connection ========
 			"connection_string": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -257,7 +239,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Description: "The sub domain of the instance.",
 			},
 
-			// Resource configuration
+			// ======== Computed Information - Resource Configuration ========
 			"resource_cpu": {
 				Type:        schema.TypeInt,
 				Computed:    true,
@@ -304,7 +286,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Description: "The scale replica of the instance.",
 			},
 
-			// Lock information
+			// ======== Computed Information - Lock Status ========
 			"lock_mode": {
 				Type:        schema.TypeInt,
 				Computed:    true,
@@ -316,7 +298,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Description: "The lock reason of the instance.",
 			},
 
-			// Time information
+			// ======== Computed Information - Time ========
 			"create_time": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -338,7 +320,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Description: "The expiration time of the instance.",
 			},
 
-			// Upgrade information
+			// ======== Computed Information - Upgrade ========
 			"can_upgrade_versions": {
 				Type:        schema.TypeList,
 				Computed:    true,
@@ -346,7 +328,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Description: "The list of engine versions that the instance can upgrade to.",
 			},
 
-			// Instance network information
+			// ======== Computed Information - Network Details ========
 			"instance_net_infos": {
 				Type:        schema.TypeList,
 				Computed:    true,
@@ -416,7 +398,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				},
 			},
 
-			// Security IP lists
+			// ======== Computed Information - Security ========
 			"security_ip_lists": {
 				Type:        schema.TypeList,
 				Computed:    true,
@@ -453,7 +435,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				},
 			},
 
-			// DB cluster list
+			// ======== Computed Information - Database Clusters ========
 			"db_cluster_list": {
 				Type:        schema.TypeList,
 				Computed:    true,
@@ -528,62 +510,6 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 					},
 				},
 			},
-
-			// Deprecated computed fields for backward compatibility
-			"cpu_prepaid": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Deprecated:  "Field `cpu_prepaid` has been deprecated. Use `resource_cpu` instead.",
-				Description: "Deprecated: Use resource_cpu instead.",
-			},
-			"memory_prepaid": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Deprecated:  "Field `memory_prepaid` has been deprecated. Use `resource_memory` instead.",
-				Description: "Deprecated: Use resource_memory instead.",
-			},
-			"cache_size_prepaid": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Deprecated:  "Field `cache_size_prepaid` has been deprecated. Use `storage_size` instead.",
-				Description: "Deprecated: Use storage_size instead.",
-			},
-			"cluster_count_prepaid": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Deprecated:  "Field `cluster_count_prepaid` has been deprecated. Use `cluster_count` instead.",
-				Description: "Deprecated: Use cluster_count instead.",
-			},
-			"cpu_postpaid": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Deprecated:  "Field `cpu_postpaid` has been deprecated. Use `resource_cpu` instead.",
-				Description: "Deprecated: Use resource_cpu instead.",
-			},
-			"memory_postpaid": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Deprecated:  "Field `memory_postpaid` has been deprecated. Use `resource_memory` instead.",
-				Description: "Deprecated: Use resource_memory instead.",
-			},
-			"cache_size_postpaid": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Deprecated:  "Field `cache_size_postpaid` has been deprecated. Use `storage_size` instead.",
-				Description: "Deprecated: Use storage_size instead.",
-			},
-			"cluster_count_postpaid": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Deprecated:  "Field `cluster_count_postpaid` has been deprecated. Use `cluster_count` instead.",
-				Description: "Deprecated: Use cluster_count instead.",
-			},
-			"gmt_expired": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Deprecated:  "Field `gmt_expired` has been deprecated. Use `expire_time` instead.",
-				Description: "Deprecated: Use expire_time instead.",
-			},
 		},
 	}
 }
@@ -598,16 +524,12 @@ func resourceAliCloudSelectDBInstanceCreate(d *schema.ResourceData, meta interfa
 	// Build instance directly using Instance struct fields
 	instance := &selectdb.Instance{
 		Engine:      "SelectDB",
-		Description: d.Get("db_instance_description").(string),
+		Description: d.Get("description").(string),
 		RegionId:    client.RegionId,
 	}
 
 	// Set basic configuration
 	if v, ok := d.GetOk("engine_version"); ok {
-		instance.EngineVersion = v.(string)
-	} else if v, ok := d.GetOk("engine_minor_version"); ok {
-		instance.EngineVersion = v.(string)
-	} else if v, ok := d.GetOk("upgraded_engine_minor_version"); ok {
 		instance.EngineVersion = v.(string)
 	}
 
@@ -631,12 +553,29 @@ func resourceAliCloudSelectDBInstanceCreate(d *schema.ResourceData, meta interfa
 		instance.DeployScheme = v.(string)
 	}
 
+	if v, ok := d.GetOk("instance_class"); ok {
+		instance.InstanceClass = v.(string)
+	}
+
+	if v, ok := d.GetOk("cache_size"); ok {
+		instance.CacheSize = int32(v.(int))
+	}
+
 	// Set payment configuration
 	paymentType := d.Get("payment_type").(string)
-	if paymentType == "PayAsYouGo" {
+	switch paymentType {
+	case "PayAsYouGo":
 		instance.ChargeType = "POSTPAY"
-	} else if paymentType == "Subscription" {
+	case "Subscription":
 		instance.ChargeType = "PREPAY"
+
+		// Set period for subscription instances
+		if v, ok := d.GetOk("period"); ok {
+			instance.Period = v.(string)
+		}
+		if v, ok := d.GetOk("period_time"); ok {
+			instance.UsedTime = int32(v.(int))
+		}
 	}
 
 	// Set multi-zone configuration
@@ -691,11 +630,8 @@ func resourceAliCloudSelectDBInstanceCreate(d *schema.ResourceData, meta interfa
 	d.SetId(result.Id)
 
 	// Wait for instance to be ready
-	stateConf := BuildStateConf([]string{"CREATING", "RESOURCE_PREPARING"}, []string{"ACTIVATION"},
-		d.Timeout(schema.TimeoutCreate), 1*time.Minute,
-		selectDBService.SelectDBInstanceStateRefreshFunc(d.Id(), []string{"DELETING", "FAILED"}))
-
-	if _, err := stateConf.WaitForState(); err != nil {
+	err = selectDBService.WaitForSelectDBInstanceCreated(d.Id(), d.Timeout(schema.TimeoutCreate))
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
@@ -712,31 +648,21 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 	d.Partial(true)
 
 	// Handle description update
-	if d.HasChange("db_instance_description") {
-		description := d.Get("db_instance_description").(string)
+	if d.HasChange("description") {
+		description := d.Get("description").(string)
 		regionId := d.Get("region_id").(string)
 
 		err := selectDBService.ModifySelectDBInstance(d.Id(), "DBInstanceDescription", description, regionId)
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifySelectDBInstanceDescription", AlibabaCloudSdkGoERROR)
 		}
-		d.SetPartial("db_instance_description")
+		d.SetPartial("description")
 	}
 
 	// Handle engine version upgrade
-	if d.HasChange("engine_version") || d.HasChange("engine_minor_version") || d.HasChange("upgraded_engine_minor_version") {
-		var newVersion string
-
-		if d.HasChange("engine_version") {
-			_, newVersionInterface := d.GetChange("engine_version")
-			newVersion = newVersionInterface.(string)
-		} else if d.HasChange("engine_minor_version") {
-			_, newVersionInterface := d.GetChange("engine_minor_version")
-			newVersion = newVersionInterface.(string)
-		} else if d.HasChange("upgraded_engine_minor_version") {
-			_, newVersionInterface := d.GetChange("upgraded_engine_minor_version")
-			newVersion = newVersionInterface.(string)
-		}
+	if d.HasChange("engine_version") {
+		_, newVersionInterface := d.GetChange("engine_version")
+		newVersion := newVersionInterface.(string)
 
 		if newVersion != "" {
 			// Get current instance to check available upgrade versions
@@ -777,11 +703,8 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 				}
 
 				// Wait for upgrade to complete
-				stateConf := BuildStateConf([]string{"MODULE_UPGRADING"}, []string{"ACTIVATION"},
-					d.Timeout(schema.TimeoutUpdate), 10*time.Second,
-					selectDBService.SelectDBInstanceStateRefreshFunc(d.Id(), []string{"DELETING", "FAILED"}))
-
-				if _, err := stateConf.WaitForState(); err != nil {
+				err = selectDBService.WaitForSelectDBInstanceUpdated(d.Id(), d.Timeout(schema.TimeoutUpdate))
+				if err != nil {
 					return WrapErrorf(err, IdMsg, d.Id())
 				}
 			} else {
@@ -790,8 +713,6 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 		}
 
 		d.SetPartial("engine_version")
-		d.SetPartial("engine_minor_version")
-		d.SetPartial("upgraded_engine_minor_version")
 	}
 
 	// Handle maintenance time update
@@ -805,6 +726,78 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 		}
 		d.SetPartial("maintain_start_time")
 		d.SetPartial("maintain_end_time")
+	}
+
+	// Handle security IP groups update
+	if d.HasChange("security_ip_groups") {
+		oldValue, newValue := d.GetChange("security_ip_groups")
+		oldGroups := oldValue.(*schema.Set).List()
+		newGroups := newValue.(*schema.Set).List()
+
+		// Debug: print old and new groups changes
+		fmt.Printf("[DEBUG] Security IP groups change - oldGroups: %+v, newGroups: %+v\n", oldGroups, newGroups)
+
+		// Process each new group
+		for _, newGroupInterface := range newGroups {
+			newGroup := newGroupInterface.(map[string]interface{})
+			groupName := newGroup["group_name"].(string)
+			if groupName == "" {
+				groupName = "default"
+			}
+			modifyMode := newGroup["modify_mode"].(string)
+			if modifyMode == "" {
+				modifyMode = "Cover"
+			}
+			securityIpList := newGroup["security_ip_list"].(*schema.Set).List()
+
+			// Convert security IP list to comma-separated string
+			var ipStrings []string
+			for _, ip := range securityIpList {
+				ipStrings = append(ipStrings, ip.(string))
+			}
+			securityIps := strings.Join(ipStrings, ",")
+
+			// Build modification request
+			modification := &selectdb.SecurityIPListModification{
+				DBInstanceId:   d.Id(),
+				GroupName:      groupName,
+				SecurityIPList: securityIps,
+				ModifyMode:     modifyMode,
+				RegionId:       client.RegionId,
+			}
+
+			// Use retry for security IP modification
+			action := "ModifySelectDBSecurityIPList"
+			err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+				_, err := selectDBService.ModifySelectDBSecurityIPList(modification)
+				if err != nil {
+					if NeedRetry(err) {
+						return resource.RetryableError(err)
+					}
+					return resource.NonRetryableError(err)
+				}
+				return nil
+			})
+
+			if err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			}
+
+			// Wait for security IP list to be updated
+			stateConf := BuildStateConf(
+				[]string{},
+				[]string{"Available"},
+				d.Timeout(schema.TimeoutUpdate),
+				5*time.Second,
+				selectDBService.SelectDBSecurityIPListStateRefreshFunc(d.Id(), groupName, []string{}),
+			)
+
+			if _, err := stateConf.WaitForState(); err != nil {
+				return WrapErrorf(err, IdMsg, d.Id())
+			}
+		}
+
+		d.SetPartial("security_ip_groups")
 	}
 
 	// Handle tags update
@@ -840,11 +833,8 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	// Wait for all modifications to complete
-	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING", "CLASS_CHANGING", "MODULE_UPGRADING"},
-		[]string{"ACTIVATION"}, d.Timeout(schema.TimeoutUpdate), 10*time.Second,
-		selectDBService.SelectDBInstanceStateRefreshFunc(d.Id(), []string{"DELETING", "FAILED"}))
-
-	if _, err := stateConf.WaitForState(); err != nil {
+	err = selectDBService.WaitForSelectDBInstanceUpdated(d.Id(), d.Timeout(schema.TimeoutUpdate))
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
@@ -870,7 +860,7 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 	}
 
 	// Set basic information
-	d.Set("db_instance_description", instance.Description)
+	d.Set("description", instance.Description)
 	d.Set("engine", instance.Engine)
 	d.Set("engine_version", instance.EngineVersion)
 	d.Set("status", instance.Status)
@@ -918,11 +908,6 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 
 	// Set upgrade information
 	d.Set("can_upgrade_versions", instance.CanUpgradeVersions)
-
-	// Set deprecated fields for backward compatibility
-	d.Set("engine_minor_version", instance.EngineVersion)
-	d.Set("upgraded_engine_minor_version", instance.EngineVersion)
-	d.Set("gmt_expired", instance.ExpireTime)
 
 	// Set resource group
 	d.Set("resource_group_id", instance.ResourceGroupId)
@@ -981,7 +966,7 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 
 			// Set instance class and cache size from default BE cluster
 			if cluster.ClusterId == defaultBeClusterId {
-				d.Set("db_instance_class", cluster.ClusterClass)
+				d.Set("instance_class", cluster.ClusterClass)
 				if cacheSize, err := strconv.Atoi(cluster.CacheStorageSizeGB); err == nil {
 					defaultCacheSize = cacheSize
 				}
@@ -992,50 +977,57 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 		if defaultCacheSize > 0 {
 			d.Set("cache_size", defaultCacheSize)
 		}
+	}
 
-		// Set deprecated computed fields for backward compatibility
-		cpuPrepaid := 0
-		cpuPostpaid := 0
-		memPrepaid := 0
-		memPostpaid := 0
-		cachePrepaid := 0
-		cachePostpaid := 0
-		clusterPrepaidCount := 0
-		clusterPostpaidCount := 0
+	// Get network information and security IP lists
+	query := &selectdb.SecurityIPListQuery{
+		DBInstanceId: instanceId,
+		RegionId:     client.RegionId,
+	}
 
-		for _, cluster := range instance.DBClusterList {
-			if cluster.ChargeType == "Postpaid" {
-				cpuPostpaid += int(cluster.CpuCores)
-				memPostpaid += int(cluster.Memory)
-				if cacheSize, err := strconv.Atoi(cluster.CacheStorageSizeGB); err == nil {
-					cachePostpaid += cacheSize
+	securityIPResult, err := selectDBService.DescribeSelectDBSecurityIPList(query)
+	if err != nil && !IsNotFoundError(err) {
+		return WrapError(err)
+	}
+
+	// Set security IP groups
+	if securityIPResult != nil && len(securityIPResult.GroupItems) > 0 {
+		securityIPGroups := make([]map[string]interface{}, 0)
+		for _, group := range securityIPResult.GroupItems {
+			if len(group.SecurityIPList) > 0 {
+				securityIPGroup := map[string]interface{}{
+					"group_name":       group.GroupName,
+					"security_ip_list": group.SecurityIPList,
+					"modify_mode":      "Cover", // Default mode
 				}
-				clusterPostpaidCount++
-			} else if cluster.ChargeType == "Prepaid" {
-				cpuPrepaid += int(cluster.CpuCores)
-				memPrepaid += int(cluster.Memory)
-				if cacheSize, err := strconv.Atoi(cluster.CacheStorageSizeGB); err == nil {
-					cachePrepaid += cacheSize
-				}
-				clusterPrepaidCount++
+				securityIPGroups = append(securityIPGroups, securityIPGroup)
 			}
 		}
+		d.Set("security_ip_groups", securityIPGroups)
+	}
 
-		d.Set("cpu_prepaid", cpuPrepaid)
-		d.Set("memory_prepaid", memPrepaid)
-		d.Set("cache_size_prepaid", cachePrepaid)
-		d.Set("cluster_count_prepaid", clusterPrepaidCount)
-		d.Set("cpu_postpaid", cpuPostpaid)
-		d.Set("memory_postpaid", memPostpaid)
-		d.Set("cache_size_postpaid", cachePostpaid)
-		d.Set("cluster_count_postpaid", clusterPostpaidCount)
+	// Set security IP lists for computed display
+	if securityIPResult != nil && len(securityIPResult.GroupItems) > 0 {
+		securityIPLists := make([]map[string]interface{}, 0)
+		for _, group := range securityIPResult.GroupItems {
+			securityIPList := map[string]interface{}{
+				"group_name":         group.GroupName,
+				"group_tag":          group.GroupTag,
+				"security_ip_type":   "", // This would need to be retrieved from the API
+				"security_ip_list":   group.SecurityIPList,
+				"whitelist_net_type": group.WhitelistNetType,
+			}
+			securityIPLists = append(securityIPLists, securityIPList)
+		}
+		d.Set("security_ip_lists", securityIPLists)
+	} else {
+		d.Set("security_ip_lists", []map[string]interface{}{})
 	}
 
 	// Get network information
 	// This would require a separate API call in the real implementation
 	// For now, we'll set empty lists to avoid nil pointer errors
 	d.Set("instance_net_infos", []map[string]interface{}{})
-	d.Set("security_ip_lists", []map[string]interface{}{})
 
 	return nil
 }
@@ -1048,11 +1040,12 @@ func resourceAliCloudSelectDBInstanceDelete(d *schema.ResourceData, meta interfa
 	}
 
 	// Wait for instance to be in a stable state before deletion
-	stateConf := BuildStateConf([]string{"RESOURCE_PREPARING", "CREATING", "CLASS_CHANGING", "MODULE_UPGRADING"},
-		[]string{"ACTIVATION"}, d.Timeout(schema.TimeoutDelete), 10*time.Second,
-		selectDBService.SelectDBInstanceStateRefreshFunc(d.Id(), []string{"DELETING", "FAILED"}))
-
-	if _, err := stateConf.WaitForState(); err != nil {
+	err = selectDBService.WaitForSelectDBInstanceUpdated(d.Id(), d.Timeout(schema.TimeoutDelete))
+	if err != nil {
+		// If instance is not found, it's already deleted
+		if IsNotFoundError(err) {
+			return nil
+		}
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
@@ -1066,11 +1059,8 @@ func resourceAliCloudSelectDBInstanceDelete(d *schema.ResourceData, meta interfa
 	}
 
 	// Wait for deletion to complete
-	stateConf = BuildStateConf([]string{"DELETING", "ACTIVATION"}, []string{""},
-		d.Timeout(schema.TimeoutDelete), 5*time.Second,
-		selectDBService.SelectDBInstanceStateRefreshFunc(d.Id(), []string{}))
-
-	if _, err := stateConf.WaitForState(); err != nil {
+	err = selectDBService.WaitForSelectDBInstanceDeleted(d.Id(), d.Timeout(schema.TimeoutDelete))
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 

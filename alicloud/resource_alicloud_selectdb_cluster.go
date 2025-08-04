@@ -3,8 +3,6 @@ package alicloud
 import (
 	"fmt"
 	"log"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -29,13 +27,14 @@ func resourceAliCloudSelectDBCluster() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
+			// ======== Basic Cluster Information ========
 			"instance_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "The ID of the SelectDB instance.",
 			},
-			"cluster_name": {
+			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The name of the SelectDB cluster.",
@@ -45,72 +44,21 @@ func resourceAliCloudSelectDBCluster() *schema.Resource {
 				Optional:    true,
 				Description: "The description of the SelectDB cluster.",
 			},
-			"fe_config": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"node_count": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntAtLeast(1),
-							Description:  "The number of FE nodes.",
-						},
-						"node_type": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The type of FE nodes.",
-						},
-						"resource_group": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The resource group of FE nodes.",
-						},
-					},
-				},
-				Description: "The configuration of FE nodes.",
+
+			// ======== Cluster Configuration ========
+			"cluster_class": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The cluster class (specification) of the SelectDB cluster.",
 			},
-			"be_config": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"node_count": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntAtLeast(1),
-							Description:  "The number of BE nodes.",
-						},
-						"node_type": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The type of BE nodes.",
-						},
-						"resource_group": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The resource group of BE nodes.",
-						},
-						"disk_size": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      200,
-							ValidateFunc: validation.IntBetween(100, 2000),
-							Description:  "The disk size of BE nodes in GB.",
-						},
-						"disk_count": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      1,
-							ValidateFunc: validation.IntBetween(1, 10),
-							Description:  "The number of disks per BE node.",
-						},
-					},
-				},
-				Description: "The configuration of BE nodes.",
+			"cache_size": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "200GB",
+				Description: "The cache size of the SelectDB cluster (e.g., '200GB').",
 			},
+
+			// ======== Cluster Scaling Configuration ========
 			"auto_scaling_rules": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -155,6 +103,8 @@ func resourceAliCloudSelectDBCluster() *schema.Resource {
 				},
 				Description: "The auto scaling rules for the cluster.",
 			},
+
+			// ======== Computed Information ========
 			"cluster_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -183,21 +133,16 @@ func resourceAliCloudSelectDBClusterCreate(d *schema.ResourceData, meta interfac
 
 	instanceId := d.Get("instance_id").(string)
 
-	// Prepare FE config
-	feConfigList := d.Get("fe_config").([]interface{})
-	feConfig := feConfigList[0].(map[string]interface{})
-
-	// Prepare BE config
-	beConfigList := d.Get("be_config").([]interface{})
-	beConfig := beConfigList[0].(map[string]interface{})
-
-	// Prepare cluster creation options
-	clusterClass := feConfig["node_type"].(string)
-	cacheSize := fmt.Sprintf("%dGB", beConfig["disk_size"].(int))
+	// Get cluster configuration
+	clusterClass := d.Get("cluster_class").(string)
+	cacheSize := d.Get("cache_size").(string)
 
 	var options []selectdb.ClusterCreateOption
 
 	// Add description if specified
+	if description := d.Get("description").(string); description != "" {
+		options = append(options, selectdb.WithClusterDescription(description))
+	}
 	if description := d.Get("description").(string); description != "" {
 		options = append(options, selectdb.WithClusterDescription(description))
 	}
@@ -235,7 +180,7 @@ func resourceAliCloudSelectDBClusterCreate(d *schema.ResourceData, meta interfac
 	d.SetId(service.EncodeSelectDBClusterId(instanceId, cluster.ClusterId))
 
 	// Wait for the cluster to be created
-	err = service.WaitForSelectDBCluster(instanceId, cluster.ClusterId, Running, int(d.Timeout(schema.TimeoutCreate).Seconds()))
+	err = service.WaitForSelectDBClusterCreated(instanceId, cluster.ClusterId, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -270,7 +215,7 @@ func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{
 
 	// Set cluster basic information
 	if cluster.ClusterName != "" {
-		d.Set("cluster_name", cluster.ClusterName)
+		d.Set("name", cluster.ClusterName)
 	}
 
 	if cluster.Status != "" {
@@ -297,33 +242,13 @@ func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	// Set FE configuration - preserve existing configuration from state
-	// since the current API doesn't provide detailed FE/BE node information
-	if existingFE := d.Get("fe_config").([]interface{}); len(existingFE) > 0 {
-		feConfig := existingFE[0].(map[string]interface{})
-
-		// Update with any available information from cluster
-		if cluster.ClusterClass != "" {
-			feConfig["node_type"] = cluster.ClusterClass
-		}
-
-		d.Set("fe_config", []interface{}{feConfig})
+	// Set cluster configuration
+	if cluster.ClusterClass != "" {
+		d.Set("cluster_class", cluster.ClusterClass)
 	}
 
-	// Set BE configuration - preserve existing configuration from state
-	if existingBE := d.Get("be_config").([]interface{}); len(existingBE) > 0 {
-		beConfig := existingBE[0].(map[string]interface{})
-
-		// Update with any available information from cluster
-		if cluster.CacheStorageSizeGB != "" {
-			// Parse cache size (remove "GB" suffix if present)
-			cacheSizeStr := strings.TrimSuffix(cluster.CacheStorageSizeGB, "GB")
-			if cacheSize, parseErr := strconv.Atoi(cacheSizeStr); parseErr == nil {
-				beConfig["disk_size"] = cacheSize
-			}
-		}
-
-		d.Set("be_config", []interface{}{beConfig})
+	if cluster.CacheStorageSizeGB != "" {
+		d.Set("cache_size", cluster.CacheStorageSizeGB)
 	}
 
 	// Set description from cluster information or preserve from state
@@ -351,57 +276,48 @@ func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interfac
 
 	d.Partial(true)
 
-	// Update cluster class if FE config changed
-	if d.HasChange("fe_config") {
-		oldConfig, newConfig := d.GetChange("fe_config")
-		oldFEConfig := oldConfig.([]interface{})[0].(map[string]interface{})
-		newFEConfig := newConfig.([]interface{})[0].(map[string]interface{})
+	// Update cluster class if changed
+	if d.HasChange("cluster_class") {
+		newClusterClass := d.Get("cluster_class").(string)
 
-		if oldFEConfig["node_type"] != newFEConfig["node_type"] {
-			// Modify cluster class using the API
-			var options []selectdb.ModifyClusterOption
-			options = append(options, selectdb.WithClusterClass(newFEConfig["node_type"].(string)))
+		// Modify cluster class using the API
+		var options []selectdb.ModifyClusterOption
+		options = append(options, selectdb.WithClusterClass(newClusterClass))
 
-			_, err := service.ModifySelectDBCluster(instanceId, clusterId, options...)
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyCluster", AlibabaCloudSdkGoERROR)
-			}
-
-			// Wait for modification to complete
-			err = service.WaitForSelectDBCluster(instanceId, clusterId, Running, int(d.Timeout(schema.TimeoutUpdate).Seconds()))
-			if err != nil {
-				return WrapErrorf(err, IdMsg, d.Id())
-			}
+		_, err := service.ModifySelectDBCluster(instanceId, clusterId, options...)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyCluster", AlibabaCloudSdkGoERROR)
 		}
 
-		d.SetPartial("fe_config")
+		// Wait for modification to complete
+		err = service.WaitForSelectDBClusterUpdated(instanceId, clusterId, d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
+
+		d.SetPartial("cluster_class")
 	}
 
-	// Update cache size if BE config changed
-	if d.HasChange("be_config") {
-		oldConfig, newConfig := d.GetChange("be_config")
-		oldBEConfig := oldConfig.([]interface{})[0].(map[string]interface{})
-		newBEConfig := newConfig.([]interface{})[0].(map[string]interface{})
+	// Update cache size if changed
+	if d.HasChange("cache_size") {
+		newCacheSize := d.Get("cache_size").(string)
 
-		if oldBEConfig["disk_size"] != newBEConfig["disk_size"] {
-			// Modify cache size using the API
-			var options []selectdb.ModifyClusterOption
-			cacheSize := fmt.Sprintf("%dGB", newBEConfig["disk_size"].(int))
-			options = append(options, selectdb.WithCacheSize(cacheSize))
+		// Modify cache size using the API
+		var options []selectdb.ModifyClusterOption
+		options = append(options, selectdb.WithCacheSize(newCacheSize))
 
-			_, err := service.ModifySelectDBCluster(instanceId, clusterId, options...)
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyCluster", AlibabaCloudSdkGoERROR)
-			}
-
-			// Wait for modification to complete
-			err = service.WaitForSelectDBCluster(instanceId, clusterId, Running, int(d.Timeout(schema.TimeoutUpdate).Seconds()))
-			if err != nil {
-				return WrapErrorf(err, IdMsg, d.Id())
-			}
+		_, err := service.ModifySelectDBCluster(instanceId, clusterId, options...)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyCluster", AlibabaCloudSdkGoERROR)
 		}
 
-		d.SetPartial("be_config")
+		// Wait for modification to complete
+		err = service.WaitForSelectDBClusterUpdated(instanceId, clusterId, d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
+
+		d.SetPartial("cache_size")
 	}
 
 	// Update cluster description if changed
@@ -474,25 +390,7 @@ func resourceAliCloudSelectDBClusterDelete(d *schema.ResourceData, meta interfac
 	}
 
 	// Wait for the cluster to be deleted
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{selectdb.ClusterStatusDeleting, selectdb.ClusterStatusRunning, selectdb.ClusterStatusStopped},
-		Target:  []string{""},
-		Refresh: func() (interface{}, string, error) {
-			cluster, err := service.DescribeSelectDBCluster(instanceId, clusterId)
-			if err != nil {
-				if IsNotFoundError(err) {
-					return nil, "", nil
-				}
-				return nil, "", WrapError(err)
-			}
-			return cluster, cluster.Status, nil
-		},
-		Timeout:    d.Timeout(schema.TimeoutDelete),
-		Delay:      5 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	_, err = stateConf.WaitForState()
+	err = service.WaitForSelectDBClusterDeleted(instanceId, clusterId, d.Timeout(schema.TimeoutDelete))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -527,7 +425,7 @@ func convertStringSliceToInterface(slice []string) []interface{} {
 }
 
 // validateSelectDBClusterConfig validates cluster configuration parameters
-func validateSelectDBClusterConfig(feConfig, beConfig map[string]interface{}) error {
+func validateSelectDBClusterConfig(feConfig map[string]interface{}) error {
 	// Validate FE config
 	if nodeCount, ok := feConfig["node_count"].(int); ok && nodeCount < 1 {
 		return fmt.Errorf("FE node count must be at least 1")
@@ -535,23 +433,6 @@ func validateSelectDBClusterConfig(feConfig, beConfig map[string]interface{}) er
 
 	if nodeType, ok := feConfig["node_type"].(string); ok && nodeType == "" {
 		return fmt.Errorf("FE node type cannot be empty")
-	}
-
-	// Validate BE config
-	if nodeCount, ok := beConfig["node_count"].(int); ok && nodeCount < 1 {
-		return fmt.Errorf("BE node count must be at least 1")
-	}
-
-	if nodeType, ok := beConfig["node_type"].(string); ok && nodeType == "" {
-		return fmt.Errorf("BE node type cannot be empty")
-	}
-
-	if diskSize, ok := beConfig["disk_size"].(int); ok && (diskSize < 100 || diskSize > 2000) {
-		return fmt.Errorf("BE disk size must be between 100 and 2000 GB")
-	}
-
-	if diskCount, ok := beConfig["disk_count"].(int); ok && (diskCount < 1 || diskCount > 10) {
-		return fmt.Errorf("BE disk count must be between 1 and 10")
 	}
 
 	return nil
