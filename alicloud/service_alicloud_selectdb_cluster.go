@@ -11,18 +11,21 @@ import (
 // Cluster Management Operations
 
 // CreateSelectDBCluster creates a new SelectDB cluster
-func (s *SelectDBService) CreateSelectDBCluster(instanceId, clusterClass, cacheSize string, options ...selectdb.ClusterCreateOption) (*selectdb.Cluster, error) {
-	if instanceId == "" {
+func (s *SelectDBService) CreateSelectDBCluster(cluster *selectdb.Cluster) (*selectdb.Cluster, error) {
+	if cluster == nil {
+		return nil, WrapError(fmt.Errorf("cluster cannot be nil"))
+	}
+	if cluster.InstanceId == "" {
 		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
-	if clusterClass == "" {
+	if cluster.ClusterClass == "" {
 		return nil, WrapError(fmt.Errorf("cluster class cannot be empty"))
 	}
-	if cacheSize == "" {
-		return nil, WrapError(fmt.Errorf("cache size cannot be empty"))
+	if cluster.CacheSize <= 0 {
+		return nil, WrapError(fmt.Errorf("cache size must be greater than 0"))
 	}
 
-	result, err := s.GetAPI().CreateCluster(instanceId, clusterClass, cacheSize, options...)
+	result, err := s.GetAPI().CreateCluster(cluster)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -60,15 +63,18 @@ func (s *SelectDBService) DescribeSelectDBCluster(instanceId, clusterId string) 
 }
 
 // ModifySelectDBCluster modifies a SelectDB cluster
-func (s *SelectDBService) ModifySelectDBCluster(instanceId, clusterId string, options ...selectdb.ModifyClusterOption) (*selectdb.Cluster, error) {
-	if instanceId == "" {
+func (s *SelectDBService) ModifySelectDBCluster(cluster *selectdb.Cluster) (*selectdb.Cluster, error) {
+	if cluster == nil {
+		return nil, WrapError(fmt.Errorf("cluster cannot be nil"))
+	}
+	if cluster.InstanceId == "" {
 		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
-	if clusterId == "" {
+	if cluster.ClusterId == "" {
 		return nil, WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
 
-	result, err := s.GetAPI().ModifyCluster(instanceId, clusterId, options...)
+	result, err := s.GetAPI().ModifyCluster(cluster)
 	if err != nil {
 		return nil, WrapError(err)
 	}

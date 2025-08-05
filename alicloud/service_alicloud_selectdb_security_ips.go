@@ -10,12 +10,12 @@ import (
 // Security IP List Management Operations for SelectDB Instance
 
 // DescribeSelectDBSecurityIPList retrieves security IP list for a SelectDB instance
-func (s *SelectDBService) DescribeSelectDBSecurityIPList(query *selectdb.SecurityIPListQuery) (*selectdb.SecurityIPListResult, error) {
-	if query == nil {
-		return nil, WrapError(fmt.Errorf("security IP list query cannot be nil"))
+func (s *SelectDBService) DescribeSelectDBSecurityIPList(dbInstanceId string, regionId string, resourceOwnerId int64) ([]selectdb.SecurityIPGroup, error) {
+	if dbInstanceId == "" {
+		return nil, WrapError(fmt.Errorf("database instance ID cannot be empty"))
 	}
 
-	result, err := s.GetAPI().GetSecurityIPList(query)
+	result, err := s.GetAPI().GetSecurityIPList(dbInstanceId, regionId, resourceOwnerId)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -27,12 +27,15 @@ func (s *SelectDBService) DescribeSelectDBSecurityIPList(query *selectdb.Securit
 }
 
 // ModifySelectDBSecurityIPList modifies security IP list for a SelectDB instance
-func (s *SelectDBService) ModifySelectDBSecurityIPList(modification *selectdb.SecurityIPListModification) (*selectdb.SecurityIPListModificationResult, error) {
-	if modification == nil {
-		return nil, WrapError(fmt.Errorf("security IP list modification cannot be nil"))
+func (s *SelectDBService) ModifySelectDBSecurityIPList(dbInstanceId string, securityIPList string, groupName string, modifyMode string, regionId string, resourceOwnerId int64) (*selectdb.SecurityIPGroup, error) {
+	if dbInstanceId == "" {
+		return nil, WrapError(fmt.Errorf("database instance ID cannot be empty"))
+	}
+	if securityIPList == "" {
+		return nil, WrapError(fmt.Errorf("security IP list cannot be empty"))
 	}
 
-	result, err := s.GetAPI().ModifySecurityIPList(modification)
+	result, err := s.GetAPI().ModifySecurityIPList(dbInstanceId, securityIPList, groupName, modifyMode, regionId, resourceOwnerId)
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -49,11 +52,8 @@ func (s *SelectDBService) DescribeSelectDBSecurityIPGroup(instanceId, groupName 
 		return nil, WrapError(fmt.Errorf("group name cannot be empty"))
 	}
 
-	query := &selectdb.SecurityIPListQuery{
-		DBInstanceId: instanceId,
-	}
-
-	result, err := s.GetAPI().GetSecurityIPList(query)
+	regionId := s.GetRegionId()
+	result, err := s.GetAPI().GetSecurityIPList(instanceId, regionId, 0)
 	if err != nil {
 		if selectdb.IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -62,7 +62,7 @@ func (s *SelectDBService) DescribeSelectDBSecurityIPGroup(instanceId, groupName 
 	}
 
 	// Find the specific group by name
-	for _, group := range result.GroupItems {
+	for _, group := range result {
 		if group.GroupName == groupName {
 			return &group, nil
 		}

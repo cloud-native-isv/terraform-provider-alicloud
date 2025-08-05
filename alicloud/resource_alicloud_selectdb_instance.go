@@ -2,7 +2,6 @@ package alicloud
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -39,7 +38,6 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 			"resource_group_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				ForceNew:    true,
 				Description: "The resource group ID.",
 			},
 			"tags": tagsSchema(),
@@ -189,12 +187,6 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 								Type: schema.TypeString,
 							},
 							Description: "List of IP addresses or CIDR blocks allowed to access the SelectDB instance.",
-						},
-						"modify_mode": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Default:     "Cover",
-							Description: "The modification mode. Valid values: Cover, Append, Delete. Default value: Cover.",
 						},
 					},
 				},
@@ -725,42 +717,26 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 		oldGroups := oldValue.(*schema.Set).List()
 		newGroups := newValue.(*schema.Set).List()
 
-		// Debug: print old and new groups changes
-		fmt.Printf("[DEBUG] Security IP groups change - oldGroups: %+v, newGroups: %+v\n", oldGroups, newGroups)
+		// Calculate the modifications needed
+		modifications := calculateSecurityIPGroupChanges(oldGroups, newGroups)
 
-		// Process each new group
-		for _, newGroupInterface := range newGroups {
-			newGroup := newGroupInterface.(map[string]interface{})
-			groupName := newGroup["group_name"].(string)
-			if groupName == "" {
-				groupName = "default"
-			}
-			modifyMode := newGroup["modify_mode"].(string)
-			if modifyMode == "" {
-				modifyMode = "Cover"
-			}
-			securityIpList := newGroup["security_ip_list"].(*schema.Set).List()
-
-			// Convert security IP list to comma-separated string
-			var ipStrings []string
-			for _, ip := range securityIpList {
-				ipStrings = append(ipStrings, ip.(string))
-			}
-			securityIps := strings.Join(ipStrings, ",")
-
-			// Build modification request
-			modification := &selectdb.SecurityIPListModification{
-				DBInstanceId:   d.Id(),
-				GroupName:      groupName,
-				SecurityIPList: securityIps,
-				ModifyMode:     modifyMode,
-				RegionId:       client.RegionId,
-			}
+		// Apply each modification
+		for _, modification := range modifications {
+			// Set common fields
+			modification.DBInstanceId = d.Id()
+			modification.RegionId = client.RegionId
 
 			// Use retry for security IP modification
 			action := "ModifySelectDBSecurityIPList"
 			err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-				_, err := selectDBService.ModifySelectDBSecurityIPList(modification)
+				_, err := selectDBService.ModifySelectDBSecurityIPList(
+					modification.DBInstanceId,
+					modification.SecurityIPList,
+					modification.GroupName,
+					modification.ModifyMode,
+					modification.RegionId,
+					modification.ResourceOwnerId,
+				)
 				if err != nil {
 					if NeedRetry(err) {
 						return resource.RetryableError(err)
@@ -780,7 +756,7 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 				[]string{"Available"},
 				d.Timeout(schema.TimeoutUpdate),
 				5*time.Second,
-				selectDBService.SelectDBSecurityIPListStateRefreshFunc(d.Id(), groupName, []string{}),
+				selectDBService.SelectDBSecurityIPListStateRefreshFunc(d.Id(), modification.GroupName, []string{}),
 			)
 
 			if _, err := stateConf.WaitForState(); err != nil {
@@ -945,7 +921,7 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 				"charge_type":           cluster.ChargeType,
 				"cpu_cores":             cluster.CpuCores,
 				"memory":                cluster.Memory,
-				"cache_storage_size_gb": cluster.CacheStorageSizeGB,
+				"cache_storage_size_gb": cluster.CacheSize,
 				"cache_storage_type":    cluster.CacheStorageType,
 				"performance_level":     cluster.PerformanceLevel,
 				"scaling_rules_enable":  cluster.ScalingRulesEnable,
@@ -957,9 +933,7 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 			// Set instance class and cache size from default BE cluster
 			if cluster.ClusterId == defaultBeClusterId {
 				d.Set("instance_class", cluster.ClusterClass)
-				if cacheSize, err := strconv.Atoi(cluster.CacheStorageSizeGB); err == nil {
-					defaultCacheSize = cacheSize
-				}
+				defaultCacheSize = int(cluster.CacheSize)
 			}
 		}
 
@@ -970,40 +944,34 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 	}
 
 	// Get network information and security IP lists
-	query := &selectdb.SecurityIPListQuery{
-		DBInstanceId: instanceId,
-		RegionId:     client.RegionId,
-	}
-
-	securityIPResult, err := selectDBService.DescribeSelectDBSecurityIPList(query)
+	securityIPGroups, err := selectDBService.DescribeSelectDBSecurityIPList(instanceId, client.RegionId, 0)
 	if err != nil && !IsNotFoundError(err) {
 		return WrapError(err)
 	}
 
 	// Set security IP groups
-	if securityIPResult != nil && len(securityIPResult.GroupItems) > 0 {
-		securityIPGroups := make([]map[string]interface{}, 0)
-		for _, group := range securityIPResult.GroupItems {
+	if len(securityIPGroups) > 0 {
+		securityIPGroupsData := make([]map[string]interface{}, 0)
+		for _, group := range securityIPGroups {
 			if len(group.SecurityIPList) > 0 {
 				securityIPGroup := map[string]interface{}{
 					"group_name":       group.GroupName,
 					"security_ip_list": group.SecurityIPList,
-					"modify_mode":      "Cover", // Default mode
 				}
-				securityIPGroups = append(securityIPGroups, securityIPGroup)
+				securityIPGroupsData = append(securityIPGroupsData, securityIPGroup)
 			}
 		}
-		d.Set("security_ip_groups", securityIPGroups)
+		d.Set("security_ip_groups", securityIPGroupsData)
 	}
 
 	// Set security IP lists for computed display
-	if securityIPResult != nil && len(securityIPResult.GroupItems) > 0 {
+	if len(securityIPGroups) > 0 {
 		securityIPLists := make([]map[string]interface{}, 0)
-		for _, group := range securityIPResult.GroupItems {
+		for _, group := range securityIPGroups {
 			securityIPList := map[string]interface{}{
 				"group_name":         group.GroupName,
 				"group_tag":          group.GroupTag,
-				"security_ip_type":   "", // This would need to be retrieved from the API
+				"security_ip_type":   group.SecurityIPType,
 				"security_ip_list":   group.SecurityIPList,
 				"whitelist_net_type": group.WhitelistNetType,
 			}
@@ -1055,4 +1023,103 @@ func resourceAliCloudSelectDBInstanceDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
+}
+
+// SecurityIPModification represents a security IP list modification
+type SecurityIPModification struct {
+	GroupName       string
+	SecurityIPList  string
+	ModifyMode      string
+	DBInstanceId    string
+	RegionId        string
+	ResourceOwnerId int64
+}
+
+// calculateSecurityIPGroupChanges calculates the modifications needed for security IP groups
+// Returns a list of modifications with appropriate modify_mode values
+func calculateSecurityIPGroupChanges(oldGroups, newGroups []interface{}) []*SecurityIPModification {
+	var modifications []*SecurityIPModification
+
+	// Create maps for easier lookup
+	oldGroupsMap := make(map[string]map[string]interface{})
+	newGroupsMap := make(map[string]map[string]interface{})
+
+	// Build old groups map
+	for _, oldGroupInterface := range oldGroups {
+		oldGroup := oldGroupInterface.(map[string]interface{})
+		groupName := oldGroup["group_name"].(string)
+		if groupName == "" {
+			groupName = "default"
+		}
+		oldGroupsMap[groupName] = oldGroup
+	}
+
+	// Build new groups map
+	for _, newGroupInterface := range newGroups {
+		newGroup := newGroupInterface.(map[string]interface{})
+		groupName := newGroup["group_name"].(string)
+		if groupName == "" {
+			groupName = "default"
+		}
+		newGroupsMap[groupName] = newGroup
+	}
+
+	// Find groups to add or update
+	for groupName, newGroup := range newGroupsMap {
+		var modifyMode string
+		oldGroup, existsInOld := oldGroupsMap[groupName]
+
+		if !existsInOld {
+			// Group doesn't exist in old, so add it
+			modifyMode = "1" // Append/Add
+		} else {
+			// Group exists in both, compare security IP lists
+			oldIPSet := oldGroup["security_ip_list"].(*schema.Set)
+			newIPSet := newGroup["security_ip_list"].(*schema.Set)
+
+			// Check if IP lists are different
+			if !oldIPSet.Equal(newIPSet) {
+				modifyMode = "0" // Cover/Update
+			} else {
+				// No change needed
+				continue
+			}
+		}
+
+		// Convert security IP list to comma-separated string
+		securityIpList := newGroup["security_ip_list"].(*schema.Set).List()
+		var ipStrings []string
+		for _, ip := range securityIpList {
+			ipStrings = append(ipStrings, ip.(string))
+		}
+		securityIps := strings.Join(ipStrings, ",")
+
+		modifications = append(modifications, &SecurityIPModification{
+			GroupName:      groupName,
+			SecurityIPList: securityIps,
+			ModifyMode:     modifyMode,
+		})
+	}
+
+	// Find groups to delete (exists in old but not in new)
+	for groupName, oldGroup := range oldGroupsMap {
+		if _, existsInNew := newGroupsMap[groupName]; !existsInNew {
+			// Group exists in old but not in new, so delete it
+			// Convert security IP list to comma-separated string for deletion
+			securityIpList := oldGroup["security_ip_list"].(*schema.Set).List()
+			var ipStrings []string
+			for _, ip := range securityIpList {
+				ipStrings = append(ipStrings, ip.(string))
+			}
+			securityIps := strings.Join(ipStrings, ",")
+
+			modifications = append(modifications, &SecurityIPModification{
+				GroupName:      groupName,
+				SecurityIPList: securityIps,
+				ModifyMode:     "2", // Delete
+			})
+		}
+	}
+
+	return modifications
 }

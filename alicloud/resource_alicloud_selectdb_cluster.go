@@ -41,8 +41,26 @@ func resourceAliCloudSelectDBCluster() *schema.Resource {
 			},
 			"description": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "The description of the SelectDB cluster.",
+			},
+			"zone_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The zone ID where the SelectDB cluster will be created.",
+			},
+			"vpc_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The ID of the VPC where the SelectDB cluster will be created.",
+			},
+			"vswitch_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The ID of the VSwitch where the SelectDB cluster will be created.",
 			},
 
 			// ======== Cluster Configuration ========
@@ -52,10 +70,28 @@ func resourceAliCloudSelectDBCluster() *schema.Resource {
 				Description: "The cluster class (specification) of the SelectDB cluster.",
 			},
 			"cache_size": {
+				Type:        schema.TypeInt,
+				Required:    true,
+				Description: "The cache size of the SelectDB cluster in GB (e.g., 200 for 200GB).",
+			},
+			"engine": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "200GB",
-				Description: "The cache size of the SelectDB cluster (e.g., '200GB').",
+				Default:     "selectdb",
+				Description: "The database engine type of the SelectDB cluster.",
+			},
+			"engine_version": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "4.0",
+				Description: "The database engine version of the SelectDB cluster.",
+			},
+			"charge_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "PostPaid",
+				ValidateFunc: validation.StringInSlice([]string{"PostPaid", "PrePaid"}, false),
+				Description:  "The billing method of the SelectDB cluster.",
 			},
 
 			// ======== Cluster Scaling Configuration ========
@@ -132,55 +168,53 @@ func resourceAliCloudSelectDBClusterCreate(d *schema.ResourceData, meta interfac
 	}
 
 	instanceId := d.Get("instance_id").(string)
+	zoneId := d.Get("zone_id").(string)
+	vpcId := d.Get("vpc_id").(string)
+	vswitchId := d.Get("vswitch_id").(string)
 
-	// Get cluster configuration
-	clusterClass := d.Get("cluster_class").(string)
-	cacheSize := d.Get("cache_size").(string)
+	// Create cluster object with all required fields
+	cacheSizeGB := d.Get("cache_size").(int)
+	cluster := &selectdb.Cluster{
+		InstanceId:    instanceId,
+		ZoneId:        zoneId,
+		VpcId:         vpcId,
+		VSwitchId:     vswitchId,
+		ClusterClass:  d.Get("cluster_class").(string),
+		CacheSize:     int32(cacheSizeGB),
+		Engine:        d.Get("engine").(string),
+		EngineVersion: d.Get("engine_version").(string),
+		ChargeType:    d.Get("charge_type").(string),
+	}
 
-	var options []selectdb.ClusterCreateOption
-
-	// Add description if specified
-	if description := d.Get("description").(string); description != "" {
-		options = append(options, selectdb.WithClusterDescription(description))
+	// Set cluster name/description if specified
+	if name := d.Get("name").(string); name != "" {
+		cluster.ClusterName = name
 	}
 	if description := d.Get("description").(string); description != "" {
-		options = append(options, selectdb.WithClusterDescription(description))
+		cluster.ClusterDescription = description
 	}
 
-	// Add engine settings
-	options = append(options, selectdb.WithEngine("selectdb"))
-	options = append(options, selectdb.WithEngineVersion("2.1"))
-
-	// Add charge type (default to PostPaid)
-	options = append(options, selectdb.WithChargeType("PostPaid"))
-
-	// Add region if available
-	if service.client.RegionId != "" {
-		options = append(options, selectdb.WithRegion(service.client.RegionId))
-	}
-
-	var cluster *selectdb.Cluster
+	var result *selectdb.Cluster
 	// Use resource.Retry for creation to handle temporary failures
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		result, err := service.CreateSelectDBCluster(instanceId, clusterClass, cacheSize, options...)
+		createdCluster, err := service.CreateSelectDBCluster(cluster)
 		if err != nil {
 			if NeedRetry(err) {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
-		cluster = result
+		result = createdCluster
 		return nil
 	})
-
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_selectdb_cluster", "CreateCluster", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_selectdb_cluster", "CreateSelectCluster", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(service.EncodeSelectDBClusterId(instanceId, cluster.ClusterId))
+	d.SetId(service.EncodeSelectDBClusterId(instanceId, result.ClusterId))
 
 	// Wait for the cluster to be created
-	err = service.WaitForSelectDBClusterCreated(instanceId, cluster.ClusterId, d.Timeout(schema.TimeoutCreate))
+	err = service.WaitForSelectDBClusterCreated(instanceId, result.ClusterId, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -218,6 +252,18 @@ func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{
 		d.Set("name", cluster.ClusterName)
 	}
 
+	if cluster.ZoneId != "" {
+		d.Set("zone_id", cluster.ZoneId)
+	}
+
+	if cluster.VpcId != "" {
+		d.Set("vpc_id", cluster.VpcId)
+	}
+
+	if cluster.VSwitchId != "" {
+		d.Set("vswitch_id", cluster.VSwitchId)
+	}
+
 	if cluster.Status != "" {
 		d.Set("status", cluster.Status)
 	}
@@ -247,8 +293,22 @@ func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{
 		d.Set("cluster_class", cluster.ClusterClass)
 	}
 
-	if cluster.CacheStorageSizeGB != "" {
-		d.Set("cache_size", cluster.CacheStorageSizeGB)
+	if cluster.CacheSize > 0 {
+		// Set cache size directly from int32 field
+		d.Set("cache_size", int(cluster.CacheSize))
+	}
+
+	// Set engine configuration from cluster or preserve from state
+	if cluster.Engine != "" {
+		d.Set("engine", cluster.Engine)
+	}
+
+	if cluster.EngineVersion != "" {
+		d.Set("engine_version", cluster.EngineVersion)
+	}
+
+	if cluster.ChargeType != "" {
+		d.Set("charge_type", cluster.ChargeType)
 	}
 
 	// Set description from cluster information or preserve from state
@@ -276,15 +336,44 @@ func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interfac
 
 	d.Partial(true)
 
-	// Update cluster class if changed
-	if d.HasChange("cluster_class") {
-		newClusterClass := d.Get("cluster_class").(string)
+	// Check if any modifiable fields have changed
+	if d.HasChange("cluster_class") || d.HasChange("cache_size") || d.HasChange("engine") {
+		// Get current cluster information
+		currentCluster, err := service.DescribeSelectDBCluster(instanceId, clusterId)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DescribeSelectDBCluster", AlibabaCloudSdkGoERROR)
+		}
 
-		// Modify cluster class using the API
-		var options []selectdb.ModifyClusterOption
-		options = append(options, selectdb.WithClusterClass(newClusterClass))
+		// Create updated cluster object with modified fields
+		updatedCluster := &selectdb.Cluster{
+			InstanceId: instanceId,
+			ClusterId:  clusterId,
+		}
 
-		_, err := service.ModifySelectDBCluster(instanceId, clusterId, options...)
+		// Update cluster class if changed
+		if d.HasChange("cluster_class") {
+			updatedCluster.ClusterClass = d.Get("cluster_class").(string)
+		} else {
+			updatedCluster.ClusterClass = currentCluster.ClusterClass
+		}
+
+		// Update cache size if changed
+		if d.HasChange("cache_size") {
+			cacheSizeGB := d.Get("cache_size").(int)
+			updatedCluster.CacheSize = int32(cacheSizeGB)
+		} else {
+			updatedCluster.CacheSize = currentCluster.CacheSize
+		}
+
+		// Update engine if changed
+		if d.HasChange("engine") {
+			updatedCluster.Engine = d.Get("engine").(string)
+		} else {
+			updatedCluster.Engine = currentCluster.Engine
+		}
+
+		// Perform the modification
+		_, err = service.ModifySelectDBCluster(updatedCluster)
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyCluster", AlibabaCloudSdkGoERROR)
 		}
@@ -295,29 +384,15 @@ func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interfac
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 
-		d.SetPartial("cluster_class")
-	}
-
-	// Update cache size if changed
-	if d.HasChange("cache_size") {
-		newCacheSize := d.Get("cache_size").(string)
-
-		// Modify cache size using the API
-		var options []selectdb.ModifyClusterOption
-		options = append(options, selectdb.WithCacheSize(newCacheSize))
-
-		_, err := service.ModifySelectDBCluster(instanceId, clusterId, options...)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyCluster", AlibabaCloudSdkGoERROR)
+		if d.HasChange("cluster_class") {
+			d.SetPartial("cluster_class")
 		}
-
-		// Wait for modification to complete
-		err = service.WaitForSelectDBClusterUpdated(instanceId, clusterId, d.Timeout(schema.TimeoutUpdate))
-		if err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
+		if d.HasChange("cache_size") {
+			d.SetPartial("cache_size")
 		}
-
-		d.SetPartial("cache_size")
+		if d.HasChange("engine") {
+			d.SetPartial("engine")
+		}
 	}
 
 	// Update cluster description if changed
@@ -337,11 +412,11 @@ func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interfac
 
 	// Update cluster name - Note: SelectDB may not support cluster name changes
 	// This is kept for future API support
-	if d.HasChange("cluster_name") {
+	if d.HasChange("name") {
 		// Currently, cluster name changes are typically not supported
 		// Log a warning and continue
 		log.Printf("[WARN] Cluster name changes are not supported for SelectDB clusters")
-		d.SetPartial("cluster_name")
+		d.SetPartial("name")
 	}
 
 	// Auto scaling rules update - placeholder for future implementation

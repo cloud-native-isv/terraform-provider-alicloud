@@ -243,6 +243,7 @@ replace github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api => ../cws-
 replace (
 	github.com/alibabacloud-go/alikafka-20190916/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/alikafka-20190916
 	github.com/alibabacloud-go/arms-20190808/v9 => ../cws-lib-go/lib/cloud/aliyun/sdk/arms-20190808
+	github.com/alibabacloud-go/clickhouse-20230522 => ../cws-lib-go/lib/cloud/aliyun/sdk/clickhouse-20230522
 	github.com/alibabacloud-go/darabonba-openapi/v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/darabonba-openapi/golang
 	github.com/alibabacloud-go/foasconsole-20211028 => ../cws-lib-go/lib/cloud/aliyun/sdk/foasconsole-20211028
 	github.com/alibabacloud-go/nas-20170626/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/nas-20170626
