@@ -138,6 +138,7 @@ func (s *SelectDBService) WaitForSelectDBInstanceUpdated(instanceId string, time
 			selectdb.InstanceStatusResourceChanging,
 			selectdb.InstanceStatusReadonlyResourceChanging,
 			selectdb.InstanceStatusOrderPreparing,
+			selectdb.InstanceStatusClassChanging,
 		},
 		Target: []string{selectdb.InstanceStatusActivation},
 		Refresh: s.SelectDBInstanceStateRefreshFunc(instanceId, []string{

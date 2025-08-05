@@ -74,7 +74,7 @@ func (s *SelectDBService) DescribeSelectDBInstance(instanceId string) (*selectdb
 		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	instance, err := s.GetAPI().GetInstance(instanceId, s.client.RegionId)
+	instance, err := s.GetAPI().GetInstance(instanceId)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)

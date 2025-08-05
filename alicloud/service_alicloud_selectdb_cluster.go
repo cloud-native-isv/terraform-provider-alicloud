@@ -42,8 +42,8 @@ func (s *SelectDBService) DescribeSelectDBCluster(instanceId, clusterId string) 
 		return nil, WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
 
-	// Since there's no direct GetCluster API, we use the config API to check cluster existence
-	config, err := s.GetAPI().GetClusterConfig(clusterId, instanceId)
+	// Get instance information to find the cluster in DBClusterList
+	instance, err := s.GetAPI().GetInstance(instanceId)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -51,15 +51,15 @@ func (s *SelectDBService) DescribeSelectDBCluster(instanceId, clusterId string) 
 		return nil, WrapError(err)
 	}
 
-	// Convert config result to cluster info
-	cluster := &selectdb.Cluster{
-		ClusterId:  clusterId,
-		InstanceId: instanceId,
-		Config:     config,
-		Status:     selectdb.ClusterStatusActivation, // Default status if we can get config
+	// Search for the cluster in the instance's DBClusterList
+	for _, cluster := range instance.DBClusterList {
+		if cluster.ClusterId == clusterId {
+			return &cluster, nil
+		}
 	}
 
-	return cluster, nil
+	// Cluster not found in the instance
+	return nil, WrapErrorf(Error(GetNotFoundMessage("SelectDB Cluster", clusterId)), NotFoundMsg, ProviderERROR)
 }
 
 // ModifySelectDBCluster modifies a SelectDB cluster
@@ -213,6 +213,7 @@ func (s *SelectDBService) WaitForSelectDBClusterCreated(instanceId, clusterId st
 		Pending: []string{
 			selectdb.ClusterStatusCreating,
 			selectdb.ClusterStatusOrderPreparing,
+			selectdb.ClusterStatusResourcePreparing,
 		},
 		Target: []string{selectdb.ClusterStatusActivation},
 		Refresh: s.SelectDBClusterStateRefreshFunc(instanceId, clusterId, []string{
@@ -236,6 +237,7 @@ func (s *SelectDBService) WaitForSelectDBClusterUpdated(instanceId, clusterId st
 		Pending: []string{
 			selectdb.ClusterStatusResourceChanging,
 			selectdb.ClusterStatusReadonlyResourceChanging,
+			selectdb.ClusterStatusClassChanging,
 			selectdb.ClusterStatusOrderPreparing,
 		},
 		Target: []string{selectdb.ClusterStatusActivation},

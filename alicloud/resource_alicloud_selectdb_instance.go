@@ -125,6 +125,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				ForceNew:    true,
+				Default:     "multi_az",
 				Description: "The deployment scheme of the SelectDB instance.",
 			},
 
