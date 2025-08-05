@@ -631,7 +631,7 @@ func sagClientUserPasswordSuppressFunc(k, old, new string, d *schema.ResourceDat
 }
 
 func selectdbPostPaidDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	if d.Get("payment_type").(string) == "Subscription" {
+	if d.Get("charge_type").(string) == "Prepaid" {
 		return false
 	}
 	return true

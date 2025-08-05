@@ -7,6 +7,7 @@ import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunCommonAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/selectdb"
+	"github.com/cloud-native-tools/cws-lib-go/lib/common/logger"
 )
 
 type SelectDBService struct {
@@ -81,6 +82,8 @@ func (s *SelectDBService) DescribeSelectDBInstance(instanceId string) (*selectdb
 		}
 		return nil, WrapError(err)
 	}
+
+	logger.DebugJson("DescribeSelectDBInstance:", instance)
 
 	return instance, nil
 }

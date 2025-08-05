@@ -38,9 +38,16 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 			"resource_group_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "The resource group ID.",
 			},
-			"tags": tagsSchema(),
+			"tags": {
+				Type:        schema.TypeMap,
+				Optional:    true,
+				Computed:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Description: "A mapping of tags to assign to the resource.",
+			},
 
 			// ======== Database Engine Configuration ========
 			"engine": {
@@ -78,30 +85,29 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 			},
 			"multi_zone": {
 				Type:        schema.TypeList,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "Multi-zone configuration for high availability.",
+				Computed:    true,
+				Description: "Multi-zone configuration for high availability (read-only, computed from service).",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"zone_id": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Computed:    true,
 							Description: "The zone ID.",
 						},
 						"vswitch_ids": {
 							Type:        schema.TypeList,
-							Required:    true,
+							Computed:    true,
 							Elem:        &schema.Schema{Type: schema.TypeString},
 							Description: "The VSwitch IDs in this zone.",
 						},
 						"cidr": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Computed:    true,
 							Description: "The CIDR block.",
 						},
 						"available_ip_count": {
 							Type:        schema.TypeInt,
-							Optional:    true,
+							Computed:    true,
 							Description: "The available IP count.",
 						},
 					},
@@ -125,17 +131,21 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				ForceNew:    true,
-				Default:     "multi_az",
+				Default:     "single_az",
 				Description: "The deployment scheme of the SelectDB instance.",
 			},
 
+			// 	Postpaid：后付费（按量付费）。
+
+			// Prepaid：预付费（包年包月）。
+
 			// ======== Billing Configuration ========
-			"payment_type": {
+			"charge_type": {
 				Type:         schema.TypeString,
-				ValidateFunc: StringInSlice([]string{"PayAsYouGo", "Subscription"}, false),
+				ValidateFunc: StringInSlice([]string{"Prepaid", "Postpaid"}, false),
 				Required:     true,
 				ForceNew:     true,
-				Description:  "The payment type of the SelectDB instance. Valid values: PayAsYouGo, Subscription.",
+				Description:  "The payment type of the SelectDB instance. Valid values: Prepaid, Postpaid.",
 			},
 			"period": {
 				Type:             schema.TypeString,
@@ -143,7 +153,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: selectdbPostPaidDiffSuppressFunc,
-				Description:      "The billing period for Subscription instances. Valid values: Month, Year.",
+				Description:      "The billing period for Prepaid instances. Valid values: Month, Year.",
 			},
 			"period_time": {
 				Type:             schema.TypeInt,
@@ -151,7 +161,7 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: selectdbPostPaidDiffSuppressFunc,
-				Description:      "The period time for Subscription instances.",
+				Description:      "The period time for Prepaid instances.",
 			},
 
 			// ======== Maintenance Configuration ========
@@ -198,11 +208,6 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The status of the SelectDB instance.",
-			},
-			"charge_type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The charge type of the instance.",
 			},
 			"category": {
 				Type:        schema.TypeString,
@@ -424,23 +429,23 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 			},
 
 			// ======== Computed Information - Database Clusters ========
-			"db_cluster_list": {
+			"cluster_list": {
 				Type:        schema.TypeList,
 				Computed:    true,
 				Description: "The database cluster list of the instance.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"db_cluster_id": {
+						"cluster_id": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The cluster ID.",
 						},
-						"db_cluster_name": {
+						"cluster_name": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The cluster name.",
 						},
-						"db_cluster_class": {
+						"cluster_class": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The cluster class.",
@@ -460,12 +465,12 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 							Computed:    true,
 							Description: "The CPU cores.",
 						},
-						"memory": {
+						"memory_gb": {
 							Type:        schema.TypeInt,
 							Computed:    true,
 							Description: "The memory size in GB.",
 						},
-						"cache_storage_size_gb": {
+						"cache_size_gb": {
 							Type:        schema.TypeString,
 							Computed:    true,
 							Description: "The cache storage size in GB.",
@@ -550,12 +555,8 @@ func resourceAliCloudSelectDBInstanceCreate(d *schema.ResourceData, meta interfa
 	}
 
 	// Set payment configuration
-	paymentType := d.Get("payment_type").(string)
-	switch paymentType {
-	case "PayAsYouGo":
-		instance.ChargeType = "POSTPAY"
-	case "Subscription":
-		instance.ChargeType = "PREPAY"
+	instance.ChargeType = d.Get("charge_type").(string)
+	if instance.ChargeType == "Prepaid" {
 
 		// Set period for subscription instances
 		if v, ok := d.GetOk("period"); ok {
@@ -563,34 +564,6 @@ func resourceAliCloudSelectDBInstanceCreate(d *schema.ResourceData, meta interfa
 		}
 		if v, ok := d.GetOk("period_time"); ok {
 			instance.UsedTime = int32(v.(int))
-		}
-	}
-
-	// Set multi-zone configuration
-	if v, ok := d.GetOk("multi_zone"); ok {
-		multiZoneList := v.([]interface{})
-		for _, item := range multiZoneList {
-			multiZone := item.(map[string]interface{})
-			mz := selectdb.MultiZone{
-				ZoneId: multiZone["zone_id"].(string),
-			}
-
-			if vswitchIds, ok := multiZone["vswitch_ids"]; ok {
-				vswitchIdList := vswitchIds.([]interface{})
-				for _, vswitchId := range vswitchIdList {
-					mz.VSwitchIds = append(mz.VSwitchIds, vswitchId.(string))
-				}
-			}
-
-			if cidr, ok := multiZone["cidr"]; ok && cidr.(string) != "" {
-				mz.Cidr = cidr.(string)
-			}
-
-			if availableIpCount, ok := multiZone["available_ip_count"]; ok {
-				mz.AvailableIpCount = int64(availableIpCount.(int))
-			}
-
-			instance.MultiZone = append(instance.MultiZone, mz)
 		}
 	}
 
@@ -835,14 +808,6 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("zone_id", instance.ZoneId)
 	d.Set("vpc_id", instance.VpcId)
 	d.Set("vswitch_id", instance.VswitchId)
-
-	// Set payment type
-	if instance.ChargeType == "POSTPAY" {
-		d.Set("payment_type", "PayAsYouGo")
-	} else if instance.ChargeType == "PREPAY" {
-		d.Set("payment_type", "Subscription")
-	}
-
 	// Set charge type
 	d.Set("charge_type", instance.ChargeType)
 	d.Set("category", instance.Category)
@@ -879,7 +844,7 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 	// Set resource group
 	d.Set("resource_group_id", instance.ResourceGroupId)
 
-	// Set multi-zone information
+	// Set multi-zone information (computed field)
 	if len(instance.MultiZone) > 0 {
 		multiZoneList := make([]map[string]interface{}, 0)
 		for _, mz := range instance.MultiZone {
@@ -892,18 +857,18 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 			multiZoneList = append(multiZoneList, multiZone)
 		}
 		d.Set("multi_zone", multiZoneList)
-	}
-
-	// Set tags
+	} else {
+		d.Set("multi_zone", []map[string]interface{}{})
+	} // Set tags
+	tags := make(map[string]interface{})
 	if len(instance.Tags) > 0 {
-		tags := make(map[string]interface{})
 		for _, tag := range instance.Tags {
 			if !ignoredTags(tag.Key, tag.Value) {
 				tags[tag.Key] = tag.Value
 			}
 		}
-		d.Set("tags", tags)
 	}
+	d.Set("tags", tags)
 
 	// Set cluster information
 	if len(instance.DBClusterList) > 0 {
@@ -915,19 +880,19 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 
 		for _, cluster := range instance.DBClusterList {
 			clusterInfo := map[string]interface{}{
-				"db_cluster_id":         cluster.ClusterId,
-				"db_cluster_name":       cluster.ClusterName,
-				"db_cluster_class":      cluster.ClusterClass,
-				"status":                cluster.Status,
-				"charge_type":           cluster.ChargeType,
-				"cpu_cores":             cluster.CpuCores,
-				"memory":                cluster.Memory,
-				"cache_storage_size_gb": cluster.CacheSize,
-				"cache_storage_type":    cluster.CacheStorageType,
-				"performance_level":     cluster.PerformanceLevel,
-				"scaling_rules_enable":  cluster.ScalingRulesEnable,
-				"created_time":          cluster.CreatedTime,
-				"modified_time":         cluster.ModifiedTime,
+				"cluster_id":           cluster.ClusterId,
+				"cluster_name":         cluster.ClusterName,
+				"cluster_class":        cluster.ClusterClass,
+				"status":               cluster.Status,
+				"charge_type":          cluster.ChargeType,
+				"cpu_cores":            cluster.CpuCores,
+				"memory_gb":            cluster.Memory,
+				"cache_size_gb":        cluster.CacheSize,
+				"cache_storage_type":   cluster.CacheStorageType,
+				"performance_level":    cluster.PerformanceLevel,
+				"scaling_rules_enable": cluster.ScalingRulesEnable,
+				"created_time":         cluster.CreatedTime,
+				"modified_time":        cluster.ModifiedTime,
 			}
 			clusterList = append(clusterList, clusterInfo)
 
@@ -938,7 +903,7 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 			}
 		}
 
-		d.Set("db_cluster_list", clusterList)
+		d.Set("cluster_list", clusterList)
 		if defaultCacheSize > 0 {
 			d.Set("cache_size", defaultCacheSize)
 		}
