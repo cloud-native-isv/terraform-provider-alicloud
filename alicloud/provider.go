@@ -1625,6 +1625,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_selectdb_instance":                                     resourceAliCloudSelectDBInstance(),
 			"alicloud_selectdb_cluster":                                      resourceAliCloudSelectDBCluster(),
 			"alicloud_selectdb_cluster_binding":                              resourceAliCloudSelectDBClusterBinding(),
+			"alicloud_selectdb_public_connection":                            resourceAliCloudSelectDBPublicConnection(),
 			"alicloud_bastionhost_user_attachment":                           resourceAliCloudBastionhostUserAttachment(),
 			"alicloud_direct_mail_mail_address":                              resourceAliCloudDirectMailMailAddress(),
 			"alicloud_dts_job_monitor_rule":                                  resourceAliCloudDtsJobMonitorRule(),

@@ -34,10 +34,10 @@ func resourceAliCloudSelectDBCluster() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the SelectDB instance.",
 			},
-			"name": {
+			"cluster_name": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The name of the SelectDB cluster.",
+				Computed:    true,
+				Description: "The name of the SelectDB cluster. This field is computed from the API response.",
 			},
 			"description": {
 				Type:        schema.TypeString,
@@ -140,6 +140,57 @@ func resourceAliCloudSelectDBCluster() *schema.Resource {
 				Description: "The auto scaling rules for the cluster.",
 			},
 
+			// ======== Cluster Configuration Parameters ========
+			"params": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "Configuration parameters for the SelectDB cluster.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Parameter name.",
+						},
+						"value": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Parameter value.",
+						},
+						"default_value": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Default value of the parameter.",
+						},
+						"comment": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Parameter comment or description.",
+						},
+						"is_dynamic": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "Whether the parameter is dynamic (can be changed without restart).",
+						},
+						"is_user_modifiable": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "Whether the parameter can be modified by users.",
+						},
+						"optional": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Optional values or range for the parameter.",
+						},
+						"param_category": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Category of the parameter.",
+						},
+					},
+				},
+			},
+
 			// ======== Computed Information ========
 			"cluster_id": {
 				Type:        schema.TypeString,
@@ -186,13 +237,8 @@ func resourceAliCloudSelectDBClusterCreate(d *schema.ResourceData, meta interfac
 		ChargeType:    d.Get("charge_type").(string),
 	}
 
-	// Set cluster name/description if specified
-	if name := d.Get("name").(string); name != "" {
-		cluster.ClusterName = name
-	}
-	if description := d.Get("description").(string); description != "" {
-		cluster.ClusterDescription = description
-	}
+	// Set cluster description - always set this field, even if empty
+	cluster.ClusterDescription = d.Get("description").(string)
 
 	var result *selectdb.Cluster
 	// Use resource.Retry for creation to handle temporary failures
@@ -249,7 +295,7 @@ func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{
 
 	// Set cluster basic information
 	if cluster.ClusterName != "" {
-		d.Set("name", cluster.ClusterName)
+		d.Set("cluster_name", cluster.ClusterName)
 	}
 
 	if cluster.ZoneId != "" {
@@ -272,20 +318,31 @@ func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{
 		d.Set("create_time", cluster.CreatedTime)
 	}
 
-	// Get cluster configuration to extract more detailed information
-	config, err := service.DescribeSelectDBClusterConfig(clusterId, instanceId)
-	if err == nil && config != nil {
-		// Extract configuration information if available
-		if len(config.Params) > 0 {
-			// Parse cluster configuration parameters
-			// This is a simplified mapping - in practice you might want to
-			// parse specific parameters based on their names
-			for _, param := range config.Params {
-				if param.Name == "cluster_description" && param.Value != "" {
-					d.Set("description", param.Value)
-				}
+	// Set cluster description directly from cluster object
+	d.Set("description", cluster.ClusterDescription)
+
+	// Get cluster configuration parameters
+	params, err := service.DescribeSelectDBClusterConfig(clusterId, instanceId)
+	if err == nil && len(params) > 0 {
+		// Convert parameters to schema format
+		paramsList := make([]map[string]interface{}, 0)
+		for _, param := range params {
+			paramMap := map[string]interface{}{
+				"name":               param.Name,
+				"value":              param.Value,
+				"default_value":      param.DefaultValue,
+				"comment":            param.Comment,
+				"is_dynamic":         param.IsDynamic,
+				"is_user_modifiable": param.IsUserModifiable,
+				"optional":           param.Optional,
+				"param_category":     param.ParamCategory,
 			}
+			paramsList = append(paramsList, paramMap)
 		}
+		d.Set("params", paramsList)
+	} else {
+		// Set empty list if no parameters or error occurred
+		d.Set("params", []map[string]interface{}{})
 	}
 
 	// Set cluster configuration
@@ -309,14 +366,6 @@ func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{
 
 	if cluster.ChargeType != "" {
 		d.Set("charge_type", cluster.ChargeType)
-	}
-
-	// Set description from cluster information or preserve from state
-	if cluster.ClusterName != "" && d.Get("description").(string) == "" {
-		// If no description is set and we have cluster info, try to get it from elsewhere
-		if existingDesc := d.Get("description").(string); existingDesc != "" {
-			d.Set("description", existingDesc)
-		}
 	}
 
 	return nil
@@ -399,24 +448,14 @@ func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interfac
 	if d.HasChange("description") {
 		newDescription := d.Get("description").(string)
 		if newDescription != "" {
-			// Use cluster configuration modification to update description
-			// This is a workaround since there's no direct API for description update
-			parameters := fmt.Sprintf(`{"cluster_description": "%s"}`, newDescription)
-			_, err := service.selectdbAPI.ModifyClusterConfig(clusterId, instanceId, parameters)
+			// Use ModifySelectDBBEClusterAttribute to update description
+			// The attributeType should be "DBInstanceDescription" for updating cluster description
+			err := service.ModifySelectDBBEClusterAttribute(clusterId, instanceId, "DBInstanceDescription", newDescription)
 			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifyClusterConfig", AlibabaCloudSdkGoERROR)
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ModifySelectDBBEClusterAttribute", AlibabaCloudSdkGoERROR)
 			}
 		}
 		d.SetPartial("description")
-	}
-
-	// Update cluster name - Note: SelectDB may not support cluster name changes
-	// This is kept for future API support
-	if d.HasChange("name") {
-		// Currently, cluster name changes are typically not supported
-		// Log a warning and continue
-		log.Printf("[WARN] Cluster name changes are not supported for SelectDB clusters")
-		d.SetPartial("name")
 	}
 
 	// Auto scaling rules update - placeholder for future implementation
@@ -425,6 +464,60 @@ func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interfac
 		// This is a placeholder for when the API supports these operations
 		log.Printf("[WARN] Auto scaling rules updates are not yet implemented")
 		d.SetPartial("auto_scaling_rules")
+	}
+
+	// Update cluster configuration parameters if changed
+	if d.HasChange("params") {
+		oldParams, newParams := d.GetChange("params")
+		oldParamsSet := oldParams.(*schema.Set)
+		newParamsSet := newParams.(*schema.Set)
+
+		// Get parameters that need to be updated (only those that changed)
+		var paramsToUpdate []selectdb.ClusterConfigParam
+
+		// Convert new parameters to map for easy lookup
+		newParamsMap := make(map[string]string)
+		for _, paramInterface := range newParamsSet.List() {
+			param := paramInterface.(map[string]interface{})
+			name := param["name"].(string)
+			value := param["value"].(string)
+			newParamsMap[name] = value
+		}
+
+		// Convert old parameters to map for comparison
+		oldParamsMap := make(map[string]string)
+		for _, paramInterface := range oldParamsSet.List() {
+			param := paramInterface.(map[string]interface{})
+			name := param["name"].(string)
+			value := param["value"].(string)
+			oldParamsMap[name] = value
+		}
+
+		// Find parameters that have changed or are new
+		for name, newValue := range newParamsMap {
+			if oldValue, exists := oldParamsMap[name]; !exists || oldValue != newValue {
+				paramsToUpdate = append(paramsToUpdate, selectdb.ClusterConfigParam{
+					Name:  name,
+					Value: newValue,
+				})
+			}
+		}
+
+		// Update parameters if there are any changes
+		if len(paramsToUpdate) > 0 {
+			err := service.UpdateSelectDBClusterConfig(clusterId, instanceId, paramsToUpdate)
+			if err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateSelectDBClusterConfig", AlibabaCloudSdkGoERROR)
+			}
+
+			// Wait for configuration update to complete
+			err = service.WaitForSelectDBClusterUpdated(instanceId, clusterId, d.Timeout(schema.TimeoutUpdate))
+			if err != nil {
+				return WrapErrorf(err, IdMsg, d.Id())
+			}
+		}
+
+		d.SetPartial("params")
 	}
 
 	d.Partial(false)

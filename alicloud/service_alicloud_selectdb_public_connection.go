@@ -42,27 +42,126 @@ func (s *SelectDBService) ReleaseSelectDBPublicConnection(connection *selectdb.P
 	return nil
 }
 
-// DescribeSelectDBPublicConnection checks if public connection exists for a SelectDB instance
-func (s *SelectDBService) DescribeSelectDBPublicConnection(instanceId string) (bool, error) {
+// DescribeSelectDBPublicConnection retrieves the public connection information for a SelectDB instance
+func (s *SelectDBService) DescribeSelectDBPublicConnection(instanceId string) (*selectdb.PublicConnection, error) {
 	if instanceId == "" {
-		return false, WrapError(fmt.Errorf("instance ID cannot be empty"))
+		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	// Get instance information to check for public connection
-	instance, err := s.DescribeSelectDBInstance(instanceId)
+	// Get network information to check for public connection
+	networkInfo, err := s.GetAPI().GetNetworkInfo(instanceId)
 	if err != nil {
 		if IsNotFoundError(err) {
-			return false, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
+			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
-		return false, WrapError(err)
+		return nil, WrapError(err)
 	}
 
-	// Check if instance has a public connection string
-	if instance != nil && instance.ConnectionString != "" {
-		return true, nil
+	// Use the GetPublicConnection method to extract public connection
+	publicConnection := networkInfo.GetPublicConnection()
+	if publicConnection == nil {
+		return nil, WrapErrorf(Error(GetNotFoundMessage("SelectDB Public Connection", instanceId)), NotFoundMsg, ProviderERROR)
 	}
 
-	return false, nil
+	// Set the instance ID in the returned connection object
+	publicConnection.DBInstanceId = instanceId
+	publicConnection.RegionId = s.GetRegionId()
+
+	return publicConnection, nil
+}
+
+// GetSelectDBPublicConnections retrieves all public connection information for a SelectDB instance
+func (s *SelectDBService) GetSelectDBPublicConnections(instanceId string) ([]*selectdb.PublicConnection, error) {
+	if instanceId == "" {
+		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
+	}
+
+	// Get network information to check for public connections
+	networkInfo, err := s.GetAPI().GetNetworkInfo(instanceId)
+	if err != nil {
+		if IsNotFoundError(err) {
+			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
+		}
+		return nil, WrapError(err)
+	}
+
+	// Use the GetPublicConnections method to extract all public connections
+	publicConnections := networkInfo.GetPublicConnections()
+	if len(publicConnections) == 0 {
+		return nil, WrapErrorf(Error(GetNotFoundMessage("SelectDB Public Connection", instanceId)), NotFoundMsg, ProviderERROR)
+	}
+
+	// Set the instance ID and region in all returned connection objects
+	for _, conn := range publicConnections {
+		conn.DBInstanceId = instanceId
+		conn.RegionId = s.GetRegionId()
+	}
+
+	return publicConnections, nil
+}
+
+// GetSelectDBMySQLConnection retrieves the MySQL public connection for a SelectDB instance
+func (s *SelectDBService) GetSelectDBMySQLConnection(instanceId string) (*selectdb.PublicConnection, error) {
+	connections, err := s.GetSelectDBPublicConnections(instanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Find MySQL connection
+	for _, conn := range connections {
+		if conn.Protocol == "MySQLPort" {
+			return conn, nil
+		}
+	}
+
+	return nil, WrapErrorf(Error(GetNotFoundMessage("SelectDB MySQL Public Connection", instanceId)), NotFoundMsg, ProviderERROR)
+}
+
+// GetSelectDBHTTPConnection retrieves the HTTP public connection for a SelectDB instance
+func (s *SelectDBService) GetSelectDBHTTPConnection(instanceId string) (*selectdb.PublicConnection, error) {
+	connections, err := s.GetSelectDBPublicConnections(instanceId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Find HTTP connection
+	for _, conn := range connections {
+		if conn.Protocol == "HttpPort" {
+			return conn, nil
+		}
+	}
+
+	return nil, WrapErrorf(Error(GetNotFoundMessage("SelectDB HTTP Public Connection", instanceId)), NotFoundMsg, ProviderERROR)
+}
+
+// GetSelectDBAllConnections retrieves all connection information (VPC and Public) for a SelectDB instance
+func (s *SelectDBService) GetSelectDBAllConnections(instanceId string) ([]*selectdb.PublicConnection, error) {
+	if instanceId == "" {
+		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
+	}
+
+	// Get network information to check for all connections
+	networkInfo, err := s.GetAPI().GetNetworkInfo(instanceId)
+	if err != nil {
+		if IsNotFoundError(err) {
+			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
+		}
+		return nil, WrapError(err)
+	}
+
+	// Use the GetAllConnections method to extract all connections
+	allConnections := networkInfo.GetAllConnections()
+	if len(allConnections) == 0 {
+		return nil, WrapErrorf(Error(GetNotFoundMessage("SelectDB Connections", instanceId)), NotFoundMsg, ProviderERROR)
+	}
+
+	// Set the instance ID and region in all returned connection objects
+	for _, conn := range allConnections {
+		conn.DBInstanceId = instanceId
+		conn.RegionId = s.GetRegionId()
+	}
+
+	return allConnections, nil
 }
 
 // State Management and Refresh Functions
@@ -70,7 +169,7 @@ func (s *SelectDBService) DescribeSelectDBPublicConnection(instanceId string) (b
 // SelectDBPublicConnectionStateRefreshFunc returns a ResourceStateRefreshFunc for SelectDB public connection
 func (s *SelectDBService) SelectDBPublicConnectionStateRefreshFunc(instanceId string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		hasConnection, err := s.DescribeSelectDBPublicConnection(instanceId)
+		publicConnection, err := s.DescribeSelectDBPublicConnection(instanceId)
 		if err != nil {
 			if IsNotFoundError(err) {
 				return nil, "NotFound", WrapErrorf(Error(GetNotFoundMessage("SelectDB Public Connection", instanceId)), NotFoundMsg, ProviderERROR)
@@ -78,11 +177,11 @@ func (s *SelectDBService) SelectDBPublicConnectionStateRefreshFunc(instanceId st
 			return nil, "", WrapError(err)
 		}
 
-		if hasConnection {
-			return hasConnection, "Available", nil
+		if publicConnection != nil {
+			return publicConnection, "Available", nil
 		}
 
-		return hasConnection, "NotAvailable", nil
+		return nil, "NotAvailable", nil
 	}
 }
 
@@ -91,7 +190,7 @@ func (s *SelectDBService) WaitForSelectDBPublicConnection(instanceId string, sta
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 
 	for {
-		hasConnection, err := s.DescribeSelectDBPublicConnection(instanceId)
+		publicConnection, err := s.DescribeSelectDBPublicConnection(instanceId)
 		if err != nil {
 			if IsNotFoundError(err) {
 				if status == Deleted {
@@ -103,7 +202,7 @@ func (s *SelectDBService) WaitForSelectDBPublicConnection(instanceId string, sta
 		}
 
 		currentStatus := "NotAvailable"
-		if hasConnection {
+		if publicConnection != nil {
 			currentStatus = "Available"
 		}
 
@@ -125,37 +224,16 @@ func (s *SelectDBService) WaitForSelectDBPublicConnection(instanceId string, sta
 func ConvertToPublicConnection(d *schema.ResourceData, service *SelectDBService) *selectdb.PublicConnection {
 	connection := &selectdb.PublicConnection{}
 
-	if v, ok := d.GetOk("db_instance_id"); ok {
+	// Map instance_id from schema to DBInstanceId in API
+	if v, ok := d.GetOk("instance_id"); ok {
 		connection.DBInstanceId = v.(string)
 	}
-	if v, ok := d.GetOk("connection_string_prefix"); ok {
-		connection.ConnectionStringPrefix = v.(string)
-	}
-	if v, ok := d.GetOk("connection_string"); ok {
-		connection.ConnectionString = v.(string)
-	}
-	if v, ok := d.GetOk("net_type"); ok {
-		connection.NetType = v.(string)
-	}
-	// Use service's GetRegionId() instead of schema field
+
+	// Set fixed network type for public connection
+	connection.NetType = "Public"
+
+	// Use service's GetRegionId() for region
 	connection.RegionId = service.GetRegionId()
 
 	return connection
-}
-
-// ConvertPublicConnectionToMap converts API public connection to Terraform map
-func ConvertPublicConnectionToMap(connection *selectdb.PublicConnection) map[string]interface{} {
-	if connection == nil {
-		return nil
-	}
-
-	return map[string]interface{}{
-		"db_instance_id":           connection.DBInstanceId,
-		"connection_string":        connection.ConnectionString,
-		"connection_string_prefix": connection.ConnectionStringPrefix,
-		"net_type":                 connection.NetType,
-		"region_id":                connection.RegionId,
-		"instance_name":            connection.InstanceName,
-		"task_id":                  connection.TaskId,
-	}
 }

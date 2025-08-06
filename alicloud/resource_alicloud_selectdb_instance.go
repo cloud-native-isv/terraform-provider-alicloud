@@ -134,11 +134,6 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Default:     "single_az",
 				Description: "The deployment scheme of the SelectDB instance.",
 			},
-
-			// 	Postpaid：后付费（按量付费）。
-
-			// Prepaid：预付费（包年包月）。
-
 			// ======== Billing Configuration ========
 			"charge_type": {
 				Type:         schema.TypeString,
@@ -176,6 +171,19 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Optional:    true,
 				Computed:    true,
 				Description: "The maintenance end time of the SelectDB instance in HH:MM format.",
+			},
+
+			// ======== Database Account Configuration ========
+			"username": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The admin username for the SelectDB instance. Once set, cannot be changed.",
+			},
+			"password": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Sensitive:   true,
+				Description: "The admin password for the SelectDB instance. This is write-only and cannot be read back.",
 			},
 
 			// ======== Security Configuration ========
@@ -596,6 +604,16 @@ func resourceAliCloudSelectDBInstanceCreate(d *schema.ResourceData, meta interfa
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
+	// Set admin password if provided
+	if username, ok := d.GetOk("username"); ok {
+		if password, passwordOk := d.GetOk("password"); passwordOk {
+			err = selectDBService.resetSelectDBInstancePassword(d.Id(), username.(string), password.(string))
+			if err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ResetSelectDBInstancePassword", AlibabaCloudSdkGoERROR)
+			}
+		}
+	}
+
 	return resourceAliCloudSelectDBInstanceRead(d, meta)
 }
 
@@ -773,6 +791,22 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 		d.SetPartial("tags")
 	}
 
+	// Handle password update
+	if d.HasChange("password") {
+		if password, ok := d.GetOk("password"); ok {
+			username := d.Get("username").(string)
+			if username == "" {
+				return WrapErrorf(fmt.Errorf("username must be provided when setting password"), DefaultErrorMsg, d.Id(), "ResetSelectDBInstancePassword", AlibabaCloudSdkGoERROR)
+			}
+
+			err := selectDBService.resetSelectDBInstancePassword(d.Id(), username, password.(string))
+			if err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ResetSelectDBInstancePassword", AlibabaCloudSdkGoERROR)
+			}
+		}
+		d.SetPartial("password")
+	}
+
 	// Wait for all modifications to complete
 	err = selectDBService.WaitForSelectDBInstanceUpdated(d.Id(), d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
@@ -844,6 +878,12 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 	// Set resource group
 	d.Set("resource_group_id", instance.ResourceGroupId)
 
+	// Set username (password is write-only, so we don't set it from API response)
+	// Username is preserved from the Terraform state
+	if username, ok := d.GetOk("username"); ok {
+		d.Set("username", username.(string))
+	}
+
 	// Set multi-zone information (computed field)
 	if len(instance.MultiZone) > 0 {
 		multiZoneList := make([]map[string]interface{}, 0)
@@ -871,9 +911,8 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("tags", tags)
 
 	// Set cluster information
+	clusterList := make([]map[string]interface{}, 0)
 	if len(instance.DBClusterList) > 0 {
-		clusterList := make([]map[string]interface{}, 0)
-
 		// Find default cache size from BE cluster
 		defaultCacheSize := 0
 		defaultBeClusterId := instanceId + "-be"
@@ -885,9 +924,9 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 				"cluster_class":        cluster.ClusterClass,
 				"status":               cluster.Status,
 				"charge_type":          cluster.ChargeType,
-				"cpu_cores":            cluster.CpuCores,
-				"memory_gb":            cluster.Memory,
-				"cache_size_gb":        cluster.CacheSize,
+				"cpu_cores":            int(cluster.CpuCores),
+				"memory_gb":            int(cluster.Memory),
+				"cache_size_gb":        fmt.Sprintf("%d", cluster.CacheSize),
 				"cache_storage_type":   cluster.CacheStorageType,
 				"performance_level":    cluster.PerformanceLevel,
 				"scaling_rules_enable": cluster.ScalingRulesEnable,
@@ -903,11 +942,12 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 			}
 		}
 
-		d.Set("cluster_list", clusterList)
 		if defaultCacheSize > 0 {
 			d.Set("cache_size", defaultCacheSize)
 		}
 	}
+
+	err = d.Set("cluster_list", clusterList)
 
 	// Get network information and security IP lists
 	securityIPGroups, err := selectDBService.DescribeSelectDBSecurityIPList(instanceId, client.RegionId, 0)

@@ -118,8 +118,8 @@ func (s *SelectDBService) RestartSelectDBCluster(instanceId, clusterId string, p
 
 // Cluster Configuration Operations
 
-// DescribeSelectDBClusterConfig retrieves cluster configuration
-func (s *SelectDBService) DescribeSelectDBClusterConfig(clusterId, instanceId string, configKey ...string) (*selectdb.ClusterConfig, error) {
+// DescribeSelectDBClusterConfig retrieves cluster configuration parameters
+func (s *SelectDBService) DescribeSelectDBClusterConfig(clusterId, instanceId string, configKey ...string) ([]selectdb.ClusterConfigParam, error) {
 	if clusterId == "" {
 		return nil, WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
@@ -127,7 +127,7 @@ func (s *SelectDBService) DescribeSelectDBClusterConfig(clusterId, instanceId st
 		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
 	}
 
-	config, err := s.GetAPI().GetClusterConfig(clusterId, instanceId, configKey...)
+	params, err := s.GetAPI().GetClusterConfig(clusterId, instanceId, configKey...)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -135,24 +135,45 @@ func (s *SelectDBService) DescribeSelectDBClusterConfig(clusterId, instanceId st
 		return nil, WrapError(err)
 	}
 
-	return config, nil
+	return params, nil
 }
 
-// DescribeSelectDBClusterConfigChangeLogs retrieves cluster configuration change logs
-func (s *SelectDBService) DescribeSelectDBClusterConfigChangeLogs(clusterId, instanceId string) (*selectdb.ClusterConfigChangeLog, error) {
+// UpdateSelectDBClusterConfig updates cluster configuration parameters
+func (s *SelectDBService) UpdateSelectDBClusterConfig(clusterId, instanceId string, params []selectdb.ClusterConfigParam) error {
 	if clusterId == "" {
-		return nil, WrapError(fmt.Errorf("cluster ID cannot be empty"))
+		return WrapError(fmt.Errorf("cluster ID cannot be empty"))
 	}
 	if instanceId == "" {
-		return nil, WrapError(fmt.Errorf("instance ID cannot be empty"))
+		return WrapError(fmt.Errorf("instance ID cannot be empty"))
+	}
+	if len(params) == 0 {
+		return nil // Nothing to update
 	}
 
-	logs, err := s.GetAPI().GetClusterConfigChangeLogs(clusterId, instanceId)
+	// Convert parameters to JSON string format expected by the API
+	var paramUpdates []string
+	for _, param := range params {
+		if param.Name != "" && param.Value != "" {
+			paramUpdates = append(paramUpdates, fmt.Sprintf(`"%s":"%s"`, param.Name, param.Value))
+		}
+	}
+
+	if len(paramUpdates) == 0 {
+		return nil // No valid parameters to update
+	}
+
+	parametersJSON := "{" + fmt.Sprintf("%s", paramUpdates[0])
+	for i := 1; i < len(paramUpdates); i++ {
+		parametersJSON += "," + paramUpdates[i]
+	}
+	parametersJSON += "}"
+
+	err := s.GetAPI().ModifyClusterConfig(clusterId, instanceId, parametersJSON)
 	if err != nil {
-		return nil, WrapError(err)
+		return WrapError(err)
 	}
 
-	return logs, nil
+	return nil
 }
 
 // BE Cluster Operations

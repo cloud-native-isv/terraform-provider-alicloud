@@ -277,9 +277,9 @@ func dataSourceAliCloudSelectDBClustersRead(d *schema.ResourceData, meta interfa
 		}
 
 		// Set configuration parameters
-		if config, ok := item["Config"].(*selectdb.ClusterConfig); ok && config != nil {
+		if config, ok := item["Config"].([]selectdb.ClusterConfigParam); ok && config != nil {
 			params := make([]map[string]interface{}, 0)
-			for _, param := range config.Params {
+			for _, param := range config {
 				paramMap := map[string]interface{}{
 					"name":               param.Name,
 					"value":              param.Value,
