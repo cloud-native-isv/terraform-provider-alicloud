@@ -1,49 +1,97 @@
 package alicloud
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/PaesslerAG/jsonpath"
+	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-// DescribeArmsGrafanaWorkspace describes ARMS Grafana workspace
-func (s *ArmsService) DescribeArmsGrafanaWorkspace(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	client := s.client
-	action := "GetGrafanaWorkspace"
-	request := map[string]interface{}{
-		"GrafanaWorkspaceId": id,
+// DescribeArmsGrafanaWorkspace describes ARMS Grafana workspace using CWS-Lib-Go API
+func (s *ArmsService) DescribeArmsGrafanaWorkspace(id string) (*aliyunArmsAPI.GrafanaWorkspace, error) {
+	if id == "" {
+		return nil, WrapError(Error("GrafanaWorkspaceId cannot be empty"))
 	}
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
+
+	workspace, err := s.armsAPI.GetGrafanaWorkspace(id)
+	if err != nil {
+		if IsNotFoundError(err) {
+			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
+		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetGrafanaWorkspace", AlibabaCloudSdkGoERROR)
 	}
-	v, err := jsonpath.Get("$.Data", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Data", response)
+
+	return workspace, nil
+}
+
+// ListGrafanaWorkspace lists all ARMS Grafana workspaces using CWS-Lib-Go API
+func (s *ArmsService) ListGrafanaWorkspace(resourceGroupId, aliyunLang string) ([]*aliyunArmsAPI.GrafanaWorkspace, error) {
+	var allWorkspaces []*aliyunArmsAPI.GrafanaWorkspace
+	page := 1
+	pageSize := 50
+
+	for {
+		workspaces, err := s.armsAPI.ListGrafanaWorkspaces(page, pageSize, resourceGroupId, aliyunLang)
+		if err != nil {
+			return nil, WrapErrorf(err, DefaultErrorMsg, "all", "ListGrafanaWorkspaces", AlibabaCloudSdkGoERROR)
+		}
+
+		if len(workspaces) == 0 {
+			break
+		}
+
+		allWorkspaces = append(allWorkspaces, workspaces...)
+
+		// If we got fewer results than requested, we've reached the end
+		if len(workspaces) < pageSize {
+			break
+		}
+
+		page++
+
+		// Safety check to prevent infinite loops (limit to 10000 resources)
+		if len(allWorkspaces) >= 10000 {
+			break
+		}
 	}
-	object = v.(map[string]interface{})
-	return object, nil
+
+	return allWorkspaces, nil
+}
+
+// CreateGrafanaWorkspace creates a new ARMS Grafana workspace
+func (s *ArmsService) CreateGrafanaWorkspace(grafanaWorkspaceName, grafanaWorkspaceEdition string, description, resourceGroupId, grafanaVersion, password, aliyunLang string, tags []aliyunArmsAPI.GrafanaWorkspaceTag) (*aliyunArmsAPI.GrafanaWorkspace, error) {
+	workspace, err := s.armsAPI.CreateGrafanaWorkspace(grafanaWorkspaceName, grafanaWorkspaceEdition, description, resourceGroupId, grafanaVersion, password, aliyunLang, tags)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_grafana_workspace", "CreateGrafanaWorkspace", AlibabaCloudSdkGoERROR)
+	}
+	return workspace, nil
+}
+
+// UpdateGrafanaWorkspace updates an existing ARMS Grafana workspace
+func (s *ArmsService) UpdateGrafanaWorkspace(grafanaWorkspaceId string, grafanaWorkspaceName, description, aliyunLang string, tags []aliyunArmsAPI.GrafanaWorkspaceTag) (*aliyunArmsAPI.GrafanaWorkspace, error) {
+	workspace, err := s.armsAPI.UpdateGrafanaWorkspace(grafanaWorkspaceId, grafanaWorkspaceName, description, aliyunLang, tags)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, grafanaWorkspaceId, "UpdateGrafanaWorkspace", AlibabaCloudSdkGoERROR)
+	}
+	return workspace, nil
+}
+
+// DeleteGrafanaWorkspace deletes an ARMS Grafana workspace
+func (s *ArmsService) DeleteGrafanaWorkspace(grafanaWorkspaceId string) error {
+	err := s.armsAPI.DeleteGrafanaWorkspace(grafanaWorkspaceId)
+	if err != nil {
+		if IsNotFoundError(err) {
+			return nil
+		}
+		return WrapErrorf(err, DefaultErrorMsg, grafanaWorkspaceId, "DeleteGrafanaWorkspace", AlibabaCloudSdkGoERROR)
+	}
+	return nil
 }
 
 // ArmsGrafanaWorkspaceStateRefreshFunc returns state refresh function for ARMS Grafana workspace
 func (s *ArmsService) ArmsGrafanaWorkspaceStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		object, err := s.DescribeArmsGrafanaWorkspace(id)
+		workspace, err := s.DescribeArmsGrafanaWorkspace(id)
 		if err != nil {
 			if IsNotFoundError(err) {
 				return nil, "", nil
@@ -52,18 +100,18 @@ func (s *ArmsService) ArmsGrafanaWorkspaceStateRefreshFunc(id string, failStates
 		}
 
 		for _, failState := range failStates {
-			if fmt.Sprint(object["Status"]) == failState {
-				return object, fmt.Sprint(object["Status"]), WrapError(Error(FailedToReachTargetStatus, fmt.Sprint(object["Status"])))
+			if workspace.Status == failState {
+				return workspace, workspace.Status, WrapError(Error(FailedToReachTargetStatus, workspace.Status))
 			}
 		}
 
-		return object, fmt.Sprint(object["Status"]), nil
+		return workspace, workspace.Status, nil
 	}
 }
 
 // WaitForArmsGrafanaWorkspaceCreated waits for ARMS Grafana workspace to be created
 func (s *ArmsService) WaitForArmsGrafanaWorkspaceCreated(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf([]string{"CREATING"}, []string{"RUNNING"}, timeout, 5*time.Second, s.ArmsGrafanaWorkspaceStateRefreshFunc(id, []string{"CREATE_FAILED"}))
+	stateConf := BuildStateConf([]string{"Starting", "Creating"}, []string{"Running"}, timeout, 5*time.Second, s.ArmsGrafanaWorkspaceStateRefreshFunc(id, []string{"CreateFailed", "Failed"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, id)
 	}
@@ -72,7 +120,7 @@ func (s *ArmsService) WaitForArmsGrafanaWorkspaceCreated(id string, timeout time
 
 // WaitForArmsGrafanaWorkspaceDeleted waits for ARMS Grafana workspace to be deleted
 func (s *ArmsService) WaitForArmsGrafanaWorkspaceDeleted(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf([]string{"RUNNING", "STOPPING"}, []string{}, timeout, 5*time.Second, s.ArmsGrafanaWorkspaceStateRefreshFunc(id, []string{}))
+	stateConf := BuildStateConf([]string{"Running", "Stopping", "Deleting"}, []string{}, timeout, 5*time.Second, s.ArmsGrafanaWorkspaceStateRefreshFunc(id, []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, id)
 	}

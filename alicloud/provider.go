@@ -235,6 +235,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_arms_alert_prometheus_alert_rules":                dataSourceAliCloudArmsPrometheusAlertRules(),
 			"alicloud_arms_alert_robots":                                dataSourceAliCloudArmsAlertRobots(),
 			"alicloud_arms_alert_silence_policies":                      dataSourceAliCloudArmsAlertSilencePolicies(),
+			"alicloud_arms_grafana_workspaces":                          dataSourceAliCloudArmsGrafanaWorkspaces(),
 			"alicloud_arms_integration_exporters":                       dataSourceAliCloudArmsIntegrationExporters(),
 			"alicloud_arms_prometheus":                                  dataSourceAliCloudArmsPrometheus(),
 			"alicloud_arms_prometheus_monitorings":                      dataSourceAliCloudArmsPrometheusMonitorings(),

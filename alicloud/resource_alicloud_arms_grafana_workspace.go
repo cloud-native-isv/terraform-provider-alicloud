@@ -2,12 +2,11 @@
 package alicloud
 
 import (
-	"fmt"
 	"log"
 	"time"
 
-	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -94,89 +93,76 @@ func resourceAliCloudArmsGrafanaWorkspace() *schema.Resource {
 }
 
 func resourceAliCloudArmsGrafanaWorkspaceCreate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
-
-	action := "CreateGrafanaWorkspace"
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]interface{})
-	var err error
-	request = make(map[string]interface{})
-	request["RegionId"] = client.RegionId
-
-	if v, ok := d.GetOk("resource_group_id"); ok {
-		request["ResourceGroupId"] = v
+	service, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
 	}
+
+	// Build parameters
+	grafanaWorkspaceName := d.Get("grafana_workspace_name").(string)
+	grafanaWorkspaceEdition := d.Get("grafana_workspace_edition").(string)
+	description := ""
 	if v, ok := d.GetOk("description"); ok {
-		request["Description"] = v
+		description = v.(string)
 	}
-	request["GrafanaVersion"] = d.Get("grafana_version")
-	request["GrafanaWorkspaceEdition"] = d.Get("grafana_workspace_edition")
-	request["GrafanaWorkspaceName"] = d.Get("grafana_workspace_name")
-
-	if v, ok := d.GetOkExists("auto_renew"); ok {
-		request["AutoRenew"] = v
+	resourceGroupId := ""
+	if v, ok := d.GetOk("resource_group_id"); ok {
+		resourceGroupId = v.(string)
 	}
-	if v, ok := d.GetOk("pricing_cycle"); ok {
-		request["PricingCycle"] = v
+	grafanaVersion := ""
+	if v, ok := d.GetOk("grafana_version"); ok {
+		grafanaVersion = v.(string)
 	}
-	if v, ok := d.GetOk("duration"); ok {
-		request["Duration"] = v
-	}
-	if v, ok := d.GetOk("account_number"); ok {
-		request["AccountNumber"] = v
-	}
-	if v, ok := d.GetOk("custom_account_number"); ok {
-		request["CustomAccountNumber"] = v
-	}
+	password := ""
 	if v, ok := d.GetOk("password"); ok {
-		request["Password"] = v
+		password = v.(string)
 	}
+	aliyunLang := ""
 	if v, ok := d.GetOk("aliyun_lang"); ok {
-		request["AliyunLang"] = v
+		aliyunLang = v.(string)
 	}
-	wait := incrementalWait(3*time.Second, 5*time.Second)
+
+	// TODO: Add support for tags when needed
+	var tags []aliyunArmsAPI.GrafanaWorkspaceTag
+
+	// Create the workspace using Service layer
+	var workspace *aliyunArmsAPI.GrafanaWorkspace
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RpcPost("ARMS", "2019-08-08", action, query, request, true)
+		result, err := service.CreateGrafanaWorkspace(grafanaWorkspaceName, grafanaWorkspaceEdition, description, resourceGroupId, grafanaVersion, password, aliyunLang, tags)
 		if err != nil {
 			if NeedRetry(err) {
-				wait()
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
+		workspace = result
 		return nil
 	})
-	addDebug(action, response, request)
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_grafana_workspace", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_grafana_workspace", "CreateGrafanaWorkspace", AlibabaCloudSdkGoERROR)
 	}
 
-	id, _ := jsonpath.Get("$.Data.grafanaWorkspaceId", response)
-	d.SetId(fmt.Sprint(id))
+	d.SetId(workspace.GrafanaWorkspaceId)
 
-	armsService, err := NewArmsService(client)
+	// Wait for creation to complete
+	err = service.WaitForArmsGrafanaWorkspaceCreated(d.Id(), d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return WrapError(err)
-	}
-	stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, armsService.ArmsGrafanaWorkspaceStateRefreshFunc(d.Id(), []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAliCloudArmsGrafanaWorkspaceUpdate(d, meta)
+	return resourceAliCloudArmsGrafanaWorkspaceRead(d, meta)
 }
 
 func resourceAliCloudArmsGrafanaWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService, err := NewArmsService(client)
+	service, err := NewArmsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	objectRaw, err := armsService.DescribeArmsGrafanaWorkspace(d.Id())
+	workspace, err := service.DescribeArmsGrafanaWorkspace(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_grafana_workspace DescribeArmsGrafanaWorkspace Failed!!! %s", err)
@@ -186,120 +172,55 @@ func resourceAliCloudArmsGrafanaWorkspaceRead(d *schema.ResourceData, meta inter
 		return WrapError(err)
 	}
 
-	d.Set("create_time", objectRaw["gmtCreate"])
-	d.Set("description", objectRaw["description"])
-	d.Set("grafana_version", objectRaw["grafanaVersion"])
-	d.Set("grafana_workspace_edition", objectRaw["grafanaWorkspaceEdition"])
-	d.Set("grafana_workspace_name", objectRaw["grafanaWorkspaceName"])
-	d.Set("region_id", objectRaw["regionId"])
-	d.Set("resource_group_id", objectRaw["resourceGroupId"])
-	d.Set("status", objectRaw["status"])
+	// Set all fields using strong types
+	d.Set("create_time", workspace.CreateTime)
+	d.Set("description", workspace.Description)
+	d.Set("grafana_version", workspace.GrafanaVersion)
+	d.Set("grafana_workspace_edition", workspace.GrafanaWorkspaceEdition)
+	d.Set("grafana_workspace_name", workspace.GrafanaWorkspaceName)
+	d.Set("region_id", workspace.RegionId)
+	d.Set("resource_group_id", workspace.ResourceGroupId)
+	d.Set("status", workspace.Status)
 
 	return nil
 }
 
 func resourceAliCloudArmsGrafanaWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]interface{}
-	update := false
+	service, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	d.Partial(true)
 
-	var err error
-	action := "UpdateGrafanaWorkspace"
-	request = make(map[string]interface{})
-	query = make(map[string]interface{})
-	request["GrafanaWorkspaceId"] = d.Id()
-	request["RegionId"] = client.RegionId
-	if !d.IsNewResource() && d.HasChange("grafana_workspace_name") {
-		update = true
-	}
-	request["GrafanaWorkspaceName"] = d.Get("grafana_workspace_name")
-	if !d.IsNewResource() && d.HasChange("description") {
-		update = true
-		request["Description"] = d.Get("description")
-	}
+	// Check for basic workspace updates
+	if !d.IsNewResource() && (d.HasChange("grafana_workspace_name") || d.HasChange("description")) {
+		grafanaWorkspaceName := d.Get("grafana_workspace_name").(string)
+		description := ""
+		if v, ok := d.GetOk("description"); ok {
+			description = v.(string)
+		}
+		aliyunLang := ""
+		if v, ok := d.GetOk("aliyun_lang"); ok {
+			aliyunLang = v.(string)
+		}
 
-	if v, ok := d.GetOk("aliyun_lang"); ok {
-		request["AliyunLang"] = v
-	}
-	if update {
-		wait := incrementalWait(3*time.Second, 5*time.Second)
+		var tags []aliyunArmsAPI.GrafanaWorkspaceTag
+
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.RpcPost("ARMS", "2019-08-08", action, query, request, true)
+			_, err := service.UpdateGrafanaWorkspace(d.Id(), grafanaWorkspaceName, description, aliyunLang, tags)
 			if err != nil {
 				if NeedRetry(err) {
-					wait()
 					return resource.RetryableError(err)
 				}
 				return resource.NonRetryableError(err)
 			}
 			return nil
 		})
-		addDebug(action, response, request)
+
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-		}
-	}
-	update = false
-	action = "UpdateGrafanaWorkspaceVersion"
-	request = make(map[string]interface{})
-	query = make(map[string]interface{})
-	request["GrafanaWorkspaceId"] = d.Id()
-	request["RegionId"] = client.RegionId
-	if !d.IsNewResource() && d.HasChange("grafana_version") {
-		update = true
-	}
-	request["GrafanaVersion"] = d.Get("grafana_version")
-	if v, ok := d.GetOk("aliyun_lang"); ok {
-		request["AliyunLang"] = v
-	}
-	if update {
-		wait := incrementalWait(3*time.Second, 5*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.RpcPost("ARMS", "2019-08-08", action, query, request, true)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-		}
-	}
-	update = false
-	action = "ChangeResourceGroup"
-	request = make(map[string]interface{})
-	query = make(map[string]interface{})
-	request["ResourceId"] = d.Id()
-	request["RegionId"] = client.RegionId
-	if _, ok := d.GetOk("resource_group_id"); ok && !d.IsNewResource() && d.HasChange("resource_group_id") {
-		update = true
-	}
-	request["NewResourceGroupId"] = d.Get("resource_group_id")
-	request["ResourceType"] = "grafanaworkspace"
-	if update {
-		wait := incrementalWait(3*time.Second, 5*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.RpcPost("ARMS", "2019-08-08", action, query, request, true)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateGrafanaWorkspace", AlibabaCloudSdkGoERROR)
 		}
 	}
 
@@ -308,45 +229,33 @@ func resourceAliCloudArmsGrafanaWorkspaceUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceAliCloudArmsGrafanaWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
-	action := "DeleteGrafanaWorkspace"
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]interface{})
-	var err error
-	request = make(map[string]interface{})
-	request["GrafanaWorkspaceId"] = d.Id()
-	request["RegionId"] = client.RegionId
+	service, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.RpcPost("ARMS", "2019-08-08", action, query, request, true)
-
+		err := service.DeleteGrafanaWorkspace(d.Id())
 		if err != nil {
 			if NeedRetry(err) {
-				wait()
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
 		return nil
 	})
-	addDebug(action, response, request)
 
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil
 		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteGrafanaWorkspace", AlibabaCloudSdkGoERROR)
 	}
 
-	armsService, err := NewArmsService(client)
+	// Wait for deletion to complete
+	err = service.WaitForArmsGrafanaWorkspaceDeleted(d.Id(), d.Timeout(schema.TimeoutDelete))
 	if err != nil {
-		return WrapError(err)
-	}
-	stateConf := BuildStateConf([]string{}, []string{""}, d.Timeout(schema.TimeoutDelete), 10*time.Second, armsService.ArmsGrafanaWorkspaceStateRefreshFunc(d.Id(), []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
