@@ -1,26 +1,29 @@
+// Package alicloud. This file is generated automatically. Please do not modify it manually, thank you!
 package alicloud
 
 import (
+	"fmt"
 	"regexp"
+	"time"
 
-	"github.com/aliyun/fc-go-sdk"
+	"github.com/PaesslerAG/jsonpath"
+	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAliCloudFcTriggers() *schema.Resource {
+func dataSourceAliCloudFCTriggers() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAliCloudFcTriggersRead,
-
+		Read: dataSourceAliCloudFCTriggerRead,
 		Schema: map[string]*schema.Schema{
-			"service_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"function_name": {
-				Type:     schema.TypeString,
-				Required: true,
+			"ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Computed: true,
 			},
 			"name_regex": {
 				Type:         schema.TypeString,
@@ -28,32 +31,55 @@ func dataSourceAliCloudFcTriggers() *schema.Resource {
 				ValidateFunc: validation.ValidateRegexp,
 				ForceNew:     true,
 			},
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"ids": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
-			},
 			"names": {
 				Type:     schema.TypeList,
-				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				Computed: true,
 			},
-			// Computed values
+			"function_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 			"triggers": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
+						"create_time": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"name": {
+						"description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"http_trigger": {
+							Type:     schema.TypeList,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"url_intranet": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"url_internet": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"invocation_role": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"last_modified_time": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"qualifier": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -61,44 +87,59 @@ func dataSourceAliCloudFcTriggers() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"type": {
+						"status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"invocation_role": {
+						"target_arn": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"config": {
+						"trigger_config": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"creation_time": {
+						"trigger_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"last_modification_time": {
+						"trigger_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"trigger_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
 				},
 			},
+			"output_file": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
 
-func dataSourceAliCloudFcTriggersRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFCTriggerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
-	serviceName := d.Get("service_name").(string)
-	functionName := d.Get("function_name").(string)
+	var objects []map[string]interface{}
+	var nameRegex *regexp.Regexp
+	if v, ok := d.GetOk("name_regex"); ok {
+		r, err := regexp.Compile(v.(string))
+		if err != nil {
+			return WrapError(err)
+		}
+		nameRegex = r
+	}
 
-	var ids []string
-	var names []string
-	var triggerMappings []map[string]interface{}
-	nextToken := ""
-	// ids
 	idsMap := make(map[string]string)
 	if v, ok := d.GetOk("ids"); ok {
 		for _, vv := range v.([]interface{}) {
@@ -108,92 +149,120 @@ func dataSourceAliCloudFcTriggersRead(d *schema.ResourceData, meta interface{}) 
 			idsMap[vv.(string)] = vv.(string)
 		}
 	}
+
+	var request map[string]interface{}
+	var response map[string]interface{}
+	var query map[string]*string
+
+	var functionName string
+	if v, ok := d.GetOk("function_name"); ok {
+		functionName = v.(string)
+	}
+
+	action := fmt.Sprintf("/2023-03-30/functions/%s/triggers", functionName)
+	var err error
+	request = make(map[string]interface{})
+	query = make(map[string]*string)
+	request["functionName"] = d.Get("function_name")
+	runtime := util.RuntimeOptions{}
+	runtime.SetAutoretry(true)
+	request["MaxResults"] = PageSizeLarge
 	for {
-		request := fc.NewListTriggersInput(serviceName, functionName)
-		request.WithHeader(HeaderEnableEBTrigger, "enable")
-		if nextToken != "" {
-			request.NextToken = &nextToken
-		}
-		var requestInfo *fc.Client
-		raw, err := client.WithFcClient(func(fcClient *fc.Client) (interface{}, error) {
-			requestInfo = fcClient
-			return fcClient.ListTriggers(request)
+		wait := incrementalWait(3*time.Second, 5*time.Second)
+		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			response, err = client.RoaGet("FC", "2023-03-30", action, query, nil, nil)
+
+			if err != nil {
+				if NeedRetry(err) {
+					wait()
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			addDebug(action, response, request)
+			return nil
 		})
 		if err != nil {
-			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_fc_triggers", "ListTriggers", FcGoSdk)
-		}
-		addDebug("ListTriggers", raw, requestInfo, request)
-		response, _ := raw.(*fc.ListTriggersOutput)
-
-		if len(response.Triggers) < 1 {
-			break
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 
-		for _, trigger := range response.Triggers {
-			var sourceARN, invocationRole string
-			if trigger.SourceARN != nil {
-				sourceARN = *trigger.SourceARN
-			}
-			if trigger.InvocationRole != nil {
-				invocationRole = *trigger.InvocationRole
-			}
-			mapping := map[string]interface{}{
-				"id":                     *trigger.TriggerID,
-				"name":                   *trigger.TriggerName,
-				"source_arn":             sourceARN,
-				"type":                   *trigger.TriggerType,
-				"invocation_role":        invocationRole,
-				"config":                 string(trigger.RawTriggerConfig),
-				"creation_time":          *trigger.CreatedTime,
-				"last_modification_time": *trigger.LastModifiedTime,
-			}
+		resp, _ := jsonpath.Get("$.triggers[*]", response)
 
-			nameRegex, ok := d.GetOk("name_regex")
-			if ok && nameRegex.(string) != "" {
-				var r *regexp.Regexp
-				if nameRegex != "" {
-					r, err = regexp.Compile(nameRegex.(string))
-					if err != nil {
-						return WrapError(err)
-					}
-				}
-				if r != nil && !r.MatchString(mapping["name"].(string)) {
-					continue
-				}
+		result, _ := resp.([]interface{})
+		for _, v := range result {
+			item := v.(map[string]interface{})
+			if nameRegex != nil && !nameRegex.MatchString(fmt.Sprint(item["triggerName"])) {
+				continue
 			}
 			if len(idsMap) > 0 {
-				if _, ok := idsMap[*trigger.TriggerID]; !ok {
+				if _, ok := idsMap[fmt.Sprint(functionName, ":", item["triggerName"])]; !ok {
 					continue
 				}
 			}
-			triggerMappings = append(triggerMappings, mapping)
-			ids = append(ids, *trigger.TriggerID)
-			names = append(names, *trigger.TriggerName)
+			objects = append(objects, item)
 		}
 
-		nextToken = ""
-		if response.NextToken != nil {
-			nextToken = *response.NextToken
-		}
-		if nextToken == "" {
+		if nextToken, ok := response["NextToken"].(string); ok && nextToken != "" {
+			request["NextToken"] = nextToken
+		} else {
 			break
 		}
+	}
+
+	ids := make([]string, 0)
+	names := make([]interface{}, 0)
+	s := make([]map[string]interface{}, 0)
+	for _, objectRaw := range objects {
+		mapping := map[string]interface{}{}
+
+		mapping["id"] = fmt.Sprint(functionName, ":", objectRaw["triggerName"])
+
+		mapping["create_time"] = objectRaw["createdTime"]
+		mapping["description"] = objectRaw["description"]
+		mapping["invocation_role"] = objectRaw["invocationRole"]
+		mapping["last_modified_time"] = objectRaw["lastModifiedTime"]
+		mapping["qualifier"] = objectRaw["qualifier"]
+		mapping["source_arn"] = objectRaw["sourceArn"]
+		mapping["status"] = objectRaw["status"]
+		mapping["target_arn"] = objectRaw["targetArn"]
+		mapping["trigger_config"] = objectRaw["triggerConfig"]
+		mapping["trigger_id"] = objectRaw["triggerId"]
+		mapping["trigger_type"] = objectRaw["triggerType"]
+		mapping["trigger_name"] = objectRaw["triggerName"]
+
+		httpTriggerMaps := make([]map[string]interface{}, 0)
+		httpTriggerMap := make(map[string]interface{})
+		httpTriggerRaw := make(map[string]interface{})
+		if objectRaw["httpTrigger"] != nil {
+			httpTriggerRaw = objectRaw["httpTrigger"].(map[string]interface{})
+		}
+		if len(httpTriggerRaw) > 0 {
+			httpTriggerMap["url_internet"] = httpTriggerRaw["urlInternet"]
+			httpTriggerMap["url_intranet"] = httpTriggerRaw["urlIntranet"]
+
+			httpTriggerMaps = append(httpTriggerMaps, httpTriggerMap)
+		}
+		mapping["http_trigger"] = httpTriggerMaps
+
+		ids = append(ids, fmt.Sprint(mapping["id"]))
+		names = append(names, objectRaw["TriggerName"])
+		s = append(s, mapping)
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("triggers", triggerMappings); err != nil {
-		return WrapError(err)
-	}
 	if err := d.Set("ids", ids); err != nil {
 		return WrapError(err)
 	}
+
 	if err := d.Set("names", names); err != nil {
 		return WrapError(err)
 	}
+	if err := d.Set("triggers", s); err != nil {
+		return WrapError(err)
+	}
 
-	// create a json file in current directory and write data source to it.
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), triggerMappings)
+		writeToFile(output.(string), s)
 	}
 	return nil
 }

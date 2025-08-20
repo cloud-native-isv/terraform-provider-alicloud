@@ -121,7 +121,10 @@ func dataSourceAliCloudLogQuery() *schema.Resource {
 
 func dataSourceAliCloudLogQueryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	slsService := SlsService{client: client}
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	// Get input parameters
 	projectName := d.Get("project_name").(string)

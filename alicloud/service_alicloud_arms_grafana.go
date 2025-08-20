@@ -8,7 +8,7 @@ import (
 )
 
 // DescribeArmsGrafanaWorkspace describes ARMS Grafana workspace using CWS-Lib-Go API
-func (s *ArmsService) DescribeArmsGrafanaWorkspace(id string) (*aliyunArmsAPI.GrafanaWorkspace, error) {
+func (s *ArmsService) DescribeArmsGrafanaWorkspace(id string) (*aliyunArmsAPI.GrafanaWorkspaceDetail, error) {
 	if id == "" {
 		return nil, WrapError(Error("GrafanaWorkspaceId cannot be empty"))
 	}
@@ -68,7 +68,7 @@ func (s *ArmsService) CreateGrafanaWorkspace(grafanaWorkspaceName, grafanaWorksp
 }
 
 // UpdateGrafanaWorkspace updates an existing ARMS Grafana workspace
-func (s *ArmsService) UpdateGrafanaWorkspace(grafanaWorkspaceId string, grafanaWorkspaceName, description, aliyunLang string, tags []aliyunArmsAPI.GrafanaWorkspaceTag) (*aliyunArmsAPI.GrafanaWorkspace, error) {
+func (s *ArmsService) UpdateGrafanaWorkspace(grafanaWorkspaceId string, grafanaWorkspaceName, description, aliyunLang string, tags []aliyunArmsAPI.GrafanaWorkspaceTag) (*aliyunArmsAPI.GrafanaWorkspaceDetail, error) {
 	workspace, err := s.armsAPI.UpdateGrafanaWorkspace(grafanaWorkspaceId, grafanaWorkspaceName, description, aliyunLang, tags)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, grafanaWorkspaceId, "UpdateGrafanaWorkspace", AlibabaCloudSdkGoERROR)

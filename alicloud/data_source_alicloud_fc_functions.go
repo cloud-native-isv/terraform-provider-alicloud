@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAliCloudFcFunctions() *schema.Resource {
+func dataSourceAliCloudFCFunctions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAliCloudFcFunctionsRead,
+		Read: dataSourceAliCloudFCFunctionsRead,
 
 		Schema: map[string]*schema.Schema{
 			"service_name": {
@@ -142,7 +142,7 @@ func dataSourceAliCloudFcFunctions() *schema.Resource {
 	}
 }
 
-func dataSourceAliCloudFcFunctionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFCFunctionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	serviceName := d.Get("service_name").(string)

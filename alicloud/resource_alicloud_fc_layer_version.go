@@ -1,127 +1,166 @@
+// Package alicloud. This file is generated automatically. Please do not modify it manually, thank you!
 package alicloud
 
 import (
-	"encoding/base64"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAliCloudFcLayerVersion() *schema.Resource {
+func resourceAliCloudFCLayerVersion() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudFcLayerVersionCreate,
-		Read:   resourceAliCloudFcLayerVersionRead,
-		Update: resourceAliCloudFcLayerVersionUpdate,
-		Delete: resourceAliCloudFcLayerVersionDelete,
+		Create: resourceAliCloudFCLayerVersionCreate,
+		Read:   resourceAliCloudFCLayerVersionRead,
+		Update: resourceAliCloudFCLayerVersionUpdate,
+		Delete: resourceAliCloudFCLayerVersionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(1 * time.Minute),
-			Delete: schema.DefaultTimeout(1 * time.Minute),
+			Create: schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
 			"acl": {
-				Computed: true,
-				Type:     schema.TypeString,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: StringInSlice([]string{"1", "0"}, false),
 			},
-			"arn": {
-				Computed: true,
-				Type:     schema.TypeString,
-			},
-			"code_check_sum": {
-				Computed: true,
-				Type:     schema.TypeString,
-			},
-			"oss_bucket_name": {
-				Optional:      true,
-				ForceNew:      true,
-				Type:          schema.TypeString,
-				ConflictsWith: []string{"zip_file"},
-			},
-			"oss_object_name": {
-				Optional:      true,
-				ForceNew:      true,
-				Type:          schema.TypeString,
-				ConflictsWith: []string{"zip_file"},
-			},
-			"zip_file": {
-				Optional:      true,
-				ForceNew:      true,
-				Type:          schema.TypeString,
-				ConflictsWith: []string{"oss_object_name", "oss_bucket_name"},
-			},
-			"compatible_runtime": {
-				Required: true,
+			"code": {
+				Type:     schema.TypeList,
+				Optional: true,
 				ForceNew: true,
-				Type:     schema.TypeSet,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"zip_file": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+						"checksum": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+						"oss_object_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+						"oss_bucket_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+					},
 				},
 			},
-			"skip_destroy": {
+			"code_size": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"compatible_runtime": {
+				Type:     schema.TypeList,
 				Optional: true,
-				Type:     schema.TypeBool,
+				Computed: true,
+				ForceNew: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+			"create_time": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"description": {
+				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Type:     schema.TypeString,
 			},
 			"layer_name": {
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"layer_version_arn": {
 				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"license": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+			"public": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 			"version": {
-				Computed: true,
 				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
 }
 
-func resourceAliCloudFcLayerVersionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCLayerVersionCreate(d *schema.ResourceData, meta interface{}) error {
+
 	client := meta.(*connectivity.AliyunClient)
+
 	layerName := d.Get("layer_name")
-	action := fmt.Sprintf("/2021-04-06/layers/%s/versions", layerName)
-
-	body := make(map[string]interface{})
-	if v, ok := d.GetOk("description"); ok {
-		body["description"] = v
-	}
-
-	compatibleRuntimes := make([]string, 0)
-	for _, v := range d.Get("compatible_runtime").(*schema.Set).List() {
-		compatibleRuntimes = append(compatibleRuntimes, v.(string))
-	}
-	body["compatibleRuntime"] = compatibleRuntimes
-
-	codeMaps := make(map[string]interface{}, 0)
-	if v, ok := d.GetOk("zip_file"); ok && fmt.Sprint(v) != "" && v.(string) != "" {
-		file, err := loadFileContent(v.(string))
-		if err != nil {
-			return WrapError(err)
-		}
-		codeMaps["zipFile"] = base64.StdEncoding.EncodeToString(file)
-	}
-	if v, ok := d.GetOk("oss_bucket_name"); ok && fmt.Sprint(v) != "" {
-		codeMaps["ossBucketName"] = v
-	}
-	if v, ok := d.GetOk("oss_object_name"); ok && fmt.Sprint(v) != "" {
-		codeMaps["ossObjectName"] = v
-	}
-	body["Code"] = codeMaps
-
+	action := fmt.Sprintf("/2023-03-30/layers/%s/versions", layerName)
+	var request map[string]interface{}
 	var response map[string]interface{}
+	query := make(map[string]*string)
+	body := make(map[string]interface{})
 	var err error
-	wait := incrementalWait(3*time.Second, 3*time.Second)
+	request = make(map[string]interface{})
+
+	objectDataLocalMap := make(map[string]interface{})
+
+	if v := d.Get("code"); !IsNil(v) {
+		checksum1, _ := jsonpath.Get("$[0].checksum", d.Get("code"))
+		if checksum1 != nil && checksum1 != "" {
+			objectDataLocalMap["checksum"] = checksum1
+		}
+		ossBucketName1, _ := jsonpath.Get("$[0].oss_bucket_name", d.Get("code"))
+		if ossBucketName1 != nil && ossBucketName1 != "" {
+			objectDataLocalMap["ossBucketName"] = ossBucketName1
+		}
+		ossObjectName1, _ := jsonpath.Get("$[0].oss_object_name", d.Get("code"))
+		if ossObjectName1 != nil && ossObjectName1 != "" {
+			objectDataLocalMap["ossObjectName"] = ossObjectName1
+		}
+		zipFile1, _ := jsonpath.Get("$[0].zip_file", d.Get("code"))
+		if zipFile1 != nil && zipFile1 != "" {
+			objectDataLocalMap["zipFile"] = zipFile1
+		}
+
+		request["code"] = objectDataLocalMap
+	}
+
+	if v, ok := d.GetOk("compatible_runtime"); ok {
+		compatibleRuntimeMapsArray := v.([]interface{})
+		request["compatibleRuntime"] = compatibleRuntimeMapsArray
+	}
+
+	if v, ok := d.GetOk("description"); ok {
+		request["description"] = v
+	}
+	if v, ok := d.GetOk("license"); ok {
+		request["license"] = v
+	}
+	body = request
+	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RoaPost("FC-Open", "2021-04-06", action, nil, nil, body, false)
+		response, err = client.RoaPost("FC", "2023-03-30", action, query, nil, body, true)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -129,67 +168,142 @@ func resourceAliCloudFcLayerVersionCreate(d *schema.ResourceData, meta interface
 			}
 			return resource.NonRetryableError(err)
 		}
-		addDebug(action, response, body)
 		return nil
 	})
+	addDebug(action, response, request)
+
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_fc_layer_version", action, AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprint(layerName, ":", response["version"]))
+	d.SetId(fmt.Sprintf("%v:%v", response["layerName"], response["version"]))
 
-	return resourceAliCloudFcLayerVersionRead(d, meta)
+	return resourceAliCloudFCLayerVersionUpdate(d, meta)
 }
 
-func resourceAliCloudFcLayerVersionRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCLayerVersionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	fcOpenService := FcOpenService{client}
-
-	object, err := fcOpenService.DescribeFcLayerVersion(d.Id())
+	fcService, err := NewFCService(client)
 	if err != nil {
-		if IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_fc_layer_version fcOpenService.DescribeFcLayerVersion Failed!!! %s", err)
+		return WrapError(err)
+	}
+
+	objectRaw, err := fcService.DescribeFCLayerVersion(d.Id())
+	if err != nil {
+		if !d.IsNewResource() && IsNotFoundError(err) {
+			log.Printf("[DEBUG] Resource alicloud_fc_layer_version DescribeFCLayerVersion Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
-	parts, err := ParseResourceId(d.Id(), 2)
-	if err != nil {
-		return WrapError(err)
+
+	if objectRaw.ACL != "" {
+		d.Set("acl", objectRaw.ACL)
 	}
-	d.Set("layer_name", parts[0])
-	d.Set("version", parts[1])
-	d.Set("acl", object["acl"])
-	d.Set("arn", object["arn"])
-	d.Set("code_check_sum", object["codeChecksum"])
-	d.Set("compatible_runtime", object["compatibleRuntime"])
-	d.Set("description", object["description"])
+	if objectRaw.CodeSize != 0 {
+		d.Set("code_size", objectRaw.CodeSize)
+	}
+	if objectRaw.CreateTime != "" {
+		d.Set("create_time", objectRaw.CreateTime)
+	}
+	if objectRaw.Description != "" {
+		d.Set("description", objectRaw.Description)
+	}
+	if objectRaw.LayerVersionArn != "" {
+		d.Set("layer_version_arn", objectRaw.LayerVersionArn)
+	}
+	if objectRaw.License != "" {
+		d.Set("license", objectRaw.License)
+	}
+	if objectRaw.LayerName != "" {
+		d.Set("layer_name", objectRaw.LayerName)
+	}
+	if objectRaw.Version != 0 {
+		d.Set("version", objectRaw.Version)
+	}
+
+	compatibleRuntime1Raw := make([]interface{}, 0)
+	if objectRaw.CompatibleRuntime != nil {
+		for _, runtime := range objectRaw.CompatibleRuntime {
+			compatibleRuntime1Raw = append(compatibleRuntime1Raw, runtime)
+		}
+	}
+
+	d.Set("compatible_runtime", compatibleRuntime1Raw)
+
 	return nil
 }
 
-func resourceAliCloudFcLayerVersionUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[INFO] The property in this resource cannot be updated.")
-	return nil
-}
-
-func resourceAliCloudFcLayerVersionDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCLayerVersionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-
-	if v, ok := d.GetOkExists("skip_destroy"); ok && v.(bool) {
-		log.Printf("[INFO] Setting `skip_destroy` to `true` means that the Alicloud Provider will not destroy any layer version, even when running `terraform destroy`. Layer versions are thus intentional dangling resources that are not managed by Terraform and may incur extra expense in your Alicloud account.")
-		return nil
-	}
-	parts, err := ParseResourceId(d.Id(), 2)
-	if err != nil {
-		return WrapError(err)
-	}
-
+	var request map[string]interface{}
 	var response map[string]interface{}
-	action := fmt.Sprintf("/2021-04-06/layers/%s/versions/%s", parts[0], parts[1])
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = client.RoaDelete("FC-Open", "2021-04-06", action, nil, nil, nil, false)
+	var query map[string]*string
+	var body map[string]interface{}
+	update := false
+	parts := strings.Split(d.Id(), ":")
+	layerName := parts[0]
+	action := fmt.Sprintf("/2023-03-30/layers/%s/acl", layerName)
+	var err error
+	request = make(map[string]interface{})
+	query = make(map[string]*string)
+	body = make(map[string]interface{})
+
+	if d.HasChange("public") {
+		update = true
+		if v, ok := d.GetOk("public"); ok {
+			query["public"] = StringPointer(v.(string))
+		}
+	}
+
+	if d.HasChange("acl") {
+		update = true
+		if v, ok := d.GetOk("acl"); ok {
+			query["acl"] = StringPointer(v.(string))
+		}
+	}
+
+	body = request
+	if update {
+		wait := incrementalWait(3*time.Second, 5*time.Second)
+		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			response, err = client.RoaPut("FC", "2023-03-30", action, query, nil, body, true)
+			if err != nil {
+				if NeedRetry(err) {
+					wait()
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
+		addDebug(action, response, request)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		}
+	}
+
+	return resourceAliCloudFCLayerVersionRead(d, meta)
+}
+
+func resourceAliCloudFCLayerVersionDelete(d *schema.ResourceData, meta interface{}) error {
+
+	client := meta.(*connectivity.AliyunClient)
+	parts := strings.Split(d.Id(), ":")
+	layerName := parts[0]
+	version := parts[1]
+	action := fmt.Sprintf("/2023-03-30/layers/%s/versions/%s", layerName, version)
+	var request map[string]interface{}
+	var response map[string]interface{}
+	query := make(map[string]*string)
+	var err error
+	request = make(map[string]interface{})
+
+	wait := incrementalWait(3*time.Second, 5*time.Second)
+	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		response, err = client.RoaDelete("FC", "2023-03-30", action, query, nil, nil, true)
+
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -197,10 +311,14 @@ func resourceAliCloudFcLayerVersionDelete(d *schema.ResourceData, meta interface
 			}
 			return resource.NonRetryableError(err)
 		}
-		addDebug(action, response)
 		return nil
 	})
+	addDebug(action, response, request)
+
 	if err != nil {
+		if IsExpectedErrors(err, []string{"LayerNotFound", "LayerVersionNotFound"}) || IsNotFoundError(err) {
+			return nil
+		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
 

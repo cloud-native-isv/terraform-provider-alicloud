@@ -199,8 +199,10 @@ func dataSourceAliCloudArmsGrafanaWorkspacesRead(d *schema.ResourceData, meta in
 		}
 	}
 
-	// Apply filters
-	var filteredWorkspaces []*aliyunArmsAPI.GrafanaWorkspace
+	// Apply filters and handle details
+	var basicWorkspaces []*aliyunArmsAPI.GrafanaWorkspace
+	var detailedWorkspaces []*aliyunArmsAPI.GrafanaWorkspaceDetail
+
 	for _, workspace := range workspaces {
 		// Filter by name regex
 		if nameRegex != nil && !nameRegex.MatchString(workspace.GrafanaWorkspaceName) {
@@ -214,13 +216,8 @@ func dataSourceAliCloudArmsGrafanaWorkspacesRead(d *schema.ResourceData, meta in
 			}
 		}
 
-		filteredWorkspaces = append(filteredWorkspaces, workspace)
-	}
-
-	// If enable_details is true, get detailed information for each workspace
-	if enableDetails {
-		var detailedWorkspaces []*aliyunArmsAPI.GrafanaWorkspace
-		for _, workspace := range filteredWorkspaces {
+		// If enable_details is true, get detailed information for each workspace
+		if enableDetails {
 			detailedWorkspace, err := service.DescribeArmsGrafanaWorkspace(workspace.GrafanaWorkspaceId)
 			if err != nil {
 				if IsNotFoundError(err) {
@@ -230,8 +227,9 @@ func dataSourceAliCloudArmsGrafanaWorkspacesRead(d *schema.ResourceData, meta in
 				return WrapErrorf(err, DefaultErrorMsg, workspace.GrafanaWorkspaceId, "DescribeArmsGrafanaWorkspace", AlibabaCloudSdkGoERROR)
 			}
 			detailedWorkspaces = append(detailedWorkspaces, detailedWorkspace)
+		} else {
+			basicWorkspaces = append(basicWorkspaces, workspace)
 		}
-		filteredWorkspaces = detailedWorkspaces
 	}
 
 	// Build result
@@ -239,36 +237,57 @@ func dataSourceAliCloudArmsGrafanaWorkspacesRead(d *schema.ResourceData, meta in
 	names := make([]interface{}, 0)
 	s := make([]map[string]interface{}, 0)
 
-	for _, workspace := range filteredWorkspaces {
-		mapping := map[string]interface{}{
-			"id":                        workspace.GrafanaWorkspaceId,
-			"grafana_workspace_id":      workspace.GrafanaWorkspaceId,
-			"grafana_workspace_name":    workspace.GrafanaWorkspaceName,
-			"description":               workspace.Description,
-			"grafana_workspace_edition": workspace.GrafanaWorkspaceEdition,
-			"grafana_version":           workspace.GrafanaVersion,
-			"status":                    workspace.Status,
-			"grafana_workspace_ip":      workspace.GrafanaWorkspaceIp,
-			"grafana_workspace_domain":  workspace.GrafanaWorkspaceDomain,
-			"region_id":                 workspace.RegionId,
-			"resource_group_id":         workspace.ResourceGroupId,
-			"create_time":               workspace.CreateTime,
-			"commercial":                workspace.Commercial,
-			"protocol":                  workspace.Protocol,
-		}
-
-		// Convert tags to map[string]interface{}
-		tagsMap := make(map[string]interface{})
-		if workspace.Tags != nil {
-			for _, tag := range workspace.Tags {
-				tagsMap[tag.Key] = tag.Value
+	if enableDetails {
+		for _, workspace := range detailedWorkspaces {
+			mapping := map[string]interface{}{
+				"id":                        workspace.GrafanaWorkspaceId,
+				"grafana_workspace_id":      workspace.GrafanaWorkspaceId,
+				"grafana_workspace_name":    workspace.GrafanaWorkspaceName,
+				"description":               workspace.Description,
+				"grafana_workspace_edition": workspace.GrafanaWorkspaceEdition,
+				"grafana_version":           workspace.GrafanaVersion,
+				"status":                    workspace.Status,
+				"grafana_workspace_ip":      workspace.GrafanaWorkspaceIp,
+				"grafana_workspace_domain":  workspace.GrafanaWorkspaceDomain,
+				"region_id":                 workspace.RegionId,
+				"resource_group_id":         workspace.ResourceGroupId,
+				"create_time":               workspace.CreateTime,
+				"commercial":                workspace.Commercial,
+				"protocol":                  workspace.Protocol,
 			}
-		}
-		mapping["tags"] = tagsMap
 
-		ids = append(ids, workspace.GrafanaWorkspaceId)
-		names = append(names, workspace.GrafanaWorkspaceName)
-		s = append(s, mapping)
+			// Convert tags to map[string]interface{}
+			tagsMap := make(map[string]interface{})
+			if workspace.Tags != nil {
+				for _, tag := range workspace.Tags {
+					tagsMap[tag.Key] = tag.Value
+				}
+			}
+			mapping["tags"] = tagsMap
+
+			ids = append(ids, workspace.GrafanaWorkspaceId)
+			names = append(names, workspace.GrafanaWorkspaceName)
+			s = append(s, mapping)
+		}
+	} else {
+		for _, workspace := range basicWorkspaces {
+			mapping := map[string]interface{}{
+				"id":                        workspace.GrafanaWorkspaceId,
+				"grafana_workspace_id":      workspace.GrafanaWorkspaceId,
+				"grafana_workspace_name":    workspace.GrafanaWorkspaceName,
+				"description":               workspace.Description,
+				"grafana_workspace_edition": workspace.GrafanaWorkspaceEdition,
+				"grafana_version":           workspace.GrafanaVersion,
+				"status":                    workspace.Status,
+				"region_id":                 workspace.RegionId,
+				"resource_group_id":         workspace.ResourceGroupId,
+				"create_time":               workspace.CreateTime,
+			}
+
+			ids = append(ids, workspace.GrafanaWorkspaceId)
+			names = append(names, workspace.GrafanaWorkspaceName)
+			s = append(s, mapping)
+		}
 	}
 
 	d.SetId(dataResourceIdHash(ids))

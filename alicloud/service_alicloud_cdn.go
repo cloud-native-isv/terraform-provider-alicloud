@@ -293,9 +293,9 @@ func (s *CdnService) DescribeCdnFcTrigger(id string) (object map[string]interfac
 	if err != nil {
 		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
 	}
-	v, err := jsonpath.Get("$.FCTrigger", response)
+	v, err := jsonpath.Get("$.Trigger", response)
 	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.FCTrigger", response)
+		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.Trigger", response)
 	}
 	object = v.(map[string]interface{})
 	return object, nil

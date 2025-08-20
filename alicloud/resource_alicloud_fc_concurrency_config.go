@@ -4,7 +4,6 @@ package alicloud
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -12,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAliCloudFCAlias() *schema.Resource {
+func resourceAliCloudFCConcurrencyConfig() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudFCAliasCreate,
-		Read:   resourceAliCloudFCAliasRead,
-		Update: resourceAliCloudFCAliasUpdate,
-		Delete: resourceAliCloudFCAliasDelete,
+		Create: resourceAliCloudFCConcurrencyConfigCreate,
+		Read:   resourceAliCloudFCConcurrencyConfigRead,
+		Update: resourceAliCloudFCConcurrencyConfigUpdate,
+		Delete: resourceAliCloudFCConcurrencyConfigDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -27,69 +26,46 @@ func resourceAliCloudFCAlias() *schema.Resource {
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			"additional_version_weight": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeFloat},
-			},
-			"alias_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-			},
-			"create_time": {
+			"function_arn": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 			"function_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-			"last_modified_time": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"version_id": {
-				Type:     schema.TypeString,
+			"reserved_concurrency": {
+				Type:     schema.TypeInt,
 				Optional: true,
 			},
 		},
 	}
 }
 
-func resourceAliCloudFCAliasCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCConcurrencyConfigCreate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 
 	functionName := d.Get("function_name")
-	action := fmt.Sprintf("/2023-03-30/functions/%s/aliases", functionName)
+	action := fmt.Sprintf("/2023-03-30/functions/%s/concurrency", functionName)
 	var request map[string]interface{}
 	var response map[string]interface{}
 	query := make(map[string]*string)
 	body := make(map[string]interface{})
 	var err error
 	request = make(map[string]interface{})
-	request["aliasName"] = d.Get("alias_name")
+	if v, ok := d.GetOk("function_name"); ok {
+		request["functionName"] = v
+	}
 
-	if v, ok := d.GetOk("description"); ok {
-		request["description"] = v
-	}
-	if v, ok := d.GetOk("version_id"); ok {
-		request["versionId"] = v
-	}
-	if v, ok := d.GetOk("additional_version_weight"); ok {
-		request["additionalVersionWeight"] = v
+	if v, ok := d.GetOkExists("reserved_concurrency"); ok {
+		request["reservedConcurrency"] = v
 	}
 	body = request
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RoaPost("FC", "2023-03-30", action, query, nil, body, true)
+		response, err = client.RoaPut("FC", "2023-03-30", action, query, nil, body, true)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -102,91 +78,61 @@ func resourceAliCloudFCAliasCreate(d *schema.ResourceData, meta interface{}) err
 	addDebug(action, response, request)
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_fc_alias", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_fc_concurrency_config", action, AlibabaCloudSdkGoERROR)
 	}
-	d.SetId(fmt.Sprintf("%v:%v", functionName, response["aliasName"]))
 
-	return resourceAliCloudFCAliasRead(d, meta)
+	d.SetId(fmt.Sprint(functionName))
+
+	return resourceAliCloudFCConcurrencyConfigRead(d, meta)
 }
 
-func resourceAliCloudFCAliasRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCConcurrencyConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	fcService, err := NewFCService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	// Decode the resource ID to get function name and alias name
-	functionName, aliasName, err := DecodeAliasResourceId(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-
-	objectRaw, err := fcService.DescribeFCAlias(functionName, aliasName)
+	objectRaw, err := fcService.DescribeFCConcurrencyConfig(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_fc_alias DescribeFCAlias Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_fc_concurrency_config DescribeFCConcurrencyConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
 
-	d.Set("function_name", functionName)
-	if objectRaw.AdditionalVersionWeight != nil {
-		d.Set("additional_version_weight", objectRaw.AdditionalVersionWeight)
+	if objectRaw["functionArn"] != nil {
+		d.Set("function_arn", objectRaw["functionArn"])
 	}
-	if objectRaw.CreatedTime != nil {
-		d.Set("create_time", *objectRaw.CreatedTime)
-	}
-	if objectRaw.Description != nil {
-		d.Set("description", *objectRaw.Description)
-	}
-	if objectRaw.LastModifiedTime != nil {
-		d.Set("last_modified_time", *objectRaw.LastModifiedTime)
-	}
-	if objectRaw.VersionId != nil {
-		d.Set("version_id", *objectRaw.VersionId)
-	}
-	if objectRaw.AliasName != nil {
-		d.Set("alias_name", *objectRaw.AliasName)
+	if objectRaw["reservedConcurrency"] != nil {
+		d.Set("reserved_concurrency", objectRaw["reservedConcurrency"])
 	}
 
-	parts := strings.Split(d.Id(), ":")
-	d.Set("function_name", parts[0])
+	d.Set("function_name", d.Id())
 
 	return nil
 }
 
-func resourceAliCloudFCAliasUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCConcurrencyConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var request map[string]interface{}
 	var response map[string]interface{}
 	var query map[string]*string
 	var body map[string]interface{}
 	update := false
-	parts := strings.Split(d.Id(), ":")
-	functionName := parts[0]
-	aliasName := parts[1]
-	action := fmt.Sprintf("/2023-03-30/functions/%s/aliases/%s", functionName, aliasName)
+	functionName := d.Id()
+	action := fmt.Sprintf("/2023-03-30/functions/%s/concurrency", functionName)
 	var err error
 	request = make(map[string]interface{})
 	query = make(map[string]*string)
 	body = make(map[string]interface{})
+	request["functionName"] = d.Id()
 
-	if d.HasChange("description") {
+	if d.HasChange("reserved_concurrency") {
 		update = true
-		request["description"] = d.Get("description")
-	}
-
-	if d.HasChange("version_id") {
-		update = true
-		request["versionId"] = d.Get("version_id")
-	}
-
-	if d.HasChange("additional_version_weight") {
-		update = true
-		request["additionalVersionWeight"] = d.Get("additional_version_weight")
+		request["reservedConcurrency"] = d.Get("reserved_concurrency")
 	}
 
 	body = request
@@ -209,21 +155,20 @@ func resourceAliCloudFCAliasUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	return resourceAliCloudFCAliasRead(d, meta)
+	return resourceAliCloudFCConcurrencyConfigRead(d, meta)
 }
 
-func resourceAliCloudFCAliasDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudFCConcurrencyConfigDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
-	parts := strings.Split(d.Id(), ":")
-	functionName := parts[0]
-	aliasName := parts[1]
-	action := fmt.Sprintf("/2023-03-30/functions/%s/aliases/%s", functionName, aliasName)
+	functionName := d.Id()
+	action := fmt.Sprintf("/2023-03-30/functions/%s/concurrency", functionName)
 	var request map[string]interface{}
 	var response map[string]interface{}
 	query := make(map[string]*string)
 	var err error
 	request = make(map[string]interface{})
+	request["functionName"] = d.Id()
 
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {

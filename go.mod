@@ -40,6 +40,7 @@ require (
 	github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.18
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.3.0
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.9
+	github.com/alibabacloud-go/fc-20230330/v4 v4.0.0-00010101000000-000000000000
 	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.7
@@ -64,7 +65,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.6 // indirect
+	github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.7 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-oss-util v0.0.7 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-sls-util v0.3.0 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.5 // indirect
@@ -245,6 +246,8 @@ replace (
 	github.com/alibabacloud-go/arms-20190808/v9 => ../cws-lib-go/lib/cloud/aliyun/sdk/arms-20190808
 	github.com/alibabacloud-go/clickhouse-20230522 => ../cws-lib-go/lib/cloud/aliyun/sdk/clickhouse-20230522
 	github.com/alibabacloud-go/darabonba-openapi/v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/darabonba-openapi/golang
+	github.com/alibabacloud-go/fc-20230330/v4 => ../cws-lib-go/lib/cloud/aliyun/sdk/fc-20230330
+	github.com/alibabacloud-go/fc-open-20210406/v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/fc-open-20210406
 	github.com/alibabacloud-go/foasconsole-20211028 => ../cws-lib-go/lib/cloud/aliyun/sdk/foasconsole-20211028
 	github.com/alibabacloud-go/nas-20170626/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/nas-20170626
 	github.com/alibabacloud-go/ons-20190214/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/ons-20190214

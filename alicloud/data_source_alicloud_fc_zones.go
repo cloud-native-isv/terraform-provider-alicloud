@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func dataSourceAliCloudFcZones() *schema.Resource {
+func dataSourceAliCloudFCZones() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAliCloudFcZonesRead,
+		Read: dataSourceAliCloudFCZonesRead,
 
 		Schema: map[string]*schema.Schema{
 			"output_file": {
@@ -39,7 +39,7 @@ func dataSourceAliCloudFcZones() *schema.Resource {
 	}
 }
 
-func dataSourceAliCloudFcZonesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudFCZonesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var clientInfo *fc.Client
 	raw, err := client.WithFcClient(func(fcClient *fc.Client) (interface{}, error) {
