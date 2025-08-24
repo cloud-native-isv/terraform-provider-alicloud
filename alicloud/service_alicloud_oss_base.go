@@ -6,12 +6,15 @@ import (
 	ossv2 "github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
 	ossv2credentials "github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss/credentials"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
+	ossapi "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/oss"
 )
 
 type OssService struct {
 	client   *connectivity.AliyunClient
 	v2Client *ossv2.Client
 	ctx      context.Context
+	ossAPI   *ossapi.OssAPI // New: cws-lib-go API client
 }
 
 type ossv2CredentialsProvider struct {
@@ -32,17 +35,52 @@ func NewOssService(client *connectivity.AliyunClient) *OssService {
 		Endpoint:            &client.RegionId,
 		CredentialsProvider: &ossv2CredentialsProvider{client},
 	})
+
+	// Initialize cws-lib-go API client
+	credentials := &common.Credentials{
+		AccessKey: client.AccessKey,
+		SecretKey: client.SecretKey,
+		RegionId:  client.RegionId,
+	}
+
+	ossAPI, err := ossapi.NewOssAPI(credentials)
+	if err != nil {
+		// Log error but continue with legacy functionality
+		// TODO: Handle this error better in production
+		ossAPI = nil
+	}
+
 	return &OssService{
 		client:   client,
 		v2Client: v2Client,
 		ctx:      context.Background(),
+		ossAPI:   ossAPI,
 	}
 }
 
-// GetAPI returns the OSS v2 Client instance for direct API access
+// GetAPI returns the OSS v2 Client instance for direct API access (legacy)
 func (service *OssService) GetAPI() *ossv2.Client {
 	// add some customize logic for this API object
 	return service.v2Client
+}
+
+// GetOssAPI returns the cws-lib-go OSS API client
+func (service *OssService) GetOssAPI() (*ossapi.OssAPI, error) {
+	if service.ossAPI == nil {
+		// Lazy initialization if not created during service creation
+		credentials := &common.Credentials{
+			AccessKey: service.client.AccessKey,
+			SecretKey: service.client.SecretKey,
+			RegionId:  service.client.RegionId,
+		}
+
+		ossAPI, err := ossapi.NewOssAPI(credentials)
+		if err != nil {
+			return nil, WrapError(err)
+		}
+		service.ossAPI = ossAPI
+	}
+	return service.ossAPI, nil
 }
 
 // Main OSS service file

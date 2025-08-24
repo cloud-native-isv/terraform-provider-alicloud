@@ -3,7 +3,6 @@ package alicloud
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -12,42 +11,26 @@ import (
 // BucketServerSideEncryption related functions
 
 func (s *OssService) DescribeOssBucketServerSideEncryption(id string) (object map[string]interface{}, err error) {
-	client := s.client
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]*string
-	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	hostMap := make(map[string]*string)
-	hostMap["bucket"] = StringPointer(id)
+	ossAPI := s.GetOssAPI()
+	if ossAPI == nil {
+		return nil, WrapError(fmt.Errorf("OSS API client not available"))
+	}
 
-	action := fmt.Sprintf("/?encryption")
-
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		response, err = client.Do("Oss", xmlParam("GET", "2019-05-17", "GetBucketEncryption", action), query, nil, nil, hostMap, true)
-
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
+	config, err := ossAPI.GetBucketEncryption(id)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NoSuchServerSideEncryptionRule", "NoSuchBucket"}) {
-			return object, WrapErrorf(NotFoundErr("BucketServerSideEncryption", id), NotFoundMsg, response)
+		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"NoSuchServerSideEncryptionRule", "NoSuchBucket"}) {
+			return object, WrapErrorf(NotFoundErr("BucketServerSideEncryption", id), NotFoundMsg, err)
 		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	if response == nil {
-		return object, WrapErrorf(NotFoundErr("BucketServerSideEncryption", id), NotFoundMsg, response)
+		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketEncryption", AlibabaCloudSdkGoERROR)
 	}
 
-	v, err := jsonpath.Get("$.ServerSideEncryptionRule.ApplyServerSideEncryptionByDefault", response)
+	if config == nil {
+		return object, WrapErrorf(NotFoundErr("BucketServerSideEncryption", id), NotFoundMsg, "config is nil")
+	}
+
+	result := make(map[string]interface{})
+	result["ServerSideEncryptionRule"] = config
+	return result, nil
 	if err != nil {
 		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.ServerSideEncryptionRule.ApplyServerSideEncryptionByDefault", response)
 	}

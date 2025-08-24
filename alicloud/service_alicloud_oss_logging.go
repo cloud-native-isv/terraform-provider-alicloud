@@ -3,7 +3,6 @@ package alicloud
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/PaesslerAG/jsonpath"
 	ossv2 "github.com/aliyun/alibabacloud-oss-go-sdk-v2/oss"
@@ -13,37 +12,28 @@ import (
 // BucketLogging related functions
 
 func (s *OssService) DescribeOssBucketLogging(id string) (object map[string]interface{}, err error) {
-	client := s.client
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]*string
-	action := fmt.Sprintf("/?logging")
-	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	hostMap := make(map[string]*string)
-	hostMap["bucket"] = StringPointer(id)
+	ossAPI := s.GetOssAPI()
+	if ossAPI == nil {
+		return nil, WrapError(fmt.Errorf("OSS API client not available"))
+	}
 
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		response, err = client.Do("Oss", xmlParam("GET", "2019-05-17", "GetBucketLogging", action), query, nil, nil, hostMap, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
+	config, err := ossAPI.GetBucketLogging(id)
 	if err != nil {
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	if response == nil {
-		return object, WrapErrorf(NotFoundErr("BucketLogging", id), NotFoundMsg, response)
+		if IsNotFoundError(err) {
+			return object, WrapErrorf(NotFoundErr("BucketLogging", id), NotFoundMsg, err)
+		}
+		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketLogging", AlibabaCloudSdkGoERROR)
 	}
 
-	v, err := jsonpath.Get("$.BucketLoggingStatus.LoggingEnabled", response)
+	if config == nil {
+		return object, WrapErrorf(NotFoundErr("BucketLogging", id), NotFoundMsg, "config is nil")
+	}
+
+	result := make(map[string]interface{})
+	result["BucketLoggingStatus"] = map[string]interface{}{
+		"LoggingEnabled": config,
+	}
+	return result, nil
 	if err != nil {
 		return object, WrapErrorf(NotFoundErr("BucketLogging", id), NotFoundMsg, response)
 	}

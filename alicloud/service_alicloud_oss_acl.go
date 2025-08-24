@@ -8,7 +8,55 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
+// GetBucketAcl gets bucket ACL using cws-lib-go API
+func (s *OssService) GetBucketAcl(bucketName string) (string, error) {
+	ossAPI, err := s.GetOssAPI()
+	if err != nil {
+		return "", WrapError(err)
+	}
+
+	acl, err := ossAPI.GetBucketAcl(bucketName)
+	if err != nil {
+		if ossNotFoundError(err) {
+			return "", WrapErrorf(err, NotFoundMsg, "OSS API")
+		}
+		return "", WrapErrorf(err, DefaultErrorMsg, bucketName, "GetBucketAcl", "OSS API")
+	}
+
+	return acl, nil
+}
+
+// SetBucketAcl sets bucket ACL using cws-lib-go API
+func (s *OssService) SetBucketAcl(bucketName, acl string) error {
+	ossAPI, err := s.GetOssAPI()
+	if err != nil {
+		return WrapError(err)
+	}
+
+	err = ossAPI.SetBucketAcl(bucketName, acl)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, bucketName, "SetBucketAcl", "OSS API")
+	}
+
+	return nil
+}
+
 func (s *OssService) DescribeOssBucketAcl(id string) (object map[string]interface{}, err error) {
+	// Try to use new cws-lib-go API first
+	ossAPI, apiErr := s.GetOssAPI()
+	if apiErr == nil {
+		acl, err := ossAPI.GetBucketAcl(id)
+		if err == nil {
+			// Convert ACL string to expected format
+			object = map[string]interface{}{
+				"Grant": acl,
+			}
+			return object, nil
+		}
+		// Fall back to old implementation on API error
+	}
+
+	// Fallback to original implementation
 	client := s.client
 	var request map[string]interface{}
 	var response map[string]interface{}

@@ -3,7 +3,6 @@ package alicloud
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -12,38 +11,26 @@ import (
 // BucketPolicy related functions
 
 func (s *OssService) DescribeOssBucketPolicy(id string) (object map[string]interface{}, err error) {
-	client := s.client
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]*string
-	action := fmt.Sprintf("/?policy")
-	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	hostMap := make(map[string]*string)
-	hostMap["bucket"] = StringPointer(id)
+	ossAPI := s.GetOssAPI()
+	if ossAPI == nil {
+		return nil, WrapError(fmt.Errorf("OSS API client not available"))
+	}
 
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
-		response, err = client.Do("Oss", xmlJsonParam("GET", "2019-05-17", "GetBucketPolicy", action), query, nil, nil, hostMap, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
+	policy, err := ossAPI.GetBucketPolicy(id)
 	if err != nil {
-		addDebug(action, response, request)
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	if response == nil {
-		return object, WrapErrorf(NotFoundErr("BucketPolicy", id), NotFoundMsg, ProviderERROR, fmt.Sprint(response["RequestId"]))
+		if IsNotFoundError(err) {
+			return object, WrapErrorf(NotFoundErr("BucketPolicy", id), NotFoundMsg, err)
+		}
+		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketPolicy", AlibabaCloudSdkGoERROR)
 	}
 
-	return response, nil
+	if policy == "" {
+		return object, WrapErrorf(NotFoundErr("BucketPolicy", id), NotFoundMsg, "policy is empty")
+	}
+
+	result := make(map[string]interface{})
+	result["Policy"] = policy
+	return result, nil
 }
 
 func (s *OssService) OssBucketPolicyStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {

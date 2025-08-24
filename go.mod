@@ -41,7 +41,7 @@ require (
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.3.0
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.9
 	github.com/alibabacloud-go/fc-20230330/v4 v4.0.0-00010101000000-000000000000
-	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.7
+	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.12
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.7
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v0.0.0-00010101000000-000000000000
@@ -80,6 +80,7 @@ require (
 	github.com/alibabacloud-go/foasconsole-20211028 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/nas-20170626/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/openapi-util v0.1.1 // indirect
+	github.com/alibabacloud-go/oss-20190517/v2 v2.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/rds-20140815/v5 v5.0.5 // indirect
 	github.com/alibabacloud-go/selectdb-20230522/v4 v4.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/sls-20201230/v6 v6.0.0-00010101000000-000000000000 // indirect
@@ -246,8 +247,8 @@ replace (
 	github.com/alibabacloud-go/arms-20190808/v9 => ../cws-lib-go/lib/cloud/aliyun/sdk/arms-20190808
 	github.com/alibabacloud-go/clickhouse-20230522 => ../cws-lib-go/lib/cloud/aliyun/sdk/clickhouse-20230522
 	github.com/alibabacloud-go/darabonba-openapi/v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/darabonba-openapi/golang
+	github.com/alibabacloud-go/dds-20151201/v10 => ../cws-lib-go/lib/cloud/aliyun/sdk/dds-20151201
 	github.com/alibabacloud-go/fc-20230330/v4 => ../cws-lib-go/lib/cloud/aliyun/sdk/fc-20230330
-	github.com/alibabacloud-go/fc-open-20210406/v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/fc-open-20210406
 	github.com/alibabacloud-go/foasconsole-20211028 => ../cws-lib-go/lib/cloud/aliyun/sdk/foasconsole-20211028
 	github.com/alibabacloud-go/nas-20170626/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/nas-20170626
 	github.com/alibabacloud-go/ons-20190214/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/ons-20190214
