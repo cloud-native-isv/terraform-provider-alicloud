@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	armsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -181,13 +182,13 @@ func dataSourceAliCloudArmsAlertEventsRead(d *schema.ResourceData, meta interfac
 		stateStr := v.(string)
 		switch stateStr {
 		case "ALERT":
-			state := armsAPI.AlertStatePending
+			state := arms.AlertStatePending
 			stateFilter = &state
 		case "OK":
-			state := armsAPI.AlertStateResolved
+			state := arms.AlertStateResolved
 			stateFilter = &state
 		case "SILENCE":
-			state := armsAPI.AlertStateProcessing
+			state := arms.AlertStateProcessing
 			stateFilter = &state
 		}
 	}

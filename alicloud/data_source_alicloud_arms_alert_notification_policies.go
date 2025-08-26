@@ -1,7 +1,10 @@
 package alicloud
 
 import (
+	"fmt"
 	"regexp"
+	"strconv"
+	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	armsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
@@ -240,12 +243,11 @@ func dataSourceAliCloudArmsAlertNotificationPoliciesRead(d *schema.ResourceData,
 
 			// Apply ID filter if specified
 			if len(idsMap) > 0 {
-				if _, ok := idsMap[policy.Id]; !ok {
+				policyIdStr := fmt.Sprint(policy.Id)
+				if _, ok := idsMap[policyIdStr]; !ok {
 					continue
 				}
-			}
-
-			// Apply state filter if specified
+			} // Apply state filter if specified
 			if v, ok := d.GetOkExists("state"); ok {
 				stateFilter := v.(bool)
 				if policy.State != "" {
@@ -273,24 +275,29 @@ func dataSourceAliCloudArmsAlertNotificationPoliciesRead(d *schema.ResourceData,
 	s := make([]map[string]interface{}, 0)
 
 	for _, policy := range allPolicies {
+		policyIdStr := fmt.Sprint(policy.Id)
 		mapping := map[string]interface{}{
-			"id":                       policy.Id,
-			"notification_policy_id":   policy.Id,
+			"id":                       policyIdStr,
+			"notification_policy_id":   policyIdStr,
 			"notification_policy_name": policy.Name,
 			"send_recover_message":     policy.SendRecoverMessage,
 			"repeat_interval":          int(policy.RepeatInterval),
-			"escalation_policy_id":     policy.EscalationPolicyId,
+			"escalation_policy_id":     fmt.Sprint(policy.EscalationPolicyId),
 			"state":                    policy.State == "true" || policy.State == "ENABLE",
-			"create_time":              policy.CreateTime,
-			"update_time":              policy.UpdateTime,
+			"create_time":              formatTimeToString(policy.CreateTime),
+			"update_time":              formatTimeToString(policy.UpdateTime),
 		}
 
 		// Add group rule if available
 		if policy.GroupRule != nil {
+			// Convert string duration to minutes (assuming format like "1m", "5s", etc.)
+			groupWaitMinutes := parseDurationToMinutes(policy.GroupRule.GroupWait)
+			groupIntervalMinutes := parseDurationToMinutes(policy.GroupRule.GroupInterval)
+
 			groupRule := map[string]interface{}{
-				"group_wait":      int(policy.GroupRule.GroupWait),
-				"group_interval":  int(policy.GroupRule.GroupInterval),
-				"grouping_fields": policy.GroupRule.GroupingFields,
+				"group_wait":      groupWaitMinutes,
+				"group_interval":  groupIntervalMinutes,
+				"grouping_fields": policy.GroupRule.GroupBy, // Use GroupBy instead of GroupingFields
 			}
 			mapping["group_rule"] = []interface{}{groupRule}
 		}
@@ -315,26 +322,25 @@ func dataSourceAliCloudArmsAlertNotificationPoliciesRead(d *schema.ResourceData,
 		}
 
 		// Add notify rule if available
-		if policy.NotifyRule != nil && len(policy.NotifyRule) > 0 {
+		if policy.NotifyRule != nil {
+			// NotifyRule is a single object, not an array
 			notifyRules := make([]interface{}, 0)
-			for _, rule := range policy.NotifyRule {
-				notifyObjects := make([]interface{}, 0)
-				for _, obj := range rule.NotifyObjects {
-					notifyObjects = append(notifyObjects, map[string]interface{}{
-						"notify_object_id":   obj.NotifyObjectId,
-						"notify_object_name": obj.NotifyObjectName,
-						"notify_object_type": obj.NotifyObjectType,
-					})
-				}
-				notifyRules = append(notifyRules, map[string]interface{}{
-					"notify_channels": rule.NotifyChannels,
-					"notify_objects":  notifyObjects,
+			notifyObjects := make([]interface{}, 0)
+			for _, obj := range policy.NotifyRule.NotifyObjects {
+				notifyObjects = append(notifyObjects, map[string]interface{}{
+					"notify_object_id":   obj.NotifyObjectId,
+					"notify_object_name": obj.NotifyObjectName,
+					"notify_object_type": obj.NotifyObjectType,
 				})
 			}
+			notifyRules = append(notifyRules, map[string]interface{}{
+				"notify_channels": policy.NotifyRule.NotifyChannels,
+				"notify_objects":  notifyObjects,
+			})
 			mapping["notify_rule"] = notifyRules
 		}
 
-		ids = append(ids, policy.Id)
+		ids = append(ids, policyIdStr)
 		names = append(names, policy.Name)
 		s = append(s, mapping)
 	}
@@ -356,4 +362,32 @@ func dataSourceAliCloudArmsAlertNotificationPoliciesRead(d *schema.ResourceData,
 	}
 
 	return nil
+}
+
+// formatTimeToString converts time.Time pointer to string
+func formatTimeToString(t *time.Time) string {
+	if t == nil {
+		return ""
+	}
+	return t.Format("2006-01-02 15:04:05")
+}
+
+// parseDurationToMinutes parses duration string (like "1m", "30s") to minutes
+func parseDurationToMinutes(duration string) int {
+	if duration == "" {
+		return 0
+	}
+
+	// Try to parse as duration string (e.g., "1m", "30s")
+	if d, err := time.ParseDuration(duration); err == nil {
+		return int(d.Minutes())
+	}
+
+	// If parsing fails, try to convert directly to int (assume it's already in minutes)
+	if i, err := strconv.Atoi(duration); err == nil {
+		return i
+	}
+
+	// Default to 0 if parsing fails
+	return 0
 }

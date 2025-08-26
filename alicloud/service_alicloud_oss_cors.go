@@ -13,7 +13,7 @@ import (
 // BucketCors related functions
 
 // GetBucketCors gets bucket CORS configuration using cws-lib-go API
-func (s *OssService) GetBucketCors(bucketName string) (*ossapi.CorsConfiguration, error) {
+func (s *OssService) GetBucketCors(bucketName string) (*ossapi.CORSConfiguration, error) {
 	ossAPI, err := s.GetOssAPI()
 	if err != nil {
 		return nil, WrapError(err)
@@ -31,7 +31,7 @@ func (s *OssService) GetBucketCors(bucketName string) (*ossapi.CorsConfiguration
 }
 
 // SetBucketCors sets bucket CORS configuration using cws-lib-go API
-func (s *OssService) SetBucketCors(bucketName string, corsConfig *ossapi.CorsConfiguration) error {
+func (s *OssService) SetBucketCors(bucketName string, corsConfig *ossapi.CORSConfiguration) error {
 	ossAPI, err := s.GetOssAPI()
 	if err != nil {
 		return WrapError(err)
@@ -129,7 +129,7 @@ func (s *OssService) DescribeOssBucketCors(id string) (object map[string]interfa
 }
 
 // convertCorsConfigToLegacy converts cws-lib-go CORS config to legacy format
-func convertCorsConfigToLegacy(corsConfig *ossapi.CorsConfiguration) interface{} {
+func convertCorsConfigToLegacy(corsConfig *ossapi.CORSConfiguration) interface{} {
 	// Implement conversion logic here
 	// For now, return a mock structure
 	rules := make([]map[string]interface{}, 0)

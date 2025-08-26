@@ -11,7 +11,10 @@ import (
 // BucketLifecycle related functions
 
 func (s *OssService) DescribeOssBucketLifecycle(id string) (object map[string]interface{}, err error) {
-	ossAPI := s.GetOssAPI()
+	ossAPI, err := s.GetOssAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
 	if ossAPI == nil {
 		return nil, WrapError(fmt.Errorf("OSS API client not available"))
 	}

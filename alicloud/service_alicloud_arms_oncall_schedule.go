@@ -6,35 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
-
-type ArmsOnCallScheduleService struct {
-	client *connectivity.AliyunClient
-	api    *arms.ArmsAPI
-}
-
-func NewArmsOnCallScheduleService(client *connectivity.AliyunClient) (*ArmsOnCallScheduleService, error) {
-	credentials := &common.Credentials{
-		AccessKey:     client.AccessKey,
-		SecretKey:     client.SecretKey,
-		RegionId:      client.RegionId,
-		SecurityToken: client.SecurityToken,
-	}
-
-	armsAPI, err := arms.NewArmsAPI(credentials)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ArmsOnCallScheduleService{
-		client: client,
-		api:    armsAPI,
-	}, nil
-}
 
 // EncodeArmsOnCallScheduleId encodes schedule ID into string format
 func EncodeArmsOnCallScheduleId(scheduleId int64) string {
@@ -51,13 +25,13 @@ func DecodeArmsOnCallScheduleId(id string) (int64, error) {
 }
 
 // DescribeArmsOnCallSchedule describes a single on-call schedule by ID
-func (s *ArmsOnCallScheduleService) DescribeArmsOnCallSchedule(scheduleId string, startTime, endTime string) (*arms.AlertOncallScheduleDetail, error) {
+func (s *ArmsService) DescribeArmsOnCallSchedule(scheduleId string, startTime, endTime string) (*arms.AlertOncallScheduleDetail, error) {
 	id, err := DecodeArmsOnCallScheduleId(scheduleId)
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	schedule, err := s.api.GetOnCallScheduleDetail(id, startTime, endTime)
+	schedule, err := s.armsAPI.GetOnCallScheduleDetail(id, startTime, endTime)
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
@@ -69,8 +43,8 @@ func (s *ArmsOnCallScheduleService) DescribeArmsOnCallSchedule(scheduleId string
 }
 
 // DescribeArmsOnCallSchedules describes multiple on-call schedules with pagination and filtering
-func (s *ArmsOnCallScheduleService) DescribeArmsOnCallSchedules(page, size int64, name string) ([]*arms.AlertOncallSchedule, int64, error) {
-	schedules, totalCount, err := s.api.ListOnCallSchedules(page, size, name)
+func (s *ArmsService) DescribeArmsOnCallSchedules(page, size int64, name string) ([]*arms.AlertOncallSchedule, int64, error) {
+	schedules, totalCount, err := s.armsAPI.ListOnCallSchedules(page, size, name)
 	if err != nil {
 		return nil, 0, WrapErrorf(err, DefaultErrorMsg, "arms_oncall_schedules", "ListOnCallSchedules", AlibabaCloudSdkGoERROR)
 	}
@@ -79,7 +53,7 @@ func (s *ArmsOnCallScheduleService) DescribeArmsOnCallSchedules(page, size int64
 }
 
 // ArmsOnCallScheduleStateRefreshFunc returns a StateRefreshFunc that is used to watch on-call schedule status
-func (s *ArmsOnCallScheduleService) ArmsOnCallScheduleStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
+func (s *ArmsService) ArmsOnCallScheduleStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeArmsOnCallSchedule(id, "", "")
 		if err != nil {
@@ -106,7 +80,7 @@ func (s *ArmsOnCallScheduleService) ArmsOnCallScheduleStateRefreshFunc(id string
 }
 
 // WaitForArmsOnCallScheduleAvailable waits for on-call schedule to become available
-func (s *ArmsOnCallScheduleService) WaitForArmsOnCallScheduleAvailable(id string, timeout time.Duration) error {
+func (s *ArmsService) WaitForArmsOnCallScheduleAvailable(id string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
 		[]string{"Unavailable"}, // pending states
 		[]string{"Available"},   // target states
@@ -120,7 +94,7 @@ func (s *ArmsOnCallScheduleService) WaitForArmsOnCallScheduleAvailable(id string
 }
 
 // FilterOnCallSchedulesByName filters on-call schedules by name pattern
-func (s *ArmsOnCallScheduleService) FilterOnCallSchedulesByName(schedules []*arms.AlertOncallSchedule, namePattern string) []*arms.AlertOncallSchedule {
+func (s *ArmsService) FilterOnCallSchedulesByName(schedules []*arms.AlertOncallSchedule, namePattern string) []*arms.AlertOncallSchedule {
 	if namePattern == "" {
 		return schedules
 	}

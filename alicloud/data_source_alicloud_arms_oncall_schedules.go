@@ -80,7 +80,7 @@ func dataSourceAliCloudArmsOncallSchedules() *schema.Resource {
 
 func dataSourceAliCloudArmsOncallSchedulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	service, err := NewArmsOnCallScheduleService(client)
+	service, err := NewArmsService(client)
 	if err != nil {
 		return WrapError(err)
 	}

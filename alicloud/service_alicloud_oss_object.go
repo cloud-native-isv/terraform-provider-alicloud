@@ -26,7 +26,7 @@ func (s *OssService) PutOssObject(bucketName, objectKey string, content []byte) 
 }
 
 // GetOssObject gets an object using cws-lib-go API
-func (s *OssService) GetOssObject(bucketName, objectKey string) (*ossapi.OssObjectInfo, error) {
+func (s *OssService) GetOssObject(bucketName, objectKey string) (*ossapi.GetObjectResult, error) {
 	ossAPI, err := s.GetOssAPI()
 	if err != nil {
 		return nil, WrapError(err)

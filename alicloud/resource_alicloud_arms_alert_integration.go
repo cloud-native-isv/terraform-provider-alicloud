@@ -98,7 +98,15 @@ func resourceAliCloudArmsAlertIntegrationCreate(d *schema.ResourceData, meta int
 
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		integration, err := armsAPI.CreateIntegration(integrationName, integrationProductType, description, autoRecover, recoverTime)
+		// Create AlertIntegration object
+		integration := &arms.AlertIntegration{
+			IntegrationName:        integrationName,
+			IntegrationProductType: integrationProductType,
+			Description:            description,
+			AutoRecover:            autoRecover,
+			RecoverTime:            recoverTime,
+		}
+		result, err := armsAPI.CreateIntegration(integration)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -107,7 +115,7 @@ func resourceAliCloudArmsAlertIntegrationCreate(d *schema.ResourceData, meta int
 			return resource.NonRetryableError(err)
 		}
 
-		d.SetId(fmt.Sprint(integration.IntegrationId))
+		d.SetId(fmt.Sprint(result.IntegrationId))
 		return nil
 	})
 
@@ -190,9 +198,19 @@ func resourceAliCloudArmsAlertIntegrationUpdate(d *schema.ResourceData, meta int
 	}
 
 	update := false
+	integrationName := d.Get("integration_name").(string)
+	integrationProductType := d.Get("integration_product_type").(string)
 	description := d.Get("description").(string)
 	autoRecover := d.Get("auto_recover").(bool)
 	recoverTime := int64(d.Get("recover_time").(int))
+	duplicateKey := d.Get("duplicate_key").(string)
+	state := ""
+	if d.Get("state").(bool) {
+		state = "active"
+	} else {
+		state = "inactive"
+	}
+	liveness := d.Get("liveness").(string) // This is computed, so it might be empty for updates
 
 	if d.HasChange("integration_name") || d.HasChange("description") || d.HasChange("auto_recover") || d.HasChange("recover_time") || d.HasChange("duplicate_key") || d.HasChange("state") {
 		update = true
@@ -201,7 +219,19 @@ func resourceAliCloudArmsAlertIntegrationUpdate(d *schema.ResourceData, meta int
 	if update {
 		wait := incrementalWait(3*time.Second, 3*time.Second)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			err := armsAPI.UpdateIntegration(integrationId, description, autoRecover, recoverTime)
+			// Create AlertIntegration object
+			integration := &arms.AlertIntegration{
+				IntegrationId:          integrationId,
+				IntegrationName:        integrationName,
+				IntegrationProductType: integrationProductType,
+				Description:            description,
+				AutoRecover:            autoRecover,
+				RecoverTime:            recoverTime,
+				DuplicateKey:           duplicateKey,
+				State:                  state == "active",
+				Liveness:               liveness,
+			}
+			_, err := armsAPI.UpdateIntegration(integration)
 			if err != nil {
 				if NeedRetry(err) {
 					wait()

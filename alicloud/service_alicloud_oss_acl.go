@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/oss"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
@@ -15,15 +16,15 @@ func (s *OssService) GetBucketAcl(bucketName string) (string, error) {
 		return "", WrapError(err)
 	}
 
-	acl, err := ossAPI.GetBucketAcl(bucketName)
+	acl, err := ossAPI.GetBucketACL(bucketName)
 	if err != nil {
 		if ossNotFoundError(err) {
-			return "", WrapErrorf(err, NotFoundMsg, "OSS API")
+			return "", WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
-		return "", WrapErrorf(err, DefaultErrorMsg, bucketName, "GetBucketAcl", "OSS API")
+		return "", WrapError(err)
 	}
 
-	return acl, nil
+	return string(acl.ACL), nil
 }
 
 // SetBucketAcl sets bucket ACL using cws-lib-go API
@@ -33,7 +34,7 @@ func (s *OssService) SetBucketAcl(bucketName, acl string) error {
 		return WrapError(err)
 	}
 
-	err = ossAPI.SetBucketAcl(bucketName, acl)
+	_, err = ossAPI.PutBucketACL(bucketName, oss.BucketACLType(acl))
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, bucketName, "SetBucketAcl", "OSS API")
 	}
@@ -45,11 +46,11 @@ func (s *OssService) DescribeOssBucketAcl(id string) (object map[string]interfac
 	// Try to use new cws-lib-go API first
 	ossAPI, apiErr := s.GetOssAPI()
 	if apiErr == nil {
-		acl, err := ossAPI.GetBucketAcl(id)
+		aclInfo, err := ossAPI.GetBucketACL(id)
 		if err == nil {
 			// Convert ACL string to expected format
 			object = map[string]interface{}{
-				"Grant": acl,
+				"Grant": string(aclInfo.ACL),
 			}
 			return object, nil
 		}

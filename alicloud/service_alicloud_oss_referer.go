@@ -5,18 +5,24 @@ import (
 	"strings"
 
 	"github.com/PaesslerAG/jsonpath"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/oss"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // BucketReferer related functions
 
 func (s *OssService) DescribeOssBucketReferer(id string) (object map[string]interface{}, err error) {
-	ossAPI := s.GetOssAPI()
+	ossAPI, err := s.GetOssAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
 	if ossAPI == nil {
 		return nil, WrapError(fmt.Errorf("OSS API client not available"))
 	}
 
-	config, err := ossAPI.GetBucketReferer(id)
+	config, err := ossAPI.GetBucketReferer(&oss.GetBucketRefererRequest{
+		Bucket: id,
+	})
 	if err != nil {
 		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"NoSuchBucket"}) {
 			return object, WrapErrorf(NotFoundErr("BucketReferer", id), NotFoundMsg, err)
@@ -31,11 +37,6 @@ func (s *OssService) DescribeOssBucketReferer(id string) (object map[string]inte
 	result := make(map[string]interface{})
 	result["RefererConfiguration"] = config
 	return result, nil
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.RefererConfiguration", response)
-	}
-
-	return v.(map[string]interface{}), nil
 }
 
 func (s *OssService) OssBucketRefererStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {

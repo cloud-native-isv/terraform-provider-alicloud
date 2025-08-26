@@ -13,32 +13,35 @@ func (s *ArmsService) DescribeArmsPrometheus(id string) (object map[string]inter
 
 // DescribeArmsPrometheusInstance describes ARMS Prometheus instance
 func (s *ArmsService) DescribeArmsPrometheusInstance(id string) (object map[string]interface{}, err error) {
+	// TODO: Implement GetPrometheusInstance method in ArmsAPI
 	// Try using aliyunArmsAPI first if available
-	if s.armsAPI != nil {
-		instance, err := s.GetAPI().GetPrometheusInstance(id)
-		if err == nil {
-			// Convert to map[string]interface{} format expected by Terraform
-			return map[string]interface{}{
-				"ClusterId":       instance.ClusterId,
-				"ClusterName":     instance.ClusterName,
-				"ClusterType":     instance.ClusterType,
-				"VpcId":           instance.VpcId,
-				"VSwitchId":       instance.VSwitchId,
-				"SecurityGroupId": instance.SecurityGroupId,
+	/*
+		if s.armsAPI != nil {
+			instance, err := s.GetAPI().GetPrometheusInstance(id)
+			if err == nil {
+				// Convert to map[string]interface{} format expected by Terraform
+				return map[string]interface{}{
+					"ClusterId":       instance.ClusterId,
+					"ClusterName":     instance.ClusterName,
+					"ClusterType":     instance.ClusterType,
+					"VpcId":           instance.VpcId,
+					"VSwitchId":       instance.VSwitchId,
+					"SecurityGroupId": instance.SecurityGroupId,
 
-				"GrafanaInstanceId": instance.GrafanaInstanceId,
-				"HttpApiInterUrl":   instance.HttpApiInterUrl,
+					"GrafanaInstanceId": instance.GrafanaInstanceId,
+					"HttpApiInterUrl":   instance.HttpApiInterUrl,
 
-				"PushGatewayInterUrl": instance.PushGatewayInterUrl,
+					"PushGatewayInterUrl": instance.PushGatewayInterUrl,
 
-				"RemoteReadInterUrl": instance.RemoteReadInterUrl,
+					"RemoteReadInterUrl": instance.RemoteReadInterUrl,
 
-				"RemoteWriteInterUrl": instance.RemoteWriteInterUrl,
+					"RemoteWriteInterUrl": instance.RemoteWriteInterUrl,
 
-				"SubClustersJson": instance.SubClustersJson,
-			}, nil
+					"SubClustersJson": instance.SubClustersJson,
+				}, nil
+			}
 		}
-	}
+	*/
 
 	// Fallback to placeholder implementation
 	// TODO: Implement actual RPC call when needed
@@ -52,24 +55,27 @@ func (s *ArmsService) DescribeArmsPrometheusInstance(id string) (object map[stri
 
 // DescribeArmsPrometheusMonitoring describes ARMS Prometheus monitoring
 func (s *ArmsService) DescribeArmsPrometheusMonitoring(id string) (object map[string]interface{}, err error) {
-	// Try using aliyunArmsAPI first if available
-	if s.armsAPI != nil {
-		parts, err := ParseResourceId(id, 3)
-		if err == nil && len(parts) >= 3 {
-			monitoring, err := s.GetAPI().GetPrometheusMonitoring(parts[0], parts[1], parts[2])
-			if err == nil {
-				// Convert to map[string]interface{} format expected by Terraform
-				return map[string]interface{}{
-					"ClusterId":      monitoring.ClusterId,
-					"MonitoringName": monitoring.MonitoringName,
-					"Type":           monitoring.Type,
-					"Status":         monitoring.Status,
-					"ConfigYaml":     monitoring.ConfigYaml,
-					"Config":         monitoring.Config,
-				}, nil
+	// TODO: Implement GetPrometheusMonitoring method in ArmsAPI
+	/*
+		// Try using aliyunArmsAPI first if available
+		if s.armsAPI != nil {
+			parts, err := ParseResourceId(id, 3)
+			if err == nil && len(parts) >= 3 {
+				monitoring, err := s.GetAPI().GetPrometheusMonitoring(parts[0], parts[1], parts[2])
+				if err == nil {
+					// Convert to map[string]interface{} format expected by Terraform
+					return map[string]interface{}{
+						"ClusterId":      monitoring.ClusterId,
+						"MonitoringName": monitoring.MonitoringName,
+						"Type":           monitoring.Type,
+						"Status":         monitoring.Status,
+						"ConfigYaml":     monitoring.ConfigYaml,
+						"Config":         monitoring.Config,
+					}, nil
+				}
 			}
 		}
-	}
+	*/
 
 	// Fallback to placeholder implementation
 	// TODO: Implement actual RPC call when needed
@@ -89,28 +95,31 @@ func (s *ArmsService) DescribeArmsPrometheusMonitoring(id string) (object map[st
 
 // DescribeArmsPrometheusAlertRule describes ARMS Prometheus alert rule
 func (s *ArmsService) DescribeArmsPrometheusAlertRule(id string) (object map[string]interface{}, err error) {
-	// Try using aliyunArmsAPI first if available
-	if s.armsAPI != nil {
-		parts, err := ParseResourceId(id, 2)
-		if err == nil && len(parts) >= 2 {
-			alertRule, err := s.GetAPI().GetPrometheusAlertRule(parts[0], parts[1])
-			if err == nil {
-				// Convert to map[string]interface{} format expected by Terraform
-				return map[string]interface{}{
-					"ClusterId":   alertRule.ClusterId,
-					"AlertId":     alertRule.AlertId,
-					"AlertName":   alertRule.AlertName,
-					"Expression":  alertRule.Expression,
-					"Status":      alertRule.Status,
-					"Type":        alertRule.Type,
-					"Duration":    alertRule.Duration,
-					"Message":     alertRule.Message,
-					"Annotations": alertRule.Annotations,
-					"Labels":      alertRule.Labels,
-				}, nil
+	// TODO: Implement GetPrometheusAlertRule method in ArmsAPI
+	/*
+		// Try using aliyunArmsAPI first if available
+		if s.armsAPI != nil {
+			parts, err := ParseResourceId(id, 2)
+			if err == nil && len(parts) >= 2 {
+				alertRule, err := s.GetAPI().GetPrometheusAlertRule(parts[0], parts[1])
+				if err == nil {
+					// Convert to map[string]interface{} format expected by Terraform
+					return map[string]interface{}{
+						"ClusterId":   alertRule.ClusterId,
+						"AlertId":     alertRule.AlertId,
+						"AlertName":   alertRule.AlertName,
+						"Expression":  alertRule.Expression,
+						"Status":      alertRule.Status,
+						"Type":        alertRule.Type,
+						"Duration":    alertRule.Duration,
+						"Message":     alertRule.Message,
+						"Annotations": alertRule.Annotations,
+						"Labels":      alertRule.Labels,
+					}, nil
+				}
 			}
 		}
-	}
+	*/
 
 	// Fallback to placeholder implementation
 	// TODO: Implement actual RPC call when needed

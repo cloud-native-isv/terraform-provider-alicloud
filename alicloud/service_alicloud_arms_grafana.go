@@ -68,8 +68,8 @@ func (s *ArmsService) CreateGrafanaWorkspace(grafanaWorkspaceName, grafanaWorksp
 }
 
 // UpdateGrafanaWorkspace updates an existing ARMS Grafana workspace
-func (s *ArmsService) UpdateGrafanaWorkspace(grafanaWorkspaceId string, grafanaWorkspaceName, description, aliyunLang string, tags []aliyunArmsAPI.GrafanaWorkspaceTag) (*aliyunArmsAPI.GrafanaWorkspaceDetail, error) {
-	workspace, err := s.armsAPI.UpdateGrafanaWorkspace(grafanaWorkspaceId, grafanaWorkspaceName, description, aliyunLang, tags)
+func (s *ArmsService) UpdateGrafanaWorkspace(grafanaWorkspaceId string, grafanaWorkspaceName, description, aliyunLang string) (*aliyunArmsAPI.GrafanaWorkspaceDetail, error) {
+	workspace, err := s.armsAPI.UpdateGrafanaWorkspace(grafanaWorkspaceId, grafanaWorkspaceName, description, aliyunLang)
 	if err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, grafanaWorkspaceId, "UpdateGrafanaWorkspace", AlibabaCloudSdkGoERROR)
 	}
@@ -99,13 +99,19 @@ func (s *ArmsService) ArmsGrafanaWorkspaceStateRefreshFunc(id string, failStates
 			return nil, "", WrapError(err)
 		}
 
+		// Safely handle pointer dereference for Status
+		currentStatus := ""
+		if workspace.Status != nil {
+			currentStatus = *workspace.Status
+		}
+
 		for _, failState := range failStates {
-			if workspace.Status == failState {
-				return workspace, workspace.Status, WrapError(Error(FailedToReachTargetStatus, workspace.Status))
+			if currentStatus == failState {
+				return workspace, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
 			}
 		}
 
-		return workspace, workspace.Status, nil
+		return workspace, currentStatus, nil
 	}
 }
 

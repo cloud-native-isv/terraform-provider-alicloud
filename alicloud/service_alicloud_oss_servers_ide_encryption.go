@@ -5,18 +5,24 @@ import (
 	"strings"
 
 	"github.com/PaesslerAG/jsonpath"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/oss"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // BucketServerSideEncryption related functions
 
 func (s *OssService) DescribeOssBucketServerSideEncryption(id string) (object map[string]interface{}, err error) {
-	ossAPI := s.GetOssAPI()
+	ossAPI, err := s.GetOssAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
 	if ossAPI == nil {
 		return nil, WrapError(fmt.Errorf("OSS API client not available"))
 	}
 
-	config, err := ossAPI.GetBucketEncryption(id)
+	config, err := ossAPI.GetBucketEncryption(&oss.GetBucketEncryptionRequest{
+		Bucket: id,
+	})
 	if err != nil {
 		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"NoSuchServerSideEncryptionRule", "NoSuchBucket"}) {
 			return object, WrapErrorf(NotFoundErr("BucketServerSideEncryption", id), NotFoundMsg, err)
@@ -31,11 +37,6 @@ func (s *OssService) DescribeOssBucketServerSideEncryption(id string) (object ma
 	result := make(map[string]interface{})
 	result["ServerSideEncryptionRule"] = config
 	return result, nil
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.ServerSideEncryptionRule.ApplyServerSideEncryptionByDefault", response)
-	}
-
-	return v.(map[string]interface{}), nil
 }
 
 func (s *OssService) OssBucketServerSideEncryptionStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {

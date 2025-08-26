@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -144,7 +145,7 @@ func resourceAliCloudArmsGrafanaWorkspaceCreate(d *schema.ResourceData, meta int
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_grafana_workspace", "CreateGrafanaWorkspace", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(workspace.GrafanaWorkspaceId)
+	d.SetId(tea.StringValue(workspace.GrafanaWorkspaceId))
 
 	// Wait for creation to complete
 	err = service.WaitForArmsGrafanaWorkspaceCreated(d.Id(), d.Timeout(schema.TimeoutCreate))
@@ -173,7 +174,7 @@ func resourceAliCloudArmsGrafanaWorkspaceRead(d *schema.ResourceData, meta inter
 	}
 
 	// Set all fields using strong types
-	d.Set("create_time", workspace.CreateTime)
+	d.Set("create_time", timeToString(workspace.GmtCreate))
 	d.Set("description", workspace.Description)
 	d.Set("grafana_version", workspace.GrafanaVersion)
 	d.Set("grafana_workspace_edition", workspace.GrafanaWorkspaceEdition)
@@ -206,10 +207,8 @@ func resourceAliCloudArmsGrafanaWorkspaceUpdate(d *schema.ResourceData, meta int
 			aliyunLang = v.(string)
 		}
 
-		var tags []aliyunArmsAPI.GrafanaWorkspaceTag
-
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			_, err := service.UpdateGrafanaWorkspace(d.Id(), grafanaWorkspaceName, description, aliyunLang, tags)
+			_, err := service.UpdateGrafanaWorkspace(d.Id(), grafanaWorkspaceName, description, aliyunLang)
 			if err != nil {
 				if NeedRetry(err) {
 					return resource.RetryableError(err)

@@ -9,7 +9,7 @@
 ### 1.1 项目信息参考
 - 参考项目目录中的 README.md 文件内容，了解项目基本信息
 - 如果项目根目录下存在 docs 目录，则参考其中的内容
-- 查看 examples 目录了解实际使用场景和模式
+
 
 ### 1.2 任务执行流程
 - 复杂任务先创建 TODO.md 文件列出计划和步骤，然后逐步执行
@@ -52,6 +52,15 @@ Provider 层 (alicloud/)
 └── Service 层 (service_alicloud_*.go)
     └── API 层 (CWS-Lib-Go)
         └── SDK 层 (阿里云官方SDK)
+```
+
+```
+terraform-provider-alicloud
+├── resource_alicloud_*.go (Resource 层)
+├── data_source_alicloud_*.go (DataSource 层) 
+└── service_alicloud_*.go (Service 层)
+    └── cws-lib-go/lib/cloud/aliyun/api/** (API 层)
+        └── 阿里云官方 SDK (SDK 层)
 ```
 
 Service 层包含一个或多个 Go 文件，包含针对资源对象的增删改查方法和状态刷新方法。

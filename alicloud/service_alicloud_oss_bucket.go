@@ -159,11 +159,18 @@ func convertBucketInfoToLegacy(bucketInfo *ossapi.OssBucketInfo) oss.GetBucketIn
 	// Create a mock legacy response for compatibility
 	// In a real implementation, this would properly convert the structures
 	var result oss.GetBucketInfoResult
-	result.BucketInfo.Name = getStringValue(bucketInfo.Name)
-	result.BucketInfo.Location = getStringValue(bucketInfo.Location)
-	result.BucketInfo.CreationDate, _ = time.Parse(time.RFC3339, getStringValue(bucketInfo.CreationDate))
-	result.BucketInfo.StorageClass = getStringValue(bucketInfo.StorageClass)
-	result.BucketInfo.ACL = getStringValue(bucketInfo.ACL)
+	if bucketInfo != nil && bucketInfo.Bucket != nil {
+		result.BucketInfo.Name = getStringValue(bucketInfo.Bucket.Name)
+		result.BucketInfo.Location = getStringValue(bucketInfo.Bucket.Location)
+		if bucketInfo.Bucket.CreationDate != nil {
+			result.BucketInfo.CreationDate, _ = time.Parse(time.RFC3339, *bucketInfo.Bucket.CreationDate)
+		}
+		result.BucketInfo.StorageClass = getStringValue(bucketInfo.Bucket.StorageClass)
+		// Convert ACL from nested structure
+		if bucketInfo.Bucket.AccessControlList != nil {
+			result.BucketInfo.ACL = getStringValue(bucketInfo.Bucket.AccessControlList.Grant)
+		}
+	}
 
 	return result
 }

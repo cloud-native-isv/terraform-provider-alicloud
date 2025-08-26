@@ -6,7 +6,6 @@ import (
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	armsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -128,19 +127,6 @@ func dataSourceAliCloudArmsAlertHistorys() *schema.Resource {
 func dataSourceAliCloudArmsAlertHistorysRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
-	// Initialize ARMS API client with credentials
-	credentials := &common.Credentials{
-		AccessKey:     client.AccessKey,
-		SecretKey:     client.SecretKey,
-		RegionId:      client.RegionId,
-		SecurityToken: client.SecurityToken,
-	}
-
-	armsClient, err := armsAPI.NewArmsAPI(credentials)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_rules", "InitializeArmsAPI", "Failed to initialize ARMS API client")
-	}
-
 	// Build filter parameters from input
 	var stateFilter *int64
 	if v, ok := d.GetOk("state"); ok {
@@ -186,27 +172,37 @@ func dataSourceAliCloudArmsAlertHistorysRead(d *schema.ResourceData, meta interf
 	}
 
 	// Call ARMS API to list alert rules
-	var allAlerts []*armsAPI.AlertHistory
+	var allAlerts []*armsAPI.AlertEvent
 	page := int64(1)
 	size := int64(100) // Use reasonable page size
 
+	// Convert dispatchRuleId to slice if needed
+	var dispatchRuleIds []int64
+	if dispatchRuleId != nil {
+		dispatchRuleIds = append(dispatchRuleIds, *dispatchRuleId)
+	}
+
 	for {
-		// List alerts without events and activities for better performance
-		alerts, totalCount, err := armsClient.ListAlertHistory(page, size, false, false, stateFilter, severity, alertName, "", "", "", "", dispatchRuleId)
+		// Use ArmsService to list alert events
+		service := ArmsService{client: client}
+
+		// Call service method to list alert events
+		events, totalCount, err := service.ListArmsAlertEvents(page, size, false, false, stateFilter, severity, alertName, "", "", "", "", dispatchRuleIds)
 		if err != nil {
-			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_rules", "ListAlertHistory", "Failed to list alert rules")
+			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_rules", "ListArmsAlertEvents", "Failed to list alert events")
 		}
 
 		// Apply filters
-		for _, alert := range alerts {
+		for _, alert := range events {
 			// Apply name regex filter if specified
 			if alertNameRegex != nil && !alertNameRegex.MatchString(alert.AlertName) {
 				continue
 			}
 
-			// Apply ID filter if specified
+			// Apply ID filter if specified - AlertEvent doesn't have AlertId, use AlertName as identifier
 			if len(idsMap) > 0 {
-				alertIdStr := strconv.FormatInt(alert.AlertId, 10)
+				// Use a hash of AlertName as ID since AlertEvent doesn't have an ID field
+				alertIdStr := alert.AlertName
 				if _, ok := idsMap[alertIdStr]; !ok {
 					continue
 				}
@@ -216,7 +212,7 @@ func dataSourceAliCloudArmsAlertHistorysRead(d *schema.ResourceData, meta interf
 		}
 
 		// Check if we've retrieved all results
-		if totalCount <= int64(len(alerts)) || len(alerts) < int(size) {
+		if totalCount <= int64(len(events)) || len(events) < int(size) {
 			break
 		}
 		page++
@@ -228,10 +224,20 @@ func dataSourceAliCloudArmsAlertHistorysRead(d *schema.ResourceData, meta interf
 	s := make([]map[string]interface{}, 0)
 
 	for _, alert := range allAlerts {
-		alertIdStr := strconv.FormatInt(alert.AlertId, 10)
-		dispatchRuleIdStr := ""
-		if alert.DispatchRuleId != 0 {
-			dispatchRuleIdStr = strconv.FormatFloat(alert.DispatchRuleId, 'f', 0, 64)
+		// Since AlertEvent doesn't have AlertId, use AlertName as identifier
+		alertIdStr := alert.AlertName
+
+		// Parse state from status string
+		state := 0
+		switch alert.Status {
+		case "Active":
+			state = 1
+		case "Resolved":
+			state = 2
+		case "Silenced":
+			state = 3
+		default:
+			state = 0
 		}
 
 		mapping := map[string]interface{}{
@@ -239,16 +245,16 @@ func dataSourceAliCloudArmsAlertHistorysRead(d *schema.ResourceData, meta interf
 			"alert_id":           alertIdStr,
 			"alert_name":         alert.AlertName,
 			"severity":           alert.Severity,
-			"state":              int(alert.State),
-			"dispatch_rule_id":   dispatchRuleIdStr,
-			"dispatch_rule_name": alert.DispatchRuleName,
-			"create_time":        alert.CreateTime,
-			"solution":           alert.Solution,
-			"owner":              alert.Owner,
-			"handler":            alert.Handler,
-			"acknowledge_time":   int(alert.AcknowledgeTime),
-			"recover_time":       int(alert.RecoverTime),
-			"describe":           alert.Describe,
+			"state":              state,
+			"dispatch_rule_id":   "", // AlertEvent doesn't have dispatch rule info
+			"dispatch_rule_name": "",
+			"create_time":        alert.StartTime,
+			"solution":           "", // Not available in AlertEvent
+			"owner":              "", // Not available in AlertEvent
+			"handler":            alert.HandlerName,
+			"acknowledge_time":   0, // Not available in AlertEvent
+			"recover_time":       0, // Not available in AlertEvent
+			"describe":           alert.Description,
 		}
 
 		ids = append(ids, alertIdStr)

@@ -6,28 +6,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
+// SafeStringValue safely dereferences a string pointer, returning empty string if nil
+func SafeStringValue(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
 // DescribeArmsAddonRelease describes ARMS addon release
 func (s *ArmsService) DescribeArmsAddonRelease(id string) (object map[string]interface{}, err error) {
-	// Try using aliyunArmsAPI first if available
-	if s.armsAPI != nil {
-		parts, err := ParseResourceId(id, 2)
-		if err == nil && len(parts) >= 2 {
-			addon, err := s.GetAPI().GetAddonRelease(parts[0], parts[1])
-			if err == nil {
-				// Convert to map[string]interface{} format expected by Terraform
-				return map[string]interface{}{
-					"EnvironmentId":    addon.EnvironmentId,
-					"AddonReleaseName": addon.ReleaseName,
-					"AddonVersion":     addon.Version,
-					"Status":           addon.Status,
-					"Config":           addon.Config,
-				}, nil
-			}
-		}
-	}
-
-	// Placeholder implementation for ARMS addon release description
-	// TODO: Implement when actual ARMS SDK integration is added
+	// Using placeholder implementation since the specific addon release API is not yet implemented
+	// TODO: Implement when actual ARMS addon release SDK integration is added
 	parts, err := ParseResourceId(id, 2)
 	if err != nil {
 		return nil, WrapError(err)
@@ -64,25 +54,8 @@ func (s *ArmsService) ArmsAddonReleaseStateRefreshFunc(id string, jsonPath strin
 
 // DescribeArmsEnvCustomJob describes ARMS environment custom job
 func (s *ArmsService) DescribeArmsEnvCustomJob(id string) (object map[string]interface{}, err error) {
-	// Try using aliyunArmsAPI first if available
-	if s.armsAPI != nil {
-		parts, err := ParseResourceId(id, 2)
-		if err == nil && len(parts) >= 2 {
-			customJob, err := s.GetAPI().GetEnvCustomJob(parts[0], parts[1])
-			if err == nil {
-				// Convert to map[string]interface{} format expected by Terraform
-				return map[string]interface{}{
-					"EnvironmentId": customJob.EnvironmentId,
-					"CustomJobName": customJob.CustomJobName,
-					"Status":        customJob.Status,
-					"ConfigYaml":    customJob.ConfigYaml,
-				}, nil
-			}
-		}
-	}
-
-	// Placeholder implementation for ARMS environment custom job description
-	// TODO: Implement when actual ARMS SDK integration is added
+	// Using placeholder implementation since the specific custom job API is not yet implemented
+	// TODO: Implement when actual ARMS custom job SDK integration is added
 	parts, err := ParseResourceId(id, 2)
 	if err != nil {
 		return nil, WrapError(err)
@@ -154,26 +127,8 @@ func (s *ArmsService) ArmsEnvFeatureStateRefreshFunc(id string, jsonPath string,
 
 // DescribeArmsEnvPodMonitor describes ARMS environment pod monitor
 func (s *ArmsService) DescribeArmsEnvPodMonitor(id string) (object map[string]interface{}, err error) {
-	// Try using aliyunArmsAPI first if available
-	if s.armsAPI != nil {
-		parts, err := ParseResourceId(id, 3)
-		if err == nil && len(parts) >= 3 {
-			podMonitor, err := s.GetAPI().GetEnvPodMonitor(parts[0], parts[1], parts[2])
-			if err == nil {
-				// Convert to map[string]interface{} format expected by Terraform
-				return map[string]interface{}{
-					"EnvironmentId":  podMonitor.EnvironmentId,
-					"Namespace":      podMonitor.Namespace,
-					"PodMonitorName": podMonitor.PodMonitorName,
-					"Status":         podMonitor.Status,
-					"ConfigYaml":     podMonitor.ConfigYaml,
-				}, nil
-			}
-		}
-	}
-
-	// Placeholder implementation for ARMS environment pod monitor description
-	// TODO: Implement when actual ARMS SDK integration is added
+	// Using placeholder implementation since the specific pod monitor API is not yet implemented
+	// TODO: Implement when actual ARMS pod monitor SDK integration is added
 	parts, err := ParseResourceId(id, 3)
 	if err != nil {
 		return nil, WrapError(err)
@@ -190,26 +145,8 @@ func (s *ArmsService) DescribeArmsEnvPodMonitor(id string) (object map[string]in
 
 // DescribeArmsEnvServiceMonitor describes ARMS environment service monitor
 func (s *ArmsService) DescribeArmsEnvServiceMonitor(id string) (object map[string]interface{}, err error) {
-	// Try using aliyunArmsAPI first if available
-	if s.armsAPI != nil {
-		parts, err := ParseResourceId(id, 3)
-		if err == nil && len(parts) >= 3 {
-			serviceMonitor, err := s.GetAPI().GetEnvServiceMonitor(parts[0], parts[1], parts[2])
-			if err == nil {
-				// Convert to map[string]interface{} format expected by Terraform
-				return map[string]interface{}{
-					"EnvironmentId":      serviceMonitor.EnvironmentId,
-					"Namespace":          serviceMonitor.Namespace,
-					"ServiceMonitorName": serviceMonitor.ServiceMonitorName,
-					"Status":             serviceMonitor.Status,
-					"ConfigYaml":         serviceMonitor.ConfigYaml,
-				}, nil
-			}
-		}
-	}
-
-	// Placeholder implementation for ARMS environment service monitor description
-	// TODO: Implement when actual ARMS SDK integration is added
+	// Using placeholder implementation since the specific service monitor API is not yet implemented
+	// TODO: Implement when actual ARMS service monitor SDK integration is added
 	parts, err := ParseResourceId(id, 3)
 	if err != nil {
 		return nil, WrapError(err)
@@ -226,29 +163,62 @@ func (s *ArmsService) DescribeArmsEnvServiceMonitor(id string) (object map[strin
 
 // DescribeArmsEnvironment describes ARMS environment
 func (s *ArmsService) DescribeArmsEnvironment(id string) (object map[string]interface{}, err error) {
-	// Try using aliyunArmsAPI first if available
+	// Use the new Environment API
 	if s.armsAPI != nil {
-		environment, err := s.GetAPI().GetEnvironment(id)
-		if err == nil {
-			// Convert to map[string]interface{} format expected by Terraform
-			return map[string]interface{}{
-				"EnvironmentId":       environment.EnvironmentId,
-				"EnvironmentName":     environment.EnvironmentName,
-				"EnvironmentType":     environment.EnvironmentType,
-				"EnvironmentSubType":  environment.EnvironmentSubType,
-				"BindResourceId":      environment.BindResourceId,
-				"UserId":              environment.UserId,
-				"Status":              "Success",
-				"RegionId":            s.client.RegionId,
-				"BindResourceProfile": "",
-				"CreateTime":          "",
-				"UpdateTime":          "",
-			}, nil
+		environment, err := s.armsAPI.DescribeEnvironment(id)
+		if err != nil {
+			if IsNotFoundError(err) {
+				return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
+			}
+			return nil, WrapErrorf(err, DefaultErrorMsg, id, "DescribeEnvironment", AlibabaCloudSdkGoERROR)
 		}
+
+		// Convert to map[string]interface{} format expected by Terraform
+		result := map[string]interface{}{
+			"EnvironmentId":      SafeStringValue(environment.EnvironmentId),
+			"EnvironmentName":    SafeStringValue(environment.EnvironmentName),
+			"EnvironmentType":    SafeStringValue(environment.EnvironmentType),
+			"EnvironmentSubType": SafeStringValue(environment.EnvironmentSubType),
+			"BindResourceId":     SafeStringValue(environment.BindResourceId),
+			"UserId":             SafeStringValue(environment.UserId),
+			"RegionId":           SafeStringValue(environment.RegionId),
+			"Status":             "Success", // Default status for compatibility
+		}
+
+		// Set optional fields if they exist
+		if environment.BindResourceType != nil {
+			result["BindResourceType"] = *environment.BindResourceType
+		}
+		if environment.BindResourceStatus != nil {
+			result["BindResourceStatus"] = *environment.BindResourceStatus
+		}
+		if environment.BindResourceProfile != nil {
+			result["BindResourceProfile"] = *environment.BindResourceProfile
+		}
+		if environment.CreateTime != nil {
+			result["CreateTime"] = *environment.CreateTime
+		}
+		if environment.PrometheusInstanceId != nil {
+			result["PrometheusInstanceId"] = *environment.PrometheusInstanceId
+		}
+		if environment.GrafanaWorkspaceId != nil {
+			result["GrafanaWorkspaceId"] = *environment.GrafanaWorkspaceId
+		}
+		if environment.ManagedType != nil {
+			result["ManagedType"] = *environment.ManagedType
+		}
+		if environment.FeePackage != nil {
+			result["FeePackage"] = *environment.FeePackage
+		}
+		if environment.ResourceGroupId != nil {
+			result["ResourceGroupId"] = *environment.ResourceGroupId
+		}
+
+		return result, nil
 	}
 
-	// Placeholder implementation for ARMS environment description
-	// TODO: Implement when actual ARMS SDK integration is added
+	// Fallback placeholder implementation
+	// TODO: Remove this when all environments use the new API
 	return map[string]interface{}{
 		"EnvironmentId":   id,
 		"EnvironmentName": fmt.Sprintf("Environment-%s", id),

@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -205,26 +206,26 @@ func dataSourceAliCloudArmsGrafanaWorkspacesRead(d *schema.ResourceData, meta in
 
 	for _, workspace := range workspaces {
 		// Filter by name regex
-		if nameRegex != nil && !nameRegex.MatchString(workspace.GrafanaWorkspaceName) {
+		if nameRegex != nil && !nameRegex.MatchString(tea.StringValue(workspace.GrafanaWorkspaceName)) {
 			continue
 		}
 
 		// Filter by IDs
 		if len(idsMap) > 0 {
-			if _, ok := idsMap[workspace.GrafanaWorkspaceId]; !ok {
+			if _, ok := idsMap[tea.StringValue(workspace.GrafanaWorkspaceId)]; !ok {
 				continue
 			}
 		}
 
 		// If enable_details is true, get detailed information for each workspace
 		if enableDetails {
-			detailedWorkspace, err := service.DescribeArmsGrafanaWorkspace(workspace.GrafanaWorkspaceId)
+			detailedWorkspace, err := service.DescribeArmsGrafanaWorkspace(tea.StringValue(workspace.GrafanaWorkspaceId))
 			if err != nil {
 				if IsNotFoundError(err) {
 					// Skip if workspace is deleted during processing
 					continue
 				}
-				return WrapErrorf(err, DefaultErrorMsg, workspace.GrafanaWorkspaceId, "DescribeArmsGrafanaWorkspace", AlibabaCloudSdkGoERROR)
+				return WrapErrorf(err, DefaultErrorMsg, tea.StringValue(workspace.GrafanaWorkspaceId), "DescribeArmsGrafanaWorkspace", AlibabaCloudSdkGoERROR)
 			}
 			detailedWorkspaces = append(detailedWorkspaces, detailedWorkspace)
 		} else {
@@ -251,7 +252,7 @@ func dataSourceAliCloudArmsGrafanaWorkspacesRead(d *schema.ResourceData, meta in
 				"grafana_workspace_domain":  workspace.GrafanaWorkspaceDomain,
 				"region_id":                 workspace.RegionId,
 				"resource_group_id":         workspace.ResourceGroupId,
-				"create_time":               workspace.CreateTime,
+				"create_time":               timeToString(workspace.GmtCreate),
 				"commercial":                workspace.Commercial,
 				"protocol":                  workspace.Protocol,
 			}
@@ -260,12 +261,12 @@ func dataSourceAliCloudArmsGrafanaWorkspacesRead(d *schema.ResourceData, meta in
 			tagsMap := make(map[string]interface{})
 			if workspace.Tags != nil {
 				for _, tag := range workspace.Tags {
-					tagsMap[tag.Key] = tag.Value
+					tagsMap[tea.StringValue(tag.Key)] = tea.StringValue(tag.Value)
 				}
 			}
 			mapping["tags"] = tagsMap
 
-			ids = append(ids, workspace.GrafanaWorkspaceId)
+			ids = append(ids, tea.StringValue(workspace.GrafanaWorkspaceId))
 			names = append(names, workspace.GrafanaWorkspaceName)
 			s = append(s, mapping)
 		}
@@ -281,10 +282,10 @@ func dataSourceAliCloudArmsGrafanaWorkspacesRead(d *schema.ResourceData, meta in
 				"status":                    workspace.Status,
 				"region_id":                 workspace.RegionId,
 				"resource_group_id":         workspace.ResourceGroupId,
-				"create_time":               workspace.CreateTime,
+				"create_time":               timeToString(workspace.GmtCreate),
 			}
 
-			ids = append(ids, workspace.GrafanaWorkspaceId)
+			ids = append(ids, tea.StringValue(workspace.GrafanaWorkspaceId))
 			names = append(names, workspace.GrafanaWorkspaceName)
 			s = append(s, mapping)
 		}
@@ -309,4 +310,11 @@ func dataSourceAliCloudArmsGrafanaWorkspacesRead(d *schema.ResourceData, meta in
 	}
 
 	return nil
+}
+
+func timeToString(t *int64) string {
+	if t == nil {
+		return ""
+	}
+	return time.Unix(*t/1000, 0).Format(time.RFC3339)
 }

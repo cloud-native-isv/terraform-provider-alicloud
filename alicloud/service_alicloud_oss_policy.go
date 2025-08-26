@@ -11,7 +11,10 @@ import (
 // BucketPolicy related functions
 
 func (s *OssService) DescribeOssBucketPolicy(id string) (object map[string]interface{}, err error) {
-	ossAPI := s.GetOssAPI()
+	ossAPI, err := s.GetOssAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
 	if ossAPI == nil {
 		return nil, WrapError(fmt.Errorf("OSS API client not available"))
 	}
@@ -24,12 +27,12 @@ func (s *OssService) DescribeOssBucketPolicy(id string) (object map[string]inter
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketPolicy", AlibabaCloudSdkGoERROR)
 	}
 
-	if policy == "" {
+	if policy == nil || policy.Policy == "" {
 		return object, WrapErrorf(NotFoundErr("BucketPolicy", id), NotFoundMsg, "policy is empty")
 	}
 
 	result := make(map[string]interface{})
-	result["Policy"] = policy
+	result["Policy"] = policy.Policy
 	return result, nil
 }
 

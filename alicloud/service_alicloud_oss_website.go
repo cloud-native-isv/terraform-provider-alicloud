@@ -11,7 +11,10 @@ import (
 // BucketWebsite related functions
 
 func (s *OssService) DescribeOssBucketWebsite(id string) (object map[string]interface{}, err error) {
-	ossAPI := s.GetOssAPI()
+	ossAPI, err := s.GetOssAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
 	if ossAPI == nil {
 		return nil, WrapError(fmt.Errorf("OSS API client not available"))
 	}
@@ -31,11 +34,6 @@ func (s *OssService) DescribeOssBucketWebsite(id string) (object map[string]inte
 	result := make(map[string]interface{})
 	result["WebsiteConfiguration"] = config
 	return result, nil
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.WebsiteConfiguration", response)
-	}
-
-	return v.(map[string]interface{}), nil
 }
 
 func (s *OssService) OssBucketWebsiteStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {

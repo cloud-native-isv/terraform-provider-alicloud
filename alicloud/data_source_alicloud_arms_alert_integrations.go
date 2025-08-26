@@ -252,10 +252,10 @@ func dataSourceAliCloudArmsAlertIntegrationsRead(d *schema.ResourceData, meta in
 			mapping["recover_time"] = object.IntegrationDetail.RecoverTime
 			mapping["duplicate_key"] = object.IntegrationDetail.DuplicateKey
 		} else {
-			mapping["description"] = ""
-			mapping["auto_recover"] = false
-			mapping["recover_time"] = 0
-			mapping["duplicate_key"] = ""
+			mapping["description"] = object.Description
+			mapping["auto_recover"] = object.AutoRecover
+			mapping["recover_time"] = object.RecoverTime
+			mapping["duplicate_key"] = object.DuplicateKey
 		}
 
 		ids = append(ids, fmt.Sprint(mapping["id"]))

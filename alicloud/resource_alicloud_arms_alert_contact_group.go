@@ -61,7 +61,22 @@ func resourceAliCloudArmsAlertContactGroupCreate(d *schema.ResourceData, meta in
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	var contactGroup *aliyunArmsAPI.AlertContactGroup
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		contactGroup, err = armsAPI.CreateAlertContactGroup(contactGroupName, contactIds)
+		// Create AlertContactGroup instance for API call
+		request := &aliyunArmsAPI.AlertContactGroup{
+			ContactGroupName: contactGroupName,
+		}
+
+		// Convert string slice to int64 slice
+		if len(contactIds) > 0 {
+			request.ContactIds = make([]int64, len(contactIds))
+			for i, idStr := range contactIds {
+				if id, parseErr := strconv.ParseInt(idStr, 10, 64); parseErr == nil {
+					request.ContactIds[i] = id
+				}
+			}
+		}
+
+		contactGroup, err = armsAPI.CreateOrUpdateContactGroup(request)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -73,10 +88,10 @@ func resourceAliCloudArmsAlertContactGroupCreate(d *schema.ResourceData, meta in
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_contact_group", "CreateAlertContactGroup", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_contact_group", "CreateOrUpdateContactGroup", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(contactGroup.ContactGroupId)
+	d.SetId(strconv.FormatInt(contactGroup.ContactGroupId, 10))
 
 	return resourceAliCloudArmsAlertContactGroupRead(d, meta)
 }
@@ -97,22 +112,36 @@ func resourceAliCloudArmsAlertContactGroupRead(d *schema.ResourceData, meta inte
 	}
 
 	// Search for the contact group using ARMS API
-	contactGroups, err := armsAPI.SearchAlertContactGroup([]string{d.Id()}, true)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "SearchAlertContactGroup", "Failed to search alert contact group")
+	contactGroupIdInt, parseErr := strconv.ParseInt(d.Id(), 10, 64)
+	if parseErr != nil {
+		return WrapErrorf(parseErr, DefaultErrorMsg, d.Id(), "ParseInt", AlibabaCloudSdkGoERROR)
 	}
 
-	if len(contactGroups) == 0 {
+	contactGroups, _, err := armsAPI.DescribeContactGroups("", true, 1, 100)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DescribeContactGroups", "Failed to describe alert contact groups")
+	}
+
+	var contactGroup *aliyunArmsAPI.AlertContactGroup
+	for _, group := range contactGroups {
+		if group.ContactGroupId == contactGroupIdInt {
+			contactGroup = group
+			break
+		}
+	}
+
+	if contactGroup == nil {
 		log.Printf("[DEBUG] Resource alicloud_arms_alert_contact_group not found, removing from state")
 		d.SetId("")
 		return nil
 	}
-
-	contactGroup := contactGroups[0]
 	d.Set("contact_group_name", contactGroup.ContactGroupName)
 
-	// Parse ContactIds string into slice
-	contactIdsItems := make([]string, 0)
+	// Convert ContactIds int64 slice to string slice for schema
+	contactIdsItems := make([]string, len(contactGroup.ContactIds))
+	for i, id := range contactGroup.ContactIds {
+		contactIdsItems[i] = strconv.FormatInt(id, 10)
+	}
 
 	d.Set("contact_ids", contactIdsItems)
 	return nil
@@ -154,7 +183,24 @@ func resourceAliCloudArmsAlertContactGroupUpdate(d *schema.ResourceData, meta in
 			if parseErr != nil {
 				return resource.NonRetryableError(WrapErrorf(parseErr, DefaultErrorMsg, d.Id(), "ParseInt", AlibabaCloudSdkGoERROR))
 			}
-			err := armsAPI.UpdateAlertContactGroup(contactGroupIdInt, contactGroupName, contactIds)
+
+			// Create AlertContactGroup instance for API call
+			request := &aliyunArmsAPI.AlertContactGroup{
+				ContactGroupId:   contactGroupIdInt,
+				ContactGroupName: contactGroupName,
+			}
+
+			// Convert string slice to int64 slice
+			if len(contactIds) > 0 {
+				request.ContactIds = make([]int64, len(contactIds))
+				for i, idStr := range contactIds {
+					if id, parseErr := strconv.ParseInt(idStr, 10, 64); parseErr == nil {
+						request.ContactIds[i] = id
+					}
+				}
+			}
+
+			_, err := armsAPI.CreateOrUpdateContactGroup(request)
 			if err != nil {
 				if NeedRetry(err) {
 					wait()
@@ -166,7 +212,7 @@ func resourceAliCloudArmsAlertContactGroupUpdate(d *schema.ResourceData, meta in
 		})
 
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateAlertContactGroup", AlibabaCloudSdkGoERROR)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "CreateOrUpdateContactGroup", AlibabaCloudSdkGoERROR)
 		}
 	}
 	return resourceAliCloudArmsAlertContactGroupRead(d, meta)
@@ -194,7 +240,7 @@ func resourceAliCloudArmsAlertContactGroupDelete(d *schema.ResourceData, meta in
 		if parseErr != nil {
 			return resource.NonRetryableError(WrapErrorf(parseErr, DefaultErrorMsg, d.Id(), "ParseInt", AlibabaCloudSdkGoERROR))
 		}
-		err := armsAPI.DeleteAlertContactGroup(contactGroupIdInt)
+		err := armsAPI.DeleteContactGroup(contactGroupIdInt)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()

@@ -12,7 +12,10 @@ import (
 // BucketLogging related functions
 
 func (s *OssService) DescribeOssBucketLogging(id string) (object map[string]interface{}, err error) {
-	ossAPI := s.GetOssAPI()
+	ossAPI, err := s.GetOssAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
 	if ossAPI == nil {
 		return nil, WrapError(fmt.Errorf("OSS API client not available"))
 	}
@@ -34,16 +37,6 @@ func (s *OssService) DescribeOssBucketLogging(id string) (object map[string]inte
 		"LoggingEnabled": config,
 	}
 	return result, nil
-	if err != nil {
-		return object, WrapErrorf(NotFoundErr("BucketLogging", id), NotFoundMsg, response)
-	}
-
-	currentStatus := v.(map[string]interface{})["TargetBucket"]
-	if currentStatus == nil {
-		return object, WrapErrorf(NotFoundErr("BucketLogging", id), NotFoundMsg, response)
-	}
-
-	return v.(map[string]interface{}), nil
 }
 
 func (s *OssService) OssBucketLoggingStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {

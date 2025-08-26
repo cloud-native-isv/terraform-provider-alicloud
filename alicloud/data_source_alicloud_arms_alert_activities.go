@@ -111,7 +111,7 @@ func dataSourceAliCloudArmsAlertActivitiesRead(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_activities", "NewArmsAPI", AlibabaCloudSdkGoERROR)
 	}
 
-	var objects []arms.AlertActivity
+	var objects []*arms.AlertActivity
 	var handlerNameRegex *regexp.Regexp
 	if v, ok := d.GetOk("name_regex"); ok {
 		r, err := regexp.Compile(v.(string))

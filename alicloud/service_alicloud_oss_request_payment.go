@@ -4,18 +4,24 @@ import (
 	"fmt"
 
 	"github.com/PaesslerAG/jsonpath"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/oss"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
 // BucketRequestPayment related functions
 
 func (s *OssService) DescribeOssBucketRequestPayment(id string) (object map[string]interface{}, err error) {
-	ossAPI := s.GetOssAPI()
+	ossAPI, err := s.GetOssAPI()
+	if err != nil {
+		return nil, WrapError(err)
+	}
 	if ossAPI == nil {
 		return nil, WrapError(fmt.Errorf("OSS API client not available"))
 	}
 
-	config, err := ossAPI.GetBucketRequestPayment(id)
+	config, err := ossAPI.GetBucketRequestPayment(&oss.GetBucketRequestPaymentRequest{
+		Bucket: id,
+	})
 	if err != nil {
 		if IsNotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("BucketRequestPayment", id), NotFoundMsg, err)
