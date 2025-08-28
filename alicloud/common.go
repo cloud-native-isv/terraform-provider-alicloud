@@ -46,6 +46,13 @@ const (
 	Serverless = PayType("Serverless")
 )
 
+// Pagination constants
+const (
+	DefaultStartPage = int64(1)
+	DefaultPageSize  = int64(100)
+	MaxSafePages     = int64(100) // Safety limit to prevent infinite loops
+)
+
 const (
 	NormalMode = "normal"
 	SafetyMode = "safety"

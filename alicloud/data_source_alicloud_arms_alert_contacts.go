@@ -179,13 +179,13 @@ func dataSourceAliCloudArmsAlertContactsRead(d *schema.ResourceData, meta interf
 	s := make([]map[string]interface{}, 0)
 	for _, object := range objects {
 		mapping := map[string]interface{}{
-			"id":                     fmt.Sprint(object["ContactId"]),
-			"alert_contact_id":       fmt.Sprint(object["ContactId"]),
-			"alert_contact_name":     object["ContactName"],
-			"create_time":            fmt.Sprint(object["CreateTime"]),
-			"email":                  object["Email"],
-			"phone_num":              object["Phone"],
-			"webhook":                object["Webhook"],
+			"id":                 fmt.Sprint(object["ContactId"]),
+			"alert_contact_id":   fmt.Sprint(object["ContactId"]),
+			"alert_contact_name": object["ContactName"],
+			"create_time":        fmt.Sprint(object["CreateTime"]),
+			"email":              object["Email"],
+			"phone_num":          object["Phone"],
+			"webhook":            object["Webhook"],
 		}
 		ids = append(ids, fmt.Sprint(mapping["id"]))
 		names = append(names, object["ContactName"])

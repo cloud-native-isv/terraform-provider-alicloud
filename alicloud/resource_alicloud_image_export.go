@@ -85,7 +85,7 @@ func resourceAliCloudImageExportRead(d *schema.ResourceData, meta interface{}) e
 func resourceAliCloudImageExportDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
-	ossService := OssService{client: client}
+	ossService := NewOssService(client)
 	var requestInfo *oss.Client
 	raw, err := client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
 		requestInfo = ossClient

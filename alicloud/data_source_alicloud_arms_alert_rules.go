@@ -10,112 +10,224 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAliCloudArmsAlertHistorys() *schema.Resource {
+func dataSourceAliCloudArmsAlertRules() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAliCloudArmsAlertHistorysRead,
+		Read: dataSourceAliCloudArmsAlertRulesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
+				Type:        schema.TypeList,
+				Optional:    true,
+				ForceNew:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Computed:    true,
+				Description: "A list of alert rule IDs to filter results",
 			},
 			"name_regex": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.ValidateRegexp,
 				ForceNew:     true,
+				Description:  "A regex string to filter results by alert rule name",
 			},
 			"names": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
+				Type:        schema.TypeList,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Computed:    true,
+				Description: "A list of alert rule names",
 			},
 			"alert_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "The name of the alert rule to filter results",
 			},
-			"severity": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+			"alert_type": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Alert type to filter results (e.g., PROMETHEUS_MONITORING_ALERT_RULE)",
 			},
-			"state": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ForceNew: true,
+			"cluster_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Cluster ID to filter Prometheus alert rules",
 			},
-			"dispatch_rule_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+			"status": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Alert rule status to filter results (RUNNING, STOPPED)",
+			},
+			"level": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Alert level to filter results (P1, P2, P3, P4)",
 			},
 			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "File name where to save data source results (after running `terraform apply`)",
 			},
 			"rules": {
-				Type:     schema.TypeList,
-				Computed: true,
+				Type:        schema.TypeList,
+				Computed:    true,
+				Description: "A list of ARMS alert rules",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The ID of the alert rule",
 						},
 						"alert_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The ID of the alert rule",
 						},
 						"alert_name": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The name of the alert rule",
 						},
-						"severity": {
-							Type:     schema.TypeString,
-							Computed: true,
+						"alert_type": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Alert type",
 						},
-						"state": {
-							Type:     schema.TypeInt,
-							Computed: true,
+						"alert_check_type": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Alert check type",
+						},
+						"level": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Alert level",
+						},
+						"message": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Alert message template",
+						},
+						"duration": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Duration threshold",
+						},
+						"promql": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "PromQL expression for Prometheus alerts",
+						},
+						"cluster_id": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Cluster ID for Prometheus alerts",
+						},
+						"status": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Alert rule status",
+						},
+						"auto_add_new_application": {
+							Type:        schema.TypeBool,
+							Computed:    true,
+							Description: "Auto add new applications",
+						},
+						"pids": {
+							Type:        schema.TypeList,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Computed:    true,
+							Description: "Process IDs for application monitoring",
+						},
+						"annotations": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Description: "Alert rule annotations",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Annotation key",
+									},
+									"value": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Annotation value",
+									},
+								},
+							},
+						},
+						"labels": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Description: "Alert rule labels",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Label key",
+									},
+									"value": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Label value",
+									},
+								},
+							},
+						},
+						"tags": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Description: "Alert rule tags",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Tag key",
+									},
+									"value": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "Tag value",
+									},
+								},
+							},
+						},
+						"notify_type": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Notification type",
 						},
 						"dispatch_rule_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Dispatch rule ID",
 						},
-						"dispatch_rule_name": {
-							Type:     schema.TypeString,
-							Computed: true,
+						"region": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Region",
+						},
+						"resource_group_id": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Resource group ID",
 						},
 						"create_time": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Create time",
 						},
-						"solution": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"owner": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"handler": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"acknowledge_time": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"recover_time": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"describe": {
-							Type:     schema.TypeString,
-							Computed: true,
+						"update_time": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Update time",
 						},
 					},
 				},
@@ -124,146 +236,119 @@ func dataSourceAliCloudArmsAlertHistorys() *schema.Resource {
 	}
 }
 
-func dataSourceAliCloudArmsAlertHistorysRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsAlertRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Build filter parameters from input
-	var stateFilter *int64
-	if v, ok := d.GetOk("state"); ok {
-		state := int64(v.(int))
-		stateFilter = &state
-	}
-
-	severity := ""
-	if v, ok := d.GetOk("severity"); ok {
-		severity = v.(string)
-	}
-
 	alertName := ""
 	if v, ok := d.GetOk("alert_name"); ok {
 		alertName = v.(string)
 	}
 
-	var dispatchRuleId *int64
-	if v, ok := d.GetOk("dispatch_rule_id"); ok {
-		id, err := strconv.ParseInt(v.(string), 10, 64)
-		if err == nil {
-			dispatchRuleId = &id
-		}
+	alertType := ""
+	if v, ok := d.GetOk("alert_type"); ok {
+		alertType = v.(string)
 	}
 
-	var alertNameRegex *regexp.Regexp
+	clusterId := ""
+	if v, ok := d.GetOk("cluster_id"); ok {
+		clusterId = v.(string)
+	}
+
+	status := ""
+	if v, ok := d.GetOk("status"); ok {
+		status = v.(string)
+	}
+
+	level := ""
+	if v, ok := d.GetOk("level"); ok {
+		level = v.(string)
+	}
+
+	var nameRegex *regexp.Regexp
 	if v, ok := d.GetOk("name_regex"); ok {
 		r, err := regexp.Compile(v.(string))
 		if err != nil {
 			return WrapError(err)
 		}
-		alertNameRegex = r
+		nameRegex = r
 	}
 
-	idsMap := make(map[string]string)
+	var ids []string
 	if v, ok := d.GetOk("ids"); ok {
 		for _, vv := range v.([]interface{}) {
 			if vv == nil {
 				continue
 			}
-			idsMap[vv.(string)] = vv.(string)
+			ids = append(ids, vv.(string))
 		}
 	}
 
-	// Call ARMS API to list alert rules
-	var allAlerts []*armsAPI.AlertEvent
-	page := int64(1)
-	size := int64(100) // Use reasonable page size
-
-	// Convert dispatchRuleId to slice if needed
-	var dispatchRuleIds []int64
-	if dispatchRuleId != nil {
-		dispatchRuleIds = append(dispatchRuleIds, *dispatchRuleId)
+	// Create ArmsService and list alert rules
+	service, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
 	}
+
+	// Get all alert rules by paginating through all pages
+	var allRules []*armsAPI.AlertRule
+	page := DefaultStartPage
+	pageSize := DefaultPageSize
 
 	for {
-		// Use ArmsService to list alert events
-		service := ArmsService{client: client}
-
-		// Call service method to list alert events
-		events, totalCount, err := service.ListArmsAlertEvents(page, size, false, false, stateFilter, severity, alertName, "", "", "", "", dispatchRuleIds)
+		// Get rules from current page (using simplified API)
+		rules, totalCount, err := service.ListArmsAlertRules(page, pageSize, alertName, alertType, clusterId, status, ids, nameRegex)
 		if err != nil {
-			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_rules", "ListArmsAlertEvents", "Failed to list alert events")
+			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_rules", "ListArmsAlertRules", AlibabaCloudSdkGoERROR)
 		}
 
-		// Apply filters
-		for _, alert := range events {
-			// Apply name regex filter if specified
-			if alertNameRegex != nil && !alertNameRegex.MatchString(alert.AlertName) {
-				continue
-			}
+		allRules = append(allRules, rules...)
 
-			// Apply ID filter if specified - AlertEvent doesn't have AlertId, use AlertName as identifier
-			if len(idsMap) > 0 {
-				// Use a hash of AlertName as ID since AlertEvent doesn't have an ID field
-				alertIdStr := alert.AlertName
-				if _, ok := idsMap[alertIdStr]; !ok {
-					continue
-				}
-			}
-
-			allAlerts = append(allAlerts, alert)
-		}
-
-		// Check if we've retrieved all results
-		if totalCount <= int64(len(events)) || len(events) < int(size) {
+		// Check if we've reached the end
+		if len(rules) == 0 || int64(len(rules)) < pageSize {
 			break
 		}
+
+		// If we have processed all available rules, break
+		if page*pageSize >= totalCount {
+			break
+		}
+
 		page++
+
+		// Safety check to prevent infinite loops
+		if page > MaxSafePages {
+			break
+		}
 	}
 
-	// Build output data
-	ids := make([]string, 0)
+	// Apply level filter if specified (client-side filtering)
+	var filteredRules []*armsAPI.AlertRule
+	for _, rule := range allRules {
+		if level != "" && rule.Level != level {
+			continue
+		}
+		filteredRules = append(filteredRules, rule)
+	}
+
+	// Build output data using strong typing and helper functions
+	ruleIds := make([]string, 0)
 	names := make([]interface{}, 0)
 	s := make([]map[string]interface{}, 0)
 
-	for _, alert := range allAlerts {
-		// Since AlertEvent doesn't have AlertId, use AlertName as identifier
-		alertIdStr := alert.AlertName
+	for _, rule := range filteredRules {
+		alertIdStr := strconv.FormatInt(rule.AlertId, 10)
 
-		// Parse state from status string
-		state := 0
-		switch alert.Status {
-		case "Active":
-			state = 1
-		case "Resolved":
-			state = 2
-		case "Silenced":
-			state = 3
-		default:
-			state = 0
-		}
+		// Convert AlertRule to terraform schema format using helper function
+		mapping := convertAlertRuleToTerraformSchema(rule)
 
-		mapping := map[string]interface{}{
-			"id":                 alertIdStr,
-			"alert_id":           alertIdStr,
-			"alert_name":         alert.AlertName,
-			"severity":           alert.Severity,
-			"state":              state,
-			"dispatch_rule_id":   "", // AlertEvent doesn't have dispatch rule info
-			"dispatch_rule_name": "",
-			"create_time":        alert.StartTime,
-			"solution":           "", // Not available in AlertEvent
-			"owner":              "", // Not available in AlertEvent
-			"handler":            alert.HandlerName,
-			"acknowledge_time":   0, // Not available in AlertEvent
-			"recover_time":       0, // Not available in AlertEvent
-			"describe":           alert.Description,
-		}
-
-		ids = append(ids, alertIdStr)
-		names = append(names, alert.AlertName)
+		ruleIds = append(ruleIds, alertIdStr)
+		names = append(names, rule.AlertName)
 		s = append(s, mapping)
 	}
 
-	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("ids", ids); err != nil {
+	d.SetId(dataResourceIdHash(ruleIds))
+	if err := d.Set("ids", ruleIds); err != nil {
 		return WrapError(err)
 	}
 
@@ -274,9 +359,97 @@ func dataSourceAliCloudArmsAlertHistorysRead(d *schema.ResourceData, meta interf
 	if err := d.Set("rules", s); err != nil {
 		return WrapError(err)
 	}
+
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		writeToFile(output.(string), s)
 	}
 
 	return nil
+}
+
+// =============================================================================
+// Helper Functions for AlertRule Type Conversion
+// =============================================================================
+
+// convertAlertRuleToTerraformSchema converts API AlertRule to Terraform schema format
+func convertAlertRuleToTerraformSchema(rule *armsAPI.AlertRule) map[string]interface{} {
+	if rule == nil {
+		return nil
+	}
+
+	alertIdStr := strconv.FormatInt(rule.AlertId, 10)
+	dispatchRuleIdStr := strconv.FormatInt(rule.DispatchRuleId, 10)
+
+	// Convert annotations using helper function
+	annotations := convertAnnotationsToTerraformFormat(rule.Annotations)
+
+	// Convert labels using helper function
+	labels := convertLabelsToTerraformFormat(rule.Labels)
+
+	// Convert tags using helper function
+	tags := convertTagsToTerraformFormat(rule.Tags)
+
+	// Create rule mapping with comprehensive fields from AlertRule struct
+	mapping := map[string]interface{}{
+		"id":                       alertIdStr,
+		"alert_id":                 alertIdStr,
+		"alert_name":               rule.AlertName,
+		"alert_type":               rule.AlertType,
+		"alert_check_type":         rule.AlertCheckType,
+		"level":                    rule.Level,
+		"message":                  rule.Message,
+		"duration":                 rule.Duration,
+		"promql":                   rule.PromQL,
+		"cluster_id":               rule.ClusterId,
+		"status":                   rule.Status,
+		"auto_add_new_application": rule.AutoAddNewApplication,
+		"pids":                     rule.Pids,
+		"annotations":              annotations,
+		"labels":                   labels,
+		"tags":                     tags,
+		"notify_type":              rule.NotifyType,
+		"dispatch_rule_id":         dispatchRuleIdStr,
+		"region":                   rule.Region,
+		"resource_group_id":        rule.ResourceGroupId,
+		"create_time":              rule.CreateTime,
+		"update_time":              rule.UpdateTime,
+	}
+
+	return mapping
+}
+
+// convertAnnotationsToTerraformFormat converts AlertRuleAnnotation slice to Terraform format
+func convertAnnotationsToTerraformFormat(annotations []armsAPI.AlertRuleAnnotation) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(annotations))
+	for _, annotation := range annotations {
+		result = append(result, map[string]interface{}{
+			"key":   annotation.Key,
+			"value": annotation.Value,
+		})
+	}
+	return result
+}
+
+// convertLabelsToTerraformFormat converts AlertRuleLabel slice to Terraform format
+func convertLabelsToTerraformFormat(labels []armsAPI.AlertRuleLabel) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(labels))
+	for _, label := range labels {
+		result = append(result, map[string]interface{}{
+			"key":   label.Key,
+			"value": label.Value,
+		})
+	}
+	return result
+}
+
+// convertTagsToTerraformFormat converts AlertRuleTag slice to Terraform format
+func convertTagsToTerraformFormat(tags []armsAPI.AlertRuleTag) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(tags))
+	for _, tag := range tags {
+		result = append(result, map[string]interface{}{
+			"key":   tag.Key,
+			"value": tag.Value,
+		})
+	}
+	return result
 }

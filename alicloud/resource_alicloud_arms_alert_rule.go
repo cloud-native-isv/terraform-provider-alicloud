@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	armsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -22,8 +23,8 @@ func resourceAliCloudArmsAlertRule() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(5 * time.Minute),
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
@@ -33,102 +34,161 @@ func resourceAliCloudArmsAlertRule() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 100),
 				Description:  "The name of the alert rule.",
 			},
-			"severity": {
+			"level": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"P1", "P2", "P3", "P4", "P5", "P6"}, false),
-				Description:  "The severity level of the alert rule. Valid values: P1, P2, P3, P4, P5, P6.",
-			},
-			"description": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The description of the alert rule.",
-			},
-			"integration_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "ARMS",
-				Description: "The integration type of the alert rule.",
-			},
-			"cluster_id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The cluster ID associated with the alert rule.",
-			},
-			"expression": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The PromQL expression for the alert rule.",
-			},
-			"duration": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Default:     60,
-				Description: "The duration for which the condition must be true to fire the alert (in seconds).",
+				ValidateFunc: validation.StringInSlice([]string{"P1", "P2", "P3", "P4"}, false),
+				Description:  "The severity level of the alert rule. Valid values: P1, P2, P3, P4.",
 			},
 			"message": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The message template for the alert.",
+				Description: "The message template of the alert rule.",
 			},
-			"check_type": {
+			"alert_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "PROMETHEUS_MONITORING_ALERT_RULE",
+				ValidateFunc: validation.StringInSlice([]string{"PROMETHEUS_MONITORING_ALERT_RULE", "APPLICATION_MONITORING_ALERT_RULE", "BROWSER_MONITORING_ALERT_RULE"}, false),
+				Description:  "The type of the alert rule.",
+			},
+			"alert_check_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "STATIC",
+				ValidateFunc: validation.StringInSlice([]string{"STATIC", "CUSTOM"}, false),
+				Description:  "The check type of the alert rule.",
+			},
+			"cluster_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "CUSTOM",
-				Description: "The check type of the alert rule.",
+				Description: "The cluster ID for Prometheus alert rules.",
 			},
-			"alert_group": {
-				Type:        schema.TypeInt,
+			"promql": {
+				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     -1,
-				Description: "The alert group ID.",
+				Description: "The PromQL expression for Prometheus alert rules.",
 			},
-			"labels": {
-				Type:        schema.TypeMap,
+			"duration": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "1m",
+				Description: "The duration threshold for the alert rule (e.g., 1m, 5m, 10m).",
+			},
+			"auto_add_new_application": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether to automatically add new applications to the alert rule.",
+			},
+			"pids": {
+				Type:        schema.TypeList,
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "The labels for the alert rule.",
+				Description: "Process IDs for application monitoring alert rules.",
 			},
-			"owner": {
+			"annotations": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Alert rule annotations.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Annotation key.",
+						},
+						"value": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Annotation value.",
+						},
+					},
+				},
+			},
+			"labels": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Alert rule labels.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Label key.",
+						},
+						"value": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Label value.",
+						},
+					},
+				},
+			},
+			"tags": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Alert rule tags.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Tag key.",
+						},
+						"value": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Tag value.",
+						},
+					},
+				},
+			},
+			"status": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "RUNNING",
+				ValidateFunc: validation.StringInSlice([]string{"RUNNING", "STOPPED"}, false),
+				Description:  "The status of the alert rule.",
+			},
+			"notify_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "ALERT_MANAGER",
+				ValidateFunc: validation.StringInSlice([]string{"ALERT_MANAGER", "DISPATCH_RULE"}, false),
+				Description:  "The notification type of the alert rule.",
+			},
+			"dispatch_rule_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The owner of the alert rule.",
+				Description: "The dispatch rule ID for the alert rule.",
 			},
-			"handler": {
+			"resource_group_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The current handler of the alert rule.",
-			},
-			"solution": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The solution for the alert.",
+				Computed:    true,
+				Description: "The resource group ID.",
 			},
 			// Computed fields
 			"alert_id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The ID of the alert rule.",
 			},
-			"state": {
-				Type:        schema.TypeInt,
+			"region": {
+				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The state of the alert rule. 0=pending, 1=processing, 2=resolved.",
+				Description: "The region of the alert rule.",
 			},
 			"create_time": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The creation time of the alert rule.",
 			},
-			"dispatch_rule_id": {
+			"update_time": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The dispatch rule ID associated with the alert.",
-			},
-			"dispatch_rule_name": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The dispatch rule name associated with the alert.",
+				Description: "The update time of the alert rule.",
 			},
 		},
 	}
@@ -136,103 +196,113 @@ func resourceAliCloudArmsAlertRule() *schema.Resource {
 
 func resourceAliCloudArmsAlertRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService, err := NewArmsService(client)
+	service, err := NewArmsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	// Prepare rule parameters
-	rule := make(map[string]interface{})
-
-	// Set expression/PromQL
-	if v, ok := d.GetOk("expression"); ok {
-		rule["expression"] = v
+	// Build AlertRule object from schema data
+	alertRule, err := buildAlertRuleFromSchema(d)
+	if err != nil {
+		return WrapError(err)
 	}
 
-	// Set duration
-	if v, ok := d.GetOk("duration"); ok {
-		rule["duration"] = v
-	}
+	// Create alert rule using service layer
+	var result *armsAPI.AlertRule
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		result, err = service.CreateArmsAlertRule(alertRule)
+		if err != nil {
+			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable", "SystemBusy"}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
 
-	// Set message
-	if v, ok := d.GetOk("message"); ok {
-		rule["message"] = v
-	}
-
-	// Set check type
-	if v, ok := d.GetOk("check_type"); ok {
-		rule["check_type"] = v
-	}
-
-	// Set alert group
-	if v, ok := d.GetOk("alert_group"); ok {
-		rule["alert_group"] = v
-	}
-
-	// Set labels
-	if v, ok := d.GetOk("labels"); ok {
-		rule["labels"] = v
-	}
-
-	// Call service function to create alert rule
-	alertId, err := armsService.CreateArmsAlertRule(
-		d.Get("alert_name").(string),
-		d.Get("severity").(string),
-		d.Get("description").(string),
-		d.Get("integration_type").(string),
-		d.Get("cluster_id").(string),
-		rule,
-	)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_rule", "CreateArmsAlertRule", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprint(alertId))
+	// Set resource ID using the alert ID
+	d.SetId(strconv.FormatInt(result.AlertId, 10))
 
 	return resourceAliCloudArmsAlertRuleRead(d, meta)
 }
 
 func resourceAliCloudArmsAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService, err := NewArmsService(client)
+	service, err := NewArmsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	alertId, err := strconv.ParseInt(d.Id(), 10, 64)
+	// Get alert rule from service layer
+	object, err := service.DescribeArmsAlertRule(d.Id())
 	if err != nil {
-		return WrapError(err)
-	}
-
-	object, err := armsService.DescribeArmsAlertRule(d.Id())
-	if err != nil {
-		if IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_arms_alert_rule armsService.DescribeArmsAlertRule Failed!!! %s", err)
+		if !d.IsNewResource() && IsNotFoundError(err) {
+			log.Printf("[DEBUG] Resource alicloud_arms_alert_rule DescribeArmsAlertRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
 
-	d.Set("alert_id", alertId)
-	d.Set("alert_name", object["AlertName"])
-	d.Set("severity", object["Severity"])
-	d.Set("description", object["Describe"])
-	d.Set("owner", object["Owner"])
-	d.Set("handler", object["Handler"])
-	d.Set("solution", object["Solution"])
-	d.Set("create_time", object["CreateTime"])
+	// Set all schema fields from AlertRule object
+	d.Set("alert_id", strconv.FormatInt(object.AlertId, 10))
+	d.Set("alert_name", object.AlertName)
+	d.Set("alert_type", object.AlertType)
+	d.Set("alert_check_type", object.AlertCheckType)
+	d.Set("level", object.Level)
+	d.Set("message", object.Message)
+	d.Set("duration", object.Duration)
+	d.Set("promql", object.PromQL)
+	d.Set("cluster_id", object.ClusterId)
+	d.Set("status", object.Status)
+	d.Set("auto_add_new_application", object.AutoAddNewApplication)
+	d.Set("pids", object.Pids)
+	d.Set("notify_type", object.NotifyType)
+	d.Set("dispatch_rule_id", strconv.FormatInt(object.DispatchRuleId, 10))
+	d.Set("region", object.Region)
+	d.Set("resource_group_id", object.ResourceGroupId)
+	d.Set("create_time", object.CreateTime)
+	d.Set("update_time", object.UpdateTime)
 
-	if state, ok := object["State"]; ok {
-		d.Set("state", formatInt(state))
+	// Convert annotations to terraform format
+	if len(object.Annotations) > 0 {
+		annotations := make([]map[string]interface{}, 0, len(object.Annotations))
+		for _, annotation := range object.Annotations {
+			annotations = append(annotations, map[string]interface{}{
+				"key":   annotation.Key,
+				"value": annotation.Value,
+			})
+		}
+		d.Set("annotations", annotations)
 	}
 
-	if dispatchRuleId, ok := object["DispatchRuleId"]; ok {
-		d.Set("dispatch_rule_id", fmt.Sprint(formatInt(dispatchRuleId)))
+	// Convert labels to terraform format
+	if len(object.Labels) > 0 {
+		labels := make([]map[string]interface{}, 0, len(object.Labels))
+		for _, label := range object.Labels {
+			labels = append(labels, map[string]interface{}{
+				"key":   label.Key,
+				"value": label.Value,
+			})
+		}
+		d.Set("labels", labels)
 	}
 
-	if dispatchRuleName, ok := object["DispatchRuleName"]; ok {
-		d.Set("dispatch_rule_name", dispatchRuleName)
+	// Convert tags to terraform format
+	if len(object.Tags) > 0 {
+		tags := make([]map[string]interface{}, 0, len(object.Tags))
+		for _, tag := range object.Tags {
+			tags = append(tags, map[string]interface{}{
+				"key":   tag.Key,
+				"value": tag.Value,
+			})
+		}
+		d.Set("tags", tags)
 	}
 
 	return nil
@@ -240,104 +310,41 @@ func resourceAliCloudArmsAlertRuleRead(d *schema.ResourceData, meta interface{})
 
 func resourceAliCloudArmsAlertRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var response map[string]interface{}
-
-	alertId, err := strconv.ParseInt(d.Id(), 10, 64)
+	service, err := NewArmsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	update := false
-	request := map[string]interface{}{
-		"AlertId":   alertId,
-		"AlertType": "PROMETHEUS_MONITORING_ALERT_RULE",
-		"RegionId":  client.RegionId,
+	// Parse alert ID from resource ID
+	alertId, err := strconv.ParseInt(d.Id(), 10, 64)
+	if err != nil {
+		return WrapError(fmt.Errorf("invalid alert rule ID format: %s", d.Id()))
 	}
 
-	if d.HasChange("alert_name") {
-		update = true
-		request["AlertName"] = d.Get("alert_name")
+	// Build AlertRule object from schema data
+	alertRule, err := buildAlertRuleFromSchema(d)
+	if err != nil {
+		return WrapError(err)
 	}
 
-	if d.HasChange("severity") {
-		update = true
-		request["Level"] = d.Get("severity")
-	}
+	// Set the alert ID for update
+	alertRule.AlertId = alertId
 
-	if d.HasChange("description") {
-		update = true
-		request["Message"] = d.Get("description")
-	}
-
-	if d.HasChange("cluster_id") {
-		update = true
-		request["ClusterId"] = d.Get("cluster_id")
-	}
-
-	if d.HasChange("expression") {
-		update = true
-		request["PromQL"] = d.Get("expression")
-	}
-
-	if d.HasChange("duration") {
-		update = true
-		request["Duration"] = d.Get("duration")
-	}
-
-	if d.HasChange("message") {
-		update = true
-		request["Message"] = d.Get("message")
-	}
-
-	if d.HasChange("check_type") {
-		update = true
-		request["AlertCheckType"] = d.Get("check_type")
-	}
-
-	if d.HasChange("alert_group") {
-		update = true
-		request["AlertGroup"] = d.Get("alert_group")
-	}
-
-	if d.HasChange("labels") {
-		update = true
-		if v, ok := d.GetOk("labels"); ok {
-			labelsMap := v.(map[string]interface{})
-			if len(labelsMap) > 0 {
-				labelsMaps := make([]map[string]interface{}, 0)
-				for key, value := range labelsMap {
-					labelsMaps = append(labelsMaps, map[string]interface{}{
-						"name":  key,
-						"value": fmt.Sprintf("%v", value),
-					})
-				}
-				if labelString, err := convertArrayObjectToJsonString(labelsMaps); err == nil {
-					request["Labels"] = labelString
-				} else {
-					return WrapError(err)
-				}
-			}
-		}
-	}
-
-	if update {
-		action := "CreateOrUpdateAlertRule"
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
+	// Update alert rule using service layer
+	err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+		_, err = service.UpdateArmsAlertRule(alertRule)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable", "SystemBusy"}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
 		}
+		return nil
+	})
+
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateArmsAlertRule", AlibabaCloudSdkGoERROR)
 	}
 
 	return resourceAliCloudArmsAlertRuleRead(d, meta)
@@ -345,34 +352,136 @@ func resourceAliCloudArmsAlertRuleUpdate(d *schema.ResourceData, meta interface{
 
 func resourceAliCloudArmsAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	action := "DeleteAlertRule"
-	var response map[string]interface{}
-
-	alertId, err := strconv.ParseInt(d.Id(), 10, 64)
+	service, err := NewArmsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	request := map[string]interface{}{
-		"AlertId": alertId,
+	// Parse alert ID from resource ID
+	alertId, err := strconv.ParseInt(d.Id(), 10, 64)
+	if err != nil {
+		return WrapError(fmt.Errorf("invalid alert rule ID format: %s", d.Id()))
 	}
 
-	wait := incrementalWait(3*time.Second, 3*time.Second)
+	// Delete alert rule using service layer
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
+		err = service.DeleteArmsAlertRule(alertId)
 		if err != nil {
-			if NeedRetry(err) {
-				wait()
+			if IsNotFoundError(err) {
+				return nil
+			}
+			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable", "SystemBusy"}) {
+				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
 		return nil
 	})
-	addDebug(action, response, request)
+
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteArmsAlertRule", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil
+}
+
+// =============================================================================
+// Helper Functions for AlertRule Resource
+// =============================================================================
+
+// buildAlertRuleFromSchema converts Terraform schema data to AlertRule object
+func buildAlertRuleFromSchema(d *schema.ResourceData) (*armsAPI.AlertRule, error) {
+	alertRule := &armsAPI.AlertRule{
+		AlertName:             d.Get("alert_name").(string),
+		Level:                 d.Get("level").(string),
+		AlertType:             d.Get("alert_type").(string),
+		AlertCheckType:        d.Get("alert_check_type").(string),
+		AutoAddNewApplication: d.Get("auto_add_new_application").(bool),
+		NotifyType:            d.Get("notify_type").(string),
+	}
+
+	// Set optional string fields
+	if v, ok := d.GetOk("message"); ok {
+		alertRule.Message = v.(string)
+	}
+	if v, ok := d.GetOk("cluster_id"); ok {
+		alertRule.ClusterId = v.(string)
+	}
+	if v, ok := d.GetOk("promql"); ok {
+		alertRule.PromQL = v.(string)
+	}
+	if v, ok := d.GetOk("duration"); ok {
+		alertRule.Duration = v.(string)
+	}
+	if v, ok := d.GetOk("status"); ok {
+		alertRule.Status = v.(string)
+	}
+	if v, ok := d.GetOk("resource_group_id"); ok {
+		alertRule.ResourceGroupId = v.(string)
+	}
+
+	// Set dispatch rule ID if provided
+	if v, ok := d.GetOk("dispatch_rule_id"); ok {
+		dispatchRuleId, err := strconv.ParseInt(v.(string), 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid dispatch_rule_id format: %s", v.(string))
+		}
+		alertRule.DispatchRuleId = dispatchRuleId
+	}
+
+	// Set PIDs array
+	if v, ok := d.GetOk("pids"); ok {
+		pids := make([]string, 0)
+		for _, pid := range v.([]interface{}) {
+			if pid != nil {
+				pids = append(pids, pid.(string))
+			}
+		}
+		alertRule.Pids = pids
+	}
+
+	// Set annotations
+	if v, ok := d.GetOk("annotations"); ok {
+		annotations := make([]armsAPI.AlertRuleAnnotation, 0)
+		for _, annotation := range v.([]interface{}) {
+			if annotationMap, ok := annotation.(map[string]interface{}); ok {
+				annotations = append(annotations, armsAPI.AlertRuleAnnotation{
+					Key:   annotationMap["key"].(string),
+					Value: annotationMap["value"].(string),
+				})
+			}
+		}
+		alertRule.Annotations = annotations
+	}
+
+	// Set labels
+	if v, ok := d.GetOk("labels"); ok {
+		labels := make([]armsAPI.AlertRuleLabel, 0)
+		for _, label := range v.([]interface{}) {
+			if labelMap, ok := label.(map[string]interface{}); ok {
+				labels = append(labels, armsAPI.AlertRuleLabel{
+					Key:   labelMap["key"].(string),
+					Value: labelMap["value"].(string),
+				})
+			}
+		}
+		alertRule.Labels = labels
+	}
+
+	// Set tags
+	if v, ok := d.GetOk("tags"); ok {
+		tags := make([]armsAPI.AlertRuleTag, 0)
+		for _, tag := range v.([]interface{}) {
+			if tagMap, ok := tag.(map[string]interface{}); ok {
+				tags = append(tags, armsAPI.AlertRuleTag{
+					Key:   tagMap["key"].(string),
+					Value: tagMap["value"].(string),
+				})
+			}
+		}
+		alertRule.Tags = tags
+	}
+
+	return alertRule, nil
 }

@@ -61,12 +61,12 @@ func (s *ArmsService) ArmsAlertRuleStateRefreshFunc(id string, failStates []stri
 		}
 
 		for _, failState := range failStates {
-			if fmt.Sprint(object["Status"]) == failState {
-				return object, fmt.Sprint(object["Status"]), WrapError(Error(FailedToReachTargetStatus, fmt.Sprint(object["Status"])))
+			if object.Status == failState {
+				return object, object.Status, WrapError(Error(FailedToReachTargetStatus, object.Status))
 			}
 		}
 
-		return object, fmt.Sprint(object["Status"]), nil
+		return object, object.Status, nil
 	}
 }
 

@@ -3,6 +3,7 @@ package alicloud
 import (
 	"fmt"
 
+	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
@@ -159,6 +160,51 @@ func (s *ArmsService) DescribeArmsEnvServiceMonitor(id string) (object map[strin
 		"Status":             "Success",
 		"ConfigYaml":         "",
 	}, nil
+}
+
+// CreateArmsPrometheusRemoteWrite creates an ARMS Prometheus remote write configuration
+func (s *ArmsService) CreateArmsPrometheusRemoteWrite(clusterId, remoteWriteYaml string) (*aliyunArmsAPI.PrometheusRemoteWrite, error) {
+	if s.armsAPI != nil {
+		// Call the API to create remote write
+		result, err := s.armsAPI.CreatePrometheusRemoteWrite(clusterId, remoteWriteYaml)
+		if err != nil {
+			return nil, WrapErrorf(err, DefaultErrorMsg, "ArmsPrometheusRemoteWrite", "CreatePrometheusRemoteWrite", AlibabaCloudSdkGoERROR)
+		}
+		return result, nil
+	}
+
+	// Fallback to placeholder
+	return nil, WrapError(Error("ARMS API not initialized"))
+}
+
+// UpdateArmsPrometheusRemoteWrite updates an ARMS Prometheus remote write configuration
+func (s *ArmsService) UpdateArmsPrometheusRemoteWrite(clusterId, remoteWriteName, remoteWriteYaml string) (*aliyunArmsAPI.PrometheusRemoteWrite, error) {
+	if s.armsAPI != nil {
+		// Call the API to update remote write
+		result, err := s.armsAPI.UpdatePrometheusRemoteWrite(clusterId, remoteWriteName, remoteWriteYaml)
+		if err != nil {
+			return nil, WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%s:%s", clusterId, remoteWriteName), "UpdatePrometheusRemoteWrite", AlibabaCloudSdkGoERROR)
+		}
+		return result, nil
+	}
+
+	// Fallback to placeholder
+	return nil, WrapError(Error("ARMS API not initialized"))
+}
+
+// DeleteArmsPrometheusRemoteWrite deletes an ARMS Prometheus remote write configuration
+func (s *ArmsService) DeleteArmsPrometheusRemoteWrite(clusterId string, remoteWriteNames []string) error {
+	if s.armsAPI != nil {
+		// Call the API to delete remote write
+		err := s.armsAPI.DeletePrometheusRemoteWrite(clusterId, remoteWriteNames)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%s:%v", clusterId, remoteWriteNames), "DeletePrometheusRemoteWrite", AlibabaCloudSdkGoERROR)
+		}
+		return nil
+	}
+
+	// Fallback to placeholder
+	return WrapError(Error("ARMS API not initialized"))
 }
 
 // DescribeArmsRemoteWrite describes ARMS Prometheus remote write configuration

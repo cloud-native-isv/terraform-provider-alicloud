@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -56,35 +57,34 @@ func resourceAliCloudArmsPrometheusRemoteWrite() *schema.Resource {
 func resourceAliCloudArmsRemoteWriteCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
-	action := "AddPrometheusRemoteWrite"
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var err error
-	request = make(map[string]interface{})
-	request["ClusterId"] = d.Get("cluster_id")
-	request["RegionId"] = client.RegionId
+	// Create Arms service
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	request["RemoteWriteYaml"] = d.Get("remote_write_yaml")
-	wait := incrementalWait(3*time.Second, 5*time.Second)
+	clusterId := d.Get("cluster_id").(string)
+	remoteWriteYaml := d.Get("remote_write_yaml").(string)
+
+	// Create the remote write using service layer
+	var result *aliyunArmsAPI.PrometheusRemoteWrite
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
-
+		result, err = armsService.CreateArmsPrometheusRemoteWrite(clusterId, remoteWriteYaml)
 		if err != nil {
 			if NeedRetry(err) {
-				wait()
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
-		addDebug(action, response, request)
 		return nil
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_prometheus_remote_write", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_prometheus_remote_write", "CreateArmsPrometheusRemoteWrite", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprintf("%v:%v", request["ClusterId"], response["Data"]))
+	// Set the resource ID as clusterId:remoteWriteName
+	d.SetId(fmt.Sprintf("%s:%s", SafeStringValue(result.ClusterId), SafeStringValue(result.RemoteWriteName)))
 
 	return resourceAliCloudArmsRemoteWriteRead(d, meta)
 }
@@ -115,73 +115,81 @@ func resourceAliCloudArmsRemoteWriteRead(d *schema.ResourceData, meta interface{
 
 func resourceAliCloudArmsRemoteWriteUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	update := false
+
+	// Create Arms service
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Parse ID parts
 	parts := strings.Split(d.Id(), ":")
-	action := "UpdatePrometheusRemoteWrite"
-	var err error
-	request = make(map[string]interface{})
-	request["RemoteWriteName"] = parts[1]
-	request["ClusterId"] = parts[0]
-	request["RegionId"] = client.RegionId
+	if len(parts) != 2 {
+		return WrapError(Error("invalid resource ID format"))
+	}
+	clusterId := parts[0]
+	remoteWriteName := parts[1]
+
+	update := false
+	var remoteWriteYaml string
+
 	if d.HasChange("remote_write_yaml") {
 		update = true
+		remoteWriteYaml = d.Get("remote_write_yaml").(string)
 	}
-	request["RemoteWriteYaml"] = d.Get("remote_write_yaml")
-	if update {
-		wait := incrementalWait(3*time.Second, 5*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
 
+	if update {
+		// Update using service layer
+		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			_, err = armsService.UpdateArmsPrometheusRemoteWrite(clusterId, remoteWriteName, remoteWriteYaml)
 			if err != nil {
 				if NeedRetry(err) {
-					wait()
 					return resource.RetryableError(err)
 				}
 				return resource.NonRetryableError(err)
 			}
-			addDebug(action, response, request)
 			return nil
 		})
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-		}
 
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateArmsPrometheusRemoteWrite", AlibabaCloudSdkGoERROR)
+		}
 	}
+
 	return resourceAliCloudArmsRemoteWriteRead(d, meta)
 }
 
 func resourceAliCloudArmsRemoteWriteDelete(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
+
+	// Create Arms service
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Parse ID parts
 	parts := strings.Split(d.Id(), ":")
-	action := "DeletePrometheusRemoteWrite"
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var err error
-	request = make(map[string]interface{})
-	request["ClusterId"] = parts[0]
-	request["RemoteWriteNames"] = parts[1]
-	request["RegionId"] = client.RegionId
+	if len(parts) != 2 {
+		return WrapError(Error("invalid resource ID format"))
+	}
+	clusterId := parts[0]
+	remoteWriteName := parts[1]
 
-	wait := incrementalWait(3*time.Second, 5*time.Second)
+	// Delete using service layer
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.RpcPost("ARMS", "2019-08-08", action, nil, request, false)
-
+		err = armsService.DeleteArmsPrometheusRemoteWrite(clusterId, []string{remoteWriteName})
 		if err != nil {
 			if NeedRetry(err) {
-				wait()
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
 		}
-		addDebug(action, response, request)
 		return nil
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteArmsPrometheusRemoteWrite", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil

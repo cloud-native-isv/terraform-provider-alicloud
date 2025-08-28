@@ -4,8 +4,70 @@ import (
 	"fmt"
 	"strconv"
 
+	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
+
+// CreateArmsAlertSilencePolicy creates an ARMS alert silence policy
+func (s *ArmsService) CreateArmsAlertSilencePolicy(policy *aliyunArmsAPI.AlertSilencePolicy) (*aliyunArmsAPI.AlertSilencePolicy, error) {
+	if s.armsAPI != nil {
+		// Call the API to create silence policy
+		result, err := s.armsAPI.CreateOrUpdateAlertSilencePolicy(
+			policy.SilenceName,
+			policy.EffectiveTimeType,
+			policy.TimePeriod,
+			policy.TimeSlots,
+			policy.State,
+			policy.MatchingRules,
+			nil, // silenceId is nil for create
+		)
+		if err != nil {
+			return nil, WrapErrorf(err, DefaultErrorMsg, "ArmsAlertSilencePolicy", "CreateOrUpdateAlertSilencePolicy", AlibabaCloudSdkGoERROR)
+		}
+		return result, nil
+	}
+
+	// Fallback to placeholder
+	return nil, WrapError(Error("ARMS API not initialized"))
+}
+
+// UpdateArmsAlertSilencePolicy updates an ARMS alert silence policy
+func (s *ArmsService) UpdateArmsAlertSilencePolicy(silenceId int64, policy *aliyunArmsAPI.AlertSilencePolicy) (*aliyunArmsAPI.AlertSilencePolicy, error) {
+	if s.armsAPI != nil {
+		// Call the API to update silence policy
+		result, err := s.armsAPI.UpdateAlertSilencePolicy(
+			silenceId,
+			policy.SilenceName,
+			policy.EffectiveTimeType,
+			policy.TimePeriod,
+			policy.TimeSlots,
+			policy.State,
+			policy.MatchingRules,
+		)
+		if err != nil {
+			return nil, WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%d", silenceId), "UpdateAlertSilencePolicy", AlibabaCloudSdkGoERROR)
+		}
+		return result, nil
+	}
+
+	// Fallback to placeholder
+	return nil, WrapError(Error("ARMS API not initialized"))
+}
+
+// DeleteArmsAlertSilencePolicy deletes an ARMS alert silence policy
+func (s *ArmsService) DeleteArmsAlertSilencePolicy(silenceId int64) error {
+	if s.armsAPI != nil {
+		// Call the API to delete silence policy
+		err := s.armsAPI.DeleteAlertSilencePolicy(silenceId)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%d", silenceId), "DeleteAlertSilencePolicy", AlibabaCloudSdkGoERROR)
+		}
+		return nil
+	}
+
+	// Fallback to placeholder
+	return WrapError(Error("ARMS API not initialized"))
+}
 
 // DescribeArmsAlertSilencePolicy describes an ARMS alert silence policy
 func (s *ArmsService) DescribeArmsAlertSilencePolicy(id string) (object map[string]interface{}, err error) {

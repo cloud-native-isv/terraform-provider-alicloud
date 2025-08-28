@@ -27,7 +27,7 @@ func (s *ArmsService) DescribeArmsIntegration(id string) (*aliyunArmsAPI.AlertIn
 	return nil, fmt.Errorf("ARMS API not available or failed, integration ID: %s", id)
 }
 
-func (s *ArmsService) ListArmsIntegrations() ([]*aliyunArmsAPI.AlertIntegration, error) {
+func (s *ArmsService) ListArmsAlertIntegrations() ([]*aliyunArmsAPI.AlertIntegration, error) {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
 		integrations, err := s.GetAPI().ListAllIntegrations(1, PageSizeXLarge)
