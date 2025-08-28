@@ -1,13 +1,13 @@
 ---
 subcategory: "Application Real-Time Monitoring Service (ARMS)"
 layout: "alicloud"
-page_title: "Alicloud: alicloud_arms_remote_writes"
+page_title: "Alicloud: alicloud_arms_prometheus_remote_writes"
 sidebar_current: "docs-alicloud-datasource-arms-remote-writes"
 description: |-
   Provides a list of Arms Remote Writes to the user.
 ---
 
-# alicloud_arms_remote_writes
+# alicloud_arms_prometheus_remote_writes
 
 This data source provides the Arms Remote Writes of the current Alibaba Cloud user.
 
@@ -20,22 +20,22 @@ This data source provides the Arms Remote Writes of the current Alibaba Cloud us
 Basic Usage
 
 ```terraform
-data "alicloud_arms_remote_writes" "ids" {
+data "alicloud_arms_prometheus_remote_writes" "ids" {
   ids        = ["example_id"]
   cluster_id = "your_cluster_id"
 }
 
 output "arms_remote_writes_id_1" {
-  value = data.alicloud_arms_remote_writes.ids.remote_writes.0.id
+  value = data.alicloud_arms_prometheus_remote_writes.ids.remote_writes.0.id
 }
 
-data "alicloud_arms_remote_writes" "nameRegex" {
+data "alicloud_arms_prometheus_remote_writes" "nameRegex" {
   name_regex = "tf-example"
   cluster_id = "your_cluster_id"
 }
 
 output "arms_remote_writes_id_2" {
-  value = data.alicloud_arms_remote_writes.nameRegex.remote_writes.0.id
+  value = data.alicloud_arms_prometheus_remote_writes.nameRegex.remote_writes.0.id
 }
 ```
 

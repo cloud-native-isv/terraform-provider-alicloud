@@ -97,7 +97,7 @@ resource "alicloud_cs_kubernetes_node_pool" "default" {
   desired_size         = 2
 }
 
-resource "alicloud_arms_environment" "default" {
+resource "alicloud_arms_prometheus_environment" "default" {
   bind_resource_id     = alicloud_cs_kubernetes_node_pool.default.cluster_id
   environment_sub_type = "ManagedKubernetes"
   environment_type     = "CS"
@@ -105,7 +105,7 @@ resource "alicloud_arms_environment" "default" {
 }
 
 resource "alicloud_arms_env_service_monitor" "default" {
-  environment_id = alicloud_arms_environment.default.id
+  environment_id = alicloud_arms_prometheus_environment.default.id
   config_yaml    = <<EOF
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAliCloudArmsEnvironment() *schema.Resource {
+func resourceAliCloudArmsPrometheusEnvironment() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudArmsEnvironmentCreate,
 		Read:   resourceAliCloudArmsEnvironmentRead,
@@ -128,12 +128,12 @@ func resourceAliCloudArmsEnvironmentCreate(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_environment", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_prometheus_environment", action, AlibabaCloudSdkGoERROR)
 	}
 	code, _ := jsonpath.Get("$.Code", response)
 	if fmt.Sprint(code) != "200" {
-		log.Printf("[DEBUG] Resource alicloud_arms_environment CreateEnvironment Failed!!! %s", response)
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_environment", action, AlibabaCloudSdkGoERROR, response)
+		log.Printf("[DEBUG] Resource alicloud_arms_prometheus_environment CreateEnvironment Failed!!! %s", response)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_prometheus_environment", action, AlibabaCloudSdkGoERROR, response)
 	}
 
 	d.SetId(fmt.Sprint(response["Data"]))
@@ -165,12 +165,12 @@ func resourceAliCloudArmsEnvironmentCreate(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_environment", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_prometheus_environment", action, AlibabaCloudSdkGoERROR)
 	}
 	code, _ = jsonpath.Get("$.Code", response)
 	if fmt.Sprint(code) != "200" {
-		log.Printf("[DEBUG] Resource alicloud_arms_environment InitEnvironment Failed!!! %s", response)
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_environment", action, AlibabaCloudSdkGoERROR, response)
+		log.Printf("[DEBUG] Resource alicloud_arms_prometheus_environment InitEnvironment Failed!!! %s", response)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_prometheus_environment", action, AlibabaCloudSdkGoERROR, response)
 	}
 
 	d.SetId(fmt.Sprint(query["EnvironmentId"]))
@@ -188,7 +188,7 @@ func resourceAliCloudArmsEnvironmentRead(d *schema.ResourceData, meta interface{
 	objectRaw, err := armsService.DescribeArmsEnvironment(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_arms_environment DescribeArmsEnvironment Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_arms_prometheus_environment DescribeArmsEnvironment Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}

@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAliCloudArmsPrometheusMonitorings() *schema.Resource {
+func dataSourceAliCloudArmsPrometheusRemoteWrites() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAliCloudArmsPrometheusMonitoringsRead,
+		Read: dataSourceAliCloudArmsRemoteWritesRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -34,18 +34,6 @@ func dataSourceAliCloudArmsPrometheusMonitorings() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: StringInSlice([]string{"serviceMonitor", "podMonitor", "customJob", "probe"}, false),
-			},
-			"status": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: StringInSlice([]string{"run", "stop"}, false),
-			},
 			"output_file": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -55,7 +43,7 @@ func dataSourceAliCloudArmsPrometheusMonitorings() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"prometheus_monitorings": {
+			"remote_writes": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -68,19 +56,11 @@ func dataSourceAliCloudArmsPrometheusMonitorings() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"monitoring_name": {
+						"remote_write_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"config_yaml": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"status": {
+						"remote_write_yaml": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -91,29 +71,23 @@ func dataSourceAliCloudArmsPrometheusMonitorings() *schema.Resource {
 	}
 }
 
-func dataSourceAliCloudArmsPrometheusMonitoringsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsRemoteWritesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
-	action := "ListPrometheusMonitoring"
+	action := "ListPrometheusRemoteWrites"
 	request := make(map[string]interface{})
 
 	request["RegionId"] = client.RegionId
 	request["ClusterId"] = d.Get("cluster_id")
 
-	if v, ok := d.GetOk("type"); ok {
-		request["Type"] = v
-	}
-
-	status, statusOk := d.GetOk("status")
-
 	var objects []map[string]interface{}
-	var prometheusMonitoringNameRegex *regexp.Regexp
+	var remoteWriteNameRegex *regexp.Regexp
 	if v, ok := d.GetOk("name_regex"); ok {
 		r, err := regexp.Compile(v.(string))
 		if err != nil {
 			return WrapError(err)
 		}
-		prometheusMonitoringNameRegex = r
+		remoteWriteNameRegex = r
 	}
 
 	idsMap := make(map[string]string)
@@ -143,7 +117,7 @@ func dataSourceAliCloudArmsPrometheusMonitoringsRead(d *schema.ResourceData, met
 	addDebug(action, response, request)
 
 	if err != nil {
-		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_prometheus_monitorings", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_prometheus_remote_writes", action, AlibabaCloudSdkGoERROR)
 	}
 
 	resp, err := jsonpath.Get("$.Data", response)
@@ -154,18 +128,14 @@ func dataSourceAliCloudArmsPrometheusMonitoringsRead(d *schema.ResourceData, met
 	result, _ := resp.([]interface{})
 	for _, v := range result {
 		item := v.(map[string]interface{})
-		if prometheusMonitoringNameRegex != nil && !prometheusMonitoringNameRegex.MatchString(fmt.Sprint(item["MonitoringName"])) {
+		if remoteWriteNameRegex != nil && !remoteWriteNameRegex.MatchString(fmt.Sprint(item["RemoteWriteName"])) {
 			continue
 		}
 
 		if len(idsMap) > 0 {
-			if _, ok := idsMap[fmt.Sprintf("%v:%v:%v", item["ClusterId"], item["MonitoringName"], item["Type"])]; !ok {
+			if _, ok := idsMap[fmt.Sprintf("%v:%v", item["ClusterId"], item["RemoteWriteName"])]; !ok {
 				continue
 			}
-		}
-
-		if statusOk && status.(string) != "" && status.(string) != item["Status"].(string) {
-			continue
 		}
 
 		objects = append(objects, item)
@@ -176,16 +146,14 @@ func dataSourceAliCloudArmsPrometheusMonitoringsRead(d *schema.ResourceData, met
 	s := make([]map[string]interface{}, 0)
 	for _, object := range objects {
 		mapping := map[string]interface{}{
-			"id":              fmt.Sprintf("%v:%v:%v", object["ClusterId"], object["MonitoringName"], object["Type"]),
-			"cluster_id":      fmt.Sprint(object["ClusterId"]),
-			"monitoring_name": fmt.Sprint(object["MonitoringName"]),
-			"type":            fmt.Sprint(object["Type"]),
-			"config_yaml":     object["ConfigYaml"],
-			"status":          object["Status"],
+			"id":                fmt.Sprintf("%v:%v", object["ClusterId"], object["RemoteWriteName"]),
+			"cluster_id":        fmt.Sprint(object["ClusterId"]),
+			"remote_write_name": fmt.Sprint(object["RemoteWriteName"]),
+			"remote_write_yaml": object["RemoteWriteYaml"],
 		}
 
 		ids = append(ids, fmt.Sprint(mapping["id"]))
-		names = append(names, object["MonitoringName"])
+		names = append(names, object["RemoteWriteName"])
 		s = append(s, mapping)
 	}
 
@@ -199,7 +167,7 @@ func dataSourceAliCloudArmsPrometheusMonitoringsRead(d *schema.ResourceData, met
 		return WrapError(err)
 	}
 
-	if err := d.Set("prometheus_monitorings", s); err != nil {
+	if err := d.Set("remote_writes", s); err != nil {
 		return WrapError(err)
 	}
 

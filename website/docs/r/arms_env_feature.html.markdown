@@ -1,12 +1,12 @@
 ---
 subcategory: "Application Real-Time Monitoring Service (ARMS)"
 layout: "alicloud"
-page_title: "Alicloud: alicloud_arms_env_feature"
+page_title: "Alicloud: alicloud_arms_prometheus_feature"
 description: |-
   Provides a Alicloud ARMS Env Feature resource.
 ---
 
-# alicloud_arms_env_feature
+# alicloud_arms_prometheus_feature
 
 Provides a ARMS Env Feature resource. Feature of the arms environment.
 
@@ -19,7 +19,7 @@ For information about ARMS Env Feature and how to use it, see [What is Env Featu
 Basic Usage
 
 <div style="display: block;margin-bottom: 40px;"><div class="oics-button" style="float: right;position: absolute;margin-bottom: 10px;">
-  <a href="https://api.aliyun.com/terraform?resource=alicloud_arms_env_feature&exampleId=f8c03d65-5912-3de8-a61a-244b4a745a4863295ad2&activeTab=example&spm=docs.r.arms_env_feature.0.f8c03d6559&intl_lang=EN_US" target="_blank">
+  <a href="https://api.aliyun.com/terraform?resource=alicloud_arms_prometheus_feature&exampleId=f8c03d65-5912-3de8-a61a-244b4a745a4863295ad2&activeTab=example&spm=docs.r.arms_env_feature.0.f8c03d6559&intl_lang=EN_US" target="_blank">
     <img alt="Open in AliCloud" src="https://img.alicdn.com/imgextra/i1/O1CN01hjjqXv1uYUlY56FyX_!!6000000006049-55-tps-254-36.svg" style="max-height: 44px; max-width: 100%;">
   </a>
 </div></div>
@@ -97,17 +97,17 @@ resource "alicloud_cs_kubernetes_node_pool" "default" {
   desired_size         = 2
 }
 
-resource "alicloud_arms_environment" "default" {
+resource "alicloud_arms_prometheus_environment" "default" {
   bind_resource_id     = alicloud_cs_kubernetes_node_pool.default.cluster_id
   environment_sub_type = "ManagedKubernetes"
   environment_type     = "CS"
   environment_name     = "terraform-example-${random_integer.default.result}"
 }
 
-resource "alicloud_arms_env_feature" "default" {
+resource "alicloud_arms_prometheus_feature" "default" {
   env_feature_name = "metric-agent"
 
-  environment_id  = alicloud_arms_environment.default.id
+  environment_id  = alicloud_arms_prometheus_environment.default.id
   feature_version = "1.1.17"
 }
 ```
@@ -138,5 +138,5 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 ARMS Env Feature can be imported using the id, e.g.
 
 ```shell
-$ terraform import alicloud_arms_env_feature.example <environment_id>:<env_feature_name>
+$ terraform import alicloud_arms_prometheus_feature.example <environment_id>:<env_feature_name>
 ```

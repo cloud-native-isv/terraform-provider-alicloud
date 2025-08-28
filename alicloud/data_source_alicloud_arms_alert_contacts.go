@@ -74,10 +74,6 @@ func dataSourceAliCloudArmsAlertContacts() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"ding_robot_webhook_url": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 						"email": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -187,10 +183,8 @@ func dataSourceAliCloudArmsAlertContactsRead(d *schema.ResourceData, meta interf
 			"alert_contact_id":       fmt.Sprint(object["ContactId"]),
 			"alert_contact_name":     object["ContactName"],
 			"create_time":            fmt.Sprint(object["CreateTime"]),
-			"ding_robot_webhook_url": object["DingRobot"],
 			"email":                  object["Email"],
 			"phone_num":              object["Phone"],
-			"system_noc":             object["SystemNoc"],
 			"webhook":                object["Webhook"],
 		}
 		ids = append(ids, fmt.Sprint(mapping["id"]))

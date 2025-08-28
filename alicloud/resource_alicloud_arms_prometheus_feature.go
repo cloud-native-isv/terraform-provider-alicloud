@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAliCloudArmsEnvFeature() *schema.Resource {
+func resourceAliCloudArmsPrometheusFeature() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudArmsEnvFeatureCreate,
 		Read:   resourceAliCloudArmsEnvFeatureRead,
@@ -85,12 +85,12 @@ func resourceAliCloudArmsEnvFeatureCreate(d *schema.ResourceData, meta interface
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_env_feature", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_prometheus_feature", action, AlibabaCloudSdkGoERROR)
 	}
 	code, _ := jsonpath.Get("$.Code", response)
 	if fmt.Sprint(code) != "200" {
-		log.Printf("[DEBUG] Resource alicloud_arms_env_feature InstallEnvironmentFeature Failed!!! %s", response)
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_env_feature", action, AlibabaCloudSdkGoERROR, response)
+		log.Printf("[DEBUG] Resource alicloud_arms_prometheus_feature InstallEnvironmentFeature Failed!!! %s", response)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_prometheus_feature", action, AlibabaCloudSdkGoERROR, response)
 	}
 
 	d.SetId(fmt.Sprintf("%v:%v", query["EnvironmentId"], query["FeatureName"]))
@@ -117,7 +117,7 @@ func resourceAliCloudArmsEnvFeatureRead(d *schema.ResourceData, meta interface{}
 	objectRaw, err := armsService.DescribeArmsEnvFeature(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_arms_env_feature DescribeArmsEnvFeature Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_arms_prometheus_feature DescribeArmsEnvFeature Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}

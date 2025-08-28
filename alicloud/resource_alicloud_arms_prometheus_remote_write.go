@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAliCloudArmsRemoteWrite() *schema.Resource {
+func resourceAliCloudArmsPrometheusRemoteWrite() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudArmsRemoteWriteCreate,
 		Read:   resourceAliCloudArmsRemoteWriteRead,
@@ -81,7 +81,7 @@ func resourceAliCloudArmsRemoteWriteCreate(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_remote_write", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_prometheus_remote_write", action, AlibabaCloudSdkGoERROR)
 	}
 
 	d.SetId(fmt.Sprintf("%v:%v", request["ClusterId"], response["Data"]))
@@ -99,7 +99,7 @@ func resourceAliCloudArmsRemoteWriteRead(d *schema.ResourceData, meta interface{
 	objectRaw, err := armsService.DescribeArmsRemoteWrite(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_arms_remote_write DescribeArmsRemoteWrite Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_arms_prometheus_remote_write DescribeArmsRemoteWrite Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAliCloudArmsOncallSchedules() *schema.Resource {
+func dataSourceAliCloudArmsAlertOncallSchedules() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAliCloudArmsOncallSchedulesRead,
 		Schema: map[string]*schema.Schema{
@@ -118,7 +118,7 @@ func dataSourceAliCloudArmsOncallSchedulesRead(d *schema.ResourceData, meta inte
 	for {
 		schedules, totalCount, err := service.DescribeArmsOnCallSchedules(page, size, nameFilter)
 		if err != nil {
-			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_oncall_schedules", "DescribeArmsOnCallSchedules", AlibabaCloudSdkGoERROR)
+			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_oncall_schedules", "DescribeArmsOnCallSchedules", AlibabaCloudSdkGoERROR)
 		}
 
 		for _, schedule := range schedules {

@@ -3,12 +3,10 @@ package alicloud
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
+	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -16,287 +14,78 @@ import (
 
 func resourceAliCloudArmsAlertIntegration() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudArmsAlertIntegrationCreate,
-		Read:   resourceAliCloudArmsAlertIntegrationRead,
-		Update: resourceAliCloudArmsAlertIntegrationUpdate,
-		Delete: resourceAliCloudArmsAlertIntegrationDelete,
+		Create: resourceAliCloudArmsIntegrationCreate,
+		Read:   resourceAliCloudArmsIntegrationRead,
+		Update: resourceAliCloudArmsIntegrationUpdate,
+		Delete: resourceAliCloudArmsIntegrationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(3 * time.Minute),
+			Update: schema.DefaultTimeout(3 * time.Minute),
+			Delete: schema.DefaultTimeout(3 * time.Minute),
+		},
 		Schema: map[string]*schema.Schema{
 			"integration_name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The name of the integration.",
-			},
-			"product_type": {
 				Type:     schema.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"ARMS", "CLOUD_MONITOR", "MSE", "ARMS_CLOUD_DIALTEST", "PROMETHEUS",
-					"LOG_SERVICE", "CUSTOM", "ARMS_PROMETHEUS", "ARMS_APP_MON",
-					"ARMS_FRONT_MON", "ARMS_CUSTOM", "XTRACE", "GRAFANA", "ZABBIX",
-					"SKYWALKING", "EVENT_BRIDGE", "NAGIOS", "OPENFALCON", "ARMS_INSIGHTS",
-				}, false),
-				Description: "The integration type. Valid values: ARMS, CLOUD_MONITOR, MSE, ARMS_CLOUD_DIALTEST, PROMETHEUS, LOG_SERVICE, CUSTOM, ARMS_PROMETHEUS, ARMS_APP_MON, ARMS_FRONT_MON, ARMS_CUSTOM, XTRACE, GRAFANA, ZABBIX, SKYWALKING, EVENT_BRIDGE, NAGIOS, OPENFALCON, ARMS_INSIGHTS.",
+				ForceNew: true,
+			},
+			"integration_type": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{"cloudwatch", "datadog", "grafana", "prometheus", "webhooks"}, false),
 			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"auto_recover": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-			"recover_time": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  300,
-			},
-			"duplicate_key": {
+			"config": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
-			"state": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-			"api_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"short_token": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"liveness": {
-				Type:     schema.TypeString,
-				Computed: true,
+			"status": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "Active",
+				ValidateFunc: validation.StringInSlice([]string{"Active", "Inactive"}, false),
 			},
 			"create_time": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"field_redefine_rules": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Field redefine rules for the integration.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"field_name": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The name of the field.",
-						},
-						"field_type": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The type of the field.",
-						},
-						"redefine_type": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The redefine type.",
-						},
-						"json_path": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The JSON path.",
-						},
-						"expression": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The expression.",
-						},
-						"mapping_rules": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "The mapping rules.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"origin_value": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The original value.",
-									},
-									"mapping_value": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The mapping value.",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			"extended_field_redefine_rules": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Extended field redefine rules for the integration.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"field_name": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The name of the field.",
-						},
-						"field_type": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The type of the field.",
-						},
-						"redefine_type": {
-							Type:        schema.TypeString,
-							Required:    true,
-							Description: "The redefine type.",
-						},
-						"json_path": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The JSON path.",
-						},
-						"expression": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The expression.",
-						},
-						"mapping_rules": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "The mapping rules.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"origin_value": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The original value.",
-									},
-									"mapping_value": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The mapping value.",
-									},
-								},
-							},
-						},
-					},
-				},
+			"update_time": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
 }
 
-// Helper function to convert terraform schema list to FieldRedefineRule slice
-func expandFieldRedefineRules(rules []interface{}) []arms.AlertIntegrationFieldRedefineRule {
-	var result []arms.AlertIntegrationFieldRedefineRule
-	for _, rule := range rules {
-		ruleMap := rule.(map[string]interface{})
-		fieldRule := arms.AlertIntegrationFieldRedefineRule{
-			FieldName:    ruleMap["field_name"].(string),
-			FieldType:    ruleMap["field_type"].(string),
-			RedefineType: ruleMap["redefine_type"].(string),
-		}
-		if v, ok := ruleMap["json_path"]; ok && v != "" {
-			fieldRule.JsonPath = v.(string)
-		}
-		if v, ok := ruleMap["expression"]; ok && v != "" {
-			fieldRule.Expression = v.(string)
-		}
-		if mappingRulesInterface, ok := ruleMap["mapping_rules"]; ok {
-			mappingRules := mappingRulesInterface.([]interface{})
-			for _, mappingRule := range mappingRules {
-				mappingRuleMap := mappingRule.(map[string]interface{})
-				fieldRule.MappingRules = append(fieldRule.MappingRules, arms.AlertIntegrationMappingRule{
-					OriginValue:  mappingRuleMap["origin_value"].(string),
-					MappingValue: mappingRuleMap["mapping_value"].(string),
-				})
-			}
-		}
-		result = append(result, fieldRule)
-	}
-	return result
-}
-
-// Helper function to convert FieldRedefineRule slice to terraform schema list
-func flattenFieldRedefineRules(rules []arms.AlertIntegrationFieldRedefineRule) []map[string]interface{} {
-	var result []map[string]interface{}
-	for _, rule := range rules {
-		ruleMap := map[string]interface{}{
-			"field_name":    rule.FieldName,
-			"field_type":    rule.FieldType,
-			"redefine_type": rule.RedefineType,
-		}
-		if rule.JsonPath != "" {
-			ruleMap["json_path"] = rule.JsonPath
-		}
-		if rule.Expression != "" {
-			ruleMap["expression"] = rule.Expression
-		}
-		var mappingRules []map[string]interface{}
-		for _, mappingRule := range rule.MappingRules {
-			mappingRules = append(mappingRules, map[string]interface{}{
-				"origin_value":  mappingRule.OriginValue,
-				"mapping_value": mappingRule.MappingValue,
-			})
-		}
-		if len(mappingRules) > 0 {
-			ruleMap["mapping_rules"] = mappingRules
-		}
-		result = append(result, ruleMap)
-	}
-	return result
-}
-
-func resourceAliCloudArmsAlertIntegrationCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsIntegrationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	action := "CreateIntegration"
+	request := make(map[string]interface{})
 
-	// Initialize ARMS API client
-	armsCredentials := &common.Credentials{
-		AccessKey:     client.AccessKey,
-		SecretKey:     client.SecretKey,
-		RegionId:      client.RegionId,
-		SecurityToken: client.SecurityToken,
+	request["RegionId"] = client.RegionId
+	request["IntegrationName"] = d.Get("integration_name")
+	request["IntegrationType"] = d.Get("integration_type")
+	request["Config"] = d.Get("config")
+
+	if v, ok := d.GetOk("description"); ok {
+		request["Description"] = v
 	}
 
-	armsAPI, err := arms.NewArmsAPI(armsCredentials)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_integration", "NewArmsAPI", AlibabaCloudSdkGoERROR)
-	}
-
-	integrationName := d.Get("integration_name").(string)
-	integrationProductType := d.Get("product_type").(string)
-	description := d.Get("description").(string)
-	autoRecover := d.Get("auto_recover").(bool)
-	recoverTime := int64(d.Get("recover_time").(int))
-
-	// Process field redefine rules
-	var fieldRedefineRules []arms.AlertIntegrationFieldRedefineRule
-	if v, ok := d.GetOk("field_redefine_rules"); ok {
-		fieldRedefineRules = expandFieldRedefineRules(v.([]interface{}))
-	}
-
-	// Process extended field redefine rules
-	var extendedFieldRedefineRules []arms.AlertIntegrationFieldRedefineRule
-	if v, ok := d.GetOk("extended_field_redefine_rules"); ok {
-		extendedFieldRedefineRules = expandFieldRedefineRules(v.([]interface{}))
+	if v, ok := d.GetOk("status"); ok {
+		request["Status"] = v
 	}
 
 	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		// Create AlertIntegration object
-		integration := &arms.AlertIntegration{
-			IntegrationName:            integrationName,
-			IntegrationProductType:     integrationProductType,
-			Description:                description,
-			AutoRecover:                autoRecover,
-			RecoverTime:                recoverTime,
-			FieldRedefineRules:         fieldRedefineRules,
-			ExtendedFieldRedefineRules: extendedFieldRedefineRules,
-		}
-		result, err := armsAPI.CreateIntegration(integration)
+	var response map[string]interface{}
+	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		resp, err := client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -304,148 +93,99 @@ func resourceAliCloudArmsAlertIntegrationCreate(d *schema.ResourceData, meta int
 			}
 			return resource.NonRetryableError(err)
 		}
-
-		d.SetId(fmt.Sprint(result.IntegrationId))
+		response = resp
+		addDebug(action, response, request)
 		return nil
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_integration", "CreateIntegration", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_integration", action, AlibabaCloudSdkGoERROR)
 	}
 
-	return resourceAliCloudArmsAlertIntegrationRead(d, meta)
-}
-
-func resourceAliCloudArmsAlertIntegrationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-
-	// Initialize ARMS API client
-	armsCredentials := &common.Credentials{
-		AccessKey:     client.AccessKey,
-		SecretKey:     client.SecretKey,
-		RegionId:      client.RegionId,
-		SecurityToken: client.SecurityToken,
-	}
-
-	armsAPI, err := arms.NewArmsAPI(armsCredentials)
+	integrationIdResp, err := jsonpath.Get("$.IntegrationId", response)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_integration", "NewArmsAPI", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, FailedGetAttributeMsg, "alicloud_arms_integration", "$.IntegrationId", response)
 	}
 
-	integrationId, err := strconv.ParseInt(d.Id(), 10, 64)
+	id := fmt.Sprint(integrationIdResp)
+
+	d.SetId(id)
+
+	// Wait for integration to be ready
+	armsService, err := NewArmsService(client)
 	if err != nil {
+		return WrapError(err)
+	}
+	stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(id, []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	integration, err := armsAPI.GetIntegrationById(integrationId, true)
+	return resourceAliCloudArmsIntegrationRead(d, meta)
+}
+
+func resourceAliCloudArmsIntegrationRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	object, err := armsService.DescribeArmsIntegration(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_arms_alert_integration GetIntegrationByID Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_arms_integration armsService.DescribeArmsIntegration Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
 
-	d.Set("integration_name", integration.IntegrationName)
-	d.Set("product_type", integration.IntegrationProductType)
-	d.Set("state", integration.State)
-	d.Set("api_endpoint", integration.ApiEndpoint)
-	d.Set("short_token", integration.ShortToken)
-	d.Set("liveness", integration.Liveness)
-	d.Set("create_time", integration.CreateTime)
-
-	// Set integration detail fields if available
-	if integration.IntegrationDetail != nil {
-		d.Set("description", integration.IntegrationDetail.Description)
-		d.Set("auto_recover", integration.IntegrationDetail.AutoRecover)
-		d.Set("recover_time", integration.IntegrationDetail.RecoverTime)
-		d.Set("duplicate_key", integration.IntegrationDetail.DuplicateKey)
-
-		// Set field redefine rules
-		if integration.IntegrationDetail.FieldRedefineRules != nil {
-			d.Set("field_redefine_rules", flattenFieldRedefineRules(integration.IntegrationDetail.FieldRedefineRules))
-		}
-
-		// Set extended field redefine rules
-		if integration.IntegrationDetail.ExtendedFieldRedefineRules != nil {
-			d.Set("extended_field_redefine_rules", flattenFieldRedefineRules(integration.IntegrationDetail.ExtendedFieldRedefineRules))
-		}
+	d.Set("integration_name", object.IntegrationName)
+	d.Set("integration_type", object.IntegrationProductType)
+	d.Set("description", object.Description)
+	d.Set("auto_recover", object.AutoRecover)
+	d.Set("state", object.State)
+	if object.CreateTime != nil {
+		d.Set("create_time", object.CreateTime.Format("2006-01-02 15:04:05"))
 	}
+	// Note: UpdateTime is not available in AlertIntegration type
 
 	return nil
 }
 
-func resourceAliCloudArmsAlertIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-
-	// Initialize ARMS API client
-	armsCredentials := &common.Credentials{
-		AccessKey:     client.AccessKey,
-		SecretKey:     client.SecretKey,
-		RegionId:      client.RegionId,
-		SecurityToken: client.SecurityToken,
-	}
-
-	armsAPI, err := arms.NewArmsAPI(armsCredentials)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_integration", "NewArmsAPI", AlibabaCloudSdkGoERROR)
-	}
-
-	integrationId, err := strconv.ParseInt(d.Id(), 10, 64)
-	if err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
-
 	update := false
-	integrationName := d.Get("integration_name").(string)
-	integrationProductType := d.Get("product_type").(string)
-	description := d.Get("description").(string)
-	autoRecover := d.Get("auto_recover").(bool)
-	recoverTime := int64(d.Get("recover_time").(int))
-	duplicateKey := d.Get("duplicate_key").(string)
-	state := ""
-	if d.Get("state").(bool) {
-		state = "active"
-	} else {
-		state = "inactive"
-	}
-	liveness := d.Get("liveness").(string) // This is computed, so it might be empty for updates
 
-	// Process field redefine rules
-	var fieldRedefineRules []arms.AlertIntegrationFieldRedefineRule
-	if v, ok := d.GetOk("field_redefine_rules"); ok {
-		fieldRedefineRules = expandFieldRedefineRules(v.([]interface{}))
+	request := map[string]interface{}{
+		"RegionId":      client.RegionId,
+		"IntegrationId": d.Id(),
 	}
 
-	// Process extended field redefine rules
-	var extendedFieldRedefineRules []arms.AlertIntegrationFieldRedefineRule
-	if v, ok := d.GetOk("extended_field_redefine_rules"); ok {
-		extendedFieldRedefineRules = expandFieldRedefineRules(v.([]interface{}))
-	}
-
-	if d.HasChange("integration_name") || d.HasChange("description") || d.HasChange("auto_recover") || d.HasChange("recover_time") || d.HasChange("duplicate_key") || d.HasChange("state") || d.HasChange("field_redefine_rules") || d.HasChange("extended_field_redefine_rules") {
+	if d.HasChange("description") {
 		update = true
+		if v, ok := d.GetOk("description"); ok {
+			request["Description"] = v
+		}
+	}
+
+	if d.HasChange("config") {
+		update = true
+		request["Config"] = d.Get("config")
+	}
+
+	if d.HasChange("status") {
+		update = true
+		request["Status"] = d.Get("status")
 	}
 
 	if update {
+		action := "UpdateIntegration"
+
 		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			// Create AlertIntegration object
-			integration := &arms.AlertIntegration{
-				IntegrationId:              integrationId,
-				IntegrationName:            integrationName,
-				IntegrationProductType:     integrationProductType,
-				Description:                description,
-				AutoRecover:                autoRecover,
-				RecoverTime:                recoverTime,
-				DuplicateKey:               duplicateKey,
-				State:                      state == "active",
-				Liveness:                   liveness,
-				FieldRedefineRules:         fieldRedefineRules,
-				ExtendedFieldRedefineRules: extendedFieldRedefineRules,
-			}
-			_, err := armsAPI.UpdateIntegration(integration)
+		err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			response, err := client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
 			if err != nil {
 				if NeedRetry(err) {
 					wait()
@@ -453,41 +193,40 @@ func resourceAliCloudArmsAlertIntegrationUpdate(d *schema.ResourceData, meta int
 				}
 				return resource.NonRetryableError(err)
 			}
+			addDebug(action, response, request)
 			return nil
 		})
 
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateIntegration", AlibabaCloudSdkGoERROR)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		}
+
+		// Wait for integration to be updated
+		armsService, err := NewArmsService(client)
+		if err != nil {
+			return WrapError(err)
+		}
+		stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(d.Id(), []string{}))
+		if _, err := stateConf.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
 
-	return resourceAliCloudArmsAlertIntegrationRead(d, meta)
+	return resourceAliCloudArmsIntegrationRead(d, meta)
 }
 
-func resourceAliCloudArmsAlertIntegrationDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudArmsIntegrationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	action := "DeleteIntegration"
 
-	// Initialize ARMS API client
-	armsCredentials := &common.Credentials{
-		AccessKey:     client.AccessKey,
-		SecretKey:     client.SecretKey,
-		RegionId:      client.RegionId,
-		SecurityToken: client.SecurityToken,
-	}
-
-	armsAPI, err := arms.NewArmsAPI(armsCredentials)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_integration", "NewArmsAPI", AlibabaCloudSdkGoERROR)
-	}
-
-	integrationId, err := strconv.ParseInt(d.Id(), 10, 64)
-	if err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
+	request := map[string]interface{}{
+		"RegionId":      client.RegionId,
+		"IntegrationId": d.Id(),
 	}
 
 	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		err := armsAPI.DeleteIntegration(integrationId)
+	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		response, err := client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -495,11 +234,25 @@ func resourceAliCloudArmsAlertIntegrationDelete(d *schema.ResourceData, meta int
 			}
 			return resource.NonRetryableError(err)
 		}
+		addDebug(action, response, request)
 		return nil
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteIntegration", AlibabaCloudSdkGoERROR)
+		if IsExpectedErrors(err, []string{"404"}) {
+			return nil
+		}
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+	}
+
+	// Wait for integration to be deleted
+	armsService, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+	stateConf := BuildStateConf([]string{"Active", "Inactive"}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(d.Id(), []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
 	return nil

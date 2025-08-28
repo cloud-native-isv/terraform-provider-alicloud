@@ -97,7 +97,7 @@ resource "alicloud_cs_kubernetes_node_pool" "default" {
   desired_size         = 2
 }
 
-resource "alicloud_arms_environment" "environment-cs" {
+resource "alicloud_arms_prometheus_environment" "environment-cs" {
   environment_type = "CS"
   environment_name = "terraform-example-${random_integer.default.result}"
 
@@ -107,7 +107,7 @@ resource "alicloud_arms_environment" "environment-cs" {
 
 resource "alicloud_arms_env_pod_monitor" "default" {
   aliyun_lang    = "en"
-  environment_id = alicloud_arms_environment.environment-cs.id
+  environment_id = alicloud_arms_prometheus_environment.environment-cs.id
   config_yaml    = <<EOF
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor

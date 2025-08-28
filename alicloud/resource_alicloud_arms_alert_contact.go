@@ -24,10 +24,6 @@ func resourceAliCloudArmsAlertContact() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"ding_robot_webhook_url": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"email": {
 				Type:     schema.TypeString,
 				Optional: true,

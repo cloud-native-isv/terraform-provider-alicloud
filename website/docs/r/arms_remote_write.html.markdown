@@ -1,12 +1,12 @@
 ---
 subcategory: "Application Real-Time Monitoring Service (ARMS)"
 layout: "alicloud"
-page_title: "Alicloud: alicloud_arms_remote_write"
+page_title: "Alicloud: alicloud_arms_prometheus_remote_write"
 description: |-
   Provides a Alicloud Application Real-Time Monitoring Service (ARMS) Remote Write resource.
 ---
 
-# alicloud_arms_remote_write
+# alicloud_arms_prometheus_remote_write
 
 Provides a Application Real-Time Monitoring Service (ARMS) Remote Write resource.
 
@@ -61,7 +61,7 @@ resource "alicloud_arms_prometheus" "default" {
   }
 }
 
-resource "alicloud_arms_remote_write" "default" {
+resource "alicloud_arms_prometheus_remote_write" "default" {
   cluster_id        = alicloud_arms_prometheus.default.id
   remote_write_yaml = "remote_write:\n- name: ArmsRemoteWrite\n  url: http://47.96.227.137:8080/prometheus/xxx/yyy/cn-hangzhou/api/v3/write\n  basic_auth: {username: 666, password: '******'}\n  write_relabel_configs:\n  - source_labels: [instance_id]\n    separator: ;\n    regex: si-6e2ca86444db4e55a7c1\n    replacement: $1\n    action: keep\n"
 }
@@ -93,5 +93,5 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Application Real-Time Monitoring Service (ARMS) Remote Write can be imported using the id, e.g.
 
 ```shell
-$ terraform import alicloud_arms_remote_write.example <cluster_id>:<remote_write_name>
+$ terraform import alicloud_arms_prometheus_remote_write.example <cluster_id>:<remote_write_name>
 ```

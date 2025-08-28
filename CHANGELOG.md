@@ -850,7 +850,7 @@ ENHANCEMENTS:
 - testcase: testcase: Fixed alicloud_ssl_certificates_service_certificate test case. ([#7958](https://github.com/aliyun/terraform-provider-alicloud/issues/7958))
 - testcase: testcase: Fixed cen test case. ([#7961](https://github.com/aliyun/terraform-provider-alicloud/issues/7961))
 - testcase: Fixed alicloud_kvstore_account testcase. ([#7971](https://github.com/aliyun/terraform-provider-alicloud/issues/7971))
-- testcase: Deprecated alicloud_arms_remote_write, alicloud_arms_remote_writes testcase. ([#7972](https://github.com/aliyun/terraform-provider-alicloud/issues/7972))
+- testcase: Deprecated alicloud_arms_prometheus_remote_write, alicloud_arms_prometheus_remote_writes testcase. ([#7972](https://github.com/aliyun/terraform-provider-alicloud/issues/7972))
 
 BUG FIXES:
 
@@ -994,7 +994,7 @@ ENHANCEMENTS:
 - resource/alicloud_dbfs_snapshot: Removed the ForceNew for field snapshot_name, description; Improved alicloud_dbfs_snapshot testcase. ([#7814](https://github.com/aliyun/terraform-provider-alicloud/issues/7814))
 - resource/alicloud_gpdb_instance: Added the field seg_disk_performance_level, serverless_mode, prod_type, data_share_status. ([#7816](https://github.com/aliyun/terraform-provider-alicloud/issues/7816))
 - resource/alicloud_dbfs_instance_attachment: Improved alicloud_dbfs_instance_attachment testcase. ([#7819](https://github.com/aliyun/terraform-provider-alicloud/issues/7819))
-- resource/alicloud_arms_environment: support sub types for ACK. ([#7820](https://github.com/aliyun/terraform-provider-alicloud/issues/7820))
+- resource/alicloud_arms_prometheus_environment: support sub types for ACK. ([#7820](https://github.com/aliyun/terraform-provider-alicloud/issues/7820))
 - resource/alicloud_ess_scaling_configuration: update internet_max_bandwidth_in can modify. ([#7821](https://github.com/aliyun/terraform-provider-alicloud/issues/7821))
 - resource/alicloud_redis_tair_instance: Added the field global_instance_id, src_db_instance_id, backup_id, recover_config_mode, intranet_bandwidth. ([#7829](https://github.com/aliyun/terraform-provider-alicloud/issues/7829))
 - resource/alicloud_cen_transit_router_route_entry: add retry for 'InstanceStatus.NotSupport'. ([#7831](https://github.com/aliyun/terraform-provider-alicloud/issues/7831))
@@ -1004,7 +1004,7 @@ ENHANCEMENTS:
 - resource/alicloud_governance_account: add new attribute account_tags. ([#7839](https://github.com/aliyun/terraform-provider-alicloud/issues/7839))
 - resource/alicloud_redis_tair_instance: add new attribute architecture_type, connection_domain etc. ([#7843](https://github.com/aliyun/terraform-provider-alicloud/issues/7843))
 - docs: fix examples for cms, fc, threat_detection. ([#7799](https://github.com/aliyun/terraform-provider-alicloud/issues/7799))
-- docs: mark alicloud_cs_kubernetes_autoscaler, alicloud_arms_remote_write as deprecated. ([#7801](https://github.com/aliyun/terraform-provider-alicloud/issues/7801))
+- docs: mark alicloud_cs_kubernetes_autoscaler, alicloud_arms_prometheus_remote_write as deprecated. ([#7801](https://github.com/aliyun/terraform-provider-alicloud/issues/7801))
 - docs: fix examples for alicloud_arms_prometheus_alert_rule. ([#7807](https://github.com/aliyun/terraform-provider-alicloud/issues/7807))
 - docs: fix example for alicloud_vpn_gateway_vco_route. ([#7809](https://github.com/aliyun/terraform-provider-alicloud/issues/7809))
 - docs: improve examples for alicloud_ga_additional_certificate and alicloud_ga_custom_routing_endpoint_traffic_policy. ([#7811](https://github.com/aliyun/terraform-provider-alicloud/issues/7811))
@@ -1335,7 +1335,7 @@ ENHANCEMENTS:
 - docs: Corrects the resource alicloud_maxcompute_project docs. ([#7498](https://github.com/aliyun/terraform-provider-alicloud/issues/7498))
 - docs: Improves subcategory for maxcompute datasource. ([#7507](https://github.com/aliyun/terraform-provider-alicloud/issues/7507))
 - docs: fix examples for alb, rds, dbfs. ([#7516](https://github.com/aliyun/terraform-provider-alicloud/issues/7516))
-- docs: Deprecated resource alicloud_arms_remote_write. ([#7525](https://github.com/aliyun/terraform-provider-alicloud/issues/7525))
+- docs: Deprecated resource alicloud_arms_prometheus_remote_write. ([#7525](https://github.com/aliyun/terraform-provider-alicloud/issues/7525))
 - docs: Corrects the invalid arguement enable_details. ([#7529](https://github.com/aliyun/terraform-provider-alicloud/issues/7529))
 - docs: Corrects VSwitch spelling to vSwitch. ([#7533](https://github.com/aliyun/terraform-provider-alicloud/issues/7533))
 - docs: Improves description for governance_baseline. ([#7540](https://github.com/aliyun/terraform-provider-alicloud/issues/7540))
@@ -1762,7 +1762,7 @@ ENHANCEMENTS:
 - resource/alicloud_polardb_cluster_endpoint: Remove ModifyEndpointAddress stateconf. resource/alicloud_polardb_endpoint: Remove ModifyEndpointAddress stateconf. resource/alicloud_polardb_endpoint_address: Remove ModifyEndPointAddress stateconf.. resource/alicloud_polardb_primary_endpoint: Remove ModifyEndPointAddress stateconf. ([#7038](https://github.com/aliyun/terraform-provider-alicloud/issues/7038))
 - resource/alicloud_cs_kubernetes_node_pool: add new attributes compensate_with_on_demand, data_disks.bursting_enabled, data_disks.provisioned_iops, kubelet_configuration.allowed_unsafe_sysctls, kubelet_configuration.container_log_max_files etc. ([#7039](https://github.com/aliyun/terraform-provider-alicloud/issues/7039))
 - resource/alicloud_oss_bucket: add new attribute resource_group_id. ([#7040](https://github.com/aliyun/terraform-provider-alicloud/issues/7040))
-- resource/alicloud_arms_environment: add new attribute drop_metrics, managed_type. ([#7042](https://github.com/aliyun/terraform-provider-alicloud/issues/7042))
+- resource/alicloud_arms_prometheus_environment: add new attribute drop_metrics, managed_type. ([#7042](https://github.com/aliyun/terraform-provider-alicloud/issues/7042))
 - resource/alicloud_resource_manager_account: update status 'deleting' as target. ([#7043](https://github.com/aliyun/terraform-provider-alicloud/issues/7043))
 - resource/alicloud_oos_patch_baseline: add new attribute: approved_patches, approved_patches_enable_non_security, resource_group_id, sources, tags. ([#7044](https://github.com/aliyun/terraform-provider-alicloud/issues/7044))
 - resource/alicloud_alikafka_instance_allowed_ip_attachment: Supported port_range set to 9094/9094, 9095/9095. ([#7046](https://github.com/aliyun/terraform-provider-alicloud/issues/7046))
@@ -2092,9 +2092,9 @@ BUG FIXES:
 
 ## 1.213.0 (November 24, 2023)
 
-- **New Resource:** `alicloud_arms_environment` ([#6627](https://github.com/aliyun/terraform-provider-alicloud/issues/6627))
+- **New Resource:** `alicloud_arms_prometheus_environment` ([#6627](https://github.com/aliyun/terraform-provider-alicloud/issues/6627))
 - **New Resource:** `alicloud_arms_addon_release` ([#6627](https://github.com/aliyun/terraform-provider-alicloud/issues/6627))
-- **New Resource:** `alicloud_arms_env_feature` ([#6627](https://github.com/aliyun/terraform-provider-alicloud/issues/6627))
+- **New Resource:** `alicloud_arms_prometheus_feature` ([#6627](https://github.com/aliyun/terraform-provider-alicloud/issues/6627))
 - **New Resource:** `alicloud_arms_env_pod_monitor` ([#6627](https://github.com/aliyun/terraform-provider-alicloud/issues/6627))
 - **New Resource:** `alicloud_arms_env_service_monitor` ([#6627](https://github.com/aliyun/terraform-provider-alicloud/issues/6627))
 - **New Resource:** `alicloud_arms_env_custom_job` ([#6627](https://github.com/aliyun/terraform-provider-alicloud/issues/6627))
@@ -2375,7 +2375,7 @@ BUG FIXES:
 ENHANCEMENTS:
 
 - client: Improves the getting endpoint for resource manager and das. ([#6394](https://github.com/aliyun/terraform-provider-alicloud/issues/6394))
-- resource/alicloud_arms_remote_write: support remote_write_yaml yaml format. ([#6351](https://github.com/aliyun/terraform-provider-alicloud/issues/6351))
+- resource/alicloud_arms_prometheus_remote_write: support remote_write_yaml yaml format. ([#6351](https://github.com/aliyun/terraform-provider-alicloud/issues/6351))
 - resource/alicloud_nlb_load_balancer: modify attribute bandwidth_package_id; resource/alicloud_nlb_listener: add retry code while removing listener. ([#6365](https://github.com/aliyun/terraform-provider-alicloud/issues/6365))
 - resource/alicloud_oss_bucket: lifecycle_rule supports tag. ([#6372](https://github.com/aliyun/terraform-provider-alicloud/issues/6372))
 - resource/alicloud_oss_bucket: Supports DeepColdArchive storage class. ([#6377](https://github.com/aliyun/terraform-provider-alicloud/issues/6377))
@@ -2625,11 +2625,11 @@ BUG FIXES:
 - **New Resource:** `alicloud_tag_policy_attachment` ([#6071](https://github.com/aliyun/terraform-provider-alicloud/issues/6071))
 - **New Resource:** `alicloud_eflo_subnet` ([#6019](https://github.com/aliyun/terraform-provider-alicloud/issues/6019))
 - **New Resource:** `alicloud_service_catalog_portfolio` ([#6002](https://github.com/aliyun/terraform-provider-alicloud/issues/6002))
-- **New Resource:** `alicloud_arms_remote_write` ([#5998](https://github.com/aliyun/terraform-provider-alicloud/issues/5998))
+- **New Resource:** `alicloud_arms_prometheus_remote_write` ([#5998](https://github.com/aliyun/terraform-provider-alicloud/issues/5998))
 - **New Data Source:** `alicloud_rds_slots` ([#6075](https://github.com/aliyun/terraform-provider-alicloud/issues/6075))
 - **New Data Source:** `alicloud_eflo_subnets` ([#6019](https://github.com/aliyun/terraform-provider-alicloud/issues/6019))
 - **New Data Source:** `alicloud_service_catalog_portfolios` ([#6002](https://github.com/aliyun/terraform-provider-alicloud/issues/6002))
-- **New Data Source:** `alicloud_arms_remote_writes` ([#5998](https://github.com/aliyun/terraform-provider-alicloud/issues/5998))
+- **New Data Source:** `alicloud_arms_prometheus_remote_writes` ([#5998](https://github.com/aliyun/terraform-provider-alicloud/issues/5998))
 
 ENHANCEMENTS:
 

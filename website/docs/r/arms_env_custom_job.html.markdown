@@ -44,7 +44,7 @@ resource "alicloud_vpc" "vpc" {
   vpc_name    = var.name
 }
 
-resource "alicloud_arms_environment" "env-ecs" {
+resource "alicloud_arms_prometheus_environment" "env-ecs" {
   environment_type     = "ECS"
   environment_name     = "terraform-example-${random_integer.default.result}"
   bind_resource_id     = alicloud_vpc.vpc.id
@@ -53,7 +53,7 @@ resource "alicloud_arms_environment" "env-ecs" {
 
 resource "alicloud_arms_env_custom_job" "default" {
   status              = "run"
-  environment_id      = alicloud_arms_environment.env-ecs.id
+  environment_id      = alicloud_arms_prometheus_environment.env-ecs.id
   env_custom_job_name = var.name
   config_yaml         = <<EOF
 scrape_configs:
