@@ -14,9 +14,9 @@ func (s *ArmsService) DescribeArmsIntegration(id string) (*aliyunArmsAPI.AlertIn
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
 		// Convert string ID to int64
-		integrationIdInt, parseErr := strconv.ParseInt(id, 10, 64)
+		integrationId, parseErr := strconv.ParseInt(id, 10, 64)
 		if parseErr == nil {
-			integration, err := s.GetAPI().GetIntegrationById(integrationIdInt, true)
+			integration, err := s.GetAPI().GetIntegrationById(integrationId)
 			if err == nil {
 				return integration, nil
 			}
@@ -30,7 +30,7 @@ func (s *ArmsService) DescribeArmsIntegration(id string) (*aliyunArmsAPI.AlertIn
 func (s *ArmsService) ListArmsAlertIntegrations() ([]*aliyunArmsAPI.AlertIntegration, error) {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
-		integrations, err := s.GetAPI().ListAllIntegrations(1, PageSizeXLarge)
+		integrations, err := s.GetAPI().ListAllIntegrations()
 		if err == nil {
 			return integrations, nil
 		}

@@ -222,7 +222,7 @@ func dataSourceAliCloudArmsAlertNotificationPoliciesRead(d *schema.ResourceData,
 
 	for {
 		// List notification policies with detail enabled
-		policies, err := armsClient.ListAlertNotificationPolicies(page, size, true)
+		policies, err := armsClient.ListAlertNotificationPolicies(page, size)
 		if err != nil {
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_notification_policies", "ListAlertNotificationPolicies", "Failed to list notification policies")
 		}

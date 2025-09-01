@@ -75,7 +75,7 @@ func (s *ArmsService) DescribeArmsAlertNotificationPolicy(id string) (object map
 func (s *ArmsService) ListArmsAlertNotificationPolicies() (objects []interface{}, err error) {
 	// Try using ARMS API first if available
 	if s.armsAPI != nil {
-		policies, err := s.armsAPI.ListAlertNotificationPolicies(1, PageSizeXLarge, true)
+		policies, err := s.armsAPI.ListAlertNotificationPolicies(1, PageSizeXLarge)
 		if err == nil {
 			// Convert to the format expected by Terraform
 			var result []interface{}

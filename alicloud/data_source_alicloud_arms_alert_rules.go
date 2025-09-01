@@ -6,6 +6,7 @@ import (
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	armsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
+	common "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -28,47 +29,6 @@ func dataSourceAliCloudArmsAlertRules() *schema.Resource {
 				ValidateFunc: validation.ValidateRegexp,
 				ForceNew:     true,
 				Description:  "A regex string to filter results by alert rule name",
-			},
-			"names": {
-				Type:        schema.TypeList,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Computed:    true,
-				Description: "A list of alert rule names",
-			},
-			"alert_name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "The name of the alert rule to filter results",
-			},
-			"alert_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "Alert type to filter results (e.g., PROMETHEUS_MONITORING_ALERT_RULE)",
-			},
-			"cluster_id": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "Cluster ID to filter Prometheus alert rules",
-			},
-			"status": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "Alert rule status to filter results (RUNNING, STOPPED)",
-			},
-			"level": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "Alert level to filter results (P1, P2, P3, P4)",
-			},
-			"output_file": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "File name where to save data source results (after running `terraform apply`)",
 			},
 			"rules": {
 				Type:        schema.TypeList,
@@ -239,32 +199,6 @@ func dataSourceAliCloudArmsAlertRules() *schema.Resource {
 func dataSourceAliCloudArmsAlertRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
-	// Build filter parameters from input
-	alertName := ""
-	if v, ok := d.GetOk("alert_name"); ok {
-		alertName = v.(string)
-	}
-
-	alertType := ""
-	if v, ok := d.GetOk("alert_type"); ok {
-		alertType = v.(string)
-	}
-
-	clusterId := ""
-	if v, ok := d.GetOk("cluster_id"); ok {
-		clusterId = v.(string)
-	}
-
-	status := ""
-	if v, ok := d.GetOk("status"); ok {
-		status = v.(string)
-	}
-
-	level := ""
-	if v, ok := d.GetOk("level"); ok {
-		level = v.(string)
-	}
-
 	var nameRegex *regexp.Regexp
 	if v, ok := d.GetOk("name_regex"); ok {
 		r, err := regexp.Compile(v.(string))
@@ -292,12 +226,12 @@ func dataSourceAliCloudArmsAlertRulesRead(d *schema.ResourceData, meta interface
 
 	// Get all alert rules by paginating through all pages
 	var allRules []*armsAPI.AlertRule
-	page := DefaultStartPage
-	pageSize := DefaultPageSize
+	page := common.DefaultStartPage
+	pageSize := common.DefaultPageSize
 
 	for {
 		// Get rules from current page (using simplified API)
-		rules, totalCount, err := service.ListArmsAlertRules(page, pageSize, alertName, alertType, clusterId, status, ids, nameRegex)
+		rules, totalCount, err := service.ListArmsAlertRules(page, pageSize, "", "", "", "", ids, nameRegex)
 		if err != nil {
 			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_rules", "ListArmsAlertRules", AlibabaCloudSdkGoERROR)
 		}
@@ -317,42 +251,27 @@ func dataSourceAliCloudArmsAlertRulesRead(d *schema.ResourceData, meta interface
 		page++
 
 		// Safety check to prevent infinite loops
-		if page > MaxSafePages {
+		if page > common.MaxSafePages {
 			break
 		}
 	}
 
-	// Apply level filter if specified (client-side filtering)
-	var filteredRules []*armsAPI.AlertRule
-	for _, rule := range allRules {
-		if level != "" && rule.Level != level {
-			continue
-		}
-		filteredRules = append(filteredRules, rule)
-	}
-
 	// Build output data using strong typing and helper functions
 	ruleIds := make([]string, 0)
-	names := make([]interface{}, 0)
 	s := make([]map[string]interface{}, 0)
 
-	for _, rule := range filteredRules {
+	for _, rule := range allRules {
 		alertIdStr := strconv.FormatInt(rule.AlertId, 10)
 
 		// Convert AlertRule to terraform schema format using helper function
 		mapping := convertAlertRuleToTerraformSchema(rule)
 
 		ruleIds = append(ruleIds, alertIdStr)
-		names = append(names, rule.AlertName)
 		s = append(s, mapping)
 	}
 
 	d.SetId(dataResourceIdHash(ruleIds))
 	if err := d.Set("ids", ruleIds); err != nil {
-		return WrapError(err)
-	}
-
-	if err := d.Set("names", names); err != nil {
 		return WrapError(err)
 	}
 

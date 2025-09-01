@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
+	common "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 )
 
 // =============================================================================
@@ -15,10 +16,10 @@ import (
 // ListArmsAlertRules lists ARMS alert rules with filtering and pagination
 func (s *ArmsService) ListArmsAlertRules(page, size int64, alertName, alertType, clusterId, status string, ids []string, nameRegex *regexp.Regexp) ([]*aliyunArmsAPI.AlertRule, int64, error) {
 	if page <= 0 {
-		page = DefaultStartPage
+		page = common.DefaultStartPage
 	}
 	if size <= 0 {
-		size = DefaultPageSize
+		size = common.DefaultPageSize
 	}
 
 	// Use cws-lib-go API if available

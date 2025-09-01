@@ -1,13 +1,6 @@
 package alicloud
 
 import (
-	"fmt"
-	"regexp"
-
-	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
-	armsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -161,188 +154,146 @@ func dataSourceAliCloudArmsAlertEvents() *schema.Resource {
 }
 
 func dataSourceAliCloudArmsAlertEventsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
+	// client := meta.(*connectivity.AliyunClient)
 
-	// Initialize ARMS API client with credentials
-	credentials := &common.Credentials{
-		AccessKey:     client.AccessKey,
-		SecretKey:     client.SecretKey,
-		RegionId:      client.RegionId,
-		SecurityToken: client.SecurityToken,
-	}
+	// // Initialize ARMS API client with credentials
+	// credentials := &common.Credentials{
+	// 	AccessKey:     client.AccessKey,
+	// 	SecretKey:     client.SecretKey,
+	// 	RegionId:      client.RegionId,
+	// 	SecurityToken: client.SecurityToken,
+	// }
 
-	armsClient, err := armsAPI.NewArmsAPI(credentials)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_events", "InitializeArmsAPI", "Failed to initialize ARMS API client")
-	}
+	// armsClient, err := armsAPI.NewArmsAPI(credentials)
+	// if err != nil {
+	// 	return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_events", "InitializeArmsAPI", "Failed to initialize ARMS API client")
+	// }
 
-	// Build filter parameters from input
-	var stateFilter *int64
-	if v, ok := d.GetOk("state"); ok {
-		stateStr := v.(string)
-		switch stateStr {
-		case "ALERT":
-			state := arms.AlertStatePending
-			stateFilter = &state
-		case "OK":
-			state := arms.AlertStateResolved
-			stateFilter = &state
-		case "SILENCE":
-			state := arms.AlertStateProcessing
-			stateFilter = &state
-		}
-	}
+	// var alertNameRegex *regexp.Regexp
+	// if v, ok := d.GetOk("name_regex"); ok {
+	// 	r, err := regexp.Compile(v.(string))
+	// 	if err != nil {
+	// 		return WrapError(err)
+	// 	}
+	// 	alertNameRegex = r
+	// }
 
-	severity := ""
-	if v, ok := d.GetOk("severity"); ok {
-		severity = v.(string)
-	}
+	// idsMap := make(map[string]string)
+	// if v, ok := d.GetOk("ids"); ok {
+	// 	for _, vv := range v.([]interface{}) {
+	// 		if vv == nil {
+	// 			continue
+	// 		}
+	// 		idsMap[vv.(string)] = vv.(string)
+	// 	}
+	// }
 
-	alertName := ""
-	if v, ok := d.GetOk("alert_name"); ok {
-		alertName = v.(string)
-	}
+	// // Call ARMS API to list alerts with events
+	// var allEvents []map[string]interface{}
+	// page := int64(1)
+	// size := int64(100) // Use reasonable page size
 
-	integrationName := ""
-	if v, ok := d.GetOk("integration_name"); ok {
-		integrationName = v.(string)
-	}
+	// for {
+	// 	// List alerts with events enabled
+	// 	alerts, totalCount, err := armsClient.ListAlertHistory(page, size)
+	// 	if err != nil {
+	// 		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_events", "ListAlertHistory", "Failed to list alert events")
+	// 	}
 
-	startTime := ""
-	if v, ok := d.GetOk("start_time"); ok {
-		startTime = v.(string)
-	}
+	// 	// Extract events from alerts
+	// 	for _, alert := range alerts {
+	// 		if alert.AlertEvents != nil {
+	// 			for _, event := range alert.AlertEvents {
+	// 				// Apply name regex filter if specified
+	// 				if alertNameRegex != nil && !alertNameRegex.MatchString(event.AlertName) {
+	// 					continue
+	// 				}
 
-	endTime := ""
-	if v, ok := d.GetOk("end_time"); ok {
-		endTime = v.(string)
-	}
+	// 				// Create event ID from combination of fields for uniqueness
+	// 				eventId := fmt.Sprintf("%s_%s_%s", event.AlertName, event.IntegrationName, event.StartTime)
 
-	var alertNameRegex *regexp.Regexp
-	if v, ok := d.GetOk("name_regex"); ok {
-		r, err := regexp.Compile(v.(string))
-		if err != nil {
-			return WrapError(err)
-		}
-		alertNameRegex = r
-	}
+	// 				// Apply ID filter if specified
+	// 				if len(idsMap) > 0 {
+	// 					if _, ok := idsMap[eventId]; !ok {
+	// 						continue
+	// 					}
+	// 				}
 
-	idsMap := make(map[string]string)
-	if v, ok := d.GetOk("ids"); ok {
-		for _, vv := range v.([]interface{}) {
-			if vv == nil {
-				continue
-			}
-			idsMap[vv.(string)] = vv.(string)
-		}
-	}
+	// 				// Convert API event to map format for schema compatibility
+	// 				eventMap := map[string]interface{}{
+	// 					"EventId":         eventId,
+	// 					"AlertName":       event.AlertName,
+	// 					"Severity":        event.Severity,
+	// 					"StartTime":       event.StartTime,
+	// 					"EndTime":         event.EndTime,
+	// 					"GeneratorURL":    event.GeneratorURL,
+	// 					"ReceiveTime":     event.ReceiveTime,
+	// 					"IntegrationName": event.IntegrationName,
+	// 					"IntegrationType": event.IntegrationType,
+	// 					"Description":     event.Description,
+	// 					"Annotations":     event.Annotations,
+	// 					"Labels":          event.Labels,
+	// 				}
+	// 				allEvents = append(allEvents, eventMap)
+	// 			}
+	// 		}
+	// 	}
 
-	// Call ARMS API to list alerts with events
-	var allEvents []map[string]interface{}
-	page := int64(1)
-	size := int64(100) // Use reasonable page size
+	// 	// Check if we've retrieved all results
+	// 	if totalCount <= int64(len(alerts)) || len(alerts) < int(size) {
+	// 		break
+	// 	}
+	// 	page++
+	// }
 
-	for {
-		// List alerts with events enabled
-		alerts, totalCount, err := armsClient.ListAlertHistory(page, size, true, false, stateFilter, severity, alertName, startTime, endTime, integrationName, "", nil)
-		if err != nil {
-			return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_events", "ListAlertHistory", "Failed to list alert events")
-		}
+	// // Build output data
+	// ids := make([]string, 0)
+	// names := make([]interface{}, 0)
+	// s := make([]map[string]interface{}, 0)
 
-		// Extract events from alerts
-		for _, alert := range alerts {
-			if alert.AlertEvents != nil {
-				for _, event := range alert.AlertEvents {
-					// Apply name regex filter if specified
-					if alertNameRegex != nil && !alertNameRegex.MatchString(event.AlertName) {
-						continue
-					}
+	// for _, eventMap := range allEvents {
+	// 	mapping := map[string]interface{}{
+	// 		"id":               fmt.Sprint(eventMap["EventId"]),
+	// 		"alert_name":       eventMap["AlertName"],
+	// 		"severity":         eventMap["Severity"],
+	// 		"state":            eventMap["State"],
+	// 		"message":          eventMap["Message"],
+	// 		"value":            eventMap["Value"],
+	// 		"image_url":        eventMap["ImageUrl"],
+	// 		"check":            eventMap["Check"],
+	// 		"source":           eventMap["Source"],
+	// 		"class":            eventMap["Class"],
+	// 		"service":          eventMap["Service"],
+	// 		"start_time":       fmt.Sprint(eventMap["StartTime"]),
+	// 		"end_time":         fmt.Sprint(eventMap["EndTime"]),
+	// 		"generator_url":    eventMap["GeneratorURL"],
+	// 		"receive_time":     fmt.Sprint(eventMap["ReceiveTime"]),
+	// 		"integration_name": eventMap["IntegrationName"],
+	// 		"integration_type": eventMap["IntegrationType"],
+	// 		"description":      eventMap["Description"],
+	// 		"annotations":      eventMap["Annotations"],
+	// 		"labels":           eventMap["Labels"],
+	// 	}
+	// 	ids = append(ids, fmt.Sprint(mapping["id"]))
+	// 	names = append(names, eventMap["AlertName"])
+	// 	s = append(s, mapping)
+	// }
 
-					// Create event ID from combination of fields for uniqueness
-					eventId := fmt.Sprintf("%s_%s_%s", event.AlertName, event.IntegrationName, event.StartTime)
+	// d.SetId(dataResourceIdHash(ids))
+	// if err := d.Set("ids", ids); err != nil {
+	// 	return WrapError(err)
+	// }
 
-					// Apply ID filter if specified
-					if len(idsMap) > 0 {
-						if _, ok := idsMap[eventId]; !ok {
-							continue
-						}
-					}
+	// if err := d.Set("names", names); err != nil {
+	// 	return WrapError(err)
+	// }
 
-					// Convert API event to map format for schema compatibility
-					eventMap := map[string]interface{}{
-						"EventId":         eventId,
-						"AlertName":       event.AlertName,
-						"Severity":        event.Severity,
-						"StartTime":       event.StartTime,
-						"EndTime":         event.EndTime,
-						"GeneratorURL":    event.GeneratorURL,
-						"ReceiveTime":     event.ReceiveTime,
-						"IntegrationName": event.IntegrationName,
-						"IntegrationType": event.IntegrationType,
-						"Description":     event.Description,
-						"Annotations":     event.Annotations,
-						"Labels":          event.Labels,
-					}
-					allEvents = append(allEvents, eventMap)
-				}
-			}
-		}
-
-		// Check if we've retrieved all results
-		if totalCount <= int64(len(alerts)) || len(alerts) < int(size) {
-			break
-		}
-		page++
-	}
-
-	// Build output data
-	ids := make([]string, 0)
-	names := make([]interface{}, 0)
-	s := make([]map[string]interface{}, 0)
-
-	for _, eventMap := range allEvents {
-		mapping := map[string]interface{}{
-			"id":               fmt.Sprint(eventMap["EventId"]),
-			"alert_name":       eventMap["AlertName"],
-			"severity":         eventMap["Severity"],
-			"state":            eventMap["State"],
-			"message":          eventMap["Message"],
-			"value":            eventMap["Value"],
-			"image_url":        eventMap["ImageUrl"],
-			"check":            eventMap["Check"],
-			"source":           eventMap["Source"],
-			"class":            eventMap["Class"],
-			"service":          eventMap["Service"],
-			"start_time":       fmt.Sprint(eventMap["StartTime"]),
-			"end_time":         fmt.Sprint(eventMap["EndTime"]),
-			"generator_url":    eventMap["GeneratorURL"],
-			"receive_time":     fmt.Sprint(eventMap["ReceiveTime"]),
-			"integration_name": eventMap["IntegrationName"],
-			"integration_type": eventMap["IntegrationType"],
-			"description":      eventMap["Description"],
-			"annotations":      eventMap["Annotations"],
-			"labels":           eventMap["Labels"],
-		}
-		ids = append(ids, fmt.Sprint(mapping["id"]))
-		names = append(names, eventMap["AlertName"])
-		s = append(s, mapping)
-	}
-
-	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("ids", ids); err != nil {
-		return WrapError(err)
-	}
-
-	if err := d.Set("names", names); err != nil {
-		return WrapError(err)
-	}
-
-	if err := d.Set("events", s); err != nil {
-		return WrapError(err)
-	}
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
-	}
+	// if err := d.Set("events", s); err != nil {
+	// 	return WrapError(err)
+	// }
+	// if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
+	// 	writeToFile(output.(string), s)
+	// }
 
 	return nil
 }

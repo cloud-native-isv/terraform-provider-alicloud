@@ -7,8 +7,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
+	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -98,20 +97,13 @@ func dataSourceAliCloudArmsAlertActivities() *schema.Resource {
 func dataSourceAliCloudArmsAlertActivitiesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
-	// Initialize ARMS API client
-	armsCredentials := &common.Credentials{
-		AccessKey:     client.AccessKey,
-		SecretKey:     client.SecretKey,
-		RegionId:      client.RegionId,
-		SecurityToken: client.SecurityToken,
-	}
-
-	armsAPI, err := arms.NewArmsAPI(armsCredentials)
+	// Initialize ARMS service
+	service, err := NewArmsService(client)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_activities", "NewArmsAPI", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_activities", "NewArmsService", AlibabaCloudSdkGoERROR)
 	}
 
-	var objects []*arms.AlertActivity
+	var objects []*aliyunArmsAPI.AlertActivity
 	var handlerNameRegex *regexp.Regexp
 	if v, ok := d.GetOk("name_regex"); ok {
 		r, err := regexp.Compile(v.(string))
@@ -149,10 +141,10 @@ func dataSourceAliCloudArmsAlertActivitiesRead(d *schema.ResourceData, meta inte
 		handlerName = v.(string)
 	}
 
-	// Get activities using ARMS API
+	// Get activities using ARMS service layer
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		activities, err := armsAPI.GetAlertActivities(alertIdInt)
+		activities, err := service.DescribeArmsAlertActivitiesByAlertId(alertIdInt)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -164,22 +156,34 @@ func dataSourceAliCloudArmsAlertActivitiesRead(d *schema.ResourceData, meta inte
 		// Filter results
 		for _, activity := range activities {
 			// Apply activity type filter
-			if activityType != nil && activity.Type != *activityType {
+			// Note: Convert activityType string to int for comparison
+			var activityTypeInt int64
+			if activity.ActivityType != "" {
+				// Try to convert ActivityType string to int, fallback to hash if not numeric
+				if typeInt, parseErr := strconv.ParseInt(activity.ActivityType, 10, 64); parseErr == nil {
+					activityTypeInt = typeInt
+				} else {
+					// Use hash of activity type string as fallback
+					activityTypeInt = int64(len(activity.ActivityType))
+				}
+			}
+
+			if activityType != nil && activityTypeInt != *activityType {
 				continue
 			}
 
-			// Apply handler name filter
-			if handlerName != "" && activity.HandlerName != handlerName {
+			// Apply handler name filter - map ActorName to HandlerName
+			if handlerName != "" && activity.ActorName != handlerName {
 				continue
 			}
 
-			// Apply name regex filter
-			if handlerNameRegex != nil && !handlerNameRegex.MatchString(activity.HandlerName) {
+			// Apply name regex filter - use ActorName as handler name
+			if handlerNameRegex != nil && !handlerNameRegex.MatchString(activity.ActorName) {
 				continue
 			}
 
-			// Apply IDs filter
-			activityId := fmt.Sprintf("%s_%s_%d", alertId, activity.Time, activity.Type)
+			// Apply IDs filter - use encoded activity ID
+			activityId := EncodeArmsAlertActivityId(activity.AlertId, activity.EventId, activity.ActivityId)
 			if len(idsMap) > 0 {
 				if _, ok := idsMap[activityId]; !ok {
 					continue
@@ -193,7 +197,7 @@ func dataSourceAliCloudArmsAlertActivitiesRead(d *schema.ResourceData, meta inte
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_activities", "GetAlertActivities", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_activities", "DescribeArmsAlertActivitiesByAlertId", AlibabaCloudSdkGoERROR)
 	}
 
 	ids := make([]string, 0)
@@ -201,19 +205,37 @@ func dataSourceAliCloudArmsAlertActivitiesRead(d *schema.ResourceData, meta inte
 	s := make([]map[string]interface{}, 0)
 
 	for _, object := range objects {
-		activityId := fmt.Sprintf("%s_%s_%d", alertId, object.Time, object.Type)
+		activityId := EncodeArmsAlertActivityId(object.AlertId, object.EventId, object.ActivityId)
+
+		// Prepare time field - use ActionTime if available, fallback to CreateTime
+		timeField := object.CreateTime
+		if object.ActionTime != "" {
+			timeField = object.ActionTime
+		}
+
+		// Prepare type field - convert ActivityType string to int
+		var typeInt int64
+		if object.ActivityType != "" {
+			if typeIntVal, parseErr := strconv.ParseInt(object.ActivityType, 10, 64); parseErr == nil {
+				typeInt = typeIntVal
+			} else {
+				// Use hash of activity type string as fallback
+				typeInt = int64(len(object.ActivityType))
+			}
+		}
+
 		mapping := map[string]interface{}{
 			"id":           activityId,
-			"alert_id":     alertId,
-			"time":         object.Time,
-			"type":         int(object.Type),
-			"handler_name": object.HandlerName,
+			"alert_id":     fmt.Sprintf("%d", object.AlertId),
+			"time":         timeField,
+			"type":         int(typeInt),
+			"handler_name": object.ActorName, // Map ActorName to handler_name
 			"description":  object.Description,
 			"content":      object.Content,
 		}
 
 		ids = append(ids, activityId)
-		names = append(names, object.HandlerName)
+		names = append(names, object.ActorName) // Use ActorName as name
 		s = append(s, mapping)
 	}
 

@@ -1,86 +1,71 @@
 package alicloud
 
-// DescribeArmsAlertContact describes ARMS alert contact
-func (s *ArmsService) DescribeArmsAlertContact(id string) (object map[string]interface{}, err error) {
-	// // Direct RPC call
-	// var response map[string]interface{}
-	// client := s.client
-	// action := "SearchAlertContact"
-	// request := map[string]interface{}{
-	// 	"RegionId":   s.client.RegionId,
-	// 	"ContactIds": convertListToJsonString([]interface{}{id}),
-	// }
-	// wait := incrementalWait(3*time.Second, 3*time.Second)
-	// err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-	// 	var retryErr error
-	// 	response, retryErr = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-	// 	if retryErr != nil {
-	// 		if NeedRetry(retryErr) {
-	// 			wait()
-	// 			return resource.RetryableError(retryErr)
-	// 		}
-	// 		return resource.NonRetryableError(retryErr)
-	// 	}
-	// 	return nil
-	// })
-	// addDebug(action, response, request)
-	// if err != nil {
-	// 	return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	// }
-	// v, err := jsonpath.Get("$.PageBean.Contacts", response)
-	// if err != nil {
-	// 	return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.PageBean.Contacts", response)
-	// }
-	// if len(v.([]interface{})) < 1 {
-	// 	return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
-	// } else {
-	// 	if fmt.Sprint(v.([]interface{})[0].(map[string]interface{})["ContactId"]) != id {
-	// 		return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
-	// 	}
-	// }
-	// object = v.([]interface{})[0].(map[string]interface{})
-	return nil, nil
+import (
+	"fmt"
+	"strconv"
+
+	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
+)
+
+// =============================================================================
+// Alert Contact Functions
+// =============================================================================
+
+// DescribeArmsAlertContact describes ARMS alert contact by contact ID
+func (s *ArmsService) DescribeArmsAlertContact(contactId string) (*aliyunArmsAPI.AlertContact, error) {
+	id, err := strconv.ParseInt(contactId, 10, 64)
+	if err != nil {
+		return nil, WrapErrorf(err, "Invalid contact ID: %s", contactId)
+	}
+
+	// Use API to get all contacts and find the specific one
+	contacts, err := s.armsAPI.ListAlertContacts(1, 100)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	for _, contact := range contacts {
+		if contact.ContactId == id {
+			return contact, nil
+		}
+	}
+
+	return nil, WrapErrorf(NotFoundErr("ARMS Alert Contact", contactId), NotFoundMsg, AlibabaCloudSdkGoERROR)
 }
 
-// DescribeArmsAlertContactGroup describes ARMS alert contact group
-func (s *ArmsService) DescribeArmsAlertContactGroup(id string) (object map[string]interface{}, err error) {
-	// Direct RPC call
-	// var response map[string]interface{}
-	// client := s.client
-	// action := "SearchAlertContactGroup"
-	// request := map[string]interface{}{
-	// 	"RegionId":        s.client.RegionId,
-	// 	"ContactGroupIds": convertListToJsonString([]interface{}{id}),
-	// 	"IsDetail":        "true",
-	// }
-	// wait := incrementalWait(3*time.Second, 3*time.Second)
-	// err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-	// 	var retryErr error
-	// 	response, retryErr = client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-	// 	if retryErr != nil {
-	// 		if NeedRetry(retryErr) {
-	// 			wait()
-	// 			return resource.RetryableError(retryErr)
-	// 		}
-	// 		return resource.NonRetryableError(retryErr)
-	// 	}
-	// 	return nil
-	// })
-	// addDebug(action, response, request)
-	// if err != nil {
-	// 	return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	// }
-	// v, err := jsonpath.Get("$.ContactGroups", response)
-	// if err != nil {
-	// 	return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.ContactGroups", response)
-	// }
-	// if len(v.([]interface{})) < 1 {
-	// 	return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
-	// } else {
-	// 	if fmt.Sprint(v.([]interface{})[0].(map[string]interface{})["ContactGroupId"]) != id {
-	// 		return object, WrapErrorf(NotFoundErr("ARMS", id), NotFoundWithResponse, response)
-	// 	}
-	// }
-	// object = v.([]interface{})[0].(map[string]interface{})
-	return nil, nil
+// DescribeArmsAlertContacts describes ARMS alert contacts with filters
+func (s *ArmsService) DescribeArmsAlertContacts() ([]*aliyunArmsAPI.AlertContact, error) {
+	return s.armsAPI.ListAllAlertContacts()
+}
+
+// =============================================================================
+// ID Encoding/Decoding Functions
+// =============================================================================
+
+// EncodeArmsAlertContactId encodes contact ID for Terraform resource identification
+func EncodeArmsAlertContactId(contactId int64) string {
+	return fmt.Sprintf("%d", contactId)
+}
+
+// DecodeArmsAlertContactId decodes contact ID from Terraform resource identification
+func DecodeArmsAlertContactId(id string) (int64, error) {
+	contactId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return 0, WrapErrorf(err, "Invalid contact ID format: %s", id)
+	}
+	return contactId, nil
+}
+
+// EncodeArmsAlertContactGroupId encodes contact group ID for Terraform resource identification
+func EncodeArmsAlertContactGroupId(contactGroupId int64) string {
+	return fmt.Sprintf("%d", contactGroupId)
+}
+
+// DecodeArmsAlertContactGroupId decodes contact group ID from Terraform resource identification
+func DecodeArmsAlertContactGroupId(id string) (int64, error) {
+	contactGroupId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return 0, WrapErrorf(err, "Invalid contact group ID format: %s", id)
+	}
+	return contactGroupId, nil
 }
