@@ -36,7 +36,7 @@ func resourceAliCloudArmsAlertIntegration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"cloudwatch", "datadog", "grafana", "prometheus", "webhooks"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"CLOUDWATCH", "DATADOG", "GRAFANA", "PROMETHEUS", "WEBHOOKS"}, false),
 			},
 			"description": {
 				Type:     schema.TypeString,

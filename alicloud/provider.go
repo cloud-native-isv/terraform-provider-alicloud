@@ -988,6 +988,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_arms_alert_contact":                                    resourceAliCloudArmsAlertContact(),
 			"alicloud_arms_alert_contact_group":                              resourceAliCloudArmsAlertContactGroup(),
 			"alicloud_arms_alert_integration":                                resourceAliCloudArmsAlertIntegration(),
+			"alicloud_arms_alert_integration_field_redefine_rule":            resourceAliCloudArmsAlertIntegrationFieldRedefineRule(),
 			"alicloud_arms_alert_notification_policy":                        resourceAliCloudArmsAlertNotificationPolicy(),
 			"alicloud_arms_alert_robot":                                      resourceAliCloudArmsAlertRobot(),
 			"alicloud_arms_alert_rule":                                       resourceAliCloudArmsAlertRule(),
