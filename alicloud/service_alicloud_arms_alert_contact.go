@@ -19,7 +19,7 @@ func (s *ArmsService) DescribeArmsAlertContact(contactId string) (*aliyunArmsAPI
 	}
 
 	// Use API to get all contacts and find the specific one
-	contacts, err := s.armsAPI.ListAlertContacts(1, 100)
+	contacts, err := s.armsAPI.ListAllAlertContacts()
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -36,6 +36,16 @@ func (s *ArmsService) DescribeArmsAlertContact(contactId string) (*aliyunArmsAPI
 // DescribeArmsAlertContacts describes ARMS alert contacts with filters
 func (s *ArmsService) DescribeArmsAlertContacts() ([]*aliyunArmsAPI.AlertContact, error) {
 	return s.armsAPI.ListAllAlertContacts()
+}
+
+// CreateOrUpdateArmsAlertContact creates or updates an ARMS alert contact
+func (s *ArmsService) CreateOrUpdateArmsAlertContact(contact *aliyunArmsAPI.AlertContact) (*aliyunArmsAPI.AlertContact, error) {
+	return s.armsAPI.CreateOrUpdateAlertContact(contact)
+}
+
+// DeleteArmsAlertContact deletes an ARMS alert contact by contact ID
+func (s *ArmsService) DeleteArmsAlertContact(contactId int64) error {
+	return s.armsAPI.DeleteAlertContact(contactId)
 }
 
 // =============================================================================

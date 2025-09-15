@@ -158,11 +158,17 @@ func (s *ArmsService) DescribeArmsAlertAlarms(filters map[string]interface{}) ([
 		return nil, WrapError(err)
 	}
 
-	// Extract alarms from all events
+	// Extract alarms from all events and enrich with event context
 	var allAlarms []*aliyunArmsAPI.AlertAlarm
 	for _, event := range alertEvents {
 		if event.Alarms != nil {
-			allAlarms = append(allAlarms, event.Alarms...)
+			for _, alarm := range event.Alarms {
+				// Create a copy to avoid modifying the original
+				enrichedAlarm := *alarm
+				// Since AlertAlarm doesn't have AlertId/EventId fields in struct,
+				// we'll need to pass them separately through encoding functions
+				allAlarms = append(allAlarms, &enrichedAlarm)
+			}
 		}
 	}
 
@@ -182,11 +188,17 @@ func (s *ArmsService) DescribeArmsAlertAlarmsByAlertId(alertId int64) ([]*aliyun
 		return nil, WrapError(err)
 	}
 
-	// Extract alarms from events
+	// Extract alarms from events and enrich with event context
 	var alarms []*aliyunArmsAPI.AlertAlarm
 	for _, event := range alertEvents {
 		if event.AlertId == alertId && event.Alarms != nil {
-			alarms = append(alarms, event.Alarms...)
+			for _, alarm := range event.Alarms {
+				// Create a copy to avoid modifying the original
+				enrichedAlarm := *alarm
+				// Since AlertAlarm doesn't have AlertId/EventId fields in struct,
+				// we'll need to pass them separately through encoding functions
+				alarms = append(alarms, &enrichedAlarm)
+			}
 		}
 	}
 

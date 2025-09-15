@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -11,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAliCloudArmsAlertEvents() *schema.Resource {
+func dataSourceAliCloudArmsAlertItems() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAliCloudArmsAlertEventsRead,
+		Read: dataSourceAliCloudArmsAlertItemsRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -38,27 +39,12 @@ func dataSourceAliCloudArmsAlertEvents() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
-			"severity": {
+			"alert_type": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
-			"state": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-			"integration_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-			"start_time": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-			"end_time": {
+			"status": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -67,7 +53,7 @@ func dataSourceAliCloudArmsAlertEvents() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"events": {
+			"items": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -76,79 +62,80 @@ func dataSourceAliCloudArmsAlertEvents() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"alert_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"alert_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"severity": {
+						"alert_type": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"state": {
+						"status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"message": {
+						"rule_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"value": {
+						"rule_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"image_url": {
+						"cluster_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"check": {
+						"cluster_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"source": {
+						"region_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"class": {
+						"create_time": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"service": {
+						"update_time": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"start_time": {
+						"is_enable": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"level": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"end_time": {
+						"contact_groups": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"webhook": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"generator_url": {
+						"ding_robot_webhook": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"receive_time": {
+						"wechat_robot_webhook": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"integration_name": {
+						"slack_webhook": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"integration_type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"annotations": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"labels": {
+						"feishu_robot_webhook": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -159,15 +146,16 @@ func dataSourceAliCloudArmsAlertEvents() *schema.Resource {
 	}
 }
 
-func dataSourceAliCloudArmsAlertEventsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudArmsAlertItemsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 
 	// Initialize ARMS service
 	service, err := NewArmsService(client)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_events", "NewArmsService", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_alert_items", "NewArmsService", AlibabaCloudSdkGoERROR)
 	}
 
+	var objects []*aliyunArmsAPI.AlertItem
 	var alertNameRegex *regexp.Regexp
 	if v, ok := d.GetOk("name_regex"); ok {
 		r, err := regexp.Compile(v.(string))
@@ -187,38 +175,26 @@ func dataSourceAliCloudArmsAlertEventsRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	// Build filters from input parameters
-	filters := make(map[string]interface{})
-
+	// Get filter parameters
+	alertName := ""
 	if v, ok := d.GetOk("alert_name"); ok {
-		filters["alertName"] = v.(string)
+		alertName = v.(string)
 	}
 
-	if v, ok := d.GetOk("severity"); ok {
-		filters["severity"] = v.(string)
+	alertType := ""
+	if v, ok := d.GetOk("alert_type"); ok {
+		alertType = v.(string)
 	}
 
-	if v, ok := d.GetOk("state"); ok {
-		filters["state"] = v.(string)
+	status := ""
+	if v, ok := d.GetOk("status"); ok {
+		status = v.(string)
 	}
 
-	if v, ok := d.GetOk("integration_name"); ok {
-		filters["integrationName"] = v.(string)
-	}
-
-	if v, ok := d.GetOk("start_time"); ok {
-		filters["startTime"] = v.(string)
-	}
-
-	if v, ok := d.GetOk("end_time"); ok {
-		filters["endTime"] = v.(string)
-	}
-
-	// Get all alert events using service layer
+	// Get all alert items using service layer
 	wait := incrementalWait(3*time.Second, 3*time.Second)
-	var objects []*aliyunArmsAPI.AlertEvent
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		events, err := service.DescribeArmsAllAlertEvents(filters)
+		items, err := service.DescribeArmsAllAlertItems()
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -226,66 +202,79 @@ func dataSourceAliCloudArmsAlertEventsRead(d *schema.ResourceData, meta interfac
 			}
 			return resource.NonRetryableError(err)
 		}
-		objects = events
+
+		// Filter results
+		for _, item := range items {
+			// Apply alert name filter
+			if alertName != "" && item.AlertName != alertName {
+				continue
+			}
+
+			// Apply alert type filter
+			if alertType != "" && item.AlertType != alertType {
+				continue
+			}
+
+			// Apply status filter
+			if status != "" && strconv.FormatInt(item.Status, 10) != status {
+				continue
+			}
+
+			// Apply name regex filter
+			if alertNameRegex != nil && !alertNameRegex.MatchString(item.AlertName) {
+				continue
+			}
+
+			// Apply IDs filter
+			itemId := EncodeArmsAlertItemId(item.AlertId)
+			if len(idsMap) > 0 {
+				if _, ok := idsMap[itemId]; !ok {
+					continue
+				}
+			}
+
+			objects = append(objects, item)
+		}
+
 		return nil
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_events", "DescribeArmsAllAlertEvents", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_arms_alert_items", "DescribeArmsAllAlertItems", AlibabaCloudSdkGoERROR)
 	}
 
-	// Filter results
-	var filteredEvents []*aliyunArmsAPI.AlertEvent
-	for _, event := range objects {
-		// Apply name regex filter
-		if alertNameRegex != nil && !alertNameRegex.MatchString(event.AlertName) {
-			continue
-		}
-
-		// Apply IDs filter
-		eventId := EncodeArmsAlertEventId(event.EventId)
-		if len(idsMap) > 0 {
-			if _, ok := idsMap[eventId]; !ok {
-				continue
-			}
-		}
-
-		filteredEvents = append(filteredEvents, event)
-	}
-
-	// Build output data
 	ids := make([]string, 0)
 	names := make([]interface{}, 0)
 	s := make([]map[string]interface{}, 0)
 
-	for _, event := range filteredEvents {
-		eventId := EncodeArmsAlertEventId(event.EventId)
+	for _, object := range objects {
+		itemId := EncodeArmsAlertItemId(object.AlertId)
 
 		mapping := map[string]interface{}{
-			"id":               eventId,
-			"alert_name":       event.AlertName,
-			"severity":         event.Severity,
-			"state":            event.Status,
-			"message":          event.Message,
-			"value":            "", // Field not available in AlertEvent
-			"image_url":        "", // Field not available in AlertEvent
-			"check":            "", // Field not available in AlertEvent
-			"source":           "", // Field not available in AlertEvent
-			"class":            "", // Field not available in AlertEvent
-			"service":          "", // Field not available in AlertEvent
-			"start_time":       event.StartTime,
-			"end_time":         event.EndTime,
-			"generator_url":    event.GeneratorURL,
-			"receive_time":     event.ReceiveTime,
-			"integration_name": event.IntegrationName,
-			"integration_type": event.IntegrationType,
-			"description":      event.Description,
-			"annotations":      event.Annotations,
-			"labels":           event.Labels,
+			"id":                   itemId,
+			"alert_id":             strconv.FormatInt(object.AlertId, 10),
+			"alert_name":           object.AlertName,
+			"alert_type":           object.AlertType,
+			"status":               strconv.FormatInt(object.Status, 10),
+			"rule_id":              "", // Field not available in AlertItem
+			"rule_name":            "", // Field not available in AlertItem
+			"cluster_id":           object.ClusterId,
+			"cluster_name":         "", // Field not available in AlertItem
+			"region_id":            object.RegionId,
+			"create_time":          object.CreateTime,
+			"update_time":          object.UpdateTime,
+			"is_enable":            false,           // Field not available in AlertItem
+			"level":                object.Severity, // Use Severity as level
+			"contact_groups":       []string{},      // Field not available in AlertItem
+			"webhook":              "",              // Field not available in AlertItem
+			"ding_robot_webhook":   "",              // Field not available in AlertItem
+			"wechat_robot_webhook": "",              // Field not available in AlertItem
+			"slack_webhook":        "",              // Field not available in AlertItem
+			"feishu_robot_webhook": "",              // Field not available in AlertItem
 		}
 
-		ids = append(ids, eventId)
-		names = append(names, event.AlertName)
+		ids = append(ids, itemId)
+		names = append(names, object.AlertName)
 		s = append(s, mapping)
 	}
 
@@ -298,7 +287,7 @@ func dataSourceAliCloudArmsAlertEventsRead(d *schema.ResourceData, meta interfac
 		return WrapError(err)
 	}
 
-	if err := d.Set("events", s); err != nil {
+	if err := d.Set("items", s); err != nil {
 		return WrapError(err)
 	}
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
