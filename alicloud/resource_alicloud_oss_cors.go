@@ -190,25 +190,57 @@ func resourceAliCloudOssBucketCorsRead(d *schema.ResourceData, meta interface{})
 
 			allowedHeaderRaw := make([]interface{}, 0)
 			if cORSRuleChildRaw["AllowedHeader"] != nil {
-				allowedHeaderRaw = cORSRuleChildRaw["AllowedHeader"].([]interface{})
+				switch v := cORSRuleChildRaw["AllowedHeader"].(type) {
+				case []interface{}:
+					allowedHeaderRaw = v
+				case []string:
+					allowedHeaderRaw = make([]interface{}, len(v))
+					for i, s := range v {
+						allowedHeaderRaw[i] = s
+					}
+				}
 			}
 
 			corsRuleMap["allowed_headers"] = allowedHeaderRaw
 			allowedMethodRaw := make([]interface{}, 0)
 			if cORSRuleChildRaw["AllowedMethod"] != nil {
-				allowedMethodRaw = cORSRuleChildRaw["AllowedMethod"].([]interface{})
+				switch v := cORSRuleChildRaw["AllowedMethod"].(type) {
+				case []interface{}:
+					allowedMethodRaw = v
+				case []string:
+					allowedMethodRaw = make([]interface{}, len(v))
+					for i, s := range v {
+						allowedMethodRaw[i] = s
+					}
+				}
 			}
 
 			corsRuleMap["allowed_methods"] = allowedMethodRaw
 			allowedOriginRaw := make([]interface{}, 0)
 			if cORSRuleChildRaw["AllowedOrigin"] != nil {
-				allowedOriginRaw = cORSRuleChildRaw["AllowedOrigin"].([]interface{})
+				switch v := cORSRuleChildRaw["AllowedOrigin"].(type) {
+				case []interface{}:
+					allowedOriginRaw = v
+				case []string:
+					allowedOriginRaw = make([]interface{}, len(v))
+					for i, s := range v {
+						allowedOriginRaw[i] = s
+					}
+				}
 			}
 
 			corsRuleMap["allowed_origins"] = allowedOriginRaw
 			exposeHeaderRaw := make([]interface{}, 0)
 			if cORSRuleChildRaw["ExposeHeader"] != nil {
-				exposeHeaderRaw = cORSRuleChildRaw["ExposeHeader"].([]interface{})
+				switch v := cORSRuleChildRaw["ExposeHeader"].(type) {
+				case []interface{}:
+					exposeHeaderRaw = v
+				case []string:
+					exposeHeaderRaw = make([]interface{}, len(v))
+					for i, s := range v {
+						exposeHeaderRaw[i] = s
+					}
+				}
 			}
 
 			corsRuleMap["expose_header"] = exposeHeaderRaw

@@ -166,9 +166,17 @@ func convertBucketInfoToLegacy(bucketInfo *ossapi.OssBucketInfo) oss.GetBucketIn
 			result.BucketInfo.CreationDate, _ = time.Parse(time.RFC3339, *bucketInfo.Bucket.CreationDate)
 		}
 		result.BucketInfo.StorageClass = getStringValue(bucketInfo.Bucket.StorageClass)
+		result.BucketInfo.RedundancyType = getStringValue(bucketInfo.Bucket.DataRedundancyType)
+		result.BucketInfo.ExtranetEndpoint = getStringValue(bucketInfo.Bucket.ExtranetEndpoint)
+		result.BucketInfo.IntranetEndpoint = getStringValue(bucketInfo.Bucket.IntranetEndpoint)
 		// Convert ACL from nested structure
 		if bucketInfo.Bucket.AccessControlList != nil {
 			result.BucketInfo.ACL = getStringValue(bucketInfo.Bucket.AccessControlList.Grant)
+		}
+		// Convert Owner from nested structure
+		if bucketInfo.Bucket.Owner != nil {
+			result.BucketInfo.Owner.ID = getStringValue(bucketInfo.Bucket.Owner.Id)
+			result.BucketInfo.Owner.DisplayName = getStringValue(bucketInfo.Bucket.Owner.DisplayName)
 		}
 	}
 
