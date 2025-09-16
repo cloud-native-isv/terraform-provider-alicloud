@@ -10,6 +10,48 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
+// CreateArmsIntegration creates a new ARMS alert integration
+func (s *ArmsService) CreateArmsIntegration(integration *aliyunArmsAPI.AlertIntegration) (*aliyunArmsAPI.AlertIntegration, error) {
+	if s.armsAPI == nil {
+		return nil, fmt.Errorf("ARMS API not available")
+	}
+
+	result, err := s.GetAPI().CreateIntegration(integration)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return result, nil
+}
+
+// UpdateArmsIntegration updates an existing ARMS alert integration
+func (s *ArmsService) UpdateArmsIntegration(integration *aliyunArmsAPI.AlertIntegration) (*aliyunArmsAPI.AlertIntegration, error) {
+	if s.armsAPI == nil {
+		return nil, fmt.Errorf("ARMS API not available")
+	}
+
+	result, err := s.GetAPI().UpdateIntegration(integration)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return result, nil
+}
+
+// DeleteArmsIntegration deletes an ARMS alert integration
+func (s *ArmsService) DeleteArmsIntegration(integrationId int64) error {
+	if s.armsAPI == nil {
+		return fmt.Errorf("ARMS API not available")
+	}
+
+	err := s.GetAPI().DeleteIntegration(integrationId)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	return nil
+}
+
 func (s *ArmsService) DescribeArmsIntegration(id string) (*aliyunArmsAPI.AlertIntegration, error) {
 	// Try using aliyunArmsAPI first if available
 	if s.armsAPI != nil {
@@ -84,13 +126,17 @@ func (s *ArmsService) ArmsIntegrationStateRefreshFunc(id string, failStates []st
 			return nil, "", WrapError(err)
 		}
 
+		// Extract current status based on Liveness and State fields
+		// Only when Liveness="ready" AND State=true, the integration is considered READY
 		var currentStatus string
-		if object.State {
-			currentStatus = "Active"
+		if object.Liveness == "ready" && object.State {
+			currentStatus = aliyunArmsAPI.AlertIntegrationStatusReady
 		} else {
-			currentStatus = "Inactive"
+			// All other combinations are considered as CREATING (not ready yet)
+			currentStatus = aliyunArmsAPI.AlertIntegrationStatusCreating
 		}
 
+		// Check for fail states
 		for _, failState := range failStates {
 			if currentStatus == failState {
 				return object, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
@@ -103,7 +149,13 @@ func (s *ArmsService) ArmsIntegrationStateRefreshFunc(id string, failStates []st
 
 // WaitForArmsIntegrationCreated waits for ARMS integration to be created
 func (s *ArmsService) WaitForArmsIntegrationCreated(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf([]string{}, []string{"Success"}, timeout, 5*time.Second, s.ArmsIntegrationStateRefreshFunc(id, []string{"Failed"}))
+	stateConf := BuildStateConf(
+		[]string{aliyunArmsAPI.AlertIntegrationStatusCreating}, // pending states
+		[]string{aliyunArmsAPI.AlertIntegrationStatusReady},    // target states
+		timeout,
+		5*time.Second,
+		s.ArmsIntegrationStateRefreshFunc(id, []string{aliyunArmsAPI.AlertIntegrationStatusFailed}),
+	)
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, id)
 	}
@@ -112,7 +164,13 @@ func (s *ArmsService) WaitForArmsIntegrationCreated(id string, timeout time.Dura
 
 // WaitForArmsIntegrationDeleted waits for ARMS integration to be deleted
 func (s *ArmsService) WaitForArmsIntegrationDeleted(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf([]string{"Success", "Failed"}, []string{}, timeout, 5*time.Second, s.ArmsIntegrationStateRefreshFunc(id, []string{}))
+	stateConf := BuildStateConf(
+		[]string{aliyunArmsAPI.AlertIntegrationStatusReady, aliyunArmsAPI.AlertIntegrationStatusFailed, aliyunArmsAPI.AlertIntegrationStatusCreating}, // pending states
+		[]string{}, // target states (empty = wait for resource disappear)
+		timeout,
+		5*time.Second,
+		s.ArmsIntegrationStateRefreshFunc(id, []string{}),
+	)
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, id)
 	}

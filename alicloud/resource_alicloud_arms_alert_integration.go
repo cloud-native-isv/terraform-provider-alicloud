@@ -3,11 +3,11 @@ package alicloud
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
-	"github.com/PaesslerAG/jsonpath"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -66,58 +66,30 @@ func resourceAliCloudArmsAlertIntegration() *schema.Resource {
 
 func resourceAliCloudArmsIntegrationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	action := "CreateIntegration"
-	request := make(map[string]interface{})
-
-	request["RegionId"] = client.RegionId
-	request["IntegrationName"] = d.Get("integration_name")
-	request["IntegrationType"] = d.Get("integration_type")
-	request["Config"] = d.Get("config")
-
-	if v, ok := d.GetOk("description"); ok {
-		request["Description"] = v
-	}
-
-	if v, ok := d.GetOk("status"); ok {
-		request["Status"] = v
-	}
-
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	var response map[string]interface{}
-	err := resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		resp, err := client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		response = resp
-		addDebug(action, response, request)
-		return nil
-	})
-
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_integration", action, AlibabaCloudSdkGoERROR)
-	}
-
-	integrationIdResp, err := jsonpath.Get("$.IntegrationId", response)
-	if err != nil {
-		return WrapErrorf(err, FailedGetAttributeMsg, "alicloud_arms_integration", "$.IntegrationId", response)
-	}
-
-	id := fmt.Sprint(integrationIdResp)
-
-	d.SetId(id)
-
-	// Wait for integration to be ready
-	armsService, err := NewArmsService(client)
+	service, err := NewArmsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
-	stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(id, []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
+
+	// Build integration object using strong types
+	integration := &aliyunArmsAPI.AlertIntegration{
+		IntegrationName:        d.Get("integration_name").(string),
+		IntegrationProductType: d.Get("integration_type").(string),
+		Description:            d.Get("description").(string),
+	}
+
+	// Create integration using Service layer
+	result, err := service.CreateArmsIntegration(integration)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_arms_integration", "CreateIntegration", AlibabaCloudSdkGoERROR)
+	}
+
+	// Set ID from result
+	d.SetId(fmt.Sprintf("%d", result.IntegrationId))
+
+	// Wait for integration to be ready
+	err = service.WaitForArmsIntegrationCreated(d.Id(), d.Timeout(schema.TimeoutCreate))
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
@@ -126,88 +98,75 @@ func resourceAliCloudArmsIntegrationCreate(d *schema.ResourceData, meta interfac
 
 func resourceAliCloudArmsIntegrationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	armsService, err := NewArmsService(client)
+	service, err := NewArmsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	object, err := armsService.DescribeArmsIntegration(d.Id())
+	object, err := service.DescribeArmsIntegration(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_arms_integration armsService.DescribeArmsIntegration Failed!!! %s", err)
+		if !d.IsNewResource() && IsNotFoundError(err) {
+			log.Printf("[DEBUG] Resource alicloud_arms_integration DescribeArmsIntegration Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
 
+	// Set all necessary fields using strong types
 	d.Set("integration_name", object.IntegrationName)
 	d.Set("integration_type", object.IntegrationProductType)
 	d.Set("description", object.Description)
-	d.Set("auto_recover", object.AutoRecover)
-	d.Set("state", object.State)
+	d.Set("status", func() string {
+		if object.State {
+			return "Active"
+		}
+		return "Inactive"
+	}())
+
 	if object.CreateTime != nil {
 		d.Set("create_time", object.CreateTime.Format("2006-01-02 15:04:05"))
 	}
-	// Note: UpdateTime is not available in AlertIntegration type
+	if object.UpdateTime != nil {
+		d.Set("update_time", object.UpdateTime.Format("2006-01-02 15:04:05"))
+	}
 
 	return nil
 }
 
 func resourceAliCloudArmsIntegrationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	update := false
-
-	request := map[string]interface{}{
-		"RegionId":      client.RegionId,
-		"IntegrationId": d.Id(),
+	service, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
 	}
 
-	if d.HasChange("description") {
-		update = true
-		if v, ok := d.GetOk("description"); ok {
-			request["Description"] = v
+	// Parse integration ID
+	integrationId, err := strconv.ParseInt(d.Id(), 10, 64)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	// Check if update is needed
+	if d.HasChange("description") || d.HasChange("config") || d.HasChange("status") {
+		// Build integration object for update
+		integration := &aliyunArmsAPI.AlertIntegration{
+			IntegrationId:          integrationId,
+			IntegrationName:        d.Get("integration_name").(string),
+			IntegrationProductType: d.Get("integration_type").(string),
+			Description:            d.Get("description").(string),
+			State:                  d.Get("status").(string) == "Active",
 		}
-	}
 
-	if d.HasChange("config") {
-		update = true
-		request["Config"] = d.Get("config")
-	}
-
-	if d.HasChange("status") {
-		update = true
-		request["Status"] = d.Get("status")
-	}
-
-	if update {
-		action := "UpdateIntegration"
-
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err := client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(action, response, request)
-			return nil
-		})
-
+		// Update integration using Service layer
+		_, err := service.UpdateArmsIntegration(integration)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateIntegration", AlibabaCloudSdkGoERROR)
 		}
 
 		// Wait for integration to be updated
-		armsService, err := NewArmsService(client)
+		err = service.WaitForArmsIntegrationCreated(d.Id(), d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
-			return WrapError(err)
-		}
-		stateConf := BuildStateConf([]string{}, []string{"Active"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(d.Id(), []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
@@ -217,41 +176,29 @@ func resourceAliCloudArmsIntegrationUpdate(d *schema.ResourceData, meta interfac
 
 func resourceAliCloudArmsIntegrationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	action := "DeleteIntegration"
-
-	request := map[string]interface{}{
-		"RegionId":      client.RegionId,
-		"IntegrationId": d.Id(),
-	}
-
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err := client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
-
-	if err != nil {
-		if IsExpectedErrors(err, []string{"404"}) {
-			return nil
-		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-	}
-
-	// Wait for integration to be deleted
-	armsService, err := NewArmsService(client)
+	service, err := NewArmsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
-	stateConf := BuildStateConf([]string{"Active", "Inactive"}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, armsService.ArmsIntegrationStateRefreshFunc(d.Id(), []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
+
+	// Parse integration ID
+	integrationId, err := strconv.ParseInt(d.Id(), 10, 64)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	// Delete integration using Service layer
+	err = service.DeleteArmsIntegration(integrationId)
+	if err != nil {
+		if IsNotFoundError(err) {
+			return nil
+		}
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteIntegration", AlibabaCloudSdkGoERROR)
+	}
+
+	// Wait for integration to be deleted
+	err = service.WaitForArmsIntegrationDeleted(d.Id(), d.Timeout(schema.TimeoutDelete))
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
