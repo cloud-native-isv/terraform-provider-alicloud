@@ -31,7 +31,27 @@ func (s *OssService) DescribeOssBucketPublicAccessBlock(id string) (object map[s
 	}
 
 	result := make(map[string]interface{})
-	result["PublicAccessBlockConfiguration"] = config
+	// Convert the response object to map[string]interface{}
+	publicAccessBlockConfig := make(map[string]interface{})
+	if config.PublicAccessBlockConfiguration != nil {
+		// Map the cws-lib-go fields to the expected BlockPublicAccess field
+		// If any of the public access blocking options are enabled, we consider BlockPublicAccess as true
+		blockPublicAccess := false
+		if config.PublicAccessBlockConfiguration.BlockPublicAcls != nil && *config.PublicAccessBlockConfiguration.BlockPublicAcls {
+			blockPublicAccess = true
+		}
+		if config.PublicAccessBlockConfiguration.IgnorePublicAcls != nil && *config.PublicAccessBlockConfiguration.IgnorePublicAcls {
+			blockPublicAccess = true
+		}
+		if config.PublicAccessBlockConfiguration.BlockPublicPolicy != nil && *config.PublicAccessBlockConfiguration.BlockPublicPolicy {
+			blockPublicAccess = true
+		}
+		if config.PublicAccessBlockConfiguration.RestrictPublicBuckets != nil && *config.PublicAccessBlockConfiguration.RestrictPublicBuckets {
+			blockPublicAccess = true
+		}
+		publicAccessBlockConfig["BlockPublicAccess"] = blockPublicAccess
+	}
+	result["PublicAccessBlockConfiguration"] = publicAccessBlockConfig
 	return result, nil
 }
 

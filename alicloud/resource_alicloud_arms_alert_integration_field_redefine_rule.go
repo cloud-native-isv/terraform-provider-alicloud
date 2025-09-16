@@ -6,7 +6,6 @@ import (
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunArmsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/arms"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -224,35 +223,42 @@ func resourceAliCloudArmsAlertIntegrationFieldRedefineRuleDelete(d *schema.Resou
 	client := meta.(*connectivity.AliyunClient)
 	integrationId := d.Id()
 
-	// Delete means clearing all field redefine rules
-	request := map[string]interface{}{
-		"RegionId":      client.RegionId,
-		"IntegrationId": integrationId,
-		"AutoRecover":   false,
-		"RecoverTime":   300,
-		// Clear all rules by not sending them
+	// Get current integration details
+	service, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
 	}
 
-	action := "UpdateIntegration"
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err := client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
+	integration, err := service.DescribeArmsIntegration(integrationId)
+	if err != nil {
+		if IsNotFoundError(err) {
+			return nil
 		}
-		addDebug(action, response, request)
-		return nil
-	})
+		return WrapErrorf(err, DefaultErrorMsg, integrationId, "DescribeArmsIntegration", AlibabaCloudSdkGoERROR)
+	}
 
+	// Create update request to clear field redefine rules
+	updateIntegration := &aliyunArmsAPI.AlertIntegration{
+		IntegrationId:              integration.IntegrationId,
+		IntegrationName:            integration.IntegrationName,
+		IntegrationProductType:     integration.IntegrationProductType,
+		Description:                integration.Description,
+		State:                      integration.State,
+		ApiEndpoint:                integration.ApiEndpoint,
+		DuplicateKey:               integration.DuplicateKey,
+		AutoRecover:                false,                                               // Reset auto recovery
+		RecoverTime:                300,                                                 // Reset recovery time
+		FieldRedefineRules:         []aliyunArmsAPI.AlertIntegrationFieldRedefineRule{}, // Clear all rules
+		ExtendedFieldRedefineRules: []aliyunArmsAPI.AlertIntegrationFieldRedefineRule{}, // Clear extended rules
+	}
+
+	// Use Service layer to update the integration (clear rules)
+	_, err = service.UpdateArmsIntegration(updateIntegration)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"404"}) {
 			return nil
 		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateArmsIntegration", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil
@@ -260,43 +266,107 @@ func resourceAliCloudArmsAlertIntegrationFieldRedefineRuleDelete(d *schema.Resou
 
 // Helper function to update integration with field redefine rules
 func updateIntegrationFieldRedefineRules(d *schema.ResourceData, client *connectivity.AliyunClient, integrationId string) error {
-	request := map[string]interface{}{
-		"RegionId":      client.RegionId,
-		"IntegrationId": integrationId,
+	// First, get the integration details to retrieve the current configuration
+	service, err := NewArmsService(client)
+	if err != nil {
+		return WrapError(err)
 	}
 
+	integration, err := service.DescribeArmsIntegration(integrationId)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, integrationId, "DescribeArmsIntegration", AlibabaCloudSdkGoERROR)
+	}
+
+	// Create a copy of the integration for update
+	updateIntegration := &aliyunArmsAPI.AlertIntegration{
+		IntegrationId:          integration.IntegrationId,
+		IntegrationName:        integration.IntegrationName,
+		IntegrationProductType: integration.IntegrationProductType,
+		Description:            integration.Description,
+		State:                  integration.State,
+		ApiEndpoint:            integration.ApiEndpoint,
+		DuplicateKey:           integration.DuplicateKey,
+	}
+
+	// Update auto recovery settings
 	if v, ok := d.GetOk("auto_recover"); ok {
-		request["AutoRecover"] = v
+		updateIntegration.AutoRecover = v.(bool)
+	} else {
+		updateIntegration.AutoRecover = integration.AutoRecover
 	}
 
 	if v, ok := d.GetOk("recover_time"); ok {
-		request["RecoverTime"] = v
+		updateIntegration.RecoverTime = int64(v.(int))
+	} else {
+		updateIntegration.RecoverTime = integration.RecoverTime
 	}
 
+	// Update field redefine rules
 	if v, ok := d.GetOk("field_redefine_rules"); ok {
-		rules := expandFieldRedefineRules(v.([]interface{}))
-		request["FieldRedefineRules"] = rules
+		updateIntegration.FieldRedefineRules = expandAlertIntegrationFieldRedefineRules(v.([]interface{}))
+	} else {
+		updateIntegration.FieldRedefineRules = []aliyunArmsAPI.AlertIntegrationFieldRedefineRule{}
 	}
 
+	// Update extended field redefine rules
 	if v, ok := d.GetOk("extended_field_redefine_rules"); ok {
-		rules := expandFieldRedefineRules(v.([]interface{}))
-		request["ExtendedFieldRedefineRules"] = rules
+		updateIntegration.ExtendedFieldRedefineRules = expandAlertIntegrationFieldRedefineRules(v.([]interface{}))
+	} else {
+		updateIntegration.ExtendedFieldRedefineRules = []aliyunArmsAPI.AlertIntegrationFieldRedefineRule{}
 	}
 
-	action := "UpdateIntegration"
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	return resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-		response, err := client.RpcPost("ARMS", "2019-08-08", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
+	// Use Service layer to update the integration
+	_, err = service.UpdateArmsIntegration(updateIntegration)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, integrationId, "UpdateArmsIntegration", AlibabaCloudSdkGoERROR)
+	}
+
+	return nil
+}
+
+// Helper function to expand field redefine rules from schema to AlertIntegrationFieldRedefineRule format
+func expandAlertIntegrationFieldRedefineRules(rules []interface{}) []aliyunArmsAPI.AlertIntegrationFieldRedefineRule {
+	result := make([]aliyunArmsAPI.AlertIntegrationFieldRedefineRule, 0, len(rules))
+
+	for _, rule := range rules {
+		ruleMap := rule.(map[string]interface{})
+		apiRule := aliyunArmsAPI.AlertIntegrationFieldRedefineRule{
+			FieldName:    ruleMap["field_name"].(string),
+			FieldType:    ruleMap["field_type"].(string),
+			RedefineType: ruleMap["redefine_type"].(string),
 		}
-		addDebug(action, response, request)
-		return nil
-	})
+
+		if jsonPath, ok := ruleMap["json_path"]; ok && jsonPath != "" {
+			apiRule.JsonPath = jsonPath.(string)
+		}
+
+		if expression, ok := ruleMap["expression"]; ok && expression != "" {
+			apiRule.Expression = expression.(string)
+		}
+
+		if mappingRules, ok := ruleMap["mapping_rules"]; ok {
+			apiRule.MappingRules = expandAlertIntegrationMappingRules(mappingRules.([]interface{}))
+		}
+
+		result = append(result, apiRule)
+	}
+
+	return result
+}
+
+// Helper function to expand mapping rules to AlertIntegrationMappingRule format
+func expandAlertIntegrationMappingRules(rules []interface{}) []aliyunArmsAPI.AlertIntegrationMappingRule {
+	result := make([]aliyunArmsAPI.AlertIntegrationMappingRule, 0, len(rules))
+
+	for _, rule := range rules {
+		ruleMap := rule.(map[string]interface{})
+		result = append(result, aliyunArmsAPI.AlertIntegrationMappingRule{
+			OriginValue:  ruleMap["origin_value"].(string),
+			MappingValue: ruleMap["mapping_value"].(string),
+		})
+	}
+
+	return result
 }
 
 // Helper function to expand field redefine rules from schema to API format
@@ -338,51 +408,6 @@ func expandMappingRules(rules []interface{}) []map[string]interface{} {
 		result = append(result, map[string]interface{}{
 			"OriginValue":  ruleMap["origin_value"],
 			"MappingValue": ruleMap["mapping_value"],
-		})
-	}
-
-	return result
-}
-
-// Helper function to flatten field redefine rules from API format to schema
-func flattenFieldRedefineRules(rules []interface{}) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, len(rules))
-
-	for _, rule := range rules {
-		ruleMap := rule.(map[string]interface{})
-		schemaRule := map[string]interface{}{
-			"field_name":    ruleMap["FieldName"],
-			"field_type":    ruleMap["FieldType"],
-			"redefine_type": ruleMap["RedefineType"],
-		}
-
-		if jsonPath, ok := ruleMap["JsonPath"]; ok {
-			schemaRule["json_path"] = jsonPath
-		}
-
-		if expression, ok := ruleMap["Expression"]; ok {
-			schemaRule["expression"] = expression
-		}
-
-		if mappingRules, ok := ruleMap["MappingRules"]; ok {
-			schemaRule["mapping_rules"] = flattenMappingRules(mappingRules.([]interface{}))
-		}
-
-		result = append(result, schemaRule)
-	}
-
-	return result
-}
-
-// Helper function to flatten mapping rules
-func flattenMappingRules(rules []interface{}) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, len(rules))
-
-	for _, rule := range rules {
-		ruleMap := rule.(map[string]interface{})
-		result = append(result, map[string]interface{}{
-			"origin_value":  ruleMap["OriginValue"],
-			"mapping_value": ruleMap["MappingValue"],
 		})
 	}
 

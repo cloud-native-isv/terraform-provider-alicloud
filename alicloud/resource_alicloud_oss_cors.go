@@ -169,7 +169,21 @@ func resourceAliCloudOssBucketCorsRead(d *schema.ResourceData, meta interface{})
 	cORSRuleRaw := objectRaw["CORSRule"]
 	corsRuleMaps := make([]map[string]interface{}, 0)
 	if cORSRuleRaw != nil {
-		for _, cORSRuleChildRaw := range cORSRuleRaw.([]interface{}) {
+		// Handle both []interface{} and []map[string]interface{} types
+		var corsRules []interface{}
+		switch v := cORSRuleRaw.(type) {
+		case []interface{}:
+			corsRules = v
+		case []map[string]interface{}:
+			corsRules = make([]interface{}, len(v))
+			for i, rule := range v {
+				corsRules[i] = rule
+			}
+		default:
+			corsRules = make([]interface{}, 0)
+		}
+
+		for _, cORSRuleChildRaw := range corsRules {
 			corsRuleMap := make(map[string]interface{})
 			cORSRuleChildRaw := cORSRuleChildRaw.(map[string]interface{})
 			corsRuleMap["max_age_seconds"] = cORSRuleChildRaw["MaxAgeSeconds"]
