@@ -118,8 +118,52 @@ func (s *NasService) NasMountTargetStateRefreshFunc(id string, field string, fai
 
 // WaitForNasMountTarget waits for a mount target to reach the specified status
 func (s *NasService) WaitForNasMountTarget(id string, status string, timeout int) error {
-	stateConf := BuildStateConf([]string{"Creating", "Pending"}, []string{status}, time.Duration(timeout)*time.Second, 5*time.Second, s.NasMountTargetStateRefreshFunc(id, "$.Status", []string{"Failed", "Error"}))
+	// Define all possible intermediate states
+	intermediateStates := []string{"Pending", "Creating", "Inactive", "Deleting", "Hibernating"}
+	
+	// Active, Hibernated and empty string are final states
+	finalStates := []string{"Active", "Hibernated", ""}
+	
+	// Check if the requested status is a final state
+	isFinalState := false
+	for _, finalState := range finalStates {
+		if status == finalState {
+			isFinalState = true
+			break
+		}
+	}
+	
+	if !isFinalState {
+		// If status is not a final state, add it to intermediate states
+		intermediateStates = append(intermediateStates, status)
+	}
+	
+	// Final target states
+	targetStates := []string{status}
+	
+	stateConf := BuildStateConf(intermediateStates, targetStates, time.Duration(timeout)*time.Second, 5*time.Second, s.NasMountTargetStateRefreshFunc(id, "$.Status", []string{"Failed", "Error"}))
 	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+	return nil
+}
+
+// WaitForNasMountTargetCreated waits for a mount target to be created successfully
+func (s *NasService) WaitForNasMountTargetCreated(id string, timeout int) error {
+	stateConf := BuildStateConf([]string{"Pending", "Creating"}, []string{"Active"}, time.Duration(timeout)*time.Second, 5*time.Second, s.NasMountTargetStateRefreshFunc(id, "$.Status", []string{"Failed", "Error"}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+	return nil
+}
+
+// WaitForNasMountTargetDeleted waits for a mount target to be deleted successfully
+func (s *NasService) WaitForNasMountTargetDeleted(id string, timeout int) error {
+	stateConf := BuildStateConf([]string{"Active", "Inactive", "Deleting"}, []string{""}, time.Duration(timeout)*time.Second, 5*time.Second, s.NasMountTargetStateRefreshFunc(id, "$.Status", []string{}))
+	if _, err := stateConf.WaitForState(); err != nil {
+		if IsNotFoundError(err) {
+			return nil
+		}
 		return WrapErrorf(err, IdMsg, id)
 	}
 	return nil

@@ -129,9 +129,8 @@ func resourceAliCloudNasMountTargetCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(fmt.Sprintf("%s:%s", fileSystemId, mountTarget.MountTargetDomain))
 
-	// Wait for mount target to become active using simplified state refresh
-	stateConf := BuildStateConf([]string{"Pending"}, []string{"Active"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nasService.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{"Failed", "Error"}))
-	if _, err := stateConf.WaitForState(); err != nil {
+	// Wait for mount target to become active using WaitFor function
+	if err := nasService.WaitForNasMountTargetCreated(d.Id(), int(d.Timeout(schema.TimeoutCreate)/time.Second)); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
@@ -253,11 +252,7 @@ func resourceAliCloudNasMountTargetDelete(d *schema.ResourceData, meta interface
 	}
 
 	// Wait for deletion to complete
-	stateConf := BuildStateConf([]string{"Active", "Inactive"}, []string{""}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nasService.NasMountTargetStateRefreshFunc(d.Id(), "Status", []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		if IsNotFoundError(err) {
-			return nil
-		}
+	if err := nasService.WaitForNasMountTargetDeleted(d.Id(), int(d.Timeout(schema.TimeoutDelete)/time.Second)); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 

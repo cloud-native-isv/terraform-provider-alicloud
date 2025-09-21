@@ -186,7 +186,8 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	_, err = slsService.DescribeLogProject(projectName)
 	if err != nil {
 		if IsNotFoundError(err) {
-			d.SetId("")
+			// Don't remove the resource from the state if the main project is not found
+			// This can happen during refresh when the main project is temporarily unavailable
 			return nil
 		}
 		return WrapError(err)
@@ -196,7 +197,8 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	logging, err := slsService.GetProjectLogging(projectName)
 	if err != nil {
 		if IsNotFoundError(err) {
-			d.SetId("")
+			// Don't remove the resource from the state if logging config is not found
+			// This can happen during refresh when the logging config is temporarily unavailable
 			return nil
 		}
 		return WrapError(err)
@@ -206,7 +208,8 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	_, err = slsService.DescribeLogProject(logging.LoggingProject)
 	if err != nil {
 		if IsNotFoundError(err) {
-			d.SetId("")
+			// Don't remove the resource from the state if the logging project is not found
+			// This can happen during refresh when the logging project is temporarily unavailable
 			return nil
 		}
 		return WrapError(err)
@@ -217,7 +220,8 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 		_, err = slsService.DescribeLogStore(logging.LoggingProject, detail.Logstore)
 		if err != nil {
 			if IsNotFoundError(err) {
-				d.SetId("")
+				// Don't remove the resource from the state if a logstore is not found
+				// This can happen during refresh when a logstore is temporarily unavailable
 				return nil
 			}
 			return WrapError(err)
