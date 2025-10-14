@@ -29,7 +29,6 @@ func resourceAliCloudLogProjectLogging() *schema.Resource {
 			"project_name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				ForceNew:    true,
 				Description: "The project name to which the logging configurations belong.",
 			},
 			"logging_project": {
@@ -248,23 +247,77 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 
 func resourceAliCloudLogProjectLoggingUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	projectName := d.Id()
+	oldProjectName := d.Id()
+	newProjectName := d.Get("project_name").(string)
 
 	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	if d.HasChange("logging_details") {
-		logging := createLoggingFromSchema(d)
+	// Determine if any relevant fields changed
+	projectNameChanged := d.HasChange("project_name")
+	loggingProjectChanged := d.HasChange("logging_project")
+	loggingDetailsChanged := d.HasChange("logging_details")
 
-		err := slsService.UpdateProjectLogging(projectName, logging)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateProjectLogging", AlibabaCloudSdkGoERROR)
+	if !(projectNameChanged || loggingProjectChanged || loggingDetailsChanged) {
+		return resourceAliCloudLogProjectLoggingRead(d, meta)
+	}
+
+	logging := createLoggingFromSchema(d)
+
+	if projectNameChanged {
+		// Create/Update logging on the new project
+		// Try Create first, fall back to Update if already exists
+		createErr := slsService.CreateProjectLogging(newProjectName, logging)
+		if createErr != nil {
+			if IsNotFoundError(createErr) {
+				// New project not ready yet; wait and retry via Update
+				// Fall through to Update path
+			} else if IsExpectedErrors(createErr, []string{"LogStoreAlreadyExist"}) ||
+				(strings.Contains(createErr.Error(), "already exists")) {
+				// Exists, go to Update
+			} else {
+				// For any other error, try Update as well; if that fails, return
+			}
+			if updErr := slsService.UpdateProjectLogging(newProjectName, logging); updErr != nil {
+				return WrapErrorf(updErr, DefaultErrorMsg, newProjectName, "UpdateProjectLogging", AlibabaCloudSdkGoERROR)
+			}
+		}
+
+		// Wait for new project logging to be available
+		stateConfNew := BuildStateConf(
+			[]string{"LoggingNotFound", "LoggingProjectNotFound", "LogstoreNotFound"},
+			[]string{"Available"},
+			d.Timeout(schema.TimeoutUpdate),
+			5*time.Second,
+			projectLoggingStateRefreshFunc(d, meta, newProjectName, []string{"ProjectNotFound"}),
+		)
+		if _, err := stateConfNew.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, newProjectName)
+		}
+
+		// Best-effort cleanup: delete logging from old project
+		if oldProjectName != "" && oldProjectName != newProjectName {
+			_ = slsService.DeleteProjectLogging(oldProjectName)
+		}
+
+		// Update resource ID to new project
+		d.SetId(newProjectName)
+	} else {
+		// Same project, just update logging config or target logging project
+		if err := slsService.UpdateProjectLogging(oldProjectName, logging); err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, oldProjectName, "UpdateProjectLogging", AlibabaCloudSdkGoERROR)
 		}
 
 		// Wait for the updated project logging to be available
-		stateConf := BuildStateConf([]string{"LoggingNotFound", "LoggingProjectNotFound", "LogstoreNotFound"}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, projectLoggingStateRefreshFunc(d, meta, projectName, []string{"ProjectNotFound"}))
+		stateConf := BuildStateConf(
+			[]string{"LoggingNotFound", "LoggingProjectNotFound", "LogstoreNotFound"},
+			[]string{"Available"},
+			d.Timeout(schema.TimeoutUpdate),
+			5*time.Second,
+			projectLoggingStateRefreshFunc(d, meta, oldProjectName, []string{"ProjectNotFound"}),
+		)
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
