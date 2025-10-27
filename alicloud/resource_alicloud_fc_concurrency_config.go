@@ -6,9 +6,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+
+	aliyunFCAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/fc/v3"
 )
 
 func resourceAliCloudFCConcurrencyConfig() *schema.Resource {
@@ -43,45 +46,69 @@ func resourceAliCloudFCConcurrencyConfig() *schema.Resource {
 	}
 }
 
+// BuildConcurrencyConfigFromSchema builds ConcurrencyConfig from Terraform schema data
+func BuildConcurrencyConfigFromSchema(d *schema.ResourceData) *aliyunFCAPI.ConcurrencyConfig {
+	config := &aliyunFCAPI.ConcurrencyConfig{}
+
+	if v, ok := d.GetOk("reserved_concurrency"); ok {
+		reservedConcurrency := int32(v.(int))
+		config.ReservedInstanceCount = tea.Int32(reservedConcurrency)
+	}
+
+	return config
+}
+
+// SetSchemaFromConcurrencyConfig sets terraform schema data from ConcurrencyConfig
+func SetSchemaFromConcurrencyConfig(d *schema.ResourceData, config *aliyunFCAPI.ConcurrencyConfig) error {
+	if config == nil {
+		return fmt.Errorf("config cannot be nil")
+	}
+
+	// Note: FunctionArn is not available in ConcurrencyConfig in FC v3
+	// We'll leave it as computed but not set it from the config
+
+	if config.ReservedInstanceCount != nil {
+		d.Set("reserved_concurrency", *config.ReservedInstanceCount)
+	}
+
+	return nil
+}
+
 func resourceAliCloudFCConcurrencyConfigCreate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
-
-	functionName := d.Get("function_name")
-	action := fmt.Sprintf("/2023-03-30/functions/%s/concurrency", functionName)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	body := make(map[string]interface{})
-	var err error
-	request = make(map[string]interface{})
-	if v, ok := d.GetOk("function_name"); ok {
-		request["functionName"] = v
+	fcService, err := NewFCService(client)
+	if err != nil {
+		return WrapError(err)
 	}
 
-	if v, ok := d.GetOkExists("reserved_concurrency"); ok {
-		request["reservedConcurrency"] = v
-	}
-	body = request
-	wait := incrementalWait(3*time.Second, 5*time.Second)
+	functionName := d.Get("function_name").(string)
+	log.Printf("[DEBUG] Creating FC Concurrency Config for function: %s", functionName)
+
+	// Build concurrency config from schema
+	config := BuildConcurrencyConfigFromSchema(d)
+
+	// Create concurrency config using service layer
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RoaPut("FC", "2023-03-30", action, query, nil, body, true)
+		_, err = fcService.CreateFCConcurrencyConfig(functionName, config)
 		if err != nil {
 			if NeedRetry(err) {
-				wait()
+				log.Printf("[WARN] FC Concurrency Config creation failed with retryable error: %s. Retrying...", err)
+				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
+			log.Printf("[ERROR] FC Concurrency Config creation failed: %s", err)
 			return resource.NonRetryableError(err)
 		}
 		return nil
 	})
-	addDebug(action, response, request)
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_fc_concurrency_config", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_fc_concurrency_config", "CreateConcurrencyConfig", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprint(functionName))
+	// Set resource ID
+	d.SetId(functionName)
+	log.Printf("[DEBUG] FC Concurrency Config created successfully for function: %s", functionName)
 
 	return resourceAliCloudFCConcurrencyConfigRead(d, meta)
 }
@@ -93,7 +120,8 @@ func resourceAliCloudFCConcurrencyConfigRead(d *schema.ResourceData, meta interf
 		return WrapError(err)
 	}
 
-	objectRaw, err := fcService.DescribeFCConcurrencyConfig(d.Id())
+	functionName := d.Id()
+	objectRaw, err := fcService.DescribeFCConcurrencyConfig(functionName)
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_concurrency_config DescribeFCConcurrencyConfig Failed!!! %s", err)
@@ -103,94 +131,94 @@ func resourceAliCloudFCConcurrencyConfigRead(d *schema.ResourceData, meta interf
 		return WrapError(err)
 	}
 
-	if objectRaw["functionArn"] != nil {
-		d.Set("function_arn", objectRaw["functionArn"])
-	}
-	if objectRaw["reservedConcurrency"] != nil {
-		d.Set("reserved_concurrency", objectRaw["reservedConcurrency"])
+	// Use helper to set schema fields
+	err = SetSchemaFromConcurrencyConfig(d, objectRaw)
+	if err != nil {
+		return WrapError(err)
 	}
 
-	d.Set("function_name", d.Id())
+	d.Set("function_name", functionName)
 
 	return nil
 }
 
 func resourceAliCloudFCConcurrencyConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]*string
-	var body map[string]interface{}
-	update := false
-	functionName := d.Id()
-	action := fmt.Sprintf("/2023-03-30/functions/%s/concurrency", functionName)
-	var err error
-	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	body = make(map[string]interface{})
-	request["functionName"] = d.Id()
-
-	if d.HasChange("reserved_concurrency") {
-		update = true
-		request["reservedConcurrency"] = d.Get("reserved_concurrency")
+	fcService, err := NewFCService(client)
+	if err != nil {
+		return WrapError(err)
 	}
 
-	body = request
-	if update {
-		wait := incrementalWait(3*time.Second, 5*time.Second)
+	functionName := d.Id()
+	log.Printf("[DEBUG] Updating FC Concurrency Config for function: %s", functionName)
+
+	// Check if any field has changed
+	if d.HasChange("reserved_concurrency") {
+		// Build concurrency config from schema
+		config := BuildConcurrencyConfigFromSchema(d)
+
+		// Update concurrency config using service layer
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.RoaPut("FC", "2023-03-30", action, query, nil, body, true)
+			_, err := fcService.UpdateFCConcurrencyConfig(functionName, config)
 			if err != nil {
 				if NeedRetry(err) {
-					wait()
+					log.Printf("[WARN] FC Concurrency Config update failed with retryable error: %s. Retrying...", err)
+					time.Sleep(5 * time.Second)
 					return resource.RetryableError(err)
 				}
+				log.Printf("[ERROR] FC Concurrency Config update failed: %s", err)
 				return resource.NonRetryableError(err)
 			}
 			return nil
 		})
-		addDebug(action, response, request)
+
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateConcurrencyConfig", AlibabaCloudSdkGoERROR)
 		}
+
+		log.Printf("[DEBUG] FC Concurrency Config updated successfully for function: %s", functionName)
 	}
 
 	return resourceAliCloudFCConcurrencyConfigRead(d, meta)
 }
 
 func resourceAliCloudFCConcurrencyConfigDelete(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
+	fcService, err := NewFCService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	functionName := d.Id()
-	action := fmt.Sprintf("/2023-03-30/functions/%s/concurrency", functionName)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	var err error
-	request = make(map[string]interface{})
-	request["functionName"] = d.Id()
+	log.Printf("[DEBUG] Deleting FC Concurrency Config for function: %s", functionName)
 
-	wait := incrementalWait(3*time.Second, 5*time.Second)
+	// Delete concurrency config using service layer
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.RoaDelete("FC", "2023-03-30", action, query, nil, nil, true)
-
+		err := fcService.DeleteFCConcurrencyConfig(functionName)
 		if err != nil {
+			if IsNotFoundError(err) {
+				log.Printf("[DEBUG] FC Concurrency Config not found during deletion for function: %s", functionName)
+				return nil
+			}
 			if NeedRetry(err) {
-				wait()
+				log.Printf("[WARN] FC Concurrency Config deletion failed with retryable error: %s. Retrying...", err)
+				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
+			log.Printf("[ERROR] FC Concurrency Config deletion failed: %s", err)
 			return resource.NonRetryableError(err)
 		}
 		return nil
 	})
-	addDebug(action, response, request)
 
 	if err != nil {
 		if IsNotFoundError(err) {
 			return nil
 		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteConcurrencyConfig", AlibabaCloudSdkGoERROR)
 	}
+
+	log.Printf("[DEBUG] FC Concurrency Config deleted successfully for function: %s", functionName)
 
 	return nil
 }

@@ -115,6 +115,7 @@ func resourceAliCloudFCLayerVersionCreate(d *schema.ResourceData, meta interface
 	client := meta.(*connectivity.AliyunClient)
 
 	layerName := d.Get("layer_name")
+	log.Printf("[DEBUG] Creating FC Layer Version: %s", layerName)
 	action := fmt.Sprintf("/2023-03-30/layers/%s/versions", layerName)
 	var request map[string]interface{}
 	var response map[string]interface{}
@@ -163,9 +164,11 @@ func resourceAliCloudFCLayerVersionCreate(d *schema.ResourceData, meta interface
 		response, err = client.RoaPost("FC", "2023-03-30", action, query, nil, body, true)
 		if err != nil {
 			if NeedRetry(err) {
+				log.Printf("[WARN] FC Layer Version creation failed with retryable error: %s. Retrying...", err)
 				wait()
 				return resource.RetryableError(err)
 			}
+			log.Printf("[ERROR] FC Layer Version creation failed: %s", err)
 			return resource.NonRetryableError(err)
 		}
 		return nil
@@ -177,6 +180,7 @@ func resourceAliCloudFCLayerVersionCreate(d *schema.ResourceData, meta interface
 	}
 
 	d.SetId(fmt.Sprintf("%v:%v", response["layerName"], response["version"]))
+	log.Printf("[DEBUG] FC Layer Version created successfully: %s:%v", response["layerName"], response["version"])
 
 	return resourceAliCloudFCLayerVersionUpdate(d, meta)
 }
@@ -244,6 +248,7 @@ func resourceAliCloudFCLayerVersionUpdate(d *schema.ResourceData, meta interface
 	update := false
 	parts := strings.Split(d.Id(), ":")
 	layerName := parts[0]
+	log.Printf("[DEBUG] Updating FC Layer Version ACL: %s", layerName)
 	action := fmt.Sprintf("/2023-03-30/layers/%s/acl", layerName)
 	var err error
 	request = make(map[string]interface{})
@@ -271,9 +276,11 @@ func resourceAliCloudFCLayerVersionUpdate(d *schema.ResourceData, meta interface
 			response, err = client.RoaPut("FC", "2023-03-30", action, query, nil, body, true)
 			if err != nil {
 				if NeedRetry(err) {
+					log.Printf("[WARN] FC Layer Version ACL update failed with retryable error: %s. Retrying...", err)
 					wait()
 					return resource.RetryableError(err)
 				}
+				log.Printf("[ERROR] FC Layer Version ACL update failed: %s", err)
 				return resource.NonRetryableError(err)
 			}
 			return nil
@@ -282,6 +289,7 @@ func resourceAliCloudFCLayerVersionUpdate(d *schema.ResourceData, meta interface
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
+		log.Printf("[DEBUG] FC Layer Version ACL updated successfully: %s", layerName)
 	}
 
 	return resourceAliCloudFCLayerVersionRead(d, meta)
@@ -293,6 +301,7 @@ func resourceAliCloudFCLayerVersionDelete(d *schema.ResourceData, meta interface
 	parts := strings.Split(d.Id(), ":")
 	layerName := parts[0]
 	version := parts[1]
+	log.Printf("[DEBUG] Deleting FC Layer Version: %s:%s", layerName, version)
 	action := fmt.Sprintf("/2023-03-30/layers/%s/versions/%s", layerName, version)
 	var request map[string]interface{}
 	var response map[string]interface{}
@@ -306,9 +315,15 @@ func resourceAliCloudFCLayerVersionDelete(d *schema.ResourceData, meta interface
 
 		if err != nil {
 			if NeedRetry(err) {
+				log.Printf("[WARN] FC Layer Version deletion failed with retryable error: %s. Retrying...", err)
 				wait()
 				return resource.RetryableError(err)
 			}
+			if IsExpectedErrors(err, []string{"LayerNotFound", "LayerVersionNotFound"}) || IsNotFoundError(err) {
+				log.Printf("[DEBUG] FC Layer Version not found during deletion: %s:%s", layerName, version)
+				return nil
+			}
+			log.Printf("[ERROR] FC Layer Version deletion failed: %s", err)
 			return resource.NonRetryableError(err)
 		}
 		return nil
@@ -321,6 +336,8 @@ func resourceAliCloudFCLayerVersionDelete(d *schema.ResourceData, meta interface
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 	}
+
+	log.Printf("[DEBUG] FC Layer Version deleted successfully: %s:%s", layerName, version)
 
 	return nil
 }

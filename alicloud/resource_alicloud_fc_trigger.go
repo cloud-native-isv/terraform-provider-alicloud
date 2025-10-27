@@ -122,6 +122,8 @@ func resourceAliCloudFCTriggerCreate(d *schema.ResourceData, meta interface{}) e
 
 	functionName := d.Get("function_name").(string)
 
+	log.Printf("[DEBUG] Creating FC Trigger for function: %s", functionName)
+
 	// Build trigger from schema
 	trigger := fcService.BuildCreateTriggerInputFromSchema(d)
 
@@ -131,9 +133,11 @@ func resourceAliCloudFCTriggerCreate(d *schema.ResourceData, meta interface{}) e
 		result, err = fcService.CreateFCTrigger(functionName, trigger)
 		if err != nil {
 			if NeedRetry(err) {
+				log.Printf("[WARN] FC Trigger creation failed with retryable error: %s. Retrying...", err)
 				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
+			log.Printf("[ERROR] FC Trigger creation failed: %s", err)
 			return resource.NonRetryableError(err)
 		}
 		return nil
@@ -146,12 +150,14 @@ func resourceAliCloudFCTriggerCreate(d *schema.ResourceData, meta interface{}) e
 	// Set resource ID
 	if result != nil && result.TriggerName != nil {
 		d.SetId(EncodeTriggerResourceId(functionName, *result.TriggerName))
+		log.Printf("[DEBUG] FC Trigger created successfully: %s:%s", functionName, *result.TriggerName)
 	} else {
 		return fmt.Errorf("failed to get trigger name from create response")
 	}
 
 	// Wait for trigger to be ready
 	if trigger.TriggerName != nil {
+		log.Printf("[DEBUG] Waiting for FC Trigger to be ready: %s:%s", functionName, *trigger.TriggerName)
 		err = fcService.WaitForTriggerCreating(functionName, *trigger.TriggerName, d.Timeout(schema.TimeoutCreate))
 		if err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
@@ -205,6 +211,8 @@ func resourceAliCloudFCTriggerUpdate(d *schema.ResourceData, meta interface{}) e
 		return WrapError(err)
 	}
 
+	log.Printf("[DEBUG] Updating FC Trigger: %s:%s", functionName, triggerName)
+
 	// Check if any field has changed
 	if d.HasChange("invocation_role") || d.HasChange("trigger_config") || d.HasChange("description") || d.HasChange("qualifier") {
 		// Build update trigger from schema
@@ -215,9 +223,11 @@ func resourceAliCloudFCTriggerUpdate(d *schema.ResourceData, meta interface{}) e
 			_, err := fcService.UpdateFCTrigger(functionName, triggerName, trigger)
 			if err != nil {
 				if NeedRetry(err) {
+					log.Printf("[WARN] FC Trigger update failed with retryable error: %s. Retrying...", err)
 					time.Sleep(5 * time.Second)
 					return resource.RetryableError(err)
 				}
+				log.Printf("[ERROR] FC Trigger update failed: %s", err)
 				return resource.NonRetryableError(err)
 			}
 			return nil
@@ -227,11 +237,15 @@ func resourceAliCloudFCTriggerUpdate(d *schema.ResourceData, meta interface{}) e
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateTrigger", AlibabaCloudSdkGoERROR)
 		}
 
+		log.Printf("[DEBUG] Waiting for FC Trigger update to complete: %s:%s", functionName, triggerName)
+
 		// Wait for trigger update to complete
 		err = fcService.WaitForTriggerUpdating(functionName, triggerName, d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
+
+		log.Printf("[DEBUG] FC Trigger updated successfully: %s:%s", functionName, triggerName)
 	}
 
 	return resourceAliCloudFCTriggerRead(d, meta)
@@ -249,17 +263,22 @@ func resourceAliCloudFCTriggerDelete(d *schema.ResourceData, meta interface{}) e
 		return WrapError(err)
 	}
 
+	log.Printf("[DEBUG] Deleting FC Trigger: %s:%s", functionName, triggerName)
+
 	// Delete trigger using service layer
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := fcService.DeleteFCTrigger(functionName, triggerName)
 		if err != nil {
 			if IsNotFoundError(err) {
+				log.Printf("[DEBUG] FC Trigger not found during deletion: %s:%s", functionName, triggerName)
 				return nil
 			}
 			if NeedRetry(err) {
+				log.Printf("[WARN] FC Trigger deletion failed with retryable error: %s. Retrying...", err)
 				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
+			log.Printf("[ERROR] FC Trigger deletion failed: %s", err)
 			return resource.NonRetryableError(err)
 		}
 		return nil
@@ -272,11 +291,15 @@ func resourceAliCloudFCTriggerDelete(d *schema.ResourceData, meta interface{}) e
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteTrigger", AlibabaCloudSdkGoERROR)
 	}
 
+	log.Printf("[DEBUG] Waiting for FC Trigger to be deleted: %s:%s", functionName, triggerName)
+
 	// Wait for trigger to be deleted
 	err = fcService.WaitForTriggerDeleting(functionName, triggerName, d.Timeout(schema.TimeoutDelete))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
+
+	log.Printf("[DEBUG] FC Trigger deleted successfully: %s:%s", functionName, triggerName)
 
 	return nil
 }

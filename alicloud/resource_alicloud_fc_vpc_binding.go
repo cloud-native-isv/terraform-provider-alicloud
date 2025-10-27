@@ -41,39 +41,39 @@ func resourceAliCloudFCVpcBinding() *schema.Resource {
 }
 
 func resourceAliCloudFCVpcBindingCreate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
+	fcService, err := NewFCService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	functionName := d.Get("function_name")
-	action := fmt.Sprintf("/2023-03-30/functions/%s/vpc-bindings", functionName)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	body := make(map[string]interface{})
-	var err error
-	request = make(map[string]interface{})
-	request["vpcId"] = d.Get("vpc_id")
+	functionName := d.Get("function_name").(string)
+	vpcId := d.Get("vpc_id").(string)
 
-	body = request
-	wait := incrementalWait(3*time.Second, 5*time.Second)
+	log.Printf("[DEBUG] Creating FC VPC Binding for function: %s, vpcId: %s", functionName, vpcId)
+
+	// Create VPC binding using service layer
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RoaPost("FC", "2023-03-30", action, query, nil, body, true)
+		err = fcService.CreateFCVpcBinding(functionName, vpcId)
 		if err != nil {
 			if NeedRetry(err) {
-				wait()
+				log.Printf("[WARN] FC VPC Binding creation failed with retryable error: %s. Retrying...", err)
+				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
+			log.Printf("[ERROR] FC VPC Binding creation failed: %s", err)
 			return resource.NonRetryableError(err)
 		}
-		addDebug(action, response, request)
 		return nil
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_fc_vpc_binding", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_fc_vpc_binding", "CreateVpcBinding", AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprintf("%v:%v", functionName, request["vpcId"]))
+	// Set resource ID
+	d.SetId(fmt.Sprintf("%s:%s", functionName, vpcId))
+	log.Printf("[DEBUG] FC VPC Binding created successfully for function: %s, vpcId: %s", functionName, vpcId)
 
 	return resourceAliCloudFCVpcBindingRead(d, meta)
 }
@@ -85,7 +85,16 @@ func resourceAliCloudFCVpcBindingRead(d *schema.ResourceData, meta interface{}) 
 		return WrapError(err)
 	}
 
-	objectRaw, err := fcService.DescribeFCVpcBinding(d.Id())
+	// Parse resource ID to get function name and VPC ID
+	parts := strings.Split(d.Id(), ":")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid resource ID format, expected functionName:vpcId")
+	}
+	functionName := parts[0]
+	vpcId := parts[1]
+
+	// Get VPC bindings for the function
+	vpcBindings, err := fcService.DescribeFCVpcBinding(functionName)
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_vpc_binding DescribeFCVpcBinding Failed!!! %s", err)
@@ -95,48 +104,69 @@ func resourceAliCloudFCVpcBindingRead(d *schema.ResourceData, meta interface{}) 
 		return WrapError(err)
 	}
 
-	if objectRaw["objectChild"] != nil {
-		d.Set("vpc_id", objectRaw["objectChild"])
+	// Check if the VPC ID is in the bindings list
+	found := false
+	for _, binding := range vpcBindings {
+		if binding != nil && *binding == vpcId {
+			found = true
+			break
+		}
 	}
 
-	parts := strings.Split(d.Id(), ":")
-	d.Set("function_name", parts[0])
-	d.Set("vpc_id", parts[1])
+	if !found {
+		log.Printf("[DEBUG] VPC binding not found for function: %s, vpcId: %s", functionName, vpcId)
+		d.SetId("")
+		return nil
+	}
+
+	// Set schema fields
+	d.Set("function_name", functionName)
+	d.Set("vpc_id", vpcId)
 
 	return nil
 }
 
 func resourceAliCloudFCVpcBindingDelete(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
+	fcService, err := NewFCService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Parse resource ID to get function name and VPC ID
 	parts := strings.Split(d.Id(), ":")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid resource ID format, expected functionName:vpcId")
+	}
 	functionName := parts[0]
 	vpcId := parts[1]
-	action := fmt.Sprintf("/2023-03-30/functions/%s/vpc-bindings/%s", functionName, vpcId)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	var err error
-	request = make(map[string]interface{})
 
-	wait := incrementalWait(3*time.Second, 5*time.Second)
+	log.Printf("[DEBUG] Deleting FC VPC Binding for function: %s, vpcId: %s", functionName, vpcId)
+
+	// Delete VPC binding using service layer
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.RoaDelete("FC", "2023-03-30", action, query, nil, nil, true)
-
+		err = fcService.DeleteFCVpcBinding(functionName, vpcId)
 		if err != nil {
+			if IsNotFoundError(err) {
+				log.Printf("[DEBUG] FC VPC Binding not found during deletion for function: %s, vpcId: %s", functionName, vpcId)
+				return nil
+			}
 			if NeedRetry(err) {
-				wait()
+				log.Printf("[WARN] FC VPC Binding deletion failed with retryable error: %s. Retrying...", err)
+				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
+			log.Printf("[ERROR] FC VPC Binding deletion failed: %s", err)
 			return resource.NonRetryableError(err)
 		}
-		addDebug(action, response, request)
 		return nil
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteVpcBinding", AlibabaCloudSdkGoERROR)
 	}
+
+	log.Printf("[DEBUG] FC VPC Binding deleted successfully for function: %s, vpcId: %s", functionName, vpcId)
 
 	return nil
 }

@@ -699,6 +699,8 @@ func resourceAliCloudFCFunctionCreate(d *schema.ResourceData, meta interface{}) 
 		functionName = resource.PrefixedUniqueId("tf-function-")
 	}
 
+	log.Printf("[DEBUG] Creating FC Function: %s", functionName)
+
 	// Build create request from schema
 	request := service.BuildCreateFunctionInputFromSchema(d)
 	request.FunctionName = tea.String(functionName)
@@ -708,11 +710,14 @@ func resourceAliCloudFCFunctionCreate(d *schema.ResourceData, meta interface{}) 
 		_, err := service.CreateFCFunction(request)
 		if err != nil {
 			if IsExpectedErrors(err, []string{"ServiceUnavailable", "ThrottlingException"}) {
+				log.Printf("[WARN] FC Function creation failed with retryable error: %s. Retrying...", err)
 				return resource.RetryableError(err)
 			}
 			if IsExpectedErrors(err, []string{"FunctionAlreadyExists"}) {
+				log.Printf("[DEBUG] FC Function already exists: %s", functionName)
 				return resource.NonRetryableError(GetNotFoundErrorFromString(GetNotFoundMessage("FC Function", functionName)))
 			}
+			log.Printf("[ERROR] FC Function creation failed: %s", err)
 			return resource.NonRetryableError(err)
 		}
 		return nil
@@ -725,11 +730,15 @@ func resourceAliCloudFCFunctionCreate(d *schema.ResourceData, meta interface{}) 
 	// Set resource ID
 	d.SetId(functionName)
 
+	log.Printf("[DEBUG] Waiting for FC Function to be ready: %s", functionName)
+
 	// Wait for function to be ready
 	err = service.WaitForFCFunctionCreating(functionName, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
+
+	log.Printf("[DEBUG] FC Function created successfully: %s", functionName)
 
 	// Read the function state
 	return resourceAliCloudFCFunctionRead(d, meta)
@@ -781,6 +790,8 @@ func resourceAliCloudFCFunctionUpdate(d *schema.ResourceData, meta interface{}) 
 
 	functionName := d.Id()
 
+	log.Printf("[DEBUG] Updating FC Function: %s", functionName)
+
 	// Build update request from schema changes
 	request := service.BuildUpdateFunctionInputFromSchema(d)
 
@@ -789,8 +800,10 @@ func resourceAliCloudFCFunctionUpdate(d *schema.ResourceData, meta interface{}) 
 		_, err := service.UpdateFCFunction(functionName, request)
 		if err != nil {
 			if IsExpectedErrors(err, []string{"ServiceUnavailable", "ThrottlingException"}) {
+				log.Printf("[WARN] FC Function update failed with retryable error: %s. Retrying...", err)
 				return resource.RetryableError(err)
 			}
+			log.Printf("[ERROR] FC Function update failed: %s", err)
 			return resource.NonRetryableError(err)
 		}
 		return nil
@@ -800,11 +813,15 @@ func resourceAliCloudFCFunctionUpdate(d *schema.ResourceData, meta interface{}) 
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateFunction", AlibabaCloudSdkGoERROR)
 	}
 
+	log.Printf("[DEBUG] Waiting for FC Function update to complete: %s", functionName)
+
 	// Wait for function to be updated
 	err = service.WaitForFCFunctionUpdating(functionName, d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
+
+	log.Printf("[DEBUG] FC Function updated successfully: %s", functionName)
 
 	// Read the updated function state
 	return resourceAliCloudFCFunctionRead(d, meta)
@@ -819,15 +836,20 @@ func resourceAliCloudFCFunctionDelete(d *schema.ResourceData, meta interface{}) 
 
 	functionName := d.Id()
 
+	log.Printf("[DEBUG] Deleting FC Function: %s", functionName)
+
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := service.DeleteFCFunction(functionName)
 		if err != nil {
 			if IsExpectedErrors(err, []string{"ServiceUnavailable", "ThrottlingException"}) {
+				log.Printf("[WARN] FC Function deletion failed with retryable error: %s. Retrying...", err)
 				return resource.RetryableError(err)
 			}
 			if IsExpectedErrors(err, []string{"ResourceNotFound", "FunctionNotFound"}) {
+				log.Printf("[DEBUG] FC Function not found during deletion: %s", functionName)
 				return nil
 			}
+			log.Printf("[ERROR] FC Function deletion failed: %s", err)
 			return resource.NonRetryableError(err)
 		}
 		return nil
@@ -837,11 +859,15 @@ func resourceAliCloudFCFunctionDelete(d *schema.ResourceData, meta interface{}) 
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteFunction", AlibabaCloudSdkGoERROR)
 	}
 
+	log.Printf("[DEBUG] Waiting for FC Function to be deleted: %s", functionName)
+
 	// Wait for function to be deleted
 	err = service.WaitForFCFunctionDeleting(functionName, d.Timeout(schema.TimeoutDelete))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
+
+	log.Printf("[DEBUG] FC Function deleted successfully: %s", functionName)
 
 	return nil
 }

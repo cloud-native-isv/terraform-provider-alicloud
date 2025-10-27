@@ -4,6 +4,12 @@
 
 本文档为 Terraform Provider Alicloud 项目的完整开发指南，包含大语言模型代码生成规范、架构设计原则、编码标准和最佳实践。本指南旨在确保代码质量、一致性和可维护性，为开发者提供全面的技术规范。
 
+**版本**: 1.1.0 | **最后修订**: 2025-10-24
+
+## 治理原则
+
+本指南具有最高权威性，取代所有其他开发实践和指南。所有拉取请求和代码审查必须验证是否符合这些原则。任何偏离这些标准的复杂性或例外必须明确说明理由。对本指南的修订需要文档记录、团队批准以及现有代码的迁移计划。
+
 ## 1. 代码生成规范
 
 ### 1.1 项目信息参考
@@ -379,7 +385,32 @@ if err != nil {
 4. **适当的日志记录**：
    - 记录关键错误信息用于调试
    - 区分不同级别的日志（DEBUG、WARN、ERROR）
+
+#### 3.3.7 重试逻辑规范
+
 ```go
+// 常见的可重试错误
+var retryableErrors = []string{
+    "ServiceUnavailable",
+    "ThrottlingException", 
+    "InternalError",
+    "Throttling",
+    "SystemBusy",
+    "OperationConflict",
+}
+
+err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+    _, err := service.CreateResource(request)
+    if err != nil {
+        if IsExpectedErrors(err, retryableErrors) {
+            time.Sleep(5 * time.Second)
+            return resource.RetryableError(err)
+        }
+        return resource.NonRetryableError(err)
+    }
+    return nil
+})
+```
 
 ### 3.4 状态管理规范
 
@@ -401,6 +432,7 @@ if err != nil {
 // 最后调用Read同步状态
 return resourceAlicloudServiceResourceRead(d, meta)
 ```
+
 ### 3.5 数据验证和转换
 
 #### 3.5.1 输入验证
@@ -633,33 +665,6 @@ func resourceAliCloudServiceResourceDelete(d *schema.ResourceData, meta interfac
 }
 ```
 
-### 4.4 资源创建的resource.Retry逻辑
-
-```go
-// 常见的可重试错误
-var retryableErrors = []string{
-    "ServiceUnavailable",
-    "ThrottlingException", 
-    "InternalError",
-    "Throttling",
-    "SystemBusy",
-    "OperationConflict",
-}
-
-err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-    _, err := service.CreateResource(request)
-    if err != nil {
-        if IsExpectedErrors(err, retryableErrors) {
-            time.Sleep(5 * time.Second)
-            return resource.RetryableError(err)
-        }
-        return resource.NonRetryableError(err)
-    }
-    return nil
-})
-```
-
-
 ## 11. 开发检查清单
 
 ### 11.1 基础要求
@@ -681,7 +686,11 @@ err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryErro
 - [ ] 正确处理复杂对象的类型转换
 - [ ] 合理的日志记录
 
-## 12. 总结
+## 12. 治理与合规
+
+本指南具有最高权威性，所有开发活动必须严格遵循。任何偏离标准的行为必须经过明确的审批流程，并在代码中添加详细的注释说明理由。团队应定期审查和更新本指南，确保其与项目发展保持同步。
+
+## 13. 总结
 
 本指南为Terraform Provider Alicloud项目的核心开发规范，开发过程中应严格遵循，特别是：
 
