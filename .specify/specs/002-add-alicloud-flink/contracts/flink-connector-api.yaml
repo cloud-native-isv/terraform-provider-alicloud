@@ -1,0 +1,235 @@
+openapi: 3.0.0
+info:
+  title: Alibaba Cloud Flink Connector API
+  version: 1.0.0
+  description: API for managing custom Flink connectors in Alibaba Cloud
+
+paths:
+  /workspaces/{workspaceId}/namespaces/{namespaceName}/connectors:
+    post:
+      summary: Register a custom Flink connector
+      operationId: registerCustomConnector
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The workspace ID
+        - name: namespaceName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The namespace name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Connector'
+      responses:
+        '200':
+          description: Successful registration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Connector'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '409':
+          description: Conflict - connector already exists
+        '500':
+          description: Internal server error
+
+    get:
+      summary: List custom Flink connectors
+      operationId: listCustomConnectors
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The workspace ID
+        - name: namespaceName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The namespace name
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Connector'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+
+  /workspaces/{workspaceId}/namespaces/{namespaceName}/connectors/{connectorName}:
+    get:
+      summary: Get a specific Flink connector
+      operationId: getConnector
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The workspace ID
+        - name: namespaceName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The namespace name
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The connector name
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Connector'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Connector not found
+        '500':
+          description: Internal server error
+
+    put:
+      summary: Update a Flink connector
+      operationId: updateConnector
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The workspace ID
+        - name: namespaceName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The namespace name
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The connector name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Connector'
+      responses:
+        '200':
+          description: Successful update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Connector'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Connector not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a Flink connector
+      operationId: deleteConnector
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The workspace ID
+        - name: namespaceName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The namespace name
+        - name: connectorName
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The connector name
+      responses:
+        '204':
+          description: Successful deletion
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Connector not found
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    Connector:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the connector
+        type:
+          type: string
+          description: The type of the connector
+        jarUrl:
+          type: string
+          description: The URL to the JAR file for the connector
+        description:
+          type: string
+          description: Description of the connector
+        source:
+          type: boolean
+          description: Whether the connector is a source connector
+        sink:
+          type: boolean
+          description: Whether the connector is a sink connector
+        lookup:
+          type: boolean
+          description: Whether the connector is a lookup connector
+        supportedFormats:
+          type: array
+          items:
+            type: string
+          description: List of supported formats for the connector
+        dependencies:
+          type: array
+          items:
+            type: string
+          description: List of dependencies for the connector
+      required:
+        - name
+        - type
+        - jarUrl
