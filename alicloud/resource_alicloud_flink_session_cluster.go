@@ -47,38 +47,45 @@ func resourceAliCloudFlinkSessionCluster() *schema.Resource {
 			"engine_version": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"deployment_target_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"basic_resource_setting": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"parallelism": {
 							Type:         schema.TypeInt,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
 						"jobmanager_resource_setting_spec": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
+							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"cpu": {
 										Type:         schema.TypeFloat,
 										Optional:     true,
+										ForceNew:     true,
 										ValidateFunc: validation.FloatAtLeast(0.1),
 									},
 									"memory": {
 										Type:         schema.TypeString,
 										Optional:     true,
+										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
@@ -88,16 +95,19 @@ func resourceAliCloudFlinkSessionCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
+							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"cpu": {
 										Type:         schema.TypeFloat,
 										Optional:     true,
+										ForceNew:     true,
 										ValidateFunc: validation.FloatAtLeast(0.1),
 									},
 									"memory": {
 										Type:         schema.TypeString,
 										Optional:     true,
+										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
@@ -109,40 +119,48 @@ func resourceAliCloudFlinkSessionCluster() *schema.Resource {
 			"user_flink_conf": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"labels": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"logging": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"logging_profile": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 						"log4j2_configuration_template": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 						"log4j_loggers": {
 							Type:     schema.TypeList,
 							Optional: true,
+							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"logger_name": {
 										Type:         schema.TypeString,
 										Required:     true,
+										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"logger_level": {
 										Type:         schema.TypeString,
 										Required:     true,
+										ForceNew:     true,
 										ValidateFunc: validation.StringInSlice([]string{"TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"}, false),
 									},
 								},
@@ -152,16 +170,19 @@ func resourceAliCloudFlinkSessionCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
+							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"expiration_days": {
 										Type:         schema.TypeInt,
 										Required:     true,
+										ForceNew:     true,
 										ValidateFunc: validation.IntAtLeast(1),
 									},
 									"open_history": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										ForceNew: true,
 										Default:  false,
 									},
 								},
