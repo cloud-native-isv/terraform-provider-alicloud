@@ -1,6 +1,7 @@
 ## 1.252.0 (Unreleased)
 
 - **New Resource:** `alicloud_message_service_service` [GH-8766]
+- **New Resource:** `alicloud_sls_consumer_group` ([#XXXX](https://github.com/aliyun/terraform-provider-alicloud/issues/XXXX))
 
 ENHANCEMENTS:
 

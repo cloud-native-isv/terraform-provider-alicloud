@@ -8,6 +8,6 @@
   },
   "chat.tools.terminal.autoApprove": {
     "/.*/": true,
-    "rm ": false
+    "rm": false
   }
 }

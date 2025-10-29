@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: Terraform Alicloud SLS Consumer Group Contracts
+  version: 1.0.0
+  description: Logical contracts representing provider operations for SLS consumer group lifecycle.
+servers:
+  - url: https://example.invalid  # Placeholder; provider calls CWS-Lib-Go, not public REST
+paths:
+  /sls/projects/{project}/logstores/{logstore}/consumerGroups/{consumer_group}:
+    get:
+      summary: Describe consumer group
+      operationId: DescribeConsumerGroup
+      parameters:
+        - name: project
+          in: path
+          required: true
+          schema: { type: string }
+        - name: logstore
+          in: path
+          required: true
+          schema: { type: string }
+        - name: consumer_group
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Consumer group found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerGroup'
+        '404': { description: Not found }
+    put:
+      summary: Create or adopt+converge consumer group
+      operationId: CreateOrAdoptConsumerGroup
+      parameters:
+        - name: project
+          in: path
+          required: true
+          schema: { type: string }
+        - name: logstore
+          in: path
+          required: true
+          schema: { type: string }
+        - name: consumer_group
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsumerGroupSpec'
+      responses:
+        '201': { description: Created }
+        '200': { description: Adopted and converged }
+        '409': { description: Conflict on immutable keys }
+    patch:
+      summary: Update behavioral parameters (timeout/order)
+      operationId: UpdateConsumerGroup
+      parameters:
+        - name: project
+          in: path
+          required: true
+          schema: { type: string }
+        - name: logstore
+          in: path
+          required: true
+          schema: { type: string }
+        - name: consumer_group
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsumerGroupSpec'
+      responses:
+        '200': { description: Updated }
+        '404': { description: Not found }
+    delete:
+      summary: Delete consumer group
+      operationId: DeleteConsumerGroup
+      parameters:
+        - name: project
+          in: path
+          required: true
+          schema: { type: string }
+        - name: logstore
+          in: path
+          required: true
+          schema: { type: string }
+        - name: consumer_group
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Deleted }
+        '404': { description: Not found }
+components:
+  schemas:
+    ConsumerGroup:
+      type: object
+      properties:
+        project: { type: string }
+        logstore: { type: string }
+        consumer_group: { type: string }
+        timeout: { type: integer, minimum: 1 }
+        order: { type: boolean }
+      required: [project, logstore, consumer_group]
+    ConsumerGroupSpec:
+      type: object
+      properties:
+        timeout: { type: integer, minimum: 1 }
+        order: { type: boolean }
+      required: []
