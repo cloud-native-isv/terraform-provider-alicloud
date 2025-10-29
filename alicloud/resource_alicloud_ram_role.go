@@ -204,8 +204,32 @@ func resourceAliCloudRamRoleCreate(d *schema.ResourceData, meta interface{}) err
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ram_role", action, AlibabaCloudSdkGoERROR)
 	}
 
-	responseRole := response["Role"].(map[string]interface{})
-	d.SetId(fmt.Sprint(responseRole["RoleName"]))
+	// Safely determine role name and set ID. In the case of auto-import when the role already exists,
+	// the response may be nil or may not contain Role field, so avoid unsafe assertions.
+	var roleName string
+	if response != nil {
+		if respRoleRaw, ok := response["Role"]; ok && respRoleRaw != nil {
+			if respRoleMap, ok2 := respRoleRaw.(map[string]interface{}); ok2 && respRoleMap != nil {
+				if v, ok3 := respRoleMap["RoleName"]; ok3 {
+					roleName = fmt.Sprint(v)
+				}
+			}
+		}
+	}
+
+	if roleName == "" {
+		// Fallback to already-set ID from auto-import branch or requested RoleName
+		if id := d.Id(); id != "" {
+			roleName = id
+		} else if v, ok := request["RoleName"]; ok {
+			roleName = fmt.Sprint(v)
+		}
+	}
+
+	if roleName == "" {
+		return WrapError(Error("failed to determine RAM role name after creation"))
+	}
+	d.SetId(roleName)
 
 	return resourceAliCloudRamRoleRead(d, meta)
 }
