@@ -109,7 +109,7 @@ func resourceAliCloudSlsConsumerGroupCreate(d *schema.ResourceData, meta interfa
 		ProjectName:   project,
 		LogstoreName:  logstore,
 		ConsumerGroup: group,
-		Timeout:       d.Get("timeout").(int),
+		Timeout:       int32(d.Get("timeout").(int)),
 		Order:         d.Get("order").(bool),
 	}
 
@@ -164,7 +164,7 @@ func resourceAliCloudSlsConsumerGroupRead(d *schema.ResourceData, meta interface
 	d.Set("logstore", logstore)
 	d.Set("consumer_group", group)
 	if obj != nil {
-		d.Set("timeout", obj.Timeout)
+		d.Set("timeout", int(obj.Timeout))
 		d.Set("order", obj.Order)
 		// Populate checkpoints (best-effort, ignore errors)
 		cps, cpErr := service.GetAPI().GetCheckPoint(project, logstore, group, nil)
@@ -201,7 +201,7 @@ func resourceAliCloudSlsConsumerGroupUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("timeout") || d.HasChange("order") {
 		req := &aliyunSlsAPI.LogConsumerGroup{
-			Timeout: d.Get("timeout").(int),
+			Timeout: int32(d.Get("timeout").(int)),
 			Order:   d.Get("order").(bool),
 		}
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
