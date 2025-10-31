@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -9,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -21,6 +21,63 @@ func resourceAliCloudDBDatabase() *schema.Resource {
 		Delete: resourceAliCloudDBDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+			// Plan-time read-only detection for adoption
+			instanceIdRaw, nameRaw := d.Get("instance_id"), d.Get("name")
+			if instanceIdRaw == nil || nameRaw == nil {
+				return nil
+			}
+			instanceId := fmt.Sprint(instanceIdRaw)
+			name := fmt.Sprint(nameRaw)
+			if instanceId == "" || name == "" {
+				return nil
+			}
+
+			client := v.(*connectivity.AliyunClient)
+			rdsService, err := NewRdsService(client)
+			if err != nil {
+				d.SetNew("adoption_notice", "Could not initialize RDS service for adoption detection during plan")
+				return nil
+			}
+			id := EncodeDBId(instanceId, name)
+			obj, err := rdsService.DescribeDBDatabase(id)
+			if err != nil {
+				if IsNotFoundError(err) {
+					d.SetNew("adopt_existing", false)
+					d.SetNewComputed("adoption_notice")
+					return nil
+				}
+				// Permission or throttling degradation without failing plan
+				if rdsService.IsPermissionDenied(err) {
+					d.SetNew("adoption_notice", "Insufficient permission for read-only detection during plan. Require: Describe/List Databases permission on the target RDS instance.")
+				} else if IsExpectedErrors(err, []string{"ServiceUnavailable", "ThrottlingException", "InternalError", "Throttling", "SystemBusy"}) || NeedRetry(err) {
+					d.SetNew("adoption_notice", "Throttling or temporary error during plan detection; proceeding without adoption confirmation.")
+				} else {
+					d.SetNew("adoption_notice", "Could not confirm whether to adopt existing database during plan (unknown error)")
+				}
+				return nil
+			}
+			d.SetNew("adopt_existing", true)
+			// If description differs, inform that adoption will not align it in the same apply round
+			if vDesc, ok := d.GetOk("description"); ok {
+				desired := fmt.Sprint(vDesc)
+				actual := fmt.Sprint(obj["DBDescription"])
+				if desired != "" && !strings.EqualFold(desired, actual) {
+					d.SetNew("adoption_notice", "Detected existing database and will adopt it on apply; description differs and won't be aligned in this apply.")
+				} else {
+					d.SetNew("adoption_notice", "Detected existing database and will adopt it on apply")
+				}
+			} else {
+				d.SetNew("adoption_notice", "Detected existing database and will adopt it on apply")
+			}
+			return nil
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -65,43 +122,85 @@ func resourceAliCloudDBDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+
+			// Read-only adoption hints for plan/apply transparency
+			"adopt_existing": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Computed:    true,
+				Description: "Whether the provider will adopt an existing database on apply.",
+			},
+			"adoption_notice": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "Human-readable notice about adoption behavior shown at plan/apply.",
+			},
 		},
 	}
 }
 
 func resourceAliCloudDBDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
-	action := "CreateDatabase"
-	request := map[string]interface{}{
-		"RegionId":         client.RegionId,
-		"DBInstanceId":     d.Get("instance_id"),
-		"DBName":           d.Get("name"),
-		"CharacterSetName": d.Get("character_set"),
-		"SourceIp":         client.SourceIp,
-	}
-	if v, ok := d.GetOk("description"); ok && v.(string) != "" {
-		request["DBDescription"] = v
-	}
-	var err error
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err := client.RpcPost("Rds", "2014-08-15", action, nil, request, false)
-		if err != nil {
-			if IsExpectedErrors(err, OperationDeniedDBStatus) || NeedRetry(err) {
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
-
+	rdsService, err := NewRdsService(client)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		return WrapError(err)
 	}
 
-	d.SetId(fmt.Sprintf("%v%s%v", request["DBInstanceId"], COLON_SEPARATED, request["DBName"]))
+	instanceId := d.Get("instance_id").(string)
+	name := d.Get("name").(string)
+	id := EncodeDBId(instanceId, name)
 
+	// Adoption path: if DB already exists
+	if obj, err := rdsService.DescribeDBDatabase(id); err == nil {
+		// Immutable field conflict checks per engine rules (US2)
+		if v, ok := d.GetOk("character_set"); ok {
+			desired := fmt.Sprint(v)
+			if desired != "" {
+				engine := fmt.Sprint(obj["Engine"])
+				if engine == string(PostgreSQL) {
+					// For PostgreSQL, only enforce when desired is a triplet "Charset,Collate,Ctype"
+					if strings.Contains(desired, ",") {
+						actual := fmt.Sprintf("%s,%s,%s", fmt.Sprint(obj["CharacterSetName"]), fmt.Sprint(obj["Collate"]), fmt.Sprint(obj["Ctype"]))
+						if !strings.EqualFold(desired, actual) {
+							return WrapError(fmt.Errorf("immutable field conflict: character_set for engine %s differs (existing=%s, desired=%s). Adoption aborted; remove character_set or recreate DB with desired settings.", engine, actual, desired))
+						}
+					}
+				} else if engine == string(MySQL) || engine == string(SQLServer) {
+					actual := fmt.Sprint(obj["CharacterSetName"])
+					if !strings.EqualFold(desired, actual) {
+						return WrapError(fmt.Errorf("immutable field conflict: character_set for engine %s differs (existing=%s, desired=%s). Adoption aborted; remove character_set or recreate DB with desired settings.", engine, actual, desired))
+					}
+				}
+			}
+		}
+		log.Printf("[INFO] Adopting existing RDS database: %s", id)
+		d.SetId(id)
+		return resourceAliCloudDBDatabaseRead(d, meta)
+	} else if !IsNotFoundError(err) {
+		if NeedRetry(err) {
+			time.Sleep(5 * time.Second)
+		} else {
+			log.Printf("[WARN] DescribeDBDatabase during create returned error (ignored): %v", err)
+		}
+	}
+
+	// Create new database
+	characterSet := d.Get("character_set").(string)
+	description := ""
+	if v, ok := d.GetOk("description"); ok {
+		description = v.(string)
+	}
+
+	if err := rdsService.CreateDBDatabase(instanceId, name, characterSet, description); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, id, "CreateDBDatabase", AlibabaCloudSdkGoERROR)
+	}
+
+	d.SetId(id)
+	// Wait until DB exists
+	if wErr := rdsService.WaitForDBDatabaseCreating(d.Id(), d.Timeout(schema.TimeoutCreate)); wErr != nil {
+		return WrapErrorf(wErr, IdMsg, d.Id())
+	}
 	return resourceAliCloudDBDatabaseRead(d, meta)
 }
 
@@ -131,30 +230,23 @@ func resourceAliCloudDBDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	}
 	d.Set("description", object["DBDescription"])
 
+	// Adoption transparency fields (stable values)
+	d.Set("adoption_notice", "Database is under Terraform management.")
+	d.Set("adopt_existing", true)
+
 	return nil
 }
 
 func resourceAliCloudDBDatabaseUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	rdsService, err := NewRdsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	if d.HasChange("description") && !d.IsNewResource() {
-		parts, err := ParseResourceId(d.Id(), 2)
-		if err != nil {
+		if err := rdsService.ModifyDBDatabaseDescription(d.Id(), d.Get("description").(string)); err != nil {
 			return WrapError(err)
 		}
-		action := "ModifyDBDescription"
-		request := map[string]interface{}{
-			"RegionId":      client.RegionId,
-			"DBInstanceId":  parts[0],
-			"DBName":        parts[1],
-			"DBDescription": d.Get("description"),
-			"SourceIp":      client.SourceIp,
-		}
-
-		response, err := client.RpcPost("Rds", "2014-08-15", action, nil, request, false)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-		}
-		addDebug(action, response, request)
 	}
 	return resourceAliCloudDBDatabaseRead(d, meta)
 }
@@ -165,31 +257,24 @@ func resourceAliCloudDBDatabaseDelete(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return WrapError(err)
 	}
-	parts, err := ParseResourceId(d.Id(), 2)
+	instanceId, _, err := DecodeDBId(d.Id())
 	if err != nil {
-		return WrapError(err)
-	}
-	action := "DeleteDatabase"
-	request := map[string]interface{}{
-		"RegionId":     client.RegionId,
-		"DBInstanceId": parts[0],
-		"DBName":       parts[1],
-		"SourceIp":     client.SourceIp,
+		parts, e2 := ParseResourceId(d.Id(), 2)
+		if e2 != nil {
+			return WrapError(err)
+		}
+		instanceId = parts[0]
 	}
 	// wait instance status is running before deleting database
-	if err := rdsService.WaitForDBInstance(parts[0], Running, 1800); err != nil {
+	if err := rdsService.WaitForDBInstance(instanceId, Running, 1800); err != nil {
 		return WrapError(err)
 	}
-	response, err := client.RpcPost("Rds", "2014-08-15", action, nil, request, false)
-	if err != nil {
-		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"InvalidDBName.NotFound"}) {
-			return nil
-		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+	if err := rdsService.DeleteDBDatabase(d.Id()); err != nil {
+		return WrapError(err)
 	}
-	addDebug(action, response, request)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+	// wait for deletion finished
+	if err := rdsService.WaitForDBDatabaseDeleted(d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
+		return WrapError(err)
 	}
-	return WrapError(rdsService.WaitForDBDatabase(d.Id(), Deleted, DefaultTimeoutMedium))
+	return nil
 }

@@ -1,0 +1,58 @@
+openapi: 3.1.0
+info:
+  title: Alicloud DB Database Adoption API (Conceptual)
+  version: 0.1.0
+  description: |
+    设计合约用于描述 Provider 特性：检测并接管已存在的数据库（仅作为内部设计参考，不对外提供）。
+servers:
+  - url: https://internal/provider
+paths:
+  /adoption/rds/database:  # 仅用于设计表达，不是实际服务端点
+    post:
+      summary: Detect and adopt existing database in a given instance
+      description: |
+        输入实例与数据库名，如果目标数据库已存在则返回 adopt=true 并携带提示；否则 adopt=false。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdoptionRequest'
+      responses:
+        '200':
+          description: Adoption decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdoptionResponse'
+components:
+  schemas:
+    AdoptionRequest:
+      type: object
+      required: [instance_id, name]
+      properties:
+        instance_id:
+          type: string
+        name:
+          type: string
+        character_set:
+          type: string
+          description: Optional; used for immutable-field conflict checks
+    AdoptionResponse:
+      type: object
+      required: [adopt]
+      properties:
+        adopt:
+          type: boolean
+        notice:
+          type: string
+        immutable_conflict:
+          type: boolean
+        conflict_fields:
+          type: array
+          items:
+            type: string
+        suggestions:
+          type: array
+          items:
+            type: string
