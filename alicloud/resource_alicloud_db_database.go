@@ -222,11 +222,12 @@ func resourceAliCloudDBDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("instance_id", object["DBInstanceId"])
 	d.Set("name", object["DBName"])
 	if string(PostgreSQL) == object["Engine"] {
-		var strArray = []string{object["CharacterSetName"].(string), object["Collate"].(string), object["Ctype"].(string)}
+		// Use safe string conversion to avoid panics when fields are missing or types vary
+		var strArray = []string{fmt.Sprint(object["CharacterSetName"]), fmt.Sprint(object["Collate"]), fmt.Sprint(object["Ctype"])}
 		postgreSQLCharacterSet := strings.Join(strArray, ",")
 		d.Set("character_set", postgreSQLCharacterSet)
 	} else {
-		d.Set("character_set", object["CharacterSetName"])
+		d.Set("character_set", fmt.Sprint(object["CharacterSetName"]))
 	}
 	d.Set("description", object["DBDescription"])
 

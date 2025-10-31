@@ -58,6 +58,8 @@ func (s *RdsService) WaitForDBDatabase(id string, status Status, timeout int) er
 		return WrapError(err)
 	}
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
+	var lastErr error
+	var lastObserved interface{}
 	for {
 		object, err := s.DescribeDBDatabase(id)
 		if err != nil {
@@ -66,14 +68,25 @@ func (s *RdsService) WaitForDBDatabase(id string, status Status, timeout int) er
 					return nil
 				}
 			}
+			// Record the last error and return immediately as it's non-retryable here
+			lastErr = err
 			return WrapError(err)
 		}
 		if object != nil && object["DBName"] == parts[1] {
 			break
 		}
+		// keep track of last observed object name (if any)
+		if object != nil {
+			lastObserved = object["DBName"]
+		}
 		time.Sleep(DefaultIntervalShort * time.Second)
 		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, id, GetFunc(1), timeout, object["DBName"], parts[1], ProviderERROR)
+			// Avoid wrapping a nil cause; provide a meaningful timeout error instead
+			cause := lastErr
+			if cause == nil {
+				cause = Error(FailedToReachTargetStatus, "timeout while waiting DB to reach target state")
+			}
+			return WrapErrorf(cause, WaitTimeoutMsg, id, GetFunc(1), timeout, lastObserved, parts[1], ProviderERROR)
 		}
 	}
 	return nil
@@ -216,7 +229,10 @@ func (s *RdsService) DBDatabaseStateRefreshFunc(id string, failStates []string) 
 func (s *RdsService) WaitForDBDatabaseCreating(id string, timeout time.Duration) error {
 	stateConf := BuildStateConf([]string{""}, []string{"Exists"}, timeout, 5*time.Second, s.DBDatabaseStateRefreshFunc(id, []string{}))
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+	return nil
 }
 
 // WaitForDBDatabaseDeleted waits until DB is not found.
@@ -233,7 +249,10 @@ func (s *RdsService) WaitForDBDatabaseDeleted(id string, timeout time.Duration) 
 	}
 	stateConf := BuildStateConf([]string{"Exists"}, []string{""}, timeout, 5*time.Second, refresh)
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, id)
+	}
+	return nil
 }
 
 // IsPermissionDenied determines whether the error indicates insufficient permission
