@@ -97,7 +97,7 @@ func resourceAliCloudDBDatabase() *schema.Resource {
 			"character_set": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "utf8",
+				Default:  "utf8mb4",
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					if strings.ToLower(old) == strings.ToLower(new) {
