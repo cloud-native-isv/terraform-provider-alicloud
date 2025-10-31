@@ -2,6 +2,8 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -75,4 +77,51 @@ func (s *OssService) OssBucketPublicAccessBlockStateRefreshFunc(id string, field
 		}
 		return object, currentStatus, nil
 	}
+}
+
+// PutOssBucketPublicAccessBlock creates or updates the bucket PublicAccessBlock configuration with retry/backoff.
+// It centralizes error gating and retry strategy for write operations.
+func (s *OssService) PutOssBucketPublicAccessBlock(bucket string, blockPublicAccess bool, timeout time.Duration) error {
+	// Build request payload
+	action := fmt.Sprintf("/?publicAccessBlock")
+	request := make(map[string]interface{})
+	hostMap := make(map[string]*string)
+	hostMap["bucket"] = StringPointer(bucket)
+	objectDataLocalMap := map[string]interface{}{
+		"BlockPublicAccess": blockPublicAccess,
+	}
+	request["PublicAccessBlockConfiguration"] = objectDataLocalMap
+	body := request
+	query := make(map[string]*string)
+
+	// Retry with exponential backoff + jitter
+	wait := ExpBackoffWait(2*time.Second, 1.8, 0.25, 30*time.Second)
+	attempts := 0
+	var lastErr error
+	var response map[string]interface{}
+
+	err := resource.Retry(timeout, func() *resource.RetryError {
+		attempts++
+		// Use legacy Do call for now; future work: switch to cws-lib-go write API if available
+		resp, err := s.client.Do("Oss", xmlParam("PUT", "2019-05-17", "PutBucketPublicAccessBlock", action), query, body, nil, hostMap, false)
+		if err != nil {
+			if IsOssConcurrentUpdateError(err) {
+				lastErr = err
+				wait()
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		response = resp
+		addDebug(action, response, request)
+		return nil
+	})
+	if err != nil {
+		if lastErr != nil {
+			// WARN level log for retry exhaustion
+			log.Printf("[WARN] PutOssBucketPublicAccessBlock retries exhausted after %d attempts for bucket %s, last error: %v", attempts, bucket, lastErr)
+		}
+		return WrapErrorf(err, DefaultErrorMsg+": hint: OSS reported potential concurrency conflict (ConcurrentUpdateBucketFailed). Please retry after a short cooldown.", bucket, "PutBucketPublicAccessBlock", AlibabaCloudSdkGoERROR)
+	}
+	return nil
 }

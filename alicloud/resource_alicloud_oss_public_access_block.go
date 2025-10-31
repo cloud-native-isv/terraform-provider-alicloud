@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+// Backoff helper moved to shared util (retry.go)
+
 func resourceAliCloudOssBucketPublicAccessBlock() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudOssBucketPublicAccessBlockCreate,
@@ -41,46 +43,17 @@ func resourceAliCloudOssBucketPublicAccessBlock() *schema.Resource {
 }
 
 func resourceAliCloudOssBucketPublicAccessBlockCreate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
+	ossService := NewOssService(client)
 
-	action := fmt.Sprintf("/?publicAccessBlock")
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	body := make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	var err error
-	request = make(map[string]interface{})
-	hostMap["bucket"] = StringPointer(d.Get("bucket").(string))
+	bucket := d.Get("bucket").(string)
+	block := d.Get("block_public_access").(bool)
 
-	objectDataLocalMap := make(map[string]interface{})
-	if v := d.Get("block_public_access"); v != nil {
-		objectDataLocalMap["BlockPublicAccess"] = v
-		request["PublicAccessBlockConfiguration"] = objectDataLocalMap
+	if err := ossService.PutOssBucketPublicAccessBlock(bucket, block, d.Timeout(schema.TimeoutCreate)); err != nil {
+		return WrapError(err)
 	}
 
-	body = request
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.Do("Oss", xmlParam("PUT", "2019-05-17", "PutBucketPublicAccessBlock", action), query, body, nil, hostMap, false)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
-
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_oss_bucket_public_access_block", action, AlibabaCloudSdkGoERROR)
-	}
-
-	d.SetId(fmt.Sprint(*hostMap["bucket"]))
-
+	d.SetId(bucket)
 	return resourceAliCloudOssBucketPublicAccessBlockRead(d, meta)
 }
 
@@ -113,47 +86,13 @@ func resourceAliCloudOssBucketPublicAccessBlockRead(d *schema.ResourceData, meta
 
 func resourceAliCloudOssBucketPublicAccessBlockUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]*string
-	var body map[string]interface{}
-	update := false
-	action := fmt.Sprintf("/?publicAccessBlock")
-	var err error
-	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	body = make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	hostMap["bucket"] = StringPointer(d.Id())
+	ossService := NewOssService(client)
 	if d.HasChange("block_public_access") {
-		update = true
-	}
-	objectDataLocalMap := make(map[string]interface{})
-	if v := d.Get("block_public_access"); v != nil {
-		objectDataLocalMap["BlockPublicAccess"] = d.Get("block_public_access")
-		request["PublicAccessBlockConfiguration"] = objectDataLocalMap
-	}
-
-	body = request
-	if update {
-		wait := incrementalWait(3*time.Second, 5*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.Do("Oss", xmlParam("PUT", "2019-05-17", "PutBucketPublicAccessBlock", action), query, body, nil, hostMap, false)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(action, response, request)
-			return nil
-		})
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		block := d.Get("block_public_access").(bool)
+		if err := ossService.PutOssBucketPublicAccessBlock(d.Id(), block, d.Timeout(schema.TimeoutUpdate)); err != nil {
+			return WrapError(err)
 		}
 	}
-
 	return resourceAliCloudOssBucketPublicAccessBlockRead(d, meta)
 }
 

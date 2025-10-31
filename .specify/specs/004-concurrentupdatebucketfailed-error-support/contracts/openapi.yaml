@@ -1,0 +1,46 @@
+openapi: 3.0.3
+info:
+  title: OSS Public Access Block Control (Documentation Contract)
+  version: 1.0.0
+  description: |
+    Documentation-only contract to describe the behavior around concurrent updates
+    when setting bucket public access block. This mirrors the provider's interaction
+    with the OSS control plane.
+servers:
+  - url: https://oss-{region}.aliyuncs.com
+paths:
+  /oss/{bucket}/public-access-block:
+    put:
+      summary: Set bucket public access block
+      description: Set public access block configuration for the specified bucket.
+      parameters:
+        - name: bucket
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                BlockPublicAccess:
+                  type: boolean
+      responses:
+        '200':
+          description: Success
+        '409':
+          description: Concurrent update detected; cooldown and retry later
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: ConcurrentUpdateBucketFailed
+                  message:
+                    type: string
+                    example: Concurrent update bucket detected, please cooldown and retry later.
