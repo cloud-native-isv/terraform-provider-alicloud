@@ -282,6 +282,7 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 			"user_flink_conf": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"logging": {

@@ -459,9 +459,24 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", d.Get("logstore_name"))
 
 	// Get shard information using the SLS service
-	shards, err := slsService.GetLogStoreShards(parts[0], parts[1])
+	// Add retry logic for temporary LogStoreNotExist errors, especially for newly created resources
+	var shards []*aliyunSlsAPI.LogStoreShard
+	err = resource.Retry(2*time.Minute, func() *resource.RetryError {
+		var getErr error
+		shards, getErr = slsService.GetLogStoreShards(parts[0], parts[1])
+		if getErr != nil {
+			// For new resources, retry on LogStoreNotExist errors as the logstore may not be fully initialized yet
+			if d.IsNewResource() && IsNotFoundError(getErr) {
+				log.Printf("[DEBUG] Resource alicloud_log_store GetLogStoreShards returned LogStoreNotExist for new resource, retrying...")
+				return resource.RetryableError(getErr)
+			}
+			// For existing resources or other errors, return non-retryable error
+			return resource.NonRetryableError(WrapErrorf(getErr, DefaultErrorMsg, "alicloud_log_store", "GetLogStoreShards", AliyunLogGoSdkERROR))
+		}
+		return nil
+	})
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "GetLogStoreShards", AliyunLogGoSdkERROR)
+		return err
 	}
 
 	var shardList []map[string]interface{}

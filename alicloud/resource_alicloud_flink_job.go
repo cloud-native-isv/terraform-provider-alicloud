@@ -239,9 +239,64 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 		params.LocalVariables = localVars
 	}
 
+	// Check if there's already a running job in the same deployment
+	jobs, err := flinkService.ListJobs(workspaceId, namespaceName, deploymentId)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, deploymentId), "ListJobs", AlibabaCloudSdkGoERROR)
+	}
+
+	// Stop any existing running jobs in the same deployment
+	for _, job := range jobs {
+		if job.Status != nil && job.Status.CurrentJobStatus != nil && *job.Status.CurrentJobStatus == "RUNNING" {
+			// Stop the existing running job
+			existingJobId := EncodeJobId(workspaceId, namespaceName, job.JobId)
+			withSavepoint := true // Use savepoint when stopping existing job
+			stopErr := flinkService.StopJob(existingJobId, withSavepoint)
+			if stopErr != nil {
+				if !IsNotFoundError(stopErr) {
+					return WrapErrorf(stopErr, DefaultErrorMsg, existingJobId, "StopJob", AlibabaCloudSdkGoERROR)
+				}
+			}
+
+			// Wait for the existing job to stop
+			if err := flinkService.WaitForFlinkJobStopping(existingJobId, 5*time.Minute); err != nil {
+				return WrapErrorf(err, IdMsg, existingJobId)
+			}
+		}
+	}
+
 	job, err := flinkService.StartJob(params)
 	if err != nil {
-		return WrapError(err)
+		// Handle the specific error "Existing job count exceed limit"
+		if IsExpectedErrors(err, FlinkJobErrors) {
+			// If we still get this error after stopping existing jobs,
+			// it might be a race condition or the job is in a transitional state
+			// Retry once more after a short delay
+			time.Sleep(10 * time.Second)
+
+			// Try to list jobs again and stop any that might have appeared
+			jobs, listErr := flinkService.ListJobs(workspaceId, namespaceName, deploymentId)
+			if listErr == nil {
+				for _, job := range jobs {
+					if job.Status != nil && job.Status.CurrentJobStatus != nil && *job.Status.CurrentJobStatus == "RUNNING" {
+						existingJobId := EncodeJobId(workspaceId, namespaceName, job.JobId)
+						withSavepoint := true
+						stopErr := flinkService.StopJob(existingJobId, withSavepoint)
+						if stopErr == nil {
+							flinkService.WaitForFlinkJobStopping(existingJobId, 2*time.Minute)
+						}
+					}
+				}
+			}
+
+			// Try to start the job again
+			job, err = flinkService.StartJob(params)
+			if err != nil {
+				return WrapError(err)
+			}
+		} else {
+			return WrapError(err)
+		}
 	}
 
 	d.SetId(EncodeJobId(workspaceId, namespaceName, job.JobId))
@@ -444,34 +499,4 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
-}
-
-func buildFlinkJobPropertiesFromSet(propertiesSet *schema.Set) map[string]string {
-	properties := make(map[string]string)
-	for _, v := range propertiesSet.List() {
-		prop := v.(map[string]interface{})
-		key := prop["key"].(string)
-		value := prop["value"].(string)
-		properties[key] = value
-	}
-	return properties
-}
-
-func expandFlinkJobPropertiesFromMap(propertiesMap map[string]interface{}) map[string]string {
-	properties := make(map[string]string)
-	for key, value := range propertiesMap {
-		properties[key] = fmt.Sprintf("%v", value)
-	}
-	return properties
-}
-
-func flattenFlinkJobPropertiesToSet(properties map[string]string) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, len(properties))
-	for key, value := range properties {
-		result = append(result, map[string]interface{}{
-			"key":   key,
-			"value": value,
-		})
-	}
-	return result
 }
