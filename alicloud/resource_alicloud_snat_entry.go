@@ -7,9 +7,7 @@ import (
 	"strings"
 	"time"
 
-	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -72,20 +70,13 @@ func resourceAliCloudNATGatewaySnatEntry() *schema.Resource {
 }
 
 func resourceAliCloudNATGatewaySnatEntryCreate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
+	svc, _ := NewVpcSnatEntryService(client)
 
-	action := "CreateSnatEntry"
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]interface{})
-	var err error
-	request = make(map[string]interface{})
+	// Build request
+	request := make(map[string]interface{})
 	request["SnatTableId"] = d.Get("snat_table_id")
 	request["SnatIp"] = d.Get("snat_ip")
-	request["RegionId"] = client.RegionId
-	request["ClientToken"] = buildClientToken(action)
-
 	if v, ok := d.GetOk("source_vswitch_id"); ok {
 		request["SourceVSwitchId"] = v
 	}
@@ -98,30 +89,16 @@ func resourceAliCloudNATGatewaySnatEntryCreate(d *schema.ResourceData, meta inte
 	if v, ok := d.GetOkExists("eip_affinity"); ok {
 		request["EipAffinity"] = v
 	}
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RpcPost("Vpc", "2016-04-28", action, query, request, true)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"EIP_NOT_IN_GATEWAY", "OperationUnsupported.EipNatBWPCheck", "OperationUnsupported.EipInBinding", "InternalError", "IncorrectStatus.NATGW", "OperationConflict", "OperationUnsupported.EipNatGWCheck"}) || NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
 
+	snatEntryId, err := svc.CreateSnatEntryWithTimeout(request, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_snat_entry", action, AlibabaCloudSdkGoERROR)
+		return WrapError(err)
 	}
 
-	d.SetId(fmt.Sprintf("%v:%v", request["SnatTableId"], response["SnatEntryId"]))
+	d.SetId(fmt.Sprintf("%v:%v", request["SnatTableId"], snatEntryId))
 
-	nATGatewayServiceV2 := NATGatewayServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, nATGatewayServiceV2.NATGatewaySnatEntryStateRefreshFunc(d.Id(), "Status", []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
+	if err := svc.WaitForSnatEntryCreating(d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
+		return WrapError(err)
 	}
 
 	return resourceAliCloudNATGatewaySnatEntryRead(d, meta)
@@ -129,14 +106,14 @@ func resourceAliCloudNATGatewaySnatEntryCreate(d *schema.ResourceData, meta inte
 
 func resourceAliCloudNATGatewaySnatEntryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	nATGatewayServiceV2 := NATGatewayServiceV2{client}
+	svc, _ := NewVpcSnatEntryService(client)
 
 	// compatible with previous id which in under 1.37.0
 	if strings.HasPrefix(d.Id(), "snat-") {
 		d.SetId(fmt.Sprintf("%s%s%s", d.Get("snat_table_id").(string), COLON_SEPARATED, d.Id()))
 	}
 
-	objectRaw, err := nATGatewayServiceV2.DescribeNATGatewaySnatEntry(d.Id())
+	objectRaw, err := svc.DescribeSnatEntry(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_snat_entry DescribeNATGatewaySnatEntry Failed!!! %s", err)
@@ -176,9 +153,7 @@ func resourceAliCloudNATGatewaySnatEntryRead(d *schema.ResourceData, meta interf
 
 func resourceAliCloudNATGatewaySnatEntryUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]interface{}
+	svc, _ := NewVpcSnatEntryService(client)
 	update := false
 
 	// compatible with previous id which in under 1.37.0
@@ -186,60 +161,34 @@ func resourceAliCloudNATGatewaySnatEntryUpdate(d *schema.ResourceData, meta inte
 		d.SetId(fmt.Sprintf("%s%s%s", d.Get("snat_table_id").(string), COLON_SEPARATED, d.Id()))
 	}
 
-	parts, err := ParseResourceId(d.Id(), 2)
-	if err != nil {
-		return WrapError(err)
-	}
-	action := "ModifySnatEntry"
-	request = make(map[string]interface{})
-	query = make(map[string]interface{})
-	request["SnatTableId"] = parts[0]
-	request["SnatEntryId"] = parts[1]
-	request["RegionId"] = client.RegionId
-	request["ClientToken"] = buildClientToken(action)
+	// Build attrs for update
+	attrs := map[string]interface{}{}
 	if d.HasChange("snat_entry_name") {
 		update = true
 	}
 	if v, ok := d.GetOk("snat_entry_name"); ok {
-		request["SnatEntryName"] = v
+		attrs["SnatEntryName"] = v
 	}
 
 	if d.HasChange("snat_ip") {
 		update = true
 	}
-	request["SnatIp"] = d.Get("snat_ip")
+	attrs["SnatIp"] = d.Get("snat_ip")
 
 	if d.HasChange("eip_affinity") {
 		update = true
 
 		if v, ok := d.GetOkExists("eip_affinity"); ok {
-			request["EipAffinity"] = v
+			attrs["EipAffinity"] = v
 		}
 	}
 
 	if update {
-		runtime := util.RuntimeOptions{}
-		runtime.SetAutoretry(true)
-		wait := incrementalWait(3*time.Second, 5*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.RpcPost("Vpc", "2016-04-28", action, query, request, true)
-			if err != nil {
-				if IsExpectedErrors(err, []string{"IncorrectStatus.NATGW"}) || NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		if err := svc.ModifySnatEntryWithTimeout(d.Id(), attrs, d.Timeout(schema.TimeoutUpdate)); err != nil {
+			return WrapError(err)
 		}
-		nATGatewayServiceV2 := NATGatewayServiceV2{client}
-		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, nATGatewayServiceV2.NATGatewaySnatEntryStateRefreshFunc(d.Id(), "Status", []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
+		if err := svc.WaitForSnatEntryCreating(d.Id(), d.Timeout(schema.TimeoutUpdate)); err != nil {
+			return WrapError(err)
 		}
 	}
 
@@ -247,55 +196,19 @@ func resourceAliCloudNATGatewaySnatEntryUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceAliCloudNATGatewaySnatEntryDelete(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
+	svc, _ := NewVpcSnatEntryService(client)
 
 	// compatible with previous id which in under 1.37.0
 	if strings.HasPrefix(d.Id(), "snat-") {
 		d.SetId(fmt.Sprintf("%s%s%s", d.Get("snat_table_id").(string), COLON_SEPARATED, d.Id()))
 	}
 
-	parts, err := ParseResourceId(d.Id(), 2)
-	if err != nil {
+	if err := svc.DeleteSnatEntryWithTimeout(d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
 		return WrapError(err)
 	}
-	action := "DeleteSnatEntry"
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]interface{})
-	request = make(map[string]interface{})
-	request["SnatTableId"] = parts[0]
-	request["SnatEntryId"] = parts[1]
-	request["RegionId"] = client.RegionId
-	request["ClientToken"] = buildClientToken(action)
-
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.RpcPost("Vpc", "2016-04-28", action, query, request, true)
-
-		if err != nil {
-			if IsExpectedErrors(err, []string{"IncorretSnatEntryStatus", "IncorrectStatus.NATGW", "OperationConflict"}) || NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
-	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidSnatTableId.NotFound", "InvalidSnatEntryId.NotFound"}) || IsNotFoundError(err) {
-			return nil
-		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+	if err := svc.WaitForSnatEntryDeleting(d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
+		return WrapError(err)
 	}
-
-	nATGatewayServiceV2 := NATGatewayServiceV2{client}
-	stateConf := BuildStateConf([]string{}, []string{""}, d.Timeout(schema.TimeoutDelete), 5*time.Second, nATGatewayServiceV2.NATGatewaySnatEntryStateRefreshFunc(d.Id(), "Status", []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
-
 	return nil
 }

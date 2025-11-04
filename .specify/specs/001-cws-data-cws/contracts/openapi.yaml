@@ -1,0 +1,225 @@
+openapi: 3.0.3
+info:
+  title: Alicloud VPC Service Contracts (Documentation)
+  version: 0.1.0
+  description: |
+    文档化的服务契约，用于映射 Terraform 资源到 CWS-Lib-Go API 语义。并非实际对外服务，只用于设计沟通。
+
+paths:
+  /vpc/eips:
+    post:
+      summary: AllocateEipAddress
+      operationId: allocateEip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bandwidth: { type: integer }
+                internetChargeType: { type: string, enum: [PayByTraffic, PayByBandwidth] }
+                name: { type: string }
+                description: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  allocationId: { type: string }
+                  ipAddress: { type: string }
+
+  /vpc/eips/{allocationId}:
+    get:
+      summary: DescribeEipAddress
+      operationId: describeEip
+      parameters:
+        - name: allocationId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+    delete:
+      summary: ReleaseEipAddress
+      operationId: releaseEip
+      parameters:
+        - name: allocationId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: No Content
+
+  /vpc/eips/{allocationId}:associate:
+    post:
+      summary: AssociateEipAddress
+      operationId: associateEip
+      parameters:
+        - name: allocationId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                instanceId: { type: string }
+                instanceType: { type: string }
+                privateIpAddress: { type: string }
+      responses:
+        '200':
+          description: OK
+
+  /vpc/eips/{allocationId}:unassociate:
+    post:
+      summary: UnassociateEipAddress
+      operationId: unassociateEip
+      parameters:
+        - name: allocationId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+
+  /vpc/nat-gateways:
+    post:
+      summary: CreateNatGateway
+      operationId: createNatGateway
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [vpcId]
+              properties:
+                vpcId: { type: string }
+                spec: { type: string }
+                natType: { type: string }
+                name: { type: string }
+                description: { type: string }
+      responses:
+        '200':
+          description: OK
+
+  /vpc/nat-gateways/{natGatewayId}:
+    get:
+      summary: DescribeNatGateway
+      operationId: describeNatGateway
+      parameters:
+        - name: natGatewayId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+    patch:
+      summary: ModifyNatGatewayAttribute/Spec
+      operationId: modifyNatGateway
+      parameters:
+        - name: natGatewayId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                spec: { type: string }
+                name: { type: string }
+                description: { type: string }
+      responses:
+        '200':
+          description: OK
+    delete:
+      summary: DeleteNatGateway
+      operationId: deleteNatGateway
+      parameters:
+        - name: natGatewayId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: No Content
+
+  /vpc/snat-entries:
+    post:
+      summary: CreateSnatEntry
+      operationId: createSnatEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [snatTableId, sourceCidr, snatIp]
+              properties:
+                snatTableId: { type: string }
+                sourceCidr: { type: string }
+                snatIp: { type: string }
+      responses:
+        '200':
+          description: OK
+
+  /vpc/snat-entries/{snatEntryId}:
+    get:
+      summary: DescribeSnatEntry
+      operationId: describeSnatEntry
+      parameters:
+        - name: snatEntryId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+    patch:
+      summary: ModifySnatEntry
+      operationId: modifySnatEntry
+      parameters:
+        - name: snatEntryId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sourceCidr: { type: string }
+                snatIp: { type: string }
+      responses:
+        '200':
+          description: OK
+    delete:
+      summary: DeleteSnatEntry
+      operationId: deleteSnatEntry
+      parameters:
+        - name: snatEntryId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: No Content
+
+components:
+  schemas: {}

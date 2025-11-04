@@ -3,7 +3,7 @@ module github.com/aliyun/terraform-provider-alicloud
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/alibabacloud-go/cs-20151215/v5 v5.8.12
-	github.com/alibabacloud-go/tea v1.3.10
+	github.com/alibabacloud-go/tea v1.3.11
 	github.com/alibabacloud-go/tea-roa v1.3.4
 	github.com/alibabacloud-go/tea-rpc v1.2.0
 	github.com/alibabacloud-go/tea-utils v1.4.5
@@ -27,7 +27,6 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.10.0 // indirect
-	github.com/waigani/diffparser v0.0.0-20190828052634-7391f219313d
 	golang.org/x/net v0.26.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.25.3
@@ -39,9 +38,8 @@ require (
 require (
 	github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.18
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.3.0
-	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.9
+	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.11
 	github.com/alibabacloud-go/fc-20230330/v4 v4.0.0-00010101000000-000000000000
-	github.com/alibabacloud-go/fc-open-20210406/v2 v2.0.12
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.7
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v0.0.0-00010101000000-000000000000
@@ -49,7 +47,6 @@ require (
 	github.com/hashicorp/go-hclog v1.6.2
 	github.com/samber/lo v1.49.1
 	github.com/tidwall/sjson v1.2.5
-	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d
 )
 
 require (
@@ -65,7 +62,6 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/alibabacloud-go/alibabacloud-gateway-fc-util v0.0.7 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-oss-util v0.0.7 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-sls-util v0.3.0 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.5 // indirect
@@ -90,6 +86,7 @@ require (
 	github.com/alibabacloud-go/tea-rpc-utils v1.1.2 // indirect
 	github.com/alibabacloud-go/tea-xml v1.1.3 // indirect
 	github.com/alibabacloud-go/ververica-20220718 v0.0.0-00010101000000-000000000000 // indirect
+	github.com/alibabacloud-go/vpc-20160428/v6 v6.13.1 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
@@ -214,6 +211,7 @@ require (
 	golang.org/x/term v0.21.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
+	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/api v0.171.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240325203815-454cdb8f5daa // indirect

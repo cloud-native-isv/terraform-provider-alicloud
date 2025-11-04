@@ -2,7 +2,6 @@
 package alicloud
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -32,10 +31,9 @@ func resourceAliCloudEipAddress() *schema.Resource {
 				Optional: true,
 			},
 			"address_name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"name"},
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"allocation_id": {
 				Type:     schema.TypeString,
@@ -115,12 +113,11 @@ func resourceAliCloudEipAddress() *schema.Resource {
 				ValidateFunc: StringInSlice([]string{"public"}, false),
 			},
 			"payment_type": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"instance_charge_type"},
-				ForceNew:      true,
-				ValidateFunc:  StringInSlice([]string{"Subscription", "PayAsYouGo", "PrePaid", "PostPaid"}, false),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: StringInSlice([]string{"Subscription", "PayAsYouGo", "PrePaid", "PostPaid"}, false),
 			},
 			"period": {
 				Type:         schema.TypeInt,
@@ -159,37 +156,20 @@ func resourceAliCloudEipAddress() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-			"name": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "Field 'name' has been deprecated since provider version 1.126.0. New field 'address_name' instead.",
-			},
-			"instance_charge_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				Deprecated:   "Field 'instance_charge_type' has been deprecated since provider version 1.126.0. New field 'payment_type' instead.",
-				ForceNew:     true,
-				ValidateFunc: StringInSlice([]string{"Subscription", "PayAsYouGo", "PrePaid", "PostPaid"}, false),
-			},
 		},
 	}
 }
 
 func resourceAliCloudEipAddressCreate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
+	// Use VpcEipService to allocate EIP
+	svc, svcErr := NewVpcEipService(client)
+	if svcErr != nil {
+		return WrapError(svcErr)
+	}
 
-	action := "AllocateEipAddress"
 	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]interface{})
-	var err error
 	request = make(map[string]interface{})
-	query["InstanceId"] = d.Get("allocation_id")
-	request["RegionId"] = client.RegionId
-	request["ClientToken"] = buildClientToken(action)
 
 	if v, ok := d.GetOk("bandwidth"); ok {
 		request["Bandwidth"] = v
@@ -202,9 +182,6 @@ func resourceAliCloudEipAddressCreate(d *schema.ResourceData, meta interface{}) 
 	}
 	if v, ok := d.GetOk("description"); ok {
 		request["Description"] = v
-	}
-	if v, ok := d.GetOk("name"); ok {
-		request["Name"] = v
 	}
 
 	if v, ok := d.GetOk("address_name"); ok {
@@ -236,11 +213,7 @@ func resourceAliCloudEipAddressCreate(d *schema.ResourceData, meta interface{}) 
 	if v, ok := d.GetOk("public_ip_address_pool_id"); ok {
 		request["PublicIpAddressPoolId"] = v
 	}
-	if v, ok := d.GetOk("instance_charge_type"); ok {
-		request["InstanceChargeType"] = convertEipAddressInstanceChargeTypeRequest(v.(string))
-	}
-
-	if v, ok := d.GetOk("payment_type"); ok || d.Get("instance_charge_type").(string) == "Prepaid" {
+	if v, ok := d.GetOk("payment_type"); ok {
 		request["InstanceChargeType"] = convertEipAddressInstanceChargeTypeRequest(v.(string))
 	}
 	if v, ok := d.GetOk("zone"); ok {
@@ -271,25 +244,11 @@ func resourceAliCloudEipAddressCreate(d *schema.ResourceData, meta interface{}) 
 		request["AutoPay"] = autoPay
 	}
 
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RpcPost("Vpc", "2016-04-28", action, query, request, true)
-		if err != nil {
-			if IsExpectedErrors(err, []string{"OperationConflict", "LastTokenProcessing", "IncorrectStatus", "SystemBusy", "ServiceUnavailable", "FrequentPurchase.EIP"}) || NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
-
+	allocationId, err := svc.AllocateEipAddress(request)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_eip_address", action, AlibabaCloudSdkGoERROR)
+		return WrapError(err)
 	}
-
-	d.SetId(fmt.Sprint(response["AllocationId"]))
+	d.SetId(allocationId)
 
 	eipServiceV2 := EipServiceV2{client}
 	stateConf := BuildStateConf([]string{}, []string{"Available", "InUse"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, eipServiceV2.EipAddressStateRefreshFunc(d.Id(), "Status", []string{}))
@@ -302,9 +261,13 @@ func resourceAliCloudEipAddressCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAliCloudEipAddressRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	eipServiceV2 := EipServiceV2{client}
+	// Prefer service layer
+	svc, svcErr := NewVpcEipService(client)
+	if svcErr != nil {
+		return WrapError(svcErr)
+	}
 
-	objectRaw, err := eipServiceV2.DescribeEipAddress(d.Id())
+	objectRaw, err := svc.DescribeEipAddress(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eip_address DescribeEipAddress Failed!!! %s", err)
@@ -377,7 +340,8 @@ func resourceAliCloudEipAddressRead(d *schema.ResourceData, meta interface{}) er
 
 	checkValue00 := d.Get("high_definition_monitor_log_status")
 	if checkValue00 == "ON" {
-
+		// For HD monitor attribute, reuse legacy helper
+		eipServiceV2 := EipServiceV2{client}
 		objectRaw, err = eipServiceV2.DescribeDescribeHighDefinitionMonitorLogAttribute(d.Id())
 		if err != nil {
 			return WrapError(err)
@@ -396,9 +360,6 @@ func resourceAliCloudEipAddressRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("allocation_id", d.Id())
-
-	d.Set("name", d.Get("address_name"))
-	d.Set("instance_charge_type", objectRaw["ChargeType"])
 	return nil
 }
 
@@ -425,32 +386,19 @@ func resourceAliCloudEipAddressUpdate(d *schema.ResourceData, meta interface{}) 
 		request["Description"] = d.Get("description")
 	}
 
-	if !d.IsNewResource() && d.HasChange("name") {
-		update = true
-		request["Name"] = d.Get("name")
-	}
-
 	if !d.IsNewResource() && d.HasChange("address_name") {
 		update = true
 		request["Name"] = d.Get("address_name")
 	}
 
 	if update {
-		wait := incrementalWait(3*time.Second, 5*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.RpcPost("Vpc", "2016-04-28", action, query, request, false)
-			if err != nil {
-				if IsExpectedErrors(err, []string{"OperationConflict", "LastTokenProcessing", "IncorrectStatus", "SystemBusy", "ServiceUnavailable", "IncorrectEipStatus", "IncorrectStatus.ResourceStatus", "VPC_TASK_CONFLICT"}) || NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(action, response, request)
-			return nil
-		})
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		// Use service layer for basic attribute modification
+		svc, svcErr := NewVpcEipService(client)
+		if svcErr != nil {
+			return WrapError(svcErr)
+		}
+		if err := svc.ModifyEipAddressAttribute(d.Id(), request); err != nil {
+			return WrapError(err)
 		}
 		eipServiceV2 := EipServiceV2{client}
 		stateConf := BuildStateConf([]string{}, []string{"Available", "InUse"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, eipServiceV2.EipAddressStateRefreshFunc(d.Id(), "Status", []string{}))
@@ -605,39 +553,19 @@ func resourceAliCloudEipAddressUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAliCloudEipAddressDelete(d *schema.ResourceData, meta interface{}) error {
 
-	if v, ok := d.GetOk("payment_type"); ok || d.Get("instance_charge_type").(string) == "Prepaid" {
+	if v, ok := d.GetOk("payment_type"); ok {
 		if v == "Subscription" {
 			log.Printf("[WARN] Cannot destroy resource alicloud_eip_address which payment_type valued Subscription. Terraform will remove this resource from the state file, however resources may remain.")
 			return nil
 		}
 	}
 	client := meta.(*connectivity.AliyunClient)
-	action := "ReleaseEipAddress"
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]interface{})
-	var err error
-	request = make(map[string]interface{})
-	query["AllocationId"] = d.Id()
-	request["RegionId"] = client.RegionId
-
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.RpcPost("Vpc", "2016-04-28", action, query, request, false)
-
-		if err != nil {
-			if IsExpectedErrors(err, []string{"OperationConflict", "LastTokenProcessing", "IncorrectStatus", "SystemBusy", "ServiceUnavailable", "IncorrectEipStatus", "TaskConflict.AssociateGlobalAccelerationInstance"}) || NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
-
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+	svc, svcErr := NewVpcEipService(client)
+	if svcErr != nil {
+		return WrapError(svcErr)
+	}
+	if err := svc.ReleaseEipAddress(d.Id()); err != nil {
+		return WrapError(err)
 	}
 
 	eipServiceV2 := EipServiceV2{client}
