@@ -3,7 +3,7 @@
 **Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
 **Input**: Feature specification from `/.specify/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
+**Note**: This template is filled in by the `/speckit.plan` command. See `.github/prompts/speckit.plan.prompt.md` for the execution workflow.
 
 ## Summary
 
@@ -31,7 +31,15 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Confirm the following gates derived from the project constitution:
+
+- Layering: Resources/DataSources call Service layer only; Service uses CWS-Lib-Go API layer. No direct SDK/HTTP.
+- State management: Create/Delete use Service-layer WaitFor funcs; no Read in Create; proper timeouts configured.
+- Error handling: Use wrapped errors and helper predicates (IsNotFoundError/IsAlreadyExistError/NeedRetry). Avoid raw IsExpectedErrors.
+- Strong typing: Prefer CWS-Lib-Go strong types; avoid `map[string]interface{}` except legacy code with justification.
+- Pagination: Encapsulated in `*_api.go`; callers do not handle pagination.
+- ID encoding: Encode/Decode helpers implemented and used consistently.
+- Build verification: `make` passes locally before merge; code split if file >1000 LOC.
 
 ## Project Structure
 

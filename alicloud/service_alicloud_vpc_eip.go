@@ -95,35 +95,25 @@ func (s *VpcEipService) AllocateEipAddress(request map[string]interface{}) (stri
 func (s *VpcEipService) DescribeEipAddress(allocationId string) (map[string]interface{}, error) {
 	// Preferred path: try CWS-Lib-Go VPC API via common method names.
 	if s.vpcAPI != nil && allocationId != "" {
-		// Try several common method names with signature (string) -> (any, error)
-		candidates := []string{"DescribeEipAddress", "GetEipAddress", "DescribeEip", "GetEip"}
-		for _, name := range candidates {
-			m := reflect.ValueOf(s.vpcAPI).MethodByName(name)
-			if m.IsValid() {
-				// Prepare arguments
-				args := []reflect.Value{reflect.ValueOf(allocationId)}
-				// Invoke safely
-				results := m.Call(args)
-				if len(results) == 2 {
-					// Second must be error
-					if !results[1].IsNil() {
-						if err, ok := results[1].Interface().(error); ok {
-							// If not found, fall back to legacy below; otherwise wrap and return
-							if IsNotFoundError(err) || strings.Contains(strings.ToLower(err.Error()), "not found") {
-								break
-							}
-							return nil, WrapError(err)
-						}
-					}
-					// No error, convert first result to map[string]interface{}
-					obj := results[0].Interface()
-					converted := convertToStringInterfaceMap(obj)
-					if converted != nil {
-						return converted, nil
-					}
-				}
-				// If signature unexpected, break to legacy
-				break
+		// Use the proper DescribeEipAddresses method with RegionId
+		request := &aliyunVpcAPI.DescribeEipRequest{
+			RegionId:     s.client.RegionId,
+			AllocationId: allocationId,
+		}
+
+		eips, err := s.vpcAPI.DescribeEipAddresses(request)
+		if err != nil {
+			// If not found, fall back to legacy below; otherwise wrap and return
+			if IsNotFoundError(err) || strings.Contains(strings.ToLower(err.Error()), "not found") {
+				// Fall through to legacy implementation
+			} else {
+				return nil, WrapError(err)
+			}
+		} else if len(eips) > 0 {
+			// Convert the first EIP to map[string]interface{}
+			converted := convertToStringInterfaceMap(eips[0])
+			if converted != nil {
+				return converted, nil
 			}
 		}
 	}

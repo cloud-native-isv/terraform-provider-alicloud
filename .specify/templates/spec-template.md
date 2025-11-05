@@ -95,6 +95,14 @@
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
 
+### Non-functional Requirements (Constitution-aligned)
+
+- **NFR-001 (Layering)**: All new components MUST adhere to Provider → Resource/DataSource → Service → API layering; no direct SDK/HTTP calls from Resources/DataSources.
+- **NFR-002 (State Mgmt)**: Create/Delete flows MUST use Service-layer wait functions with proper timeouts; no direct Read invocation inside Create.
+- **NFR-003 (Error Handling)**: MUST use wrapped errors and helper predicates; define retryable errors and backoff policies.
+- **NFR-004 (Strong Typing)**: Prefer CWS-Lib-Go strong types; avoid `map[string]interface{}` except for documented legacy boundaries.
+- **NFR-005 (Build & Size)**: `make` MUST succeed; code files exceeding 1000 LOC MUST be split by module responsibility.
+
 ### Key Entities *(include if feature involves data)*
 
 - **[Entity 1]**: [What it represents, key attributes without implementation]

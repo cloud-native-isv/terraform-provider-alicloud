@@ -1,24 +1,23 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 1.0.0 → 1.1.0
-**Modified principles**: Added technical implementation details
+**Version change**: 1.1.0 → 1.2.0
+**Modified principles**: 
+- Added: Strong Typing with CWS-Lib-Go (new principle)
+
 **Added sections**: 
-- Service Layer ID Encoding Standards
-- API Pagination Logic Encapsulation
-- CRUD Operation Implementation Patterns
-- Data Validation and Conversion Standards
+- Strong Typing with CWS-Lib-Go
 
 **Removed sections**: None
-**Templates requiring updates**: 
-✅ .specify/templates/plan-template.md - Constitution Check section aligns with new principles
-✅ .specify/templates/spec-template.md - Requirements structure compatible with new constitution
-✅ .specify/templates/tasks-template.md - Task categorization reflects principle-driven requirements
-✅ .specify/templates/commands/*.md - No outdated references found
+
+**Templates requiring updates**:
+✅ .specify/templates/plan-template.md – Constitution Check updated to include strong typing and layering/state/error gates
+✅ .specify/templates/spec-template.md – Added non-functional requirements placeholders aligned to constitution (incl. strong typing)
+✅ .specify/templates/tasks-template.md – Added cross-cutting task to enforce strong typing and build verification
+⚠ .specify/templates/commands/*.md – Not present in repository; N/A (no action)
 
 **Follow-up TODOs**: 
 - TODO(RATIFICATION_DATE): Determine original adoption date for governance section
-- Consider adding specific performance and security requirements in future amendments
 -->
 
 # Terraform Provider Alicloud Constitution
@@ -55,6 +54,21 @@ Service layer MUST implement proper ID encoding/decoding:
 - `Encode*Id` functions format: `workspaceId:namespace:jobId`
 - `Decode*Id` functions with proper error handling for invalid formats
 - Consistent ID handling across all service operations
+
+### VI. Strong Typing with CWS-Lib-Go
+Implementations MUST prefer strong types provided by CWS-Lib-Go over weakly typed
+structures such as `map[string]interface{}` or untyped `interface{}` payloads. This
+requirement applies across Service and API layers to ensure type safety, maintainability,
+and clearer contracts.
+
+- MUST use generated/defined structs and enums from `github.com/cloud-native-tools/cws-lib-go`
+	wherever applicable.
+- MUST NOT introduce new usages of `map[string]interface{}` for request/response shapes,
+	except when interacting with legacy code paths.
+- Legacy code is exempt (read-only, minimal-touch). Any refactoring SHOULD migrate to
+	strong types opportunistically while maintaining backward compatibility.
+- Code reviews MUST flag weak typing in new/modified code unless explicitly justified
+	(e.g., bridging adapters to third-party libs not yet modeled in cws-lib-go).
 
 ### V. Testing and Validation Requirements
 Every code change MUST be validated by executing 'cd /cws_data/terraform-provider-alicloud && make' to ensure syntax correctness and successful compilation. Comprehensive unit tests and integration tests are mandatory. All resources MUST include proper Timeout configurations. Code files exceeding 1000 lines MUST be split by functional modules to ensure single responsibility.
@@ -102,4 +116,4 @@ Data validation and conversion MUST be properly implemented:
 ## Governance
 This Constitution supersedes all other development practices and guidelines. All pull requests and code reviews MUST verify compliance with these principles. Any complexity or deviation from these standards MUST be explicitly justified. Use the development guide at .github/copilot-instructions.md for runtime development guidance. Amendments require documentation, team approval, and migration plans for existing code.
 
-**Version**: 1.1.0 | **Ratified**: TODO(RATIFICATION_DATE): Original adoption date unknown | **Last Amended**: 2025-10-24
+**Version**: 1.2.0 | **Ratified**: TODO(RATIFICATION_DATE): Original adoption date unknown | **Last Amended**: 2025-11-05

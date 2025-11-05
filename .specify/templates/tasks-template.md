@@ -153,6 +153,9 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
+ - [ ] TXXX Enforce constitution gates: layering/state/error handling conformity across touched files
+ - [ ] TXXX Strong typing audit: replace new `map[string]interface{}` usages with CWS-Lib-Go types (legacy-only exceptions documented)
+ - [ ] TXXX Build verification: run `make` and fix compile/lint issues; split files >1000 LOC
 
 ---
 
