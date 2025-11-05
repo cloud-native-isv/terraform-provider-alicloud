@@ -44,68 +44,41 @@ func (s *VpcNatGatewayService) CreateNatGateway(request map[string]interface{}, 
 		request = make(map[string]interface{})
 	}
 
-	// Convert map to struct for CWS-Lib-Go API
-	createRequest := &aliyunVpcAPI.CreateNatGatewayRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	if v, ok := request["Description"]; ok {
-		createRequest.Description = v.(string)
-	}
-	if v, ok := request["InternetChargeType"]; ok {
-		createRequest.InternetChargeType = v.(string)
-	}
-	if v, ok := request["Name"]; ok {
-		createRequest.Name = v.(string)
-	}
-	if v, ok := request["NatType"]; ok {
-		createRequest.NatType = v.(string)
-	}
-	if v, ok := request["InstanceChargeType"]; ok {
-		createRequest.InstanceChargeType = v.(string)
-	}
-	if v, ok := request["Duration"]; ok {
-		createRequest.Duration = v.(string)
-	}
-	if v, ok := request["PricingCycle"]; ok {
-		createRequest.PricingCycle = v.(string)
-	}
-	if v, ok := request["AutoPay"]; ok {
-		createRequest.AutoPay = v.(bool)
-	}
-	if v, ok := request["Spec"]; ok {
-		createRequest.Spec = v.(string)
+	// Build domain object for CWS-Lib-Go API (strong-typed)
+	nat := &aliyunVpcAPI.NATGateway{}
+	// Required fields
+	nat.RegionId = s.client.RegionId
+	if v, ok := request["VpcId"]; ok {
+		nat.VpcId = v.(string)
 	}
 	if v, ok := request["VSwitchId"]; ok {
-		createRequest.VSwitchId = v.(string)
+		nat.VSwitchId = v.(string)
+	}
+	// Optional fields
+	if v, ok := request["Name"]; ok {
+		nat.Name = v.(string)
+	}
+	if v, ok := request["Description"]; ok {
+		nat.Description = v.(string)
+	}
+	if v, ok := request["NatType"]; ok {
+		nat.NatType = v.(string)
 	}
 	if v, ok := request["NetworkType"]; ok {
-		createRequest.NetworkType = v.(string)
+		nat.NetworkType = v.(string)
 	}
-	if v, ok := request["VpcId"]; ok {
-		createRequest.VpcId = v.(string)
+	if v, ok := request["Spec"]; ok {
+		nat.Spec = v.(string)
 	}
 	if v, ok := request["EipBindMode"]; ok {
-		createRequest.EipBindMode = v.(string)
+		nat.EipBindMode = v.(string)
 	}
-	if v, ok := request["IcmpReplyEnabled"]; ok {
-		createRequest.IcmpReplyEnabled = v.(bool)
-	}
-	if v, ok := request["PrivateLinkEnabled"]; ok {
-		createRequest.PrivateLinkEnabled = v.(bool)
-	}
-	if v, ok := request["AccessMode"]; ok {
-		createRequest.AccessMode = v.(string)
-	}
-
-	// Set ClientToken for idempotency
-	createRequest.ClientToken = buildClientToken("CreateNatGateway")
 
 	var natGatewayId string
 	var err error
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(s.client.GetRetryTimeout(timeout), func() *resource.RetryError {
-		response, err := s.vpcAPI.CreateNatGateway(createRequest)
+		response, err := s.vpcAPI.CreateNatGateway(nat)
 		if err != nil {
 			// Retry on common retryable errors
 			if NeedRetry(err) || IsExpectedErrors(err, []string{"InternalError", "ServiceUnavailable", "SystemBusy", "Throttling", "OperationConflict", "TaskConflict", "VswitchStatusError", "IncorrectStatus.VSWITCH"}) {
@@ -137,11 +110,11 @@ func (s *VpcNatGatewayService) DescribeNatGateway(id string) (map[string]interfa
 		return nil, WrapError(Error("NatGatewayId is empty"))
 	}
 
-	var response *aliyunVpcAPI.NatGateway
+	var response *aliyunVpcAPI.NATGateway
 	var err error
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		resp, err := s.vpcAPI.DescribeNatGateway(id)
+		resp, err := s.vpcAPI.GetNatGateway(s.client.RegionId, id)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -168,36 +141,19 @@ func (s *VpcNatGatewayService) DescribeNatGateway(id string) (map[string]interfa
 	result := make(map[string]interface{})
 	result["NatGatewayId"] = response.NatGatewayId
 	result["Description"] = response.Description
-	result["InternetChargeType"] = response.InternetChargeType
 	result["Name"] = response.Name
 	result["NatType"] = response.NatType
-	result["InstanceChargeType"] = response.InstanceChargeType
 	result["Spec"] = response.Spec
 	result["Status"] = response.Status
 	result["VpcId"] = response.VpcId
 	result["EipBindMode"] = response.EipBindMode
-	result["DeletionProtection"] = response.DeletionProtection
-	result["IcmpReplyEnabled"] = response.IcmpReplyEnabled
-	result["PrivateLinkEnabled"] = response.PrivateLinkEnabled
-	result["AccessMode"] = response.AccessMode
-
-	// Handle ForwardTableIds and SnatTableIds if they exist
-	if response.ForwardTableIds != nil {
-		result["ForwardTableIds"] = map[string]interface{}{
-			"ForwardTableId": response.ForwardTableIds,
-		}
-	}
-	if response.SnatTableIds != nil {
-		result["SnatTableIds"] = map[string]interface{}{
-			"SnatTableId": response.SnatTableIds,
-		}
-	}
-
-	// Handle NatGatewayPrivateInfo
+	result["RegionId"] = response.RegionId
+	result["NetworkType"] = response.NetworkType
 	if response.VSwitchId != "" {
-		result["NatGatewayPrivateInfo"] = map[string]interface{}{
-			"VswitchId": response.VSwitchId,
-		}
+		result["VSwitchId"] = response.VSwitchId
+	}
+	if response.CreationTime != "" {
+		result["CreationTime"] = response.CreationTime
 	}
 
 	return result, nil
@@ -209,28 +165,27 @@ func (s *VpcNatGatewayService) ModifyNatGatewayAttribute(id string, attrs map[st
 		return WrapError(Error("NatGatewayId is empty"))
 	}
 
-	modifyRequest := &aliyunVpcAPI.ModifyNatGatewayAttributeRequest{
-		NatGatewayId: id,
-		RegionId:     s.client.RegionId,
-	}
-
-	if v, ok := attrs["Description"]; ok {
-		modifyRequest.Description = v.(string)
-	}
+	// Extract fields for Modify API
+	var name, description, eipBindMode string
+	var icmpPtr *bool
 	if v, ok := attrs["Name"]; ok {
-		modifyRequest.Name = v.(string)
+		name = v.(string)
+	}
+	if v, ok := attrs["Description"]; ok {
+		description = v.(string)
 	}
 	if v, ok := attrs["EipBindMode"]; ok {
-		modifyRequest.EipBindMode = v.(string)
+		eipBindMode = v.(string)
 	}
 	if v, ok := attrs["IcmpReplyEnabled"]; ok {
-		modifyRequest.IcmpReplyEnabled = v.(bool)
+		b := v.(bool)
+		icmpPtr = &b
 	}
 
 	var err error
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(s.client.GetRetryTimeout(timeout), func() *resource.RetryError {
-		_, err := s.vpcAPI.ModifyNatGatewayAttribute(modifyRequest)
+		err := s.vpcAPI.ModifyNatGateway(s.client.RegionId, id, name, description, eipBindMode, icmpPtr)
 		if err != nil {
 			if NeedRetry(err) || IsExpectedErrors(err, []string{"IncorrectStatus.NATGW", "OperationConflict"}) {
 				wait()
@@ -254,16 +209,10 @@ func (s *VpcNatGatewayService) ModifyNatGatewaySpec(id string, spec string, time
 		return WrapError(Error("NatGatewayId is empty"))
 	}
 
-	modifyRequest := &aliyunVpcAPI.ModifyNatGatewaySpecRequest{
-		NatGatewayId: id,
-		RegionId:     s.client.RegionId,
-		Spec:         spec,
-	}
-
 	var err error
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(s.client.GetRetryTimeout(timeout), func() *resource.RetryError {
-		_, err := s.vpcAPI.ModifyNatGatewaySpec(modifyRequest)
+		err := s.vpcAPI.ModifyNatGatewaySpec(s.client.RegionId, id, spec)
 		if err != nil {
 			if NeedRetry(err) || IsExpectedErrors(err, []string{"IncorrectStatus.NATGW", "OperationConflict"}) {
 				wait()
@@ -287,18 +236,13 @@ func (s *VpcNatGatewayService) DeleteNatGateway(id string, timeout time.Duration
 		return WrapError(Error("NatGatewayId is empty"))
 	}
 
-	deleteRequest := &aliyunVpcAPI.DeleteNatGatewayRequest{
-		NatGatewayId: id,
-		RegionId:     s.client.RegionId,
-	}
-
-	// Note: Force parameter is not included in CWS-Lib-Go API yet
-	// If needed, we can add it later when the API supports it
+	// Force deletion flag (default false)
+	force := false
 
 	var err error
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(s.client.GetRetryTimeout(timeout), func() *resource.RetryError {
-		_, err := s.vpcAPI.DeleteNatGateway(deleteRequest)
+		err := s.vpcAPI.DeleteNatGateway(s.client.RegionId, id, force)
 		if err != nil {
 			if NeedRetry(err) || IsExpectedErrors(err, []string{"IncorrectStatus.NATGW", "OperationConflict", "DependencyViolation.BandwidthPackages", "DependencyViolation.EIPS"}) {
 				wait()

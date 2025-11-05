@@ -66,11 +66,13 @@ func (s *VpcSnatEntryService) DescribeSnatEntry(id string) (map[string]interface
 		return nil, WrapError(err)
 	}
 
-	var response *aliyunVpcAPI.SnatEntry
+	var response *aliyunVpcAPI.SNATEntry
 	var apiErr error
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	apiErr = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		resp, err := s.vpcAPI.DescribeSnatEntry(snatTableId, snatEntryId)
+		// cws-lib-go does not expose DescribeSnatEntry; list with filters instead
+		req := &aliyunVpcAPI.DescribeSnatEntriesRequest{SnatTableId: snatTableId, SnatEntryId: snatEntryId, PageNumber: 1, PageSize: 50}
+		entries, _, err := s.vpcAPI.ListSnatEntries(req)
 		if err != nil {
 			if NeedRetry(err) {
 				wait()
@@ -78,7 +80,12 @@ func (s *VpcSnatEntryService) DescribeSnatEntry(id string) (map[string]interface
 			}
 			return resource.NonRetryableError(err)
 		}
-		response = resp
+		// pick first matching entry
+		if len(entries) > 0 {
+			response = entries[0]
+		} else {
+			response = nil
+		}
 		return nil
 	})
 
@@ -102,9 +109,7 @@ func (s *VpcSnatEntryService) DescribeSnatEntry(id string) (map[string]interface
 	result["SourceVSwitchId"] = response.SourceVSwitchId
 	result["SnatEntryName"] = response.SnatEntryName
 	result["Status"] = response.Status
-	if response.EipAffinity != nil {
-		result["EipAffinity"] = *response.EipAffinity
-	}
+	// EipAffinity is not available in current API strong type
 
 	return result, nil
 }
@@ -179,9 +184,7 @@ func (s *VpcSnatEntryService) CreateSnatEntryWithTimeout(request map[string]inte
 		request = map[string]interface{}{}
 	}
 
-	createRequest := &aliyunVpcAPI.CreateSnatEntryRequest{
-		RegionId: s.client.RegionId,
-	}
+	createRequest := &aliyunVpcAPI.CreateSnatEntryRequest{}
 
 	if v, ok := request["SnatTableId"]; ok {
 		createRequest.SnatTableId = v.(string)
@@ -198,18 +201,13 @@ func (s *VpcSnatEntryService) CreateSnatEntryWithTimeout(request map[string]inte
 	if v, ok := request["SourceCIDR"]; ok {
 		createRequest.SourceCIDR = v.(string)
 	}
-	if v, ok := request["EipAffinity"]; ok {
-		eipAffinity := v.(int)
-		createRequest.EipAffinity = &eipAffinity
-	}
-
-	createRequest.ClientToken = buildClientToken("CreateSnatEntry")
+	// EipAffinity and ClientToken are not supported by current API layer
 
 	var snatEntryId string
 	var err error
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(s.client.GetRetryTimeout(timeout), func() *resource.RetryError {
-		response, err := s.vpcAPI.CreateSnatEntry(createRequest)
+		entryId, err := s.vpcAPI.CreateSnatEntry(createRequest)
 		if err != nil {
 			if NeedRetry(err) || IsExpectedErrors(err, []string{"EIP_NOT_IN_GATEWAY", "OperationUnsupported.EipNatBWPCheck", "OperationUnsupported.EipInBinding", "InternalError", "IncorrectStatus.NATGW", "OperationConflict", "OperationUnsupported.EipNatGWCheck"}) {
 				wait()
@@ -217,9 +215,7 @@ func (s *VpcSnatEntryService) CreateSnatEntryWithTimeout(request map[string]inte
 			}
 			return resource.NonRetryableError(err)
 		}
-		if response != nil && response.SnatEntryId != "" {
-			snatEntryId = response.SnatEntryId
-		}
+		snatEntryId = entryId
 		return nil
 	})
 
@@ -239,50 +235,8 @@ func (s *VpcSnatEntryService) ModifySnatEntryWithTimeout(id string, attrs map[st
 	if id == "" {
 		return WrapError(Error("SNAT Id is empty"))
 	}
-
-	snatTableId, snatEntryId, err := DecodeSnatId(id)
-	if err != nil {
-		return WrapError(err)
-	}
-
-	modifyRequest := &aliyunVpcAPI.ModifySnatEntryRequest{
-		SnatTableId: snatTableId,
-		SnatEntryId: snatEntryId,
-		RegionId:    s.client.RegionId,
-	}
-
-	if v, ok := attrs["SnatEntryName"]; ok {
-		modifyRequest.SnatEntryName = v.(string)
-	}
-	if v, ok := attrs["SnatIp"]; ok {
-		modifyRequest.SnatIp = v.(string)
-	}
-	if v, ok := attrs["EipAffinity"]; ok {
-		eipAffinity := v.(int)
-		modifyRequest.EipAffinity = &eipAffinity
-	}
-
-	modifyRequest.ClientToken = buildClientToken("ModifySnatEntry")
-
-	var err2 error
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err2 = resource.Retry(s.client.GetRetryTimeout(timeout), func() *resource.RetryError {
-		_, err := s.vpcAPI.ModifySnatEntry(modifyRequest)
-		if err != nil {
-			if NeedRetry(err) || IsExpectedErrors(err, []string{"IncorrectStatus.NATGW"}) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-
-	if err2 != nil {
-		return WrapErrorf(err2, DefaultErrorMsg, id, "ModifySnatEntry", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
+	// The new API layer doesn't support Modify for SNAT entry; surface as unsupported
+	return WrapError(Error("ModifySnatEntry is not supported by API layer"))
 }
 
 // DeleteSnatEntryWithTimeout deletes a SNAT entry with retry.
@@ -296,18 +250,10 @@ func (s *VpcSnatEntryService) DeleteSnatEntryWithTimeout(id string, timeout time
 		return WrapError(err)
 	}
 
-	deleteRequest := &aliyunVpcAPI.DeleteSnatEntryRequest{
-		SnatTableId: snatTableId,
-		SnatEntryId: snatEntryId,
-		RegionId:    s.client.RegionId,
-	}
-
-	deleteRequest.ClientToken = buildClientToken("DeleteSnatEntry")
-
 	var err2 error
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err2 = resource.Retry(s.client.GetRetryTimeout(timeout), func() *resource.RetryError {
-		_, err := s.vpcAPI.DeleteSnatEntry(deleteRequest)
+		err := s.vpcAPI.DeleteSnatEntry(snatTableId, snatEntryId)
 		if err != nil {
 			if NeedRetry(err) || IsExpectedErrors(err, []string{"IncorretSnatEntryStatus", "IncorrectStatus.NATGW", "OperationConflict"}) {
 				wait()

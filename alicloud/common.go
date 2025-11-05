@@ -254,7 +254,6 @@ const (
 
 const (
 	// HeaderEnableEBTrigger header key for enabling eventbridge trigger
-	// TODO: delete the header after eventbridge trigger is totally exposed to user
 	HeaderEnableEBTrigger = "x-fc-enable-eventbridge-trigger"
 )
 

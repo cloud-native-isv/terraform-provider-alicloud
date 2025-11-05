@@ -1985,7 +1985,6 @@ func providerConfigure(d *schema.ResourceData, p *schema.Provider) (interface{},
 		profileName = v.(string)
 	}
 
-	// TODO: supports all of profile modes after credentials supporting setting timeout
 	if (accessKey == "" || secretKey == "") && profileName != "" && fmt.Sprint(providerConfig["mode"]) == "ChainableRamRoleArn" {
 		var profileFile string
 		if v, ok := d.GetOk("shared_credentials_file"); ok && v.(string) != "" {

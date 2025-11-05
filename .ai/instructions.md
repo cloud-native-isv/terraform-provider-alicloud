@@ -4,7 +4,7 @@
 
 本文档为 Terraform Provider Alicloud 项目的完整开发指南，包含大语言模型代码生成规范、架构设计原则、编码标准和最佳实践。本指南旨在确保代码质量、一致性和可维护性，为开发者提供全面的技术规范。
 
-**版本**: 1.1.0 | **最后修订**: 2025-10-24
+**版本**: 1.2.0 | **最后修订**: 2025-11-05
 
 ## 治理原则
 
@@ -110,7 +110,11 @@ import "github.com/aliyun/aliyun-log-go-sdk"
 
 ### 2.3 API分页逻辑封装
 
-所有分页逻辑应封装在 `*_api.go` 文件中，外部调用者无需处理分页细节：
+所有分页逻辑必须封装在 `*_api.go` 文件中，外部调用者无需处理任何分页细节：
+
+- 调用方不处理分页；仅接收完整结果集
+- 采用 PageNumber/PageSize 迭代直至结果数量小于 pageSize 即收敛
+- 将所有分页结果合并后一次性返回给调用者
 
 ```go
 func (s *EcsService) DescribeInstances(request *ecs.DescribeInstancesRequest) ([]*ecs.Instance, error) {
@@ -138,6 +142,15 @@ func (s *EcsService) DescribeInstances(request *ecs.DescribeInstancesRequest) ([
     return allInstances, nil
 }
 ```
+
+### 2.6 强类型规范（CWS-Lib-Go）
+
+实现必须优先使用 CWS-Lib-Go 提供的强类型，避免弱类型数据结构导致的类型不安全与维护成本上升。
+
+- 必须优先使用 `github.com/cloud-native-tools/cws-lib-go` 中生成/定义的结构体与枚举
+- 禁止在新代码中使用 `map[string]interface{}` 或未约束的 `interface{}` 作为请求/响应的主要载体
+- 仅在对接遗留路径时可短暂使用弱类型，并需要在代码注释中说明理由与迁移方向（只读、最小改动）
+- 代码评审必须对新增的弱类型使用进行质疑与把关，除非已明确标注例外说明
 
 ### 2.4 Service层ID编码规范
 
@@ -673,6 +686,7 @@ func resourceAliCloudServiceResourceDelete(d *schema.ResourceData, meta interfac
 - [ ] 正确定义Schema（Required/Optional/Computed）
 - [ ] 实现所有必要的CRUD方法
 - [ ] 添加适当的Timeout配置
+- [ ] 构建验证：本地运行 `make` 必须通过
 
 ### 11.2 状态管理
 - [ ] Create后使用Service层的WaitFor函数等待资源就绪
@@ -685,6 +699,7 @@ func resourceAliCloudServiceResourceDelete(d *schema.ResourceData, meta interfac
 - [ ] 添加适当的Description
 - [ ] 正确处理复杂对象的类型转换
 - [ ] 合理的日志记录
+- [ ] 强类型：优先使用 CWS-Lib-Go 强类型，禁止新增 `map[string]interface{}`（遗留路径需注明理由）
 
 ## 12. 治理与合规
 

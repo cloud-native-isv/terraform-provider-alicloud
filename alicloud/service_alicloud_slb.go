@@ -266,7 +266,6 @@ func (s *SlbService) WaitForSlb(id string, status Status, timeout int) error {
 				return WrapError(err)
 			}
 		} else if strings.ToLower(object.LoadBalancerStatus) == strings.ToLower(string(status)) {
-			//TODO
 			break
 		}
 		if time.Now().After(deadline) {
@@ -295,7 +294,6 @@ func (s *SlbService) WaitForSlbListener(id string, status Status, timeout int) e
 			gotStatus = strings.ToLower(value.(string))
 		}
 		if gotStatus == strings.ToLower(string(status)) {
-			//TODO
 			break
 		}
 		if time.Now().After(deadline) {

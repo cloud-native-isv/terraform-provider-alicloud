@@ -107,15 +107,6 @@ func resourceAliCloudCSKubernetesAutoscaler() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						// TODO add min max support
-						//"min": {
-						//	Type:     schema.TypeInt,
-						//	Optional: true,
-						//},
-						//"max": {
-						//	Type:     schema.TypeInt,
-						//	Optional: true,
-						//},
 					},
 				},
 				MaxItems: 30,

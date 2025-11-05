@@ -318,7 +318,6 @@ func (c *Config) setAuthCredentialByEcsRoleName() (err error) {
 
 // setAuthCredentialByOidc aims to access meta to get sts credential
 // Actually, the job should be done by sdk, but currently not sdk support it, like alibaba-cloud-sdk-go.
-// TODO：the provider can consider implementing all of credential type as an alternative to the SDK.
 func (c *Config) setAuthCredentialByOidc() (err error) {
 	if c.AccessKey != "" || c.AssumeRoleWithOidc == nil {
 		return

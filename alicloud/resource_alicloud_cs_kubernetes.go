@@ -1547,7 +1547,6 @@ func buildKubernetesArgs(d *schema.ResourceData, meta interface{}) (*cs.Delicate
 			MasterInstanceTypes:      expandStringList(d.Get("master_instance_types").([]interface{})),
 			MasterSystemDiskCategory: aliyungoecs.DiskCategory(d.Get("master_disk_category").(string)),
 			MasterSystemDiskSize:     int64(d.Get("master_disk_size").(int)),
-			// TODO support other params
 		}
 	}
 
