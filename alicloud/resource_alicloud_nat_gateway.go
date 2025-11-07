@@ -362,7 +362,22 @@ func resourceAliCloudNatGatewayRead(d *schema.ResourceData, meta interface{}) er
 	}
 	d.Set("specification", object["Spec"])
 	d.Set("status", object["Status"])
-	d.Set("vswitch_id", object["NatGatewayPrivateInfo"].(map[string]interface{})["VswitchId"])
+
+	// Fix: Handle vswitch_id properly - check if VSwitchId exists directly in object
+	// instead of assuming NatGatewayPrivateInfo exists
+	if vswitchId, ok := object["VSwitchId"]; ok && vswitchId != nil {
+		d.Set("vswitch_id", vswitchId)
+	} else {
+		// Fallback to old format if needed (for backward compatibility)
+		if natGatewayPrivateInfo, ok := object["NatGatewayPrivateInfo"]; ok && natGatewayPrivateInfo != nil {
+			if privateInfoMap, ok := natGatewayPrivateInfo.(map[string]interface{}); ok {
+				if vswitchId, ok := privateInfoMap["VswitchId"]; ok && vswitchId != nil {
+					d.Set("vswitch_id", vswitchId)
+				}
+			}
+		}
+	}
+
 	d.Set("vpc_id", object["VpcId"])
 
 	listTagResourcesObject, err := vpcService.ListTagResources(d.Id(), "NATGATEWAY")

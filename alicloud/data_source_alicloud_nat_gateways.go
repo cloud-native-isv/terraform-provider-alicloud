@@ -337,8 +337,28 @@ func dataSourceAliCloudNatGatewaysRead(d *schema.ResourceData, meta interface{})
 			"specification":        object["Spec"],
 			"spec":                 object["Spec"],
 			"status":               object["Status"],
-			"vswitch_id":           object["NatGatewayPrivateInfo"].(map[string]interface{})["VswitchId"],
 			"vpc_id":               object["VpcId"],
+		}
+
+		// Fix: Handle vswitch_id properly - check if VSwitchId exists directly in object
+		// instead of assuming NatGatewayPrivateInfo exists
+		if vswitchId, ok := object["VSwitchId"]; ok && vswitchId != nil {
+			mapping["vswitch_id"] = vswitchId
+		} else {
+			// Fallback to old format if needed (for backward compatibility)
+			if natGatewayPrivateInfo, ok := object["NatGatewayPrivateInfo"]; ok && natGatewayPrivateInfo != nil {
+				if privateInfoMap, ok := natGatewayPrivateInfo.(map[string]interface{}); ok {
+					if vswitchId, ok := privateInfoMap["VswitchId"]; ok && vswitchId != nil {
+						mapping["vswitch_id"] = vswitchId
+					} else {
+						mapping["vswitch_id"] = ""
+					}
+				} else {
+					mapping["vswitch_id"] = ""
+				}
+			} else {
+				mapping["vswitch_id"] = ""
+			}
 		}
 
 		ipList := make([]string, 0)
