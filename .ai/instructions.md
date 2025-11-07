@@ -716,3 +716,9 @@ func resourceAliCloudServiceResourceDelete(d *schema.ResourceData, meta interfac
 5. **文档完整性**：提供清晰、完整的使用文档和示例
 
 遵循这些规范将有助于提高代码质量，降低维护成本，为用户提供更好的体验。
+
+## 14. 特定环境信息
+
+### 14.1 遗留库
+
+1. **CWS-Lib-Go**: cws-lib-go的相关代码都位于/cws_data/cws-lib-go/lib/cloud/aliyun/api/目录，可以使用find、cat、awk、grep等命令查看。

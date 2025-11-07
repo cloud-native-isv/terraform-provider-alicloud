@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -73,6 +74,33 @@ func (s *VpcNatGatewayService) CreateNatGateway(request map[string]interface{}, 
 	if v, ok := request["EipBindMode"]; ok {
 		nat.EipBindMode = v.(string)
 	}
+	if v, ok := request["AccessMode"]; ok {
+		accessModeJson := v.(string)
+		if accessModeJson != "" {
+			var accessModeMap map[string]interface{}
+			err := json.Unmarshal([]byte(accessModeJson), &accessModeMap)
+			if err != nil {
+				return "", WrapErrorf(Error("Failed to unmarshal AccessMode JSON: %v", err), DefaultErrorMsg, "alicloud_nat_gateway", "CreateNatGateway", AlibabaCloudSdkGoERROR)
+			}
+			accessMode := &aliyunVpcAPI.AccessMode{}
+			if modeValue, ok := accessModeMap["ModeValue"]; ok && modeValue != nil && modeValue.(string) != "" {
+				accessMode.ModeValue = modeValue.(string)
+			}
+			if tunnelType, ok := accessModeMap["TunnelType"]; ok && tunnelType != nil && tunnelType.(string) != "" {
+				accessMode.TunnelType = tunnelType.(string)
+			}
+			nat.AccessMode = accessMode
+		}
+	}
+	if v, ok := request["PrivateLinkEnabled"]; ok {
+		nat.PrivateLinkEnabled = v.(bool)
+	}
+	if v, ok := request["IcmpReplyEnabled"]; ok {
+		nat.IcmpReplyEnabled = v.(bool)
+	}
+	if v, ok := request["DeletionProtection"]; ok {
+		nat.DeletionProtection = v.(bool)
+	}
 
 	var natGatewayId string
 	var err error
@@ -104,8 +132,8 @@ func (s *VpcNatGatewayService) CreateNatGateway(request map[string]interface{}, 
 	return natGatewayId, nil
 }
 
-// DescribeNatGateway returns NAT Gateway attributes.
-func (s *VpcNatGatewayService) DescribeNatGateway(id string) (map[string]interface{}, error) {
+// DescribeNatGateway returns NAT Gateway attributes using CWS-Lib-Go strong typing.
+func (s *VpcNatGatewayService) DescribeNatGateway(id string) (*aliyunVpcAPI.NATGateway, error) {
 	if id == "" {
 		return nil, WrapError(Error("NatGatewayId is empty"))
 	}
@@ -137,26 +165,7 @@ func (s *VpcNatGatewayService) DescribeNatGateway(id string) (map[string]interfa
 		return nil, WrapErrorf(NotFoundErr("NatGateway", id), NotFoundMsg, ProviderERROR)
 	}
 
-	// Convert struct to map for compatibility
-	result := make(map[string]interface{})
-	result["NatGatewayId"] = response.NatGatewayId
-	result["Description"] = response.Description
-	result["Name"] = response.Name
-	result["NatType"] = response.NatType
-	result["Spec"] = response.Spec
-	result["Status"] = response.Status
-	result["VpcId"] = response.VpcId
-	result["EipBindMode"] = response.EipBindMode
-	result["RegionId"] = response.RegionId
-	result["NetworkType"] = response.NetworkType
-	if response.VSwitchId != "" {
-		result["VSwitchId"] = response.VSwitchId
-	}
-	if response.CreationTime != "" {
-		result["CreationTime"] = response.CreationTime
-	}
-
-	return result, nil
+	return response, nil
 }
 
 // ModifyNatGatewayAttribute updates attributes such as name/description.
@@ -276,9 +285,7 @@ func (s *VpcNatGatewayService) NatGatewayStateRefreshFunc(id string, failStates 
 		}
 		status := ""
 		if obj != nil {
-			if v, ok := obj["Status"]; ok {
-				status = Interface2String(v)
-			}
+			status = obj.Status
 		}
 		for _, fs := range failStates {
 			if status == fs {

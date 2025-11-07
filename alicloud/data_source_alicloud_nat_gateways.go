@@ -317,13 +317,37 @@ func dataSourceAliCloudNatGatewaysRead(d *schema.ResourceData, meta interface{})
 	s := make([]map[string]interface{}, 0)
 	for _, v := range objects {
 		object := v.(map[string]interface{})
+
+		// TODO: Migrate to CWS-Lib-Go strong typing once it supports all NAT Gateway fields
+		// Currently using legacy approach because CWS-Lib-Go NAT Gateway implementation is incomplete
+
+		// Handle forward_table_ids with nil checks
+		forwardTableIds := make([]interface{}, 0)
+		if forwardTableIdsRaw, ok := object["ForwardTableIds"]; ok && forwardTableIdsRaw != nil {
+			if forwardTableMap, ok := forwardTableIdsRaw.(map[string]interface{}); ok {
+				if forwardTableIdList, ok := forwardTableMap["ForwardTableId"].([]interface{}); ok {
+					forwardTableIds = forwardTableIdList
+				}
+			}
+		}
+
+		// Handle snat_table_ids with nil checks
+		snatTableIds := make([]interface{}, 0)
+		if snatTableIdsRaw, ok := object["SnatTableIds"]; ok && snatTableIdsRaw != nil {
+			if snatTableMap, ok := snatTableIdsRaw.(map[string]interface{}); ok {
+				if snatTableIdList, ok := snatTableMap["SnatTableId"].([]interface{}); ok {
+					snatTableIds = snatTableIdList
+				}
+			}
+		}
+
 		mapping := map[string]interface{}{
 			"business_status":      object["BusinessStatus"],
 			"deletion_protection":  object["DeletionProtection"],
 			"description":          object["Description"],
 			"ecs_metric_enabled":   object["EcsMetricEnabled"],
 			"expired_time":         object["ExpiredTime"],
-			"forward_table_ids":    object["ForwardTableIds"].(map[string]interface{})["ForwardTableId"],
+			"forward_table_ids":    forwardTableIds,
 			"internet_charge_type": object["InternetChargeType"],
 			"id":                   fmt.Sprint(object["NatGatewayId"]),
 			"nat_gateway_id":       fmt.Sprint(object["NatGatewayId"]),
@@ -333,39 +357,36 @@ func dataSourceAliCloudNatGatewaysRead(d *schema.ResourceData, meta interface{})
 			"network_type":         object["NetworkType"],
 			"payment_type":         convertNatGatewayPaymentTypeResponse(object["InstanceChargeType"].(string)),
 			"resource_group_id":    object["ResourceGroupId"],
-			"snat_table_ids":       object["SnatTableIds"].(map[string]interface{})["SnatTableId"],
+			"snat_table_ids":       snatTableIds,
 			"specification":        object["Spec"],
 			"spec":                 object["Spec"],
 			"status":               object["Status"],
 			"vpc_id":               object["VpcId"],
 		}
 
-		// Fix: Handle vswitch_id properly - check if VSwitchId exists directly in object
-		// instead of assuming NatGatewayPrivateInfo exists
-		if vswitchId, ok := object["VSwitchId"]; ok && vswitchId != nil {
-			mapping["vswitch_id"] = vswitchId
-		} else {
-			// Fallback to old format if needed (for backward compatibility)
-			if natGatewayPrivateInfo, ok := object["NatGatewayPrivateInfo"]; ok && natGatewayPrivateInfo != nil {
-				if privateInfoMap, ok := natGatewayPrivateInfo.(map[string]interface{}); ok {
-					if vswitchId, ok := privateInfoMap["VswitchId"]; ok && vswitchId != nil {
-						mapping["vswitch_id"] = vswitchId
-					} else {
-						mapping["vswitch_id"] = ""
-					}
-				} else {
-					mapping["vswitch_id"] = ""
+		// Handle vswitch_id properly with nil checks
+		vswitchId := ""
+		if vswitchIdVal, ok := object["VSwitchId"]; ok && vswitchIdVal != nil {
+			vswitchId = fmt.Sprint(vswitchIdVal)
+		} else if natGatewayPrivateInfo, ok := object["NatGatewayPrivateInfo"]; ok && natGatewayPrivateInfo != nil {
+			if privateInfoMap, ok := natGatewayPrivateInfo.(map[string]interface{}); ok {
+				if vswitchIdVal, ok := privateInfoMap["VswitchId"]; ok && vswitchIdVal != nil {
+					vswitchId = fmt.Sprint(vswitchIdVal)
 				}
-			} else {
-				mapping["vswitch_id"] = ""
 			}
 		}
+		mapping["vswitch_id"] = vswitchId
 
 		ipList := make([]string, 0)
-		if ipListList, ok := object["IpLists"].(map[string]interface{})["IpList"].([]interface{}); ok {
-			for _, v := range ipListList {
-				if m1, ok := v.(map[string]interface{}); ok {
-					ipList = append(ipList, fmt.Sprint(m1["IpAddress"]))
+		// Add nil check for IpLists
+		if ipListListRaw, ok := object["IpLists"]; ok && ipListListRaw != nil {
+			if ipListMap, ok := ipListListRaw.(map[string]interface{}); ok {
+				if ipListList, ok := ipListMap["IpList"].([]interface{}); ok {
+					for _, v := range ipListList {
+						if m1, ok := v.(map[string]interface{}); ok {
+							ipList = append(ipList, fmt.Sprint(m1["IpAddress"]))
+						}
+					}
 				}
 			}
 		}

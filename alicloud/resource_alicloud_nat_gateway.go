@@ -317,96 +317,94 @@ func resourceAliCloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceAliCloudNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	vpcService := VpcService{client}
-	natSvc, _ := NewVpcNatGatewayService(client)
+	natSvc, err := NewVpcNatGatewayService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	object, err := natSvc.DescribeNatGateway(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_nat_gateway vpcService.DescribeNatGateway Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_nat_gateway natSvc.DescribeNatGateway Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
 
-	d.Set("description", object["Description"])
-	if v, ok := object["ForwardTableIds"].(map[string]interface{})["ForwardTableId"].([]interface{}); ok {
-		ids := []string{}
-		for _, id := range v {
-			ids = append(ids, id.(string))
-		}
-		d.Set("forward_table_ids", strings.Join(ids, ","))
-	}
-	d.Set("internet_charge_type", object["InternetChargeType"])
-	d.Set("nat_gateway_name", object["Name"])
-	d.Set("name", object["Name"])
-	d.Set("nat_type", object["NatType"])
-	d.Set("payment_type", convertNatGatewayPaymentTypeResponse(object["InstanceChargeType"].(string)))
-	d.Set("instance_charge_type", object["InstanceChargeType"])
-	d.Set("network_type", object["NetworkType"])
-	d.Set("eip_bind_mode", object["EipBindMode"])
-	//if object["InstanceChargeType"] == "PrePaid" {
-	//	period, err := computePeriodByUnit(object["CreationTime"], object["ExpiredTime"], d.Get("period").(int), "Month")
-	//	if err != nil {
-	//		return WrapError(err)
-	//	}
-	//	d.Set("period", period)
-	//}
-	if v, ok := object["SnatTableIds"].(map[string]interface{})["SnatTableId"].([]interface{}); ok {
-		ids := []string{}
-		for _, id := range v {
-			ids = append(ids, id.(string))
-		}
-		d.Set("snat_table_ids", strings.Join(ids, ","))
-	}
-	d.Set("specification", object["Spec"])
-	d.Set("status", object["Status"])
+	d.Set("description", object.Description)
 
-	// Fix: Handle vswitch_id properly - check if VSwitchId exists directly in object
-	// instead of assuming NatGatewayPrivateInfo exists
-	if vswitchId, ok := object["VSwitchId"]; ok && vswitchId != nil {
-		d.Set("vswitch_id", vswitchId)
-	} else {
-		// Fallback to old format if needed (for backward compatibility)
-		if natGatewayPrivateInfo, ok := object["NatGatewayPrivateInfo"]; ok && natGatewayPrivateInfo != nil {
-			if privateInfoMap, ok := natGatewayPrivateInfo.(map[string]interface{}); ok {
-				if vswitchId, ok := privateInfoMap["VswitchId"]; ok && vswitchId != nil {
-					d.Set("vswitch_id", vswitchId)
-				}
-			}
-		}
+	// Set ForwardTableIds - convert slice to comma-separated string
+	forwardTableIds := ""
+	if object.ForwardTableIds != nil {
+		forwardTableIds = strings.Join(object.ForwardTableIds, ",")
+	}
+	d.Set("forward_table_ids", forwardTableIds)
+
+	d.Set("internet_charge_type", object.InternetChargeType)
+	d.Set("nat_gateway_name", object.Name)
+	d.Set("name", object.Name)
+	d.Set("nat_type", object.NatType)
+	d.Set("payment_type", convertNatGatewayPaymentTypeResponse(object.InstanceChargeType))
+	d.Set("instance_charge_type", object.InstanceChargeType)
+	d.Set("network_type", object.NetworkType)
+	d.Set("eip_bind_mode", object.EipBindMode)
+
+	// Set SnatTableIds - convert slice to comma-separated string
+	snatTableIds := ""
+	if object.SnatTableIds != nil {
+		snatTableIds = strings.Join(object.SnatTableIds, ",")
+	}
+	d.Set("snat_table_ids", snatTableIds)
+
+	d.Set("specification", object.Spec)
+	d.Set("status", object.Status)
+
+	// Handle vswitch_id
+	if object.VSwitchId != "" {
+		d.Set("vswitch_id", object.VSwitchId)
 	}
 
-	d.Set("vpc_id", object["VpcId"])
+	d.Set("vpc_id", object.VpcId)
+	d.Set("deletion_protection", object.DeletionProtection)
+	d.Set("private_link_enabled", object.PrivateLinkEnabled)
+	d.Set("icmp_reply_enabled", object.IcmpReplyEnabled)
 
+	// Handle AccessMode
+	if object.AccessMode != nil {
+		accessMode := make([]map[string]interface{}, 0)
+		mode := make(map[string]interface{})
+		if object.AccessMode.ModeValue != "" {
+			mode["mode_value"] = object.AccessMode.ModeValue
+		}
+		if object.AccessMode.TunnelType != "" {
+			mode["tunnel_type"] = object.AccessMode.TunnelType
+		}
+		if len(mode) > 0 {
+			accessMode = append(accessMode, mode)
+		}
+		d.Set("access_mode", accessMode)
+	}
+
+	// Handle tags
+	vpcService := VpcService{client}
 	listTagResourcesObject, err := vpcService.ListTagResources(d.Id(), "NATGATEWAY")
 	if err != nil {
 		return WrapError(err)
 	}
-
 	d.Set("tags", tagsToMap(listTagResourcesObject))
-	d.Set("deletion_protection", object["DeletionProtection"])
-	d.Set("icmp_reply_enabled", object["IcmpReplyEnabled"])
-	d.Set("private_link_enabled", object["PrivateLinkEnabled"])
 
-	if accessMode, ok := object["AccessMode"]; ok {
-		accessModeMaps := make([]map[string]interface{}, 0)
-		accessModeArg := accessMode.(map[string]interface{})
-		accessModeMap := make(map[string]interface{})
-
-		if modeValue, ok := accessModeArg["ModeValue"]; ok {
-			accessModeMap["mode_value"] = modeValue
-		}
-
-		if tunnelType, ok := accessModeArg["TunnelType"]; ok {
-			accessModeMap["tunnel_type"] = tunnelType
-		}
-
-		accessModeMaps = append(accessModeMaps, accessModeMap)
-
-		d.Set("access_mode", accessModeMaps)
+	// Additional fields that may be available in the strong type
+	if object.ResourceGroupId != "" {
+		// This field is not in the current schema but could be added if needed for data sources
 	}
+	if object.BusinessStatus != "" {
+		// This field is not in the current schema but could be added if needed for data sources
+	}
+	if object.ExpiredTime != "" {
+		// This field is not in the current schema but could be added if needed for data sources
+	}
+	// EcsMetricEnabled is a bool field that could be added if needed
 
 	return nil
 }
