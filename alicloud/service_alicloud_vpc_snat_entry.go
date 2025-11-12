@@ -129,7 +129,7 @@ func (s *VpcSnatEntryService) SnatEntryStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		obj, err := s.DescribeSnatEntry(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if IsNotFoundError(err) || strings.Contains(err.Error(), ResourceNotfound) {
 				return nil, "", nil
 			}
 			// 防止WrapError接收到nil错误
@@ -156,7 +156,7 @@ func (s *VpcSnatEntryService) SnatEntryStateRefreshFunc(id string, failStates []
 // WaitForSnatEntryCreating waits for SNAT entry to reach Available.
 func (s *VpcSnatEntryService) WaitForSnatEntryCreating(id string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
-		[]string{"Creating", "Modifying"},
+		[]string{"Creating", "Modifying", "Pending"},
 		[]string{"Available"},
 		timeout,
 		5*time.Second,
