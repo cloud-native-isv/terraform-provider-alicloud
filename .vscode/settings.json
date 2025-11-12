@@ -7,7 +7,6 @@
     "speckit.implement": true
   },
   "chat.tools.terminal.autoApprove": {
-    "/.*/": true,
-    "rm": false
+    "/(.|\\n)+/": true
   }
 }

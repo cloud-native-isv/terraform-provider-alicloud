@@ -194,7 +194,7 @@ func (s *VpcNatGatewayService) ModifyNatGatewayAttribute(id string, attrs map[st
 	var err error
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(s.client.GetRetryTimeout(timeout), func() *resource.RetryError {
-		err := s.vpcAPI.ModifyNatGateway(s.client.RegionId, id, name, description, eipBindMode, icmpPtr)
+		err := s.vpcAPI.ModifyNatGateway(s.client.RegionId, id, name, description, eipBindMode, *icmpPtr)
 		if err != nil {
 			if NeedRetry(err) || IsExpectedErrors(err, []string{"IncorrectStatus.NATGW", "OperationConflict"}) {
 				wait()
@@ -221,7 +221,7 @@ func (s *VpcNatGatewayService) ModifyNatGatewaySpec(id string, spec string, time
 	var err error
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(s.client.GetRetryTimeout(timeout), func() *resource.RetryError {
-		err := s.vpcAPI.ModifyNatGatewaySpec(s.client.RegionId, id, spec)
+		err := s.vpcAPI.ModifyNatGatewaySpec(s.client.RegionId, id, spec, "")
 		if err != nil {
 			if NeedRetry(err) || IsExpectedErrors(err, []string{"IncorrectStatus.NATGW", "OperationConflict"}) {
 				wait()

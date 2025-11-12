@@ -132,6 +132,10 @@ func (s *VpcSnatEntryService) SnatEntryStateRefreshFunc(id string, failStates []
 			if IsNotFoundError(err) {
 				return nil, "", nil
 			}
+			// 防止WrapError接收到nil错误
+			if err == nil {
+				return nil, "", WrapError(Error("Unknown error occurred while describing SNAT entry %s", id))
+			}
 			return nil, "", WrapError(err)
 		}
 		status := ""
@@ -159,6 +163,10 @@ func (s *VpcSnatEntryService) WaitForSnatEntryCreating(id string, timeout time.D
 		s.SnatEntryStateRefreshFunc(id, []string{"Deleting", "Failed"}),
 	)
 	_, err := stateConf.WaitForState()
+	// 防止WrapErrorf接收到nil错误
+	if err == nil {
+		return nil
+	}
 	return WrapErrorf(err, IdMsg, id)
 }
 
@@ -172,10 +180,11 @@ func (s *VpcSnatEntryService) WaitForSnatEntryDeleting(id string, timeout time.D
 		s.SnatEntryStateRefreshFunc(id, []string{}),
 	)
 	_, err := stateConf.WaitForState()
-	if err != nil {
-		return WrapErrorf(err, IdMsg, id)
+	// 防止WrapErrorf接收到nil错误
+	if err == nil {
+		return nil
 	}
-	return nil
+	return WrapErrorf(err, IdMsg, id)
 }
 
 // CreateSnatEntryWithTimeout creates a SNAT entry with retry handling.

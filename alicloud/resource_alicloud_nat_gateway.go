@@ -139,15 +139,6 @@ func resourceAliCloudNatGateway() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"specification": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: StringInSlice([]string{"Large", "Middle", "Small", "XLarge.1"}, false),
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return d.Get("internet_charge_type").(string) == "PayByLcu"
-				},
-			},
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -256,9 +247,6 @@ func resourceAliCloudNatGatewayCreate(d *schema.ResourceData, meta interface{}) 
 		request["AutoPay"] = true
 	}
 	request["RegionId"] = client.RegionId
-	if v, ok := d.GetOk("specification"); ok {
-		request["Spec"] = v
-	}
 
 	if v, ok := d.GetOk("vswitch_id"); ok {
 		request["VSwitchId"] = v
@@ -350,6 +338,11 @@ func resourceAliCloudNatGatewayRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("network_type", object.NetworkType)
 	d.Set("eip_bind_mode", object.EipBindMode)
 
+	// 确保ForceNew属性即使为空也被正确设置
+	if object.InstanceChargeType == "" {
+		d.Set("payment_type", "PayAsYouGo") // 默认值
+	}
+
 	// Set SnatTableIds - convert slice to comma-separated string
 	snatTableIds := ""
 	if object.SnatTableIds != nil {
@@ -357,7 +350,6 @@ func resourceAliCloudNatGatewayRead(d *schema.ResourceData, meta interface{}) er
 	}
 	d.Set("snat_table_ids", snatTableIds)
 
-	d.Set("specification", object.Spec)
 	d.Set("status", object.Status)
 
 	// Handle vswitch_id
@@ -366,7 +358,8 @@ func resourceAliCloudNatGatewayRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("vpc_id", object.VpcId)
-	d.Set("deletion_protection", object.DeletionProtection)
+
+	// 确保private_link_enabled即使为空也被正确设置
 	d.Set("private_link_enabled", object.PrivateLinkEnabled)
 	d.Set("icmp_reply_enabled", object.IcmpReplyEnabled)
 
@@ -392,7 +385,13 @@ func resourceAliCloudNatGatewayRead(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return WrapError(err)
 	}
-	d.Set("tags", tagsToMap(listTagResourcesObject))
+
+	// 确保即使没有标签也设置空map，避免null值导致的diff
+	tags := tagsToMap(listTagResourcesObject)
+	if tags == nil {
+		tags = make(map[string]interface{})
+	}
+	d.Set("tags", tags)
 
 	// Additional fields that may be available in the strong type
 	if object.ResourceGroupId != "" {
@@ -499,18 +498,6 @@ func resourceAliCloudNatGatewayUpdate(d *schema.ResourceData, meta interface{}) 
 		d.SetPartial("nat_gateway_name")
 	}
 
-	if !d.IsNewResource() && d.HasChange("specification") {
-		if err := natSvc.ModifyNatGatewaySpec(d.Id(), d.Get("specification").(string), d.Timeout(schema.TimeoutUpdate)); err != nil {
-			return WrapError(err)
-		}
-
-		stateConf := BuildStateConf([]string{}, []string{"Available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, natSvc.NatGatewayStateRefreshFunc(d.Id(), []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
-
-		d.SetPartial("specification")
-	}
 	update = false
 	updateNatGatewayNatTypeReq := map[string]interface{}{
 		"NatGatewayId": d.Id(),
