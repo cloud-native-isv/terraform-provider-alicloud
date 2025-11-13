@@ -129,7 +129,7 @@ func (s *VpcSnatEntryService) SnatEntryStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		obj, err := s.DescribeSnatEntry(id)
 		if err != nil {
-			if IsNotFoundError(err) || strings.Contains(err.Error(), ResourceNotfound) {
+			if IsNotFoundError(err) || strings.Contains(err.Error(), "not found") {
 				return nil, "", nil
 			}
 			// 防止WrapError接收到nil错误

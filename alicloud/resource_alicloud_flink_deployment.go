@@ -276,7 +276,7 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 			},
 			"flink_conf": {
 				Type:     schema.TypeMap,
-				Optional: true,
+				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"user_flink_conf": {
@@ -515,14 +515,9 @@ func resourceAliCloudFlinkDeploymentCreate(d *schema.ResourceData, meta interfac
 		deployment.StreamingResourceSetting = streamingResourceSetting
 	}
 
-	if flinkConf, ok := d.GetOk("flink_conf"); ok {
-		deployment.FlinkConf = make(map[string]string)
-		for k, v := range flinkConf.(map[string]interface{}) {
-			deployment.FlinkConf[k] = v.(string)
-		}
-	}
-
+	// Only use user_flink_conf for FlinkConf in Create operation
 	if userFlinkConf, ok := d.GetOk("user_flink_conf"); ok {
+		deployment.FlinkConf = make(map[string]string)
 		for k, v := range userFlinkConf.(map[string]interface{}) {
 			deployment.FlinkConf[k] = v.(string)
 		}
@@ -690,8 +685,11 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 		d.Set("flink_conf", flinkConf)
 	}
 
-	if userFlinkConf, ok := d.GetOk("user_flink_conf"); ok {
-		d.Set("user_flink_conf", userFlinkConf.(map[string]interface{}))
+	// Only set user_flink_conf if it already has a value in state
+	// This preserves the user's configuration without overwriting it
+	if _, ok := d.GetOk("user_flink_conf"); ok {
+		// We don't update user_flink_conf from API response since it's user-provided
+		// and should be preserved as is in the state
 	}
 
 	if deployment.Logging != nil {
@@ -886,8 +884,19 @@ func resourceAliCloudFlinkDeploymentUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.HasChange("user_flink_conf") {
-		if flinkConf, ok := d.GetOk("user_flink_conf"); ok {
-			for k, v := range flinkConf.(map[string]interface{}) {
+		// Initialize FlinkConf map
+		updateRequest.FlinkConf = make(map[string]string)
+
+		// First, get the existing flink_conf from state
+		if flinkConfState, ok := d.GetOk("flink_conf"); ok {
+			for k, v := range flinkConfState.(map[string]interface{}) {
+				updateRequest.FlinkConf[k] = v.(string)
+			}
+		}
+
+		// Then, add or override with user_flink_conf
+		if userFlinkConf, ok := d.GetOk("user_flink_conf"); ok {
+			for k, v := range userFlinkConf.(map[string]interface{}) {
 				updateRequest.FlinkConf[k] = v.(string)
 			}
 		}
