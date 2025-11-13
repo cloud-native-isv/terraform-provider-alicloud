@@ -122,6 +122,11 @@ func resourceAliCloudFlinkSessionCluster() *schema.Resource {
 				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"flink_conf": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 			"labels": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -347,7 +352,15 @@ func resourceAliCloudFlinkSessionClusterRead(d *schema.ResourceData, meta interf
 	}
 
 	if object.FlinkConf != nil {
-		d.Set("user_flink_conf", flinkAPI.FlattenFlinkConf(object.FlinkConf))
+		// Set flink_conf (computed only)
+		d.Set("flink_conf", flinkAPI.FlattenFlinkConf(object.FlinkConf))
+
+		// Only set user_flink_conf if it already has a value in state
+		// This preserves the user's configuration without overwriting it
+		if _, ok := d.GetOk("user_flink_conf"); ok {
+			// We don't update user_flink_conf from API response since it's user-provided
+			// and should be preserved as is in the state
+		}
 	}
 
 	if object.Labels != nil {
@@ -412,8 +425,21 @@ func resourceAliCloudFlinkSessionClusterUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if d.HasChange("user_flink_conf") {
-		if v, ok := d.GetOk("user_flink_conf"); ok {
-			updateRequest.FlinkConf = flinkAPI.ExpandFlinkConf(v.(map[string]interface{}))
+		// Initialize FlinkConf map
+		updateRequest.FlinkConf = make(map[string]interface{})
+
+		// First, get the existing flink_conf from state
+		if flinkConfState, ok := d.GetOk("flink_conf"); ok {
+			for k, v := range flinkConfState.(map[string]interface{}) {
+				updateRequest.FlinkConf[k] = v
+			}
+		}
+
+		// Then, add or override with user_flink_conf
+		if userFlinkConf, ok := d.GetOk("user_flink_conf"); ok {
+			for k, v := range userFlinkConf.(map[string]interface{}) {
+				updateRequest.FlinkConf[k] = v
+			}
 		}
 		update = true
 	}

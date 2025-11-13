@@ -123,12 +123,6 @@ func resourceAliCloudFlinkJob() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "The Flink configuration.",
 			},
-			"user_flink_conf": {
-				Type:        schema.TypeMap,
-				Computed:    true,
-				Elem:        &schema.Schema{Type: schema.TypeString},
-				Description: "The user Flink configuration.",
-			},
 			"job_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -374,7 +368,7 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("created_at", job.CreatedAt)
 	d.Set("modified_at", job.ModifiedAt)
 
-	// Set FlinkConf and UserFlinkConf fields (computed only)
+	// Set FlinkConf field (computed only)
 	if job.FlinkConf != nil {
 		flinkConfMap := make(map[string]interface{})
 		for k, v := range job.FlinkConf {
@@ -385,20 +379,6 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	} else {
 		if err := d.Set("flink_conf", nil); err != nil {
-			return WrapError(err)
-		}
-	}
-
-	if job.UserFlinkConf != nil {
-		userFlinkConfMap := make(map[string]interface{})
-		for k, v := range job.UserFlinkConf {
-			userFlinkConfMap[k] = fmt.Sprintf("%v", v)
-		}
-		if err := d.Set("user_flink_conf", userFlinkConfMap); err != nil {
-			return WrapError(err)
-		}
-	} else {
-		if err := d.Set("user_flink_conf", nil); err != nil {
 			return WrapError(err)
 		}
 	}
