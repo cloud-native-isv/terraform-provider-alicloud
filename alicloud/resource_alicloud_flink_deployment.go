@@ -378,9 +378,9 @@ func resourceAliCloudFlinkDeployment() *schema.Resource {
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Update: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(5 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(20 * time.Minute),
 		},
 	}
 }
@@ -951,6 +951,13 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 	flinkService, err := NewFlinkService(client)
 	if err != nil {
 		return WrapError(err)
+	}
+
+	// 在删除部署之前，先等待相关的Job进入终端状态
+	// 这可以解决"Deleting a deployment which has job is not terminal status is not allowed"的错误
+	err = flinkService.WaitForDeploymentJobsTerminal(d.Id(), d.Timeout(schema.TimeoutDelete))
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "WaitForDeploymentJobsTerminal", AlibabaCloudSdkGoERROR)
 	}
 
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
