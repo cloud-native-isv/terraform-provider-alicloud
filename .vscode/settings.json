@@ -8,5 +8,28 @@
   },
   "chat.tools.terminal.autoApprove": {
     "/(.|\\n)+/": true
-  }
+  },
+  "go.useLanguageServer": true,
+  "go.languageServerExperimentalFeatures": {
+    "organizeImports": false,
+    "autoComplete": false,
+    "format": false,
+    "rename": false
+  },
+  "gopls": {
+    "usePlaceholders": true,
+    "completeUnimported": true,
+    "deepCompletion": false,
+    "staticcheck": false
+  },
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "always"
+  },
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/vendor/**": true
+  },
+  "go.toolsManagement.autoUpdate": true
 }

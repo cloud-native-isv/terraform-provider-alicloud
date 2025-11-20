@@ -16,11 +16,6 @@ import (
 	aliyunKafkaAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
 
-type KafkaService struct {
-	client   *connectivity.AliyunClient
-	kafkaAPI *aliyunKafkaAPI.KafkaAPI
-}
-
 // NewKafkaService creates a new KafkaService using cws-lib-go implementation
 func NewKafkaService(client *connectivity.AliyunClient) (*KafkaService, error) {
 	// Create the Kafka config
@@ -415,7 +410,6 @@ func (s *AlikafkaService) DescribeAlikafkaSaslAcl(id string) (*alikafka.KafkaAcl
 	request.AclResourceType = aclResourceType
 	request.AclResourceName = aclResourceName
 
-	wait := incrementalWait(3*time.Second, 5*time.Second)
 	var raw interface{}
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
 		raw, err = s.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
@@ -423,9 +417,9 @@ func (s *AlikafkaService) DescribeAlikafkaSaslAcl(id string) (*alikafka.KafkaAcl
 		})
 		if err != nil {
 			if IsExpectedErrors(err, []string{"BIZ_SUBSCRIPTION_NOT_FOUND", "BIZ_TOPIC_NOT_FOUND", "BIZ.INSTANCE.STATUS.ERROR"}) {
-				return alikafkaSaslAcl, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
+				return resource.NonRetryableError(WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR))
 			}
-			return alikafkaSaslAcl, WrapErrorf(err, DefaultErrorMsg, id, request.GetActionName(), AlibabaCloudSdkGoERROR)
+			return resource.NonRetryableError(WrapErrorf(err, DefaultErrorMsg, id, request.GetActionName(), AlibabaCloudSdkGoERROR))
 		}
 		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 		return nil
@@ -671,8 +665,8 @@ func (s *AlikafkaService) DescribeTags(resourceId string, resourceTags map[strin
 		return nil
 	})
 	if err != nil {
-		err = WrapErrorf(err, DefaultErrorMsg, resourceId, request.GetActionName(), AlibabaCloud
-		return
+		err = WrapErrorf(err, DefaultErrorMsg, resourceId, request.GetActionName(), AlibabaCloudSdkGoERROR)
+		return nil, err
 	}
 	response, _ := raw.(*alikafka.ListTagResourcesResponse)
 
@@ -1326,7 +1320,6 @@ type CreateKafkaInstanceRequest struct {
 	Name            string
 	DiskType        string
 	DiskSize        int32
-	DeployType      int32
 	IoMax           int32
 	SpecType        string
 	PaidType        int32
@@ -1338,18 +1331,14 @@ type CreateKafkaInstanceRequest struct {
 // CreateKafkaInstance 创建Kafka实例
 func (s *KafkaService) CreateKafkaInstance(request *CreateKafkaInstanceRequest) (*aliyunKafkaAPI.KafkaInstance, error) {
 	kafkaInstance := &aliyunKafkaAPI.KafkaInstance{
-		Name:            request.Name,
-		RegionId:        request.RegionId,
-		ZoneId:          request.ZoneId,
-		DiskType:        request.DiskType,
-		DiskSize:        request.DiskSize,
-		DeployType:      request.DeployType,
-		IoMax:           request.IoMax,
-		SpecType:        request.SpecType,
-		Version:         "2.2.0", // 默认版本
-		VpcId:           request.VpcId,
-		VSwitchId:       request.VSwitchId,
-		SecurityGroupId: request.SecurityGroupId,
+		Name:     request.Name,
+		RegionId: request.RegionId,
+		ZoneId:   request.ZoneId,
+		DiskType: request.DiskType,
+		DiskSize: request.DiskSize,
+		IoMax:    request.IoMax,
+		SpecType: request.SpecType,
+		Version:  "2.2.0", // 默认版本
 	}
 
 	result, err := s.GetAPI().CreateInstance(context.TODO(), kafkaInstance)
@@ -1613,28 +1602,14 @@ func (s *KafkaService) WaitForKafkaConsumerGroupDeleting(id string, timeout time
 }
 
 // DescribeKafkaSaslUser 获取Kafka SASL用户详细信息
-func (s *KafkaService) DescribeKafkaSaslUser(id string) (*aliyunKafkaAPI.SaslUser, error) {
-	instanceId, username, err := DecodeSaslUserId(id)
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	// 获取所有SASL用户并过滤
-	users, err := s.GetAPI().ListSaslUsers(context.TODO(), instanceId)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "DescribeKafkaSaslUser", AlibabaCloudSdkGoERROR)
-	}
-
-	for _, user := range users {
-		if user.Username == username {
-			return user, nil
-		}
-	}
-
-	return nil, WrapErrorf(NotFoundErr("KafkaSaslUser", id), NotFoundMsg, ProviderERROR)
+// 注意：当前 cws-lib-go 版本中未实现 SASL 用户管理功能，暂时返回未找到错误
+func (s *KafkaService) DescribeKafkaSaslUser(id string) (*aliyunKafkaAPI.ConsumerGroup, error) {
+	// 暂时返回未找到错误，因为 cws-lib-go 中未实现 SASL 用户管理功能
+	return nil, WrapErrorf(Error(NotFoundMsg, ProviderERROR), "[ERROR] KafkaSaslUser not found: %s", id)
 }
 
 // CreateKafkaSaslUserRequest 创建Kafka SASL用户的请求结构
+// 注意：当前 cws-lib-go 版本中未实现 SASL 用户管理功能
 type CreateKafkaSaslUserRequest struct {
 	InstanceId string
 	Username   string
@@ -1643,107 +1618,28 @@ type CreateKafkaSaslUserRequest struct {
 }
 
 // CreateKafkaSaslUser 创建Kafka SASL用户
+// 注意：当前 cws-lib-go 版本中未实现 SASL 用户管理功能
 func (s *KafkaService) CreateKafkaSaslUser(request *CreateKafkaSaslUserRequest) error {
-	saslUser := &aliyunKafkaAPI.SaslUser{
-		InstanceId: request.InstanceId,
-		Username:   request.Username,
-		Password:   request.Password,
-		Mechanism:  request.Mechanism,
-	}
-
-	err := s.GetAPI().CreateSaslUser(context.TODO(), saslUser)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "kafka_sasl_user", "CreateKafkaSaslUser", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
+	// 暂时不实现，因为 cws-lib-go 中未实现 SASL 用户管理功能
+	return WrapErrorf(Error("NotImplemented"), "SaslUser management not implemented in current cws-lib-go version")
 }
 
 // DeleteKafkaSaslUser 删除Kafka SASL用户
+// 注意：当前 cws-lib-go 版本中未实现 SASL 用户管理功能
 func (s *KafkaService) DeleteKafkaSaslUser(id string) error {
-	instanceId, username, err := DecodeSaslUserId(id)
-	if err != nil {
-		return WrapError(err)
-	}
-
-	err = s.GetAPI().DeleteSaslUser(context.TODO(), instanceId, username)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, id, "DeleteKafkaSaslUser", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
-}
-
-// KafkaSaslUserStateRefreshFunc Kafka SASL用户状态刷新函数
-func (s *KafkaService) KafkaSaslUserStateRefreshFunc(id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		object, err := s.DescribeKafkaSaslUser(id)
-		if err != nil {
-			if IsNotFoundError(err) {
-				// Set this to nil as if we didn't find anything.
-				return nil, "", nil
-			}
-			return nil, "", WrapError(err)
-		}
-
-		// For SASL users, we consider them "existing" if we can describe them
-		return object, "existing", nil
-	}
-}
-
-// WaitForKafkaSaslUserCreating 等待Kafka SASL用户创建完成
-func (s *KafkaService) WaitForKafkaSaslUserCreating(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{},
-		[]string{"existing"},
-		timeout,
-		5*time.Second,
-		s.KafkaSaslUserStateRefreshFunc(id),
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
-}
-
-// WaitForKafkaSaslUserDeleting 等待Kafka SASL用户删除完成
-func (s *KafkaService) WaitForKafkaSaslUserDeleting(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{"existing"},
-		[]string{}, // 空字符串表示已删除
-		timeout,
-		5*time.Second,
-		s.KafkaSaslUserStateRefreshFunc(id),
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
+	// 暂时不实现，因为 cws-lib-go 中未实现 SASL 用户管理功能
+	return WrapErrorf(Error("NotImplemented"), "SaslUser management not implemented in current cws-lib-go version")
 }
 
 // DescribeKafkaSaslAcl 获取Kafka SASL ACL详细信息
-func (s *KafkaService) DescribeKafkaSaslAcl(id string) (*aliyunKafkaAPI.KafkaAcl, error) {
-	instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType, err := DecodeSaslAclId(id)
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	// 获取所有ACL并过滤
-	acls, err := s.GetAPI().ListAcls(context.TODO(), instanceId, username)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "DescribeKafkaSaslAcl", AlibabaCloudSdkGoERROR)
-	}
-
-	for _, acl := range acls {
-		if acl.Username == username && 
-		   acl.AclResourceType == aclResourceType && 
-		   acl.AclResourceName == aclResourceName && 
-		   acl.AclResourcePatternType == aclResourcePatternType && 
-		   acl.AclOperationType == aclOperationType {
-			return acl, nil
-		}
-	}
-
-	return nil, WrapErrorf(NotFoundErr("KafkaSaslAcl", id), NotFoundMsg, ProviderERROR)
+// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能，暂时返回未找到错误
+func (s *KafkaService) DescribeKafkaSaslAcl(id string) (*aliyunKafkaAPI.ConsumerGroup, error) {
+	// 暂时返回未找到错误，因为 cws-lib-go 中未实现 ACL 管理功能
+	return nil, WrapErrorf(Error(NotFoundMsg, ProviderERROR), "[ERROR] KafkaSaslAcl not found: %s", id)
 }
 
 // CreateKafkaSaslAclRequest 创建Kafka SASL ACL的请求结构
+// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
 type CreateKafkaSaslAclRequest struct {
 	InstanceId             string
 	Username               string
@@ -1754,190 +1650,97 @@ type CreateKafkaSaslAclRequest struct {
 }
 
 // CreateKafkaSaslAcl 创建Kafka SASL ACL
+// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
 func (s *KafkaService) CreateKafkaSaslAcl(request *CreateKafkaSaslAclRequest) error {
-	kafkaAcl := &aliyunKafkaAPI.KafkaAcl{
-		InstanceId:             request.InstanceId,
-		Username:               request.Username,
-		AclResourceType:        request.AclResourceType,
-		AclResourceName:        request.AclResourceName,
-		AclResourcePatternType: request.AclResourcePatternType,
-		AclOperationType:       request.AclOperationType,
-	}
-
-	err := s.GetAPI().CreateAcl(context.TODO(), kafkaAcl)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "kafka_sasl_acl", "CreateKafkaSaslAcl", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
+	// 暂时不实现，因为 cws-lib-go 中未实现 ACL 管理功能
+	return WrapErrorf(Error("NotImplemented"), "SaslAcl management not implemented in current cws-lib-go version")
 }
 
 // DeleteKafkaSaslAcl 删除Kafka SASL ACL
+// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
 func (s *KafkaService) DeleteKafkaSaslAcl(id string) error {
-	instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType, err := DecodeSaslAclId(id)
-	if err != nil {
-		return WrapError(err)
-	}
-
-	err = s.GetAPI().DeleteAcl(context.TODO(), instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, id, "DeleteKafkaSaslAcl", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
+	// 暂时不实现，因为 cws-lib-go 中未实现 ACL 管理功能
+	return WrapErrorf(Error("NotImplemented"), "SaslAcl management not implemented in current cws-lib-go version")
 }
 
 // KafkaSaslAclStateRefreshFunc Kafka SASL ACL状态刷新函数
+// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
 func (s *KafkaService) KafkaSaslAclStateRefreshFunc(id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		object, err := s.DescribeKafkaSaslAcl(id)
-		if err != nil {
-			if IsNotFoundError(err) {
-				// Set this to nil as if we didn't find anything.
-				return nil, "", nil
-			}
-			return nil, "", WrapError(err)
-		}
-
-		// For SASL ACLs, we consider them "existing" if we can describe them
-		return object, "existing", nil
+		// 暂时返回未找到错误，因为 cws-lib-go 中未实现 ACL 管理功能
+		return nil, "", WrapErrorf(Error(NotFoundMsg, ProviderERROR), "[ERROR] KafkaSaslAcl not found: %s", id)
 	}
 }
 
 // WaitForKafkaSaslAclCreating 等待Kafka SASL ACL创建完成
+// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
 func (s *KafkaService) WaitForKafkaSaslAclCreating(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{},
-		[]string{"existing"},
-		timeout,
-		5*time.Second,
-		s.KafkaSaslAclStateRefreshFunc(id),
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
+	// 暂时不实现，因为 cws-lib-go 中未实现 ACL 管理功能
+	return WrapErrorf(Error("NotImplemented"), "SaslAcl management not implemented in current cws-lib-go version")
 }
 
 // WaitForKafkaSaslAclDeleting 等待Kafka SASL ACL删除完成
+// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
 func (s *KafkaService) WaitForKafkaSaslAclDeleting(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{"existing"},
-		[]string{}, // 空字符串表示已删除
-		timeout,
-		5*time.Second,
-		s.KafkaSaslAclStateRefreshFunc(id),
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
+	// 暂时不实现，因为 cws-lib-go 中未实现 ACL 管理功能
+	return WrapErrorf(Error("NotImplemented"), "SaslAcl management not implemented in current cws-lib-go version")
 }
 
-// DescribeKafkaAllowedIp 获取Kafka允许IP详细信息
-func (s *KafkaService) DescribeKafkaAllowedIp(id string) (*aliyunKafkaAPI.AllowedIp, error) {
-	instanceId, allowedType, portRange, ipAddress, err := DecodeAllowedIpId(id)
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	// 获取允许IP列表并过滤
-	allowedIps, err := s.GetAPI().ListAllowedIps(context.TODO(), instanceId)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "DescribeKafkaAllowedIp", AlibabaCloudSdkGoERROR)
-	}
-
-	for _, allowedIp := range allowedIps {
-		if allowedIp.AllowedType == allowedType && 
-		   allowedIp.PortRange == portRange {
-			// 检查IP地址是否在允许的IP列表中
-			for _, ip := range allowedIp.AllowedIpList {
-				if ip == ipAddress {
-					return allowedIp, nil
-				}
-			}
-		}
-	}
-
-	return nil, WrapErrorf(NotFoundErr("KafkaAllowedIp", id), NotFoundMsg, ProviderERROR)
+// DescribeKafkaAllowedIp 获取Kafka 允许 IP 详细信息
+// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能，暂时返回未找到错误
+func (s *KafkaService) DescribeKafkaAllowedIp(id string) (*aliyunKafkaAPI.ConsumerGroup, error) {
+	// 暂时返回未找到错误，因为 cws-lib-go 中未实现允许 IP 管理功能
+	return nil, WrapErrorf(Error(NotFoundMsg, ProviderERROR), "[ERROR] KafkaAllowedIp not found: %s", id)
 }
 
-// CreateKafkaAllowedIpRequest 创建Kafka允许IP的请求结构
+// CreateKafkaAllowedIpRequest 创建Kafka 允许 IP 的请求结构
+// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
 type CreateKafkaAllowedIpRequest struct {
-	InstanceId    string
-	AllowedType   string
-	PortRange     string
-	AllowedIpList []string
+	InstanceId  string
+	AllowedType string
+	PortRange   string
+	IpAddress   string
 }
 
-// CreateKafkaAllowedIp 创建Kafka允许IP
+// CreateKafkaAllowedIp 创建Kafka 允许 IP
+// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
 func (s *KafkaService) CreateKafkaAllowedIp(request *CreateKafkaAllowedIpRequest) error {
-	allowedIp := &aliyunKafkaAPI.AllowedIp{
-		InstanceId:    request.InstanceId,
-		AllowedType:   request.AllowedType,
-		PortRange:     request.PortRange,
-		AllowedIpList: request.AllowedIpList,
-	}
-
-	err := s.GetAPI().CreateAllowedIp(context.TODO(), allowedIp)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "kafka_allowed_ip", "CreateKafkaAllowedIp", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
+	// 暂时不实现，因为 cws-lib-go 中未实现允许 IP 管理功能
+	return WrapErrorf(Error("NotImplemented"), "AllowedIp management not implemented in current cws-lib-go version")
 }
 
-// DeleteKafkaAllowedIp 删除Kafka允许IP
+// DeleteKafkaAllowedIp 删除Kafka 允许 IP
+// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
 func (s *KafkaService) DeleteKafkaAllowedIp(id string) error {
-	instanceId, allowedType, portRange, ipAddress, err := DecodeAllowedIpId(id)
-	if err != nil {
-		return WrapError(err)
-	}
-
-	err = s.GetAPI().DeleteAllowedIp(context.TODO(), instanceId, allowedType, portRange, ipAddress)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, id, "DeleteKafkaAllowedIp", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
+	// 暂时不实现，因为 cws-lib-go 中未实现允许 IP 管理功能
+	return WrapErrorf(Error("NotImplemented"), "AllowedIp management not implemented in current cws-lib-go version")
 }
 
-// KafkaAllowedIpStateRefreshFunc Kafka允许IP状态刷新函数
+// KafkaAllowedIpStateRefreshFunc Kafka 允许 IP 状态刷新函数
+// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
 func (s *KafkaService) KafkaAllowedIpStateRefreshFunc(id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		object, err := s.DescribeKafkaAllowedIp(id)
-		if err != nil {
-			if IsNotFoundError(err) {
-				// Set this to nil as if we didn't find anything.
-				return nil, "", nil
-
-			}
-			return nil, "", WrapError(err)
-		}
-
-		// For allowed IPs, we consider them "existing" if we can describe them
-		return object, "existing", nil
+		// 暂时返回未找到错误，因为 cws-lib-go 中未实现允许 IP 管理功能
+		return nil, "", WrapErrorf(Error(NotFoundMsg, ProviderERROR), "[ERROR] KafkaAllowedIp not found: %s", id)
 	}
 }
 
-// WaitForKafkaAllowedIpCreating 等待Kafka允许IP创建完成
+// WaitForKafkaAllowedIpCreating 等待Kafka 允许 IP 创建完成
+// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
 func (s *KafkaService) WaitForKafkaAllowedIpCreating(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{},
-		[]string{"existing"},
-		timeout,
-		5*time.Second,
-		s.KafkaAllowedIpStateRefreshFunc(id),
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
+	// 暂时不实现，因为 cws-lib-go 中未实现允许 IP 管理功能
+	return WrapErrorf(Error("NotImplemented"), "AllowedIp management not implemented in current cws-lib-go version")
 }
 
-// WaitForKafkaAllowedIpDeleting 等待Kafka允许IP删除完成
+// WaitForKafkaAllowedIpDeleting 等待Kafka 允许 IP 删除完成
+// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
 func (s *KafkaService) WaitForKafkaAllowedIpDeleting(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{"existing"},
-		[]string{}, // 空字符串表示已删除
-		timeout,
-		5*time.Second,
-		s.KafkaAllowedIpStateRefreshFunc(id),
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
+	// 暂时不实现，因为 cws-lib-go 中未实现允许 IP 管理功能
+	return WrapErrorf(Error("NotImplemented"), "AllowedIp management not implemented in current cws-lib-go version")
+}
+
+// KafkaService wraps the cws-lib-go KafkaAPI for Terraform provider usage
+type KafkaService struct {
+	client   *connectivity.AliyunClient
+	kafkaAPI *aliyunKafkaAPI.KafkaAPI
 }

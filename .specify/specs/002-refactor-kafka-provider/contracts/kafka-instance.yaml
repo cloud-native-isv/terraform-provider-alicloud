@@ -1,0 +1,207 @@
+openapi: 3.0.0
+info:
+  title: Alibaba Cloud Kafka Instance API
+  version: 1.0.0
+  description: API for managing Alibaba Cloud Kafka instances
+
+paths:
+  /kafka/instances:
+    get:
+      summary: List Kafka instances
+      operationId: listKafkaInstances
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  instances:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KafkaInstance'
+    post:
+      summary: Create a Kafka instance
+      operationId: createKafkaInstance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateKafkaInstanceRequest'
+      responses:
+        '201':
+          description: Instance created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KafkaInstance'
+        '400':
+          description: Bad request
+        '409':
+          description: Instance already exists
+
+  /kafka/instances/{instanceId}:
+    get:
+      summary: Get a Kafka instance
+      operationId: getKafkaInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KafkaInstance'
+        '404':
+          description: Instance not found
+    put:
+      summary: Update a Kafka instance
+      operationId: updateKafkaInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateKafkaInstanceRequest'
+      responses:
+        '200':
+          description: Instance updated successfully
+        '404':
+          description: Instance not found
+    delete:
+      summary: Delete a Kafka instance
+      operationId: deleteKafkaInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Instance deleted successfully
+        '404':
+          description: Instance not found
+
+components:
+  schemas:
+    KafkaInstance:
+      type: object
+      properties:
+        instanceId:
+          type: string
+          description: Unique identifier for the instance
+        name:
+          type: string
+          description: Name of the instance
+        description:
+          type: string
+          description: Description of the instance
+        status:
+          type: string
+          description: Status of the instance
+        regionId:
+          type: string
+          description: Region ID
+        zoneId:
+          type: string
+          description: Availability zone ID
+        specType:
+          type: string
+          description: Instance specification type
+        deployType:
+          type: integer
+          description: Deployment type
+        diskSize:
+          type: integer
+          description: Disk size in GB
+        diskType:
+          type: string
+          description: Disk type
+        ioMax:
+          type: integer
+          description: Maximum IO specification
+        ioMaxSpec:
+          type: string
+          description: IO specification
+        version:
+          type: string
+          description: Kafka version
+        endPoint:
+          type: string
+          description: Access endpoint
+        createTime:
+          type: string
+          description: Creation time
+        expireTime:
+          type: string
+          description: Expiration time
+        sslEndPoint:
+          type: string
+          description: SSL access endpoint
+        saslEndPoint:
+          type: string
+          description: SASL access endpoint
+
+    CreateKafkaInstanceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the instance
+        regionId:
+          type: string
+          description: Region ID
+        zoneId:
+          type: string
+          description: Availability zone ID
+        specType:
+          type: string
+          description: Instance specification type
+        deployType:
+          type: integer
+          description: Deployment type
+        diskSize:
+          type: integer
+          description: Disk size in GB
+        diskType:
+          type: string
+          description: Disk type
+        ioMax:
+          type: integer
+          description: Maximum IO specification
+        version:
+          type: string
+          description: Kafka version
+        vpcId:
+          type: string
+          description: VPC ID
+        vSwitchId:
+          type: string
+          description: VSwitch ID
+        securityGroupId:
+          type: string
+          description: Security group ID
+
+    UpdateKafkaInstanceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the instance
+        description:
+          type: string
+          description: Description of the instance

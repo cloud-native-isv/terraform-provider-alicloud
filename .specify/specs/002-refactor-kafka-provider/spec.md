@@ -54,9 +54,9 @@ As a provider maintainer, I want the Kafka implementation to follow the Provider
 
 ### Edge Cases
 
-- What happens when the cws-lib-go API returns different error codes than the old SDK?
-- How does system handle API rate limiting with the new cws-lib-go implementation?
-- What happens when cws-lib-go API responses have different field names or structures?
+- **Error Code Differences**: When the cws-lib-go API returns different error codes than the old SDK, the provider will map these error codes to maintain consistent error handling behavior for end users.
+- **API Rate Limiting**: The system will handle API rate limiting with the new cws-lib-go implementation by implementing exponential backoff with jitter, consistent with other provider resources.
+- **Field/Structure Differences**: When cws-lib-go API responses have different field names or structures, the provider will map these fields to maintain backward compatibility with existing Terraform configurations.
 
 ## Requirements *(mandatory)*
 

@@ -238,3 +238,247 @@ Before submitting the implementation:
 - **Incorrect ID handling**: Use proper Encode/Decode functions for composite IDs
 - **Inconsistent error handling**: Always use standard error predicates and wrapping
 - **Pagination issues**: Handle pagination in service layer, not in Resources/DataSources
+
+## Updated Implementation Guidance
+
+### Service Layer Structure
+
+Based on analysis of the existing code and cws-lib-go API, the service layer should be structured as follows:
+
+1. **KafkaService struct** that encapsulates the client connection
+2. **GetAPI() method** that returns the cws-lib-go Kafka API client
+3. **Describe* methods** for each resource type that retrieve resource details
+4. **Create* methods** for each resource type that create new resources
+5. **Delete* methods** for each resource type that delete resources
+6. **State refresh functions** that implement the resource.StateRefreshFunc interface
+7. **WaitFor* methods** that use BuildStateConf to wait for resource state changes
+
+### Resource Implementation Details
+
+Each resource should follow these specific patterns:
+
+#### Create Method
+1. Initialize the KafkaService
+2. Build the request object using cws-lib-go types
+3. Use resource.Retry with proper error handling
+4. Set the resource ID from the response
+5. Wait for the resource to be in the desired state
+6. Call the Read method to sync the state
+
+#### Read Method
+1. Initialize the KafkaService
+2. Call the appropriate Describe method
+3. Handle IsNotFoundError for non-new resources
+4. Set all schema fields including computed properties
+5. Return proper error wrapping
+
+#### Delete Method
+1. Initialize the KafkaService
+2. Call the appropriate Delete method
+3. Handle IsNotFoundError as successful deletion
+4. Use StateChangeConf to wait for actual deletion completion
+5. Proper timeout and delay configuration
+
+### Data Source Implementation Details
+
+Data sources should:
+1. Initialize the KafkaService
+2. Call the appropriate List method
+3. Filter results based on input parameters
+4. Map the cws-lib-go types to Terraform schema
+5. Set the appropriate schema fields
+
+### Error Handling Best Practices
+
+1. **Use WrapError/WrapErrorf** for all error wrapping
+2. **Use error predicates** (IsNotFoundError, IsAlreadyExistError, NeedRetry) rather than IsExpectedErrors
+3. **Include context** in error messages for easier troubleshooting
+4. **Handle retryable errors** appropriately with resource.RetryableError
+5. **Log debug information** when appropriate
+
+### ID Management Best Practices
+
+1. **Use existing Encode*/Decode* functions** consistently
+2. **Follow the established patterns** for composite IDs
+3. **Ensure backward compatibility** with existing resource IDs
+4. **Validate ID formats** in Decode functions
+
+### State Management Best Practices
+
+1. **Use WaitFor* functions** for async operations
+2. **Don't call Read directly in Create** methods
+3. **Implement proper timeout configuration**
+4. **Use BuildStateConf** with appropriate pending/target states
+5. **Handle fail states** appropriately in state refresh functions
+
+## Code Examples
+
+### Service Layer Method Implementation
+```go
+// DescribeKafkaInstance gets Kafka instance details
+func (s *KafkaService) DescribeKafkaInstance(id string) (*aliyunKafkaAPI.KafkaInstance, error) {
+	kafkaInstance, err := s.GetAPI().GetInstance(context.TODO(), id)
+	if err != nil {
+		if IsNotFoundError(err) {
+			return nil, WrapErrorf(err, NotFoundMsg, id)
+		}
+		return nil, WrapErrorf(err, DefaultErrorMsg, id, "DescribeKafkaInstance", AlibabaCloudSdkGoERROR)
+	}
+
+	// ServiceStatus equals 10 means the instance is released, don't return the instance
+	if kafkaInstance.Status == "10" {
+		return nil, WrapErrorf(NotFoundErr("KafkaInstance", id), NotFoundMsg, ProviderERROR)
+	}
+
+	return kafkaInstance, nil
+}
+```
+
+### Resource Create Method Implementation
+```go
+func resourceAliCloudKafkaInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Create instance request using cws-lib-go types
+	instanceRequest := &aliyunKafkaAPI.KafkaInstance{
+		Name:            d.Get("name").(string),
+		RegionId:        client.RegionId,
+		ZoneId:          d.Get("zone_id").(string),
+		DiskType:        d.Get("disk_type").(string),
+		DiskSize:        int32(d.Get("disk_size").(int)),
+		DeployType:      int32(d.Get("deploy_type").(int)),
+		IoMax:           int32(d.Get("io_max").(int)),
+		SpecType:        d.Get("spec_type").(string),
+		Version:         d.Get("version").(string),
+		VpcId:           d.Get("vpc_id").(string),
+		VSwitchId:       d.Get("vswitch_id").(string),
+		SecurityGroupId: d.Get("security_group_id").(string),
+	}
+
+	// Create the instance with retry mechanism
+	var instance *aliyunKafkaAPI.KafkaInstance
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		resp, err := kafkaService.CreateKafkaInstance(instanceRequest)
+		if err != nil {
+			if NeedRetry(err) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		instance = resp
+		return nil
+	})
+
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_kafka_instance", "CreateKafkaInstance", AlibabaCloudSdkGoERROR)
+	}
+
+	if instance == nil || instance.InstanceId == "" {
+		return WrapError(Error("Failed to get instance ID from Kafka instance"))
+	}
+
+	d.SetId(instance.InstanceId)
+
+	// Wait for the instance to be in running state using service layer function
+	if err := kafkaService.WaitForKafkaInstanceCreating(d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	// Finally call Read to sync state
+	return resourceAliCloudKafkaInstanceRead(d, meta)
+}
+```
+
+### Data Source Read Method Implementation
+```go
+func dataSourceAliCloudKafkaInstancesRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Get all Kafka instances (pagination handled in service layer)
+	instances, err := kafkaService.ListKafkaInstances()
+	if err != nil {
+		return WrapError(err)
+	}
+
+	// Filter and map results
+	var instanceMaps []map[string]interface{}
+	ids := make([]string, 0)
+	names := make([]string, 0)
+
+	for _, instance := range instances {
+		// Apply filters if specified
+		if v, ok := d.GetOk("ids"); ok && len(v.([]interface{})) > 0 {
+			found := false
+			for _, id := range v.([]interface{}) {
+				if instance.InstanceId == id.(string) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+
+		if v, ok := d.GetOk("names"); ok && len(v.([]interface{})) > 0 {
+			found := false
+			for _, name := range v.([]interface{}) {
+				if instance.Name == name.(string) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+
+		// Map fields from cws-lib-go types to Terraform schema
+		instanceMap := map[string]interface{}{
+			"id":             instance.InstanceId,
+			"name":           instance.Name,
+			"status":         instance.Status,
+			"region_id":      instance.RegionId,
+			"zone_id":        instance.ZoneId,
+			"spec_type":      instance.SpecType,
+			"disk_type":      instance.DiskType,
+			"disk_size":      instance.DiskSize,
+			"io_max":         instance.IoMax,
+			"io_max_spec":    instance.IoMaxSpec,
+			"version":        instance.Version,
+			"endpoint":       instance.EndPoint,
+			"create_time":    instance.CreateTime,
+			"expire_time":    instance.ExpireTime,
+			"ssl_endpoint":   instance.SslEndPoint,
+			"sasl_endpoint":  instance.SaslEndPoint,
+		}
+
+		instanceMaps = append(instanceMaps, instanceMap)
+		ids = append(ids, instance.InstanceId)
+		names = append(names, instance.Name)
+	}
+
+	// Set data source return values
+	d.SetId("kafka_instances")
+	if err := d.Set("ids", ids); err != nil {
+		return WrapError(err)
+	}
+	if err := d.Set("names", names); err != nil {
+		return WrapError(err)
+	}
+	if err := d.Set("instances", instanceMaps); err != nil {
+		return WrapError(err)
+	}
+
+	return nil
+}
+```

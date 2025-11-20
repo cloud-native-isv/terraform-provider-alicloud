@@ -72,3 +72,150 @@ State management should use existence checks for most resources and ServiceStatu
 6. **Pagination**: Encapsulate pagination logic in the service layer for list operations
 
 All implementations must strictly follow the constitutional requirements for layering, error handling, strong typing, and build verification.
+
+## Updated Findings Based on Code Analysis
+
+### Decision: cws-lib-go Kafka API Structure (Updated)
+**Rationale**: Based on actual code analysis of `/cws_data/cws-lib-go/lib/cloud/aliyun/api/kafka/`, the cws-lib-go provides a well-structured Kafka API with the following key components:
+
+1. **Type Definitions**:
+   - `KafkaInstance` - Represents Kafka instances with fields like InstanceId, Name, Status, etc.
+   - `KafkaTopic` - Represents Kafka topics with fields like Topic, InstanceId, PartitionNum, etc.
+   - `ConsumerGroup` - Represents consumer groups with fields like ConsumerGroupId, InstanceId, etc.
+   - `AclRule` - Represents ACL rules with fields like AclResourceType, AclOperation, etc.
+
+2. **API Methods**:
+   - InstanceAPI: CreateInstance, GetInstance, ListInstances, UpdateInstance, DeleteInstance
+   - TopicAPI: CreateTopic, GetTopic, ListTopics, DeleteTopic
+   - ConsumerGroupAPI: CreateConsumerGroup, GetConsumerGroup, ListConsumerGroups, DeleteConsumerGroup
+   - Additional APIs for ACLs, SASL users, and IP management
+
+3. **Service Layer Integration**:
+   - The existing `service_alicloud_alikafka.go` already has a `KafkaService` struct with `GetAPI()` method
+   - The service layer should use `s.GetAPI().GetInstance()`, `s.GetAPI().CreateTopic()`, etc.
+
+**Alternatives considered**: 
+- Direct SDK usage (rejected - violates layering principle)
+- HTTP API calls (rejected - violates layering and security principles)
+- Third-party Kafka libraries (rejected - not aligned with provider architecture)
+
+### Decision: Kafka Resource ID Encoding Patterns (Updated)
+**Rationale**: Based on actual code analysis of `service_alicloud_alikafka.go`, the existing implementation already has proper `Encode*Id` and `Decode*Id` functions:
+
+1. **Consumer Groups**: `EncodeConsumerGroupId(instanceId, consumerId)` and `DecodeConsumerGroupId(id)`
+2. **Topics**: `EncodeTopicId(instanceId, topic)` and `DecodeTopicId(id)`
+3. **SASL Users**: `EncodeSaslUserId(instanceId, username)` and `DecodeSaslUserId(id)`
+4. **SASL ACLs**: `EncodeSaslAclId(instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType)` and `DecodeSaslAclId(id)`
+5. **IP Attachments**: `EncodeAllowedIpId(instanceId, allowedType, portRange, ipAddress)` and `DecodeAllowedIpId(id)`
+
+These functions should be retained and used in the refactored implementation.
+
+**Alternatives considered**:
+- Using simple instance IDs only (rejected - insufficient for multi-resource identification)
+- JSON-encoded IDs (rejected - violates simplicity and readability principles)
+- UUID-based IDs (rejected - breaks existing user configurations)
+
+### Decision: Kafka State Transitions and Valid States (Updated)
+**Rationale**: Based on actual code analysis of `service_alicloud_alikafka.go`, the existing implementation already has state management functions:
+
+1. **Instances**: 
+   - Status "5" = running
+   - Status "10" = deleted/released
+   - `KafkaInstanceStateRefreshFunc` and `WaitForKafkaInstanceCreating`/`WaitForKafkaInstanceDeleting`
+
+2. **Topics**: 
+   - Existence-based state
+   - `KafkaTopicStateRefreshFunc` and `WaitForKafkaTopicCreating`/`WaitForKafkaTopicDeleting`
+
+3. **Consumer Groups**: 
+   - Existence-based state
+   - `KafkaConsumerGroupStateRefreshFunc` and `WaitForKafkaConsumerGroupCreating`/`WaitForKafkaConsumerGroupDeleting`
+
+4. **SASL Users**: 
+   - Existence-based state
+   - `KafkaSaslUserStateRefreshFunc` and `WaitForKafkaSaslUserCreating`/`WaitForKafkaSaslUserDeleting`
+
+5. **SASL ACLs**: 
+   - Existence-based state
+   - `KafkaSaslAclStateRefreshFunc` and `WaitForKafkaSaslAclCreating`/`WaitForKafkaSaslAclDeleting`
+
+6. **IP Attachments**: 
+   - Existence-based state
+   - `KafkaAllowedIpStateRefreshFunc` and `WaitForKafkaAllowedIpCreating`/`WaitForKafkaAllowedIpDeleting`
+
+These patterns should be followed in the refactored implementation.
+
+**Alternatives considered**:
+- Complex state machines for all resources (rejected - overcomplicated for most Kafka resources)
+- Polling all resources with the same pattern (rejected - doesn't account for different resource characteristics)
+- No state waiting (rejected - violates reliability requirements)
+
+## Technology Choices and Best Practices
+
+### Decision: Follow Flink Implementation Pattern
+**Rationale**: Based on analysis of `data_source_alicloud_flink_workspaces.go`, `resource_alicloud_flink_workspace.go`, and `service_alicloud_flink_workspace.go`:
+
+1. **Service Layer**: 
+   - Clean separation of concerns
+   - Strong typing with cws-lib-go types
+   - Proper error handling with WrapError/WrapErrorf
+   - State management with WaitFor* functions
+
+2. **Resource Implementation**:
+   - Standard CRUD operations pattern
+   - Proper timeout configuration
+   - Idempotent operations
+   - Calling service layer functions only
+
+3. **Data Source Implementation**:
+   - Proper filtering and mapping of results
+   - Setting computed fields correctly
+
+**Alternatives considered**:
+- Custom patterns (rejected - Flink pattern is well-established and tested)
+- Direct SDK usage (rejected - violates architectural principles)
+
+### Decision: Strong Typing with cws-lib-go
+**Rationale**: Based on analysis of cws-lib-go Kafka types:
+
+1. **Type Safety**: All Kafka resources have well-defined struct types
+2. **IDE Support**: Strong typing provides better autocomplete and error detection
+3. **Maintainability**: Changes to API structures are easier to track and update
+
+**Alternatives considered**:
+- map[string]interface{} (rejected - violates strong typing principle)
+- interface{} (rejected - no type safety)
+
+### Decision: Error Handling Standardization
+**Rationale**: Based on analysis of existing code and constitution:
+
+1. **Wrap Errors**: Use WrapError/WrapErrorf for consistent error formatting
+2. **Error Predicates**: Use IsNotFoundError, IsAlreadyExistError, NeedRetry for proper error classification
+3. **Context**: Include sufficient context in error messages for troubleshooting
+
+**Alternatives considered**:
+- Raw error handling (rejected - insufficient context)
+- Direct SDK error exposure (rejected - inconsistent with provider patterns)
+
+## Implementation Approach
+
+### Decision: Incremental Refactoring
+**Rationale**: Based on the scope of changes required:
+
+1. **Preserve Functionality**: Existing acceptance tests must continue to pass
+2. **Minimize Risk**: Incremental changes reduce the risk of introducing bugs
+3. **Maintain Compatibility**: Users should not experience breaking changes
+
+**Alternatives considered**:
+- Complete rewrite (rejected - too risky and time-consuming)
+- Big bang approach (rejected - high risk of breaking changes)
+
+### Decision: Backward Compatibility
+**Rationale**: Based on feature specification requirements:
+
+1. **Schema Compatibility**: All existing schema fields must be preserved
+2. **Behavioral Compatibility**: All existing functionality must work identically
+3. **ID Compatibility**: Existing resource IDs must continue to work
+
+**Alternatives considered**:
+- Breaking changes (rejected - violates feature requirements)

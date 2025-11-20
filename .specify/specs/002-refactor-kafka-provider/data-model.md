@@ -195,3 +195,128 @@ Standard error predicates will be used:
 - Predefined error lists for service-specific errors
 
 All errors will be wrapped using `WrapError(err)` or `WrapErrorf(err, format, args...)` with appropriate context.
+
+## Updated Data Model Based on cws-lib-go Types
+
+### KafkaInstance (based on cws-lib-go)
+**Description**: Represents an Alibaba Cloud Kafka instance resource
+**Fields**:
+- `InstanceId` (string, required): Unique identifier for the instance
+- `Name` (string, required): Name of the instance (max 64 characters)
+- `Description` (string, optional): Description of the instance
+- `Status` (string, computed): Status of the instance (Active, Inactive, Creating, Deleting, etc.)
+- `RegionId` (string, required): Region ID
+- `ZoneId` (string, required): Availability zone ID
+- `SpecType` (string, required): Instance specification type
+- `DeployType` (int32, required): Deployment type
+- `DiskSize` (int32, required): Disk size in GB (must be > 0)
+- `DiskType` (string, required): Disk type
+- `IoMax` (int32, required): Maximum IO specification
+- `IoMaxSpec` (string, optional): IO specification
+- `Version` (string, required): Kafka version
+- `EndPoint` (string, computed): Access endpoint
+- `CreateTime` (string, computed): Creation time
+- `ExpireTime` (string, computed): Expiration time
+- `SslEndPoint` (string, computed): SSL access endpoint
+- `SaslEndPoint` (string, computed): SASL access endpoint
+
+**Validation Rules**:
+- Name must be between 1 and 64 characters
+- DiskSize must be greater than 0
+- RegionId and ZoneId are required
+
+**State Transitions**:
+- Creating → Running (Status 5)
+- Running → Deleting
+- Deleting → Deleted/Released (Status 10)
+
+### KafkaTopic (based on cws-lib-go)
+**Description**: Represents a Kafka topic resource within an instance
+**Fields**:
+- `Topic` (string, required): Topic name
+- `InstanceId` (string, required): ID of the instance to which the topic belongs
+- `PartitionNum` (int32, required): Number of partitions
+- `Remark` (string, optional): Remark
+- `CreateTime` (int64, computed): Creation timestamp
+- `Status` (int32, computed): Status
+- `CompactTopic` (bool, optional): Indicates whether it is a Compact topic
+- `LocalTopic` (bool, optional): Indicates whether it is a local topic
+- `ReplicaNum` (int32, required): Number of replicas (default: 3)
+- `Tags` (map[string]string, optional): Tags
+
+**Validation Rules**:
+- Topic name is required
+- PartitionNum must be positive
+- ReplicaNum should be at least 1
+
+**State Transitions**:
+- Existence-based (topic exists = ready, doesn't exist = deleted)
+
+### ConsumerGroup (based on cws-lib-go)
+**Description**: Represents a Kafka consumer group
+**Fields**:
+- `ConsumerGroupId` (string, required): Consumer group ID
+- `InstanceId` (string, required): ID of the instance to which the consumer group belongs
+- `ConsumerGroupName` (string, optional): Consumer group name
+- `ConsumerGroupType` (string, optional): Consumer group type
+- `ConsumerGroupStatus` (string, computed): Consumer group status
+- `ConsumerGroupDescription` (string, optional): Consumer group description
+- `ConsumerGroupTags` ([]Tag, optional): Consumer group tags
+- `ConsumerGroupCreateTime` (string, computed): Creation time
+- `ConsumerGroupUpdateTime` (string, computed): Update time
+
+**Validation Rules**:
+- ConsumerGroupId is required
+- InstanceId is required
+
+**State Transitions**:
+- Existence-based (consumer group exists = ready, doesn't exist = deleted)
+
+### AclRule (based on cws-lib-go)
+**Description**: Represents a Kafka access control rule
+**Fields**:
+- `AclResourceType` (string, required): ACL resource type
+- `AclResourceName` (string, required): ACL resource name
+- `AclResourcePatternType` (string, required): ACL resource pattern type
+- `AclOperation` (string, required): ACL operation type
+- `AclPermissionType` (string, required): ACL permission type
+- `AclHost` (string, required): ACL host
+- `AclPrincipal` (string, required): ACL principal
+- `InstanceId` (string, required): ID of the instance to which the ACL rule belongs
+
+**Validation Rules**:
+- All fields are required
+- InstanceId is required
+
+**State Transitions**:
+- Existence-based (ACL exists = ready, doesn't exist = deleted)
+
+### Tag (based on cws-lib-go)
+**Description**: Represents a tag
+**Fields**:
+- `Key` (string, required): Tag key
+- `Value` (string, required): Tag value
+
+## ID Encoding/Decoding Functions
+
+The service layer will implement the following ID encoding/decoding functions:
+
+### Consumer Groups
+- `EncodeConsumerGroupId(instanceId, consumerId string) string`
+- `DecodeConsumerGroupId(id string) (string, string, error)`
+
+### Topics
+- `EncodeTopicId(instanceId, topic string) string`
+- `DecodeTopicId(id string) (string, string, error)`
+
+### SASL Users
+- `EncodeSaslUserId(instanceId, username string) string`
+- `DecodeSaslUserId(id string) (string, string, error)`
+
+### SASL ACLs
+- `EncodeSaslAclId(instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType string) string`
+- `DecodeSaslAclId(id string) (string, string, string, string, string, string, error)`
+
+### IP Attachments
+- `EncodeAllowedIpId(instanceId, allowedType, portRange, ipAddress string) string`
+- `DecodeAllowedIpId(id string) (string, string, string, string, error)`
