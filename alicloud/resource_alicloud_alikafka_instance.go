@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -10,7 +11,6 @@ import (
 	"github.com/denverdino/aliyungo/common"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -168,7 +168,19 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			"selected_zones": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type: schema.TypeList,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				Description: "The JSON string of selected zones for the instance. Format: [[\"zone1\", \"zone2\"], [\"zone3\"]]",
+			},
+			"cross_zone": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "Specifies whether to deploy the instance across zones. true: Deploy the instance across zones. false: Do not deploy the instance across zones. Default value: true.",
 			},
 			"tags": tagsSchema(),
 			"end_point": {
@@ -233,13 +245,16 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 
 func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	// Use KafkaService instead of AlikafkaService
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	vpcService := VpcService{client}
-	var err error
 
 	// 1. Create order
 	var createOrderAction string
-	createOrderResponse := make(map[string]interface{})
+	var createOrderResponse map[string]interface{}
 	createOrderReq := make(map[string]interface{})
 	createOrderReq["RegionId"] = client.RegionId
 
@@ -250,9 +265,7 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	}
 
 	createOrderReq["DiskType"] = d.Get("disk_type")
-
 	createOrderReq["DiskSize"] = d.Get("disk_size")
-
 	createOrderReq["DeployType"] = d.Get("deploy_type")
 
 	if v, ok := d.GetOk("io_max"); ok {
@@ -279,34 +292,31 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		switch v.(string) {
 		case "PostPaid":
 			createOrderAction = "CreatePostPayOrder"
+			createOrderResponse, err = kafkaService.CreatePostPayOrder(createOrderReq)
+			if err != nil {
+				return err
+			}
+			addDebug(createOrderAction, createOrderResponse, createOrderReq)
+
+			if fmt.Sprint(createOrderResponse["Success"]) == "false" {
+				return WrapError(fmt.Errorf("%s failed, response: %v", createOrderAction, createOrderResponse))
+			}
+
 		case "PrePaid":
 			createOrderAction = "CreatePrePayOrder"
-		}
-	}
-
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutCreate)), func() *resource.RetryError {
-		createOrderResponse, err = client.RpcPost("alikafka", "2019-09-16", createOrderAction, nil, createOrderReq, false)
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL", "ONS_SYSTEM_ERROR"}) || NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
+			createOrderResponse, err = kafkaService.CreatePrePayOrder(createOrderReq)
+			if err != nil {
+				return err
 			}
-			return resource.NonRetryableError(err)
+			addDebug(createOrderAction, createOrderResponse, createOrderReq)
+
+			if fmt.Sprint(createOrderResponse["Success"]) == "false" {
+				return WrapError(fmt.Errorf("%s failed, response: %v", createOrderAction, createOrderResponse))
+			}
 		}
-		return nil
-	})
-	addDebug(createOrderAction, createOrderResponse, createOrderReq)
-
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_alikafka_instance", createOrderAction, AlibabaCloudSdkGoERROR)
 	}
 
-	if fmt.Sprint(createOrderResponse["Success"]) == "false" {
-		return WrapError(fmt.Errorf("%s failed, response: %v", createOrderAction, createOrderResponse))
-	}
-
-	alikafkaInstanceVO, err := alikafkaService.DescribeAliKafkaInstanceByOrderId(fmt.Sprint(createOrderResponse["OrderId"]), 60)
+	alikafkaInstanceVO, err := kafkaService.DescribeKafkaInstanceByOrderId(fmt.Sprint(createOrderResponse["OrderId"]), 60)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -315,7 +325,6 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 
 	// 2. Start instance
 	startInstanceAction := "StartInstance"
-	startInstanceResponse := make(map[string]interface{})
 	startInstanceReq := make(map[string]interface{})
 	startInstanceReq["RegionId"] = client.RegionId
 	startInstanceReq["InstanceId"] = alikafkaInstanceVO["InstanceId"]
@@ -371,31 +380,23 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 
 	if v, ok := d.GetOk("selected_zones"); ok {
 		startInstanceReq["SelectedZones"] = formatSelectedZonesReq(v.([]interface{}))
+		log.Printf("[DEBUG] Resource alicloud_alikakfa_instance SelectedZones=%s", startInstanceReq["SelectedZones"])
 	}
 
-	err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutCreate)), func() *resource.RetryError {
-		startInstanceResponse, err = client.RpcPost("alikafka", "2019-09-16", startInstanceAction, nil, startInstanceReq, false)
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) || NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(startInstanceAction, startInstanceResponse, startInstanceReq)
+	startInstanceReq["CrossZone"] = d.Get("cross_zone")
 
+	startInstanceResponse, err := kafkaService.StartInstance(startInstanceReq)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_alikafka_instance", startInstanceAction, AlibabaCloudSdkGoERROR)
+		return err
 	}
+	addDebug(startInstanceAction, startInstanceResponse, startInstanceReq)
 
 	if fmt.Sprint(startInstanceResponse["Success"]) == "false" {
 		return WrapError(fmt.Errorf("%s failed, response: %v", startInstanceAction, startInstanceResponse))
 	}
 
 	// 3. wait until running
-	stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, alikafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+	stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -405,60 +406,62 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	object, err := alikafkaService.DescribeAliKafkaInstance(d.Id())
+	object, err := kafkaService.DescribeAlikafkaInstance(d.Id())
 	if err != nil {
 		// Handle exceptions
 		if !d.IsNewResource() && IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_alikakfa_instance alikafkaService.DescribeAliKafkaInstance Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_alikakfa_instance kafkaService.DescribeAlikafkaInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
 
-	d.Set("name", object["Name"])
-	d.Set("disk_type", object["DiskType"])
-	d.Set("disk_size", object["DiskSize"])
-	d.Set("deploy_type", object["DeployType"])
-	d.Set("io_max", object["IoMax"])
-	d.Set("io_max_spec", object["IoMaxSpec"])
-	d.Set("eip_max", object["EipMax"])
-	d.Set("resource_group_id", object["ResourceGroupId"])
-	d.Set("vpc_id", object["VpcId"])
-	d.Set("vswitch_id", object["VSwitchId"])
-	d.Set("zone_id", object["ZoneId"])
+	// Set all schema fields using the correct field access
+	d.Set("name", object.Name)
+	d.Set("disk_type", object.DiskType)
+	d.Set("disk_size", object.DiskSize)
+	d.Set("deploy_type", object.DeployType)
+	d.Set("io_max", object.IoMax)
+	d.Set("io_max_spec", object.IoMaxSpec)
+	d.Set("eip_max", object.EipMax)
+	d.Set("resource_group_id", object.ResourceGroupId)
+	d.Set("vpc_id", object.VpcId)
+	d.Set("vswitch_id", object.VSwitchId)
+	d.Set("zone_id", object.ZoneId)
 	d.Set("paid_type", PostPaid)
-	d.Set("spec_type", object["SpecType"])
-	d.Set("security_group", object["SecurityGroup"])
-	d.Set("end_point", object["EndPoint"])
-	d.Set("ssl_endpoint", object["SslEndPoint"])
-	d.Set("domain_endpoint", object["DomainEndpoint"])
-	d.Set("ssl_domain_endpoint", object["SslDomainEndpoint"])
-	d.Set("sasl_domain_endpoint", object["SaslDomainEndpoint"])
-	d.Set("status", object["ServiceStatus"])
+	d.Set("spec_type", object.SpecType)
+	d.Set("security_group", object.SecurityGroup)
+	d.Set("end_point", object.EndPoint)
+	d.Set("ssl_endpoint", object.SslEndPoint)
+	d.Set("domain_endpoint", object.DomainEndpoint)
+	d.Set("ssl_domain_endpoint", object.SslDomainEndpoint)
+	d.Set("sasl_domain_endpoint", object.SaslDomainEndpoint)
+	d.Set("status", object.ServiceStatus)
 	// object.UpgradeServiceDetailInfo.UpgradeServiceDetailInfoVO[0].Current2OpenSourceVersion can guaranteed not to be null
-	d.Set("service_version", object["UpgradeServiceDetailInfo"].(map[string]interface{})["Current2OpenSourceVersion"])
-	d.Set("config", object["AllConfig"])
-	d.Set("kms_key_id", object["KmsKeyId"])
-	d.Set("enable_auto_group", object["AutoCreateGroupEnable"])
-	d.Set("enable_auto_topic", convertAliKafkaAutoCreateTopicEnableResponse(object["AutoCreateTopicEnable"]))
-	d.Set("default_topic_partition_num", formatInt(object["DefaultPartitionNum"]))
+	if object.UpgradeServiceDetailInfo != nil && len(object.UpgradeServiceDetailInfo.UpgradeServiceDetailInfoVO) > 0 {
+		d.Set("service_version", object.UpgradeServiceDetailInfo.UpgradeServiceDetailInfoVO[0].Current2OpenSourceVersion)
+	}
+	d.Set("config", object.AllConfig)
+	d.Set("kms_key_id", object.KmsKeyId)
+	d.Set("enable_auto_group", object.AutoCreateGroupEnable)
+	d.Set("enable_auto_topic", convertAliKafkaAutoCreateTopicEnableResponse(object.AutoCreateTopicEnable))
+	d.Set("default_topic_partition_num", object.DefaultPartitionNum)
 
-	if vSwitchIds, ok := object["VSwitchIds"]; ok {
-		vSwitchIdsArg := vSwitchIds.(map[string]interface{})
-
-		if vSwitchIdsList, ok := vSwitchIdsArg["VSwitchIds"]; ok {
-			d.Set("vswitch_ids", vSwitchIdsList)
-		}
+	if object.VSwitchIds != nil {
+		d.Set("vswitch_ids", object.VSwitchIds.VSwitchIds)
 	}
 
-	if fmt.Sprint(object["PaidType"]) == "0" {
+	if object.PaidType == 0 {
 		d.Set("paid_type", PrePaid)
 	}
 
-	quota, err := alikafkaService.GetQuotaTip(d.Id())
+	quota, err := kafkaService.GetQuotaTip(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
@@ -474,30 +477,33 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("group_left", quota["GroupLeft"])
 	d.Set("is_partition_buy", quota["IsPartitionBuy"])
 
-	tags, err := alikafkaService.DescribeTags(d.Id(), nil, TagResourceInstance)
+	tags, err := kafkaService.DescribeTags(d.Id(), nil, TagResourceInstance)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	d.Set("tags", alikafkaService.tagsToMap(tags))
+	d.Set("tags", kafkaService.tagsToMap(tags))
+
+	d.Set("cross_zone", object.CrossZone)
 
 	return nil
 }
 
 func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
-	var err error
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	var response map[string]interface{}
 	d.Partial(true)
 
-	if err := alikafkaService.setInstanceTags(d, TagResourceInstance); err != nil {
+	if err := kafkaService.setInstanceTags(d, TagResourceInstance); err != nil {
 		return WrapError(err)
 	}
 
 	// Process change instance name.
 	if !d.IsNewResource() && d.HasChange("name") {
-		action := "ModifyInstanceName"
 		request := map[string]interface{}{
 			"RegionId":   client.RegionId,
 			"InstanceId": d.Id(),
@@ -507,26 +513,14 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			request["InstanceName"] = v
 		}
 
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutUpdate)), func() *resource.RetryError {
-			response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
-			if err != nil {
-				if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) || NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
-
+		response, err = kafkaService.ModifyInstanceName(request)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			return err
 		}
+		addDebug("ModifyInstanceName", response, request)
 
 		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+			return WrapError(fmt.Errorf("ModifyInstanceName failed, response: %v", response))
 		}
 
 		d.SetPartial("name")
@@ -546,31 +540,18 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			newPaidTypeInt = 0
 		}
 		if oldPaidTypeInt == 1 && newPaidTypeInt == 0 {
-			action := "ConvertPostPayOrder"
 			request := map[string]interface{}{
 				"RegionId":   client.RegionId,
 				"InstanceId": d.Id(),
 			}
 
-			wait := incrementalWait(3*time.Second, 3*time.Second)
-			err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutUpdate)), func() *resource.RetryError {
-				response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
-				if err != nil {
-					if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) || NeedRetry(err) {
-						wait()
-						return resource.RetryableError(err)
-					}
-					return resource.NonRetryableError(err)
-				}
-				return nil
-			})
-			addDebug(action, response, request)
-
+			response, err = kafkaService.ConvertPostPayOrder(request)
 			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+				return err
 			}
+			addDebug("ConvertPostPayOrder", response, request)
 
-			stateConf := BuildStateConf([]string{}, []string{strconv.Itoa(newPaidTypeInt)}, d.Timeout(schema.TimeoutUpdate), 1*time.Second, alikafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "PaidType", []string{}))
+			stateConf := BuildStateConf([]string{}, []string{strconv.Itoa(newPaidTypeInt)}, d.Timeout(schema.TimeoutUpdate), 1*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "PaidType", []string{}))
 			if _, err := stateConf.WaitForState(); err != nil {
 				return WrapErrorf(err, IdMsg, d.Id())
 			}
@@ -639,47 +620,43 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			action = "UpgradePrePayOrder"
 		}
 
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-			response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
-			if err != nil {
-				if NeedRetry(err) || IsExpectedErrors(err, []string{"ONS_SYSTEM_FLOW_CONTROL"}) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
+		if action == "UpgradePostPayOrder" {
+			response, err = kafkaService.UpgradePostPayOrder(request)
+		} else {
+			response, err = kafkaService.UpgradePrePayOrder(request)
+		}
+		if err != nil {
+			return err
+		}
 		addDebug(action, response, request)
 
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		if fmt.Sprint(response["Success"]) == "false" {
+			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
 		}
 
-		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("disk_size"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, alikafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "DiskSize", []string{}))
+		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("disk_size"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "DiskSize", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 
 		if d.HasChange("io_max") {
-			stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("io_max"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, alikafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "IoMax", []string{}))
+			stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("io_max"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "IoMax", []string{}))
 			if _, err := stateConf.WaitForState(); err != nil {
 				return WrapErrorf(err, IdMsg, d.Id())
 			}
 		}
 
-		stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("eip_max"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, alikafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "EipMax", []string{}))
+		stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("eip_max"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "EipMax", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 
-		stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("spec_type"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, alikafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "SpecType", []string{}))
+		stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("spec_type"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "SpecType", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 
-		stateConf = BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, alikafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+		stateConf = BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -693,7 +670,6 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if !d.IsNewResource() && d.HasChange("service_version") {
-		action := "UpgradeInstanceVersion"
 		request := map[string]interface{}{
 			"InstanceId": d.Id(),
 			"RegionId":   client.RegionId,
@@ -703,36 +679,20 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			request["TargetVersion"] = v
 		}
 
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutUpdate)), func() *resource.RetryError {
-			response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
-			if err != nil {
-				if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) || NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				// means no need to update version
-				if IsExpectedErrors(err, []string{"ONS_INIT_ENV_ERROR"}) {
-					return nil
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
-
+		response, err = kafkaService.UpgradeInstanceVersion(request)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			return err
 		}
+		addDebug("UpgradeInstanceVersion", response, request)
 
 		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+			return WrapError(fmt.Errorf("UpgradeInstanceVersion failed, response: %v", response))
 		}
 
 		// wait for upgrade task be invoke
 		time.Sleep(60 * time.Second)
 		// upgrade service may be last a long time
-		stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, alikafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+		stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -740,7 +700,6 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if !d.IsNewResource() && d.HasChange("config") {
-		action := "UpdateInstanceConfig"
 		request := map[string]interface{}{
 			"RegionId":   client.RegionId,
 			"InstanceId": d.Id(),
@@ -750,30 +709,18 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			request["Config"] = v
 		}
 
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutUpdate)), func() *resource.RetryError {
-			response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
-			if err != nil {
-				if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) || NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
-
+		response, err = kafkaService.UpdateInstanceConfig(request)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			return err
 		}
+		addDebug("UpdateInstanceConfig", response, request)
 
 		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+			return WrapError(fmt.Errorf("UpdateInstanceConfig failed, response: %v", response))
 		}
 
 		// wait for upgrade task be invoke
-		stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, alikafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+		stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -795,25 +742,11 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if update {
-		action := "ChangeResourceGroup"
-
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutUpdate)), func() *resource.RetryError {
-			response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, changeResourceGroupReq, false)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, changeResourceGroupReq)
-
+		response, err = kafkaService.ChangeResourceGroup(changeResourceGroupReq)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			return err
 		}
+		addDebug("ChangeResourceGroup", response, changeResourceGroupReq)
 
 		d.SetPartial("resource_group_id")
 	}
@@ -833,28 +766,14 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if update {
-		action := "EnableAutoGroupCreation"
-
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutUpdate)), func() *resource.RetryError {
-			response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, enableAutoGroupCreationReq, false)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, enableAutoGroupCreationReq)
-
+		response, err = kafkaService.EnableAutoGroupCreation(enableAutoGroupCreationReq)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			return err
 		}
+		addDebug("EnableAutoGroupCreation", response, enableAutoGroupCreationReq)
 
 		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+			return WrapError(fmt.Errorf("EnableAutoGroupCreation failed, response: %v", response))
 		}
 
 		d.SetPartial("enable_auto_group")
@@ -874,28 +793,14 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if update {
-		action := "EnableAutoTopicCreation"
-
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutUpdate)), func() *resource.RetryError {
-			response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, enableAutoTopicCreationReq, false)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, enableAutoTopicCreationReq)
-
+		response, err = kafkaService.EnableAutoTopicCreation(enableAutoTopicCreationReq)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			return err
 		}
+		addDebug("EnableAutoTopicCreation", response, enableAutoTopicCreationReq)
 
 		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+			return WrapError(fmt.Errorf("EnableAutoTopicCreation failed, response: %v", response))
 		}
 
 		d.SetPartial("enable_auto_topic")
@@ -909,40 +814,26 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 		"InstanceId":      d.Id(),
 	}
 
-	object, err := alikafkaService.DescribeAliKafkaInstance(d.Id())
+	object, err := kafkaService.DescribeAlikafkaInstance(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
 	defaultTopicPartitionNum, ok := d.GetOkExists("default_topic_partition_num")
-	if ok && fmt.Sprint(object["DefaultPartitionNum"]) != fmt.Sprint(defaultTopicPartitionNum) {
+	if ok && fmt.Sprint(object.DefaultPartitionNum) != fmt.Sprint(defaultTopicPartitionNum) {
 		update = true
 		updateTopicPartitionNumReq["PartitionNum"] = defaultTopicPartitionNum
 	}
 
 	if update {
-		action := "EnableAutoTopicCreation"
-
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutUpdate)), func() *resource.RetryError {
-			response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, updateTopicPartitionNumReq, false)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action+" updateTopicPartitionNum", response, updateTopicPartitionNumReq)
-
+		response, err = kafkaService.EnableAutoTopicCreation(updateTopicPartitionNumReq)
 		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+			return err
 		}
+		addDebug("EnableAutoTopicCreation updateTopicPartitionNum", response, updateTopicPartitionNumReq)
 
 		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+			return WrapError(fmt.Errorf("EnableAutoTopicCreation failed, response: %v", response))
 		}
 
 		d.SetPartial("default_topic_partition_num")
@@ -955,10 +846,11 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	action := "ReleaseInstance"
-	var err error
 	var response map[string]interface{}
 	request := map[string]interface{}{
 		"InstanceId":          d.Id(),
@@ -971,61 +863,37 @@ func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interfa
 		return nil
 	}
 
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutDelete)), func() *resource.RetryError {
-		response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) || NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
+	response, err = kafkaService.ReleaseInstance(request)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		return err
 	}
+	addDebug("ReleaseInstance", response, request)
 
 	if fmt.Sprint(response["Success"]) == "false" {
-		return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+		return WrapError(fmt.Errorf("ReleaseInstance failed, response: %v", response))
 	}
 
-	stateConf := BuildStateConf([]string{}, []string{"15"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, alikafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+	stateConf := BuildStateConf([]string{}, []string{"15"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	action = "DeleteInstance"
 	request = map[string]interface{}{
 		"InstanceId": d.Id(),
 		"RegionId":   client.RegionId,
 	}
 
-	err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutDelete)), func() *resource.RetryError {
-		response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
+	response, err = kafkaService.DeleteInstance(request)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		return err
 	}
+	addDebug("DeleteInstance", response, request)
 
 	if fmt.Sprint(response["Success"]) == "false" {
-		return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+		return WrapError(fmt.Errorf("DeleteInstance failed, response: %v", response))
 	}
 
-	stateConf = BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, alikafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+	stateConf = BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -1034,35 +902,31 @@ func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interfa
 }
 
 func formatSelectedZonesReq(configured []interface{}) string {
-	doubleList := make([][]interface{}, len(configured))
-	for i, v := range configured {
-		doubleList[i] = []interface{}{v}
-	}
-
-	if len(doubleList) < 1 {
+	if len(configured) == 0 {
 		return ""
 	}
 
-	if len(doubleList) == 1 {
-		return "[[\"" + doubleList[0][0].(string) + "\"],[]]"
-	}
-
-	result := "[["
-
-	for i := 0; i < len(doubleList); i++ {
-		switch i {
-		case len(doubleList) - 2:
-			result += "\"" + doubleList[i][0].(string) + "\""
-		case len(doubleList) - 1:
-			result += "],[\"" + doubleList[i][0].(string) + "\"]"
-		default:
-			result += "\"" + doubleList[i][0].(string) + "\","
+	var zones [][]string
+	for _, item := range configured {
+		if innerList, ok := item.([]interface{}); ok {
+			var innerZones []string
+			for _, z := range innerList {
+				if s, ok := z.(string); ok {
+					innerZones = append(innerZones, s)
+				}
+			}
+			zones = append(zones, innerZones)
 		}
 	}
 
-	result += "]"
+	// 使用json.Marshal进行序列化
+	jsonBytes, err := json.Marshal(zones)
+	if err != nil {
+		// 如果序列化失败，返回空字符串
+		return ""
+	}
 
-	return result
+	return string(jsonBytes)
 }
 
 func convertAliKafkaAutoCreateTopicEnableResponse(source interface{}) interface{} {

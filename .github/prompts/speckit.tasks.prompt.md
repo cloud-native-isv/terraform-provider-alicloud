@@ -26,7 +26,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Create parallel execution examples per user story
    - Validate task completeness (each user story has all needed tasks, independently testable)
 
-4. **Generate tasks.md**: Use `.specify.specify/templates/tasks-template.md` as structure, fill with:
+4. **Generate tasks.md**: Use `.specify/templates/tasks-template.md` as structure, fill with:
    - Correct feature name from plan.md
    - Phase 1: Setup tasks (project initialization)
    - Phase 2: Foundational tasks (blocking prerequisites for all user stories)
@@ -55,14 +55,14 @@ The tasks.md should be immediately executable - each task must be specific enoug
 
 The `/speckit.tasks` command automatically integrates with the feature tracking system:
 
-- If a `.specify.specify/memory/features.md` file exists, the command will:
+- If a `.specify/memory/features.md` file exists, the command will:
   - Detect the current feature directory (format: `.specify/specs/###-feature-name/`)
   - Extract the feature ID from the directory name
-  - Update the corresponding feature entry in `.specify.specify/memory/features.md`:
+  - Update the corresponding feature entry in `.specify/memory/features.md`:
     - Ensure status is "Implemented" (maintains status from planning phase)
     - Keep the specification path unchanged
     - Update the "Last Updated" date
-  - Automatically stage the changes to `.specify.specify/memory/features.md` for git commit
+  - Automatically stage the changes to `.specify/memory/features.md` for git commit
 
 This integration ensures that all feature task generation activities are properly tracked and linked to their corresponding entries in the project's feature index.
 

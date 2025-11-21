@@ -24,11 +24,11 @@ Given that feature description, do this:
      - "Create a dashboard for analytics" → "analytics-dashboard"
      - "Fix payment processing timeout bug" → "fix-payment-timeout"
 
-2. Run the script `cat << 'EOF' | .specify.specify/scripts/bash/create-new-feature.sh --json` from repo root and include the short-name argument. Parse its JSON output for BRANCH_NAME and SPEC_FILE. All file paths must be absolute.
+2. Run the script `cat << 'EOF' | .specify/scripts/bash/create-new-feature.sh --json` from repo root and include the short-name argument. Parse its JSON output for BRANCH_NAME and SPEC_FILE. All file paths must be absolute.
 
    **IMPORTANT**:
 
-   - For Bash, this expands to a heredoc-based, safe JSON handoff that writes the raw user input to stdin and passes its contents to `.specify.specify/scripts/bash/create-new-feature.sh --json`. This avoids shell parsing issues with quotes, backslashes, and newlines.
+   - For Bash, this expands to a heredoc-based, safe JSON handoff that writes the raw user input to stdin and passes its contents to `.specify/scripts/bash/create-new-feature.sh --json`. This avoids shell parsing issues with quotes, backslashes, and newlines.
    - Append the short-name argument you created in step 1, and keep the feature description as the final argument.
    - PowerShell continues to use: `-ShortName "your-generated-short-name" "Feature description here"`.
    - You must only ever run this script once.
@@ -164,14 +164,14 @@ Given that feature description, do this:
 
 The `/speckit.specify` command automatically integrates with the feature tracking system:
 
-- If a `.specify.specify/memory/features.md` file exists, the command will:
+- If a `.specify/memory/features.md` file exists, the command will:
   - Detect the current feature branch (format: `###-feature-name`)
   - Extract the feature ID from the branch name
-  - Update the corresponding feature entry in `.specify.specify/memory/features.md`:
+  - Update the corresponding feature entry in `.specify/memory/features.md`:
     - Change status from "Draft" to "Planned"
     - Set the specification path to the newly created spec file
     - Update the "Last Updated" date
-  - Automatically stage the changes to `.specify.specify/memory/features.md` for git commit
+  - Automatically stage the changes to `.specify/memory/features.md` for git commit
 
 This integration ensures that all feature specifications are properly tracked and linked to their corresponding entries in the project's feature index.
 

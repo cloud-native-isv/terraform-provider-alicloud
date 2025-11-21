@@ -1,7 +1,6 @@
 package alicloud
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -13,33 +12,18 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/alikafka"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunKafkaAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
 
 // NewKafkaService creates a new KafkaService using cws-lib-go implementation
 func NewKafkaService(client *connectivity.AliyunClient) (*KafkaService, error) {
-	// Create the Kafka config
-	config := &aliyunKafkaAPI.KafkaConfig{
-		AccessKeyId:     client.AccessKey,
-		AccessKeySecret: client.SecretKey,
-		RegionId:        client.RegionId,
-	}
-
-	// Create the cws-lib-go KafkaAPI
-	kafkaAPI, err := aliyunKafkaAPI.NewKafkaAPI(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create cws-lib-go KafkaAPI: %w", err)
-	}
-
 	return &KafkaService{
-		client:   client,
-		kafkaAPI: kafkaAPI,
+		client: client,
 	}, nil
 }
 
-// GetAPI returns the KafkaAPI instance for direct API access
-func (service *KafkaService) GetAPI() *aliyunKafkaAPI.KafkaAPI {
-	return service.kafkaAPI
+// KafkaService provides Kafka instance management operations
+type KafkaService struct {
+	client *connectivity.AliyunClient
 }
 
 // EncodeConsumerGroupId 将实例ID和消费者组ID编码为单一ID字符串
@@ -117,11 +101,7 @@ func DecodeAllowedIpId(id string) (string, string, string, string, error) {
 	return parts[1], parts[2], parts[3], parts[4], nil
 }
 
-type AlikafkaService struct {
-	client *connectivity.AliyunClient
-}
-
-func (s *AlikafkaService) DescribeAlikafkaInstance(instanceId string) (*alikafka.InstanceVO, error) {
+func (s *KafkaService) DescribeAlikafkaInstance(instanceId string) (*alikafka.InstanceVO, error) {
 	alikafkaInstance := &alikafka.InstanceVO{}
 	instanceListReq := alikafka.CreateGetInstanceListRequest()
 	instanceListReq.RegionId = s.client.RegionId
@@ -161,7 +141,7 @@ func (s *AlikafkaService) DescribeAlikafkaInstance(instanceId string) (*alikafka
 	return alikafkaInstance, WrapErrorf(NotFoundErr("AlikafkaInstance", instanceId), NotFoundMsg, ProviderERROR)
 }
 
-func (s *AlikafkaService) DescribeAlikafkaInstanceByOrderId(orderId string, timeout int) (*alikafka.InstanceVO, error) {
+func (s *KafkaService) DescribeAlikafkaInstanceByOrderId(orderId string, timeout int) (*alikafka.InstanceVO, error) {
 	alikafkaInstance := &alikafka.InstanceVO{}
 	instanceListReq := alikafka.CreateGetInstanceListRequest()
 	instanceListReq.RegionId = s.client.RegionId
@@ -204,7 +184,7 @@ func (s *AlikafkaService) DescribeAlikafkaInstanceByOrderId(orderId string, time
 	}
 }
 
-func (s *AlikafkaService) DescribeAlikafkaConsumerGroup(id string) (*alikafka.ConsumerVO, error) {
+func (s *KafkaService) DescribeAlikafkaConsumerGroup(id string) (*alikafka.ConsumerVO, error) {
 	alikafkaConsumerGroup := &alikafka.ConsumerVO{}
 
 	parts, err := ParseResourceId(id, 2)
@@ -250,7 +230,7 @@ func (s *AlikafkaService) DescribeAlikafkaConsumerGroup(id string) (*alikafka.Co
 	return alikafkaConsumerGroup, WrapErrorf(NotFoundErr("AlikafkaConsumerGroup", id), NotFoundMsg, ProviderERROR)
 }
 
-func (s *AlikafkaService) DescribeAlikafkaTopicStatus(id string) (*alikafka.TopicStatus, error) {
+func (s *KafkaService) DescribeAlikafkaTopicStatus(id string) (*alikafka.TopicStatus, error) {
 	alikafkaTopicStatus := &alikafka.TopicStatus{}
 	parts, err := ParseResourceId(id, 2)
 	if err != nil {
@@ -296,7 +276,7 @@ func (s *AlikafkaService) DescribeAlikafkaTopicStatus(id string) (*alikafka.Topi
 	return alikafkaTopicStatus, WrapErrorf(NotFoundErr("AlikafkaTopicStatus "+ResourceNotfound, id), ResourceNotfound)
 }
 
-func (s *AlikafkaService) DescribeAlikafkaTopic(id string) (*alikafka.TopicVO, error) {
+func (s *KafkaService) DescribeAlikafkaTopic(id string) (*alikafka.TopicVO, error) {
 
 	alikafkaTopic := &alikafka.TopicVO{}
 	parts, err := ParseResourceId(id, 2)
@@ -342,7 +322,7 @@ func (s *AlikafkaService) DescribeAlikafkaTopic(id string) (*alikafka.TopicVO, e
 	return alikafkaTopic, WrapErrorf(NotFoundErr("AlikafkaTopic", id), NotFoundMsg, ProviderERROR)
 }
 
-func (s *AlikafkaService) DescribeAlikafkaSaslUser(id string) (*alikafka.SaslUserVO, error) {
+func (s *KafkaService) DescribeAlikafkaSaslUser(id string) (*alikafka.SaslUserVO, error) {
 	alikafkaSaslUser := &alikafka.SaslUserVO{}
 
 	parts, err := ParseResourceId(id, 2)
@@ -389,7 +369,7 @@ func (s *AlikafkaService) DescribeAlikafkaSaslUser(id string) (*alikafka.SaslUse
 	return alikafkaSaslUser, WrapErrorf(NotFoundErr("AlikafkaSaslUser", id), NotFoundMsg, ProviderERROR)
 }
 
-func (s *AlikafkaService) DescribeAlikafkaSaslAcl(id string) (*alikafka.KafkaAclVO, error) {
+func (s *KafkaService) DescribeAlikafkaSaslAcl(id string) (*alikafka.KafkaAclVO, error) {
 	alikafkaSaslAcl := &alikafka.KafkaAclVO{}
 
 	parts, err := ParseResourceId(id, 6)
@@ -440,7 +420,7 @@ func (s *AlikafkaService) DescribeAlikafkaSaslAcl(id string) (*alikafka.KafkaAcl
 	return alikafkaSaslAcl, WrapErrorf(NotFoundErr("AlikafkaSaslAcl", id), NotFoundMsg, ProviderERROR)
 }
 
-func (s *AlikafkaService) WaitForAlikafkaInstanceUpdated(id string, topicQuota int, diskSize int, ioMax int,
+func (s *KafkaService) WaitForAlikafkaInstanceUpdated(id string, topicQuota int, diskSize int, ioMax int,
 	eipMax int, paidType int, specType string, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
@@ -461,7 +441,7 @@ func (s *AlikafkaService) WaitForAlikafkaInstanceUpdated(id string, topicQuota i
 	}
 }
 
-func (s *AlikafkaService) WaitForAlikafkaInstance(id string, status Status, timeout int) error {
+func (s *KafkaService) WaitForAlikafkaInstance(id string, status Status, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
 		object, err := s.DescribeAlikafkaInstance(id)
@@ -503,7 +483,7 @@ func (s *AlikafkaService) WaitForAlikafkaInstance(id string, status Status, time
 	}
 }
 
-func (s *AlikafkaService) WaitForAlikafkaConsumerGroup(id string, status Status, timeout int) error {
+func (s *KafkaService) WaitForAlikafkaConsumerGroup(id string, status Status, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
 		object, err := s.DescribeAlikafkaConsumerGroup(id)
@@ -528,7 +508,7 @@ func (s *AlikafkaService) WaitForAlikafkaConsumerGroup(id string, status Status,
 	}
 }
 
-func (s *AlikafkaService) KafkaTopicStatusRefreshFunc(id string) resource.StateRefreshFunc {
+func (s *KafkaService) KafkaTopicStatusRefreshFunc(id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlikafkaTopicStatus(id)
 		if err != nil {
@@ -545,7 +525,7 @@ func (s *AlikafkaService) KafkaTopicStatusRefreshFunc(id string) resource.StateR
 	}
 }
 
-func (s *AlikafkaService) WaitForAlikafkaTopic(id string, status Status, timeout int) error {
+func (s *KafkaService) WaitForAlikafkaTopic(id string, status Status, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
 		object, err := s.DescribeAlikafkaTopic(id)
@@ -570,7 +550,7 @@ func (s *AlikafkaService) WaitForAlikafkaTopic(id string, status Status, timeout
 	}
 }
 
-func (s *AlikafkaService) WaitForAlikafkaSaslUser(id string, status Status, timeout int) error {
+func (s *KafkaService) WaitForAlikafkaSaslUser(id string, status Status, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	parts, err := ParseResourceId(id, 2)
 	if err != nil {
@@ -600,7 +580,7 @@ func (s *AlikafkaService) WaitForAlikafkaSaslUser(id string, status Status, time
 	}
 }
 
-func (s *AlikafkaService) WaitForAlikafkaSaslAcl(id string, status Status, timeout int) error {
+func (s *KafkaService) WaitForAlikafkaSaslAcl(id string, status Status, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	parts, err := ParseResourceId(id, 6)
 	if err != nil {
@@ -631,7 +611,7 @@ func (s *AlikafkaService) WaitForAlikafkaSaslAcl(id string, status Status, timeo
 	}
 }
 
-func (s *AlikafkaService) DescribeTags(resourceId string, resourceTags map[string]interface{}, resourceType TagResourceType) (tags []alikafka.TagResource, err error) {
+func (s *KafkaService) DescribeTags(resourceId string, resourceTags map[string]interface{}, resourceType TagResourceType) (tags []alikafka.TagResource, err error) {
 	request := alikafka.CreateListTagResourcesRequest()
 	request.RegionId = s.client.RegionId
 	request.ResourceType = string(resourceType)
@@ -673,7 +653,7 @@ func (s *AlikafkaService) DescribeTags(resourceId string, resourceTags map[strin
 	return response.TagResources.TagResource, nil
 }
 
-func (s *AlikafkaService) setInstanceTags(d *schema.ResourceData, resourceType TagResourceType) error {
+func (s *KafkaService) setInstanceTags(d *schema.ResourceData, resourceType TagResourceType) error {
 	if d.HasChange("tags") {
 		oraw, nraw := d.GetChange("tags")
 		o := oraw.(map[string]interface{})
@@ -746,7 +726,7 @@ func (s *AlikafkaService) setInstanceTags(d *schema.ResourceData, resourceType T
 	return nil
 }
 
-func (s *AlikafkaService) tagsToMap(tags []alikafka.TagResource) map[string]string {
+func (s *KafkaService) tagsToMap(tags []alikafka.TagResource) map[string]string {
 	result := make(map[string]string)
 	for _, t := range tags {
 		if !s.ignoreTag(t) {
@@ -756,7 +736,7 @@ func (s *AlikafkaService) tagsToMap(tags []alikafka.TagResource) map[string]stri
 	return result
 }
 
-func (s *AlikafkaService) ignoreTag(t alikafka.TagResource) bool {
+func (s *KafkaService) ignoreTag(t alikafka.TagResource) bool {
 	filter := []string{"^aliyun", "^acs:", "^http://", "^https://"}
 	for _, v := range filter {
 		log.Printf("[DEBUG] Matching prefix %v with %v\n", v, t.TagKey)
@@ -769,7 +749,7 @@ func (s *AlikafkaService) ignoreTag(t alikafka.TagResource) bool {
 	return false
 }
 
-func (s *AlikafkaService) tagVOTagsToMap(tags []alikafka.TagVO) map[string]string {
+func (s *KafkaService) tagVOTagsToMap(tags []alikafka.TagVO) map[string]string {
 	result := make(map[string]string)
 	for _, t := range tags {
 		if !s.tagVOIgnoreTag(t) {
@@ -779,7 +759,7 @@ func (s *AlikafkaService) tagVOTagsToMap(tags []alikafka.TagVO) map[string]strin
 	return result
 }
 
-func (s *AlikafkaService) tagVOIgnoreTag(t alikafka.TagVO) bool {
+func (s *KafkaService) tagVOIgnoreTag(t alikafka.TagVO) bool {
 	filter := []string{"^aliyun", "^acs:", "^http://", "^https://"}
 	for _, v := range filter {
 		log.Printf("[DEBUG] Matching prefix %v with %v\n", v, t.Key)
@@ -792,7 +772,7 @@ func (s *AlikafkaService) tagVOIgnoreTag(t alikafka.TagVO) bool {
 	return false
 }
 
-func (s *AlikafkaService) diffTags(oldTags, newTags []alikafka.TagResourcesTag) ([]alikafka.TagResourcesTag, []alikafka.TagResourcesTag) {
+func (s *KafkaService) diffTags(oldTags, newTags []alikafka.TagResourcesTag) ([]alikafka.TagResourcesTag, []alikafka.TagResourcesTag) {
 	// First, we're creating everything we have
 	create := make(map[string]interface{})
 	for _, t := range newTags {
@@ -812,7 +792,7 @@ func (s *AlikafkaService) diffTags(oldTags, newTags []alikafka.TagResourcesTag) 
 	return s.tagsFromMap(create), remove
 }
 
-func (s *AlikafkaService) tagsFromMap(m map[string]interface{}) []alikafka.TagResourcesTag {
+func (s *KafkaService) tagsFromMap(m map[string]interface{}) []alikafka.TagResourcesTag {
 	result := make([]alikafka.TagResourcesTag, 0, len(m))
 	for k, v := range m {
 		result = append(result, alikafka.TagResourcesTag{
@@ -824,7 +804,7 @@ func (s *AlikafkaService) tagsFromMap(m map[string]interface{}) []alikafka.TagRe
 	return result
 }
 
-func (s *AlikafkaService) GetAllowedIpList(id string) (object map[string]interface{}, err error) {
+func (s *KafkaService) GetAllowedIpList(id string) (object map[string]interface{}, err error) {
 	var response map[string]interface{}
 	client := s.client
 	action := "GetAllowedIpList"
@@ -853,7 +833,7 @@ func (s *AlikafkaService) GetAllowedIpList(id string) (object map[string]interfa
 	return object, nil
 }
 
-func (s *AlikafkaService) SetResourceTags(d *schema.ResourceData, resourceType string) error {
+func (s *KafkaService) SetResourceTags(d *schema.ResourceData, resourceType string) error {
 	if d.HasChange("tags") {
 		added, removed := parsingTags(d)
 		client := s.client
@@ -929,279 +909,308 @@ func (s *AlikafkaService) SetResourceTags(d *schema.ResourceData, resourceType s
 	return nil
 }
 
-func (s *AlikafkaService) DescribeAliKafkaConsumerGroup(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	client := s.client
-	action := "GetConsumerList"
-	parts, err := ParseResourceId(id, 2)
+// CreatePostPayOrder creates a post-paid Kafka instance order
+// Note: This operation is not directly supported by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) CreatePostPayOrder(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "CreatePostPayOrder"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
 	if err != nil {
-		err = WrapError(err)
-		return
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
 	}
-	request := map[string]interface{}{
-		"RegionId":   s.client.RegionId,
-		"InstanceId": parts[0],
-	}
-	idExist := false
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-	v, err := jsonpath.Get("$.ConsumerList.ConsumerVO", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.ConsumerList.ConsumerVO", response)
-	}
-	if len(v.([]interface{})) < 1 {
-		return object, WrapErrorf(NotFoundErr("AliKafka", id), NotFoundWithResponse, response)
-	}
-	for _, v := range v.([]interface{}) {
-		if fmt.Sprint(v.(map[string]interface{})["ConsumerId"]) == parts[1] {
-			idExist = true
-			return v.(map[string]interface{}), nil
-		}
-	}
-	if !idExist {
-		return object, WrapErrorf(NotFoundErr("AliKafka", id), NotFoundWithResponse, response)
-	}
-	return object, nil
+	return response, nil
 }
 
-func (s *AlikafkaService) DescribeAliKafkaSaslUser(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	action := "DescribeSaslUsers"
-	client := s.client
-	parts, err := ParseResourceId(id, 2)
-	if err != nil {
-		return object, WrapError(err)
-	}
-
-	request := map[string]interface{}{
-		"RegionId":   s.client.RegionId,
-		"InstanceId": parts[0],
-	}
-
-	idExist := false
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
-	if err != nil {
-		if IsExpectedErrors(err, []string{"BIZ_INSTANCE_STATUS_ERROR", "BIZ.INSTANCE.STATUS.ERROR"}) {
-			return object, WrapErrorf(NotFoundErr("AliKafka:SaslUser", id), NotFoundWithResponse, response)
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-
-	resp, err := jsonpath.Get("$.SaslUserList.SaslUserVO", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.SaslUserList.SaslUserVO", response)
-	}
-
-	if v, ok := resp.([]interface{}); !ok || len(v) < 1 {
-		return object, WrapErrorf(NotFoundErr("AliKafka:SaslUser", id), NotFoundWithResponse, response)
-	}
-
-	for _, v := range resp.([]interface{}) {
-		if fmt.Sprint(v.(map[string]interface{})["Username"]) == parts[1] {
-			idExist = true
-			return v.(map[string]interface{}), nil
-		}
-	}
-
-	if !idExist {
-		return object, WrapErrorf(NotFoundErr("AliKafka:SaslUser", id), NotFoundWithResponse, response)
-	}
-
-	return object, nil
+// CreatePrePayOrderRequest 创建预付费订单的请求结构
+type CreatePrePayOrderRequest struct {
+	RegionId        string
+	PartitionNum    int32
+	DiskType        int32
+	DiskSize        int32
+	DeployType      int32
+	IoMax           int32
+	IoMaxSpec       string
+	SpecType        string
+	EipMax          int32
+	ResourceGroupId string
 }
 
-func (s *AlikafkaService) DescribeAliKafkaInstanceAllowedIpAttachment(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	action := "GetAllowedIpList"
-
-	client := s.client
-
-	parts, err := ParseResourceId(id, 4)
+// CreatePrePayOrder creates a pre-paid Kafka instance order
+// Note: This operation is not directly supported by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) CreatePrePayOrder(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "CreatePrePayOrder"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
 	if err != nil {
-		err = WrapError(err)
-		return
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
 	}
-
-	request := map[string]interface{}{
-		"RegionId":   s.client.RegionId,
-		"InstanceId": parts[0],
-	}
-
-	idExist := false
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
-	if err != nil {
-		if IsExpectedErrors(err, []string{"BIZ_INSTANCE_STATUS_ERROR", "BIZ.INSTANCE.STATUS.ERROR"}) {
-			return object, WrapErrorf(NotFoundErr("AliKafka:InstanceAllowedIpAttachment", id), NotFoundWithResponse, response)
-		}
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-
-	var resp interface{}
-	allowedType := parts[1]
-
-	switch allowedType {
-	case "vpc":
-		resp, err = jsonpath.Get("$.AllowedList.VpcList", response)
-		if err != nil {
-			return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.AllowedList.VpcList", response)
-		}
-	case "internet":
-		resp, err = jsonpath.Get("$.AllowedList.InternetList", response)
-		if err != nil {
-			return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.AllowedList.InternetList", response)
-		}
-	}
-
-	if v, ok := resp.([]interface{}); !ok || len(v) < 1 {
-		return object, WrapErrorf(NotFoundErr("AliKafka:InstanceAllowedIpAttachment", id), NotFoundWithResponse, response)
-	}
-
-	for _, v := range resp.([]interface{}) {
-		ipList := v.(map[string]interface{})
-		if fmt.Sprint(ipList["PortRange"]) == parts[2] {
-			for _, ip := range ipList["AllowedIpList"].([]interface{}) {
-				if fmt.Sprint(ip) == parts[3] {
-					idExist = true
-					return v.(map[string]interface{}), nil
-				}
-			}
-		}
-	}
-
-	if !idExist {
-		return object, WrapErrorf(NotFoundErr("AliKafka:InstanceAllowedIpAttachment", id), NotFoundWithResponse, response)
-	}
-
-	return object, nil
+	return response, nil
 }
 
-func (s *AlikafkaService) DescribeAliKafkaInstance(id string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	action := "GetInstanceList"
-
-	client := s.client
-
-	request := map[string]interface{}{
-		"RegionId":   s.client.RegionId,
-		"InstanceId": []string{id},
-	}
-
-	idExist := false
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, true)
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) || NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
-	if err != nil {
-		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
-	}
-
-	resp, err := jsonpath.Get("$.InstanceList.InstanceVO", response)
-	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.InstanceList.InstanceVO", response)
-	}
-
-	if v, ok := resp.([]interface{}); !ok || len(v) < 1 {
-		return object, WrapErrorf(NotFoundErr("AliKafka:Instance", id), NotFoundWithResponse, response)
-	}
-
-	for _, v := range resp.([]interface{}) {
-		if fmt.Sprint(v.(map[string]interface{})["InstanceId"]) == id && fmt.Sprint(v.(map[string]interface{})["ServiceStatus"]) != "10" {
-			idExist = true
-			return v.(map[string]interface{}), nil
-		}
-	}
-
-	if !idExist {
-		return object, WrapErrorf(NotFoundErr("AliKafka:Instance", id), NotFoundWithResponse, response)
-	}
-
-	return object, nil
+// StartInstanceRequest 启动Kafka实例的请求结构
+type StartInstanceRequest struct {
+	RegionId       string
+	InstanceId     string
+	VSwitchId      string
+	VpcId          string
+	ZoneId         string
+	VSwitchIds     []string
+	DeployModule   string
+	IsEipInner     bool
+	Name           string
+	SecurityGroup  string
+	ServiceVersion string
+	Config         string
+	KMSKeyId       string
+	SelectedZones  string
+	CrossZone      bool
 }
 
-func (s *AlikafkaService) GetQuotaTip(instanceId string) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	client := s.client
+// StartInstance 启动Kafka实例
+// Note: This operation is not directly supported by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) StartInstance(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "StartInstance"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// ModifyInstanceNameRequest 修改实例名称的请求结构
+type ModifyInstanceNameRequest struct {
+	RegionId     string
+	InstanceId   string
+	InstanceName string
+}
+
+// ModifyInstanceName 修改Kafka实例名称
+// Note: This operation is not直接支持 by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) ModifyInstanceName(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "ModifyInstanceName"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// ConvertPostPayOrderRequest 转换后付费订单的请求结构
+type ConvertPostPayOrderRequest struct {
+	RegionId   string
+	InstanceId string
+}
+
+// ConvertPostPayOrder 转换后付费订单为预付费
+// Note: This operation is not directly supported by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) ConvertPostPayOrder(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "ConvertPostPayOrder"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// UpgradePostPayOrderRequest 升级后付费实例的请求结构
+type UpgradePostPayOrderRequest struct {
+	InstanceId   string
+	RegionId     string
+	PartitionNum int32
+	DiskSize     int32
+	IoMax        int32
+	IoMaxSpec    string
+	SpecType     string
+	EipMax       int32
+	EipModel     bool
+}
+
+// UpgradePostPayOrder 升级后付费Kafka实例
+// Note: This operation is not directly supported by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) UpgradePostPayOrder(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "UpgradePostPayOrder"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// UpgradePrePayOrder 升级预付费Kafka实例
+// Note: This operation is not直接支持 by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) UpgradePrePayOrder(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "UpgradePrePayOrder"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// UpgradeInstanceVersionRequest 升级实例版本的请求结构
+type UpgradeInstanceVersionRequest struct {
+	InstanceId    string
+	RegionId      string
+	TargetVersion string
+}
+
+// UpgradeInstanceVersion 升级Kafka实例版本
+// Note: This operation is not直接支持 by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) UpgradeInstanceVersion(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "UpgradeInstanceVersion"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// UpdateInstanceConfigRequest 更新实例配置的请求结构
+type UpdateInstanceConfigRequest struct {
+	RegionId   string
+	InstanceId string
+	Config     string
+}
+
+// UpdateInstanceConfig 更新Kafka实例配置
+// Note: This operation is not直接支持 by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) UpdateInstanceConfig(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "UpdateInstanceConfig"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// ChangeResourceGroupRequest 变更资源组的请求结构
+type ChangeResourceGroupRequest struct {
+	RegionId           string
+	ResourceId         string
+	NewResourceGroupId string
+}
+
+// ChangeResourceGroup 变更Kafka实例资源组
+// Note: This operation is not直接支持 by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) ChangeResourceGroup(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "ChangeResourceGroup"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// EnableAutoGroupCreationRequest 启用自动创建消费者组的请求结构
+type EnableAutoGroupCreationRequest struct {
+	RegionId   string
+	InstanceId string
+	Enable     bool
+}
+
+// EnableAutoGroupCreation 启用/禁用Kafka实例自动创建消费者组
+// Note: This operation is not直接支持 by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) EnableAutoGroupCreation(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "EnableAutoGroupCreation"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// EnableAutoTopicCreationRequest 启用自动创建主题的请求结构
+type EnableAutoTopicCreationRequest struct {
+	RegionId        string
+	InstanceId      string
+	Operate         string
+	PartitionNum    int32
+	UpdatePartition bool
+}
+
+// EnableAutoTopicCreation 启用/禁用Kafka实例自动创建主题
+// Note: This operation is not直接支持 by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) EnableAutoTopicCreation(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "EnableAutoTopicCreation"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// ReleaseInstanceRequest 释放实例的请求结构
+type ReleaseInstanceRequest struct {
+	InstanceId          string
+	RegionId            string
+	ForceDeleteInstance bool
+}
+
+// ReleaseInstance 释放Kafka实例（仅适用于后付费实例）
+// Note: This operation is not直接支持 by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) ReleaseInstance(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "ReleaseInstance"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// DeleteInstanceRequest 删除实例的请求结构
+type DeleteInstanceRequest struct {
+	InstanceId string
+	RegionId   string
+}
+
+// DeleteInstance 删除Kafka实例
+// Note: This operation is not直接支持 by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) DeleteInstance(request map[string]interface{}) (map[string]interface{}, error) {
+	action := "DeleteInstance"
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", action, AlibabaCloudSdkGoERROR)
+	}
+	return response, nil
+}
+
+// GetQuotaTip gets the Kafka instance quota information
+// Note: This operation is not directly supported by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) GetQuotaTip(instanceId string) (map[string]interface{}, error) {
 	action := "GetQuotaTip"
 	request := map[string]interface{}{
 		"RegionId":   s.client.RegionId,
 		"InstanceId": instanceId,
 	}
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
-		response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
+	response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, true)
 	if err != nil {
-		return object, WrapError(err)
+		return nil, WrapError(err)
 	}
+
 	v, err := jsonpath.Get("$.QuotaData", response)
 	if err != nil {
-		return object, WrapErrorf(err, FailedGetAttributeMsg, instanceId, "$.QuotaData", response)
+		return nil, WrapErrorf(err, FailedGetAttributeMsg, instanceId, "$.QuotaData", response)
 	}
 	return v.(map[string]interface{}), nil
 }
 
-func (s *AlikafkaService) DescribeAliKafkaInstanceByOrderId(orderId string, timeout int) (object map[string]interface{}, err error) {
-	var response map[string]interface{}
-	client := s.client
+// DescribeKafkaInstanceByOrderId describes a Kafka instance by order ID
+// Note: This operation is not directly supported by cws-lib-go yet,
+// so we fall back to the underlying SDK while maintaining service layer abstraction
+func (s *KafkaService) DescribeKafkaInstanceByOrderId(orderId string, timeout int) (map[string]interface{}, error) {
 	action := "GetInstanceList"
 	request := map[string]interface{}{
 		"RegionId": s.client.RegionId,
@@ -1210,38 +1219,75 @@ func (s *AlikafkaService) DescribeAliKafkaInstanceByOrderId(orderId string, time
 
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(10*time.Minute, func() *resource.RetryError {
-			response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, true)
-			if err != nil {
-				if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) || NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
+		response, err := s.client.RpcPost("alikafka", "2019-09-16", action, nil, request, true)
 		if err != nil {
-			return object, WrapErrorf(err, DefaultErrorMsg, orderId, action, AlibabaCloudSdkGoERROR)
+			return nil, WrapErrorf(err, DefaultErrorMsg, orderId, action, AlibabaCloudSdkGoERROR)
 		}
+
 		v, err := jsonpath.Get("$.InstanceList.InstanceVO", response)
 		if err != nil {
-			return object, WrapErrorf(err, FailedGetAttributeMsg, orderId, "$.InstanceList.InstanceVO", response)
+			return nil, WrapErrorf(err, FailedGetAttributeMsg, orderId, "$.InstanceList.InstanceVO", response)
 		}
+
 		for _, v := range v.([]interface{}) {
 			return v.(map[string]interface{}), nil
 		}
+
 		if time.Now().After(deadline) {
-			return object, WrapErrorf(NotFoundErr("AlikafkaInstance", orderId), NotFoundMsg, ProviderERROR)
+			return nil, WrapErrorf(NotFoundErr("AlikafkaInstance", orderId), NotFoundMsg, ProviderERROR)
 		}
+
+		time.Sleep(5 * time.Second)
 	}
 }
 
-func (s *AlikafkaService) AliKafkaInstanceStateRefreshFunc(id, attribute string, failStates []string) resource.StateRefreshFunc {
+// DescribeAliKafkaInstance gets Kafka instance details as map[string]interface{}
+// This method wraps the existing DescribeAlikafkaInstance method and converts the result
+func (s *KafkaService) DescribeAliKafkaInstance(id string) (object map[string]interface{}, err error) {
+	instance, err := s.DescribeAlikafkaInstance(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the InstanceVO to map[string]interface{}
+	object = make(map[string]interface{})
+	object["Name"] = instance.Name
+	object["DiskType"] = instance.DiskType
+	object["DiskSize"] = instance.DiskSize
+	object["DeployType"] = instance.DeployType
+	object["IoMax"] = instance.IoMax
+	object["IoMaxSpec"] = instance.IoMaxSpec
+	object["EipMax"] = instance.EipMax
+	object["ResourceGroupId"] = instance.ResourceGroupId
+	object["VpcId"] = instance.VpcId
+	object["VSwitchId"] = instance.VSwitchId
+	object["ZoneId"] = instance.ZoneId
+	object["PaidType"] = instance.PaidType
+	object["SpecType"] = instance.SpecType
+	object["SecurityGroup"] = instance.SecurityGroup
+	object["EndPoint"] = instance.EndPoint
+	object["SslEndPoint"] = instance.SslEndPoint
+	object["DomainEndpoint"] = instance.DomainEndpoint
+	object["SslDomainEndpoint"] = instance.SslDomainEndpoint
+	object["SaslDomainEndpoint"] = instance.SaslDomainEndpoint
+	object["ServiceStatus"] = instance.ServiceStatus
+	object["UpgradeServiceDetailInfo"] = instance.UpgradeServiceDetailInfo
+	object["AllConfig"] = instance.AllConfig
+	object["KmsKeyId"] = instance.KmsKeyId
+	// Note: Some fields may not exist in the InstanceVO struct, so we skip them for now
+	// object["AutoCreateGroupEnable"] = instance.AutoCreateGroupEnable
+	// object["AutoCreateTopicEnable"] = instance.AutoCreateTopicEnable
+	// object["DefaultPartitionNum"] = instance.DefaultPartitionNum
+	// object["VSwitchIds"] = instance.VSwitchIds
+	// object["CrossZone"] = instance.CrossZone
+
+	return object, nil
+}
+
+// AliKafkaInstanceStateRefreshFunc Kafka instance state refresh function
+func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id, attribute string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		object, err := s.DescribeAliKafkaInstance(id)
+		object, err := s.DescribeAlikafkaInstance(id)
 		if err != nil {
 			if IsNotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
@@ -1251,496 +1297,10 @@ func (s *AlikafkaService) AliKafkaInstanceStateRefreshFunc(id, attribute string,
 		}
 
 		for _, failState := range failStates {
-
 			if fmt.Sprint(object[attribute]) == failState {
 				return object, fmt.Sprint(object[attribute]), WrapError(Error(FailedToReachTargetStatus, fmt.Sprint(object[attribute])))
 			}
 		}
 		return object, fmt.Sprint(object[attribute]), nil
 	}
-}
-
-func (s *AlikafkaService) AliKafkaConsumerStateRefreshFunc(id, attribute string, failStates []string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		object, err := s.DescribeAliKafkaConsumerGroup(id)
-		if err != nil {
-			if IsNotFoundError(err) {
-				// Set this to nil as if we didn't find anything.
-				return nil, "", nil
-			}
-			return nil, "", WrapError(err)
-		}
-
-		for _, failState := range failStates {
-
-			if fmt.Sprint(object[attribute]) == failState {
-				return object, fmt.Sprint(object[attribute]), WrapError(Error(FailedToReachTargetStatus, fmt.Sprint(object[attribute])))
-			}
-		}
-		return object, fmt.Sprint(object[attribute]), nil
-	}
-}
-
-func (s *AlikafkaService) AliKafkaTopicStateRefreshFunc(id, attribute string, failStates []string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		object, err := s.DescribeAlikafkaTopic(id)
-		if err != nil {
-			if IsNotFoundError(err) {
-				// Set this to nil as if we didn't find anything.
-				return nil, "", nil
-			}
-			return nil, "", WrapError(err)
-		}
-		return object, "existing", nil
-	}
-}
-
-// DescribeKafkaInstance 获取Kafka实例详细信息
-func (s *KafkaService) DescribeKafkaInstance(id string) (*aliyunKafkaAPI.KafkaInstance, error) {
-	kafkaInstance, err := s.GetAPI().GetInstance(context.TODO(), id)
-	if err != nil {
-		if IsNotFoundError(err) {
-			return nil, WrapErrorf(err, NotFoundMsg, id)
-		}
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "DescribeKafkaInstance", AlibabaCloudSdkGoERROR)
-	}
-
-	// ServiceStatus等于10表示实例已释放，不返回实例
-	if kafkaInstance.Status == "10" {
-		return nil, WrapErrorf(NotFoundErr("KafkaInstance", id), NotFoundMsg, ProviderERROR)
-	}
-
-	return kafkaInstance, nil
-}
-
-// CreateKafkaInstanceRequest 创建Kafka实例的请求结构
-type CreateKafkaInstanceRequest struct {
-	RegionId        string
-	ZoneId          string
-	Name            string
-	DiskType        string
-	DiskSize        int32
-	IoMax           int32
-	SpecType        string
-	PaidType        int32
-	VpcId           string
-	VSwitchId       string
-	SecurityGroupId string
-}
-
-// CreateKafkaInstance 创建Kafka实例
-func (s *KafkaService) CreateKafkaInstance(request *CreateKafkaInstanceRequest) (*aliyunKafkaAPI.KafkaInstance, error) {
-	kafkaInstance := &aliyunKafkaAPI.KafkaInstance{
-		Name:     request.Name,
-		RegionId: request.RegionId,
-		ZoneId:   request.ZoneId,
-		DiskType: request.DiskType,
-		DiskSize: request.DiskSize,
-		IoMax:    request.IoMax,
-		SpecType: request.SpecType,
-		Version:  "2.2.0", // 默认版本
-	}
-
-	result, err := s.GetAPI().CreateInstance(context.TODO(), kafkaInstance)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "CreateKafkaInstance", AlibabaCloudSdkGoERROR)
-	}
-
-	return result, nil
-}
-
-// DeleteKafkaInstance 删除Kafka实例
-func (s *KafkaService) DeleteKafkaInstance(id string) error {
-	err := s.GetAPI().DeleteInstance(context.TODO(), id)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, id, "DeleteKafkaInstance", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
-}
-
-// KafkaInstanceStateRefreshFunc Kafka实例状态刷新函数
-func (s *KafkaService) KafkaInstanceStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		object, err := s.DescribeKafkaInstance(id)
-		if err != nil {
-			if IsNotFoundError(err) {
-				// Set this to nil as if we didn't find anything.
-				return nil, "", nil
-			}
-			return nil, "", WrapError(err)
-		}
-
-		for _, failState := range failStates {
-			if object.Status == failState {
-				return object, object.Status, WrapError(Error(FailedToReachTargetStatus, object.Status))
-			}
-		}
-		return object, object.Status, nil
-	}
-}
-
-// WaitForKafkaInstanceCreating 等待Kafka实例创建完成
-func (s *KafkaService) WaitForKafkaInstanceCreating(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{"Creating"},
-		[]string{"5"}, // 5表示运行中
-		timeout,
-		5*time.Second,
-		s.KafkaInstanceStateRefreshFunc(id, []string{"10"}), // 10表示已删除
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
-}
-
-// WaitForKafkaInstanceDeleting 等待Kafka实例删除完成
-func (s *KafkaService) WaitForKafkaInstanceDeleting(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{"Deleting"},
-		[]string{}, // 空字符串表示已删除
-		timeout,
-		5*time.Second,
-		s.KafkaInstanceStateRefreshFunc(id, []string{}),
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
-}
-
-// DescribeKafkaTopic 获取Kafka主题详细信息
-func (s *KafkaService) DescribeKafkaTopic(id string) (*aliyunKafkaAPI.KafkaTopic, error) {
-	instanceId, topicName, err := DecodeTopicId(id)
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	kafkaTopic, err := s.GetAPI().GetTopic(context.TODO(), instanceId, topicName)
-	if err != nil {
-		if IsNotFoundError(err) {
-			return nil, WrapErrorf(err, NotFoundMsg, id)
-		}
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "DescribeKafkaTopic", AlibabaCloudSdkGoERROR)
-	}
-
-	return kafkaTopic, nil
-}
-
-// CreateKafkaTopicRequest 创建Kafka主题的请求结构
-type CreateKafkaTopicRequest struct {
-	InstanceId   string
-	Topic        string
-	PartitionNum int32
-	Remark       string
-}
-
-// CreateKafkaTopic 创建Kafka主题
-func (s *KafkaService) CreateKafkaTopic(request *CreateKafkaTopicRequest) error {
-	kafkaTopic := &aliyunKafkaAPI.KafkaTopic{
-		InstanceId:   request.InstanceId,
-		Topic:        request.Topic,
-		PartitionNum: request.PartitionNum,
-		Remark:       request.Remark,
-		ReplicaNum:   3, // 默认副本数
-	}
-
-	err := s.GetAPI().CreateTopic(context.TODO(), kafkaTopic)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "kafka_topic", "CreateKafkaTopic", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
-}
-
-// DeleteKafkaTopic 删除Kafka主题
-func (s *KafkaService) DeleteKafkaTopic(id string) error {
-	instanceId, topicName, err := DecodeTopicId(id)
-	if err != nil {
-		return WrapError(err)
-	}
-
-	err = s.GetAPI().DeleteTopic(context.TODO(), instanceId, topicName)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, id, "DeleteKafkaTopic", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
-}
-
-// KafkaTopicStateRefreshFunc Kafka主题状态刷新函数
-func (s *KafkaService) KafkaTopicStateRefreshFunc(id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		object, err := s.DescribeKafkaTopic(id)
-		if err != nil {
-			if IsNotFoundError(err) {
-				// Set this to nil as if we didn't find anything.
-				return nil, "", nil
-			}
-			return nil, "", WrapError(err)
-		}
-
-		// For topics, we consider them "existing" if we can describe them
-		return object, "existing", nil
-	}
-}
-
-// WaitForKafkaTopicCreating 等待Kafka主题创建完成
-func (s *KafkaService) WaitForKafkaTopicCreating(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{},
-		[]string{"existing"},
-		timeout,
-		5*time.Second,
-		s.KafkaTopicStateRefreshFunc(id),
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
-}
-
-// WaitForKafkaTopicDeleting 等待Kafka主题删除完成
-func (s *KafkaService) WaitForKafkaTopicDeleting(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{"existing"},
-		[]string{}, // 空字符串表示已删除
-		timeout,
-		5*time.Second,
-		s.KafkaTopicStateRefreshFunc(id),
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
-}
-
-// DescribeKafkaConsumerGroup 获取Kafka消费者组详细信息
-func (s *KafkaService) DescribeKafkaConsumerGroup(id string) (*aliyunKafkaAPI.ConsumerGroup, error) {
-	instanceId, consumerId, err := DecodeConsumerGroupId(id)
-	if err != nil {
-		return nil, WrapError(err)
-	}
-
-	consumerGroup, err := s.GetAPI().GetConsumerGroup(context.TODO(), instanceId, consumerId)
-	if err != nil {
-		if IsNotFoundError(err) {
-			return nil, WrapErrorf(err, NotFoundMsg, id)
-		}
-		return nil, WrapErrorf(err, DefaultErrorMsg, id, "DescribeKafkaConsumerGroup", AlibabaCloudSdkGoERROR)
-	}
-
-	return consumerGroup, nil
-}
-
-// CreateKafkaConsumerGroupRequest 创建Kafka消费者组的请求结构
-type CreateKafkaConsumerGroupRequest struct {
-	InstanceId string
-	ConsumerId string
-	Remark     string
-}
-
-// CreateKafkaConsumerGroup 创建Kafka消费者组
-func (s *KafkaService) CreateKafkaConsumerGroup(request *CreateKafkaConsumerGroupRequest) error {
-	_, err := s.GetAPI().CreateConsumerGroup(context.TODO(), request.InstanceId, s.client.RegionId, request.ConsumerId, request.Remark, nil)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "kafka_consumer_group", "CreateKafkaConsumerGroup", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
-}
-
-// DeleteKafkaConsumerGroup 删除Kafka消费者组
-func (s *KafkaService) DeleteKafkaConsumerGroup(id string) error {
-	instanceId, consumerId, err := DecodeConsumerGroupId(id)
-	if err != nil {
-		return WrapError(err)
-	}
-
-	err = s.GetAPI().DeleteConsumerGroup(context.TODO(), instanceId, s.client.RegionId, consumerId)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, id, "DeleteKafkaConsumerGroup", AlibabaCloudSdkGoERROR)
-	}
-
-	return nil
-}
-
-// KafkaConsumerGroupStateRefreshFunc Kafka消费者组状态刷新函数
-func (s *KafkaService) KafkaConsumerGroupStateRefreshFunc(id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		object, err := s.DescribeKafkaConsumerGroup(id)
-		if err != nil {
-			if IsNotFoundError(err) {
-				// Set this to nil as if we didn't find anything.
-				return nil, "", nil
-			}
-			return nil, "", WrapError(err)
-		}
-
-		// For consumer groups, we consider them "existing" if we can describe them
-		return object, "existing", nil
-	}
-}
-
-// WaitForKafkaConsumerGroupCreating 等待Kafka消费者组创建完成
-func (s *KafkaService) WaitForKafkaConsumerGroupCreating(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{},
-		[]string{"existing"},
-		timeout,
-		5*time.Second,
-		s.KafkaConsumerGroupStateRefreshFunc(id),
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
-}
-
-// WaitForKafkaConsumerGroupDeleting 等待Kafka消费者组删除完成
-func (s *KafkaService) WaitForKafkaConsumerGroupDeleting(id string, timeout time.Duration) error {
-	stateConf := BuildStateConf(
-		[]string{"existing"},
-		[]string{}, // 空字符串表示已删除
-		timeout,
-		5*time.Second,
-		s.KafkaConsumerGroupStateRefreshFunc(id),
-	)
-	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, id)
-}
-
-// DescribeKafkaSaslUser 获取Kafka SASL用户详细信息
-// 注意：当前 cws-lib-go 版本中未实现 SASL 用户管理功能，暂时返回未找到错误
-func (s *KafkaService) DescribeKafkaSaslUser(id string) (*aliyunKafkaAPI.ConsumerGroup, error) {
-	// 暂时返回未找到错误，因为 cws-lib-go 中未实现 SASL 用户管理功能
-	return nil, WrapErrorf(Error(NotFoundMsg, ProviderERROR), "[ERROR] KafkaSaslUser not found: %s", id)
-}
-
-// CreateKafkaSaslUserRequest 创建Kafka SASL用户的请求结构
-// 注意：当前 cws-lib-go 版本中未实现 SASL 用户管理功能
-type CreateKafkaSaslUserRequest struct {
-	InstanceId string
-	Username   string
-	Password   string
-	Mechanism  string
-}
-
-// CreateKafkaSaslUser 创建Kafka SASL用户
-// 注意：当前 cws-lib-go 版本中未实现 SASL 用户管理功能
-func (s *KafkaService) CreateKafkaSaslUser(request *CreateKafkaSaslUserRequest) error {
-	// 暂时不实现，因为 cws-lib-go 中未实现 SASL 用户管理功能
-	return WrapErrorf(Error("NotImplemented"), "SaslUser management not implemented in current cws-lib-go version")
-}
-
-// DeleteKafkaSaslUser 删除Kafka SASL用户
-// 注意：当前 cws-lib-go 版本中未实现 SASL 用户管理功能
-func (s *KafkaService) DeleteKafkaSaslUser(id string) error {
-	// 暂时不实现，因为 cws-lib-go 中未实现 SASL 用户管理功能
-	return WrapErrorf(Error("NotImplemented"), "SaslUser management not implemented in current cws-lib-go version")
-}
-
-// DescribeKafkaSaslAcl 获取Kafka SASL ACL详细信息
-// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能，暂时返回未找到错误
-func (s *KafkaService) DescribeKafkaSaslAcl(id string) (*aliyunKafkaAPI.ConsumerGroup, error) {
-	// 暂时返回未找到错误，因为 cws-lib-go 中未实现 ACL 管理功能
-	return nil, WrapErrorf(Error(NotFoundMsg, ProviderERROR), "[ERROR] KafkaSaslAcl not found: %s", id)
-}
-
-// CreateKafkaSaslAclRequest 创建Kafka SASL ACL的请求结构
-// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
-type CreateKafkaSaslAclRequest struct {
-	InstanceId             string
-	Username               string
-	AclResourceType        string
-	AclResourceName        string
-	AclResourcePatternType string
-	AclOperationType       string
-}
-
-// CreateKafkaSaslAcl 创建Kafka SASL ACL
-// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
-func (s *KafkaService) CreateKafkaSaslAcl(request *CreateKafkaSaslAclRequest) error {
-	// 暂时不实现，因为 cws-lib-go 中未实现 ACL 管理功能
-	return WrapErrorf(Error("NotImplemented"), "SaslAcl management not implemented in current cws-lib-go version")
-}
-
-// DeleteKafkaSaslAcl 删除Kafka SASL ACL
-// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
-func (s *KafkaService) DeleteKafkaSaslAcl(id string) error {
-	// 暂时不实现，因为 cws-lib-go 中未实现 ACL 管理功能
-	return WrapErrorf(Error("NotImplemented"), "SaslAcl management not implemented in current cws-lib-go version")
-}
-
-// KafkaSaslAclStateRefreshFunc Kafka SASL ACL状态刷新函数
-// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
-func (s *KafkaService) KafkaSaslAclStateRefreshFunc(id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		// 暂时返回未找到错误，因为 cws-lib-go 中未实现 ACL 管理功能
-		return nil, "", WrapErrorf(Error(NotFoundMsg, ProviderERROR), "[ERROR] KafkaSaslAcl not found: %s", id)
-	}
-}
-
-// WaitForKafkaSaslAclCreating 等待Kafka SASL ACL创建完成
-// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
-func (s *KafkaService) WaitForKafkaSaslAclCreating(id string, timeout time.Duration) error {
-	// 暂时不实现，因为 cws-lib-go 中未实现 ACL 管理功能
-	return WrapErrorf(Error("NotImplemented"), "SaslAcl management not implemented in current cws-lib-go version")
-}
-
-// WaitForKafkaSaslAclDeleting 等待Kafka SASL ACL删除完成
-// 注意：当前 cws-lib-go 版本中未实现 ACL 管理功能
-func (s *KafkaService) WaitForKafkaSaslAclDeleting(id string, timeout time.Duration) error {
-	// 暂时不实现，因为 cws-lib-go 中未实现 ACL 管理功能
-	return WrapErrorf(Error("NotImplemented"), "SaslAcl management not implemented in current cws-lib-go version")
-}
-
-// DescribeKafkaAllowedIp 获取Kafka 允许 IP 详细信息
-// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能，暂时返回未找到错误
-func (s *KafkaService) DescribeKafkaAllowedIp(id string) (*aliyunKafkaAPI.ConsumerGroup, error) {
-	// 暂时返回未找到错误，因为 cws-lib-go 中未实现允许 IP 管理功能
-	return nil, WrapErrorf(Error(NotFoundMsg, ProviderERROR), "[ERROR] KafkaAllowedIp not found: %s", id)
-}
-
-// CreateKafkaAllowedIpRequest 创建Kafka 允许 IP 的请求结构
-// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
-type CreateKafkaAllowedIpRequest struct {
-	InstanceId  string
-	AllowedType string
-	PortRange   string
-	IpAddress   string
-}
-
-// CreateKafkaAllowedIp 创建Kafka 允许 IP
-// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
-func (s *KafkaService) CreateKafkaAllowedIp(request *CreateKafkaAllowedIpRequest) error {
-	// 暂时不实现，因为 cws-lib-go 中未实现允许 IP 管理功能
-	return WrapErrorf(Error("NotImplemented"), "AllowedIp management not implemented in current cws-lib-go version")
-}
-
-// DeleteKafkaAllowedIp 删除Kafka 允许 IP
-// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
-func (s *KafkaService) DeleteKafkaAllowedIp(id string) error {
-	// 暂时不实现，因为 cws-lib-go 中未实现允许 IP 管理功能
-	return WrapErrorf(Error("NotImplemented"), "AllowedIp management not implemented in current cws-lib-go version")
-}
-
-// KafkaAllowedIpStateRefreshFunc Kafka 允许 IP 状态刷新函数
-// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
-func (s *KafkaService) KafkaAllowedIpStateRefreshFunc(id string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		// 暂时返回未找到错误，因为 cws-lib-go 中未实现允许 IP 管理功能
-		return nil, "", WrapErrorf(Error(NotFoundMsg, ProviderERROR), "[ERROR] KafkaAllowedIp not found: %s", id)
-	}
-}
-
-// WaitForKafkaAllowedIpCreating 等待Kafka 允许 IP 创建完成
-// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
-func (s *KafkaService) WaitForKafkaAllowedIpCreating(id string, timeout time.Duration) error {
-	// 暂时不实现，因为 cws-lib-go 中未实现允许 IP 管理功能
-	return WrapErrorf(Error("NotImplemented"), "AllowedIp management not implemented in current cws-lib-go version")
-}
-
-// WaitForKafkaAllowedIpDeleting 等待Kafka 允许 IP 删除完成
-// 注意：当前 cws-lib-go 版本中未实现允许 IP 管理功能
-func (s *KafkaService) WaitForKafkaAllowedIpDeleting(id string, timeout time.Duration) error {
-	// 暂时不实现，因为 cws-lib-go 中未实现允许 IP 管理功能
-	return WrapErrorf(Error("NotImplemented"), "AllowedIp management not implemented in current cws-lib-go version")
-}
-
-// KafkaService wraps the cws-lib-go KafkaAPI for Terraform provider usage
-type KafkaService struct {
-	client   *connectivity.AliyunClient
-	kafkaAPI *aliyunKafkaAPI.KafkaAPI
 }

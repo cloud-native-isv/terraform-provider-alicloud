@@ -211,14 +211,14 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 The `/speckit.checklist` command automatically integrates with the feature tracking system:
 
-- If a `.specify.specify/memory/features.md` file exists, the command will:
+- If a `.specify/memory/features.md` file exists, the command will:
   - Detect the current feature directory (format: `.specify/specs/###-feature-name/`)
   - Extract the feature ID from the directory name
-  - Update the corresponding feature entry in `.specify.specify/memory/features.md`:
+  - Update the corresponding feature entry in `.specify/memory/features.md`:
     - Change status from "Implemented" to "Ready for Review"
     - Keep the specification path unchanged
     - Update the "Last Updated" date
-  - Automatically stage the changes to `.specify.specify/memory/features.md` for git commit
+  - Automatically stage the changes to `.specify/memory/features.md` for git commit
 
 This integration ensures that all feature checklist activities are properly tracked and linked to their corresponding entries in the project's feature index.
 
