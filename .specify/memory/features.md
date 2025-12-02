@@ -1,11 +1,15 @@
-# [PROJECT_NAME] Feature Index
+# Terraform Provider For Alibaba Cloud Feature Index
 
-**Last Updated**: [LAST_UPDATED_DATE]
-**Total Features**: [FEATURE_COUNT]
+**Last Updated**: 2025-12-02
+**Total Features**: 3
 
 ## Features
 
-[FEATURE_ENTRIES]
+| ID | Name | Description | Status | Spec Path | Last Updated |
+|----|------|-------------|--------|-----------|--------------|
+| 001 | VPC Resources Update | 更新VPC相关资源以使用新的CWS-Lib-Go API | Draft | .specify/specs/001-cws-data-cws/spec.md | 2025-11-04 |
+| 002 | Kafka Provider Refactoring | Kafka Provider重构 | Draft | .specify/specs/002-refactor-kafka-provider/spec.md | 2025-11-17 |
+| 003 | Kafka Instance API Refactor | 重构Kafka实例API，将client.RpcPost调用替换为cws-lib-go API的方法 | Implemented | .specify/specs/003-refactor-kafka-instance/spec.md | 2025-12-02 |
 
 ## Feature Entry Format
 
@@ -25,22 +29,3 @@ Each feature entry should follow this format in the table:
 | Status | Current implementation status (Draft, Planned, Implemented, Ready for Review, Completed) |
 | Spec Path | Path to specification file or "(Not yet created)" if not yet created |
 | Last Updated | When the feature entry was last modified (YYYY-MM-DD format) |
-
-## Template Usage Instructions
-
-This template contains placeholder tokens in square brackets (e.g., `[PROJECT_NAME]`, `[FEATURE_COUNT]`). 
-When generating the actual feature index:
-
-1. Replace `[PROJECT_NAME]` with the actual project name
-2. Replace `[LAST_UPDATED_DATE]` with current date in YYYY-MM-DD format
-3. Replace `[FEATURE_COUNT]` with the actual number of features
-4. Replace `[FEATURE_ENTRIES]` with the complete Markdown table containing all feature entries
-5. Each individual feature entry should have its placeholders replaced accordingly:
-   - `[FEATURE_ID]`: Sequential three-digit ID
-   - `[FEATURE_NAME]`: Short descriptive name (2-4 words)
-   - `[FEATURE_DESCRIPTION]`: Brief feature description
-   - `[FEATURE_STATUS]`: Current status (Draft, Planned, etc.)
-   - `[SPEC_PATH]`: Path to spec file or "(Not yet created)"
-   - `[FEATURE_LAST_UPDATED]`: Feature-specific last updated date
-
-Ensure all placeholder tokens are replaced before finalizing the feature index.

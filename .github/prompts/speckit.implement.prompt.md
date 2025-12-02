@@ -1,3 +1,5 @@
+> Note: `$ARGUMENTS` 为**可选补充输入**。当本次调用未提供任何 `$ARGUMENTS` 时，仍须按下文流程基于 `tasks.md`、`plan.md` 等设计文档完整执行实现与校验；仅在 `$ARGUMENTS` 非空时，将其视为对实现范围或优先级的附加约束。 
+
 ## User Input
 
 ```text
@@ -8,7 +10,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. Run `|` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
    - Scan all checklist files in the checklists/ directory
@@ -60,7 +62,8 @@ You **MUST** consider the user input before proceeding (if not empty).
      ```
 
    - Check if Dockerfile* exists or Docker in plan.md → create/verify .dockerignore
-   - Check if .eslintrc*or eslint.config.* exists → create/verify .eslintignore
+   - Check if .eslintrc* exists → create/verify .eslintignore
+   - Check if eslint.config.* exists → ensure the config's `ignores` entries cover required patterns
    - Check if .prettierrc* exists → create/verify .prettierignore
    - Check if .npmrc or package.json exists → create/verify .npmignore (if publishing)
    - Check if terraform files (*.tf) exist → create/verify .terraformignore
@@ -131,14 +134,14 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 The `/speckit.implement` command automatically integrates with the feature tracking system:
 
-- If a `.specify/memory/features.md` file exists, the command will:
+- If a `.specify/memory/feature-index.md` file exists, the command will:
   - Detect the current feature directory (format: `.specify/specs/###-feature-name/`)
   - Extract the feature ID from the directory name
-  - Update the corresponding feature entry in `.specify/memory/features.md`:
+  - Update the corresponding feature entry in `.specify/memory/feature-index.md`:
     - Ensure status remains "Implemented" (maintains status from planning phase)
     - Keep the specification path unchanged
     - Update the "Last Updated" date
-  - Automatically stage the changes to `.specify/memory/features.md` for git commit
+  - Automatically stage the changes to `.specify/memory/feature-index.md` for git commit
 
 This integration ensures that all feature implementation activities are properly tracked and linked to their corresponding entries in the project's feature index.
 

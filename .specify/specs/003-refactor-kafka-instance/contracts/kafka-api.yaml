@@ -1,0 +1,525 @@
+openapi: 3.0.0
+info:
+  title: Alibaba Cloud Kafka API
+  version: 1.0.0
+  description: API contracts for Kafka instance management in Terraform Provider
+
+paths:
+  /kafka/instances:
+    post:
+      summary: Create Kafka Instance Order
+      operationId: createKafkaInstanceOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/CreatePostPayOrderRequest'
+                - $ref: '#/components/schemas/CreatePrePayOrderRequest'
+      responses:
+        '200':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+  /kafka/instances/{instanceId}/start:
+    post:
+      summary: Start Kafka Instance
+      operationId: startKafkaInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartInstanceRequest'
+      responses:
+        '200':
+          description: Instance started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+
+  /kafka/instances/{instanceId}:
+    get:
+      summary: Get Kafka Instance Details
+      operationId: getKafkaInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Instance details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KafkaInstance'
+    put:
+      summary: Update Kafka Instance
+      operationId: updateKafkaInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/ModifyInstanceNameRequest'
+                - $ref: '#/components/schemas/UpdateInstanceConfigRequest'
+                - $ref: '#/components/schemas/ChangeResourceGroupRequest'
+                - $ref: '#/components/schemas/EnableAutoGroupCreationRequest'
+                - $ref: '#/components/schemas/EnableAutoTopicCreationRequest'
+      responses:
+        '200':
+          description: Instance updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+    delete:
+      summary: Delete Kafka Instance
+      operationId: deleteKafkaInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Instance deletion initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+
+  /kafka/instances/{instanceId}/upgrade:
+    post:
+      summary: Upgrade Kafka Instance
+      operationId: upgradeKafkaInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/UpgradePostPayOrderRequest'
+                - $ref: '#/components/schemas/UpgradePrePayOrderRequest'
+                - $ref: '#/components/schemas/UpgradeInstanceVersionRequest'
+      responses:
+        '200':
+          description: Instance upgrade initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+
+  /kafka/instances/{instanceId}/convert:
+    post:
+      summary: Convert PostPaid to PrePaid
+      operationId: convertPostPayOrder
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConvertPostPayOrderRequest'
+      responses:
+        '200':
+          description: Order conversion initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+
+components:
+  schemas:
+    CreatePostPayOrderRequest:
+      type: object
+      properties:
+        regionId:
+          type: string
+        partitionNum:
+          type: integer
+          format: int32
+        topicQuota:
+          type: integer
+          format: int32
+        diskType:
+          type: integer
+          format: int32
+        diskSize:
+          type: integer
+          format: int32
+        deployType:
+          type: integer
+          format: int32
+        ioMax:
+          type: integer
+          format: int32
+        ioMaxSpec:
+          type: string
+        specType:
+          type: string
+        eipMax:
+          type: integer
+          format: int32
+        resourceGroupId:
+          type: string
+      required:
+        - regionId
+        - diskType
+        - diskSize
+        - deployType
+
+    CreatePrePayOrderRequest:
+      type: object
+      properties:
+        regionId:
+          type: string
+        partitionNum:
+          type: integer
+          format: int32
+        topicQuota:
+          type: integer
+          format: int32
+        diskType:
+          type: integer
+          format: int32
+        diskSize:
+          type: integer
+          format: int32
+        deployType:
+          type: integer
+          format: int32
+        ioMax:
+          type: integer
+          format: int32
+        ioMaxSpec:
+          type: string
+        specType:
+          type: string
+        eipMax:
+          type: integer
+          format: int32
+        resourceGroupId:
+          type: string
+      required:
+        - regionId
+        - diskType
+        - diskSize
+        - deployType
+
+    StartInstanceRequest:
+      type: object
+      properties:
+        regionId:
+          type: string
+        instanceId:
+          type: string
+        vSwitchId:
+          type: string
+        vpcId:
+          type: string
+        zoneId:
+          type: string
+        vSwitchIds:
+          type: array
+          items:
+            type: string
+        deployModule:
+          type: string
+        isEipInner:
+          type: boolean
+        name:
+          type: string
+        securityGroup:
+          type: string
+        serviceVersion:
+          type: string
+        config:
+          type: string
+        kmsKeyId:
+          type: string
+        selectedZones:
+          type: string
+        crossZone:
+          type: boolean
+      required:
+        - regionId
+        - instanceId
+        - vSwitchId
+
+    ModifyInstanceNameRequest:
+      type: object
+      properties:
+        regionId:
+          type: string
+        instanceId:
+          type: string
+        instanceName:
+          type: string
+      required:
+        - regionId
+        - instanceId
+        - instanceName
+
+    UpdateInstanceConfigRequest:
+      type: object
+      properties:
+        regionId:
+          type: string
+        instanceId:
+          type: string
+        config:
+          type: string
+      required:
+        - regionId
+        - instanceId
+
+    ChangeResourceGroupRequest:
+      type: object
+      properties:
+        regionId:
+          type: string
+        resourceId:
+          type: string
+        newResourceGroupId:
+          type: string
+      required:
+        - regionId
+        - resourceId
+        - newResourceGroupId
+
+    EnableAutoGroupCreationRequest:
+      type: object
+      properties:
+        regionId:
+          type: string
+        instanceId:
+          type: string
+        enable:
+          type: boolean
+      required:
+        - regionId
+        - instanceId
+        - enable
+
+    EnableAutoTopicCreationRequest:
+      type: object
+      properties:
+        regionId:
+          type: string
+        instanceId:
+          type: string
+        operate:
+          type: string
+        partitionNum:
+          type: integer
+          format: int32
+        updatePartition:
+          type: boolean
+      required:
+        - regionId
+        - instanceId
+
+    UpgradePostPayOrderRequest:
+      type: object
+      properties:
+        instanceId:
+          type: string
+        regionId:
+          type: string
+        partitionNum:
+          type: integer
+          format: int32
+        diskSize:
+          type: integer
+          format: int32
+        ioMax:
+          type: integer
+          format: int32
+        ioMaxSpec:
+          type: string
+        specType:
+          type: string
+        eipMax:
+          type: integer
+          format: int32
+        eipModel:
+          type: boolean
+      required:
+        - instanceId
+        - regionId
+
+    UpgradePrePayOrderRequest:
+      type: object
+      properties:
+        instanceId:
+          type: string
+        regionId:
+          type: string
+        partitionNum:
+          type: integer
+          format: int32
+        diskSize:
+          type: integer
+          format: int32
+        ioMax:
+          type: integer
+          format: int32
+        ioMaxSpec:
+          type: string
+        specType:
+          type: string
+        eipMax:
+          type: integer
+          format: int32
+        eipModel:
+          type: boolean
+      required:
+        - instanceId
+        - regionId
+
+    UpgradeInstanceVersionRequest:
+      type: object
+      properties:
+        regionId:
+          type: string
+        instanceId:
+          type: string
+        targetVersion:
+          type: string
+      required:
+        - regionId
+        - instanceId
+        - targetVersion
+
+    ConvertPostPayOrderRequest:
+      type: object
+      properties:
+        regionId:
+          type: string
+        instanceId:
+          type: string
+      required:
+        - regionId
+        - instanceId
+
+    OrderResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        orderId:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+
+    StandardResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        code:
+          type: string
+        message:
+          type: string
+
+    KafkaInstance:
+      type: object
+      properties:
+        instanceId:
+          type: string
+        name:
+          type: string
+        diskType:
+          type: integer
+          format: int32
+        diskSize:
+          type: integer
+          format: int32
+        deployType:
+          type: integer
+          format: int32
+        partitionNum:
+          type: integer
+          format: int32
+        ioMax:
+          type: integer
+          format: int32
+        ioMaxSpec:
+          type: string
+        eipMax:
+          type: integer
+          format: int32
+        resourceGroupId:
+          type: string
+        vpcId:
+          type: string
+        vSwitchId:
+          type: string
+        zoneId:
+          type: string
+        specType:
+          type: string
+        securityGroup:
+          type: string
+        endPoint:
+          type: string
+        sslEndPoint:
+          type: string
+        domainEndpoint:
+          type: string
+        sslDomainEndpoint:
+          type: string
+        saslDomainEndpoint:
+          type: string
+        serviceStatus:
+          type: integer
+          format: int32
+        allConfig:
+          type: string
+        kmsKeyId:
+          type: string
+        autoCreateGroupEnable:
+          type: boolean
+        autoCreateTopicEnable:
+          type: boolean
+        defaultPartitionNum:
+          type: integer
+          format: int32
+        paidType:
+          type: integer
+          format: int32

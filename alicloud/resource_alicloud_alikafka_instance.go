@@ -253,7 +253,6 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	vpcService := VpcService{client}
 
 	// 1. Create order
-	var createOrderAction string
 	var createOrderResponse map[string]interface{}
 	createOrderReq := make(map[string]interface{})
 	createOrderReq["RegionId"] = client.RegionId
@@ -291,27 +290,25 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	if v, ok := d.GetOk("paid_type"); ok {
 		switch v.(string) {
 		case "PostPaid":
-			createOrderAction = "CreatePostPayOrder"
 			createOrderResponse, err = kafkaService.CreatePostPayOrder(createOrderReq)
 			if err != nil {
 				return err
 			}
-			addDebug(createOrderAction, createOrderResponse, createOrderReq)
+			addDebug("CreatePostPayOrder", createOrderResponse, createOrderReq)
 
 			if fmt.Sprint(createOrderResponse["Success"]) == "false" {
-				return WrapError(fmt.Errorf("%s failed, response: %v", createOrderAction, createOrderResponse))
+				return WrapError(fmt.Errorf("%s failed, response: %v", "CreatePostPayOrder", createOrderResponse))
 			}
 
 		case "PrePaid":
-			createOrderAction = "CreatePrePayOrder"
 			createOrderResponse, err = kafkaService.CreatePrePayOrder(createOrderReq)
 			if err != nil {
 				return err
 			}
-			addDebug(createOrderAction, createOrderResponse, createOrderReq)
+			addDebug("CreatePrePayOrder", createOrderResponse, createOrderReq)
 
 			if fmt.Sprint(createOrderResponse["Success"]) == "false" {
-				return WrapError(fmt.Errorf("%s failed, response: %v", createOrderAction, createOrderResponse))
+				return WrapError(fmt.Errorf("%s failed, response: %v", "CreatePrePayOrder", createOrderResponse))
 			}
 		}
 	}
@@ -321,13 +318,12 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		return WrapError(err)
 	}
 
-	d.SetId(fmt.Sprint(alikafkaInstanceVO["InstanceId"]))
+	d.SetId(fmt.Sprint(alikafkaInstanceVO.InstanceId))
 
 	// 2. Start instance
-	startInstanceAction := "StartInstance"
 	startInstanceReq := make(map[string]interface{})
 	startInstanceReq["RegionId"] = client.RegionId
-	startInstanceReq["InstanceId"] = alikafkaInstanceVO["InstanceId"]
+	startInstanceReq["InstanceId"] = alikafkaInstanceVO.InstanceId
 	startInstanceReq["VSwitchId"] = d.Get("vswitch_id")
 
 	if v, ok := d.GetOk("vpc_id"); ok {
@@ -345,7 +341,7 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		}
 
 		if v, ok := startInstanceReq["VpcId"].(string); !ok || v == "" {
-			startInstanceReq["VpcId"] = vsw["VpcId"]
+			startInstanceReq["VpcId"] = vsw.VpcId
 		}
 	}
 
@@ -389,14 +385,14 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	addDebug(startInstanceAction, startInstanceResponse, startInstanceReq)
+	addDebug("StartInstance", startInstanceResponse, startInstanceReq)
 
 	if fmt.Sprint(startInstanceResponse["Success"]) == "false" {
-		return WrapError(fmt.Errorf("%s failed, response: %v", startInstanceAction, startInstanceResponse))
+		return WrapError(fmt.Errorf("%s failed, response: %v", "StartInstance", startInstanceResponse))
 	}
 
 	// 3. wait until running
-	stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+	stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -551,7 +547,7 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			}
 			addDebug("ConvertPostPayOrder", response, request)
 
-			stateConf := BuildStateConf([]string{}, []string{strconv.Itoa(newPaidTypeInt)}, d.Timeout(schema.TimeoutUpdate), 1*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "PaidType", []string{}))
+			stateConf := BuildStateConf([]string{}, []string{strconv.Itoa(newPaidTypeInt)}, d.Timeout(schema.TimeoutUpdate), 1*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 			if _, err := stateConf.WaitForState(); err != nil {
 				return WrapErrorf(err, IdMsg, d.Id())
 			}
@@ -634,29 +630,29 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
 		}
 
-		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("disk_size"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "DiskSize", []string{}))
+		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("disk_size"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 
 		if d.HasChange("io_max") {
-			stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("io_max"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "IoMax", []string{}))
+			stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("io_max"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 			if _, err := stateConf.WaitForState(); err != nil {
 				return WrapErrorf(err, IdMsg, d.Id())
 			}
 		}
 
-		stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("eip_max"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "EipMax", []string{}))
+		stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("eip_max"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 
-		stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("spec_type"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "SpecType", []string{}))
+		stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("spec_type"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 
-		stateConf = BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+		stateConf = BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -692,7 +688,7 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 		// wait for upgrade task be invoke
 		time.Sleep(60 * time.Second)
 		// upgrade service may be last a long time
-		stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+		stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -720,7 +716,7 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 		}
 
 		// wait for upgrade task be invoke
-		stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+		stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
@@ -873,7 +869,7 @@ func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interfa
 		return WrapError(fmt.Errorf("ReleaseInstance failed, response: %v", response))
 	}
 
-	stateConf := BuildStateConf([]string{}, []string{"15"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+	stateConf := BuildStateConf([]string{}, []string{"15"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -893,7 +889,7 @@ func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interfa
 		return WrapError(fmt.Errorf("DeleteInstance failed, response: %v", response))
 	}
 
-	stateConf = BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
+	stateConf = BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}

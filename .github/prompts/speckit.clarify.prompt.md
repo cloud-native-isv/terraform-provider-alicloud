@@ -1,3 +1,5 @@
+> Note: `$ARGUMENTS` 为**可选补充输入**。当本次调用未提供任何 `$ARGUMENTS` 时，仍须按下文流程基于当前 `FEATURE_SPEC` 自动识别高价值模糊点并提问；仅在 `$ARGUMENTS` 非空时，将其作为澄清优先级或范围的附加信号一并考虑。
+
 ## User Input
 
 ```text

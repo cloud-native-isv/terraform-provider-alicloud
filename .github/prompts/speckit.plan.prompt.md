@@ -1,3 +1,5 @@
+> Note: `$ARGUMENTS` 为**可选补充输入**。当本次调用未提供任何 `$ARGUMENTS` 时，仍须按下文流程基于当前 `FEATURE_SPEC` 与 `/.specify/memory/constitution.md` 生成或更新实施计划及相关设计产物；仅在 `$ARGUMENTS` 非空时，将其视为本次规划的额外偏好或限制条件。 
+
 ## User Input
 
 ```text
@@ -8,9 +10,9 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. **Setup**: Run `|` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Setup**: Run `.specify/scripts/bash/create-new-plan.sh --json` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
-2. **Load context**: Read FEATURE_SPEC and `.specify/memory/constitution.md`. Load IMPL_PLAN template (already copied).
+2. **Load context**: Read FEATURE_SPEC and `/.specify/memory/constitution.md`. Load IMPL_PLAN template (already copied).
 
 3. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
    - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
@@ -27,14 +29,14 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 The `/speckit.plan` command automatically integrates with the feature tracking system:
 
-- If a `.specify/memory/features.md` file exists, the command will:
+- If a `.specify/memory/feature-index.md` file exists, the command will:
   - Detect the current feature directory (format: `.specify/specs/###-feature-name/`)
   - Extract the feature ID from the directory name
-  - Update the corresponding feature entry in `.specify/memory/features.md`:
+  - Update the corresponding feature entry in `.specify/memory/feature-index.md`:
     - Change status from "Planned" to "Implemented"
     - Keep the specification path unchanged
     - Update the "Last Updated" date
-  - Automatically stage the changes to `.specify/memory/features.md` for git commit
+  - Automatically stage the changes to `.specify/memory/feature-index.md` for git commit
 
 This integration ensures that all feature planning activities are properly tracked and linked to their corresponding entries in the project's feature index.
 

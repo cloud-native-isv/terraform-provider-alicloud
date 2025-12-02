@@ -1,3 +1,5 @@
+> Note: `$ARGUMENTS` 为**可选补充输入**。当本次调用未提供任何 `$ARGUMENTS` 时，必须仍然按下文定义的完整流程执行，基于现有仓库与 feature 上下文做决策；仅在 `$ARGUMENTS` 非空时，将其作为额外约束或偏好一并考虑。
+
 ## User Input
 
 ```text
@@ -8,7 +10,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-The text the user typed after `/speckit.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `{ARGUMENTS}` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
+The text the user typed after `/speckit.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `{ARGS}` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
 
 Given that feature description, do this:
 
@@ -24,16 +26,67 @@ Given that feature description, do this:
      - "Create a dashboard for analytics" → "analytics-dashboard"
      - "Fix payment processing timeout bug" → "fix-payment-timeout"
 
-2. Run the script `cat << 'EOF' | .specify/scripts/bash/create-new-feature.sh --json` from repo root and include the short-name argument. Parse its JSON output for BRANCH_NAME and SPEC_FILE. All file paths must be absolute.
+2. **Check for existing branches before creating new one**:
+   
+   a. First, fetch all remote branches to ensure we have the latest information:
+      ```bash
+      git fetch --all --prune
+      ```
+   
+   b. Find the highest feature number across all sources for the short-name:
+      - Remote branches: `git ls-remote --heads origin | grep -E 'refs/heads/[0-9]+-<short-name>$'`
+      - Local branches: `git branch | grep -E '^[* ]*[0-9]+-<short-name>$'`
+      - Specs directories: Check for directories matching `.specify/specs/[0-9]+-<short-name>`
+   
+   c. Determine the next available number:
+      - Extract all numbers from all three sources
+      - Find the highest number N
+      - Use N+1 for the new branch number
+   
+   d. Run the script `
+```bash
+cat << 'EOF' | .specify/scripts/bash/create-new-spec.sh --json
+$ARGUMENTS
+EOF
+```
+` with the calculated number and short-name:
+      - Pass `--number N+1` and `--short-name "your-short-name"` along with the feature description
+      - Bash example: `
+```bash
+cat << 'EOF' | .specify/scripts/bash/create-new-spec.sh --json
+$ARGUMENTS
+EOF
+```
+ --json --number 5 --short-name "user-auth" "Add user authentication"`
+   
+2. Run the script `
+```bash
+cat << 'EOF' | .specify/scripts/bash/create-new-spec.sh --json
+$ARGUMENTS
+EOF
+```
+` from repo root and include the short-name argument. Parse its JSON output for BRANCH_NAME and SPEC_FILE. All file paths must be absolute.
 
    **IMPORTANT**:
 
-   - For Bash, this expands to a heredoc-based, safe JSON handoff that writes the raw user input to stdin and passes its contents to `.specify/scripts/bash/create-new-feature.sh --json`. This avoids shell parsing issues with quotes, backslashes, and newlines.
+   - For Bash, this expands to a heredoc-based, safe JSON handoff that writes the raw user input to stdin and passes its contents to `
+```bash
+cat << 'EOF' | .specify/scripts/bash/create-new-spec.sh --json
+$ARGUMENTS
+EOF
+```
+`. This avoids shell parsing issues with quotes, backslashes, and newlines.
    - Append the short-name argument you created in step 1, and keep the feature description as the final argument.
-   - PowerShell continues to use: `-ShortName "your-generated-short-name" "Feature description here"`.
    - You must only ever run this script once.
    - The JSON is provided in the terminal as output - always refer to it to get the actual content you're looking for.
-
+   - Check all three sources (remote branches, local branches, specs directories) to find the highest number
+   - Only match branches/directories with the exact short-name pattern
+   - If no existing branches/directories found with this short-name, start with number 1
+   - You must only ever run this script once per feature
+   - The JSON is provided in the terminal as output - always refer to it to get the actual content you're looking for
+   - The JSON output will contain BRANCH_NAME and SPEC_FILE paths
+   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot")
+   
 3. Load `.specify/templates/spec-template.md` to understand required sections.
 
 4. Follow this execution flow:
@@ -164,14 +217,14 @@ Given that feature description, do this:
 
 The `/speckit.specify` command automatically integrates with the feature tracking system:
 
-- If a `.specify/memory/features.md` file exists, the command will:
+- If a `.specify/memory/feature-index.md` file exists, the command will:
   - Detect the current feature branch (format: `###-feature-name`)
   - Extract the feature ID from the branch name
-  - Update the corresponding feature entry in `.specify/memory/features.md`:
+  - Update the corresponding feature entry in `.specify/memory/feature-index.md`:
     - Change status from "Draft" to "Planned"
     - Set the specification path to the newly created spec file
     - Update the "Last Updated" date
-  - Automatically stage the changes to `.specify/memory/features.md` for git commit
+  - Automatically stage the changes to `.specify/memory/feature-index.md` for git commit
 
 This integration ensures that all feature specifications are properly tracked and linked to their corresponding entries in the project's feature index.
 

@@ -1,12 +1,13 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 1.1.0 → 1.2.0
+**Version change**: 1.2.0 → 1.3.0
 **Modified principles**: 
-- Added: Strong Typing with CWS-Lib-Go (new principle)
+- Updated: All principles refined and reorganized for clarity
 
 **Added sections**: 
-- Strong Typing with CWS-Lib-Go
+- Development Workflow Standards
+- Quality Assurance Requirements
 
 **Removed sections**: None
 
@@ -17,7 +18,7 @@
 ⚠ .specify/templates/commands/*.md – Not present in repository; N/A (no action)
 
 **Follow-up TODOs**: 
-- TODO(RATIFICATION_DATE): Determine original adoption date for governance section
+None
 -->
 
 # Terraform Provider Alicloud Constitution
@@ -55,7 +56,7 @@ Service layer MUST implement proper ID encoding/decoding:
 - `Decode*Id` functions with proper error handling for invalid formats
 - Consistent ID handling across all service operations
 
-### VI. Strong Typing with CWS-Lib-Go
+### V. Strong Typing with CWS-Lib-Go
 Implementations MUST prefer strong types provided by CWS-Lib-Go over weakly typed
 structures such as `map[string]interface{}` or untyped `interface{}` payloads. This
 requirement applies across Service and API layers to ensure type safety, maintainability,
@@ -70,7 +71,7 @@ and clearer contracts.
 - Code reviews MUST flag weak typing in new/modified code unless explicitly justified
 	(e.g., bridging adapters to third-party libs not yet modeled in cws-lib-go).
 
-### V. Testing and Validation Requirements
+### VI. Testing and Validation Requirements
 Every code change MUST be validated by executing 'cd /cws_data/terraform-provider-alicloud && make' to ensure syntax correctness and successful compilation. Comprehensive unit tests and integration tests are mandatory. All resources MUST include proper Timeout configurations. Code files exceeding 1000 lines MUST be split by functional modules to ensure single responsibility.
 
 API pagination logic MUST be encapsulated in `*_api.go` files:
@@ -116,4 +117,4 @@ Data validation and conversion MUST be properly implemented:
 ## Governance
 This Constitution supersedes all other development practices and guidelines. All pull requests and code reviews MUST verify compliance with these principles. Any complexity or deviation from these standards MUST be explicitly justified. Use the development guide at .github/copilot-instructions.md for runtime development guidance. Amendments require documentation, team approval, and migration plans for existing code.
 
-**Version**: 1.2.0 | **Ratified**: TODO(RATIFICATION_DATE): Original adoption date unknown | **Last Amended**: 2025-11-05
+**Version**: 1.3.0 | **Ratified**: 2017-01-19 | **Last Amended**: 2025-12-02

@@ -1,3 +1,5 @@
+> Note: `$ARGUMENTS` 为**可选补充输入**。当本次调用未提供任何 `$ARGUMENTS` 时，仍须按下文流程基于当前 feature 的 `spec.md`、`plan.md` 等设计文档自动生成完整、可执行的 `tasks.md`；仅在 `$ARGUMENTS` 非空时，将其用作任务拆分风格或优先级的附加提示。 
+
 ## User Input
 
 ```text
@@ -8,7 +10,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. **Setup**: Run `|` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Setup**: Run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Load design documents**: Read from FEATURE_DIR:
    - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
@@ -55,14 +57,14 @@ The tasks.md should be immediately executable - each task must be specific enoug
 
 The `/speckit.tasks` command automatically integrates with the feature tracking system:
 
-- If a `.specify/memory/features.md` file exists, the command will:
+- If a `.specify/memory/feature-index.md` file exists, the command will:
   - Detect the current feature directory (format: `.specify/specs/###-feature-name/`)
   - Extract the feature ID from the directory name
-  - Update the corresponding feature entry in `.specify/memory/features.md`:
+  - Update the corresponding feature entry in `.specify/memory/feature-index.md`:
     - Ensure status is "Implemented" (maintains status from planning phase)
     - Keep the specification path unchanged
     - Update the "Last Updated" date
-  - Automatically stage the changes to `.specify/memory/features.md` for git commit
+  - Automatically stage the changes to `.specify/memory/feature-index.md` for git commit
 
 This integration ensures that all feature task generation activities are properly tracked and linked to their corresponding entries in the project's feature index.
 
