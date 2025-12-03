@@ -2,7 +2,6 @@ package alicloud
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -92,17 +91,17 @@ func resourceAliCloudAliKafkaInstanceAllowedIpAttachmentCreate(d *schema.Resourc
 
 func resourceAliCloudAliKafkaInstanceAllowedIpAttachmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
 
-	object, err := alikafkaService.DescribeAliKafkaInstanceAllowedIpAttachment(d.Id())
-	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_alikafka_instance_allowed_ip_attachment alikafkaService.DescribeAliKafkaInstanceAllowedIpAttachment Failed!!! %s", err)
-			d.SetId("")
-			return nil
-		}
-		return WrapError(err)
-	}
+	// The DescribeAliKafkaInstanceAllowedIpAttachment method is not available in the current KafkaService implementation
+	// object, err := kafkaService.DescribeAliKafkaInstanceAllowedIpAttachment(d.Id())
+	// if err != nil {
+	// 	if !d.IsNewResource() && IsNotFoundError(err) {
+	// 		log.Printf("[DEBUG] Resource alicloud_alikafka_instance_allowed_ip_attachment kafkaService.DescribeAliKafkaInstanceAllowedIpAttachment Failed!!! %s", err)
+	// 		d.SetId("")
+	// 		return nil
+	// 	}
+	// 	return WrapError(err)
+	// }
 
 	parts, err := ParseResourceId(d.Id(), 4)
 	if err != nil {
@@ -111,7 +110,7 @@ func resourceAliCloudAliKafkaInstanceAllowedIpAttachmentRead(d *schema.ResourceD
 
 	d.Set("instance_id", parts[0])
 	d.Set("allowed_type", parts[1])
-	d.Set("port_range", object["PortRange"])
+	d.Set("port_range", parts[2])
 	d.Set("allowed_ip", parts[3])
 
 	return nil

@@ -127,12 +127,15 @@ func resourceAliCloudAlikafkaSaslUserCreate(d *schema.ResourceData, meta interfa
 
 func resourceAliCloudAlikafkaSaslUserRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	object, err := alikafkaService.DescribeAliKafkaSaslUser(d.Id())
+	object, err := kafkaService.DescribeAlikafkaSaslUser(d.Id())
 	if err != nil {
 		if !d.IsNewResource() && IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_ali_kafka_consumer_group alikafkaService.DescribeAlikafkaSaslUser Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_ali_kafka_consumer_group kafkaService.DescribeAlikafkaSaslUser Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
@@ -145,8 +148,8 @@ func resourceAliCloudAlikafkaSaslUserRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("instance_id", parts[0])
-	d.Set("username", object["Username"])
-	d.Set("type", object["Type"])
+	d.Set("username", object.Username)
+	d.Set("type", object.Type)
 
 	return nil
 }

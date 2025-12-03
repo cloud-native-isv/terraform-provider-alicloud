@@ -81,7 +81,10 @@ func dataSourceAliCloudAlikafkaConsumerGroups() *schema.Resource {
 
 func dataSourceAliCloudAlikafkaConsumerGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	request := alikafka.CreateGetConsumerListRequest()
 	request.InstanceId = d.Get("instance_id").(string)
@@ -97,7 +100,7 @@ func dataSourceAliCloudAlikafkaConsumerGroupsRead(d *schema.ResourceData, meta i
 		}
 	}
 
-	raw, err := alikafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
+	raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
 		return alikafkaClient.GetConsumerList(request)
 	})
 	if err != nil {
@@ -138,7 +141,10 @@ func dataSourceAliCloudAlikafkaConsumerGroupsRead(d *schema.ResourceData, meta i
 
 func alikafkaConsumerGroupsDecriptionAttributes(d *schema.ResourceData, consumerGroupsInfo []alikafka.ConsumerVO, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	var ids []string
 	var names []string
 	var s []map[string]interface{}
@@ -149,7 +155,7 @@ func alikafkaConsumerGroupsDecriptionAttributes(d *schema.ResourceData, consumer
 			"instance_id": item.InstanceId,
 			"consumer_id": item.ConsumerId,
 			"remark":      item.Remark,
-			"tags":        alikafkaService.tagVOTagsToMap(item.Tags.TagVO),
+			"tags":        kafkaService.tagVOTagsToMap(item.Tags.TagVO),
 		}
 		ids = append(ids, fmt.Sprint(mapping["id"]))
 		names = append(names, item.ConsumerId)

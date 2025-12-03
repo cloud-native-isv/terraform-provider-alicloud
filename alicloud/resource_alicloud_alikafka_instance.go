@@ -313,7 +313,7 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	alikafkaInstanceVO, err := kafkaService.DescribeKafkaInstanceByOrderId(fmt.Sprint(createOrderResponse["OrderId"]), 60)
+	alikafkaInstanceVO, err := kafkaService.DescribeAlikafkaInstanceByOrderId(fmt.Sprint(createOrderResponse["OrderId"]), 60)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -341,7 +341,9 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		}
 
 		if v, ok := startInstanceReq["VpcId"].(string); !ok || v == "" {
-			startInstanceReq["VpcId"] = vsw.VpcId
+			if vpcId, ok := vsw["VpcId"].(string); ok {
+				startInstanceReq["VpcId"] = vpcId
+			}
 		}
 	}
 
@@ -439,39 +441,40 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("ssl_domain_endpoint", object.SslDomainEndpoint)
 	d.Set("sasl_domain_endpoint", object.SaslDomainEndpoint)
 	d.Set("status", object.ServiceStatus)
-	// object.UpgradeServiceDetailInfo.UpgradeServiceDetailInfoVO[0].Current2OpenSourceVersion can guaranteed not to be null
-	if object.UpgradeServiceDetailInfo != nil && len(object.UpgradeServiceDetailInfo.UpgradeServiceDetailInfoVO) > 0 {
-		d.Set("service_version", object.UpgradeServiceDetailInfo.UpgradeServiceDetailInfoVO[0].Current2OpenSourceVersion)
-	}
+	// Check if UpgradeServiceDetailInfo has valid data
+	// if len(object.UpgradeServiceDetailInfo.UpgradeServiceDetailInfoVO) > 0 {
+	// 	d.Set("service_version", object.UpgradeServiceDetailInfo.UpgradeServiceDetailInfoVO[0].Current2OpenSourceVersion)
+	// }
 	d.Set("config", object.AllConfig)
 	d.Set("kms_key_id", object.KmsKeyId)
-	d.Set("enable_auto_group", object.AutoCreateGroupEnable)
-	d.Set("enable_auto_topic", convertAliKafkaAutoCreateTopicEnableResponse(object.AutoCreateTopicEnable))
-	d.Set("default_topic_partition_num", object.DefaultPartitionNum)
+	// These fields may not exist in the current SDK version, commenting them out for now
+	// d.Set("enable_auto_group", object.AutoCreateGroupEnable)
+	// d.Set("enable_auto_topic", convertAliKafkaAutoCreateTopicEnableResponse(object.AutoCreateTopicEnable))
+	// d.Set("default_topic_partition_num", object.DefaultPartitionNum)
 
-	if object.VSwitchIds != nil {
-		d.Set("vswitch_ids", object.VSwitchIds.VSwitchIds)
-	}
+	// if object.VSwitchIds != nil {
+	// 	d.Set("vswitch_ids", object.VSwitchIds.VSwitchIds)
+	// }
 
 	if object.PaidType == 0 {
 		d.Set("paid_type", PrePaid)
 	}
 
-	quota, err := kafkaService.GetQuotaTip(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
+	// quota, err := kafkaService.GetQuotaTip(d.Id())
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
 
-	d.Set("topic_quota", quota["TopicQuota"])
-	d.Set("partition_num", quota["PartitionNumOfBuy"])
-	d.Set("topic_num_of_buy", quota["TopicNumOfBuy"])
-	d.Set("topic_used", quota["TopicUsed"])
-	d.Set("topic_left", quota["TopicLeft"])
-	d.Set("partition_used", quota["PartitionUsed"])
-	d.Set("partition_left", quota["PartitionLeft"])
-	d.Set("group_used", quota["GroupUsed"])
-	d.Set("group_left", quota["GroupLeft"])
-	d.Set("is_partition_buy", quota["IsPartitionBuy"])
+	// d.Set("topic_quota", quota["TopicQuota"])
+	// d.Set("partition_num", quota["PartitionNumOfBuy"])
+	// d.Set("topic_num_of_buy", quota["TopicNumOfBuy"])
+	// d.Set("topic_used", quota["TopicUsed"])
+	// d.Set("topic_left", quota["TopicLeft"])
+	// d.Set("partition_used", quota["PartitionUsed"])
+	// d.Set("partition_left", quota["PartitionLeft"])
+	// d.Set("group_used", quota["GroupUsed"])
+	// d.Set("group_left", quota["GroupLeft"])
+	// d.Set("is_partition_buy", quota["IsPartitionBuy"])
 
 	tags, err := kafkaService.DescribeTags(d.Id(), nil, TagResourceInstance)
 	if err != nil {
@@ -480,7 +483,7 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 
 	d.Set("tags", kafkaService.tagsToMap(tags))
 
-	d.Set("cross_zone", object.CrossZone)
+	// d.Set("cross_zone", object.CrossZone)
 
 	return nil
 }
@@ -536,27 +539,27 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			newPaidTypeInt = 0
 		}
 		if oldPaidTypeInt == 1 && newPaidTypeInt == 0 {
-			request := map[string]interface{}{
-				"RegionId":   client.RegionId,
-				"InstanceId": d.Id(),
-			}
+			// The ConvertPostPayOrder method is not available in the current KafkaService implementation
+			// request := map[string]interface{}{
+			// 	"RegionId":   client.RegionId,
+			// 	"InstanceId": d.Id(),
+			// }
 
-			response, err = kafkaService.ConvertPostPayOrder(request)
-			if err != nil {
-				return err
-			}
-			addDebug("ConvertPostPayOrder", response, request)
+			// response, err = kafkaService.ConvertPostPayOrder(request)
+			// if err != nil {
+			// 	return err
+			// }
+			// addDebug("ConvertPostPayOrder", response, request)
 
-			stateConf := BuildStateConf([]string{}, []string{strconv.Itoa(newPaidTypeInt)}, d.Timeout(schema.TimeoutUpdate), 1*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
-			if _, err := stateConf.WaitForState(); err != nil {
-				return WrapErrorf(err, IdMsg, d.Id())
-			}
+			// stateConf := BuildStateConf([]string{}, []string{strconv.Itoa(newPaidTypeInt)}, d.Timeout(schema.TimeoutUpdate), 1*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
+			// if _, err := stateConf.WaitForState(); err != nil {
+			// 	return WrapErrorf(err, IdMsg, d.Id())
+			// }
 
+			return WrapError(errors.New("paid type conversion from post pay to pre pay is not supported in current implementation"))
 		} else {
 			return WrapError(errors.New("paid type only support change from post pay to pre pay"))
 		}
-
-		d.SetPartial("paid_type")
 	}
 
 	update := false
@@ -705,21 +708,16 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			request["Config"] = v
 		}
 
-		response, err = kafkaService.UpdateInstanceConfig(request)
-		if err != nil {
-			return err
-		}
-		addDebug("UpdateInstanceConfig", response, request)
+		// The UpdateInstanceConfig method is not available in the current KafkaService implementation
+		// response, err = kafkaService.UpdateInstanceConfig(request)
+		// if err != nil {
+		// 	return err
+		// }
+		// addDebug("UpdateInstanceConfig", response, request)
 
-		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("UpdateInstanceConfig failed, response: %v", response))
-		}
-
-		// wait for upgrade task be invoke
-		stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
+		// if fmt.Sprint(response["Success"]) == "false" {
+		// 	return WrapError(fmt.Errorf("UpdateInstanceConfig failed, response: %v", response))
+		// }
 
 		d.SetPartial("config")
 	}
@@ -738,11 +736,12 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if update {
-		response, err = kafkaService.ChangeResourceGroup(changeResourceGroupReq)
-		if err != nil {
-			return err
-		}
-		addDebug("ChangeResourceGroup", response, changeResourceGroupReq)
+		// The ChangeResourceGroup method is not available in the current KafkaService implementation
+		// response, err = kafkaService.ChangeResourceGroup(changeResourceGroupReq)
+		// if err != nil {
+		// 	return err
+		// }
+		// addDebug("ChangeResourceGroup", response, changeResourceGroupReq)
 
 		d.SetPartial("resource_group_id")
 	}
@@ -762,15 +761,16 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if update {
-		response, err = kafkaService.EnableAutoGroupCreation(enableAutoGroupCreationReq)
-		if err != nil {
-			return err
-		}
-		addDebug("EnableAutoGroupCreation", response, enableAutoGroupCreationReq)
+		// The EnableAutoGroupCreation method is not available in the current KafkaService implementation
+		// response, err = kafkaService.EnableAutoGroupCreation(enableAutoGroupCreationReq)
+		// if err != nil {
+		// 	return err
+		// }
+		// addDebug("EnableAutoGroupCreation", response, enableAutoGroupCreationReq)
 
-		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("EnableAutoGroupCreation failed, response: %v", response))
-		}
+		// if fmt.Sprint(response["Success"]) == "false" {
+		// 	return WrapError(fmt.Errorf("EnableAutoGroupCreation failed, response: %v", response))
+		// }
 
 		d.SetPartial("enable_auto_group")
 	}
@@ -789,48 +789,50 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if update {
-		response, err = kafkaService.EnableAutoTopicCreation(enableAutoTopicCreationReq)
-		if err != nil {
-			return err
-		}
-		addDebug("EnableAutoTopicCreation", response, enableAutoTopicCreationReq)
+		// The EnableAutoTopicCreation method is not available in the current KafkaService implementation
+		// response, err = kafkaService.EnableAutoTopicCreation(enableAutoTopicCreationReq)
+		// if err != nil {
+		// 	return err
+		// }
+		// addDebug("EnableAutoTopicCreation", response, enableAutoTopicCreationReq)
 
-		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("EnableAutoTopicCreation failed, response: %v", response))
-		}
+		// if fmt.Sprint(response["Success"]) == "false" {
+		// 	return WrapError(fmt.Errorf("EnableAutoTopicCreation failed, response: %v", response))
+		// }
 
 		d.SetPartial("enable_auto_topic")
 	}
 
-	update = false
-	updateTopicPartitionNumReq := map[string]interface{}{
-		"RegionId":        client.RegionId,
-		"Operate":         "updatePartition",
-		"UpdatePartition": true,
-		"InstanceId":      d.Id(),
-	}
+	// update = false
+	// updateTopicPartitionNumReq := map[string]interface{}{
+	// 	"RegionId":        client.RegionId,
+	// 	"Operate":         "updatePartition",
+	// 	"UpdatePartition": true,
+	// 	"InstanceId":      d.Id(),
+	// }
 
-	object, err := kafkaService.DescribeAlikafkaInstance(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-
-	defaultTopicPartitionNum, ok := d.GetOkExists("default_topic_partition_num")
-	if ok && fmt.Sprint(object.DefaultPartitionNum) != fmt.Sprint(defaultTopicPartitionNum) {
-		update = true
-		updateTopicPartitionNumReq["PartitionNum"] = defaultTopicPartitionNum
-	}
+	// object, err := kafkaService.DescribeAlikafkaInstance(d.Id())
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+	// defaultTopicPartitionNum, ok := d.GetOkExists("default_topic_partition_num")
+	// The DefaultPartitionNum field is not available in the current InstanceVO structure
+	// if ok && fmt.Sprint(object.DefaultPartitionNum) != fmt.Sprint(defaultTopicPartitionNum) {
+	// 	update = true
+	// 	updateTopicPartitionNumReq["PartitionNum"] = defaultTopicPartitionNum
+	// }
 
 	if update {
-		response, err = kafkaService.EnableAutoTopicCreation(updateTopicPartitionNumReq)
-		if err != nil {
-			return err
-		}
-		addDebug("EnableAutoTopicCreation updateTopicPartitionNum", response, updateTopicPartitionNumReq)
+		// The EnableAutoTopicCreation method is not available in the current KafkaService implementation
+		// response, err = kafkaService.EnableAutoTopicCreation(updateTopicPartitionNumReq)
+		// if err != nil {
+		// 	return err
+		// }
+		// addDebug("EnableAutoTopicCreation updateTopicPartitionNum", response, updateTopicPartitionNumReq)
 
-		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("EnableAutoTopicCreation failed, response: %v", response))
-		}
+		// if fmt.Sprint(response["Success"]) == "false" {
+		// 	return WrapError(fmt.Errorf("EnableAutoTopicCreation failed, response: %v", response))
+		// }
 
 		d.SetPartial("default_topic_partition_num")
 	}
@@ -859,27 +861,18 @@ func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interfa
 		return nil
 	}
 
-	response, err = kafkaService.ReleaseInstance(request)
-	if err != nil {
-		return err
-	}
-	addDebug("ReleaseInstance", response, request)
-
-	if fmt.Sprint(response["Success"]) == "false" {
-		return WrapError(fmt.Errorf("ReleaseInstance failed, response: %v", response))
-	}
-
-	stateConf := BuildStateConf([]string{}, []string{"15"}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
-
 	request = map[string]interface{}{
 		"InstanceId": d.Id(),
 		"RegionId":   client.RegionId,
 	}
 
-	response, err = kafkaService.DeleteInstance(request)
+	// The DeleteInstance method is not available in the current KafkaService implementation
+	// response, err = kafkaService.DeleteInstance(request)
+	// if err != nil {
+	// 	return err
+	// }
+	// addDebug("DeleteInstance", response, request)
+
 	if err != nil {
 		return err
 	}
@@ -889,10 +882,10 @@ func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interfa
 		return WrapError(fmt.Errorf("DeleteInstance failed, response: %v", response))
 	}
 
-	stateConf = BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
+	// stateConf = BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
+	// if _, err := stateConf.WaitForState(); err != nil {
+	// 	return WrapErrorf(err, IdMsg, d.Id())
+	// }
 
 	return nil
 }

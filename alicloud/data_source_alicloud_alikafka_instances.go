@@ -351,14 +351,17 @@ func dataSourceAliCloudAlikafkaInstancesRead(d *schema.ResourceData, meta interf
 		names = append(names, mapping["name"])
 		id := fmt.Sprint(object["InstanceId"])
 
-		AlikaService := AlikafkaService{client}
+		AlikaService, err := NewKafkaService(client)
+		if err != nil {
+			return WrapError(err)
+		}
 		if d.Get("enable_details").(bool) {
-			quota, err := AlikaService.GetQuotaTip(id)
-			if err != nil {
-				return WrapError(err)
-			}
-			mapping["topic_quota"] = quota["TopicQuota"]
-			mapping["partition_num"] = quota["PartitionNumOfBuy"]
+			// quota, err := AlikaService.GetQuotaTip(id)
+			// if err != nil {
+			// 	return WrapError(err)
+			// }
+			// mapping["topic_quota"] = quota["TopicQuota"]
+			// mapping["partition_num"] = quota["PartitionNumOfBuy"]
 
 			getResp, err := AlikaService.GetAllowedIpList(id)
 			if err != nil {

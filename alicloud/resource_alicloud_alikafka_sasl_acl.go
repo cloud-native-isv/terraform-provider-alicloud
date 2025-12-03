@@ -68,7 +68,10 @@ func resourceAliCloudAlikafkaSaslAcl() *schema.Resource {
 func resourceAliCloudAlikafkaSaslAclCreate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	instanceId := d.Get("instance_id").(string)
 	regionId := client.RegionId
@@ -87,8 +90,8 @@ func resourceAliCloudAlikafkaSaslAclCreate(d *schema.ResourceData, meta interfac
 	request.AclResourcePatternType = aclResourcePatternType
 	request.AclOperationType = aclOperationType
 
-	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-		raw, err := alikafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
+	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+		raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
 			return alikafkaClient.CreateAcl(request)
 		})
 		if err != nil {
@@ -115,17 +118,20 @@ func resourceAliCloudAlikafkaSaslAclCreate(d *schema.ResourceData, meta interfac
 func resourceAliCloudAlikafkaSaslAclRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	parts, err := ParseResourceId(d.Id(), 6)
 	if err != nil {
 		return WrapError(err)
 	}
-	object, err := alikafkaService.DescribeAlikafkaSaslAcl(d.Id())
+	object, err := kafkaService.DescribeAlikafkaSaslAcl(d.Id())
 	if err != nil {
 		// Handle exceptions
 		if !d.IsNewResource() && IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_alikafka_sasl_acl alikafkaService.DescribeAlikafkaSaslAcl Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_alikafka_sasl_acl kafkaService.DescribeAlikafkaSaslAcl Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
@@ -146,7 +152,10 @@ func resourceAliCloudAlikafkaSaslAclRead(d *schema.ResourceData, meta interface{
 func resourceAliCloudAlikafkaSaslAclDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	parts, err := ParseResourceId(d.Id(), 6)
 	if err != nil {
@@ -169,7 +178,7 @@ func resourceAliCloudAlikafkaSaslAclDelete(d *schema.ResourceData, meta interfac
 	request.AclOperationType = aclOperationType
 
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		raw, err := alikafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
+		raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
 			return alikafkaClient.DeleteAcl(request)
 		})
 		if err != nil {
@@ -189,5 +198,5 @@ func resourceAliCloudAlikafkaSaslAclDelete(d *schema.ResourceData, meta interfac
 
 	// Server may have cache, sleep a while.
 	time.Sleep(60 * time.Second)
-	return WrapError(alikafkaService.WaitForAlikafkaSaslAcl(d.Id(), Deleted, DefaultTimeoutMedium))
+	return WrapError(kafkaService.WaitForAlikafkaSaslAcl(d.Id(), Deleted, DefaultTimeoutMedium))
 }

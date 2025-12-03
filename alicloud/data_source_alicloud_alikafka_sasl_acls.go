@@ -81,7 +81,10 @@ func dataSourceAliCloudAlikafkaSaslAcls() *schema.Resource {
 func dataSourceAliCloudAlikafkaSaslAclsRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	request := alikafka.CreateDescribeAclsRequest()
 	request.InstanceId = d.Get("instance_id").(string)
@@ -90,7 +93,7 @@ func dataSourceAliCloudAlikafkaSaslAclsRead(d *schema.ResourceData, meta interfa
 	request.AclResourceType = d.Get("acl_resource_type").(string)
 	request.AclResourceName = d.Get("acl_resource_name").(string)
 
-	raw, err := alikafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
+	raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
 		return alikafkaClient.DescribeAcls(request)
 	})
 	if err != nil {

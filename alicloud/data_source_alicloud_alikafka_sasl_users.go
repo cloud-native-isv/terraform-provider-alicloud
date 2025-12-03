@@ -58,13 +58,16 @@ func dataSourceAliCloudAlikafkaSaslUsers() *schema.Resource {
 
 func dataSourceAliCloudAlikafkaSaslUsersRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	request := alikafka.CreateDescribeSaslUsersRequest()
 	request.InstanceId = d.Get("instance_id").(string)
 	request.RegionId = client.RegionId
 
-	raw, err := alikafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
+	raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
 		return alikafkaClient.DescribeSaslUsers(request)
 	})
 	if err != nil {

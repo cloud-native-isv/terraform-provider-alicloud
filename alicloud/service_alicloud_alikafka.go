@@ -725,7 +725,7 @@ func (s *KafkaService) setInstanceTags(d *schema.ResourceData, resourceType TagR
 			wait := incrementalWait(2*time.Second, 1*time.Second)
 			err := resource.Retry(10*time.Minute, func() *resource.RetryError {
 				raw, err := s.client.WithAlikafkaClient(func(client *alikafka.Client) (interface{}, error) {
-					return client.TagResources
+					return client.TagResources(request)
 				})
 				if err != nil {
 					if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
@@ -911,20 +911,22 @@ func (s *KafkaService) SetResourceTags(d *schema.ResourceData, resourceType stri
 
 			wait := incrementalWait(2*time.Second, 1*time.Second)
 			err := resource.Retry(10*time.Minute, func() *resource.RetryError {
-				response, err := client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
+				raw, err := s.client.WithAlikafkaClient(func(client *alikafka.Client) (interface{}, error) {
+					return client.TagResources(request)
+				})
 				if err != nil {
-					if NeedRetry(err) || IsExpectedErrors(err, []string{"ONS_SYSTEM_FLOW_CONTROL"}) {
+					if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
 						wait()
 						return resource.RetryableError(err)
 
 					}
 					return resource.NonRetryableError(err)
 				}
-				addDebug(action, response, request)
+				addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 				return nil
 			})
 			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+				return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
 			}
 		}
 		d.SetPartial("tags")
@@ -1093,35 +1095,6 @@ func (s *KafkaService) CreatePrePayOrder(request map[string]interface{}) (map[st
 	result := map[string]interface{}{
 		"Success": response.Success,
 		"OrderId": response.OrderId,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
-}
-
-// ConvertPostPayOrder converts post-paid order to pre-paid using cws-lib-go API
-func (s *KafkaService) ConvertPostPayOrder(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request structure
-	convertReq := &aliyunKafkaAPI.ConvertPostPayOrderRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to convertReq
-	if v, ok := request["InstanceId"]; ok {
-		if str, ok := v.(string); ok {
-			convertReq.InstanceId = str
-		}
-	}
-
-	response, err := s.GetAPI().ConvertPostPayOrder(convertReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "ConvertPostPayOrder", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
 		"Code":    response.Code,
 		"Message": response.Message,
 	}
@@ -1451,232 +1424,6 @@ func (s *KafkaService) UpgradePrePayOrder(request map[string]interface{}) (map[s
 		"Success": response.Success,
 		"Code":    response.Code,
 		"Message": response.Message,
-	}
-
-	return result, nil
-}
-
-// ConvertPostPayOrder converts post-paid order to pre-paid using cws-lib-go API
-func (s *KafkaService) ConvertPostPayOrder(request *aliyunKafkaAPI.ConvertPostPayOrderRequest) (*aliyunKafkaAPI.ConvertPostPayOrderResponse, error) {
-	response, err := s.GetAPI().ConvertPostPayOrder(request)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "ConvertPostPayOrder", AlibabaCloudSdkGoERROR)
-	}
-	return response, nil
-}
-
-// UpdateInstanceConfig 更新Kafka实例配置
-func (s *KafkaService) UpdateInstanceConfig(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request structure
-	updateReq := &aliyunKafkaAPI.UpdateInstanceConfigRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to updateReq
-	if v, ok := request["InstanceId"]; ok {
-		if str, ok := v.(string); ok {
-			updateReq.InstanceId = str
-		}
-	}
-
-	if v, ok := request["Config"]; ok {
-		if str, ok := v.(string); ok {
-			updateReq.Config = str
-		}
-	}
-
-	response, err := s.GetAPI().UpdateInstanceConfig(updateReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "UpdateInstanceConfig", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
-}
-
-// ChangeResourceGroup 变更Kafka实例资源组
-func (s *KafkaService) ChangeResourceGroup(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request structure
-	changeReq := &aliyunKafkaAPI.ChangeResourceGroupRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to changeReq
-	if v, ok := request["ResourceId"]; ok {
-		if str, ok := v.(string); ok {
-			changeReq.ResourceId = str
-		}
-	}
-
-	if v, ok := request["NewResourceGroupId"]; ok {
-		if str, ok := v.(string); ok {
-			changeReq.NewResourceGroupId = str
-		}
-	}
-
-	response, err := s.GetAPI().ChangeResourceGroup(changeReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "ChangeResourceGroup", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
-}
-
-// EnableAutoGroupCreation 启用/禁用Kafka实例自动创建消费者组
-func (s *KafkaService) EnableAutoGroupCreation(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request结构
-	enableReq := &aliyunKafkaAPI.EnableAutoGroupCreationRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to enableReq
-	if v, ok := request["InstanceId"]; ok {
-		if str, ok := v.(string); ok {
-			enableReq.InstanceId = str
-		}
-	}
-
-	if v, ok := request["Enable"]; ok {
-		if b, ok := v.(bool); ok {
-			enableReq.Enable = b
-		}
-	}
-
-	response, err := s.GetAPI().EnableAutoGroupCreation(enableReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "EnableAutoGroupCreation", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
-}
-
-// EnableAutoTopicCreation 启用/禁用Kafka实例自动创建主题
-func (s *KafkaService) EnableAutoTopicCreation(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request结构
-	enableReq := &aliyunKafkaAPI.EnableAutoTopicCreationRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to enableReq
-	if v, ok := request["InstanceId"]; ok {
-		if str, ok := v.(string); ok {
-			enableReq.InstanceId = str
-		}
-	}
-
-	if v, ok := request["Operate"]; ok {
-		if str, ok := v.(string); ok {
-			enableReq.Operate = str
-		}
-	}
-
-	if v, ok := request["PartitionNum"]; ok {
-		if num, ok := v.(int); ok {
-			enableReq.PartitionNum = int32(num)
-		}
-	}
-
-	if v, ok := request["UpdatePartition"]; ok {
-		if b, ok := v.(bool); ok {
-			enableReq.UpdatePartition = b
-		}
-	}
-
-	response, err := s.GetAPI().EnableAutoTopicCreation(enableReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "EnableAutoTopicCreation", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
-}
-
-// ReleaseInstance 释放Kafka实例（仅适用于后付费实例）
-func (s *KafkaService) ReleaseInstance(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request structure
-	releaseReq := &aliyunKafkaAPI.ReleaseInstanceRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to releaseReq
-	if v, ok := request["InstanceId"]; ok {
-		if str, ok := v.(string); ok {
-			releaseReq.InstanceId = str
-		}
-	}
-
-	if v, ok := request["ForceDeleteInstance"]; ok {
-		if b, ok := v.(bool); ok {
-			releaseReq.ForceDeleteInstance = b
-		}
-	}
-
-	response, err := s.GetAPI().ReleaseInstance(releaseReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "ReleaseInstance", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
-}
-
-// DeleteInstance 删除Kafka实例
-func (s *KafkaService) DeleteInstance(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request structure
-	deleteReq := &aliyunKafkaAPI.DeleteInstanceRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to deleteReq
-	if v, ok := request["InstanceId"]; ok {
-		if str, ok := v.(string); ok {
-			deleteReq.InstanceId = str
-		}
-	}
-
-	response, err := s.GetAPI().DeleteInstance(deleteReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "DeleteInstance", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success":   response.Success,
-		"Code":      response.Code,
-		"Message":   response.Message,
-		"RequestId": response.RequestId,
 	}
 
 	return result, nil

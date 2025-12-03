@@ -81,11 +81,14 @@ func resourceAliCloudAlikafkaConsumerGroupCreate(d *schema.ResourceData, meta in
 
 func resourceAliCloudAlikafkaConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
-	object, err := alikafkaService.DescribeAliKafkaConsumerGroup(d.Id())
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+	object, err := kafkaService.DescribeAlikafkaConsumerGroup(d.Id())
 	if err != nil {
 		if IsNotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_ali_kafka_consumer_group alikafkaService.DescribeAliKafkaConsumerGroup Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_ali_kafka_consumer_group kafkaService.DescribeAlikafkaConsumerGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
@@ -97,9 +100,9 @@ func resourceAliCloudAlikafkaConsumerGroupRead(d *schema.ResourceData, meta inte
 	}
 	d.Set("consumer_id", parts[1])
 	d.Set("instance_id", parts[0])
-	d.Set("description", object["Remark"])
-	if v, ok := object["Tags"].(map[string]interface{}); ok {
-		d.Set("tags", tagsToMap(v["TagVO"]))
+	d.Set("description", object.Remark)
+	if object.Tags.TagVO != nil {
+		d.Set("tags", kafkaService.tagVOTagsToMap(object.Tags.TagVO))
 	}
 
 	return nil
@@ -107,9 +110,12 @@ func resourceAliCloudAlikafkaConsumerGroupRead(d *schema.ResourceData, meta inte
 
 func resourceAliCloudAlikafkaConsumerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	if d.HasChange("tags") {
-		if err := alikafkaService.SetResourceTags(d, "CONSUMERGROUP"); err != nil {
+		if err := kafkaService.SetResourceTags(d, "CONSUMERGROUP"); err != nil {
 			return WrapError(err)
 		}
 		d.SetPartial("tags")
@@ -119,7 +125,10 @@ func resourceAliCloudAlikafkaConsumerGroupUpdate(d *schema.ResourceData, meta in
 
 func resourceAliCloudAlikafkaConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
@@ -151,9 +160,5 @@ func resourceAliCloudAlikafkaConsumerGroupDelete(d *schema.ResourceData, meta in
 	if fmt.Sprint(response["Success"]) == "false" {
 		return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
 	}
-	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, alikafkaService.AliKafkaConsumerStateRefreshFunc(d.Id(), "ServiceStatus", []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
-	return nil
+	return WrapError(kafkaService.WaitForAlikafkaConsumerGroup(d.Id(), Deleted, DefaultTimeoutMedium))
 }

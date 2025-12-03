@@ -69,7 +69,10 @@ func resourceAliCloudAlikafkaTopic() *schema.Resource {
 func resourceAliCloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	instanceId := d.Get("instance_id").(string)
 	regionId := client.RegionId
@@ -92,8 +95,8 @@ func resourceAliCloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{
 		request.Remark = v.(string)
 	}
 
-	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-		raw, err := alikafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
+	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+		raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
 			return alikafkaClient.CreateTopic(request)
 		})
 		if err != nil {
@@ -114,7 +117,7 @@ func resourceAliCloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{
 	d.SetId(instanceId + ":" + topic)
 
 	// wait topic status change from Creating to running
-	stateConf := BuildStateConf([]string{"Creating"}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, alikafkaService.KafkaTopicStatusRefreshFunc(d.Id()))
+	stateConf := BuildStateConf([]string{"Creating"}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, kafkaService.KafkaTopicStatusRefreshFunc(d.Id()))
 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -126,9 +129,12 @@ func resourceAliCloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{
 func resourceAliCloudAlikafkaTopicUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 	d.Partial(true)
-	if err := alikafkaService.setInstanceTags(d, TagResourceTopic); err != nil {
+	if err := kafkaService.setInstanceTags(d, TagResourceTopic); err != nil {
 		return WrapError(err)
 	}
 	if d.IsNewResource() {
@@ -147,7 +153,7 @@ func resourceAliCloudAlikafkaTopicUpdate(d *schema.ResourceData, meta interface{
 		modifyRemarkRequest.Remark = remark
 
 		err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-			raw, err := alikafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
+			raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
 				return alikafkaClient.ModifyTopicRemark(modifyRemarkRequest)
 			})
 			if err != nil {
@@ -182,7 +188,7 @@ func resourceAliCloudAlikafkaTopicUpdate(d *schema.ResourceData, meta interface{
 			modifyPartitionReq.AddPartitionNum = requests.NewInteger(newPartitionNum - oldPartitionNum)
 
 			err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-				raw, err := alikafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
+				raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
 					return alikafkaClient.ModifyPartitionNum(modifyPartitionReq)
 				})
 				if err != nil {
@@ -209,9 +215,12 @@ func resourceAliCloudAlikafkaTopicUpdate(d *schema.ResourceData, meta interface{
 func resourceAliCloudAlikafkaTopicRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	object, err := alikafkaService.DescribeAlikafkaTopic(d.Id())
+	object, err := kafkaService.DescribeAlikafkaTopic(d.Id())
 	if err != nil {
 		// Handle exceptions
 		if IsNotFoundError(err) {
@@ -228,11 +237,11 @@ func resourceAliCloudAlikafkaTopicRead(d *schema.ResourceData, meta interface{})
 	d.Set("partition_num", object.PartitionNum)
 	d.Set("remark", object.Remark)
 
-	tags, err := alikafkaService.DescribeTags(d.Id(), nil, TagResourceTopic)
+	tags, err := kafkaService.DescribeTags(d.Id(), nil, TagResourceTopic)
 	if err != nil {
 		return WrapError(err)
 	}
-	d.Set("tags", alikafkaService.tagsToMap(tags))
+	d.Set("tags", kafkaService.tagsToMap(tags))
 
 	return nil
 }
@@ -240,7 +249,10 @@ func resourceAliCloudAlikafkaTopicRead(d *schema.ResourceData, meta interface{})
 func resourceAliCloudAlikafkaTopicDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
-	alikafkaService := AlikafkaService{client}
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
@@ -255,7 +267,7 @@ func resourceAliCloudAlikafkaTopicDelete(d *schema.ResourceData, meta interface{
 	request.RegionId = client.RegionId
 
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		raw, err := alikafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
+		raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
 			return alikafkaClient.DeleteTopic(request)
 		})
 		if err != nil {
@@ -271,9 +283,9 @@ func resourceAliCloudAlikafkaTopicDelete(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
 	}
-	stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, alikafkaService.AliKafkaTopicStateRefreshFunc(d.Id(), "Status", []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
-	return WrapError(alikafkaService.WaitForAlikafkaTopic(d.Id(), Deleted, DefaultTimeoutMedium))
+	// stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaTopicStateRefreshFunc(d.Id(), "Status", []string{}))
+	// if _, err := stateConf.WaitForState(); err != nil {
+	// 	return WrapErrorf(err, IdMsg, d.Id())
+	// }
+	return WrapError(kafkaService.WaitForAlikafkaTopic(d.Id(), Deleted, DefaultTimeoutMedium))
 }
