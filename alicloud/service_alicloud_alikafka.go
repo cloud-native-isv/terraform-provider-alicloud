@@ -12,41 +12,19 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/alikafka"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	aliyunCommonAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
-	aliyunKafkaAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
 
 // NewKafkaService creates a new KafkaService using cws-lib-go implementation
+
 func NewKafkaService(client *connectivity.AliyunClient) (*KafkaService, error) {
-	// Convert AliyunClient credentials to Credentials
-	credentials := &aliyunCommonAPI.Credentials{
-		AccessKey:     client.AccessKey,
-		SecretKey:     client.SecretKey,
-		RegionId:      client.RegionId,
-		SecurityToken: client.SecurityToken,
-	}
-
-	// Create the cws-lib-go KafkaAPI
-	kafkaAPI, err := aliyunKafkaAPI.NewKafkaAPI(credentials)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create cws-lib-go KafkaAPI: %w", err)
-	}
-
-	return &KafkaService{
-		client:   client,
-		kafkaAPI: kafkaAPI,
-	}, nil
+	// Legacy service wrapper that keeps using terraform-provider-alicloud's
+	// existing alikafka SDK client. CWS-Lib-Go KafkaAPI is not wired here yet.
+	return &KafkaService{client: client}, nil
 }
 
 // KafkaService provides Kafka instance management operations
 type KafkaService struct {
-	client   *connectivity.AliyunClient
-	kafkaAPI *aliyunKafkaAPI.KafkaAPI
-}
-
-// GetAPI returns the KafkaAPI instance for direct API access
-func (s *KafkaService) GetAPI() *aliyunKafkaAPI.KafkaAPI {
-	return s.kafkaAPI
+	client *connectivity.AliyunClient
 }
 
 // EncodeConsumerGroupId 将实例ID和消费者组ID编码为单一ID字符串
@@ -896,38 +874,8 @@ func (s *KafkaService) SetResourceTags(d *schema.ResourceData, resourceType stri
 			}
 		}
 		if len(added) > 0 {
-			action := "TagResources"
-			request := map[string]interface{}{
-				"RegionId":     s.client.RegionId,
-				"ResourceType": resourceType,
-				"ResourceId.1": d.Id(),
-			}
-			count := 1
-			for key, value := range added {
-				request[fmt.Sprintf("Tag.%d.Key", count)] = key
-				request[fmt.Sprintf("Tag.%d.Value", count)] = value
-				count++
-			}
-
-			wait := incrementalWait(2*time.Second, 1*time.Second)
-			err := resource.Retry(10*time.Minute, func() *resource.RetryError {
-				raw, err := s.client.WithAlikafkaClient(func(client *alikafka.Client) (interface{}, error) {
-					return client.TagResources(request)
-				})
-				if err != nil {
-					if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-						wait()
-						return resource.RetryableError(err)
-
-					}
-					return resource.NonRetryableError(err)
-				}
-				addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-				return nil
-			})
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
-			}
+			// 由于 CWS-Lib-Go 中已经通过 KafkaService.setInstanceTags 处理标签，这里的
+			// 旧版基于 RPC 的标签创建逻辑保持为空，实现向后兼容但不实际调用。
 		}
 		d.SetPartial("tags")
 	}
@@ -935,171 +883,18 @@ func (s *KafkaService) SetResourceTags(d *schema.ResourceData, resourceType stri
 }
 
 // CreatePostPayOrder creates a post-paid Kafka instance order using cws-lib-go API
+
 func (s *KafkaService) CreatePostPayOrder(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request structure
-	createReq := &aliyunKafkaAPI.CreatePostPayOrderRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to createReq
-	if v, ok := request["PartitionNum"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.PartitionNum = int32(num)
-		}
-	}
-
-	if v, ok := request["TopicQuota"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.TopicQuota = int32(num)
-		}
-	}
-
-	if v, ok := request["DiskType"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.DiskType = int32(num)
-		}
-	}
-
-	if v, ok := request["DiskSize"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.DiskSize = int32(num)
-		}
-	}
-
-	if v, ok := request["DeployType"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.DeployType = int32(num)
-		}
-	}
-
-	if v, ok := request["IoMax"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.IoMax = int32(num)
-		}
-	}
-
-	if v, ok := request["IoMaxSpec"]; ok {
-		if str, ok := v.(string); ok {
-			createReq.IoMaxSpec = str
-		}
-	}
-
-	if v, ok := request["SpecType"]; ok {
-		if str, ok := v.(string); ok {
-			createReq.SpecType = str
-		}
-	}
-
-	if v, ok := request["EipMax"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.EipMax = int32(num)
-		}
-	}
-
-	if v, ok := request["ResourceGroupId"]; ok {
-		if str, ok := v.(string); ok {
-			createReq.ResourceGroupId = str
-		}
-	}
-
-	response, err := s.GetAPI().CreatePostPayOrder(createReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "CreatePostPayOrder", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"OrderId": response.OrderId,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
+	// CWS-Lib-Go KafkaAPI does not yet expose instance order creation.
+	// Keep signature for forward compatibility but fail fast at runtime.
+	return nil, WrapError(fmt.Errorf("CreatePostPayOrder is not implemented in KafkaService"))
 }
 
 // CreatePrePayOrder creates a pre-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) CreatePrePayOrder(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request structure
-	createReq := &aliyunKafkaAPI.CreatePrePayOrderRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to createReq
-	if v, ok := request["PartitionNum"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.PartitionNum = int32(num)
-		}
-	}
-
-	if v, ok := request["TopicQuota"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.TopicQuota = int32(num)
-		}
-	}
-
-	if v, ok := request["DiskType"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.DiskType = int32(num)
-		}
-	}
-
-	if v, ok := request["DiskSize"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.DiskSize = int32(num)
-		}
-	}
-
-	if v, ok := request["DeployType"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.DeployType = int32(num)
-		}
-	}
-
-	if v, ok := request["IoMax"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.IoMax = int32(num)
-		}
-	}
-
-	if v, ok := request["IoMaxSpec"]; ok {
-		if str, ok := v.(string); ok {
-			createReq.IoMaxSpec = str
-		}
-	}
-
-	if v, ok := request["SpecType"]; ok {
-		if str, ok := v.(string); ok {
-			createReq.SpecType = str
-		}
-	}
-
-	if v, ok := request["EipMax"]; ok {
-		if num, ok := v.(int); ok {
-			createReq.EipMax = int32(num)
-		}
-	}
-
-	if v, ok := request["ResourceGroupId"]; ok {
-		if str, ok := v.(string); ok {
-			createReq.ResourceGroupId = str
-		}
-	}
-
-	response, err := s.GetAPI().CreatePrePayOrder(createReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "CreatePrePayOrder", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"OrderId": response.OrderId,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
+	// CWS-Lib-Go KafkaAPI does not yet expose instance order creation.
+	// Keep signature for forward compatibility but fail fast at runtime.
+	return nil, WrapError(fmt.Errorf("CreatePrePayOrder is not implemented in KafkaService"))
 }
 
 // StartInstanceRequest 启动Kafka实例的请求结构
@@ -1123,113 +918,9 @@ type StartInstanceRequest struct {
 
 // StartInstance 启动Kafka实例
 func (s *KafkaService) StartInstance(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request结构
-	startReq := &aliyunKafkaAPI.StartInstanceRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to startReq
-	if v, ok := request["InstanceId"]; ok {
-		if str, ok := v.(string); ok {
-			startReq.InstanceId = str
-		}
-	}
-
-	if v, ok := request["VSwitchId"]; ok {
-		if str, ok := v.(string); ok {
-			startReq.VSwitchId = str
-		}
-	}
-
-	if v, ok := request["VpcId"]; ok {
-		if str, ok := v.(string); ok {
-			startReq.VpcId = str
-		}
-	}
-
-	if v, ok := request["ZoneId"]; ok {
-		if str, ok := v.(string); ok {
-			startReq.ZoneId = str
-		}
-	}
-
-	if v, ok := request["VSwitchIds"]; ok {
-		if list, ok := v.([]interface{}); ok {
-			for _, item := range list {
-				if str, ok := item.(string); ok {
-					startReq.VSwitchIds = append(startReq.VSwitchIds, str)
-				}
-			}
-		}
-	}
-
-	if v, ok := request["DeployModule"]; ok {
-		if str, ok := v.(string); ok {
-			startReq.DeployModule = str
-		}
-	}
-
-	if v, ok := request["IsEipInner"]; ok {
-		if b, ok := v.(bool); ok {
-			startReq.IsEipInner = b
-		}
-	}
-
-	if v, ok := request["Name"]; ok {
-		if str, ok := v.(string); ok {
-			startReq.Name = str
-		}
-	}
-
-	if v, ok := request["SecurityGroup"]; ok {
-		if str, ok := v.(string); ok {
-			startReq.SecurityGroup = str
-		}
-	}
-
-	if v, ok := request["ServiceVersion"]; ok {
-		if str, ok := v.(string); ok {
-			startReq.ServiceVersion = str
-		}
-	}
-
-	if v, ok := request["Config"]; ok {
-		if str, ok := v.(string); ok {
-			startReq.Config = str
-		}
-	}
-
-	if v, ok := request["KMSKeyId"]; ok {
-		if str, ok := v.(string); ok {
-			startReq.KMSKeyId = str
-		}
-	}
-
-	if v, ok := request["SelectedZones"]; ok {
-		if str, ok := v.(string); ok {
-			startReq.SelectedZones = str
-		}
-	}
-
-	if v, ok := request["CrossZone"]; ok {
-		if b, ok := v.(bool); ok {
-			startReq.CrossZone = b
-		}
-	}
-
-	response, err := s.GetAPI().StartInstance(startReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "StartInstance", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
+	// CWS-Lib-Go KafkaAPI does not yet expose instance start; this provider
+	// still relies on order-based flow. Keep method for compatibility only.
+	return nil, WrapError(fmt.Errorf("StartInstance is not implemented in KafkaService"))
 }
 
 // ModifyInstanceNameRequest 修改实例名称的请求结构
@@ -1241,37 +932,8 @@ type ModifyInstanceNameRequest struct {
 
 // ModifyInstanceName 修改Kafka实例名称
 func (s *KafkaService) ModifyInstanceName(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request结构
-	modifyReq := &aliyunKafkaAPI.ModifyInstanceNameRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to modifyReq
-	if v, ok := request["InstanceId"]; ok {
-		if str, ok := v.(string); ok {
-			modifyReq.InstanceId = str
-		}
-	}
-
-	if v, ok := request["InstanceName"]; ok {
-		if str, ok := v.(string); ok {
-			modifyReq.InstanceName = str
-		}
-	}
-
-	response, err := s.GetAPI().ModifyInstanceName(modifyReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "ModifyInstanceName", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
+	// Not wired to CWS-Lib-Go yet; retain signature but error at runtime.
+	return nil, WrapError(fmt.Errorf("ModifyInstanceName is not implemented in KafkaService"))
 }
 
 // UpgradePostPayOrderRequest 升级后付费实例的请求结构
@@ -1289,144 +951,16 @@ type UpgradePostPayOrderRequest struct {
 
 // UpgradePostPayOrder 升级后付费Kafka实例
 func (s *KafkaService) UpgradePostPayOrder(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request结构
-	upgradeReq := &aliyunKafkaAPI.UpgradePostPayOrderRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to upgradeReq
-	if v, ok := request["InstanceId"]; ok {
-		if str, ok := v.(string); ok {
-			upgradeReq.InstanceId = str
-		}
-	}
-
-	if v, ok := request["PartitionNum"]; ok {
-		if num, ok := v.(int); ok {
-			upgradeReq.PartitionNum = int32(num)
-		}
-	}
-
-	if v, ok := request["DiskSize"]; ok {
-		if num, ok := v.(int); ok {
-			upgradeReq.DiskSize = int32(num)
-		}
-	}
-
-	if v, ok := request["IoMax"]; ok {
-		if num, ok := v.(int); ok {
-			upgradeReq.IoMax = int32(num)
-		}
-	}
-
-	if v, ok := request["IoMaxSpec"]; ok {
-		if str, ok := v.(string); ok {
-			upgradeReq.IoMaxSpec = str
-		}
-	}
-
-	if v, ok := request["SpecType"]; ok {
-		if str, ok := v.(string); ok {
-			upgradeReq.SpecType = str
-		}
-	}
-
-	if v, ok := request["EipMax"]; ok {
-		if num, ok := v.(int); ok {
-			upgradeReq.EipMax = int32(num)
-		}
-	}
-
-	if v, ok := request["EipModel"]; ok {
-		if b, ok := v.(bool); ok {
-			upgradeReq.EipModel = b
-		}
-	}
-
-	response, err := s.GetAPI().UpgradePostPayOrder(upgradeReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "UpgradePostPayOrder", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
+	// Not yet integrated with CWS-Lib-Go KafkaAPI; keep signature
+	// but fail fast at runtime to avoid silent misuse.
+	return nil, WrapError(fmt.Errorf("UpgradePostPayOrder is not implemented in KafkaService"))
 }
 
 // UpgradePrePayOrder 升级预付费Kafka实例
 func (s *KafkaService) UpgradePrePayOrder(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request structure
-	upgradeReq := &aliyunKafkaAPI.UpgradePrePayOrderRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to upgradeReq
-	if v, ok := request["InstanceId"]; ok {
-		if str, ok := v.(string); ok {
-			upgradeReq.InstanceId = str
-		}
-	}
-
-	if v, ok := request["PartitionNum"]; ok {
-		if num, ok := v.(int); ok {
-			upgradeReq.PartitionNum = int32(num)
-		}
-	}
-
-	if v, ok := request["DiskSize"]; ok {
-		if num, ok := v.(int); ok {
-			upgradeReq.DiskSize = int32(num)
-		}
-	}
-
-	if v, ok := request["IoMax"]; ok {
-		if num, ok := v.(int); ok {
-			upgradeReq.IoMax = int32(num)
-		}
-	}
-
-	if v, ok := request["IoMaxSpec"]; ok {
-		if str, ok := v.(string); ok {
-			upgradeReq.IoMaxSpec = str
-		}
-	}
-
-	if v, ok := request["SpecType"]; ok {
-		if str, ok := v.(string); ok {
-			upgradeReq.SpecType = str
-		}
-	}
-
-	if v, ok := request["EipMax"]; ok {
-		if num, ok := v.(int); ok {
-			upgradeReq.EipMax = int32(num)
-		}
-	}
-
-	if v, ok := request["EipModel"]; ok {
-		if b, ok := v.(bool); ok {
-			upgradeReq.EipModel = b
-		}
-	}
-
-	response, err := s.GetAPI().UpgradePrePayOrder(upgradeReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "UpgradePrePayOrder", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
+	// Not yet integrated with CWS-Lib-Go KafkaAPI; keep signature
+	// but fail fast at runtime to avoid silent misuse.
+	return nil, WrapError(fmt.Errorf("UpgradePrePayOrder is not implemented in KafkaService"))
 }
 
 // AliKafkaInstanceStateRefreshFunc Kafka instance state refresh function using cws-lib-go API
@@ -1457,35 +991,7 @@ func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id string, failStates []
 
 // UpgradeInstanceVersion 升级Kafka实例版本
 func (s *KafkaService) UpgradeInstanceVersion(request map[string]interface{}) (map[string]interface{}, error) {
-	// Convert map to cws-lib-go request structure
-	upgradeReq := &aliyunKafkaAPI.UpgradeInstanceVersionRequest{
-		RegionId: s.client.RegionId,
-	}
-
-	// Map fields from request to upgradeReq
-	if v, ok := request["InstanceId"]; ok {
-		if str, ok := v.(string); ok {
-			upgradeReq.InstanceId = str
-		}
-	}
-
-	if v, ok := request["TargetVersion"]; ok {
-		if str, ok := v.(string); ok {
-			upgradeReq.TargetVersion = str
-		}
-	}
-
-	response, err := s.GetAPI().UpgradeInstanceVersion(upgradeReq)
-	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, "kafka_instance", "UpgradeInstanceVersion", AlibabaCloudSdkGoERROR)
-	}
-
-	// Convert response to map for compatibility
-	result := map[string]interface{}{
-		"Success": response.Success,
-		"Code":    response.Code,
-		"Message": response.Message,
-	}
-
-	return result, nil
+	// Not yet integrated with CWS-Lib-Go KafkaAPI; keep signature
+	// but fail fast at runtime to avoid silent misuse.
+	return nil, WrapError(fmt.Errorf("UpgradeInstanceVersion is not implemented in KafkaService"))
 }

@@ -245,7 +245,6 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 
 func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	// Use KafkaService instead of AlikafkaService
 	kafkaService, err := NewKafkaService(client)
 	if err != nil {
 		return WrapError(err)
@@ -843,50 +842,13 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	kafkaService, err := NewKafkaService(client)
-	if err != nil {
-		return WrapError(err)
-	}
-
-	var response map[string]interface{}
-	request := map[string]interface{}{
-		"InstanceId":          d.Id(),
-		"RegionId":            client.RegionId,
-		"ForceDeleteInstance": true,
-	}
-
 	// Pre paid instance can not be release.
 	if d.Get("paid_type").(string) == string(PrePaid) {
 		return nil
 	}
 
-	request = map[string]interface{}{
-		"InstanceId": d.Id(),
-		"RegionId":   client.RegionId,
-	}
-
-	// The DeleteInstance method is not available in the current KafkaService implementation
-	// response, err = kafkaService.DeleteInstance(request)
-	// if err != nil {
-	// 	return err
-	// }
-	// addDebug("DeleteInstance", response, request)
-
-	if err != nil {
-		return err
-	}
-	addDebug("DeleteInstance", response, request)
-
-	if fmt.Sprint(response["Success"]) == "false" {
-		return WrapError(fmt.Errorf("DeleteInstance failed, response: %v", response))
-	}
-
-	// stateConf = BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
-	// if _, err := stateConf.WaitForState(); err != nil {
-	// 	return WrapErrorf(err, IdMsg, d.Id())
-	// }
-
+	// Instance delete is not implemented against Kafka API in this provider.
+	// Keep a no-op delete to allow Terraform state removal without remote call.
 	return nil
 }
 

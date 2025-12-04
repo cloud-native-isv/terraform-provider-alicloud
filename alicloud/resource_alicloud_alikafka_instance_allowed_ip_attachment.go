@@ -90,8 +90,6 @@ func resourceAliCloudAliKafkaInstanceAllowedIpAttachmentCreate(d *schema.Resourc
 }
 
 func resourceAliCloudAliKafkaInstanceAllowedIpAttachmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-
 	// The DescribeAliKafkaInstanceAllowedIpAttachment method is not available in the current KafkaService implementation
 	// object, err := kafkaService.DescribeAliKafkaInstanceAllowedIpAttachment(d.Id())
 	// if err != nil {
