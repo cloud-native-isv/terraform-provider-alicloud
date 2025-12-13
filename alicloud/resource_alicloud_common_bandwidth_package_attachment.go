@@ -116,7 +116,7 @@ func resourceAliCloudCbwpCommonBandwidthPackageAttachmentRead(d *schema.Resource
 
 	objectRaw, err := cbwpServiceV2.DescribeCbwpCommonBandwidthPackageAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_common_bandwidth_package_attachment DescribeCbwpCommonBandwidthPackageAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

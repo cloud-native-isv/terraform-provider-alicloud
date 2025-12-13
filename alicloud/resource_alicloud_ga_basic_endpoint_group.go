@@ -137,7 +137,7 @@ func resourceAliCloudGaBasicEndpointGroupRead(d *schema.ResourceData, meta inter
 
 	object, err := gaService.DescribeGaBasicEndpointGroup(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -248,7 +248,7 @@ func resourceAliCloudGaBasicEndpointGroupDelete(d *schema.ResourceData, meta int
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotExist.EndPointGroup"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NotExist.EndPointGroup"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

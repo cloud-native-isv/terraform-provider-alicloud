@@ -96,7 +96,7 @@ func resourceAliCloudMessageServiceServiceRead(d *schema.ResourceData, meta inte
 
 	objectRaw, err := messageServiceServiceV2.DescribeMessageServiceService(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_message_service_service DescribeMessageServiceService Failed!!! %s", err)
 			d.SetId("")
 			return nil

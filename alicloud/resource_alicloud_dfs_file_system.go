@@ -170,7 +170,7 @@ func resourceAliCloudDfsFileSystemRead(d *schema.ResourceData, meta interface{})
 
 	objectRaw, err := dfsServiceV2.DescribeDfsFileSystem(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dfs_file_system DescribeDfsFileSystem Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -282,7 +282,7 @@ func resourceAliCloudDfsFileSystemDelete(d *schema.ResourceData, meta interface{
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidParameter.FileSystemNotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidParameter.FileSystemNotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -60,7 +60,7 @@ func (s *CasService) SslCertificatesServiceCertificateStateRefreshFunc(d *schema
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSslCertificatesServiceCertificate(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

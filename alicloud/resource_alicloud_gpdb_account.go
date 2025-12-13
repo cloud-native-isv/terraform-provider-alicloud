@@ -125,7 +125,7 @@ func resourceAliCloudGpdbAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	objectRaw, err := gpdbServiceV2.DescribeGpdbAccount(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_gpdb_account DescribeGpdbAccount Failed!!! %s", err)
 			d.SetId("")
 			return nil

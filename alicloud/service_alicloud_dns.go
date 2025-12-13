@@ -147,7 +147,7 @@ func (s *DnsService) WaitForAlidnsDomainAttachment(id string, expected map[strin
 	for {
 		object, err := s.DescribeAlidnsDomainAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if isDelete {
 					return nil
 				}

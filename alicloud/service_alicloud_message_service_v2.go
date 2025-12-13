@@ -245,7 +245,7 @@ func (s *MessageServiceServiceV2) MessageServiceEndpointStateRefreshFunc(id stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMessageServiceEndpoint(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -337,7 +337,7 @@ func (s *MessageServiceServiceV2) MessageServiceEndpointAclStateRefreshFunc(id s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMessageServiceEndpointAcl(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -415,7 +415,7 @@ func (s *MessageServiceServiceV2) MessageServiceSubscriptionStateRefreshFunc(id 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMessageServiceSubscription(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

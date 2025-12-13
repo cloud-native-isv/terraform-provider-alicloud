@@ -89,7 +89,7 @@ func resourceAliCloudOssBucketTransferAccelerationRead(d *schema.ResourceData, m
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketTransferAcceleration(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_transfer_acceleration DescribeOssBucketTransferAcceleration Failed!!! %s", err)
 			d.SetId("")
 			return nil

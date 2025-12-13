@@ -102,7 +102,7 @@ func resourceAliCloudThreatDetectionAssetBindRead(d *schema.ResourceData, meta i
 
 	objectRaw, err := threatDetectionServiceV2.DescribeThreatDetectionAssetBind(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_asset_bind DescribeThreatDetectionAssetBind Failed!!! %s", err)
 			d.SetId("")
 			return nil

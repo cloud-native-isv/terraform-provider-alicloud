@@ -120,7 +120,7 @@ func resourceAliCloudGovernanceBaselineRead(d *schema.ResourceData, meta interfa
 
 	objectRaw, err := governanceServiceV2.DescribeGovernanceBaseline(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_governance_baseline DescribeGovernanceBaseline Failed!!! %s", err)
 			d.SetId("")
 			return nil

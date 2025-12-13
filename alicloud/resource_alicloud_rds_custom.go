@@ -375,7 +375,7 @@ func resourceAliCloudRdsCustomRead(d *schema.ResourceData, meta interface{}) err
 
 	objectRaw, err := rdsServiceV2.DescribeRdsCustom(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_rds_custom DescribeRdsCustom Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -418,7 +418,7 @@ func resourceAliCloudRdsCustomRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("security_group_ids", securityGroupIdRaw)
 
 	objectRaw, err = rdsServiceV2.DescribeCustomListTagResources(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -624,7 +624,7 @@ func resourceAliCloudRdsCustomDelete(d *schema.ResourceData, meta interface{}) e
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidDBInstanceId.NotFound", "InvalidDBInstance.NotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidDBInstanceId.NotFound", "InvalidDBInstance.NotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

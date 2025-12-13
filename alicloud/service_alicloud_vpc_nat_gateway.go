@@ -155,7 +155,7 @@ func (s *VpcNatGatewayService) DescribeNatGateway(id string) (*aliyunVpcAPI.NATG
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"InvalidNatGatewayId.NotFound", "InvalidRegionId.NotFound"}) {
+		if NotFoundError(err) || IsExpectedErrors(err, []string{"InvalidNatGatewayId.NotFound", "InvalidRegionId.NotFound"}) {
 			return nil, WrapErrorf(NotFoundErr("NatGateway", id), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "DescribeNatGateway", AlibabaCloudSdkGoERROR)
@@ -264,7 +264,7 @@ func (s *VpcNatGatewayService) DeleteNatGateway(id string, timeout time.Duration
 
 	if err != nil {
 		// tolerate not found
-		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"INSTANCE_NOT_EXISTS", "IncorrectStatus.NatGateway", "InvalidNatGatewayId.NotFound", "InvalidRegionId.NotFound"}) {
+		if NotFoundError(err) || IsExpectedErrors(err, []string{"INSTANCE_NOT_EXISTS", "IncorrectStatus.NatGateway", "InvalidNatGatewayId.NotFound", "InvalidRegionId.NotFound"}) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, id, "DeleteNatGateway", AlibabaCloudSdkGoERROR)
@@ -278,7 +278,7 @@ func (s *VpcNatGatewayService) NatGatewayStateRefreshFunc(id string, failStates 
 	return func() (interface{}, string, error) {
 		obj, err := s.DescribeNatGateway(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

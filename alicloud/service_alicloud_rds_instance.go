@@ -170,7 +170,7 @@ func (s *RdsService) WaitForDBInstance(id string, status Status, timeout int) er
 	for {
 		object, err := s.DescribeDBInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -193,7 +193,7 @@ func (s *RdsService) RdsDBInstanceStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDBInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -213,7 +213,7 @@ func (s *RdsService) RdsDBInstanceNodeIdRefreshFunc(id string) resource.StateRef
 	return func() (interface{}, string, error) {
 		describeDBInstanceHAConfigObject, err := s.DescribeDBInstanceHAConfig(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -237,7 +237,7 @@ func (s *RdsService) RdsTaskStateRefreshFunc(id string, taskAction string) resou
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeTasks(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

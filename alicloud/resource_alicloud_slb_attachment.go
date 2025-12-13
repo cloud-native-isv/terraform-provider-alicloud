@@ -82,7 +82,7 @@ func resourceAliyunSlbAttachmentRead(d *schema.ResourceData, meta interface{}) e
 	slbService := SlbService{client}
 	object, err := slbService.DescribeSlb(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -214,7 +214,7 @@ func resourceAliyunSlbAttachmentDelete(d *schema.ResourceData, meta interface{})
 	if d.Get("delete_protection_validation").(bool) {
 		lbInstance, err := slbService.DescribeSlb(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return WrapError(err)

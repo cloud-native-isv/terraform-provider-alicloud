@@ -61,7 +61,7 @@ func resourceAliCloudMNSTopicRead(d *schema.ResourceData, meta interface{}) erro
 	mnsService := MnsService{client}
 	object, err := mnsService.DescribeMnsTopic(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

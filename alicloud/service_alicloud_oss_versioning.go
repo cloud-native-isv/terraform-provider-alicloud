@@ -20,7 +20,7 @@ func (s *OssService) DescribeOssBucketVersioning(id string) (object map[string]i
 
 	config, err := ossAPI.GetBucketVersioning(id)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("BucketVersioning", id), NotFoundMsg, err)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketVersioning", AlibabaCloudSdkGoERROR)
@@ -39,7 +39,7 @@ func (s *OssService) OssBucketVersioningStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketVersioning(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

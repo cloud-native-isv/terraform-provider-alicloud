@@ -1742,7 +1742,7 @@ func resourceAliCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) er
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -2030,7 +2030,7 @@ func resourceAliCloudDBInstanceDelete(d *schema.ResourceData, meta interface{}) 
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
@@ -2050,7 +2050,7 @@ func resourceAliCloudDBInstanceDelete(d *schema.ResourceData, meta interface{}) 
 	}
 	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
 		response, err := client.RpcPost("Rds", "2014-08-15", action, nil, request, false)
-		if err != nil && !IsNotFoundError(err) {
+		if err != nil && !NotFoundError(err) {
 			if IsExpectedErrors(err, []string{"OperationDenied.DBInstanceStatus", "OperationDenied.ReadDBInstanceStatus", "IncorrectDBInstanceState"}) || NeedRetry(err) {
 				return resource.RetryableError(err)
 			}
@@ -2261,7 +2261,7 @@ func buildDBCreateRequest(d *schema.ResourceData, meta interface{}) (map[string]
 	if err != nil {
 		uuid = resource.UniqueId()
 	}
-	request["ClientToken"] = fmt.Sprintf("Terraform-Alicloud-%d-%s", time.Now().Unix(), uuid)
+	request["ClientToken"] = fmt.Sprintf("Terraform-AliCloud-%d-%s", time.Now().Unix(), uuid)
 
 	return request, nil
 }

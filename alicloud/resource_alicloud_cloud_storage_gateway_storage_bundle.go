@@ -70,7 +70,7 @@ func resourceAliCloudCloudStorageGatewayStorageBundleRead(d *schema.ResourceData
 	sgwService := SgwService{client}
 	object, err := sgwService.DescribeCloudStorageGatewayStorageBundle(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_storage_gateway_storage_bundle sgwService.DescribeCloudStorageGatewayStorageBundle Failed!!! %s", err)
 			d.SetId("")
 			return nil

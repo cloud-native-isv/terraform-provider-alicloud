@@ -152,7 +152,7 @@ func resourceAliCloudEnsDiskRead(d *schema.ResourceData, meta interface{}) error
 
 	objectRaw, err := ensServiceV2.DescribeEnsDisk(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ens_disk DescribeEnsDisk Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -175,7 +175,7 @@ func resourceAliCloudEnsDiskRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("size", formatInt(evaluation))
 
 	objectRaw, err = ensServiceV2.DescribeDiskListTagResources(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -294,7 +294,7 @@ func resourceAliCloudEnsDiskDelete(d *schema.ResourceData, meta interface{}) err
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

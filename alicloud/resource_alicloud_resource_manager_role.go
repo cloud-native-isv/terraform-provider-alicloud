@@ -108,7 +108,7 @@ func resourceAliCloudResourceManagerRoleRead(d *schema.ResourceData, meta interf
 	resourcemanagerService := ResourcemanagerService{client}
 	object, err := resourcemanagerService.DescribeResourceManagerRole(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_resource_manager_role resourcemanagerService.DescribeResourceManagerRole Failed!!! %s", err)
 			d.SetId("")
 			return nil

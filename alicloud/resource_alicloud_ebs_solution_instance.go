@@ -150,7 +150,7 @@ func resourceAliCloudEbsSolutionInstanceRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := ebsServiceV2.DescribeEbsSolutionInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ebs_solution_instance DescribeEbsSolutionInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -170,7 +170,7 @@ func resourceAliCloudVodDomainRead(d *schema.ResourceData, meta interface{}) err
 	vodService := VodService{client}
 	object, err := vodService.DescribeVodDomain(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vod_domain vodService.DescribeVodDomain Failed!!! %s", err)
 			d.SetId("")
 			return nil

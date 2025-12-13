@@ -362,7 +362,7 @@ func resourceAliCloudAdbDbClusterRead(d *schema.ResourceData, meta interface{}) 
 	adbService := AdbService{client}
 	object, err := adbService.DescribeAdbDbCluster(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_analyticdb_for_mysql3.0_db_cluster adbService.DescribeAdbDbCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil

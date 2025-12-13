@@ -61,7 +61,7 @@ func (s *AckServiceV2) AckNodepoolStateRefreshFunc(id string, field string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAckNodepool(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -90,7 +90,7 @@ func (s *AckServiceV2) DescribeAsyncAckNodepoolStateRefreshFunc(d *schema.Resour
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncDescribeTaskInfo(d, res)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 		}

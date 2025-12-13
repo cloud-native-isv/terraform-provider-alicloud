@@ -101,7 +101,7 @@ func resourceAliCloudCrEENamespaceRead(d *schema.ResourceData, meta interface{})
 
 	object, err := crService.DescribeCrEENamespace(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -184,7 +184,7 @@ func resourceAliCloudCrEENamespaceDelete(d *schema.ResourceData, meta interface{
 
 	_, err := crService.DeleteCrEENamespace(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		} else {
 			return WrapError(err)

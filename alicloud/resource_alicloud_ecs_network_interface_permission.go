@@ -96,7 +96,7 @@ func resourceAliCloudEcsNetworkInterfacePermissionRead(d *schema.ResourceData, m
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsNetworkInterfacePermission(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_network_interface_permission ecsService.DescribeEcsNetworkInterfacePermission Failed!!! %s", err)
 			d.SetId("")
 			return nil

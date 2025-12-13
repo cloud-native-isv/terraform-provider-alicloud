@@ -113,7 +113,7 @@ func resourceAliCloudEsaClientCertificateRead(d *schema.ResourceData, meta inter
 
 	objectRaw, err := esaServiceV2.DescribeEsaClientCertificate(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_client_certificate DescribeEsaClientCertificate Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -239,7 +239,7 @@ func resourceAliCloudEsaClientCertificateDelete(d *schema.ResourceData, meta int
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

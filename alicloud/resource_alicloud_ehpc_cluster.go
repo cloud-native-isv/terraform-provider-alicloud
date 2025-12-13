@@ -668,7 +668,7 @@ func resourceAliCloudEhpcClusterRead(d *schema.ResourceData, meta interface{}) e
 	ehpcService := EhpcService{client}
 	object, err := ehpcService.DescribeEhpcCluster(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ehpc_cluster ehpcService.DescribeEhpcCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil

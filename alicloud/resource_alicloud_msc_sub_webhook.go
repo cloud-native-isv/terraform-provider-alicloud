@@ -75,7 +75,7 @@ func resourceAliCloudMscSubWebhookRead(d *schema.ResourceData, meta interface{})
 	mscOpenSubscriptionService := MscOpenSubscriptionService{client}
 	object, err := mscOpenSubscriptionService.DescribeMscSubWebhook(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_msc_sub_webhook mscOpenSubscriptionService.DescribeMscSubWebhook Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -151,7 +151,7 @@ func resourceAliCloudMscSubWebhookDelete(d *schema.ResourceData, meta interface{
 		return nil
 	})
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ResourceNotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ResourceNotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

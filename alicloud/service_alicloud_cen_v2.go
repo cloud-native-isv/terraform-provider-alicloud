@@ -69,7 +69,7 @@ func (s *CenServiceV2) CenTransitRouterPeerAttachmentStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterPeerAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -242,7 +242,7 @@ func (s *CenServiceV2) CenTransitRouterEcrAttachmentStateRefreshFunc(id string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterEcrAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -332,7 +332,7 @@ func (s *CenServiceV2) CenTrafficMarkingPolicyStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTrafficMarkingPolicy(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -366,18 +366,16 @@ func (s *CenServiceV2) DescribeCenTransitRouterVpcAttachment(id string) (object 
 	var request map[string]interface{}
 	var response map[string]interface{}
 	var query map[string]interface{}
-	action := "ListTransitRouterVpcAttachments"
 	request = make(map[string]interface{})
 	query = make(map[string]interface{})
 	parts, err1 := ParseResourceId(id, 2)
 	if err1 != nil {
 		return nil, WrapError(err1)
 	}
-	query["TransitRouterAttachmentId"] = parts[1]
-	query["RegionId"] = client.RegionId
+	request["TransitRouterAttachmentId"] = parts[1]
+	request["RegionId"] = client.RegionId
+	action := "ListTransitRouterVpcAttachments"
 
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(1*time.Minute, func() *resource.RetryError {
 		response, err = client.RpcPost("Cbn", "2017-09-12", action, query, request, true)
@@ -389,12 +387,12 @@ func (s *CenServiceV2) DescribeCenTransitRouterVpcAttachment(id string) (object 
 			}
 			return resource.NonRetryableError(err)
 		}
-		addDebug(action, response, request)
 		return nil
 	})
+	addDebug(action, response, request)
 	if err != nil {
 		if IsExpectedErrors(err, []string{"IllegalParam.Region"}) {
-			return object, WrapErrorf(NotFoundErr("Cen:TransitRouterVpcAttachment", id), NotFoundWithResponse, response)
+			return object, WrapErrorf(NotFoundErr("TransitRouterVpcAttachment", id), NotFoundMsg, response)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
 	}
@@ -408,22 +406,14 @@ func (s *CenServiceV2) DescribeCenTransitRouterVpcAttachment(id string) (object 
 		return object, WrapErrorf(NotFoundErr("TransitRouterVpcAttachment", id), NotFoundMsg, response)
 	}
 
-	result, _ := v.([]interface{})
-	for _, v := range result {
-		item := v.(map[string]interface{})
-		if fmt.Sprint(item["TransitRouterAttachmentId"]) != parts[1] {
-			continue
-		}
-		return item, nil
-	}
-	return object, WrapErrorf(NotFoundErr("TransitRouterVpcAttachment", id), NotFoundMsg, response)
+	return v.([]interface{})[0].(map[string]interface{}), nil
 }
 
 func (s *CenServiceV2) CenTransitRouterVpcAttachmentStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterVpcAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -431,6 +421,13 @@ func (s *CenServiceV2) CenTransitRouterVpcAttachmentStateRefreshFunc(id string, 
 
 		v, err := jsonpath.Get(field, object)
 		currentStatus := fmt.Sprint(v)
+
+		if strings.HasPrefix(field, "#") {
+			v, _ := jsonpath.Get(strings.TrimPrefix(field, "#"), object)
+			if v != nil {
+				currentStatus = "#CHECKSET"
+			}
+		}
 
 		for _, failState := range failStates {
 			if currentStatus == failState {
@@ -494,7 +491,7 @@ func (s *CenServiceV2) CenFlowLogStateRefreshFunc(id string, field string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenFlowLog(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -573,7 +570,7 @@ func (s *CenServiceV2) CenTransitRouterMulticastDomainStateRefreshFunc(id string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterMulticastDomain(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -656,7 +653,7 @@ func (s *CenServiceV2) CenTransitRouteTableAggregationStateRefreshFunc(id string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouteTableAggregation(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -734,7 +731,7 @@ func (s *CenServiceV2) CenCenInstanceStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenCenInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -807,7 +804,7 @@ func (s *CenServiceV2) CenInterRegionTrafficQosPolicyStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenInterRegionTrafficQosPolicy(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -880,7 +877,7 @@ func (s *CenServiceV2) CenInterRegionTrafficQosQueueStateRefreshFunc(id string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenInterRegionTrafficQosQueue(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -955,7 +952,7 @@ func (s *CenServiceV2) CenTransitRouterVpnAttachmentStateRefreshFunc(id string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterVpnAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1014,6 +1011,9 @@ func (s *CenServiceV2) DescribeCenTransitRouter(id string) (object map[string]in
 	})
 	addDebug(action, response, request)
 	if err != nil {
+		if IsExpectedErrors(err, []string{"ParameterCenInstanceId"}) {
+			return nil, WrapErrorf(NotFoundErr("TransitRouter", id), NotFoundMsg, response)
+		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
 	}
 
@@ -1033,7 +1033,7 @@ func (s *CenServiceV2) CenTransitRouterStateRefreshFunc(id string, field string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouter(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1113,7 +1113,7 @@ func (s *CenServiceV2) CenTransitRouterCidrStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterCidr(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1192,7 +1192,7 @@ func (s *CenServiceV2) CenTransitRouterRouteTableAssociationStateRefreshFunc(id 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenTransitRouterRouteTableAssociation(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -181,7 +181,7 @@ func resourceAliCloudDdosbgpInstanceRead(d *schema.ResourceData, meta interface{
 	ddosbgpService := DdosbgpService{client}
 	object, err := ddosbgpService.DescribeDdosbgpInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ddosbgp_instance DescribeInstanceList Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -249,6 +249,6 @@ func resourceAliCloudDdosbgpInstanceUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceAliCloudDdosbgpInstanceDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resource AlicloudDdosbgpInstance. Terraform will remove this resource from the state file, however resources may remain.")
+	log.Printf("[WARN] Cannot destroy resource AliCloudDdosbgpInstance. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }

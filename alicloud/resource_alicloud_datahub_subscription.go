@@ -107,7 +107,7 @@ func resourceAliyunDatahubSubscriptionRead(d *schema.ResourceData, meta interfac
 	projectName := parts[0]
 	object, err := datahubService.DescribeDatahubSubscription(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

@@ -269,7 +269,7 @@ func resourceAliCloudDtsSubscriptionJobRead(d *schema.ResourceData, meta interfa
 	dtsService := DtsService{client}
 	object, err := dtsService.DescribeDtsSubscriptionJob(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dts_subscription_job dtsService.DescribeDtsSubscriptionJob Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -84,7 +84,7 @@ func resourceAliCloudResourceManagerResourceShareRead(d *schema.ResourceData, me
 
 	object, err := resourceSharingService.DescribeResourceManagerResourceShare(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_resource_manager_resource_share resourceSharingService.DescribeResourceManagerResourceShare Failed!!! %s", err)
 			d.SetId("")
 			return nil

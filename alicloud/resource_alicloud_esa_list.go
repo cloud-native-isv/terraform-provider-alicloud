@@ -106,7 +106,7 @@ func resourceAliCloudEsaListRead(d *schema.ResourceData, meta interface{}) error
 
 	objectRaw, err := esaServiceV2.DescribeEsaList(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_list DescribeEsaList Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -217,7 +217,7 @@ func resourceAliCloudEsaListDelete(d *schema.ResourceData, meta interface{}) err
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

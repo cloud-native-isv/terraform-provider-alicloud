@@ -123,7 +123,7 @@ func resourceAliCloudVpcHaVipAttachmentRead(d *schema.ResourceData, meta interfa
 
 	objectRaw, err := vpcServiceV2.DescribeVpcHaVipAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_havip_attachment DescribeVpcHaVipAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -145,7 +145,7 @@ func resourceAliCloudVpcHaVipAttachmentRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceAliCloudVpcHaVipAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[INFO] Cannot update resource Alicloud Resource Ha Vip Attachment.")
+	log.Printf("[INFO] Cannot update resource AliCloud Resource Ha Vip Attachment.")
 	return nil
 }
 
@@ -187,7 +187,7 @@ func resourceAliCloudVpcHaVipAttachmentDelete(d *schema.ResourceData, meta inter
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

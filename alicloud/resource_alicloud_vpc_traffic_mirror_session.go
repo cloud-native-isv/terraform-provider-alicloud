@@ -172,7 +172,7 @@ func resourceAliCloudVpcTrafficMirrorSessionRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := vpcServiceV2.DescribeVpcTrafficMirrorSession(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_traffic_mirror_session DescribeVpcTrafficMirrorSession Failed!!! %s", err)
 			d.SetId("")
 			return nil

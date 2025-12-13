@@ -104,7 +104,7 @@ func resourceAliCloudFlinkMemberRead(d *schema.ResourceData, meta interface{}) e
 	// Use GetMember method with parsed values
 	response, err := flinkService.GetMember(workspaceId, namespaceName, name)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

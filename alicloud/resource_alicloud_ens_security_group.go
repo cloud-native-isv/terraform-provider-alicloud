@@ -91,7 +91,7 @@ func resourceAliCloudEnsSecurityGroupRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := ensServiceV2.DescribeEnsSecurityGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ens_security_group DescribeEnsSecurityGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

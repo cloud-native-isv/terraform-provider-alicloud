@@ -84,7 +84,7 @@ func resourceAliCloudCloudStorageGatewayGatewayLoggingRead(d *schema.ResourceDat
 	sgwService := SgwService{client}
 	object, err := sgwService.DescribeCloudStorageGatewayGatewayLogging(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_storage_gateway_gateway_logging sgwService.DescribeCloudStorageGatewayGatewayLogging Failed!!! %s", err)
 			d.SetId("")
 			return nil

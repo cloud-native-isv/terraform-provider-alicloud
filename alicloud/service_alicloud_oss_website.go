@@ -21,7 +21,7 @@ func (s *OssService) DescribeOssBucketWebsite(id string) (object map[string]inte
 
 	config, err := ossAPI.GetBucketWebsite(id)
 	if err != nil {
-		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"NoSuchBucket", "NoSuchWebsiteConfiguration"}) {
+		if NotFoundError(err) || IsExpectedErrors(err, []string{"NoSuchBucket", "NoSuchWebsiteConfiguration"}) {
 			return object, WrapErrorf(NotFoundErr("BucketWebsite", id), NotFoundMsg, err)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketWebsite", AlibabaCloudSdkGoERROR)
@@ -40,7 +40,7 @@ func (s *OssService) OssBucketWebsiteStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketWebsite(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -101,7 +101,7 @@ func resourceAliCloudCmsMonitorGroupInstancesRead(d *schema.ResourceData, meta i
 	cmsService := CmsService{client}
 	object, err := cmsService.DescribeCmsMonitorGroupInstances(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cms_monitor_group_instances cmsService.DescribeCmsMonitorGroupInstances Failed!!! %s", err)
 			d.SetId("")
 			return nil

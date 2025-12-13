@@ -106,7 +106,7 @@ func resourceAliCloudRamGroupRead(d *schema.ResourceData, meta interface{}) erro
 
 	objectRaw, err := ramServiceV2.DescribeRamGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_group DescribeRamGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -327,7 +327,7 @@ func resourceAliCloudRamGroupDelete(d *schema.ResourceData, meta interface{}) er
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExist.Group"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExist.Group"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

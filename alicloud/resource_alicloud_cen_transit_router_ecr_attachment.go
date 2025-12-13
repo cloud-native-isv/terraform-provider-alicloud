@@ -139,7 +139,7 @@ func resourceAliCloudCenTransitRouterEcrAttachmentRead(d *schema.ResourceData, m
 
 	objectRaw, err := cenServiceV2.DescribeCenTransitRouterEcrAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_transit_router_ecr_attachment DescribeCenTransitRouterEcrAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -269,7 +269,7 @@ func resourceAliCloudCenTransitRouterEcrAttachmentDelete(d *schema.ResourceData,
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

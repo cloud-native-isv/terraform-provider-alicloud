@@ -134,7 +134,7 @@ func resourceAliCloudAlikafkaSaslUserRead(d *schema.ResourceData, meta interface
 
 	object, err := kafkaService.DescribeAlikafkaSaslUser(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ali_kafka_consumer_group kafkaService.DescribeAlikafkaSaslUser Failed!!! %s", err)
 			d.SetId("")
 			return nil

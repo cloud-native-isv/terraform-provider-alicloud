@@ -119,7 +119,7 @@ func resourceAliCloudDbfsSnapshotRead(d *schema.ResourceData, meta interface{}) 
 
 	object, err := dbfsService.DescribeDbfsSnapshot(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dbfs_snapshot dbfsService.DescribeDbfsSnapshot Failed!!! %s", err)
 			d.SetId("")
 			return nil

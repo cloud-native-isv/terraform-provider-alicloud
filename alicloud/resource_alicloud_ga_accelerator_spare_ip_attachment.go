@@ -90,7 +90,7 @@ func resourceAliCloudGaAcceleratorSpareIpAttachmentRead(d *schema.ResourceData, 
 	gaService := GaService{client}
 	object, err := gaService.DescribeGaAcceleratorSpareIpAttachment(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ga_accelerator_spare_ip_attachment gaService.DescribeGaAcceleratorSpareIpAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

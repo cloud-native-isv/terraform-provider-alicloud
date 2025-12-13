@@ -113,7 +113,7 @@ func resourceAliCloudCrVpcEndpointLinkedVpcRead(d *schema.ResourceData, meta int
 
 	object, err := crService.DescribeCrVpcEndpointLinkedVpc(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -174,7 +174,7 @@ func resourceAliCloudCrVpcEndpointLinkedVpcDelete(d *schema.ResourceData, meta i
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"INSTANCE_ACCESS_NOT_EXIST"}) {
+		if NotFoundError(err) || IsExpectedErrors(err, []string{"INSTANCE_ACCESS_NOT_EXIST"}) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

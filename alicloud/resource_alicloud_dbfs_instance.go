@@ -222,7 +222,7 @@ func resourceAliCloudDbfsDbfsInstanceRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := dbfsServiceV2.DescribeDbfsDbfsInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dbfs_instance DescribeDbfsDbfsInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

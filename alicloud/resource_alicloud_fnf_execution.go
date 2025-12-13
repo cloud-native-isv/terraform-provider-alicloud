@@ -99,7 +99,7 @@ func resourceAliCloudFnFExecutionRead(d *schema.ResourceData, meta interface{}) 
 	fnfService := FnfService{client}
 	object, err := fnfService.DescribeFnFExecution(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fnf_execution fnfService.DescribeFnFExecution Failed!!! %s", err)
 			d.SetId("")
 			return nil

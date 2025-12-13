@@ -146,7 +146,7 @@ func resourceAliCloudNasMountTargetRead(d *schema.ResourceData, meta interface{}
 
 	mountTarget, err := nasService.DescribeNasMountTarget(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_mount_target DescribeNasMountTarget Failed!!! %s", err)
 			d.SetId("")
 			return nil

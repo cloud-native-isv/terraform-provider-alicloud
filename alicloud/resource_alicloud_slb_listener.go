@@ -476,7 +476,7 @@ func resourceAliCloudSlbListenerRead(d *schema.ResourceData, meta interface{}) e
 
 	lb_id, protocol, port, err := parseListenerId(d, meta)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -490,7 +490,7 @@ func resourceAliCloudSlbListenerRead(d *schema.ResourceData, meta interface{}) e
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
 		object, err := slbService.DescribeSlbListener(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				d.SetId("")
 				return nil
 			}
@@ -805,7 +805,7 @@ func resourceAliCloudSlbListenerDelete(d *schema.ResourceData, meta interface{})
 
 	lbId, protocol, port, err := parseListenerId(d, meta)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -814,7 +814,7 @@ func resourceAliCloudSlbListenerDelete(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOkExists("delete_protection_validation"); ok && v.(bool) {
 		lbInstance, err := slbService.DescribeSlb(lbId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return WrapError(err)

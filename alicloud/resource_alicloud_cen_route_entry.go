@@ -97,7 +97,7 @@ func resourceAliCloudCenRouteEntryRead(d *schema.ResourceData, meta interface{})
 
 	object, err := cenService.DescribeCenRouteEntry(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -125,7 +125,7 @@ func resourceAliCloudCenRouteEntryDelete(d *schema.ResourceData, meta interface{
 	cidr := d.Get("cidr_block").(string)
 	childInstanceId, childInstanceType, err := cenService.CreateCenRouteEntryParas(vtbId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

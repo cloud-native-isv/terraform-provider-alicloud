@@ -393,7 +393,7 @@ func resourceAliCloudAligreenOssStockTaskRead(d *schema.ResourceData, meta inter
 
 	objectRaw, err := aligreenServiceV2.DescribeAligreenOssStockTask(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_aligreen_oss_stock_task DescribeAligreenOssStockTask Failed!!! %s", err)
 			d.SetId("")
 			return nil

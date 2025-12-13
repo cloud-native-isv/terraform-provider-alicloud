@@ -88,7 +88,7 @@ func resourceAliCloudWafProtectionModuleRead(d *schema.ResourceData, meta interf
 	wafOpenapiService := WafOpenapiService{client}
 	object, err := wafOpenapiService.DescribeWafProtectionModule(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_waf_protection_module wafOpenapiService.DescribeWafProtectionModule Failed!!! %s", err)
 			d.SetId("")
 			return nil

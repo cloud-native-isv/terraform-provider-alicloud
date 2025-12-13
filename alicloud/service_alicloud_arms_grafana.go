@@ -15,7 +15,7 @@ func (s *ArmsService) DescribeArmsGrafanaWorkspace(id string) (*aliyunArmsAPI.Gr
 
 	workspace, err := s.armsAPI.GetGrafanaWorkspace(id)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetGrafanaWorkspace", AlibabaCloudSdkGoERROR)
@@ -80,7 +80,7 @@ func (s *ArmsService) UpdateGrafanaWorkspace(grafanaWorkspaceId string, grafanaW
 func (s *ArmsService) DeleteGrafanaWorkspace(grafanaWorkspaceId string) error {
 	err := s.armsAPI.DeleteGrafanaWorkspace(grafanaWorkspaceId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, grafanaWorkspaceId, "DeleteGrafanaWorkspace", AlibabaCloudSdkGoERROR)
@@ -93,7 +93,7 @@ func (s *ArmsService) ArmsGrafanaWorkspaceStateRefreshFunc(id string, failStates
 	return func() (interface{}, string, error) {
 		workspace, err := s.DescribeArmsGrafanaWorkspace(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

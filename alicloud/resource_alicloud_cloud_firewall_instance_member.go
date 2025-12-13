@@ -104,7 +104,7 @@ func resourceAliCloudCloudFirewallInstanceMemberRead(d *schema.ResourceData, met
 
 	object, err := cloudfwService.DescribeCloudFirewallInstanceMember(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_firewall_instance_member cloudfwService.DescribeCloudFirewallInstanceMember Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -190,7 +190,7 @@ func resourceAliCloudCloudFirewallInstanceMemberDelete(d *schema.ResourceData, m
 		return nil
 	})
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidResource.NotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidResource.NotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

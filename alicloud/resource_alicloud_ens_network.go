@@ -111,7 +111,7 @@ func resourceAliCloudEnsNetworkRead(d *schema.ResourceData, meta interface{}) er
 
 	objectRaw, err := ensServiceV2.DescribeEnsNetwork(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ens_network DescribeEnsNetwork Failed!!! %s", err)
 			d.SetId("")
 			return nil

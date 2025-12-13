@@ -75,7 +75,7 @@ func resourceAliCloudDcdnWafPolicyDomainAttachmentRead(d *schema.ResourceData, m
 	}
 	object, err := dcdnService.DescribeDcdnWafPolicyDomainAttachment(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dcdn_waf_policy_domain_attachment dcdnService.DescribeDcdnWafPolicyDomainAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

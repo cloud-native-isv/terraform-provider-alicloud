@@ -200,7 +200,7 @@ func resourceAliCloudConfigCompliancePackRead(d *schema.ResourceData, meta inter
 
 	object, err := configService.DescribeConfigCompliancePack(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_config_compliance_pack configService.DescribeConfigCompliancePack Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -160,7 +160,7 @@ func (e *EdasService) EdasChangeOrderStatusRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := e.GetChangeOrderStatus(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -181,7 +181,7 @@ func (e *EdasService) EdasChangeOrderStatusRefreshFuncV2(id string, failStates [
 	return func() (interface{}, string, error) {
 		status, err := e.GetChangeOrderStatusV2(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

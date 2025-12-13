@@ -91,7 +91,7 @@ func (s *LindormServiceV2) LindormPublicNetworkStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeLindormPublicNetwork(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

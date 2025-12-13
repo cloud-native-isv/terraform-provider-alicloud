@@ -98,7 +98,7 @@ func resourceAliCloudClickHouseBackupPolicyRead(d *schema.ResourceData, meta int
 	clickhouseService := ClickhouseService{client}
 	object, err := clickhouseService.DescribeClickHouseBackupPolicy(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_click_house_backup_policy clickhouseService.DescribeClickHouseBackupPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

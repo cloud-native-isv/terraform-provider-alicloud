@@ -139,7 +139,7 @@ func resourceAliCloudConfigDeliveryRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := configServiceV2.DescribeConfigDelivery(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_config_delivery DescribeConfigDelivery Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -117,7 +117,7 @@ func resourceAliCloudCloudSsoAccessAssignmentRead(d *schema.ResourceData, meta i
 	cloudssoService := CloudssoService{client}
 	_, err := cloudssoService.DescribeCloudSsoAccessAssignment(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_sso_access_assignment cloudssoService.DescribeCloudSsoAccessAssignment Failed!!! %s", err)
 			d.SetId("")
 			return nil

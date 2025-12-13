@@ -99,7 +99,7 @@ func (s *RdsService) DescribeDBConnection(id string) (map[string]interface{}, er
 
 func (s *RdsService) DescribeDBReadWriteSplittingConnection(id string) (map[string]interface{}, error) {
 	object, err := s.DescribeDBInstanceRwNetInfoByMssql(id)
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return nil, err
 	}
 
@@ -146,7 +146,7 @@ func (s *RdsService) WaitForDBConnection(id string, status Status, timeout int) 
 	for {
 		object, err := s.DescribeDBConnection(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -168,7 +168,7 @@ func (s *RdsService) WaitForDBReadWriteSplitting(id string, status Status, timeo
 	for {
 		object, err := s.DescribeDBReadWriteSplittingConnection(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

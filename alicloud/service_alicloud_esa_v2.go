@@ -472,7 +472,7 @@ func (s *EsaServiceV2) EsaSiteStateRefreshFunc(id string, field string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaSite(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -501,7 +501,7 @@ func (s *EsaServiceV2) DescribeAsyncEsaSiteStateRefreshFunc(d *schema.ResourceDa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncGetSite(d, res)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 		}
@@ -704,7 +704,7 @@ func (s *EsaServiceV2) EsaRatePlanInstanceStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDescribeRatePlanInstanceStatus(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -774,7 +774,7 @@ func (s *EsaServiceV2) EsaRecordStateRefreshFunc(id string, field string, failSt
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaRecord(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -843,7 +843,7 @@ func (s *EsaServiceV2) EsaListStateRefreshFunc(id string, field string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaList(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -912,7 +912,7 @@ func (s *EsaServiceV2) EsaPageStateRefreshFunc(id string, field string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaPage(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -981,7 +981,7 @@ func (s *EsaServiceV2) EsaHttpRequestHeaderModificationRuleStateRefreshFunc(id s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaHttpRequestHeaderModificationRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1055,7 +1055,7 @@ func (s *EsaServiceV2) EsaRewriteUrlRuleStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaRewriteUrlRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1125,7 +1125,7 @@ func (s *EsaServiceV2) EsaRedirectRuleStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaRedirectRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1195,7 +1195,7 @@ func (s *EsaServiceV2) EsaHttpResponseHeaderModificationRuleStateRefreshFunc(id 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaHttpResponseHeaderModificationRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1265,7 +1265,7 @@ func (s *EsaServiceV2) EsaHttpsBasicConfigurationStateRefreshFunc(id string, fie
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaHttpsBasicConfiguration(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1370,7 +1370,7 @@ func (s *EsaServiceV2) EsaCompressionRuleStateRefreshFunc(id string, field strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaCompressionRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1439,7 +1439,7 @@ func (s *EsaServiceV2) EsaHttpsApplicationConfigurationStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaHttpsApplicationConfiguration(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1508,7 +1508,7 @@ func (s *EsaServiceV2) EsaNetworkOptimizationStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaNetworkOptimization(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1583,7 +1583,7 @@ func (s *EsaServiceV2) EsaCacheRuleStateRefreshFunc(id string, field string, fai
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaCacheRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1657,7 +1657,7 @@ func (s *EsaServiceV2) EsaOriginRuleStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaOriginRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1726,7 +1726,7 @@ func (s *EsaServiceV2) EsaImageTransformStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaImageTransform(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1804,7 +1804,7 @@ func (s *EsaServiceV2) EsaWaitingRoomStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaWaitingRoom(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1873,7 +1873,7 @@ func (s *EsaServiceV2) EsaOriginPoolStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaOriginPool(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1952,7 +1952,7 @@ func (s *EsaServiceV2) EsaWaitingRoomEventStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaWaitingRoomEvent(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2031,7 +2031,7 @@ func (s *EsaServiceV2) EsaWaitingRoomRuleStateRefreshFunc(id string, field strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaWaitingRoomRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2100,7 +2100,7 @@ func (s *EsaServiceV2) EsaCertificateStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaCertificate(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2169,7 +2169,7 @@ func (s *EsaServiceV2) EsaClientCertificateStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaClientCertificate(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2238,7 +2238,7 @@ func (s *EsaServiceV2) EsaClientCaCertificateStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaClientCaCertificate(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2302,7 +2302,7 @@ func (s *EsaServiceV2) EsaKvNamespaceStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaKvNamespace(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2381,7 +2381,7 @@ func (s *EsaServiceV2) EsaCacheReserveInstanceStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaCacheReserveInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2450,7 +2450,7 @@ func (s *EsaServiceV2) EsaSiteDeliveryTaskStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaSiteDeliveryTask(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2519,7 +2519,7 @@ func (s *EsaServiceV2) EsaEdgeContainerAppStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaEdgeContainerApp(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2607,7 +2607,7 @@ func (s *EsaServiceV2) EsaEdgeContainerAppRecordStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaEdgeContainerAppRecord(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2681,7 +2681,7 @@ func (s *EsaServiceV2) EsaScheduledPreloadJobStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaScheduledPreloadJob(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2766,7 +2766,7 @@ func (s *EsaServiceV2) EsaScheduledPreloadExecutionStateRefreshFunc(id string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaScheduledPreloadExecution(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2836,7 +2836,7 @@ func (s *EsaServiceV2) EsaKvStateRefreshFunc(id string, field string, failStates
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaKv(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2905,7 +2905,7 @@ func (s *EsaServiceV2) EsaVideoProcessingStateRefreshFunc(id string, field strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaVideoProcessing(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -2969,7 +2969,7 @@ func (s *EsaServiceV2) EsaRoutineStateRefreshFunc(id string, field string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaRoutine(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -3045,7 +3045,7 @@ func (s *EsaServiceV2) EsaRoutineRouteStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEsaRoutineRoute(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

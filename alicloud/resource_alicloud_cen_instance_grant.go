@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
@@ -94,7 +95,7 @@ func resourceAliCloudCenInstanceGrantRead(d *schema.ResourceData, meta interface
 
 	object, err := vpcService.DescribeCenInstanceGrant(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -102,7 +103,7 @@ func resourceAliCloudCenInstanceGrantRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("cen_id", object.CenInstanceId)
-	d.Set("cen_owner_id", object.CenOwnerId)
+	d.Set("cen_owner_id", fmt.Sprintf("%d", object.CenOwnerId))
 	d.Set("child_instance_id", instanceId)
 
 	return nil

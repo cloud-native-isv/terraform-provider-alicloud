@@ -91,7 +91,7 @@ func resourceAliCloudGaBasicAccelerateIpRead(d *schema.ResourceData, meta interf
 
 	object, err := gaService.DescribeGaBasicAccelerateIp(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -135,7 +135,7 @@ func resourceAliCloudGaBasicAccelerateIpDelete(d *schema.ResourceData, meta inte
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotExist.AccelerateIp"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NotExist.AccelerateIp"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

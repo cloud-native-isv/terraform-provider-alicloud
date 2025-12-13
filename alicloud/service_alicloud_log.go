@@ -57,7 +57,7 @@ func (s *LogService) WaitForLogProject(id string, status Status, timeout int) er
 	for {
 		object, err := s.DescribeLogProject(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -124,7 +124,7 @@ func (s *LogService) WaitForLogStore(id string, status Status, timeout int) erro
 	for {
 		object, err := s.DescribeLogStore(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -235,7 +235,7 @@ func (s *LogService) WaitForLogMachineGroup(id string, status Status, timeout in
 	for {
 		object, err := s.DescribeLogMachineGroup(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -306,7 +306,7 @@ func (s *LogService) WaitForLogtailConfig(id string, status Status, timeout int)
 	for {
 		object, err := s.DescribeLogtailConfig(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -379,7 +379,7 @@ func (s *LogService) WaitForLogtailAttachment(id string, status Status, timeout 
 	for {
 		object, err := s.DescribeLogtailAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -534,7 +534,7 @@ func (s *LogService) WaitForLogstoreAlert(id string, status Status, timeout int)
 	for {
 		object, err := s.DescribeLogAlert(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil // Successfully deleted
 				}
@@ -716,7 +716,7 @@ func (s *LogService) WaitForLogDashboard(id string, status Status, timeout int) 
 	for {
 		objectString, err := s.DescribeLogDashboard(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -847,7 +847,7 @@ func (s *LogService) WaitForLogETL(id string, status Status, timeout int) error 
 	for {
 		object, err := s.DescribeLogEtl(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -872,7 +872,7 @@ func (s *LogService) LogETLStateRefreshFunc(id string, failStates []string, slsC
 		}
 		object, err := slsClient.GetETL(parts[0], parts[1])
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -893,7 +893,7 @@ func (s *LogService) LogOssShipperStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeLogEtl(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -988,7 +988,7 @@ func (s *LogService) LogProjectStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeLogProject(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1052,7 +1052,7 @@ func (s *LogService) WaitForLogIngestion(id string, status Status, timeout int) 
 	for {
 		object, err := s.DescribeLogIngestion(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1124,7 +1124,7 @@ func (s *LogService) waitForLogExport(id string, status Status, timeout int) err
 	for {
 		object, err := s.DescribeLogOssExport(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1184,7 +1184,7 @@ func (s *LogService) WaitForLogResource(id string, status Status, timeout int) e
 	for {
 		object, err := s.DescribeLogResource(resourceName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1253,7 +1253,7 @@ func (s *LogService) WaitForLogResourceRecord(id string, status Status, timeout 
 	for {
 		object, err := s.DescribeLogResourceRecord(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

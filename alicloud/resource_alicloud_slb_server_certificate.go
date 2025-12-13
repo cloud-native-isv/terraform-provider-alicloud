@@ -144,7 +144,7 @@ func resourceAliCloudSlbServerCertificateRead(d *schema.ResourceData, meta inter
 
 	serverCertificate, err := slbService.DescribeSlbServerCertificate(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

@@ -105,7 +105,7 @@ func resourceAliCloudAdbConnectionRead(d *schema.ResourceData, meta interface{})
 	object, err := adbService.DescribeAdbConnection(d.Id())
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

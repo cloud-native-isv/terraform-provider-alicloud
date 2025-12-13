@@ -74,7 +74,7 @@ func resourceAliCloudEventBridgeEventBusRead(d *schema.ResourceData, meta interf
 	eventbridgeService := EventbridgeService{client}
 	object, err := eventbridgeService.DescribeEventBridgeEventBus(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_event_bridge_event_bus eventbridgeService.DescribeEventBridgeEventBus Failed!!! %s", err)
 			d.SetId("")
 			return nil

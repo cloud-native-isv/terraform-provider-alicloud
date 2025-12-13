@@ -79,7 +79,7 @@ func resourceAliCloudBastionhostUserGroupRead(d *schema.ResourceData, meta inter
 	yundunBastionhostService := YundunBastionhostService{client}
 	object, err := yundunBastionhostService.DescribeBastionhostUserGroup(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_bastionhost_user_group yundunBastionhostService.DescribeBastionhostUserGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

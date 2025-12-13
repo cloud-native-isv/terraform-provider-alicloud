@@ -122,7 +122,7 @@ func resourceAliCloudExpressConnectTrafficQosQueueRead(d *schema.ResourceData, m
 
 	objectRaw, err := expressConnectServiceV2.DescribeExpressConnectTrafficQosQueue(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_express_connect_traffic_qos_queue DescribeExpressConnectTrafficQosQueue Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -159,7 +159,7 @@ func resourceAliCloudEssAlarm() *schema.Resource {
 
 func resourceAliyunEssAlarmCreate(d *schema.ResourceData, meta interface{}) error {
 
-	request, err := buildAlicloudEssAlarmArgs(d)
+	request, err := buildAliCloudEssAlarmArgs(d)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -207,7 +207,7 @@ func resourceAliyunEssAlarmRead(d *schema.ResourceData, meta interface{}) error 
 
 	object, err := essService.DescribeEssAlarm(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -419,7 +419,7 @@ func resourceAliyunEssAlarmDelete(d *schema.ResourceData, meta interface{}) erro
 	return WrapError(essService.WaitForEssAlarm(d.Id(), Deleted, DefaultTimeout))
 }
 
-func buildAlicloudEssAlarmArgs(d *schema.ResourceData) (*ess.CreateAlarmRequest, error) {
+func buildAliCloudEssAlarmArgs(d *schema.ResourceData) (*ess.CreateAlarmRequest, error) {
 	request := ess.CreateCreateAlarmRequest()
 
 	if name, ok := d.GetOk("name"); ok && name.(string) != "" {

@@ -43,7 +43,7 @@ func resourceAliCloudDBDatabase() *schema.Resource {
 			id := EncodeDBId(instanceId, name)
 			obj, err := rdsService.DescribeDBDatabase(id)
 			if err != nil {
-				if IsNotFoundError(err) {
+				if NotFoundError(err) {
 					d.SetNew("adopt_existing", false)
 					d.SetNewComputed("adoption_notice")
 					return nil
@@ -177,7 +177,7 @@ func resourceAliCloudDBDatabaseCreate(d *schema.ResourceData, meta interface{}) 
 		log.Printf("[INFO] Adopting existing RDS database: %s", id)
 		d.SetId(id)
 		return resourceAliCloudDBDatabaseRead(d, meta)
-	} else if !IsNotFoundError(err) {
+	} else if !NotFoundError(err) {
 		if NeedRetry(err) {
 			time.Sleep(5 * time.Second)
 		} else {
@@ -212,7 +212,7 @@ func resourceAliCloudDBDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	}
 	object, err := rdsService.DescribeDBDatabase(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

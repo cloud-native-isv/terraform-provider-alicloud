@@ -85,7 +85,7 @@ func (s *NasService) NasMountTargetStateRefreshFunc(id string, field string, fai
 	return func() (interface{}, string, error) {
 		mountTarget, err := s.DescribeNasMountTarget(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return mountTarget, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -161,7 +161,7 @@ func (s *NasService) WaitForNasMountTargetCreated(id string, timeout int) error 
 func (s *NasService) WaitForNasMountTargetDeleted(id string, timeout int) error {
 	stateConf := BuildStateConf([]string{"Active", "Inactive", "Deleting"}, []string{""}, time.Duration(timeout)*time.Second, 5*time.Second, s.NasMountTargetStateRefreshFunc(id, "$.Status", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, IdMsg, id)

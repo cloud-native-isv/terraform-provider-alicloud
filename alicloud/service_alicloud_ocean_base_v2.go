@@ -99,7 +99,7 @@ func (s *OceanBaseServiceV2) OceanBaseInstanceStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOceanBaseInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

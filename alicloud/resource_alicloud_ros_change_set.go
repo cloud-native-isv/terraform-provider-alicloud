@@ -265,7 +265,7 @@ func resourceAliCloudRosChangeSetRead(d *schema.ResourceData, meta interface{}) 
 	rosService := RosService{client}
 	object, err := rosService.DescribeRosChangeSet(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ros_change_set rosService.DescribeRosChangeSet Failed!!! %s", err)
 			d.SetId("")
 			return nil

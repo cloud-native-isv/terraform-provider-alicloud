@@ -101,7 +101,7 @@ func resourceAliCloudNasFilesetRead(d *schema.ResourceData, meta interface{}) er
 	// Get fileset using service layer
 	fileset, err := nasService.DescribeNasFileset(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_fileset DescribeNasFileset Failed!!! %s", err)
 			d.SetId("")
 			return nil

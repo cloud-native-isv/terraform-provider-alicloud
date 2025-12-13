@@ -247,7 +247,7 @@ func resourceAliCloudNasAccessPointRead(d *schema.ResourceData, meta interface{}
 	// Use service layer to get access point details
 	accessPoint, err := nasService.DescribeNasAccessPoint(fileSystemId, accessPointId)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_access_point DescribeNasAccessPoint Failed!!! %s", err)
 			d.SetId("")
 			return nil

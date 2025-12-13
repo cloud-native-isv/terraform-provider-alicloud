@@ -102,7 +102,7 @@ func resourceAliCloudMhubAppRead(d *schema.ResourceData, meta interface{}) error
 	mhubService := MhubService{client}
 	object, err := mhubService.DescribeMhubApp(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mhub_app mhubService.DescribeMhubApp Failed!!! %s", err)
 			d.SetId("")
 			return nil

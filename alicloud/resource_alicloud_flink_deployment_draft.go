@@ -974,7 +974,7 @@ func resourceAliCloudFlinkDeploymentDraftDelete(d *schema.ResourceData, meta int
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := flinkService.DeleteDeploymentDraft(workspaceId, namespace, draftId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return resource.RetryableError(err)

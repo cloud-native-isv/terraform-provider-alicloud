@@ -922,7 +922,7 @@ func resourceAliCloudCSKubernetesUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	err := UpgradeAlicloudKubernetesCluster(d, meta)
+	err := UpgradeAliCloudKubernetesCluster(d, meta)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -955,7 +955,7 @@ func migrateCluster(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if (o == "ack.standard" || o == "") && strings.Contains(n, "pro") {
-		err := migrateAlicloudManagedKubernetesCluster(d, meta)
+		err := migrateAliCloudManagedKubernetesCluster(d, meta)
 		if err != nil {
 			return WrapErrorf(err, ResponseCodeMsg, d.Id(), "MigrateCluster", AlibabaCloudSdkGoERROR)
 		}
@@ -1102,7 +1102,7 @@ func resourceAliCloudCSKubernetesRead(d *schema.ResourceData, meta interface{}) 
 
 	object, err := csService.DescribeCsKubernetes(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cs_kubernetes DescribeCsKubernetes Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -1699,7 +1699,7 @@ func expandKubernetesRuntimeConfig(l map[string]interface{}) cs.Runtime {
 	return config
 }
 
-func flattenAlicloudCSCertificate(certificate *roacs.DescribeClusterUserKubeconfigResponseBody) map[string]string {
+func flattenAliCloudCSCertificate(certificate *roacs.DescribeClusterUserKubeconfigResponseBody) map[string]string {
 	if certificate == nil {
 		return map[string]string{}
 	}

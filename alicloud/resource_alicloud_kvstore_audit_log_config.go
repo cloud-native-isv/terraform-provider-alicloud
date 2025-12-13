@@ -95,7 +95,7 @@ func resourceAliCloudKvstoreAuditLogConfigRead(d *schema.ResourceData, meta inte
 	rKvstoreService := RKvstoreService{client}
 	object, err := rKvstoreService.DescribeKvstoreAuditLogConfig(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_kvstore_audit_log_config rKvstoreService.DescribeKvstoreAuditLogConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil

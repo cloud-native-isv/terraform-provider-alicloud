@@ -64,7 +64,7 @@ func (s *QuotasServiceV2) QuotasTemplateQuotaStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeQuotasTemplateQuota(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -126,7 +126,7 @@ func (s *QuotasServiceV2) QuotasQuotaApplicationStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeQuotasQuotaApplication(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -188,7 +188,7 @@ func (s *QuotasServiceV2) QuotasQuotaAlarmStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeQuotasQuotaAlarm(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -282,7 +282,7 @@ func (s *QuotasServiceV2) QuotasTemplateApplicationsStateRefreshFunc(id string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeQuotasTemplateApplications(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -352,7 +352,7 @@ func (s *QuotasServiceV2) QuotasTemplateServiceStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeQuotasTemplateService(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

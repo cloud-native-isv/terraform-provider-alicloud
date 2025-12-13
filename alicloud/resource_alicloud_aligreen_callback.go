@@ -113,7 +113,7 @@ func resourceAliCloudAligreenCallbackRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := aligreenServiceV2.DescribeAligreenCallback(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_aligreen_callback DescribeAligreenCallback Failed!!! %s", err)
 			d.SetId("")
 			return nil

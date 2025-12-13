@@ -245,7 +245,7 @@ func resourceAliCloudWafDomainRead(d *schema.ResourceData, meta interface{}) err
 	wafOpenapiService := WafOpenapiService{client}
 	object, err := wafOpenapiService.DescribeWafDomain(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_waf_domain wafOpenapiService.DescribeWafDomain Failed!!! %s", err)
 			d.SetId("")
 			return nil

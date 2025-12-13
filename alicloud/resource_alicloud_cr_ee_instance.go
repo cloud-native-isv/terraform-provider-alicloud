@@ -262,7 +262,7 @@ func resourceAliCloudCrInstanceRead(d *schema.ResourceData, meta interface{}) er
 
 	objectRaw, err := crServiceV2.DescribeCrInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cr_ee_instance DescribeCrInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -287,7 +287,7 @@ func resourceAliCloudCrInstanceRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	objectRaw, err = crServiceV2.DescribeInstanceQueryAvailableInstances(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -314,7 +314,7 @@ func resourceAliCloudCrInstanceRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	objectRaw, err = crServiceV2.DescribeInstanceListInstanceEndpoint(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -482,7 +482,7 @@ func resourceAliCloudCrInstanceDelete(d *schema.ResourceData, meta interface{}) 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ResourceNotExists"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ResourceNotExists"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

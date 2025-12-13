@@ -183,7 +183,7 @@ func resourceAliCloudResourceManagerAutoGroupingRuleRead(d *schema.ResourceData,
 
 	objectRaw, err := resourceManagerServiceV2.DescribeResourceManagerAutoGroupingRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_resource_manager_auto_grouping_rule DescribeResourceManagerAutoGroupingRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -372,7 +372,7 @@ func resourceAliCloudResourceManagerAutoGroupingRuleDelete(d *schema.ResourceDat
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

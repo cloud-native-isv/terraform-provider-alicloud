@@ -97,7 +97,7 @@ func resourceAliCloudAlidnsCustomLineRead(d *schema.ResourceData, meta interface
 	alidnsService := AlidnsService{client}
 	object, err := alidnsService.DescribeAlidnsCustomLine(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_alidns_custom_line alidnsService.DescribeAlidnsCustomLine Failed!!! %s", err)
 			d.SetId("")
 			return nil

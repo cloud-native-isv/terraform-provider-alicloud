@@ -94,7 +94,7 @@ func (s *DtsService) DtsSubscriptionJobStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDtsSubscriptionJob(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -374,7 +374,7 @@ func (s *DtsService) DtsSynchronizationJobStateRefreshFunc(id string, failStates
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDtsSynchronizationJob(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -510,7 +510,7 @@ func (s *DtsService) DtsMigrationJobStateRefreshFunc(id string, failStates []str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDtsMigrationJob(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -624,7 +624,7 @@ func (s *DtsService) DtsSyncJobStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDtsSyncJob(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

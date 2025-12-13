@@ -221,7 +221,7 @@ func dataSourceAliCloudArmsGrafanaWorkspacesRead(d *schema.ResourceData, meta in
 		if enableDetails {
 			detailedWorkspace, err := service.DescribeArmsGrafanaWorkspace(tea.StringValue(workspace.GrafanaWorkspaceId))
 			if err != nil {
-				if IsNotFoundError(err) {
+				if NotFoundError(err) {
 					// Skip if workspace is deleted during processing
 					continue
 				}

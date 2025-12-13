@@ -289,7 +289,7 @@ func resourceAliCloudEaisInstanceRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := eaisServiceV2.DescribeEaisInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eais_instance DescribeEaisInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -467,7 +467,7 @@ func resourceAliCloudEaisInstanceDelete(d *schema.ResourceData, meta interface{}
 		addDebug(action, response, request)
 
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
@@ -508,7 +508,7 @@ func resourceAliCloudEaisInstanceDelete(d *schema.ResourceData, meta interface{}
 		addDebug(action, response, request)
 
 		if err != nil {
-			if IsExpectedErrors(err, []string{"InvalidParameter.InstanceId.NotFound"}) || IsNotFoundError(err) {
+			if IsExpectedErrors(err, []string{"InvalidParameter.InstanceId.NotFound"}) || NotFoundError(err) {
 				return nil
 			}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

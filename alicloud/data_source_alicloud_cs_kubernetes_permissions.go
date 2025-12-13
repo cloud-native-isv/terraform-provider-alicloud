@@ -13,7 +13,7 @@ import (
 
 func dataSourceAliCloudCSKubernetesPermissions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataAlicloudCSKubernetesPermissionsRead,
+		Read: dataAliCloudCSKubernetesPermissionsRead,
 
 		Schema: map[string]*schema.Schema{
 			"uid": {
@@ -56,7 +56,7 @@ func dataSourceAliCloudCSKubernetesPermissions() *schema.Resource {
 	}
 }
 
-func dataAlicloudCSKubernetesPermissionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataAliCloudCSKubernetesPermissionsRead(d *schema.ResourceData, meta interface{}) error {
 	client, err := meta.(*connectivity.AliyunClient).NewRoaCsClient()
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, ResourceName, "InitializeClient", err)

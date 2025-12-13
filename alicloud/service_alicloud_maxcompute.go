@@ -55,7 +55,7 @@ func (s *MaxComputeService) MaxcomputeProjectStateRefreshFunc(d *schema.Resource
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMaxcomputeProject(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

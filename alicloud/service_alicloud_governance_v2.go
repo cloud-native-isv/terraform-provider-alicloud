@@ -56,7 +56,7 @@ func (s *GovernanceServiceV2) GovernanceBaselineStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGovernanceBaseline(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -117,7 +117,7 @@ func (s *GovernanceServiceV2) GovernanceAccountStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGovernanceAccount(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

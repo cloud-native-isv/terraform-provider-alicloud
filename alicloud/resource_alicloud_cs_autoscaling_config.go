@@ -133,7 +133,7 @@ func resourceAliCloudCSAutoscalingConfigRead(d *schema.ResourceData, meta interf
 
 	object, err := csClient.GetCsKubernetesAddonInstance(clusterId, scalerType)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

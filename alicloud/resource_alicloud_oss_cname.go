@@ -191,7 +191,7 @@ func resourceAliCloudOssBucketCnameRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketCname(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_cname DescribeOssBucketCname Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -364,7 +364,7 @@ func resourceAliCloudOssBucketCnameDelete(d *schema.ResourceData, meta interface
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NoSuchBucket", "NoSuchCname"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NoSuchBucket", "NoSuchCname"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -90,7 +90,7 @@ func resourceAliCloudCenTransitRouterRouteTablePropagationRead(d *schema.Resourc
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenTransitRouterRouteTablePropagation(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_transit_router_route_table_propagation cbnService.DescribeCenTransitRouterRouteTablePropagation Failed!!! %s", err)
 			d.SetId("")
 			return nil

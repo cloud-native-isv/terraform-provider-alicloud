@@ -104,7 +104,7 @@ func (s *HbrService) HbrVaultStateRefreshFunc(id string, failStates []string) re
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeHbrVault(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -390,7 +390,7 @@ func (s *HbrService) HbrTaskRefreshFunc(id string, failStates []string) resource
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeHbrTask(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -452,7 +452,7 @@ func (s *HbrService) HbrEcsBackupClientStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeHbrEcsBackupClient(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -533,7 +533,7 @@ func (s *HbrService) HbrRestoreJobStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeHbrRestoreJob(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -827,7 +827,7 @@ func (s *HbrService) HbrHanaBackupClientStateRefreshFunc(id string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeHbrHanaBackupClient(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

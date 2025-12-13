@@ -22,7 +22,7 @@ func (s *OssService) DescribeOssBucketLogging(id string) (object map[string]inte
 
 	config, err := ossAPI.GetBucketLogging(id)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("BucketLogging", id), NotFoundMsg, err)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketLogging", AlibabaCloudSdkGoERROR)
@@ -43,7 +43,7 @@ func (s *OssService) OssBucketLoggingStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketLogging(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

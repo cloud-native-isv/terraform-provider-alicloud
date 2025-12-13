@@ -135,7 +135,7 @@ func resourceAliCloudNasAccessGroupRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := nasService.DescribeNasAccessGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_access_group DescribeNasAccessGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -137,7 +137,7 @@ func (s *CdnServiceV2) CdnDomainStateRefreshFunc(id string, field string, failSt
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCdnDomain(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -290,7 +290,7 @@ func (s *CdnServiceV2) CdnRealTimeLogDeliveryStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCdnRealTimeLogDelivery(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

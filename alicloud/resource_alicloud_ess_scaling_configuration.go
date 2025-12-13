@@ -799,7 +799,7 @@ func resourceAliyunEssScalingConfigurationUpdate(d *schema.ResourceData, meta in
 	if d.HasChange("active") {
 		c, err := essService.DescribeEssScalingConfiguration(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				d.SetId("")
 				return nil
 			}
@@ -1285,7 +1285,7 @@ func resourceAliyunEssScalingConfigurationRead(d *schema.ResourceData, meta inte
 	}
 	response, err := essService.DescribeEssScalingConfigurationByCommonApi(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -1515,7 +1515,7 @@ func resourceAliyunEssScalingConfigurationDelete(d *schema.ResourceData, meta in
 
 	object, err := essService.DescribeEssScalingConfiguration(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

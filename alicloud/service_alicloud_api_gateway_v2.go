@@ -62,7 +62,7 @@ func (s *ApiGatewayServiceV2) ApiGatewayInstanceStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeApiGatewayInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -129,7 +129,7 @@ func (s *ApiGatewayServiceV2) ApiGatewayPluginStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeApiGatewayPlugin(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -341,7 +341,7 @@ func (s *ApiGatewayServiceV2) ApiGatewayAccessControlListStateRefreshFunc(id str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeApiGatewayAccessControlList(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

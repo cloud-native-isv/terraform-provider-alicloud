@@ -236,7 +236,7 @@ func resourceAliCloudGpdbElasticInstanceRead(d *schema.ResourceData, meta interf
 	gpdbService := GpdbService{client}
 	instance, err := gpdbService.DescribeGpdbElasticInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

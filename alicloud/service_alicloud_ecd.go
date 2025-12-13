@@ -202,7 +202,7 @@ func (s *EcdService) EcdSimpleOfficeSiteStateRefreshFunc(id string) resource.Sta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcdSimpleOfficeSite(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -296,7 +296,7 @@ func (s *EcdService) EcdNasFileSystemStateRefreshFunc(id string, failStates []st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcdNasFileSystem(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -315,7 +315,7 @@ func (s *EcdService) EcdNetworkPackageRefreshFunc(id string, failStates []string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcdNetworkPackage(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -451,7 +451,7 @@ func (s *EcdService) EcdDesktopStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcdDesktop(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -472,7 +472,7 @@ func (s *EcdService) EcdDesktopDesktopTypeRefreshFunc(id string, failStates []st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcdDesktop(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -493,7 +493,7 @@ func (s *EcdService) EcdDesktopChargeTypeFunc(id string, failStates []string) re
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcdDesktop(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -553,7 +553,7 @@ func (s *EcdService) EcdImageStateRefreshFunc(id string, failStates []string) re
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcdImage(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -615,7 +615,7 @@ func (s *EcdService) EcdCommandStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcdCommand(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -841,7 +841,7 @@ func (s *EcdService) EcdAdConnectorOfficeSiteStateRefreshFunc(id string, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEcdAdConnectorOfficeSite(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

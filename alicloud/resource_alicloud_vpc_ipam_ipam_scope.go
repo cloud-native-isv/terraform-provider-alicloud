@@ -126,7 +126,7 @@ func resourceAliCloudVpcIpamIpamScopeRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := vpcIpamServiceV2.DescribeVpcIpamIpamScope(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_ipam_ipam_scope DescribeVpcIpamIpamScope Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -278,7 +278,7 @@ func resourceAliCloudVpcIpamIpamScopeDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ResourceNotFound.IpamScope"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ResourceNotFound.IpamScope"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

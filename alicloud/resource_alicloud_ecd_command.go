@@ -101,7 +101,7 @@ func resourceAliCloudEcdCommandRead(d *schema.ResourceData, meta interface{}) er
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdCommand(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_command ecdService.DescribeEcdCommand Failed!!! %s", err)
 			d.SetId("")
 			return nil

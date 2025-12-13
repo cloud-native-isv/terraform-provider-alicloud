@@ -185,7 +185,7 @@ func resourceAliCloudEsaSiteRead(d *schema.ResourceData, meta interface{}) error
 
 	objectRaw, err := esaServiceV2.DescribeEsaSite(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_site DescribeEsaSite Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -203,7 +203,7 @@ func resourceAliCloudEsaSiteRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("version_management", objectRaw["VersionManagement"])
 
 	objectRaw, err = esaServiceV2.DescribeSiteListTagResources(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -211,7 +211,7 @@ func resourceAliCloudEsaSiteRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("tags", tagsToMap(tagsMaps))
 
 	objectRaw, err = esaServiceV2.DescribeSiteGetManagedTransform(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -220,7 +220,7 @@ func resourceAliCloudEsaSiteRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("site_version", objectRaw["SiteVersion"])
 
 	objectRaw, err = esaServiceV2.DescribeSiteGetCacheTag(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -229,7 +229,7 @@ func resourceAliCloudEsaSiteRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("tag_name", objectRaw["TagName"])
 
 	objectRaw, err = esaServiceV2.DescribeSiteGetIPv6(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -237,7 +237,7 @@ func resourceAliCloudEsaSiteRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("ipv6_region", objectRaw["Region"])
 
 	objectRaw, err = esaServiceV2.DescribeSiteGetCacheReserve(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -245,49 +245,49 @@ func resourceAliCloudEsaSiteRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("cache_reserve_instance_id", objectRaw["CacheReserveInstanceId"])
 
 	objectRaw, err = esaServiceV2.DescribeSiteGetTieredCache(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
 	d.Set("cache_architecture_mode", objectRaw["CacheArchitectureMode"])
 
 	objectRaw, err = esaServiceV2.DescribeSiteGetCrossBorderOptimization(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
 	d.Set("cross_border_optimization", objectRaw["Enable"])
 
 	objectRaw, err = esaServiceV2.DescribeSiteGetSiteNameExclusive(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
 	d.Set("site_name_exclusive", objectRaw["Enable"])
 
 	objectRaw, err = esaServiceV2.DescribeSiteGetCnameFlattening(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
 	d.Set("flatten_mode", objectRaw["FlattenMode"])
 
 	objectRaw, err = esaServiceV2.DescribeSiteGetSeoBypass(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
 	d.Set("seo_bypass", objectRaw["Enable"])
 
 	objectRaw, err = esaServiceV2.DescribeSiteGetDevelopmentMode(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
 	d.Set("development_mode", objectRaw["Enable"])
 
 	objectRaw, err = esaServiceV2.DescribeSiteGetSitePause(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -777,7 +777,7 @@ func resourceAliCloudEsaSiteDelete(d *schema.ResourceData, meta interface{}) err
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

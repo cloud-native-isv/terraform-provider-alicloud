@@ -127,7 +127,7 @@ func resourceAliCloudConfigRemediationRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := configServiceV2.DescribeConfigRemediation(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_config_remediation DescribeConfigRemediation Failed!!! %s", err)
 			d.SetId("")
 			return nil

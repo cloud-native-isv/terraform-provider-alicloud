@@ -141,7 +141,7 @@ func resourceAliCloudVpcIpv6GatewayRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := vpcServiceV2.DescribeVpcIpv6Gateway(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_ipv6_gateway DescribeVpcIpv6Gateway Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -67,7 +67,7 @@ func resourceAliCloudAmqpVirtualHostRead(d *schema.ResourceData, meta interface{
 	amqpOpenService := AmqpOpenService{client}
 	_, err := amqpOpenService.DescribeAmqpVirtualHost(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_amqp_virtual_host amqpOpenService.DescribeAmqpVirtualHost Failed!!! %s", err)
 			d.SetId("")
 			return nil

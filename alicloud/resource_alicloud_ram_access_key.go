@@ -116,7 +116,7 @@ func resourceAliCloudRamAccessKeyCreate(d *schema.ResourceData, meta interface{}
 			return WrapError(err)
 		}
 
-		fingerprint, encrypted, err := encryption.EncryptValue(encryptionKey, fmt.Sprint(accessKeySecret), "Alicloud RAM Access Key Secret")
+		fingerprint, encrypted, err := encryption.EncryptValue(encryptionKey, fmt.Sprint(accessKeySecret), "AliCloud RAM Access Key Secret")
 		if err != nil {
 			return WrapError(err)
 		}
@@ -146,7 +146,7 @@ func resourceAliCloudRamAccessKeyRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := ramServiceV2.DescribeRamAccessKey(d.Id(), userName)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_access_key DescribeRamAccessKey Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -236,7 +236,7 @@ func resourceAliCloudRamAccessKeyDelete(d *schema.ResourceData, meta interface{}
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExist.User.AccessKey", "EntityNotExist.User"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExist.User.AccessKey", "EntityNotExist.User"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -220,7 +220,7 @@ func resourceAliCloudDBBackupPolicyRead(d *schema.ResourceData, meta interface{}
 	}
 	object, err := rdsService.DescribeBackupPolicy(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -245,7 +245,7 @@ func resourceAliCloudDBBackupPolicyRead(d *schema.ResourceData, meta interface{}
 	d.Set("log_backup_local_retention_number", object["LogBackupLocalRetentionNumber"])
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -339,7 +339,7 @@ func resourceAliCloudDBBackupPolicyDelete(d *schema.ResourceData, meta interface
 	}
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

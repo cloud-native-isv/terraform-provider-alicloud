@@ -233,7 +233,7 @@ func resourceAliCloudEfloExperimentPlanTemplateRead(d *schema.ResourceData, meta
 
 	objectRaw, err := efloServiceV2.DescribeEfloExperimentPlanTemplate(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eflo_experiment_plan_template DescribeEfloExperimentPlanTemplate Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -434,7 +434,7 @@ func resourceAliCloudEfloExperimentPlanTemplateDelete(d *schema.ResourceData, me
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

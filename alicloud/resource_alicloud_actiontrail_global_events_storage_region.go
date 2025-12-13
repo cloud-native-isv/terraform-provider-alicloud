@@ -42,7 +42,7 @@ func resourceAliCloudActiontrailGlobalEventsStorageRegionRead(d *schema.Resource
 
 	object, err := actiontrailService.DescribeActiontrailGlobalEventsStorageRegion(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_actiontrail_global_events_storage_region actiontrailService.DescribeActiontrailGlobalEventsStorageRegion Failed!!! %s", err)
 			d.SetId("")
 			return nil

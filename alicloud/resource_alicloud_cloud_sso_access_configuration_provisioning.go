@@ -69,7 +69,7 @@ func resourceAliCloudCloudSsoAccessConfigurationProvisioningRead(d *schema.Resou
 	cloudssoService := CloudssoService{client}
 	object, err := cloudssoService.DescribeCloudSsoAccessConfigurationProvisioning(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_sso_access_configuration_provisioning cloudssoService.DescribeCloudSsoAccessConfigurationProvisioning Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -95,7 +95,7 @@ func resourceAliCloudCloudSsoAccessConfigurationProvisioningUpdate(d *schema.Res
 
 	if d.HasChange("status") {
 		object, err := cloudssoService.DescribeCloudSsoAccessConfigurationProvisioning(d.Id())
-		if err != nil && !IsNotFoundError(err) {
+		if err != nil && !NotFoundError(err) {
 			return WrapError(err)
 		}
 
@@ -157,7 +157,7 @@ func resourceAliCloudCloudSsoAccessConfigurationProvisioningDelete(d *schema.Res
 	cloudssoService := CloudssoService{client}
 	_, err = cloudssoService.GetTaskStatus(fmt.Sprint(request["DirectoryId"]), fmt.Sprint(response["TaskId"]))
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

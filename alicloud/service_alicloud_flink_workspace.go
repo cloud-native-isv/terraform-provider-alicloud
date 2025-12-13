@@ -26,7 +26,7 @@ func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(id string) resource.StateR
 		if err != nil {
 			// Handle the case where workspace is temporarily not found after creation
 			// This is common with cloud resources that have async creation processes
-			if IsNotFoundError(err) { // Use generic IsNotFoundError instead of specific error code
+			if NotFoundError(err) { // Use generic NotFoundError instead of specific error code
 				// Return empty state to indicate the resource is still being created
 				return nil, aliyunFlinkAPI.FlinkWorkspaceStatusCreating.String(), nil
 			}
@@ -59,7 +59,7 @@ func (s *FlinkService) WaitForWorkspaceDeleting(id string, timeout time.Duration
 			// Check if the workspace still exists
 			workspace, err := s.DescribeFlinkWorkspace(id)
 			if err != nil {
-				if IsNotFoundError(err) {
+				if NotFoundError(err) {
 					// Resource is gone, which is what we want
 					return nil, "", nil
 				}

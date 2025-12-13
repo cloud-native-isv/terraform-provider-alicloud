@@ -268,7 +268,7 @@ func resourceAliCloudComputeNestServiceInstanceRead(d *schema.ResourceData, meta
 
 	object, err := computeNestService.DescribeComputeNestServiceInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -425,7 +425,7 @@ func resourceAliCloudComputeNestServiceInstanceDelete(d *schema.ResourceData, me
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

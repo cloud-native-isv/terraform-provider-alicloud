@@ -76,7 +76,7 @@ func resourceAliCloudResourceManagerControlPolicyAttachmentRead(d *schema.Resour
 
 	object, err := resourcemanagerService.DescribeResourceManagerControlPolicyAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_resource_manager_control_policy_attachment resourcemanagerService.DescribeResourceManagerControlPolicyAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -125,7 +125,7 @@ func resourceAliCloudResourceManagerControlPolicyAttachmentDelete(d *schema.Reso
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExists.Target"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExists.Target"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

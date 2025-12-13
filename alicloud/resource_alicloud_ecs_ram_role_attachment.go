@@ -94,7 +94,7 @@ func resourceAliCloudEcsRamRoleAttachmentRead(d *schema.ResourceData, meta inter
 
 	objectRaw, err := ecsServiceV2.DescribeEcsRamRoleAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_ram_role_attachment DescribeEcsRamRoleAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -109,7 +109,7 @@ func resourceAliCloudEcsRamRoleAttachmentRead(d *schema.ResourceData, meta inter
 }
 
 func resourceAliCloudEcsRamRoleAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[INFO] Cannot update resource Alicloud Resource Ram Role Attachment.")
+	log.Printf("[INFO] Cannot update resource AliCloud Resource Ram Role Attachment.")
 	return nil
 }
 
@@ -143,7 +143,7 @@ func resourceAliCloudEcsRamRoleAttachmentDelete(d *schema.ResourceData, meta int
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

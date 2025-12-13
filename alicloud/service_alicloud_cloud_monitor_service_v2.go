@@ -298,7 +298,7 @@ func (s *CloudMonitorServiceServiceV2) CloudMonitorServiceBasicPublicStateRefres
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudMonitorServiceBasicPublic(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -392,7 +392,7 @@ func (s *CloudMonitorServiceServiceV2) CloudMonitorServiceEnterprisePublicStateR
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudMonitorServiceEnterprisePublic(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -126,7 +126,7 @@ func resourceAliCloudPvtzEndpointRead(d *schema.ResourceData, meta interface{}) 
 	pvtzService := PvtzService{client}
 	object, err := pvtzService.DescribePvtzEndpoint(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_pvtz_endpoint pvtzService.DescribePvtzEndpoint Failed!!! %s", err)
 			d.SetId("")
 			return nil

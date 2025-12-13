@@ -85,7 +85,7 @@ func resourceAliCloudMscSubContactRead(d *schema.ResourceData, meta interface{})
 	mscOpenSubscriptionService := MscOpenSubscriptionService{client}
 	object, err := mscOpenSubscriptionService.DescribeMscSubContact(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_msc_sub_contact mscOpenSubscriptionService.DescribeMscSubContact Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -164,7 +164,7 @@ func resourceAliCloudMscSubContactDelete(d *schema.ResourceData, meta interface{
 		return nil
 	})
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ResourceNotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ResourceNotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

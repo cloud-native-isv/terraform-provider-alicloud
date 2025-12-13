@@ -77,7 +77,7 @@ func (s *RamServiceV2) RamUserGroupAttachmentStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamUserGroupAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -150,7 +150,7 @@ func (s *RamServiceV2) RamGroupStateRefreshFunc(id string, field string, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamGroup(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -222,7 +222,7 @@ func (s *RamServiceV2) RamLoginProfileStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamLoginProfile(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -295,7 +295,7 @@ func (s *RamServiceV2) RamSamlProviderStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamSamlProvider(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -392,7 +392,7 @@ func (s *RamServiceV2) RamRolePolicyAttachmentStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamRolePolicyAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -460,7 +460,7 @@ func (s *RamServiceV2) RamSystemPolicyStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamSystemPolicy(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -563,7 +563,7 @@ func (s *RamServiceV2) RamPolicyStateRefreshFunc(id string, field string, failSt
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamPolicy(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -859,7 +859,7 @@ func (s *RamServiceV2) RamUserPolicyAttachmentStateRefreshFunc(id string, field 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamUserPolicyAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -950,7 +950,7 @@ func (s *RamServiceV2) RamGroupPolicyAttachmentStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamGroupPolicyAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1014,7 +1014,7 @@ func (s *RamServiceV2) RamAccountAliasStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamAccountAlias(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1083,7 +1083,7 @@ func (s *RamServiceV2) RamPasswordPolicyStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamPasswordPolicy(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1152,7 +1152,7 @@ func (s *RamServiceV2) RamSecurityPreferenceStateRefreshFunc(id string, field st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamSecurityPreference(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1259,7 +1259,7 @@ func (s *RamServiceV2) RamRoleStateRefreshFunc(id string, field string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeRamRole(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

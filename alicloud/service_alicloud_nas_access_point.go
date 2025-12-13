@@ -46,7 +46,7 @@ func (s *NasService) NasAccessGroupStateRefreshFunc(id string, field string, fai
 	return func() (interface{}, string, error) {
 		accessGroup, err := s.DescribeNasAccessGroup(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -167,7 +167,7 @@ func (s *NasService) NasAccessPointStateRefreshFunc(id string, failStates []stri
 
 		accessPoint, err := s.DescribeNasAccessPoint(fileSystemId, accessPointId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

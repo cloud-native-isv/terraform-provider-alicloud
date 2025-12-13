@@ -144,7 +144,7 @@ func (s *DmsEnterpriseService) DmsEnterpriseProxyAccessStateRefreshFunc(d *schem
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDmsEnterpriseProxyAccess(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -234,7 +234,7 @@ func (s *DmsEnterpriseService) DmsEnterpriseLogicDatabaseStateRefreshFunc(d *sch
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDmsEnterpriseLogicDatabase(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

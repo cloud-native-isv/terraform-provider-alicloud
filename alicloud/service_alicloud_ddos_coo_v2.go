@@ -124,7 +124,7 @@ func (s *DdosCooServiceV2) DdosCooPortStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDdosCooPort(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -234,7 +234,7 @@ func (s *DdosCooServiceV2) DdosCooDomainResourceStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDdosCooDomainResource(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -333,7 +333,7 @@ func (s *DdosCooServiceV2) DescribeInstanceDescribeInstanceSpecs(id string) (obj
 	})
 	addDebug(action, response, request)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InstanceNotFound", "ddos_coop3301"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InstanceNotFound", "ddos_coop3301"}) || NotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("Instance", id), NotFoundMsg, response)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
@@ -478,7 +478,7 @@ func (s *DdosCooServiceV2) DdosCooInstanceStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDdosCooInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

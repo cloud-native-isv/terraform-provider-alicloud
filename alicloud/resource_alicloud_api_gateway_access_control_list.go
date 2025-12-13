@@ -111,7 +111,7 @@ func resourceAliCloudApiGatewayAccessControlListRead(d *schema.ResourceData, met
 
 	objectRaw, err := apiGatewayServiceV2.DescribeApiGatewayAccessControlList(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_api_gateway_access_control_list DescribeApiGatewayAccessControlList Failed!!! %s", err)
 			d.SetId("")
 			return nil

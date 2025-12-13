@@ -127,7 +127,7 @@ func resourceAliCloudThreatDetectionHoneypotPresetRead(d *schema.ResourceData, m
 
 	object, err := threatDetectionService.DescribeThreatDetectionHoneypotPreset(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_honeypot_preset threatDetectionService.DescribeThreatDetectionHoneypotPreset Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -220,7 +220,7 @@ func resourceAliCloudThreatDetectionHoneypotPresetDelete(d *schema.ResourceData,
 		return nil
 	})
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

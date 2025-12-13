@@ -118,7 +118,7 @@ func resourceAliCloudSelectDBClusterBindingRead(d *schema.ResourceData, meta int
 	// and are accessible together
 	cluster, err := service.DescribeSelectDBCluster(instanceId, clusterId)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_selectdb_cluster_binding not found!!! %s", err)
 			d.SetId("")
 			return nil
@@ -163,7 +163,7 @@ func resourceAliCloudSelectDBClusterBindingDelete(d *schema.ResourceData, meta i
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := service.DeleteSelectDBClusterBinding(clusterId, instanceId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			if NeedRetry(err) {
@@ -175,7 +175,7 @@ func resourceAliCloudSelectDBClusterBindingDelete(d *schema.ResourceData, meta i
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteClusterBinding", AlibabaCloudSdkGoERROR)

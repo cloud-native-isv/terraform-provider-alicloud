@@ -133,7 +133,7 @@ func resourceAliCloudGaIpSetRead(d *schema.ResourceData, meta interface{}) error
 
 	object, err := gaService.DescribeGaIpSet(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ga_ip_set gaService.DescribeGaIpSet Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -225,7 +225,7 @@ func resourceAliCloudGaIpSetDelete(d *schema.ResourceData, meta interface{}) err
 	})
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotExist.IpSets"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NotExist.IpSets"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

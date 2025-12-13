@@ -121,7 +121,7 @@ func resourceAliCloudEfloVscRead(d *schema.ResourceData, meta interface{}) error
 
 	objectRaw, err := efloServiceV2.DescribeEfloVsc(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eflo_vsc DescribeEfloVsc Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -136,7 +136,7 @@ func resourceAliCloudEfloVscRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("vsc_type", objectRaw["VscType"])
 
 	objectRaw, err = efloServiceV2.DescribeVscListTagResources(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -222,7 +222,7 @@ func resourceAliCloudEfloVscDelete(d *schema.ResourceData, meta interface{}) err
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"Resource.NotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"Resource.NotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

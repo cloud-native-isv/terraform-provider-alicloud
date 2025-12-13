@@ -76,7 +76,7 @@ func (s *SelectDBService) SelectDBSecurityIPListStateRefreshFunc(instanceId, gro
 	return func() (interface{}, string, error) {
 		group, err := s.DescribeSelectDBSecurityIPGroup(instanceId, groupName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", WrapErrorf(Error(GetNotFoundMessage("SelectDB Security IP Group", groupName)), NotFoundMsg, ProviderERROR)
 			}
 			return nil, "", WrapError(err)

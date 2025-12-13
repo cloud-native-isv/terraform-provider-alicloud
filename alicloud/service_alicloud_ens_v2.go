@@ -95,7 +95,7 @@ func (s *EnsServiceV2) EnsInstanceStateRefreshFunc(id string, field string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -204,7 +204,7 @@ func (s *EnsServiceV2) EnsDiskStateRefreshFunc(id string, field string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsDisk(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -283,7 +283,7 @@ func (s *EnsServiceV2) EnsSnapshotStateRefreshFunc(id string, field string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsSnapshot(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -350,7 +350,7 @@ func (s *EnsServiceV2) EnsNetworkStateRefreshFunc(id string, field string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsNetwork(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -417,7 +417,7 @@ func (s *EnsServiceV2) EnsEipStateRefreshFunc(id string, field string, failState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsEip(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -487,7 +487,7 @@ func (s *EnsServiceV2) EnsLoadBalancerStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsLoadBalancer(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -548,7 +548,7 @@ func (s *EnsServiceV2) EnsVswitchStateRefreshFunc(id string, field string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsVswitch(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -616,7 +616,7 @@ func (s *EnsServiceV2) EnsSecurityGroupStateRefreshFunc(id string, field string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsSecurityGroup(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -683,7 +683,7 @@ func (s *EnsServiceV2) EnsImageStateRefreshFunc(id string, field string, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsImage(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -762,7 +762,7 @@ func (s *EnsServiceV2) EnsDiskInstanceAttachmentStateRefreshFunc(id string, fiel
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsDiskInstanceAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -834,7 +834,7 @@ func (s *EnsServiceV2) EnsInstanceSecurityGroupAttachmentStateRefreshFunc(id str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsInstanceSecurityGroupAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -919,7 +919,7 @@ func (s *EnsServiceV2) EnsEipInstanceAttachmentStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsEipInstanceAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -986,7 +986,7 @@ func (s *EnsServiceV2) EnsNatGatewayStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsNatGateway(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1052,7 +1052,7 @@ func (s *EnsServiceV2) EnsKeyPairStateRefreshFunc(id string, field string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEnsKeyPair(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -135,7 +135,7 @@ func resourceAliCloudExpressConnectRouterExpressConnectRouterVbrChildInstanceRea
 
 	objectRaw, err := expressConnectRouterServiceV2.DescribeExpressConnectRouterExpressConnectRouterVbrChildInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_express_connect_router_vbr_child_instance DescribeExpressConnectRouterExpressConnectRouterVbrChildInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -252,7 +252,7 @@ func resourceAliCloudExpressConnectRouterExpressConnectRouterVbrChildInstanceDel
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"ResourceNotFound.AssociationId", "ResourceNotFound.ChildInstanceId", "ResourceNotFound.EcrId"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"ResourceNotFound.AssociationId", "ResourceNotFound.ChildInstanceId", "ResourceNotFound.EcrId"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -332,7 +332,7 @@ func resourceAliCloudAdbDbClusterLakeVersionRead(d *schema.ResourceData, meta in
 
 	object, err := adbService.DescribeAdbDbClusterLakeVersion(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_adb_db_cluster_lake_version adbService.DescribeAdbDbClusterLakeVersion Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -671,7 +671,7 @@ func resourceAliCloudAdbDbClusterLakeVersionDelete(d *schema.ResourceData, meta 
 	}
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidDBCluster.NotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidDBCluster.NotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

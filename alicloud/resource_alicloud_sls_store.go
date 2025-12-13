@@ -396,7 +396,7 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 
 	logstore, err := slsService.DescribeLogStoreById(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_log_store DescribeLogStore Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -466,7 +466,7 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 		shards, getErr = slsService.GetLogStoreShards(parts[0], parts[1])
 		if getErr != nil {
 			// For new resources, retry on LogStoreNotExist errors as the logstore may not be fully initialized yet
-			if d.IsNewResource() && IsNotFoundError(getErr) {
+			if d.IsNewResource() && NotFoundError(getErr) {
 				log.Printf("[DEBUG] Resource alicloud_log_store GetLogStoreShards returned LogStoreNotExist for new resource, retrying...")
 				return resource.RetryableError(getErr)
 			}

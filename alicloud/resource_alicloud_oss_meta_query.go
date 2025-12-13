@@ -85,7 +85,7 @@ func resourceAliCloudOssBucketMetaQueryRead(d *schema.ResourceData, meta interfa
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketMetaQuery(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_meta_query DescribeOssBucketMetaQuery Failed!!! %s", err)
 			d.SetId("")
 			return nil

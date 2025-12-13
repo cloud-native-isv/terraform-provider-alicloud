@@ -241,7 +241,7 @@ func resourceAliCloudArmsAlertRuleRead(d *schema.ResourceData, meta interface{})
 	// Get alert rule from service layer
 	object, err := service.DescribeArmsAlertRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_rule DescribeArmsAlertRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -367,7 +367,7 @@ func resourceAliCloudArmsAlertRuleDelete(d *schema.ResourceData, meta interface{
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err = service.DeleteArmsAlertRule(alertId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable", "SystemBusy"}) {

@@ -119,7 +119,7 @@ func resourceAliCloudCenTransitRouterPrefixListAssociationRead(d *schema.Resourc
 	cbnService := CbnService{client}
 	object, err := cbnService.DescribeCenTransitRouterPrefixListAssociation(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

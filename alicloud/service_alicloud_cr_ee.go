@@ -272,7 +272,7 @@ func (c *CrService) WaitForCrEENamespace(id string, status Status, timeout int) 
 	for {
 		resp, err := c.DescribeCrEENamespace(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -408,7 +408,7 @@ func (c *CrService) WaitForCrEERepo(id string, status Status, timeout int) error
 	for {
 		resp, err := c.DescribeCrEERepo(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

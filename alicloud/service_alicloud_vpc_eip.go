@@ -104,7 +104,7 @@ func (s *VpcEipService) DescribeEipAddress(allocationId string) (map[string]inte
 		eips, err := s.vpcAPI.DescribeEipAddresses(request)
 		if err != nil {
 			// If not found, fall back to legacy below; otherwise wrap and return
-			if IsNotFoundError(err) || strings.Contains(strings.ToLower(err.Error()), "not found") {
+			if NotFoundError(err) || strings.Contains(strings.ToLower(err.Error()), "not found") {
 				// Fall through to legacy implementation
 			} else {
 				return nil, WrapError(err)
@@ -288,7 +288,7 @@ func (s *VpcEipService) EipStateRefreshFunc(id string, failStates []string) reso
 	return func() (interface{}, string, error) {
 		obj, err := s.DescribeEipAddress(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

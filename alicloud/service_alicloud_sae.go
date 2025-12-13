@@ -192,7 +192,7 @@ func (s *SaeService) SaeApplicationChangeOrderStateRefreshFunc(orderId string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeSaeApplicationChangeOrder(orderId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -471,7 +471,7 @@ func (s *SaeService) SaeApplicationStateRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeApplicationStatus(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil if nothing matched
 				return nil, "", nil
 			}

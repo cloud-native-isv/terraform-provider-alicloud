@@ -270,7 +270,7 @@ func resourceAliCloudLogOssIngestionRead(d *schema.ResourceData, meta interface{
 
 	ingestion, err := slsService.DescribeSlsOSSIngestion(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

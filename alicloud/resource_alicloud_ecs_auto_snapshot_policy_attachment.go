@@ -66,7 +66,7 @@ func resourceAliCloudEcsAutoSnapshotPolicyAttachmentRead(d *schema.ResourceData,
 	ecsService := EcsService{client}
 	_, err := ecsService.DescribeEcsAutoSnapshotPolicyAttachment(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_auto_snapshot_policy_attachment ecsService.DescribeEcsAutoSnapshotPolicyAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

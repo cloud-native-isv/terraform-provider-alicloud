@@ -80,7 +80,7 @@ func resourceAliCloudCloudConnectNetworkGrantRead(d *schema.ResourceData, meta i
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeCloudConnectNetworkGrant(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

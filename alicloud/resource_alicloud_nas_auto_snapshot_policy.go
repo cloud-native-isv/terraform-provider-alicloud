@@ -141,7 +141,7 @@ func resourceAliCloudNasAutoSnapshotPolicyRead(d *schema.ResourceData, meta inte
 
 	objectRaw, err := nasService.DescribeNasAutoSnapshotPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_auto_snapshot_policy DescribeNasAutoSnapshotPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

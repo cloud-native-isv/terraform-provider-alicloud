@@ -216,7 +216,7 @@ func resourceAliCloudCenTransitRouterPeerAttachmentRead(d *schema.ResourceData, 
 
 	objectRaw, err := cenServiceV2.DescribeCenTransitRouterPeerAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_transit_router_peer_attachment DescribeCenTransitRouterPeerAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -373,7 +373,7 @@ func resourceAliCloudCenTransitRouterPeerAttachmentDelete(d *schema.ResourceData
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

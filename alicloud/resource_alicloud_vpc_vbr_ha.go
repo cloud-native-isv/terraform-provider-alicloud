@@ -110,7 +110,7 @@ func resourceAliCloudVpcVbrHaRead(d *schema.ResourceData, meta interface{}) erro
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpcVbrHa(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_vbr_ha vpcService.DescribeVpcVbrHa Failed!!! %s", err)
 			d.SetId("")
 			return nil

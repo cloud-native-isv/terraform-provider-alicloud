@@ -561,7 +561,7 @@ func resourceAliCloudFlinkDeploymentRead(d *schema.ResourceData, meta interface{
 
 	deployment, err := flinkService.GetDeployment(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -963,7 +963,7 @@ func resourceAliCloudFlinkDeploymentDelete(d *schema.ResourceData, meta interfac
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := flinkService.DeleteDeployment(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return resource.RetryableError(err)

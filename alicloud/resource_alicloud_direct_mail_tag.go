@@ -65,7 +65,7 @@ func resourceAliCloudDirectMailTagRead(d *schema.ResourceData, meta interface{})
 	dmService := DmService{client}
 	object, err := dmService.DescribeDirectMailTag(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_direct_mail_tag dmService.DescribeDirectMailTag Failed!!! %s", err)
 			d.SetId("")
 			return nil

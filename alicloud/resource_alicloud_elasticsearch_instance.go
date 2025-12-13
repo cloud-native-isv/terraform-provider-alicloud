@@ -406,7 +406,7 @@ func resourceAliCloudElasticsearchRead(d *schema.ResourceData, meta interface{})
 
 	object, err := elasticsearchService.DescribeElasticsearchInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -529,7 +529,7 @@ func resourceAliCloudElasticsearchUpdate(d *schema.ResourceData, meta interface{
 
 	instance, err := elasticsearchService.DescribeElasticsearchInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

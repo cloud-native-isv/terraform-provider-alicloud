@@ -260,7 +260,7 @@ func resourceAliCloudCloudFirewallVpcFirewallCenRead(d *schema.ResourceData, met
 
 	object, err := cloudfwService.DescribeCloudFirewallVpcFirewallCen(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_firewall_vpc_firewall_cen cloudfwService.DescribeCloudFirewallVpcFirewallCen Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -270,7 +270,7 @@ func resourceAliCloudCloudFirewallVpcFirewallCenRead(d *schema.ResourceData, met
 
 	objectExtra, err := cloudfwService.DescribeVpcFirewallCenList(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_firewall_vpc_firewall_cen cloudfwService.DescribeVpcFirewallCenList Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -494,7 +494,7 @@ func resourceAliCloudCloudFirewallVpcFirewallCenDelete(d *schema.ResourceData, m
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

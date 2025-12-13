@@ -162,7 +162,7 @@ func (s *VpnGatewayService) WaitForVpnGateway(id string, status Status, timeout 
 	for {
 		object, err := s.DescribeVpnGateway(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -185,7 +185,7 @@ func (s *VpnGatewayService) WaitForVpnConnection(id string, status Status, timeo
 	for {
 		object, err := s.DescribeVpnConnection(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -210,7 +210,7 @@ func (s *VpnGatewayService) WaitForVpnCustomerGateway(id string, status Status, 
 	for {
 		object, err := s.DescribeVpnCustomerGateway(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -233,7 +233,7 @@ func (s *VpnGatewayService) WaitForSslVpnServer(id string, status Status, timeou
 	for {
 		object, err := s.DescribeSslVpnServer(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -256,7 +256,7 @@ func (s *VpnGatewayService) WaitForSslVpnClientCert(id string, status Status, ti
 	for {
 		object, err := s.DescribeSslVpnClientCert(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -279,7 +279,7 @@ func (s *VpnGatewayService) WaitForVpnRouteEntry(id string, status Status, timeo
 	for {
 		object, err := s.DescribeVpnRouteEntry(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

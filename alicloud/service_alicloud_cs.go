@@ -327,7 +327,7 @@ func (s *CsClient) DescribeClusterAddonsMetadata(clusterId string) (map[string]*
 	})
 
 	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "DescribeClusterAddonsVersion", err)
+		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "DescribeClusterAddonsVersion", err)
 	}
 
 	for name, addon := range resp.Body {
@@ -367,7 +367,7 @@ func (s *CsClient) DescribeCsKubernetesAddonStatus(clusterId string, addonName s
 	})
 
 	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "DescribeClusterAddonsUpgradeStatus", err)
+		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "DescribeClusterAddonsUpgradeStatus", err)
 	}
 
 	addon, ok := resp.Body[addonName]
@@ -495,7 +495,7 @@ func (s *CsClient) DescribeCsKubernetesAllAvailableAddons(clusterId string) (map
 
 	status, err := s.DescribeCsKubernetesAllAddonsStatus(clusterId, queryList)
 	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "DescribeCsKubernetesExistedAddons", err)
+		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "DescribeCsKubernetesExistedAddons", err)
 	}
 
 	for name, addon := range availableAddons {
@@ -511,10 +511,10 @@ func (s *CsClient) DescribeCsKubernetesAllAvailableAddons(clusterId string) (map
 		}
 		addonInstance, err := s.DescribeCsKubernetesAddonInstance(clusterId, name)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				continue
 			}
-			return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "DescribeCsKubernetesExistedAddons", err)
+			return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "DescribeCsKubernetesExistedAddons", err)
 		}
 		addon.Config = addonInstance.Config
 		addon.Status = addonInstance.Status
@@ -544,7 +544,7 @@ func (s *CsClient) DescribeCsKubernetesAllAddonsStatus(clusterId string, addons 
 	})
 
 	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "DescribeClusterAddonsUpgradeStatus", err)
+		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "DescribeClusterAddonsUpgradeStatus", err)
 	}
 
 	for name, status := range resp.Body {
@@ -574,7 +574,7 @@ func (s *CsClient) DescribeCsKubernetesAddon(id string) (*Component, error) {
 
 	addonInstance, err := s.DescribeCsKubernetesAddonInstance(clusterId, addonName)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"AddonNotFound", "ErrorClusterNotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"AddonNotFound", "ErrorClusterNotFound"}) || NotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("alicloud_cs_kubernetes_addon", id), ResourceNotfound)
 		}
 		return nil, err
@@ -607,7 +607,7 @@ func (s *CsClient) CsKubernetesAddonTaskRefreshFunc(clusterId string, addonName 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsKubernetesAddonStatus(clusterId, addonName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -625,7 +625,7 @@ func (s *CsClient) CsKubernetesAddonStateRefreshFunc(clusterId string, addonName
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsKubernetesAddonInstance(clusterId, addonName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -644,7 +644,7 @@ func (s *CsClient) CsKubernetesAddonExistRefreshFunc(clusterId string, addonName
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsKubernetesAddonInstance(clusterId, addonName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return object, "deleted", nil
 			}
@@ -698,7 +698,7 @@ func (s *CsClient) installAddon(d *schema.ResourceData) error {
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "installAddon", err)
+		return WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "installAddon", err)
 	}
 
 	return nil
@@ -742,7 +742,7 @@ func (s *CsClient) upgradeAddon(d *schema.ResourceData, updateVersion, updateCon
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "upgradeAddon", err)
+		return WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "upgradeAddon", err)
 	}
 
 	return nil
@@ -782,7 +782,7 @@ func (s *CsClient) uninstallAddon(d *schema.ResourceData) error {
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "uninstallAddon", err)
+		return WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "uninstallAddon", err)
 	}
 
 	return nil
@@ -811,7 +811,7 @@ func (s *CsClient) updateAddonConfig(d *schema.ResourceData) error {
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "upgradeAddonConfig", err)
+		return WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "upgradeAddonConfig", err)
 	}
 
 	return nil
@@ -838,7 +838,7 @@ func (s *CsClient) DescribeCsKubernetesAddonMetadata(clusterId string, name stri
 	})
 
 	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "DescribeCsKubernetesExistedAddons", err)
+		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "DescribeCsKubernetesExistedAddons", err)
 	}
 	result := &Component{
 		ComponentName: *resp.Body.Name,
@@ -893,7 +893,7 @@ func (s *CsService) WaitForCsKubernetes(id string, status Status, timeout int) e
 	for {
 		object, err := s.DescribeCsKubernetes(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -949,7 +949,7 @@ func (s *CsService) WaitForCSManagedKubernetes(id string, status Status, timeout
 	for {
 		object, err := s.DescribeCsManagedKubernetes(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -972,7 +972,7 @@ func (s *CsService) CsKubernetesInstanceStateRefreshFunc(id string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsKubernetes(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -992,7 +992,7 @@ func (s *CsService) CsKubernetesNodePoolStateRefreshFunc(id string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsKubernetesNodePool(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1012,7 +1012,7 @@ func (s *CsService) CsManagedKubernetesInstanceStateRefreshFunc(id string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsManagedKubernetes(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1032,7 +1032,7 @@ func (s *CsService) CsServerlessKubernetesInstanceStateRefreshFunc(id string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCsServerlessKubernetes(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1086,7 +1086,7 @@ func (s *CsService) WaitForCSServerlessKubernetes(id string, status Status, time
 	for {
 		object, err := s.DescribeCsServerlessKubernetes(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1237,7 +1237,7 @@ func (s *CsClient) DescribeTaskRefreshFunc(d *schema.ResourceData, taskId string
 		})
 
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return taskInfo, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -1292,7 +1292,7 @@ func setCerts(d *schema.ResourceData, meta interface{}, skipSetCertificateAuthor
 	if err != nil {
 		log.Printf("[ERROR] Failed to get kubeconfig due to %++v", err)
 	}
-	m := flattenAlicloudCSCertificate(kubeConfig)
+	m := flattenAliCloudCSCertificate(kubeConfig)
 	if len(m) >= 3 {
 		if ce, ok := d.GetOk("client_cert"); ok && ce.(string) != "" {
 			if err := writeToFile(ce.(string), m["client_cert"]); err != nil {
@@ -1322,7 +1322,7 @@ func setCerts(d *schema.ResourceData, meta interface{}, skipSetCertificateAuthor
 			"client_key":   "",
 		})
 	} else {
-		if err := d.Set("certificate_authority", flattenAlicloudCSCertificate(kubeConfig)); err != nil {
+		if err := d.Set("certificate_authority", flattenAliCloudCSCertificate(kubeConfig)); err != nil {
 			return WrapError(fmt.Errorf("error setting certificate_authority: %s", err))
 		}
 	}

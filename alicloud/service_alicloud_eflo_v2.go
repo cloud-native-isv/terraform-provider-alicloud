@@ -43,7 +43,7 @@ func (s *EfloServiceV2) DescribeEfloNode(id string) (object map[string]interface
 	})
 	addDebug(action, response, request)
 	if err != nil {
-		if IsExpectedErrors(err, []string{"RESOURCE_NOT_FOUND"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"RESOURCE_NOT_FOUND"}) || NotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("Node", id), NotFoundMsg, response)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
@@ -89,7 +89,7 @@ func (s *EfloServiceV2) EfloNodeStateRefreshFunc(id string, field string, failSt
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEfloNode(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -192,7 +192,7 @@ func (s *EfloServiceV2) EfloClusterStateRefreshFunc(id string, field string, fai
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEfloCluster(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -407,7 +407,7 @@ func (s *EfloServiceV2) EfloNodeGroupStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEfloNodeGroup(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -436,7 +436,7 @@ func (s *EfloServiceV2) DescribeAsyncEfloNodeGroupStateRefreshFunc(d *schema.Res
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncDescribeTask(d, res)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 		}
@@ -552,7 +552,7 @@ func (s *EfloServiceV2) EfloInvocationStateRefreshFunc(id string, field string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEfloInvocation(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -625,7 +625,7 @@ func (s *EfloServiceV2) EfloExperimentPlanTemplateStateRefreshFunc(id string, fi
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEfloExperimentPlanTemplate(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -698,7 +698,7 @@ func (s *EfloServiceV2) EfloResourceStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEfloResource(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -771,7 +771,7 @@ func (s *EfloServiceV2) EfloExperimentPlanStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEfloExperimentPlan(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -877,7 +877,7 @@ func (s *EfloServiceV2) EfloVscStateRefreshFunc(id string, field string, failSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEfloVsc(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -21,7 +21,7 @@ func (s *OssService) DescribeOssBucketLifecycle(id string) (object map[string]in
 
 	config, err := ossAPI.GetBucketLifecycle(id)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("BucketLifecycle", id), NotFoundMsg, err)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketLifecycle", AlibabaCloudSdkGoERROR)
@@ -40,7 +40,7 @@ func (s *OssService) OssBucketLifecycleStateRefreshFunc(id string, field string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketLifecycle(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

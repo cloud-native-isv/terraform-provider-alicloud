@@ -80,7 +80,7 @@ func (s *CenService) WaitForCenInstanceAttachment(id string, status Status, time
 	for {
 		object, err := s.DescribeCenInstanceAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -147,7 +147,7 @@ func (s *CenService) WaitForCenBandwidthPackage(id string, status Status, bandwi
 	for {
 		object, err := s.DescribeCenBandwidthPackage(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -184,7 +184,7 @@ func (s *CenService) WaitForCenBandwidthPackageAttachment(id string, status Stat
 	for {
 		object, err := s.DescribeCenBandwidthPackageAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -287,7 +287,7 @@ func (s *CenService) CenBandwidthLimitStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenBandwidthLimit(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -383,7 +383,7 @@ func (s *CenService) WaitForCenRouterEntry(id string, status Status, timeout int
 	for {
 		object, err := s.DescribeCenRouteEntry(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -429,7 +429,7 @@ func (s *CenService) CenInstanceAttachmentStateRefreshFunc(id string, failStates
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCenInstanceAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

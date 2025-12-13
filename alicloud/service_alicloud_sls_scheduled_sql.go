@@ -111,7 +111,7 @@ func (s *SlsService) SlsScheduledSQLStateRefreshFunc(id string, field string, fa
 		// Get scheduled SQL from API
 		scheduledSQL, err := s.GetAPI().GetScheduledSQL(projectName, scheduledSQLName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_scheduled_sql", "GetScheduledSQL", AlibabaCloudSdkGoERROR)

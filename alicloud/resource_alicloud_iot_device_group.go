@@ -87,7 +87,7 @@ func resourceAliCloudIotDeviceGroupRead(d *schema.ResourceData, meta interface{}
 	iotService := IotService{client}
 	object, err := iotService.DescribeIotDeviceGroup(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_iot_device_group iotService.DescribeIotDeviceGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

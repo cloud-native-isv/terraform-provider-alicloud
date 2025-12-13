@@ -90,7 +90,7 @@ func resourceAliCloudOssAccountPublicAccessBlockRead(d *schema.ResourceData, met
 
 	objectRaw, err := ossServiceV2.DescribeOssAccountPublicAccessBlock(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_account_public_access_block DescribeOssAccountPublicAccessBlock Failed!!! %s", err)
 			d.SetId("")
 			return nil

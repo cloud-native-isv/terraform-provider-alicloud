@@ -104,7 +104,7 @@ func resourceAliCloudChatbotPublishTaskRead(d *schema.ResourceData, meta interfa
 
 	object, err := chatbotService.DescribeChatbotPublishTask(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_chatbot_publish_task chatbotService.DescribeChatbotPublishTask Failed!!! %s", err)
 			d.SetId("")
 			return nil

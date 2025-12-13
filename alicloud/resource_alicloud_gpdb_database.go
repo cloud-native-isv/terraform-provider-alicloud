@@ -119,7 +119,7 @@ func resourceAliCloudGpdbDatabaseRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := gpdbServiceV2.DescribeGpdbDatabase(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_gpdb_database DescribeGpdbDatabase Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -181,7 +181,7 @@ func resourceAliCloudGpdbDatabaseDelete(d *schema.ResourceData, meta interface{}
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -359,7 +359,7 @@ func resourceAliCloudCloudFirewallVpcFirewallRead(d *schema.ResourceData, meta i
 
 	object, err := cloudfwService.DescribeCloudFirewallVpcFirewall(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_firewall_vpc_firewall cloudfwService.DescribeCloudFirewallVpcFirewall Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -369,7 +369,7 @@ func resourceAliCloudCloudFirewallVpcFirewallRead(d *schema.ResourceData, meta i
 
 	objectExtra, err := cloudfwService.DescribeVpcFirewallList(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_firewall_vpc_firewall cloudfwService.DescribeCloudFirewallVpcFirewall Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -664,7 +664,7 @@ func resourceAliCloudCloudFirewallVpcFirewallDelete(d *schema.ResourceData, meta
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

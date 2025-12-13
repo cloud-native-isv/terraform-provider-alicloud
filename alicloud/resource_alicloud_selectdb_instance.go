@@ -827,7 +827,7 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 	instanceId := d.Id()
 	instance, err := selectDBService.DescribeSelectDBInstance(instanceId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -951,7 +951,7 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 
 	// Get network information and security IP lists
 	securityIPGroups, err := selectDBService.DescribeSelectDBSecurityIPList(instanceId, client.RegionId, 0)
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -1007,7 +1007,7 @@ func resourceAliCloudSelectDBInstanceDelete(d *schema.ResourceData, meta interfa
 	err = selectDBService.WaitForSelectDBInstanceUpdated(d.Id(), d.Timeout(schema.TimeoutDelete))
 	if err != nil {
 		// If instance is not found, it's already deleted
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -1016,7 +1016,7 @@ func resourceAliCloudSelectDBInstanceDelete(d *schema.ResourceData, meta interfa
 	// Delete the instance
 	err = selectDBService.DeleteSelectDBInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteDBInstance", AlibabaCloudSdkGoERROR)

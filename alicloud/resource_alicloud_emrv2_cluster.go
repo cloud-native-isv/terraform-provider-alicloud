@@ -1316,7 +1316,7 @@ func resourceAliCloudEmrV2ClusterRead(d *schema.ResourceData, meta interface{}) 
 	object, err := emrService.GetEmrV2Cluster(d.Id())
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

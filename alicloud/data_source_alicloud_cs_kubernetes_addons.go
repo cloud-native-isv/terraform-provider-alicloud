@@ -16,7 +16,7 @@ import (
 
 func dataSourceAliCloudCSKubernetesAddons() *schema.Resource {
 	return &schema.Resource{
-		Read: dataAlicloudCSKubernetesAddonsRead,
+		Read: dataAliCloudCSKubernetesAddonsRead,
 
 		Schema: map[string]*schema.Schema{
 			"cluster_id": {
@@ -75,7 +75,7 @@ func dataSourceAliCloudCSKubernetesAddons() *schema.Resource {
 	}
 }
 
-func dataAlicloudCSKubernetesAddonsRead(d *schema.ResourceData, meta interface{}) error {
+func dataAliCloudCSKubernetesAddonsRead(d *schema.ResourceData, meta interface{}) error {
 	filterAddons := make(map[string]*Component)
 	var ids, names []string
 
@@ -110,7 +110,7 @@ func dataAlicloudCSKubernetesAddonsRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "describeAddonsMeta", err)
+		return WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "describeAddonsMeta", err)
 	}
 	result := fetchAddonsMetadata(filterAddons)
 
@@ -134,7 +134,7 @@ func describeAvailableAddons(d *schema.ResourceData, meta interface{}) (map[stri
 
 	availableAddons, err := csClient.DescribeCsKubernetesAllAvailableAddons(clusterId)
 	if err != nil {
-		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAlicloudCSKubernetesAddon, "DescribeCsKubernetesAllAvailableAddons", err)
+		return nil, WrapErrorf(err, DefaultErrorMsg, ResourceAliCloudCSKubernetesAddon, "DescribeCsKubernetesAllAvailableAddons", err)
 	}
 
 	return availableAddons, nil

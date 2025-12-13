@@ -78,7 +78,7 @@ func (s *ResourcesharingService) ResourceManagerResourceShareStateRefreshFunc(id
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeResourceManagerResourceShare(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -166,7 +166,7 @@ func (s *ResourcesharingService) ResourceManagerSharedResourceStateRefreshFunc(i
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeResourceManagerSharedResource(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -253,7 +253,7 @@ func (s *ResourcesharingService) ResourceManagerSharedTargetStateRefreshFunc(id 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeResourceManagerSharedTarget(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

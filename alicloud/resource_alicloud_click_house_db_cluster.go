@@ -349,7 +349,7 @@ func resourceAliCloudClickHouseDbClusterRead(d *schema.ResourceData, meta interf
 	clickhouseService := ClickhouseService{client}
 	object, err := clickhouseService.DescribeClickHouseDbCluster(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_click_house_db_cluster clickhouseService.DescribeClickHouseDbCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -399,7 +399,7 @@ func resourceAliCloudClickHouseDbClusterRead(d *schema.ResourceData, meta interf
 
 	object, err = clickhouseService.DescribeClickHouseAutoRenewStatus(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_click_house_db_cluster clickhouseService.DescribeClickHouseAutoRenewStatus Failed!!! %s", err)
 			d.SetId("")
 			return nil

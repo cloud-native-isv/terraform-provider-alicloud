@@ -142,7 +142,7 @@ func resourceAliCloudOosTemplateRead(d *schema.ResourceData, meta interface{}) e
 	oosService := OosService{client}
 	object, err := oosService.DescribeOosTemplate(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oos_template oosService.DescribeOosTemplate Failed!!! %s", err)
 			d.SetId("")
 			return nil

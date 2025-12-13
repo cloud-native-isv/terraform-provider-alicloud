@@ -128,7 +128,7 @@ func resourceAliCloudRouterInterface() *schema.Resource {
 func resourceAliCloudRouterInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
-	request, err := buildAlicloudRouterInterfaceCreateArgs(d, meta)
+	request, err := buildAliCloudRouterInterfaceCreateArgs(d, meta)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -155,7 +155,7 @@ func resourceAliCloudRouterInterfaceUpdate(d *schema.ResourceData, meta interfac
 
 	d.Partial(true)
 
-	request, attributeUpdate, err := buildAlicloudRouterInterfaceModifyAttrArgs(d, meta)
+	request, attributeUpdate, err := buildAliCloudRouterInterfaceModifyAttrArgs(d, meta)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -195,7 +195,7 @@ func resourceAliCloudRouterInterfaceRead(d *schema.ResourceData, meta interface{
 
 	object, err := vpcService.DescribeRouterInterface(d.Id(), client.RegionId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -234,7 +234,7 @@ func resourceAliCloudRouterInterfaceDelete(d *schema.ResourceData, meta interfac
 	vpcService := VpcService{client}
 
 	if object, err := vpcService.DescribeRouterInterface(d.Id(), client.RegionId); err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
@@ -272,7 +272,7 @@ func resourceAliCloudRouterInterfaceDelete(d *schema.ResourceData, meta interfac
 	return WrapError(vpcService.WaitForRouterInterface(d.Id(), client.RegionId, Deleted, DefaultLongTimeout))
 }
 
-func buildAlicloudRouterInterfaceCreateArgs(d *schema.ResourceData, meta interface{}) (*vpc.CreateRouterInterfaceRequest, error) {
+func buildAliCloudRouterInterfaceCreateArgs(d *schema.ResourceData, meta interface{}) (*vpc.CreateRouterInterfaceRequest, error) {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 
@@ -334,7 +334,7 @@ func buildAlicloudRouterInterfaceCreateArgs(d *schema.ResourceData, meta interfa
 	return request, nil
 }
 
-func buildAlicloudRouterInterfaceModifyAttrArgs(d *schema.ResourceData, meta interface{}) (*vpc.ModifyRouterInterfaceAttributeRequest, bool, error) {
+func buildAliCloudRouterInterfaceModifyAttrArgs(d *schema.ResourceData, meta interface{}) (*vpc.ModifyRouterInterfaceAttributeRequest, bool, error) {
 
 	sourceIp, sourceOk := d.GetOk("health_check_source_ip")
 	targetIp, targetOk := d.GetOk("health_check_target_ip")

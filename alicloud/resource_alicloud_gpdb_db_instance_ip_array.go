@@ -107,7 +107,7 @@ func resourceAliCloudGpdbDBInstanceIPArrayRead(d *schema.ResourceData, meta inte
 
 	objectRaw, err := gpdbServiceV2.DescribeGpdbDBInstanceIPArray(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_gpdb_db_instance_ip_array DescribeGpdbDBInstanceIPArray Failed!!! %s", err)
 			d.SetId("")
 			return nil

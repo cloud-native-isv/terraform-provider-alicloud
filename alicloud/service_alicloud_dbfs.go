@@ -108,7 +108,7 @@ func (s *DbfsService) DbfsInstanceStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDbfsInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -190,7 +190,7 @@ func (s *DbfsService) DbfsSnapshotStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDbfsSnapshot(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -240,7 +240,7 @@ func (s *DbfsService) DbfsServiceLinkedRoleStateRefreshFunc(id string, failState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDbfsServiceLinkedRole(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

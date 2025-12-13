@@ -121,7 +121,7 @@ func (s *NasService) NasRecycleBinStateRefreshFunc(fileSystemId string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.GetNasRecycleBinAttribute(fileSystemId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Recycle bin is disabled
 				return nil, "Disabled", nil
 			}
@@ -143,7 +143,7 @@ func (s *NasService) NasRecycleBinJobStateRefreshFunc(fileSystemId, jobId string
 	return func() (interface{}, string, error) {
 		object, err := s.GetNasRecycleBinJob(fileSystemId, jobId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

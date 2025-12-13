@@ -118,7 +118,7 @@ func (c *CdnService) WaitForCdnDomain(id string, status Status, timeout int) err
 	for {
 		domain, err := c.DescribeCdnDomainNew(id)
 		if err != nil {
-			if IsNotFoundError(err) && status == Deleted {
+			if NotFoundError(err) && status == Deleted {
 				break
 			}
 			return WrapError(err)
@@ -199,7 +199,7 @@ func (c *CdnService) CdnDomainConfigRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		v, err := c.DescribeCdnDomainConfig(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -254,7 +254,7 @@ func (s *CdnService) CdnRealTimeLogDeliveryStateRefreshFunc(id string, failState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCdnRealTimeLogDelivery(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

@@ -53,7 +53,7 @@ func (s *OssService) OssBucketUserDefinedLogFieldsStateRefreshFunc(id string, fi
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketUserDefinedLogFields(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

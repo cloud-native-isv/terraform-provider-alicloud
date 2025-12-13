@@ -69,7 +69,7 @@ func (s *NATGatewayServiceV2) NATGatewaySnatEntryStateRefreshFunc(id string, fie
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeNATGatewaySnatEntry(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -52,7 +52,7 @@ func (s *VpcPeerService) VpcPeerConnectionStateRefreshFunc(id string, failStates
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcPeerConnection(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -104,7 +104,7 @@ func (s *VpcPeerService) VpcPeerConnectionAccepterStateRefreshFunc(d *schema.Res
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeVpcPeerConnectionAccepter(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

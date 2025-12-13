@@ -111,7 +111,7 @@ func resourceAliyunSslVpnClientCertRead(d *schema.ResourceData, meta interface{}
 	object, err := vpnGatewayService.DescribeSslVpnClientCert(d.Id())
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

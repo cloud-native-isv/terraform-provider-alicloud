@@ -57,7 +57,7 @@ func (s *SlsService) CreateOrAdoptSlsConsumerGroup(project, logstore string, cg 
 	existing, err := s.GetAPI().GetConsumerGroup(project, logstore, cg.ConsumerGroup)
 	if err != nil {
 		// Treat any 'not found' error as create path
-		if IsNotFoundError(err) || strings.Contains(strings.ToLower(err.Error()), "not found") {
+		if NotFoundError(err) || strings.Contains(strings.ToLower(err.Error()), "not found") {
 			return s.GetAPI().CreateConsumerGroup(cg)
 		}
 		return WrapErrorf(err, DefaultErrorMsg, cg.ConsumerGroup, "GetConsumerGroup", AlibabaCloudSdkGoERROR)
@@ -99,7 +99,7 @@ func (s *SlsService) SlsConsumerGroupStateRefreshFunc(id string, failStates []st
 	return func() (interface{}, string, error) {
 		obj, err := s.DescribeSlsConsumerGroup(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "deleted", nil
 			}
 			return nil, "", WrapError(err)

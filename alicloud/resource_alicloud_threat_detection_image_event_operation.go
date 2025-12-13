@@ -123,7 +123,7 @@ func resourceAliCloudThreatDetectionImageEventOperationRead(d *schema.ResourceDa
 
 	objectRaw, err := threatDetectionServiceV2.DescribeThreatDetectionImageEventOperation(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_image_event_operation DescribeThreatDetectionImageEventOperation Failed!!! %s", err)
 			d.SetId("")
 			return nil

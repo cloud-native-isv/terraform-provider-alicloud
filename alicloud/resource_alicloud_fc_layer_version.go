@@ -194,7 +194,7 @@ func resourceAliCloudFCLayerVersionRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := fcService.DescribeFCLayerVersion(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_layer_version DescribeFCLayerVersion Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -319,7 +319,7 @@ func resourceAliCloudFCLayerVersionDelete(d *schema.ResourceData, meta interface
 				wait()
 				return resource.RetryableError(err)
 			}
-			if IsExpectedErrors(err, []string{"LayerNotFound", "LayerVersionNotFound"}) || IsNotFoundError(err) {
+			if IsExpectedErrors(err, []string{"LayerNotFound", "LayerVersionNotFound"}) || NotFoundError(err) {
 				log.Printf("[DEBUG] FC Layer Version not found during deletion: %s:%s", layerName, version)
 				return nil
 			}
@@ -331,7 +331,7 @@ func resourceAliCloudFCLayerVersionDelete(d *schema.ResourceData, meta interface
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"LayerNotFound", "LayerVersionNotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"LayerNotFound", "LayerVersionNotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

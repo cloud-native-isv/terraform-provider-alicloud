@@ -152,7 +152,7 @@ func resourceAliCloudCmsSiteMonitorRead(d *schema.ResourceData, meta interface{}
 
 	siteMonitor, err := cmsService.DescribeSiteMonitor(d.Id(), "")
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -256,7 +256,7 @@ func resourceAliCloudCmsSiteMonitorDelete(d *schema.ResourceData, meta interface
 
 		_, err = cmsService.DescribeSiteMonitor(d.Id(), "")
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return resource.NonRetryableError(fmt.Errorf("DescribeSiteMonitor got an error: %#v", err))

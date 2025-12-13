@@ -71,7 +71,7 @@ func resourceAliCloudCloudFirewallIPSConfigRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := cloudFirewallServiceV2.DescribeCloudFirewallIPSConfig(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_firewall_ips_config DescribeCloudFirewallIPSConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil

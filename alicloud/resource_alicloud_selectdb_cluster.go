@@ -282,7 +282,7 @@ func resourceAliCloudSelectDBClusterRead(d *schema.ResourceData, meta interface{
 
 	cluster, err := service.DescribeSelectDBCluster(instanceId, clusterId)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_selectdb_cluster DescribeSelectDBCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -539,7 +539,7 @@ func resourceAliCloudSelectDBClusterDelete(d *schema.ResourceData, meta interfac
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := service.DeleteSelectDBCluster(instanceId, clusterId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			if NeedRetry(err) {
@@ -551,7 +551,7 @@ func resourceAliCloudSelectDBClusterDelete(d *schema.ResourceData, meta interfac
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteCluster", AlibabaCloudSdkGoERROR)

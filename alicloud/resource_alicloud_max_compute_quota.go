@@ -172,7 +172,7 @@ func resourceAliCloudMaxComputeQuotaRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := maxComputeServiceV2.DescribeMaxComputeQuota(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_max_compute_quota DescribeMaxComputeQuota Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -221,7 +221,7 @@ func resourceAliCloudMaxComputeQuotaRead(d *schema.ResourceData, meta interface{
 	}
 
 	objectRaw, err = maxComputeServiceV2.DescribeQuotaListTagResources(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 

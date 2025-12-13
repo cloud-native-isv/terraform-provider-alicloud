@@ -148,7 +148,7 @@ func resourceAliCloudRamPasswordPolicyRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := ramServiceV2.DescribeRamPasswordPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_password_policy DescribeRamPasswordPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

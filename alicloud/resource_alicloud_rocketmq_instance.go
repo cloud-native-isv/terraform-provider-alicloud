@@ -484,7 +484,7 @@ func resourceAliCloudRocketmqInstanceRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := rocketmqServiceV2.DescribeRocketmqInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_rocketmq_instance DescribeRocketmqInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -659,7 +659,7 @@ func resourceAliCloudRocketmqInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("auto_renew_period_unit", convertAmqpInstanceRenewalDurationUnitResponse(queryAvailableInstancesObject["RenewalDurationUnit"]))
 
 	objectRaw, err = rocketmqServiceV2.DescribeInstanceGetInstanceIpWhitelist(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -1027,7 +1027,7 @@ func resourceAliCloudRocketmqInstanceDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

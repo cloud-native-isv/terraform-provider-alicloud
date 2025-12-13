@@ -118,7 +118,7 @@ func resourceAliCloudOnsGroupRead(d *schema.ResourceData, meta interface{}) erro
 	onsService := OnsService{client}
 	object, err := onsService.DescribeOnsGroup(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ons_group onsService.DescribeOnsGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

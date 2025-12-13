@@ -72,7 +72,7 @@ func projectLoggingStateRefreshFunc(d *schema.ResourceData, meta interface{}, pr
 		// Check if the main project exists
 		_, err = slsService.DescribeLogProject(projectName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "ProjectNotFound", nil
 			}
 			return nil, "", WrapError(err)
@@ -81,7 +81,7 @@ func projectLoggingStateRefreshFunc(d *schema.ResourceData, meta interface{}, pr
 		// Check project logging configuration
 		logging, err := slsService.GetProjectLogging(projectName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "LoggingNotFound", nil
 			}
 			return nil, "", WrapError(err)
@@ -90,7 +90,7 @@ func projectLoggingStateRefreshFunc(d *schema.ResourceData, meta interface{}, pr
 		// Check if logging project exists
 		_, err = slsService.DescribeLogProject(logging.LoggingProject)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "LoggingProjectNotFound", nil
 			}
 			return nil, "", WrapError(err)
@@ -100,7 +100,7 @@ func projectLoggingStateRefreshFunc(d *schema.ResourceData, meta interface{}, pr
 		for _, detail := range logging.LoggingDetails {
 			_, err = slsService.DescribeLogStore(logging.LoggingProject, detail.Logstore)
 			if err != nil {
-				if IsNotFoundError(err) {
+				if NotFoundError(err) {
 					return nil, "LogstoreNotFound", nil
 				}
 				return nil, "", WrapError(err)
@@ -124,7 +124,7 @@ func resourceAliCloudLogProjectLoggingCreate(d *schema.ResourceData, meta interf
 
 	// Check if project logging already exists
 	existingLogging, err := slsService.GetProjectLogging(projectName)
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -184,7 +184,7 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	// Check if the main project exists
 	_, err = slsService.DescribeLogProject(projectName)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			// Don't remove the resource from the state if the main project is not found
 			// This can happen during refresh when the main project is temporarily unavailable
 			return nil
@@ -195,7 +195,7 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	// Check project logging configuration
 	logging, err := slsService.GetProjectLogging(projectName)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			// Don't remove the resource from the state if logging config is not found
 			// This can happen during refresh when the logging config is temporarily unavailable
 			return nil
@@ -206,7 +206,7 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	// Check if logging project exists
 	_, err = slsService.DescribeLogProject(logging.LoggingProject)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			// Don't remove the resource from the state if the logging project is not found
 			// This can happen during refresh when the logging project is temporarily unavailable
 			return nil
@@ -218,7 +218,7 @@ func resourceAliCloudLogProjectLoggingRead(d *schema.ResourceData, meta interfac
 	for _, detail := range logging.LoggingDetails {
 		_, err = slsService.DescribeLogStore(logging.LoggingProject, detail.Logstore)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Don't remove the resource from the state if a logstore is not found
 				// This can happen during refresh when a logstore is temporarily unavailable
 				return nil
@@ -271,7 +271,7 @@ func resourceAliCloudLogProjectLoggingUpdate(d *schema.ResourceData, meta interf
 		// Try Create first, fall back to Update if already exists
 		createErr := slsService.CreateProjectLogging(newProjectName, logging)
 		if createErr != nil {
-			if IsNotFoundError(createErr) {
+			if NotFoundError(createErr) {
 				// New project not ready yet; wait and retry via Update
 				// Fall through to Update path
 			} else if IsExpectedErrors(createErr, []string{"LogStoreAlreadyExist"}) ||

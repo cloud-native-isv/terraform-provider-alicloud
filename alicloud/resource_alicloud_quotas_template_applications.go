@@ -257,7 +257,7 @@ func resourceAliCloudQuotasTemplateApplicationsRead(d *schema.ResourceData, meta
 
 	objectRaw, err := quotasServiceV2.DescribeQuotasTemplateApplications(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_quotas_template_applications DescribeQuotasTemplateApplications Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -325,7 +325,7 @@ func resourceAliCloudQuotasTemplateApplicationsRead(d *schema.ResourceData, meta
 }
 
 func resourceAliCloudQuotasTemplateApplicationsUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[INFO] Cannot update resource Alicloud Resource Template Applications.")
+	log.Printf("[INFO] Cannot update resource AliCloud Resource Template Applications.")
 	return nil
 }
 

@@ -213,7 +213,7 @@ func resourceAliCloudCloudStorageGatewayGatewayBlockVolumeRead(d *schema.Resourc
 	sgwService := SgwService{client}
 	object, err := sgwService.DescribeCloudStorageGatewayGatewayBlockVolume(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_storage_gateway_gateway_block_volume sgwService.DescribeCloudStorageGatewayGatewayBlockVolume Failed!!! %s", err)
 			d.SetId("")
 			return nil

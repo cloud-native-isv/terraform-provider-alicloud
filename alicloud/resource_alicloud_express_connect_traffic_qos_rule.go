@@ -187,7 +187,7 @@ func resourceAliCloudExpressConnectTrafficQosRuleRead(d *schema.ResourceData, me
 
 	objectRaw, err := expressConnectServiceV2.DescribeExpressConnectTrafficQosRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_express_connect_traffic_qos_rule DescribeExpressConnectTrafficQosRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

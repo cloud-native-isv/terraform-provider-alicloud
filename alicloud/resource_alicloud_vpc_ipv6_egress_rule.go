@@ -128,7 +128,7 @@ func resourceAliCloudVpcIpv6EgressRuleRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := vpcServiceV2.DescribeVpcIpv6EgressRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_ipv6_egress_rule DescribeVpcIpv6EgressRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

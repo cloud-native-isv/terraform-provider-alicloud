@@ -162,7 +162,7 @@ func resourceAliCloudExpressConnectVbrPconnAssociationRead(d *schema.ResourceDat
 
 	object, err := expressConnectService.DescribeExpressConnectVbrPconnAssociation(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_express_connect_vbr_pconn_association expressConnectService.DescribeExpressConnectVbrPconnAssociation Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -220,7 +220,7 @@ func resourceAliCloudExpressConnectVbrPconnAssociationDelete(d *schema.ResourceD
 		return nil
 	})
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

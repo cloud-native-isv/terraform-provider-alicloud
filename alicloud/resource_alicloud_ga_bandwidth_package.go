@@ -227,7 +227,7 @@ func resourceAliCloudGaBandwidthPackageRead(d *schema.ResourceData, meta interfa
 
 	object, err := gaService.DescribeGaBandwidthPackage(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ga_bandwidth_package gaService.DescribeGaBandwidthPackage Failed!!! %s", err)
 			d.SetId("")
 			return nil

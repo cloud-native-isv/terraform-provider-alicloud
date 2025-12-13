@@ -104,7 +104,7 @@ func (s *FlinkService) StopJob(stateId string, withSavepoint bool) error {
 	// First get the current job status
 	job, err := s.GetAPI().GetJob(workspaceId, namespaceName, jobId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			// Job doesn't exist, no need to stop
 			return nil
 		}
@@ -166,7 +166,7 @@ func (s *FlinkService) FlinkJobStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		job, err := s.DescribeFlinkJob(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// For deletion scenarios, return nil to indicate resource absence
 				// This allows WaitForState to properly handle the "waiting for absence" case
 				return nil, "", nil

@@ -105,7 +105,7 @@ func resourceAliCloudVpcGatewayRouteTableAttachmentRead(d *schema.ResourceData, 
 
 	objectRaw, err := vpcServiceV2.DescribeVpcGatewayRouteTableAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_gateway_route_table_attachment DescribeVpcGatewayRouteTableAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -122,7 +122,7 @@ func resourceAliCloudVpcGatewayRouteTableAttachmentRead(d *schema.ResourceData, 
 }
 
 func resourceAliCloudVpcGatewayRouteTableAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[INFO] Cannot update resource Alicloud Resource Gateway Route Table Attachment.")
+	log.Printf("[INFO] Cannot update resource AliCloud Resource Gateway Route Table Attachment.")
 	return nil
 }
 

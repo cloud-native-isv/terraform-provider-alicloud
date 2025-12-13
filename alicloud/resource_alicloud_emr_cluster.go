@@ -685,7 +685,7 @@ func resourceAliCloudEmrClusterRead(d *schema.ResourceData, meta interface{}) er
 	object, err := emrService.DescribeEmrCluster(d.Id())
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

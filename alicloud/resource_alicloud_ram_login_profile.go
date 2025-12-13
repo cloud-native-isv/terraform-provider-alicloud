@@ -104,7 +104,7 @@ func resourceAliCloudRamLoginProfileRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := ramServiceV2.DescribeRamLoginProfile(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_login_profile DescribeRamLoginProfile Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -195,7 +195,7 @@ func resourceAliCloudRamLoginProfileDelete(d *schema.ResourceData, meta interfac
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

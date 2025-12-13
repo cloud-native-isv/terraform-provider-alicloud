@@ -103,7 +103,7 @@ func resourceAliCloudNlbLoadBalancerZoneShiftedAttachmentRead(d *schema.Resource
 
 	objectRaw, err := nlbServiceV2.DescribeNlbLoadBalancerZoneShiftedAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nlb_load_balancer_zone_shifted_attachment DescribeNlbLoadBalancerZoneShiftedAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -157,7 +157,7 @@ func resourceAliCloudNlbLoadBalancerZoneShiftedAttachmentDelete(d *schema.Resour
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

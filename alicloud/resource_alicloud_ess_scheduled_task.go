@@ -89,7 +89,7 @@ func resourceAliCloudEssScheduledTask() *schema.Resource {
 
 func resourceAliyunEssScheduledTaskCreate(d *schema.ResourceData, meta interface{}) error {
 
-	request := buildAlicloudEssScheduledTaskArgs(d)
+	request := buildAliCloudEssScheduledTaskArgs(d)
 	client := meta.(*connectivity.AliyunClient)
 	request.RegionId = client.RegionId
 	raw, err := client.WithEssClient(func(essClient *ess.Client) (interface{}, error) {
@@ -112,7 +112,7 @@ func resourceAliyunEssScheduledTaskRead(d *schema.ResourceData, meta interface{}
 
 	object, err := essService.DescribeEssScheduledTask(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -224,7 +224,7 @@ func resourceAliyunEssScheduledTaskDelete(d *schema.ResourceData, meta interface
 	return WrapError(essService.WaitForEssScheduledTask(d.Id(), Deleted, DefaultTimeout))
 }
 
-func buildAlicloudEssScheduledTaskArgs(d *schema.ResourceData) *ess.CreateScheduledTaskRequest {
+func buildAliCloudEssScheduledTaskArgs(d *schema.ResourceData) *ess.CreateScheduledTaskRequest {
 	request := ess.CreateCreateScheduledTaskRequest()
 	if v, ok := d.GetOk("scheduled_action"); ok && v.(string) != "" {
 		request.ScheduledAction = v.(string)

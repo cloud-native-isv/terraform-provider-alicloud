@@ -472,7 +472,7 @@ func resourceAliCloudLogAlertRead(d *schema.ResourceData, meta interface{}) erro
 	}
 	object, err := logService.DescribeLogAlert(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

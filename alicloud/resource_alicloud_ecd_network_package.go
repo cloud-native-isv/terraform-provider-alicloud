@@ -84,7 +84,7 @@ func resourceAliCloudEcdNetworkPackageRead(d *schema.ResourceData, meta interfac
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdNetworkPackage(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_network_package ecdService.DescribeEcdNetworkPackage Failed!!! %s", err)
 			d.SetId("")
 			return nil

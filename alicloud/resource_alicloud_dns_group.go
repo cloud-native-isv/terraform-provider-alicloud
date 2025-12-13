@@ -69,7 +69,7 @@ func resourceAliCloudDnsGroupRead(d *schema.ResourceData, meta interface{}) erro
 	dnsService := &DnsService{client: client}
 	object, err := dnsService.DescribeDnsGroup(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

@@ -155,7 +155,7 @@ func resourceAliCloudSmartagFlowLogRead(d *schema.ResourceData, meta interface{}
 	SagService := SagService{client}
 	object, err := SagService.DescribeSmartagFlowLog(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_smartag_flow_log SagService.DescribeSmartagFlowLog Failed!!! %s", err)
 			d.SetId("")
 			return nil

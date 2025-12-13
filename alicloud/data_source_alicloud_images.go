@@ -242,7 +242,7 @@ func dataSourceAliCloudImages() *schema.Resource {
 	}
 }
 
-// dataSourceAliCloudImagesDescriptionRead performs the Alicloud Image lookup.
+// dataSourceAliCloudImagesDescriptionRead performs the AliCloud Image lookup.
 func dataSourceAliCloudImagesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 

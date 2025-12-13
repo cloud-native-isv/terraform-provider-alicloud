@@ -63,7 +63,7 @@ func (s *CloudControlServiceV2) CloudControlResourceStateRefreshFunc(id string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudControlResource(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -136,7 +136,7 @@ func (s *CloudControlServiceV2) CloudControlPriceStateRefreshFunc(id string, fie
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudControlPrice(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -217,7 +217,7 @@ func (s *CloudControlServiceV2) CloudControlProductStateRefreshFunc(id string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudControlProduct(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -291,7 +291,7 @@ func (s *CloudControlServiceV2) CloudControlResourceTypeStateRefreshFunc(id stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudControlResourceType(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

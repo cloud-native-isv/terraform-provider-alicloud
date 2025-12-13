@@ -145,7 +145,7 @@ func resourceAliCloudEcsInvocationRead(d *schema.ResourceData, meta interface{})
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsInvocation(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_invocation ecsService.DescribeEcsInvocation Failed!!! %s", err)
 			d.SetId("")
 			return nil

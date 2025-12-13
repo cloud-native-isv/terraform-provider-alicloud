@@ -94,7 +94,7 @@ func resourceAliCloudDdosbgpIpRead(d *schema.ResourceData, meta interface{}) err
 	ddosbgpService := DdosbgpService{client}
 	object, err := ddosbgpService.DescribeDdosbgpIp(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ddosbgp_ip ddosbgpService.DescribeDdosbgpIp Failed!!! %s", err)
 			d.SetId("")
 			return nil

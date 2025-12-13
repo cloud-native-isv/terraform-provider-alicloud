@@ -80,7 +80,7 @@ func resourceAliCloudCenBandwidthPackageAttachmentRead(d *schema.ResourceData, m
 
 	object, err := cenService.DescribeCenBandwidthPackageAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

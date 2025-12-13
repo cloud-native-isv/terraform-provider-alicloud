@@ -204,7 +204,7 @@ func resourceAliCloudMongodbServerlessInstanceRead(d *schema.ResourceData, meta 
 	mongoDBService := MongoDBService{client}
 	object, err := mongoDBService.DescribeMongodbServerlessInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mongodb_serverless_instance MongoDBService.DescribeMongodbServerlessInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -424,7 +424,7 @@ func resourceAliCloudMongodbServerlessInstanceUpdate(d *schema.ResourceData, met
 	return resourceAliCloudMongodbServerlessInstanceRead(d, meta)
 }
 func resourceAliCloudMongodbServerlessInstanceDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resource Alicloud Resource Mongodb Serverless Subscription Instance. Terraform will remove this resource from the state file, however resources may remain.")
+	log.Printf("[WARN] Cannot destroy resource AliCloud Resource Mongodb Serverless Subscription Instance. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }
 

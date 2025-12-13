@@ -128,7 +128,7 @@ func (s *FCService) LayerVersionStateRefreshFunc(layerName, version string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFCLayerVersionByNameAndVersion(layerName, version)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -167,7 +167,7 @@ func (s *FCService) WaitForFCLayerVersionDeleting(layerName, version string, tim
 		Refresh: func() (interface{}, string, error) {
 			obj, err := s.DescribeFCLayerVersionByNameAndVersion(layerName, version)
 			if err != nil {
-				if IsNotFoundError(err) {
+				if NotFoundError(err) {
 					return nil, "", nil
 				}
 				return nil, "", WrapError(err)

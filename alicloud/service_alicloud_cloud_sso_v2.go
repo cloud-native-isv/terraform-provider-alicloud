@@ -396,7 +396,7 @@ func (s *CloudSSOServiceV2) CloudSSODirectoryStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCloudSSODirectory(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

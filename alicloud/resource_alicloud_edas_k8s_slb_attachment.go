@@ -149,7 +149,7 @@ func resourceAliCloudEdasK8sSlbAttachmentRead(d *schema.ResourceData, meta inter
 	edasService := EdasService{client}
 	slbConfigs, err := edasService.DescribeEdasK8sSlbAttachment(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_edas_k8s_slb_attachment edasService.DescribeEdasK8sSlbAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

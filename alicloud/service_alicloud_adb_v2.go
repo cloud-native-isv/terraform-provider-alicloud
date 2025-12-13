@@ -105,7 +105,7 @@ func (s *AdbServiceV2) AdbLakeAccountStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeLakeAccountDescribeAccounts(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

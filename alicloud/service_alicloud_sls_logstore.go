@@ -44,7 +44,7 @@ func (s *SlsService) DescribeGetLogStoreMeteringMode(id string) (*aliyunSlsAPI.L
 
 	meteringMode, err := s.GetAPI().GetLogStoreMeteringMode(projectName, logstoreName)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil, WrapErrorf(NotFoundErr("LogStore", id), NotFoundMsg, "")
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetLogStoreMeteringMode", AlibabaCloudSdkGoERROR)
@@ -73,7 +73,7 @@ func (s *SlsService) LogStoreStateRefreshFunc(id string, field string, failState
 		// Use the new structured method
 		logstore, err := s.DescribeLogStoreById(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "deleted", nil
 			}
 			return nil, "", WrapError(err)
@@ -159,7 +159,7 @@ func (s *SlsService) CreateLogStoreIfNotExist(projectName string, logstore *aliy
 	// Check if logstore exists
 	_, err := s.GetAPI().GetLogStore(projectName, logstore.LogstoreName)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			// Logstore doesn't exist, create it with provided configuration
 			if err := s.GetAPI().CreateLogStore(projectName, logstore); err != nil {
 				return nil, WrapErrorf(err, DefaultErrorMsg, logstore.LogstoreName, "CreateLogStore", AlibabaCloudSdkGoERROR)

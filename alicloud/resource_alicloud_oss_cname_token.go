@@ -99,7 +99,7 @@ func resourceAliCloudOssBucketCnameTokenRead(d *schema.ResourceData, meta interf
 		if IsExpectedErrors(err, []string{"NoNeedCreateCnameToken"}) {
 			return nil
 		}
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_cname_token DescribeOssBucketCnameToken Failed!!! %s", err)
 			d.SetId("")
 			return nil

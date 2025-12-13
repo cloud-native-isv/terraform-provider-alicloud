@@ -45,7 +45,7 @@ func (s *HitsdbService) TsdbInstanceStateRefreshFunc(id string, failStates []str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeTsdbInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -167,7 +167,7 @@ func (s *HitsdbService) LindormInstanceStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeLindormInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

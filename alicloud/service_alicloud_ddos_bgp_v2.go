@@ -67,7 +67,7 @@ func (s *DdosBgpServiceV2) DdosBgpPolicyStateRefreshFunc(id string, field string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDdosBgpPolicy(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

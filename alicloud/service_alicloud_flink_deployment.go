@@ -82,7 +82,7 @@ func (s *FlinkService) FlinkDeploymentStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		deployment, err := s.GetDeployment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "NotFound", nil
 			}
 			return nil, "FAILED", WrapErrorf(err, DefaultErrorMsg, id, "GetDeployment", AlibabaCloudSdkGoERROR)
@@ -123,7 +123,7 @@ func (s *FlinkService) WaitForDeploymentJobsTerminal(id string, timeout time.Dur
 	jobs, err := s.GetDeploymentJobs(id)
 	if err != nil {
 		// 如果获取Job列表失败，但不是因为资源不存在，则返回错误
-		if !IsNotFoundError(err) {
+		if !NotFoundError(err) {
 			return WrapErrorf(err, DefaultErrorMsg, id, "GetDeploymentJobs", AlibabaCloudSdkGoERROR)
 		}
 		// 如果是因为资源不存在，继续执行删除操作

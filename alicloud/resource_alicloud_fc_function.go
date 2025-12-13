@@ -754,7 +754,7 @@ func resourceAliCloudFCFunctionRead(d *schema.ResourceData, meta interface{}) er
 	functionName := d.Id()
 	function, err := service.DescribeFCFunction(functionName)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_function DescribeFunction Failed!!! %s", err)
 			d.SetId("")
 			return nil

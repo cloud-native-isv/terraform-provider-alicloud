@@ -123,7 +123,7 @@ func resourceAliCloudFCConcurrencyConfigRead(d *schema.ResourceData, meta interf
 	functionName := d.Id()
 	objectRaw, err := fcService.DescribeFCConcurrencyConfig(functionName)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_concurrency_config DescribeFCConcurrencyConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -196,7 +196,7 @@ func resourceAliCloudFCConcurrencyConfigDelete(d *schema.ResourceData, meta inte
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := fcService.DeleteFCConcurrencyConfig(functionName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				log.Printf("[DEBUG] FC Concurrency Config not found during deletion for function: %s", functionName)
 				return nil
 			}
@@ -212,7 +212,7 @@ func resourceAliCloudFCConcurrencyConfigDelete(d *schema.ResourceData, meta inte
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteConcurrencyConfig", AlibabaCloudSdkGoERROR)

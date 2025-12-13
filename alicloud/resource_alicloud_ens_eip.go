@@ -137,7 +137,7 @@ func resourceAliCloudEnsEipRead(d *schema.ResourceData, meta interface{}) error 
 
 	objectRaw, err := ensServiceV2.DescribeEnsEip(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ens_eip DescribeEnsEip Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -239,7 +239,7 @@ func resourceAliCloudEnsEipDelete(d *schema.ResourceData, meta interface{}) erro
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -99,7 +99,7 @@ func resourceAliCloudCenPrivateZoneRead(d *schema.ResourceData, meta interface{}
 
 	object, err := cbnService.DescribeCenPrivateZone(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -148,7 +148,7 @@ func resourceAliCloudCenPrivateZoneDelete(d *schema.ResourceData, meta interface
 	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)

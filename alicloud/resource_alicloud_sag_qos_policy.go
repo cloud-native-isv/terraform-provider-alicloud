@@ -129,7 +129,7 @@ func resourceAliCloudSagQosPolicyRead(d *schema.ResourceData, meta interface{}) 
 	sagService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := sagService.DescribeSagQosPolicy(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

@@ -53,7 +53,7 @@ func dataSourceAliCloudMongodbAuditPoliciesRead(d *schema.ResourceData, meta int
 	dbInstanceId := d.Get("db_instance_id")
 	object, err := MongoDBService.DescribeMongodbAuditPolicy(dbInstanceId.(string))
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("MongodbAuditPolicy")
 			return nil
 		}

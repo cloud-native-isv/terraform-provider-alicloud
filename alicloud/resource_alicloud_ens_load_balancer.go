@@ -155,7 +155,7 @@ func resourceAliCloudEnsLoadBalancerRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := ensServiceV2.DescribeEnsLoadBalancer(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ens_load_balancer DescribeEnsLoadBalancer Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -722,7 +722,7 @@ func resourceAliCloudVpnGatewayVpnAttachmentRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := vPNGatewayServiceV2.DescribeVpnGatewayVpnAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpn_gateway_vpn_attachment DescribeVpnGatewayVpnAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -1270,7 +1270,7 @@ func resourceAliCloudVpnGatewayVpnAttachmentDelete(d *schema.ResourceData, meta 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

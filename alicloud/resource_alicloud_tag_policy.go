@@ -104,7 +104,7 @@ func resourceAliCloudTagPolicyRead(d *schema.ResourceData, meta interface{}) err
 
 	objectRaw, err := tagServiceV2.DescribeTagPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_tag_policy DescribeTagPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -196,7 +196,7 @@ func resourceAliCloudTagPolicyDelete(d *schema.ResourceData, meta interface{}) e
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExist.Policy"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExist.Policy"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

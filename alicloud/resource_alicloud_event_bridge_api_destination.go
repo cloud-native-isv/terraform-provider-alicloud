@@ -128,7 +128,7 @@ func resourceAliCloudEventBridgeApiDestinationRead(d *schema.ResourceData, meta 
 
 	object, err := eventBridgeServiceV2.DescribeEventBridgeApiDestination(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

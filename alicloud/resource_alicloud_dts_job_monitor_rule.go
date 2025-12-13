@@ -99,7 +99,7 @@ func resourceAliCloudDtsJobMonitorRuleRead(d *schema.ResourceData, meta interfac
 	dtsService := DtsService{client}
 	object, err := dtsService.DescribeDtsJobMonitorRule(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dts_job_monitor_rule dtsService.DescribeDtsJobMonitorRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

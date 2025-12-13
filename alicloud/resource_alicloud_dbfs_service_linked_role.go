@@ -70,7 +70,7 @@ func resourceAliCloudDbfsServiceLinkedRoleRead(d *schema.ResourceData, meta inte
 	dbfsService := DbfsService{client}
 	object, err := dbfsService.DescribeDbfsServiceLinkedRole(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dbfs_event_bus dbfsService.DescribeDbfsServiceLinkedRole Failed!!! %s", err)
 			d.SetId("")
 			return nil

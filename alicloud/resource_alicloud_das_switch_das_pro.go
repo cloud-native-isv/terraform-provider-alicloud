@@ -104,7 +104,7 @@ func resourceAliCloudDasSwitchDasProRead(d *schema.ResourceData, meta interface{
 
 	object, err := dasService.DescribeDasSwitchDasPro(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

@@ -196,7 +196,7 @@ func (s *EmrService) WaitForEmrCluster(id string, status Status, timeout int) er
 	for {
 		object, err := s.DescribeEmrCluster(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -222,7 +222,7 @@ func (s *EmrService) WaitForEmrV2Cluster(id string, status Status, timeout int) 
 	for {
 		object, err := s.GetEmrV2Cluster(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -271,7 +271,7 @@ func (s *EmrService) EmrClusterStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEmrCluster(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -292,7 +292,7 @@ func (s *EmrService) EmrV2ClusterStateRefreshFunc(id string, failStates []string
 	return func() (interface{}, string, error) {
 		object, err := s.GetEmrV2Cluster(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

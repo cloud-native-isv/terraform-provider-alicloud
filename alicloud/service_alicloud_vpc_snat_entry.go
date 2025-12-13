@@ -90,7 +90,7 @@ func (s *VpcSnatEntryService) DescribeSnatEntry(id string) (map[string]interface
 	})
 
 	if apiErr != nil {
-		if IsNotFoundError(apiErr) || IsExpectedErrors(apiErr, []string{"InvalidSnatTableId.NotFound", "InvalidSnatEntryId.NotFound"}) {
+		if NotFoundError(apiErr) || IsExpectedErrors(apiErr, []string{"InvalidSnatTableId.NotFound", "InvalidSnatEntryId.NotFound"}) {
 			return nil, WrapErrorf(NotFoundErr("SnatEntry", id), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(apiErr, DefaultErrorMsg, id, "DescribeSnatEntry", AlibabaCloudSdkGoERROR)
@@ -129,7 +129,7 @@ func (s *VpcSnatEntryService) SnatEntryStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		obj, err := s.DescribeSnatEntry(id)
 		if err != nil {
-			if IsNotFoundError(err) || strings.Contains(err.Error(), "not found") {
+			if NotFoundError(err) || strings.Contains(err.Error(), "not found") {
 				return nil, "", nil
 			}
 			// 防止WrapError接收到nil错误
@@ -274,7 +274,7 @@ func (s *VpcSnatEntryService) DeleteSnatEntryWithTimeout(id string, timeout time
 	})
 
 	if err2 != nil {
-		if IsNotFoundError(err2) || IsExpectedErrors(err2, []string{"InvalidSnatTableId.NotFound", "InvalidSnatEntryId.NotFound"}) {
+		if NotFoundError(err2) || IsExpectedErrors(err2, []string{"InvalidSnatTableId.NotFound", "InvalidSnatEntryId.NotFound"}) {
 			return nil
 		}
 		return WrapErrorf(err2, DefaultErrorMsg, id, "DeleteSnatEntry", AlibabaCloudSdkGoERROR)

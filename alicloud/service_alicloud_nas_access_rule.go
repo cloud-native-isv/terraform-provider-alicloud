@@ -81,7 +81,7 @@ func (s *NasService) NasAccessRuleStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		accessRule, err := s.DescribeNasAccessRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -107,7 +107,7 @@ func (s *NasService) WaitForNasAccessRule(id string, status Status, timeout int)
 	for {
 		accessRule, err := s.DescribeNasAccessRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

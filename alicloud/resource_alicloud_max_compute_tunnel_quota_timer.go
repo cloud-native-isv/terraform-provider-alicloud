@@ -145,7 +145,7 @@ func resourceAliCloudMaxComputeTunnelQuotaTimerRead(d *schema.ResourceData, meta
 
 	objectRaw, err := maxComputeServiceV2.DescribeMaxComputeTunnelQuotaTimer(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_max_compute_tunnel_quota_timer DescribeMaxComputeTunnelQuotaTimer Failed!!! %s", err)
 			d.SetId("")
 			return nil

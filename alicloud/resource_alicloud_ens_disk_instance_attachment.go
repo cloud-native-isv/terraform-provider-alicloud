@@ -97,7 +97,7 @@ func resourceAliCloudEnsDiskInstanceAttachmentRead(d *schema.ResourceData, meta 
 
 	objectRaw, err := ensServiceV2.DescribeEnsDiskInstanceAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ens_disk_instance_attachment DescribeEnsDiskInstanceAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -116,7 +116,7 @@ func resourceAliCloudEnsDiskInstanceAttachmentRead(d *schema.ResourceData, meta 
 }
 
 func resourceAliCloudEnsDiskInstanceAttachmentUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[INFO] Cannot update resource Alicloud Resource Disk Instance Attachment.")
+	log.Printf("[INFO] Cannot update resource AliCloud Resource Disk Instance Attachment.")
 	return nil
 }
 

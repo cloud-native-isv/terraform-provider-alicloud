@@ -85,7 +85,7 @@ func resourceAliCloudSimpleApplicationServerSnapshotRead(d *schema.ResourceData,
 	swasOpenService := SwasOpenService{client}
 	object, err := swasOpenService.DescribeSimpleApplicationServerSnapshot(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_simple_application_server_snapshot swasOpenService.DescribeSimpleApplicationServerSnapshot Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -157,7 +157,7 @@ func resourceAliCloudHbrNasBackupPlanRead(d *schema.ResourceData, meta interface
 	hbrService := HbrService{client}
 	object, err := hbrService.DescribeHbrNasBackupPlan(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_hbr_nas_backup_plan hbrService.DescribeHbrNasBackupPlan Failed!!! %s", err)
 			d.SetId("")
 			return nil

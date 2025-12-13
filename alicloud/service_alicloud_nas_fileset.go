@@ -86,7 +86,7 @@ func (s *NasService) NasFilesetStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		fileset, err := s.DescribeNasFileset(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

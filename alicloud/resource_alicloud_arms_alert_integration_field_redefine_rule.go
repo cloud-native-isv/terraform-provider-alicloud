@@ -183,7 +183,7 @@ func resourceAliCloudArmsAlertIntegrationFieldRedefineRuleRead(d *schema.Resourc
 
 	object, err := armsService.DescribeArmsIntegration(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_integration_field_redefine_rule armsService.DescribeArmsIntegration Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -231,7 +231,7 @@ func resourceAliCloudArmsAlertIntegrationFieldRedefineRuleDelete(d *schema.Resou
 
 	integration, err := service.DescribeArmsIntegration(integrationId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, integrationId, "DescribeArmsIntegration", AlibabaCloudSdkGoERROR)

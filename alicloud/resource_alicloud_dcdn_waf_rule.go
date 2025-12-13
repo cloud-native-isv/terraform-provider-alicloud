@@ -311,7 +311,7 @@ func resourceAliCloudDcdnWafRuleRead(d *schema.ResourceData, meta interface{}) e
 
 	object, err := dcdnService.DescribeDcdnWafRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dcdn_waf_rule dcdnService.DescribeDcdnWafRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -558,7 +558,7 @@ func resourceAliCloudDcdnWafRuleDelete(d *schema.ResourceData, meta interface{})
 		return nil
 	})
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -92,7 +92,7 @@ func resourceAliCloudThreatDetectionSasTrailRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := threatDetectionServiceV2.DescribeThreatDetectionSasTrail(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_sas_trail DescribeThreatDetectionSasTrail Failed!!! %s", err)
 			d.SetId("")
 			return nil

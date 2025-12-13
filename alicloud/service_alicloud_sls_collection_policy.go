@@ -35,7 +35,7 @@ func (s *SlsService) UpdateSlsCollectionPolicy(policy *aliyunSlsAPI.CollectionPo
 func (s *SlsService) DescribeSlsCollectionPolicy(policyName string) (*aliyunSlsAPI.CollectionPolicy, error) {
 	policy, err := s.GetAPI().GetCollectionPolicy(policyName)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil, WrapErrorf(Error(GetNotFoundMessage("SlsCollectionPolicy", policyName)), NotFoundMsg, ProviderERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, policyName, "DescribeSlsCollectionPolicy", AlibabaCloudSdkGoERROR)
@@ -71,7 +71,7 @@ func (s *SlsService) SlsCollectionPolicyStateRefreshFunc(policyName string, fail
 	return func() (interface{}, string, error) {
 		policy, err := s.DescribeSlsCollectionPolicy(policyName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -98,7 +98,7 @@ func (s *SlsService) SlsCollectionPolicyStateRefreshFunc(policyName string, fail
 func (s *SlsService) CheckSlsCollectionPolicyExists(policyName string) (bool, error) {
 	_, err := s.DescribeSlsCollectionPolicy(policyName)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return false, nil
 		}
 		return false, err
@@ -112,7 +112,7 @@ func (s *SlsService) WaitForSlsCollectionPolicy(policyName string, status Status
 	for {
 		policy, err := s.DescribeSlsCollectionPolicy(policyName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

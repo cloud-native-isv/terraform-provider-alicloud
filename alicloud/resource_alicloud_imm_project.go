@@ -73,7 +73,7 @@ func resourceAliCloudImmProjectRead(d *schema.ResourceData, meta interface{}) er
 	immService := ImmService{client}
 	object, err := immService.DescribeImmProject(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_imm_project immService.DescribeImmProject Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -146,7 +146,7 @@ func resourceAliCloudImmProjectDelete(d *schema.ResourceData, meta interface{}) 
 		return nil
 	})
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -191,7 +191,7 @@ func resourceAliCloudPolarDBEndpointRead(d *schema.ResourceData, meta interface{
 	object, err := polarDBService.DescribePolarDBClusterEndpoint(d.Id())
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -424,7 +424,7 @@ func resourceAliCloudPolarDBEndpointDelete(d *schema.ResourceData, meta interfac
 	}
 	object, err := polarDBService.DescribePolarDBClusterEndpoint(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

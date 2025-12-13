@@ -101,7 +101,7 @@ func resourceAliCloudApigEnvironmentRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := apigServiceV2.DescribeApigEnvironment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_apig_environment DescribeApigEnvironment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -240,7 +240,7 @@ func resourceAliCloudApigEnvironmentDelete(d *schema.ResourceData, meta interfac
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"NotFound.EnvironmentNotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"NotFound.EnvironmentNotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

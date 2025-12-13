@@ -137,7 +137,7 @@ func resourceAliCloudWafCertificateRead(d *schema.ResourceData, meta interface{}
 	wafOpenapiService := WafOpenapiService{client}
 	object, err := wafOpenapiService.DescribeWafCertificate(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_waf_certificate wafOpenapiService.DescribeWafCertificate Failed!!! %s", err)
 			d.SetId("")
 			return nil

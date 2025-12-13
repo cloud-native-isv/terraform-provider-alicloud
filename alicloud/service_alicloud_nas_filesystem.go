@@ -31,7 +31,7 @@ func (s *NasService) NasFileSystemStateRefreshFunc(id string, field string, fail
 	return func() (interface{}, string, error) {
 		fileSystem, err := s.DescribeNasFileSystem(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if common.IsNotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

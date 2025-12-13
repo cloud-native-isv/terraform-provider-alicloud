@@ -70,7 +70,7 @@ func resourceAliyunNetworkAclAttachmentRead(d *schema.ResourceData, meta interfa
 	}
 	err = vpcService.DescribeNetworkAclAttachment(networkAclId, vpcResource)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

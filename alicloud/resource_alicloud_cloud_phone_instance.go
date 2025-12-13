@@ -84,7 +84,7 @@ func resourceAliCloudCloudPhoneInstanceRead(d *schema.ResourceData, meta interfa
 
 	objectRaw, err := cloudPhoneServiceV2.DescribeCloudPhoneInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_phone_instance DescribeCloudPhoneInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

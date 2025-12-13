@@ -223,7 +223,7 @@ func resourceAliCloudAlikafkaTopicRead(d *schema.ResourceData, meta interface{})
 	object, err := kafkaService.DescribeAlikafkaTopic(d.Id())
 	if err != nil {
 		// Handle exceptions
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

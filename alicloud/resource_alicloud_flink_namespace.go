@@ -155,7 +155,7 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 
 	namespace, err := flinkService.GetNamespace(workspaceId, namespaceName)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_flink_namespace GetNamespace Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -260,7 +260,7 @@ func resourceAliCloudFlinkNamespaceDelete(d *schema.ResourceData, meta interface
 
 	err = flinkService.DeleteNamespace(workspaceId, namespaceName)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteNamespace", AlibabaCloudSdkGoERROR)
@@ -273,7 +273,7 @@ func resourceAliCloudFlinkNamespaceDelete(d *schema.ResourceData, meta interface
 		Refresh: func() (interface{}, string, error) {
 			namespace, err := flinkService.GetNamespace(workspaceId, namespaceName)
 			if err != nil {
-				if IsNotFoundError(err) {
+				if NotFoundError(err) {
 					return nil, "", nil
 				}
 				return nil, "", WrapError(err)

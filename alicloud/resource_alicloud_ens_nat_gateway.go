@@ -108,7 +108,7 @@ func resourceAliCloudEnsNatGatewayRead(d *schema.ResourceData, meta interface{})
 
 	objectRaw, err := ensServiceV2.DescribeEnsNatGateway(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ens_nat_gateway DescribeEnsNatGateway Failed!!! %s", err)
 			d.SetId("")
 			return nil

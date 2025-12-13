@@ -237,7 +237,7 @@ func resourceAliCloudEssScalingRule() *schema.Resource {
 }
 
 func resourceAliyunEssScalingRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	request, err := buildAlicloudEssScalingRuleArgs(d, meta)
+	request, err := buildAliCloudEssScalingRuleArgs(d, meta)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -266,7 +266,7 @@ func resourceAliyunEssScalingRuleRead(d *schema.ResourceData, meta interface{}) 
 		object, err = essService.DescribeEssScalingRuleWithAlarm(d.Id())
 	}
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -547,7 +547,7 @@ func resourceAliyunEssScalingRuleUpdate(d *schema.ResourceData, meta interface{}
 	return resourceAliyunEssScalingRuleRead(d, meta)
 }
 
-func buildAlicloudEssScalingRuleArgs(d *schema.ResourceData, meta interface{}) (map[string]interface{}, error) {
+func buildAliCloudEssScalingRuleArgs(d *schema.ResourceData, meta interface{}) (map[string]interface{}, error) {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"ScalingGroupId":  d.Get("scaling_group_id"),

@@ -540,7 +540,7 @@ func resourceAliCloudCSServerlessKubernetesRead(d *schema.ResourceData, meta int
 
 	object, err := csClient.DescribeClusterDetail(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -662,7 +662,7 @@ func resourceAliCloudCSServerlessKubernetesUpdate(d *schema.ResourceData, meta i
 	}
 
 	// upgrade cluster
-	err := UpgradeAlicloudKubernetesCluster(d, meta)
+	err := UpgradeAliCloudKubernetesCluster(d, meta)
 	if err != nil {
 		return WrapError(err)
 	}

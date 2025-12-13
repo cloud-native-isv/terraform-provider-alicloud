@@ -99,7 +99,7 @@ func resourceAliCloudCmsHybridMonitorFcTaskRead(d *schema.ResourceData, meta int
 	cmsService := CmsService{client}
 	object, err := cmsService.DescribeCmsHybridMonitorFcTask(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cms_hybrid_monitor_fc_task cmsService.DescribeCmsHybridMonitorFcTask Failed!!! %s", err)
 			d.SetId("")
 			return nil

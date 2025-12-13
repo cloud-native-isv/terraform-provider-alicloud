@@ -69,7 +69,7 @@ func (s *EbsServiceV2) EbsReplicaPairDrillStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEbsReplicaPairDrill(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -143,7 +143,7 @@ func (s *EbsServiceV2) EbsReplicaGroupDrillStateRefreshFunc(id string, field str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEbsReplicaGroupDrill(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -219,7 +219,7 @@ func (s *EbsServiceV2) EbsEnterpriseSnapshotPolicyStateRefreshFunc(id string, fi
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEbsEnterpriseSnapshotPolicy(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -382,7 +382,7 @@ func (s *EbsServiceV2) EbsEnterpriseSnapshotPolicyAttachmentStateRefreshFunc(id 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEbsEnterpriseSnapshotPolicyAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -457,7 +457,7 @@ func (s *EbsServiceV2) EbsSolutionInstanceStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEbsSolutionInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -524,7 +524,7 @@ func (s *EbsServiceV2) EbsDiskReplicaPairStateRefreshFunc(id string, field strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEbsDiskReplicaPair(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -631,7 +631,7 @@ func (s *EbsServiceV2) EbsDiskReplicaGroupStateRefreshFunc(id string, field stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEbsDiskReplicaGroup(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

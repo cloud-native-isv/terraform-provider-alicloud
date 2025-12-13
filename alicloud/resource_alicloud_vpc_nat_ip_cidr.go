@@ -98,7 +98,7 @@ func resourceAliCloudVpcNatIpCidrRead(d *schema.ResourceData, meta interface{}) 
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeVpcNatIpCidr(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_nat_ip_cidr vpcService.DescribeVpcNatIpCidr Failed!!! %s", err)
 			d.SetId("")
 			return nil

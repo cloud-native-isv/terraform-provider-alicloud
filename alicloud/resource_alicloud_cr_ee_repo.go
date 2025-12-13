@@ -112,7 +112,7 @@ func resourceAliCloudCrEERepoRead(d *schema.ResourceData, meta interface{}) erro
 
 	resp, err := crService.DescribeCrEERepo(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -202,7 +202,7 @@ func resourceAliCloudCrEERepoDelete(d *schema.ResourceData, meta interface{}) er
 	repoId := d.Get("repo_id").(string)
 	_, err := crService.DeleteCrEERepo(d.Id(), repoId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		} else {
 			return WrapError(err)

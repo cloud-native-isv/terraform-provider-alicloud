@@ -37,7 +37,7 @@ func (s *FlinkService) FlinkNamespaceStateRefreshFunc(workspaceId string, namesp
 	return func() (interface{}, string, error) {
 		namespace, err := s.GetNamespace(workspaceId, namespaceName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Namespace not found, still being created or deleted
 				return nil, "", nil
 			}

@@ -310,7 +310,7 @@ func resourceAliCloudEcsDiskRead(d *schema.ResourceData, meta interface{}) error
 
 	objectRaw, err := ecsServiceV2.DescribeEcsDisk(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_disk DescribeEcsDisk Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -634,7 +634,7 @@ func resourceAliCloudEcsDiskDelete(d *schema.ResourceData, meta interface{}) err
 
 	objectRaw, err := ecsServiceV2.DescribeEcsDisk(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_disk DescribeEcsDisk Failed!!! %s", err)
 			return nil
 		}
@@ -669,7 +669,7 @@ func resourceAliCloudEcsDiskDelete(d *schema.ResourceData, meta interface{}) err
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidDiskId.NotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidDiskId.NotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

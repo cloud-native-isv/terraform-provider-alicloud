@@ -96,7 +96,7 @@ func (s *MaxComputeServiceV2) MaxComputeProjectStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMaxComputeProject(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -269,7 +269,7 @@ func (s *MaxComputeServiceV2) MaxComputeQuotaPlanStateRefreshFunc(id string, fie
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMaxComputeQuotaPlan(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -342,7 +342,7 @@ func (s *MaxComputeServiceV2) MaxComputeRoleStateRefreshFunc(id string, field st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMaxComputeRole(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -411,7 +411,7 @@ func (s *MaxComputeServiceV2) MaxComputeQuotaScheduleStateRefreshFunc(id string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMaxComputeQuotaSchedule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -497,7 +497,7 @@ func (s *MaxComputeServiceV2) MaxComputeRoleUserAttachmentStateRefreshFunc(id st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMaxComputeRoleUserAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -562,7 +562,7 @@ func (s *MaxComputeServiceV2) MaxComputeTunnelQuotaTimerStateRefreshFunc(id stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMaxComputeTunnelQuotaTimer(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -663,7 +663,7 @@ func (s *MaxComputeServiceV2) MaxComputeQuotaStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeMaxComputeQuota(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

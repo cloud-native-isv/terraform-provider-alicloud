@@ -107,7 +107,7 @@ func resourceAliCloudHavipRead(d *schema.ResourceData, meta interface{}) error {
 	vpcService := VpcService{client}
 	object, err := vpcService.DescribeHavip(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_havip vpcService.DescribeHavip Failed!!! %s", err)
 			d.SetId("")
 			return nil

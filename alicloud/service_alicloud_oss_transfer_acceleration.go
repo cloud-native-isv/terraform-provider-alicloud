@@ -23,7 +23,7 @@ func (s *OssService) DescribeOssBucketTransferAcceleration(id string) (object ma
 		Bucket: id,
 	})
 	if err != nil {
-		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"404"}) {
+		if NotFoundError(err) || IsExpectedErrors(err, []string{"404"}) {
 			return object, WrapErrorf(NotFoundErr("BucketTransferAcceleration", id), NotFoundMsg, err)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketTransferAcceleration", AlibabaCloudSdkGoERROR)
@@ -42,7 +42,7 @@ func (s *OssService) OssBucketTransferAccelerationStateRefreshFunc(id string, fi
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketTransferAcceleration(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

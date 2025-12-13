@@ -58,7 +58,7 @@ func resourceAliCloudEcsHpcClusterRead(d *schema.ResourceData, meta interface{})
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsHpcCluster(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_hpc_cluster ecsService.DescribeEcsHpcCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil

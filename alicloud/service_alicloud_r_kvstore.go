@@ -285,7 +285,7 @@ func (s *R_kvstoreService) KvstoreInstanceStateRefreshFunc(id string, failStates
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKvstoreInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -305,7 +305,7 @@ func (s *R_kvstoreService) KvstoreInstanceAttributeRefreshFunc(id, attribute str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKvstoreInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -357,7 +357,7 @@ func (s *R_kvstoreService) KvstoreInstancesStateRefreshFunc(id string, failState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKvstoreInstances(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -416,7 +416,7 @@ func (s *R_kvstoreService) KvstoreInstanceDeletedStateRefreshFunc(id string, fai
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKvstoreInstanceDeleted(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -522,7 +522,7 @@ func (s *R_kvstoreService) KvstoreAccountStateRefreshFunc(id string, failStates 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeKvstoreAccount(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -653,7 +653,7 @@ func (s *RKvstoreService) KvstoreAuditLogConfigStateRefreshFunc(id string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeInstanceAttribute(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

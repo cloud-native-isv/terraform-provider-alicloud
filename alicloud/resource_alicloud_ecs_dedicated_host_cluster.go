@@ -98,7 +98,7 @@ func resourceAliCloudEcsDedicatedHostClusterRead(d *schema.ResourceData, meta in
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsDedicatedHostCluster(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_dedicated_host_cluster ecsService.DescribeEcsDedicatedHostCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil

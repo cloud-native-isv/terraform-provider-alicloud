@@ -109,7 +109,7 @@ func resourceAliCloudVpcPublicIpAddressPoolCidrBlockRead(d *schema.ResourceData,
 
 	objectRaw, err := vpcServiceV2.DescribeVpcPublicIpAddressPoolCidrBlock(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_public_ip_address_pool_cidr_block DescribeVpcPublicIpAddressPoolCidrBlock Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -130,7 +130,7 @@ func resourceAliCloudVpcPublicIpAddressPoolCidrBlockRead(d *schema.ResourceData,
 }
 
 func resourceAliCloudVpcPublicIpAddressPoolCidrBlockUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[INFO] Cannot update resource Alicloud Resource Public Ip Address Pool Cidr Block.")
+	log.Printf("[INFO] Cannot update resource AliCloud Resource Public Ip Address Pool Cidr Block.")
 	return nil
 }
 

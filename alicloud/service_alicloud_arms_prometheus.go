@@ -37,7 +37,7 @@ func (s *ArmsService) ArmsAddonReleaseStateRefreshFunc(id string, jsonPath strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeArmsAddonRelease(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -110,7 +110,7 @@ func (s *ArmsService) ArmsEnvFeatureStateRefreshFunc(id string, jsonPath string,
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeArmsEnvFeature(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -213,7 +213,7 @@ func (s *ArmsService) DescribeArmsRemoteWrite(id string) (object map[string]inte
 		// Call the API to get remote write
 		remoteWrite, err := s.armsAPI.GetPrometheusRemoteWrite(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 			}
 			return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetPrometheusRemoteWrite", AlibabaCloudSdkGoERROR)
@@ -239,7 +239,7 @@ func (s *ArmsService) DescribeArmsEnvironment(id string) (object map[string]inte
 	if s.armsAPI != nil {
 		environment, err := s.armsAPI.DescribeEnvironment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 			}
 			return nil, WrapErrorf(err, DefaultErrorMsg, id, "DescribeEnvironment", AlibabaCloudSdkGoERROR)

@@ -340,7 +340,7 @@ func resourceAliCloudEbsEnterpriseSnapshotPolicyRead(d *schema.ResourceData, met
 
 	objectRaw, err := ebsServiceV2.DescribeEbsEnterpriseSnapshotPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ebs_enterprise_snapshot_policy DescribeEbsEnterpriseSnapshotPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

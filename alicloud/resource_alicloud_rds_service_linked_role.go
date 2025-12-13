@@ -80,7 +80,7 @@ func resourceAliCloudRdsServiceLinkedRoleRead(d *schema.ResourceData, meta inter
 	}
 	object, err := rdsService.DescribeRdsServiceLinkedRole(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

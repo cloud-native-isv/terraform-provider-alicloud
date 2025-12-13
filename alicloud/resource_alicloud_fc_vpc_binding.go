@@ -96,7 +96,7 @@ func resourceAliCloudFCVpcBindingRead(d *schema.ResourceData, meta interface{}) 
 	// Get VPC bindings for the function
 	vpcBindings, err := fcService.DescribeFCVpcBinding(functionName)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_vpc_binding DescribeFCVpcBinding Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -147,7 +147,7 @@ func resourceAliCloudFCVpcBindingDelete(d *schema.ResourceData, meta interface{}
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err = fcService.DeleteFCVpcBinding(functionName, vpcId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				log.Printf("[DEBUG] FC VPC Binding not found during deletion for function: %s, vpcId: %s", functionName, vpcId)
 				return nil
 			}

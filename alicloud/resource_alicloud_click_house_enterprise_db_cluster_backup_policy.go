@@ -94,7 +94,7 @@ func resourceAliCloudClickHouseEnterpriseDbClusterBackupPolicyRead(d *schema.Res
 
 	objectRaw, err := clickHouseServiceV2.DescribeClickHouseEnterpriseDbClusterBackupPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_click_house_enterprise_db_cluster_backup_policy DescribeClickHouseEnterpriseDbClusterBackupPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -186,7 +186,7 @@ func resourceAliCloudClickHouseEnterpriseDbClusterBackupPolicyDelete(d *schema.R
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

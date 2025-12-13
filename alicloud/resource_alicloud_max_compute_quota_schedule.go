@@ -134,7 +134,7 @@ func resourceAliCloudMaxComputeQuotaScheduleRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := maxComputeServiceV2.DescribeMaxComputeQuotaSchedule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_max_compute_quota_schedule DescribeMaxComputeQuotaSchedule Failed!!! %s", err)
 			d.SetId("")
 			return nil

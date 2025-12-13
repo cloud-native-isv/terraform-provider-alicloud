@@ -127,7 +127,7 @@ func resourceAliCloudEsaCacheReserveInstanceRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := esaServiceV2.DescribeEsaCacheReserveInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_cache_reserve_instance DescribeEsaCacheReserveInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -240,7 +240,7 @@ func resourceAliCloudEsaCacheReserveInstanceDelete(d *schema.ResourceData, meta 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

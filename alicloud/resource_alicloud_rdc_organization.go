@@ -81,7 +81,7 @@ func resourceAliCloudRdcOrganizationRead(d *schema.ResourceData, meta interface{
 	devopsRdcService := DevopsRdcService{client}
 	object, err := devopsRdcService.DescribeRdcOrganization(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_rdc_organization devopsRdcService.DescribeRdcOrganization Failed!!! %s", err)
 			d.SetId("")
 			return nil

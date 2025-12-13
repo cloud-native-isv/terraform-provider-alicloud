@@ -91,7 +91,7 @@ func resourceAliCloudArmsAlertRobotRead(d *schema.ResourceData, meta interface{}
 	}
 	object, err := armsService.DescribeArmsAlertContactRobot(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_robot armsService.DescribeArmsAlertContactRobot Failed!!! %s", err)
 			d.SetId("")
 			return nil

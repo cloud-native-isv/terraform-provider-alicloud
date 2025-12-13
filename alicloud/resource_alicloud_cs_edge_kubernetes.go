@@ -680,7 +680,7 @@ func resourceAliCloudCSEdgeKubernetesUpdate(d *schema.ResourceData, meta interfa
 	d.SetPartial("tags")
 
 	// upgrade cluster version
-	err := UpgradeAlicloudKubernetesCluster(d, meta)
+	err := UpgradeAliCloudKubernetesCluster(d, meta)
 	if err != nil {
 		return WrapError(err)
 	}

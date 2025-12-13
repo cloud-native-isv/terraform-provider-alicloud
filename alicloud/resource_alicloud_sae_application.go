@@ -1497,7 +1497,7 @@ func resourceAliCloudSaeApplicationRead(d *schema.ResourceData, meta interface{}
 
 	object, err := saeService.DescribeSaeApplication(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sae_application saeService.DescribeSaeApplication Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -93,7 +93,7 @@ func resourceAliCloudEcdCustomPropertyRead(d *schema.ResourceData, meta interfac
 	edsUserService := EdsUserService{client}
 	object, err := edsUserService.DescribeEcdCustomProperty(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_custom_property edsUserService.DescribeEcdCustomProperty Failed!!! %s", err)
 			d.SetId("")
 			return nil

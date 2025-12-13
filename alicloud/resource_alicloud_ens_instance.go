@@ -444,7 +444,7 @@ func resourceAliCloudEnsInstanceRead(d *schema.ResourceData, meta interface{}) e
 
 	objectRaw, err := ensServiceV2.DescribeEnsInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ens_instance DescribeEnsInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

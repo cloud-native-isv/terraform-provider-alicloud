@@ -273,7 +273,7 @@ func resourceAliCloudAmqpInstanceRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := amqpServiceV2.DescribeAmqpInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_amqp_instance DescribeAmqpInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

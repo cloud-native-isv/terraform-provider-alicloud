@@ -86,7 +86,7 @@ func resourceAliCloudDbfsInstanceAttachmentRead(d *schema.ResourceData, meta int
 
 	object, err := dbfsService.DescribeDbfsInstanceAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dbfs_instance_attachment dbfsService.DescribeDbfsInstanceAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -321,7 +321,7 @@ func resourceAliCloudWafv3DomainRead(d *schema.ResourceData, meta interface{}) e
 
 	object, err := wafOpenapiService.DescribeWafv3Domain(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_wafv3_domain wafOpenapiService.DescribeWafv3Domain Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -523,7 +523,7 @@ func resourceAliCloudWafv3DomainDelete(d *schema.ResourceData, meta interface{})
 		return nil
 	})
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

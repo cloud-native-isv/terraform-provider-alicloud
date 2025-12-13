@@ -87,7 +87,7 @@ func resourceAliCloudMongodbAuditPolicyRead(d *schema.ResourceData, meta interfa
 	MongoDBService := MongoDBService{client}
 	object, err := MongoDBService.DescribeMongodbAuditPolicy(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mongodb_audit_policy MongoDBService.DescribeMongodbAuditPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -144,7 +144,7 @@ func resourceAliCloudMongodbAuditPolicyUpdate(d *schema.ResourceData, meta inter
 	return resourceAliCloudMongodbAuditPolicyRead(d, meta)
 }
 func resourceAliCloudMongodbAuditPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resource Alicloud Mongodb AuditPolicy. Terraform will remove this resource from the state file, however resources may remain.")
+	log.Printf("[WARN] Cannot destroy resource AliCloud Mongodb AuditPolicy. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }
 

@@ -278,7 +278,7 @@ func resourceAliyunEssScalingGroupCreate(d *schema.ResourceData, meta interface{
 	essService := EssService{client}
 
 	var response map[string]interface{}
-	request, err := buildAlicloudEssScalingGroupArgs(d, meta)
+	request, err := buildAliCloudEssScalingGroupArgs(d, meta)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -335,7 +335,7 @@ func resourceAliyunEssScalingGroupRead(d *schema.ResourceData, meta interface{})
 
 	object, err := essService.DescribeEssScalingGroupById(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -749,7 +749,7 @@ func resourceAliyunEssScalingGroupDelete(d *schema.ResourceData, meta interface{
 	return WrapError(essService.WaitForEssScalingGroup(d.Id(), Deleted, DefaultLongTimeout))
 }
 
-func buildAlicloudEssScalingGroupArgs(d *schema.ResourceData, meta interface{}) (map[string]interface{}, error) {
+func buildAliCloudEssScalingGroupArgs(d *schema.ResourceData, meta interface{}) (map[string]interface{}, error) {
 	client := meta.(*connectivity.AliyunClient)
 	request := map[string]interface{}{
 		"RegionId":        client.RegionId,

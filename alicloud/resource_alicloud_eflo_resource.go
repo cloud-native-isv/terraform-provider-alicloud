@@ -269,7 +269,7 @@ func resourceAliCloudEfloResourceRead(d *schema.ResourceData, meta interface{}) 
 
 	objectRaw, err := efloServiceV2.DescribeEfloResource(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eflo_resource DescribeEfloResource Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -168,7 +168,7 @@ func resourceAliCloudAutoProvisioningGroup() *schema.Resource {
 
 func resourceAliCloudAutoProvisioningGroupCreate(d *schema.ResourceData, meta interface{}) error {
 
-	request, err := buildAlicloudAutoProvisioningGroupArgs(d, meta)
+	request, err := buildAliCloudAutoProvisioningGroupArgs(d, meta)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -200,7 +200,7 @@ func resourceAliCloudAutoProvisioningGroupRead(d *schema.ResourceData, meta inte
 
 	object, err := ecsService.DescribeAutoProvisioningGroup(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_auto_provisioning_group ecsService.DescribeAutoProvisioningGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -332,7 +332,7 @@ func resourceAliCloudAutoProvisioningGroupDelete(d *schema.ResourceData, meta in
 	return WrapError(ecsService.WaitForAutoProvisioningGroup(d.Id(), Deleted, DefaultTimeoutMedium))
 }
 
-func buildAlicloudAutoProvisioningGroupArgs(d *schema.ResourceData, meta interface{}) (*ecs.CreateAutoProvisioningGroupRequest, error) {
+func buildAliCloudAutoProvisioningGroupArgs(d *schema.ResourceData, meta interface{}) (*ecs.CreateAutoProvisioningGroupRequest, error) {
 	client := meta.(*connectivity.AliyunClient)
 	request := ecs.CreateCreateAutoProvisioningGroupRequest()
 	request.RegionId = client.RegionId

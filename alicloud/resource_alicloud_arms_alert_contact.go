@@ -196,7 +196,7 @@ func resourceAliCloudArmsAlertContactRead(d *schema.ResourceData, meta interface
 	// Get all alert contacts to avoid multiple API calls
 	allContacts, err := armsService.DescribeArmsAlertContacts()
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_contact armsService.DescribeArmsAlertContacts Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -371,7 +371,7 @@ func resourceAliCloudArmsAlertContactUpdate(d *schema.ResourceData, meta interfa
 					err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
 						err := armsService.DeleteArmsAlertContact(existingContact.ContactId)
 						if err != nil {
-							if IsNotFoundError(err) {
+							if NotFoundError(err) {
 								return nil // Already deleted
 							}
 							if NeedRetry(err) {
@@ -407,7 +407,7 @@ func resourceAliCloudArmsAlertContactDelete(d *schema.ResourceData, meta interfa
 		// Get all existing contacts for ID lookup
 		allContacts, err := armsService.DescribeArmsAlertContacts()
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// No contacts exist, already deleted
 				return nil
 			}
@@ -430,7 +430,7 @@ func resourceAliCloudArmsAlertContactDelete(d *schema.ResourceData, meta interfa
 				err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 					err := armsService.DeleteArmsAlertContact(existingContact.ContactId)
 					if err != nil {
-						if IsNotFoundError(err) {
+						if NotFoundError(err) {
 							// Contact already deleted
 							return nil
 						}

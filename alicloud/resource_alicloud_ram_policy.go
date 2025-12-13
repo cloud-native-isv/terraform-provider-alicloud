@@ -226,7 +226,7 @@ func resourceAliCloudRamPolicyRead(d *schema.ResourceData, meta interface{}) err
 
 	objectRaw, err := ramServiceV2.DescribeRamPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_policy DescribeRamPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -264,7 +264,7 @@ func resourceAliCloudRamPolicyRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("type", policyRaw["PolicyType"])
 
 	objectRaw, err = ramServiceV2.DescribePolicyListTagResources(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -434,7 +434,7 @@ func resourceAliCloudRamPolicyDelete(d *schema.ResourceData, meta interface{}) e
 				addDebug(action, response, userRequest)
 
 				if err != nil {
-					if IsExpectedErrors(err, []string{"EntityNotExist"}) || IsNotFoundError(err) {
+					if IsExpectedErrors(err, []string{"EntityNotExist"}) || NotFoundError(err) {
 						return nil
 					}
 					return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
@@ -469,7 +469,7 @@ func resourceAliCloudRamPolicyDelete(d *schema.ResourceData, meta interface{}) e
 				addDebug(action, response, groupRequest)
 
 				if err != nil {
-					if IsExpectedErrors(err, []string{"EntityNotExist"}) || IsNotFoundError(err) {
+					if IsExpectedErrors(err, []string{"EntityNotExist"}) || NotFoundError(err) {
 						return nil
 					}
 					return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
@@ -504,7 +504,7 @@ func resourceAliCloudRamPolicyDelete(d *schema.ResourceData, meta interface{}) e
 				addDebug(action, response, roleRequest)
 
 				if err != nil {
-					if IsExpectedErrors(err, []string{"EntityNotExist"}) || IsNotFoundError(err) {
+					if IsExpectedErrors(err, []string{"EntityNotExist"}) || NotFoundError(err) {
 						return nil
 					}
 					return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
@@ -532,7 +532,7 @@ func resourceAliCloudRamPolicyDelete(d *schema.ResourceData, meta interface{}) e
 		addDebug(action, response, listVersionsRequest)
 
 		if err != nil {
-			if IsExpectedErrors(err, []string{"EntityNotExist.Policy"}) || IsNotFoundError(err) {
+			if IsExpectedErrors(err, []string{"EntityNotExist.Policy"}) || NotFoundError(err) {
 				return nil
 			}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
@@ -586,7 +586,7 @@ func resourceAliCloudRamPolicyDelete(d *schema.ResourceData, meta interface{}) e
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EntityNotExist"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EntityNotExist"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

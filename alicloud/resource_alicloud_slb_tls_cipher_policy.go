@@ -78,7 +78,7 @@ func resourceAliCloudSlbTlsCipherPolicyRead(d *schema.ResourceData, meta interfa
 	slbService := SlbService{client}
 	object, err := slbService.DescribeSlbTlsCipherPolicy(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_slb_tls_cipher_policy slbService.DescribeSlbTlsCipherPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

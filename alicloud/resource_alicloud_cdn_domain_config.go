@@ -250,7 +250,7 @@ func resourceAliCloudCdnDomainConfigRead(d *schema.ResourceData, meta interface{
 
 	v, err := cdnService.DescribeCdnDomainConfig(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -304,7 +304,7 @@ func resourceAliCloudCdnDomainConfigDelete(d *schema.ResourceData, meta interfac
 
 	_, err := cdnService.DescribeCdnDomainConfig(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

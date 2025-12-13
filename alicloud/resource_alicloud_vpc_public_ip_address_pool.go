@@ -165,7 +165,7 @@ func resourceAliCloudVpcPublicIpAddressPoolRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := vpcServiceV2.DescribeVpcPublicIpAddressPool(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_public_ip_address_pool DescribeVpcPublicIpAddressPool Failed!!! %s", err)
 			d.SetId("")
 			return nil

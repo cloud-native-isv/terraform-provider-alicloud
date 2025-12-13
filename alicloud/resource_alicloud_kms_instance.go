@@ -391,7 +391,7 @@ func resourceAliCloudKmsInstanceRead(d *schema.ResourceData, meta interface{}) e
 
 	objectRaw, err := kmsServiceV2.DescribeKmsInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_kms_instance DescribeKmsInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -680,7 +680,7 @@ func resourceAliCloudKmsInstanceDelete(d *schema.ResourceData, meta interface{})
 		addDebug(action, response, request)
 
 		if err != nil {
-			if IsExpectedErrors(err, []string{"ResourceNotExists"}) || IsNotFoundError(err) {
+			if IsExpectedErrors(err, []string{"ResourceNotExists"}) || NotFoundError(err) {
 				return nil
 			}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
@@ -725,7 +725,7 @@ func resourceAliCloudKmsInstanceDelete(d *schema.ResourceData, meta interface{})
 		addDebug(action, response, request)
 
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

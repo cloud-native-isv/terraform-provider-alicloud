@@ -152,7 +152,7 @@ func resourceAliCloudGaCustomRoutingEndpointTrafficPolicyRead(d *schema.Resource
 
 	object, err := gaService.DescribeGaCustomRoutingEndpointTrafficPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -309,7 +309,7 @@ func resourceAliCloudGaCustomRoutingEndpointTrafficPolicyDelete(d *schema.Resour
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"IllegalParameter.TrafficPolicyAndEndpointIdMismatch"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"IllegalParameter.TrafficPolicyAndEndpointIdMismatch"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

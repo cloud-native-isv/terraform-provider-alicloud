@@ -24,7 +24,7 @@ func (s *OssService) DescribeOssBucketReferer(id string) (object map[string]inte
 		Bucket: id,
 	})
 	if err != nil {
-		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"NoSuchBucket"}) {
+		if NotFoundError(err) || IsExpectedErrors(err, []string{"NoSuchBucket"}) {
 			return object, WrapErrorf(NotFoundErr("BucketReferer", id), NotFoundMsg, err)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketReferer", AlibabaCloudSdkGoERROR)
@@ -43,7 +43,7 @@ func (s *OssService) OssBucketRefererStateRefreshFunc(id string, field string, f
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketReferer(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

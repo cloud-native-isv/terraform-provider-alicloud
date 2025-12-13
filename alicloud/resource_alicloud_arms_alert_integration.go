@@ -105,7 +105,7 @@ func resourceAliCloudArmsIntegrationRead(d *schema.ResourceData, meta interface{
 
 	object, err := service.DescribeArmsIntegration(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_integration DescribeArmsIntegration Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -190,7 +190,7 @@ func resourceAliCloudArmsIntegrationDelete(d *schema.ResourceData, meta interfac
 	// Delete integration using Service layer
 	err = service.DeleteArmsIntegration(integrationId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteIntegration", AlibabaCloudSdkGoERROR)

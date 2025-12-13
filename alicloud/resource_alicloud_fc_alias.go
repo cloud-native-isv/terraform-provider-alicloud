@@ -124,7 +124,7 @@ func resourceAliCloudFCAliasRead(d *schema.ResourceData, meta interface{}) error
 
 	objectRaw, err := fcService.DescribeFCAlias(functionName, aliasName)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_alias DescribeFCAlias Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -206,7 +206,7 @@ func resourceAliCloudFCAliasDelete(d *schema.ResourceData, meta interface{}) err
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := fcService.DeleteFCAlias(functionName, aliasName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				log.Printf("[DEBUG] FC Alias not found during deletion: %s:%s", functionName, aliasName)
 				return nil
 			}
@@ -222,7 +222,7 @@ func resourceAliCloudFCAliasDelete(d *schema.ResourceData, meta interface{}) err
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteAlias", AlibabaCloudSdkGoERROR)

@@ -118,7 +118,7 @@ func resourceAliCloudCmsSlsGroupRead(d *schema.ResourceData, meta interface{}) e
 	cmsService := CmsService{client}
 	object, err := cmsService.DescribeCmsSlsGroup(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cms_sls_group cmsService.DescribeCmsSlsGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

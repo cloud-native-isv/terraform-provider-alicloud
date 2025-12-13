@@ -79,7 +79,7 @@ func resourceAliCloudBastionhostHostAccountShareKeyAttachmentRead(d *schema.Reso
 	yundunBastionhostService := YundunBastionhostService{client}
 	_, err := yundunBastionhostService.DescribeBastionhostHostAccountShareKeyAttachment(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_bastionhost_host_account_share_key_attachment yundunBastionhostService.DescribeBastionhostHostAccountShareKeyAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

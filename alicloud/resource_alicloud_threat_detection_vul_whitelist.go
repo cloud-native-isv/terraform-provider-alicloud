@@ -92,7 +92,7 @@ func resourceAliCloudThreatDetectionVulWhitelistRead(d *schema.ResourceData, met
 
 	object, err := threatDetectionService.DescribeThreatDetectionVulWhitelist(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -180,7 +180,7 @@ func resourceAliCloudThreatDetectionVulWhitelistDelete(d *schema.ResourceData, m
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

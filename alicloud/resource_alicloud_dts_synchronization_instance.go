@@ -181,7 +181,7 @@ func resourceAliCloudDtsSynchronizationInstanceRead(d *schema.ResourceData, meta
 	dtsService := DtsService{client}
 	object, err := dtsService.DescribeDtsSynchronizationInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dts_synchronization_instance dtsService.DescribeDtsSynchronizationInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

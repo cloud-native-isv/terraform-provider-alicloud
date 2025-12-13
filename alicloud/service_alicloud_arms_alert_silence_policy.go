@@ -81,7 +81,7 @@ func (s *ArmsService) DescribeArmsAlertSilencePolicy(id string) (object map[stri
 		// Call the API to get silence policy
 		policy, err := s.armsAPI.GetAlertSilencePolicy(silenceId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 			}
 			return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetAlertSilencePolicy", AlibabaCloudSdkGoERROR)
@@ -128,7 +128,7 @@ func (s *ArmsService) ArmsAlertSilencePolicyStateRefreshFunc(id string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeArmsAlertSilencePolicy(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

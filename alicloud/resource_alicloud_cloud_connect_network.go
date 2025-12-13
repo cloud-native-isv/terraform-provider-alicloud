@@ -90,7 +90,7 @@ func resourceAliCloudCloudConnectNetworkRead(d *schema.ResourceData, meta interf
 	ccnService := SagService{meta.(*connectivity.AliyunClient)}
 	object, err := ccnService.DescribeCloudConnectNetwork(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

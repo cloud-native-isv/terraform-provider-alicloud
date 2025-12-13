@@ -296,7 +296,7 @@ func resourceAliCloudEcsImageRead(d *schema.ResourceData, meta interface{}) erro
 
 	objectRaw, err := ecsServiceV2.DescribeEcsImage(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_image DescribeEcsImage Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -493,7 +493,7 @@ func resourceAliCloudEcsImageDelete(d *schema.ResourceData, meta interface{}) er
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeImageById(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -572,7 +572,7 @@ func resourceAliCloudImageRead(d *schema.ResourceData, meta interface{}) error {
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeImageById(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_image ecsService.DescribeImageById Failed!!! %s", err)
 			d.SetId("")
 			return nil

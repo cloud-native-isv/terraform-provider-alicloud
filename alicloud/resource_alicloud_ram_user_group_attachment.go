@@ -85,7 +85,7 @@ func resourceAliCloudRamUserGroupAttachmentRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := ramServiceV2.DescribeRamUserGroupAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ram_user_group_attachment DescribeRamUserGroupAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -130,7 +130,7 @@ func resourceAliCloudRamUserGroupAttachmentDelete(d *schema.ResourceData, meta i
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

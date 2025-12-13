@@ -107,7 +107,7 @@ func resourceAliCloudArmsAlertNotificationPolicyRead(d *schema.ResourceData, met
 	}
 	object, err := armsService.DescribeArmsAlertNotificationPolicy(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_alert_notification_policy armsService.DescribeArmsAlertNotificationPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

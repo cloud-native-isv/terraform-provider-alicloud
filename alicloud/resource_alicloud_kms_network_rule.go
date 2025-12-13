@@ -99,7 +99,7 @@ func resourceAliCloudKmsNetworkRuleRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := kmsServiceV2.DescribeKmsNetworkRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_kms_network_rule DescribeKmsNetworkRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

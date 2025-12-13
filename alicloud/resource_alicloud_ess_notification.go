@@ -93,7 +93,7 @@ func resourceAliCloudEssNotificationRead(d *schema.ResourceData, meta interface{
 	essService := EssService{client}
 	object, err := essService.DescribeEssNotification(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

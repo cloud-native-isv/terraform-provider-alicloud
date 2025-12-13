@@ -86,7 +86,7 @@ func resourceAliCloudThreatDetectionLogMetaRead(d *schema.ResourceData, meta int
 
 	objectRaw, err := threatDetectionServiceV2.DescribeThreatDetectionLogMeta(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_log_meta DescribeThreatDetectionLogMeta Failed!!! %s", err)
 			d.SetId("")
 			return nil

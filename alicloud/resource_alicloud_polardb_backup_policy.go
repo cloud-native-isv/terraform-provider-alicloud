@@ -155,7 +155,7 @@ func resourceAliCloudPolarDBBackupPolicyRead(d *schema.ResourceData, meta interf
 	polardbService := PolarDBService{client}
 	object, err := polardbService.DescribeBackupPolicy(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

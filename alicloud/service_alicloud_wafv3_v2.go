@@ -64,7 +64,7 @@ func (s *Wafv3ServiceV2) Wafv3DefenseTemplateStateRefreshFunc(id string, field s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeWafv3DefenseTemplate(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

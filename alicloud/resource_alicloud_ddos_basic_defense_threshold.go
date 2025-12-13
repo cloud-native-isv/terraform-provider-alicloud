@@ -123,7 +123,7 @@ func resourceAliCloudDdosBasicAntiddosRead(d *schema.ResourceData, meta interfac
 	antiddosPublicService := AntiddosPublicService{client}
 	object, err := antiddosPublicService.DescribeDdosBasicAntiddos(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ddos_basic_antiddos antiddosPublicService.DescribeDdosBasicAntiddos Failed!!! %s", err)
 			d.SetId("")
 			return nil

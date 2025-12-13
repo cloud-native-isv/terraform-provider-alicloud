@@ -156,7 +156,7 @@ func resourceAliCloudOssBucketCorsRead(d *schema.ResourceData, meta interface{})
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketCors(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_cors DescribeOssBucketCors Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -367,7 +367,7 @@ func resourceAliCloudOssBucketCorsDelete(d *schema.ResourceData, meta interface{
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

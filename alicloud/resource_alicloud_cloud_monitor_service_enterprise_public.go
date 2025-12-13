@@ -97,7 +97,7 @@ func resourceAliCloudCloudMonitorServiceEnterprisePublicRead(d *schema.ResourceD
 
 	objectRaw, err := cloudMonitorServiceServiceV2.DescribeCloudMonitorServiceEnterprisePublic(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_monitor_service_enterprise_public DescribeCloudMonitorServiceEnterprisePublic Failed!!! %s", err)
 			d.SetId("")
 			return nil

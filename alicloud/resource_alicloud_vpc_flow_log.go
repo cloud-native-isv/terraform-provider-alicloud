@@ -188,7 +188,7 @@ func resourceAliCloudVpcFlowLogRead(d *schema.ResourceData, meta interface{}) er
 
 	objectRaw, err := vpcServiceV2.DescribeVpcFlowLog(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_flow_log DescribeVpcFlowLog Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -415,7 +415,7 @@ func resourceAliCloudVpcFlowLogDelete(d *schema.ResourceData, meta interface{}) 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"Instance.IsNotAvailable", "Instance.IsNotPostPay"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"Instance.IsNotAvailable", "Instance.IsNotPostPay"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

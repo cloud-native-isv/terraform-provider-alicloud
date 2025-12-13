@@ -197,7 +197,7 @@ func resourceAliCloudHbrPolicyRead(d *schema.ResourceData, meta interface{}) err
 
 	objectRaw, err := hbrServiceV2.DescribeHbrPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_hbr_policy DescribeHbrPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -358,7 +358,7 @@ func resourceAliCloudHbrPolicyDelete(d *schema.ResourceData, meta interface{}) e
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

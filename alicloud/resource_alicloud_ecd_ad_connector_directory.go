@@ -162,7 +162,7 @@ func resourceAliCloudEcdAdConnectorDirectoryRead(d *schema.ResourceData, meta in
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdAdConnectorDirectory(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_ad_connector_directory ecdService.DescribeEcdAdConnectorDirectory Failed!!! %s", err)
 			d.SetId("")
 			return nil

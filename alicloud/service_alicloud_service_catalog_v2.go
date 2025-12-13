@@ -60,7 +60,7 @@ func (s *ServiceCatalogServiceV2) ServiceCatalogProductStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeServiceCatalogProduct(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -139,7 +139,7 @@ func (s *ServiceCatalogServiceV2) ServiceCatalogProductPortfolioAssociationState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeServiceCatalogProductPortfolioAssociation(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -205,7 +205,7 @@ func (s *ServiceCatalogServiceV2) ServiceCatalogProductVersionStateRefreshFunc(i
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeServiceCatalogProductVersion(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -287,7 +287,7 @@ func (s *ServiceCatalogServiceV2) ServiceCatalogPrincipalPortfolioAssociationSta
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeServiceCatalogPrincipalPortfolioAssociation(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -353,7 +353,7 @@ func (s *ServiceCatalogServiceV2) ServiceCatalogPortfolioStateRefreshFunc(id str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeServiceCatalogPortfolio(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

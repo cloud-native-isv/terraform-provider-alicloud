@@ -261,7 +261,7 @@ func resourceAliCloudDataWorksDiAlarmRuleRead(d *schema.ResourceData, meta inter
 
 	objectRaw, err := dataWorksServiceV2.DescribeDataWorksDiAlarmRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_data_works_di_alarm_rule DescribeDataWorksDiAlarmRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -541,7 +541,7 @@ func resourceAliCloudDataWorksDiAlarmRuleDelete(d *schema.ResourceData, meta int
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"500130"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"500130"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

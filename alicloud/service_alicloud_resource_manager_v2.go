@@ -60,7 +60,7 @@ func (s *ResourceManagerServiceV2) ResourceManagerSavedQueryStateRefreshFunc(id 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeResourceManagerSavedQuery(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -126,7 +126,7 @@ func (s *ResourceManagerServiceV2) ResourceManagerAutoGroupingRuleStateRefreshFu
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeResourceManagerAutoGroupingRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -199,7 +199,7 @@ func (s *ResourceManagerServiceV2) ResourceManagerAccountStateRefreshFunc(id str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeResourceManagerAccount(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -228,7 +228,7 @@ func (s *ResourceManagerServiceV2) DescribeAsyncResourceManagerAccountStateRefre
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncGetAccountDeletionStatus(d, res)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 		}

@@ -117,7 +117,7 @@ func resourceAliCloudKmsPolicyRead(d *schema.ResourceData, meta interface{}) err
 
 	objectRaw, err := kmsServiceV2.DescribeKmsPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_kms_policy DescribeKmsPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -22,7 +22,7 @@ func (s *OssService) DescribeOssBucketPublicAccessBlock(id string) (object map[s
 
 	config, err := ossAPI.GetBucketPublicAccessBlock(id)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("BucketPublicAccessBlock", id), NotFoundMsg, err)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketPublicAccessBlock", AlibabaCloudSdkGoERROR)
@@ -61,7 +61,7 @@ func (s *OssService) OssBucketPublicAccessBlockStateRefreshFunc(id string, field
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketPublicAccessBlock(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

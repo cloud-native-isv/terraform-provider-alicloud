@@ -66,7 +66,7 @@ type ProviderError struct {
 }
 
 func (e *ProviderError) Error() string {
-	return fmt.Sprintf("[ERROR] Terraform Alicloud Provider Error: Code: %s Message: %s", e.errorCode, e.message)
+	return fmt.Sprintf("[ERROR] Terraform AliCloud Provider Error: Code: %s Message: %s", e.errorCode, e.message)
 }
 
 func (err *ProviderError) ErrorCode() string {
@@ -84,8 +84,8 @@ func GetNotFoundErrorFromString(str string) error {
 	}
 }
 
-// IsNotFoundError checks if the error indicates a resource was not found
-func IsNotFoundError(err error) bool {
+// NotFoundError checks if the error indicates a resource was not found
+func NotFoundError(err error) bool {
 	if err == nil {
 		return false
 	}
@@ -95,7 +95,7 @@ func IsNotFoundError(err error) bool {
 		if e.Err != nil && strings.HasPrefix(e.Err.Error(), ResourceNotfound) {
 			return true
 		}
-		return IsNotFoundError(e.Cause)
+		return NotFoundError(e.Cause)
 	}
 
 	// Use unified error checking from cws-lib-go for all supported service types

@@ -136,7 +136,7 @@ func dataSourceAliCloudLogProjectsRead(d *schema.ResourceData, meta interface{})
 			for _, name := range projectNames {
 				project, err := slsService.DescribeLogProject(name)
 				if err != nil {
-					if IsNotFoundError(err) {
+					if NotFoundError(err) {
 						continue
 					}
 					return WrapError(err)

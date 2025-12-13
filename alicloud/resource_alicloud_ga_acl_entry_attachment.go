@@ -108,7 +108,7 @@ func resourceAliCloudGaAclEntryAttachmentRead(d *schema.ResourceData, meta inter
 
 	object, err := gaService.DescribeGaAclEntryAttachment(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

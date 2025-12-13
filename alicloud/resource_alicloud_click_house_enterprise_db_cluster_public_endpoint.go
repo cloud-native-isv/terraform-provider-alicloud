@@ -101,7 +101,7 @@ func resourceAliCloudClickHouseEnterpriseDbClusterPublicEndpointRead(d *schema.R
 
 	objectRaw, err := clickHouseServiceV2.DescribeClickHouseEnterpriseDbClusterPublicEndpoint(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_click_house_enterprise_db_cluster_public_endpoint DescribeClickHouseEnterpriseDbClusterPublicEndpoint Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -197,7 +197,7 @@ func resourceAliCloudClickHouseEnterpriseDbClusterPublicEndpointDelete(d *schema
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

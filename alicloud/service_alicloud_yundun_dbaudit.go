@@ -183,7 +183,7 @@ func (s *DbauditService) DbauditInstanceRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeYundunDbauditInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil if nothing matched
 				return nil, "", nil
 			}

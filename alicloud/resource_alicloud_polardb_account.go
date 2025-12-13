@@ -138,7 +138,7 @@ func resourceAliCloudPolarDBAccountRead(d *schema.ResourceData, meta interface{}
 	polarDBService := PolarDBService{client}
 	object, err := polarDBService.DescribePolarDBAccount(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

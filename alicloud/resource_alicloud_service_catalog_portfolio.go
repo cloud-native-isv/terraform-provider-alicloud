@@ -96,7 +96,7 @@ func resourceAliCloudServiceCatalogPortfolioRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := serviceCatalogServiceV2.DescribeServiceCatalogPortfolio(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_service_catalog_portfolio DescribeServiceCatalogPortfolio Failed!!! %s", err)
 			d.SetId("")
 			return nil

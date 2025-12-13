@@ -705,7 +705,7 @@ func (s *FCService) CustomDomainStateRefreshFunc(domainName string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFCCustomDomain(domainName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

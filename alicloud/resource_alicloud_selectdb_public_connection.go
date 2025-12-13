@@ -112,7 +112,7 @@ func resourceAliCloudSelectDBPublicConnectionRead(d *schema.ResourceData, meta i
 	// Get public connection information for the instance
 	publicConnection, err := service.DescribeSelectDBPublicConnection(instanceId)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_selectdb_public_connection not found!!! %s", err)
 			d.SetId("")
 			return nil
@@ -135,7 +135,7 @@ func resourceAliCloudSelectDBPublicConnectionRead(d *schema.ResourceData, meta i
 	// Get all connections (VPC and Public, MySQL and HTTP)
 	allConnections, err := service.GetSelectDBAllConnections(instanceId)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] No connections found for instance %s, removing from state", instanceId)
 			d.SetId("")
 			return nil
@@ -175,7 +175,7 @@ func resourceAliCloudSelectDBPublicConnectionDelete(d *schema.ResourceData, meta
 	// Get the current public connection to use for release operation
 	publicConnection, err := service.DescribeSelectDBPublicConnection(instanceId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil // No public connection to release
 		}
 		return WrapError(err)
@@ -199,7 +199,7 @@ func resourceAliCloudSelectDBPublicConnectionDelete(d *schema.ResourceData, meta
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := service.ReleaseSelectDBPublicConnection(connection)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			if NeedRetry(err) {
@@ -211,7 +211,7 @@ func resourceAliCloudSelectDBPublicConnectionDelete(d *schema.ResourceData, meta
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ReleasePublicConnection", AlibabaCloudSdkGoERROR)

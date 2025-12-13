@@ -94,7 +94,7 @@ func resourceAliCloudOssBucketDataRedundancyTransitionRead(d *schema.ResourceDat
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketDataRedundancyTransition(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_data_redundancy_transition DescribeOssBucketDataRedundancyTransition Failed!!! %s", err)
 			d.SetId("")
 			return nil

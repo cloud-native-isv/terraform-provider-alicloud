@@ -125,7 +125,7 @@ func resourceAliCloudMseEngineNamespaceRead(d *schema.ResourceData, meta interfa
 	}
 	object, err := mseService.DescribeMseEngineNamespace(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mse_engine_namespace mseService.DescribeMseEngineNamespace Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -134,7 +134,7 @@ func resourceAliCloudMseEngineNamespaceRead(d *schema.ResourceData, meta interfa
 	}
 	clusterObject, err := mseService.DescribeMseCluster(parts[0])
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mse_engine_namespace mseService.DescribeMseCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil

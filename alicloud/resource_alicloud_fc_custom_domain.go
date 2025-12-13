@@ -289,7 +289,7 @@ func resourceAliCloudFCCustomDomainRead(d *schema.ResourceData, meta interface{}
 	domainName := d.Id()
 	objectRaw, err := fcService.DescribeFCCustomDomain(domainName)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_custom_domain DescribeFCCustomDomain Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -363,7 +363,7 @@ func resourceAliCloudFCCustomDomainDelete(d *schema.ResourceData, meta interface
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := fcService.DeleteFCCustomDomain(domainName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				log.Printf("[DEBUG] FC Custom Domain not found during deletion: %s", domainName)
 				return nil
 			}
@@ -379,7 +379,7 @@ func resourceAliCloudFCCustomDomainDelete(d *schema.ResourceData, meta interface
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteCustomDomain", AlibabaCloudSdkGoERROR)

@@ -311,7 +311,7 @@ func resourceAliCloudExpressConnectRouterInterfaceRead(d *schema.ResourceData, m
 
 	object, err := vpcService.DescribeExpressConnectRouterInterface(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_express_connect_router_interface vpcService.DescribeExpressConnectRouterInterface Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -593,7 +593,7 @@ func resourceAliCloudExpressConnectRouterInterfaceDelete(d *schema.ResourceData,
 	vpcService := VpcService{client}
 
 	if object, err := vpcService.DescribeExpressConnectRouterInterface(d.Id()); err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
@@ -646,7 +646,7 @@ func resourceAliCloudExpressConnectRouterInterfaceDelete(d *schema.ResourceData,
 		return nil
 	})
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

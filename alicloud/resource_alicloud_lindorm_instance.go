@@ -512,7 +512,7 @@ func resourceAliCloudLindormInstanceRead(d *schema.ResourceData, meta interface{
 	hitsdbService := HitsdbService{client}
 	object, err := hitsdbService.DescribeLindormInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_lindorm_instance hitsdbService.DescribeLindormInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -1061,7 +1061,7 @@ func resourceAliCloudLindormInstanceDelete(d *schema.ResourceData, meta interfac
 	var err error
 	object, err := hitsdbService.DescribeLindormInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

@@ -26,7 +26,7 @@ func (s *FlinkService) FlinkConnectorStateRefreshFunc(workspaceId string, namesp
 	return func() (interface{}, string, error) {
 		connector, err := s.GetConnector(workspaceId, namespaceName, connectorName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Connector not found, still being created or deleted
 				return nil, "", nil
 			}

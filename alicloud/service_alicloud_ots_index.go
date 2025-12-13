@@ -85,7 +85,7 @@ func (s *OtsService) OtsIndexStateRefreshFunc(instanceName, tableName, indexName
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOtsIndex(instanceName, tableName, indexName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// 资源已删除，返回 nil, "", nil 表示目标达成
 				return nil, "", nil
 			}

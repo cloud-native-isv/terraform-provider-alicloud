@@ -98,7 +98,7 @@ func resourceAliCloudPaiFlowPipelineRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := paiFlowServiceV2.DescribePaiFlowPipeline(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_pai_flow_pipeline DescribePaiFlowPipeline Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -184,7 +184,7 @@ func resourceAliCloudPaiFlowPipelineDelete(d *schema.ResourceData, meta interfac
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"404"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"404"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

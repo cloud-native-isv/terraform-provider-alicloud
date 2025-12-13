@@ -51,7 +51,7 @@ func (s *ClickhouseService) ClickHouseDbClusterStateRefreshFunc(id string, failS
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeClickHouseDbCluster(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -159,7 +159,7 @@ func (s *ClickhouseService) ClickhouseStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeClickHouseAccount(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -249,7 +249,7 @@ func (s *ClickhouseService) ClickHouseBackupPolicyStateRefreshFunc(id string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeClickHouseBackupPolicy(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -307,7 +307,7 @@ func (s *ClickhouseService) ClickHouseAutoRenewStatusRefreshFunc(id string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeClickHouseAutoRenewStatus(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -362,7 +362,7 @@ func (s *ClickhouseService) ClickHouseOSSStorageStateRefreshFunc(id string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeClickHouseOSSStorage(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

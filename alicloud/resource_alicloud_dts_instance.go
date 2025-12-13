@@ -251,7 +251,7 @@ func resourceAliCloudDtsInstanceRead(d *schema.ResourceData, meta interface{}) e
 
 	object, err := dtsService.DescribeDtsInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dts_instance dtsService.DescribeDtsInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -340,7 +340,7 @@ func resourceAliCloudDtsInstanceUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceAliCloudDtsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	if d.Get("payment_type").(string) == "Subscription" {
-		log.Printf("[WARN] Cannot destroy resource Alicloud Resource DTS Instance. Terraform will remove this resource from the state file, however resources may remain.")
+		log.Printf("[WARN] Cannot destroy resource AliCloud Resource DTS Instance. Terraform will remove this resource from the state file, however resources may remain.")
 		return nil
 	}
 	client := meta.(*connectivity.AliyunClient)
@@ -370,7 +370,7 @@ func resourceAliCloudDtsInstanceDelete(d *schema.ResourceData, meta interface{})
 		return nil
 	})
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

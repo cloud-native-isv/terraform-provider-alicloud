@@ -107,7 +107,7 @@ func resourceAliCloudAligreenAuditCallbackRead(d *schema.ResourceData, meta inte
 
 	objectRaw, err := aligreenServiceV2.DescribeAligreenAuditCallback(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_aligreen_audit_callback DescribeAligreenAuditCallback Failed!!! %s", err)
 			d.SetId("")
 			return nil

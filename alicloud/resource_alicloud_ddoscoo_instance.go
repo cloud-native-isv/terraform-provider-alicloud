@@ -287,7 +287,7 @@ func resourceAliCloudDdoscooInstanceRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := ddosCooServiceV2.DescribeDdosCooInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ddoscoo_instance DescribeDdosCooInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -303,7 +303,7 @@ func resourceAliCloudDdoscooInstanceRead(d *schema.ResourceData, meta interface{
 	d.Set("ip", objectRaw["Ip"])
 
 	objectRaw, err = ddosCooServiceV2.DescribeInstanceDescribeInstanceSpecs(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -315,7 +315,7 @@ func resourceAliCloudDdoscooInstanceRead(d *schema.ResourceData, meta interface{
 	d.Set("service_bandwidth", objectRaw["BandwidthMbps"])
 
 	objectRaw, err = ddosCooServiceV2.DescribeInstanceDescribeInstanceExt(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -324,7 +324,7 @@ func resourceAliCloudDdoscooInstanceRead(d *schema.ResourceData, meta interface{
 	d.Set("product_plan", objectRaw["ProductPlan"])
 
 	objectRaw, err = ddosCooServiceV2.DescribeInstanceDescribeTagResources(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 

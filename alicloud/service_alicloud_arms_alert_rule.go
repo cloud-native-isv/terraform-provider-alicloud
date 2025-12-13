@@ -93,7 +93,7 @@ func (s *ArmsService) DescribeArmsAlertRule(id string) (*aliyunArmsAPI.AlertRule
 		if parseErr == nil {
 			alertRule, err := s.GetAPI().GetAlertRule(alertId)
 			if err != nil {
-				if IsNotFoundError(err) {
+				if NotFoundError(err) {
 					return nil, WrapErrorf(NotFoundErr("ARMS", id), NotFoundMsg, AlibabaCloudSdkGoERROR)
 				}
 				return nil, WrapError(err)

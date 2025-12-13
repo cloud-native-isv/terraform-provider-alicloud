@@ -96,7 +96,7 @@ func resourceAliCloudSlbCaCertificateRead(d *schema.ResourceData, meta interface
 	slbService := SlbService{client}
 	object, err := slbService.DescribeSlbCaCertificate(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_slb_ca_certificate slbService.DescribeSlbCaCertificate Failed!!! %s", err)
 			d.SetId("")
 			return nil

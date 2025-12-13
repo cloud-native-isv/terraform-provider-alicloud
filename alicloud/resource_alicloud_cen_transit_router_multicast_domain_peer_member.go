@@ -109,7 +109,7 @@ func resourceAliCloudCenTransitRouterMulticastDomainPeerMemberRead(d *schema.Res
 
 	object, err := cbnService.DescribeCenTransitRouterMulticastDomainPeerMember(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_transit_router_multicast_domain_peer_member cbnService.DescribeCenTransitRouterMulticastDomainPeerMember Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -161,7 +161,7 @@ func resourceAliCloudCenTransitRouterMulticastDomainPeerMemberDelete(d *schema.R
 		return nil
 	})
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

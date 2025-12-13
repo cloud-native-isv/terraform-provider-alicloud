@@ -96,7 +96,7 @@ func resourceAliCloudLogtailAttachmentRead(d *schema.ResourceData, meta interfac
 
 	object, err := slsService.DescribeSlsLogtailAttachment(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

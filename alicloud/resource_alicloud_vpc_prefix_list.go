@@ -213,7 +213,7 @@ func resourceAliCloudVpcPrefixListRead(d *schema.ResourceData, meta interface{})
 
 	objectRaw, err := vpcServiceV2.DescribeVpcPrefixList(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_prefix_list DescribeVpcPrefixList Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -194,7 +194,7 @@ func resourceAliCloudExpressConnectVirtualBorderRouterRead(d *schema.ResourceDat
 	}
 	object, err := vpcService.DescribeExpressConnectVirtualBorderRouter(d.Id(), includeCrossAccountVbr)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_express_connect_virtual_border_router vpcService.DescribeExpressConnectVirtualBorderRouter Failed!!! %s", err)
 			d.SetId("")
 			return nil

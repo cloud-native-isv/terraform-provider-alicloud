@@ -168,7 +168,7 @@ func resourceAliCloudClickHouseEnterpriseDBClusterRead(d *schema.ResourceData, m
 
 	objectRaw, err := clickHouseServiceV2.DescribeClickHouseEnterpriseDBCluster(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_click_house_enterprise_db_cluster DescribeClickHouseEnterpriseDBCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -287,7 +287,7 @@ func resourceAliCloudClickHouseEnterpriseDBClusterDelete(d *schema.ResourceData,
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidDBInstanceId.NotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidDBInstanceId.NotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

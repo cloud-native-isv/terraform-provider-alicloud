@@ -329,7 +329,7 @@ func resourceAliCloudCmsMetricRuleTemplateRead(d *schema.ResourceData, meta inte
 
 	object, err := cmsService.DescribeCmsMetricRuleTemplate(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cms_metric_rule_template cmsService.DescribeCmsMetricRuleTemplate Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -736,7 +736,7 @@ func resourceAliCloudCmsMetricRuleTemplateDelete(d *schema.ResourceData, meta in
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrorCodes(fmt.Sprint(response["Code"]), []string{"ResourceNotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrorCodes(fmt.Sprint(response["Code"]), []string{"ResourceNotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

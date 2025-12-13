@@ -146,7 +146,7 @@ func resourceAliCloudDbauditInstanceRead(d *schema.ResourceData, meta interface{
 	dbauditService := DbauditService{client}
 	instance, err := dbauditService.DescribeYundunDbauditInstance(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_yundun_dbaudit_instance DescribeInstanceAttribute Failed!!! %s", err)
 			d.SetId("")
 			return nil

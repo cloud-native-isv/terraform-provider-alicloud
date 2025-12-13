@@ -380,7 +380,7 @@ func resourceAliCloudCmsAlarmRead(d *schema.ResourceData, meta interface{}) erro
 
 	object, err := cmsService.DescribeAlarm(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -564,7 +564,7 @@ func resourceAliCloudCmsAlarmRead(d *schema.ResourceData, meta interface{}) erro
 
 	targetsList, err := cmsService.DescribeMetricRuleTargets(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
@@ -1013,7 +1013,7 @@ func resourceAliCloudCmsAlarmDelete(d *schema.ResourceData, meta interface{}) er
 
 		_, err = cmsService.DescribeAlarm(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return resource.NonRetryableError(fmt.Errorf("Describe alarm rule got an error: %#v", err))

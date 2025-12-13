@@ -14,9 +14,9 @@ import (
 
 func resourceAliCloudOtsIndex() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAlicloudOtsIndexCreate,
-		Read:   resourceAlicloudOtsIndexRead,
-		Delete: resourceAlicloudOtsIndexDelete,
+		Create: resourceAliCloudOtsIndexCreate,
+		Read:   resourceAliCloudOtsIndexRead,
+		Delete: resourceAliCloudOtsIndexDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -98,7 +98,7 @@ func resourceAliCloudOtsIndex() *schema.Resource {
 	}
 }
 
-func resourceAlicloudOtsIndexCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOtsIndexCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	otsService, err := NewOtsService(client)
 	if err != nil {
@@ -167,10 +167,10 @@ func resourceAlicloudOtsIndexCreate(d *schema.ResourceData, meta interface{}) er
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAlicloudOtsIndexRead(d, meta)
+	return resourceAliCloudOtsIndexRead(d, meta)
 }
 
-func resourceAlicloudOtsIndexRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOtsIndexRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	otsService, err := NewOtsService(client)
 	if err != nil {
@@ -184,7 +184,7 @@ func resourceAlicloudOtsIndexRead(d *schema.ResourceData, meta interface{}) erro
 
 	object, err := otsService.DescribeOtsIndex(instanceName, tableName, indexName)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ots_index DescribeOtsIndex Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -226,7 +226,7 @@ func resourceAlicloudOtsIndexRead(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceAlicloudOtsIndexDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudOtsIndexDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	otsService, err := NewOtsService(client)
 	if err != nil {
@@ -246,7 +246,7 @@ func resourceAlicloudOtsIndexDelete(d *schema.ResourceData, meta interface{}) er
 
 	err = otsService.DeleteOtsIndex(instanceName, index)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteOtsIndex", AlibabaCloudSdkGoERROR)

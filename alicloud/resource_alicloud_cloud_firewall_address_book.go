@@ -145,7 +145,7 @@ func resourceAliCloudCloudFirewallAddressBookRead(d *schema.ResourceData, meta i
 
 	object, err := cloudfwService.DescribeCloudFirewallAddressBook(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_firewall_address_book cloudfwService.DescribeCloudFirewallAddressBook Failed!!! %s", err)
 			d.SetId("")
 			return nil

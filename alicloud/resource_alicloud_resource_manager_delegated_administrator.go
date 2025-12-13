@@ -71,7 +71,7 @@ func resourceAliCloudResourceManagerDelegatedAdministratorRead(d *schema.Resourc
 	resourceManagerService := ResourceManagerService{client}
 	_, err := resourceManagerService.DescribeResourceManagerDelegatedAdministrator(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_resource_manager_delegated_administrator resourceManagerService.DescribeResourceManagerDelegatedAdministrator Failed!!! %s", err)
 			d.SetId("")
 			return nil

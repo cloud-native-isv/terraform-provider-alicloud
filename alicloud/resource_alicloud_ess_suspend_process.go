@@ -71,7 +71,7 @@ func resourceAliyunEssSuspendRead(d *schema.ResourceData, meta interface{}) erro
 	essService := EssService{client}
 	_, err := essService.DescribeEssScalingGroupSuspendProcess(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

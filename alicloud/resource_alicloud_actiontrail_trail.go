@@ -175,7 +175,7 @@ func resourceAliCloudActiontrailTrailRead(d *schema.ResourceData, meta interface
 	actiontrailService := ActiontrailService{client}
 	object, err := actiontrailService.DescribeActiontrailTrail(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_actiontrail_trail actiontrailService.DescribeActiontrailTrail Failed!!! %s", err)
 			d.SetId("")
 			return nil

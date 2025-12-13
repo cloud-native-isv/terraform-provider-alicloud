@@ -90,7 +90,7 @@ func resourceAliCloudEnsInstanceSecurityGroupAttachmentRead(d *schema.ResourceDa
 
 	objectRaw, err := ensServiceV2.DescribeEnsInstanceSecurityGroupAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ens_instance_security_group_attachment DescribeEnsInstanceSecurityGroupAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil

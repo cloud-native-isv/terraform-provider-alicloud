@@ -390,7 +390,7 @@ func resourceAliCloudFCProvisionConfigRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := fcService.DescribeFCProvisionConfig(functionName, qualifier)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_provision_config DescribeFCProvisionConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -475,7 +475,7 @@ func resourceAliCloudFCProvisionConfigDelete(d *schema.ResourceData, meta interf
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := fcService.DeleteFCProvisionConfig(functionName, qualifier)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				log.Printf("[DEBUG] FC Provision Config not found during deletion for function: %s", functionName)
 				return nil
 			}
@@ -491,7 +491,7 @@ func resourceAliCloudFCProvisionConfigDelete(d *schema.ResourceData, meta interf
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteProvisionConfig", AlibabaCloudSdkGoERROR)

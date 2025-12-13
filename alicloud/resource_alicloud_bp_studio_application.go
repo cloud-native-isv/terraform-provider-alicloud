@@ -266,7 +266,7 @@ func resourceAliCloudBpStudioApplicationRead(d *schema.ResourceData, meta interf
 
 	object, err := bpStudioService.DescribeBpStudioApplication(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

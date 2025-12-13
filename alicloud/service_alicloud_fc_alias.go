@@ -200,7 +200,7 @@ func (s *FCService) AliasStateRefreshFunc(functionName, aliasName string, failSt
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFCAlias(functionName, aliasName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

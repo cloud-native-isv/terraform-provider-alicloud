@@ -84,7 +84,7 @@ func resourceAliCloudPvtzUserVpcAuthorizationRead(d *schema.ResourceData, meta i
 	pvtzService := PvtzService{client}
 	_, err := pvtzService.DescribePvtzUserVpcAuthorization(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_pvtz_user_vpc_authorization pvtzService.DescribePvtzUserVpcAuthorization Failed!!! %s", err)
 			d.SetId("")
 			return nil

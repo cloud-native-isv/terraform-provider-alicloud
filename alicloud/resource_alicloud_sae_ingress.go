@@ -219,7 +219,7 @@ func resourceAliCloudSaeIngressRead(d *schema.ResourceData, meta interface{}) er
 	saeService := SaeService{client}
 	object, err := saeService.DescribeSaeIngress(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sae_ingress saeService.DescribeSaeIngress Failed!!! %s", err)
 			d.SetId("")
 			return nil

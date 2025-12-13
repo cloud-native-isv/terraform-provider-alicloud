@@ -114,7 +114,7 @@ func resourceAliCloudMscSubSubscriptionRead(d *schema.ResourceData, meta interfa
 	mscOpenSubscriptionService := MscOpenSubscriptionService{client}
 	object, err := mscOpenSubscriptionService.DescribeMscSubSubscription(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_msc_sub_subscription mscOpenSubscriptionService.DescribeMscSubSubscription Failed!!! %s", err)
 			d.SetId("")
 			return nil

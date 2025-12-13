@@ -112,7 +112,7 @@ func resourceAliCloudDfsAccessRuleRead(d *schema.ResourceData, meta interface{})
 
 	objectRaw, err := dfsServiceV2.DescribeDfsAccessRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dfs_access_rule DescribeDfsAccessRule Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -117,7 +117,7 @@ func resourceAliyunSlbMasterSlaveServerGroupRead(d *schema.ResourceData, meta in
 	object, err := slbService.DescribeSlbMasterSlaveServerGroup(d.Id())
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -159,7 +159,7 @@ func resourceAliyunSlbMasterSlaveServerGroupDelete(d *schema.ResourceData, meta 
 		lbId := d.Get("load_balancer_id").(string)
 		lbInstance, err := slbService.DescribeSlb(lbId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return WrapError(err)

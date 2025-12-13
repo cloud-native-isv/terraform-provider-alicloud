@@ -381,7 +381,7 @@ func resourceAliCloudDbsBackupPlanRead(d *schema.ResourceData, meta interface{})
 	dbsService := DbsService{client}
 	object, err := dbsService.DescribeDbsBackupPlan(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dbs_backup_plan dbsService.DescribeDbsBackupPlan Failed!!! %s", err)
 			d.SetId("")
 			return nil

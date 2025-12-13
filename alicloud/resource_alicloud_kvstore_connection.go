@@ -76,7 +76,7 @@ func resourceAliCloudKvstoreConnectionRead(d *schema.ResourceData, meta interfac
 	r_kvstoreService := R_kvstoreService{client}
 	object, err := r_kvstoreService.DescribeKvstoreConnection(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_kvstore_connection r_kvstoreService.DescribeKvstoreConnection Failed!!! %s", err)
 			d.SetId("")
 			return nil

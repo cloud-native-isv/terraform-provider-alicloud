@@ -285,7 +285,7 @@ func (s *PolarDBService) WaitForPolarDBAccountPrivilege(id, dbName string, statu
 	for {
 		object, err := s.DescribePolarDBAccountPrivilege(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -358,7 +358,7 @@ func (s *PolarDBService) WaitForPolarDBConnection(id string, status Status, time
 	for {
 		object, err := s.DescribePolarDBConnectionV2(id, "Public")
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -387,7 +387,7 @@ func (s *PolarDBService) WaitPolardbEndpointConfigEffect(id string, item map[str
 		object, err := s.DescribePolarDBInstanceNetInfo(parts[0])
 
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 			}
 			return WrapError(err)
@@ -502,7 +502,7 @@ func (s *PolarDBService) DescribePolarDBConnectionV2(id string, netType string) 
 		object, err := s.DescribePolarDBInstanceNetInfo(parts[0])
 
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 			}
 			return nil, WrapError(err)
@@ -538,7 +538,7 @@ func (s *PolarDBService) DescribePolarDBConnection(id string) (*polardb.Address,
 		object, err := s.DescribePolarDBInstanceNetInfo(parts[0])
 
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 			}
 			return nil, WrapError(err)
@@ -709,7 +709,7 @@ func (s *PolarDBService) WaitForPolarDBDatabase(id string, status Status, timeou
 	for {
 		object, err := s.DescribePolarDBDatabase(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -735,7 +735,7 @@ func (s *PolarDBService) WaitForPolarDBAccount(id string, status Status, timeout
 	for {
 		object, err := s.DescribePolarDBAccount(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -798,7 +798,7 @@ func (s *PolarDBService) WaitForPolarDBInstance(id string, status Status, timeou
 	for {
 		object, err := s.DescribePolarDBCluster(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1157,7 +1157,7 @@ func (s *PolarDBService) WaitForCluster(id string, status Status, timeout int) e
 	for {
 		object, err := s.DescribePolarDBClusterAttribute(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -1373,7 +1373,7 @@ func (s *PolarDBService) PolarDBClusterStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePolarDBClusterAttribute(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1556,7 +1556,7 @@ func (s *PolarDBService) PolarDBClusterTDEStateRefreshFunc(id string, failStates
 
 		object, err := s.DescribeDBClusterTDE(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1745,7 +1745,7 @@ func (s *PolarDBService) PolarDBClusterCategoryRefreshFunc(id string, failStates
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePolarDBClusterAttribute(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1800,7 +1800,7 @@ func (s *PolarDBService) PolarDBGlobalDatabaseNetworkRefreshFunc(id string, fail
 
 		object, err := s.DescribePolarDBGlobalDatabaseNetwork(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1961,7 +1961,7 @@ func (s *PolarDBService) PolarDBClusterProxyStateRefreshFunc(id string, failStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribePolarDBClusterAttribute(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

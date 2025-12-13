@@ -123,7 +123,7 @@ func resourceAliCloudDmsEnterpriseUserRead(d *schema.ResourceData, meta interfac
 	dmsEnterpriseService := DmsEnterpriseService{client}
 	object, err := dmsEnterpriseService.DescribeDmsEnterpriseUser(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dms_enterprise_user dmsEnterpriseService.DescribeDmsEnterpriseUser Failed!!! %s", err)
 			d.SetId("")
 			return nil

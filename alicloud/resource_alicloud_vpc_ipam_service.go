@@ -77,7 +77,7 @@ func resourceAliCloudVpcIpamServiceRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := vpcIpamServiceV2.DescribeVpcIpamService(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_ipam_service DescribeVpcIpamService Failed!!! %s", err)
 			d.SetId("")
 			return nil

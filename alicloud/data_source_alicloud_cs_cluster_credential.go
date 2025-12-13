@@ -125,7 +125,7 @@ func csClusterAuthDescriptionAttributes(d *schema.ResourceData, meta interface{}
 	d.Set("cluster_name", tea.StringValue(cluster.Name))
 	d.Set("kube_config", tea.StringValue(credential.Config))
 	d.Set("expiration", tea.StringValue(credential.Expiration))
-	d.Set("certificate_authority", flattenAlicloudCSCertificate(credential))
+	d.Set("certificate_authority", flattenAliCloudCSCertificate(credential))
 	d.SetId(dataResourceIdHash([]string{clusterId}))
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {

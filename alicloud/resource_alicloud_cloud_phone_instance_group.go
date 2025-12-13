@@ -182,7 +182,7 @@ func resourceAliCloudCloudPhoneInstanceGroupRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := cloudPhoneServiceV2.DescribeCloudPhoneInstanceGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_phone_instance_group DescribeCloudPhoneInstanceGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -268,7 +268,7 @@ func resourceAliCloudCloudPhoneInstanceGroupDelete(d *schema.ResourceData, meta 
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

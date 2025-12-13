@@ -1330,7 +1330,7 @@ func resourceAliCloudEciContainerGroupRead(d *schema.ResourceData, meta interfac
 	eciService := EciService{client}
 	object, err := eciService.DescribeEciContainerGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eci_openapi_container_group eciService.DescribeEciContainerGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

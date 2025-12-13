@@ -29,7 +29,7 @@ func (s *OssService) DescribeOssBucketReplication(id string) (response string, e
 		Bucket: bucket,
 	})
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return response, WrapErrorf(err, NotFoundMsg, AliyunOssGoSdk)
 		}
 		return response, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketReplication", AliyunOssGoSdk)

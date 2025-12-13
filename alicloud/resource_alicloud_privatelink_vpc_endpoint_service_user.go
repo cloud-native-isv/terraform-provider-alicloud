@@ -99,7 +99,7 @@ func resourceAliCloudPrivateLinkVpcEndpointServiceUserRead(d *schema.ResourceDat
 
 	objectRaw, err := privateLinkServiceV2.DescribePrivateLinkVpcEndpointServiceUser(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_privatelink_vpc_endpoint_service_user DescribePrivateLinkVpcEndpointServiceUser Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -118,7 +118,7 @@ func resourceAliCloudPrivateLinkVpcEndpointServiceUserRead(d *schema.ResourceDat
 }
 
 func resourceAliCloudPrivateLinkVpcEndpointServiceUserUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[INFO] Cannot update resource Alicloud Resource Vpc Endpoint Service User.")
+	log.Printf("[INFO] Cannot update resource AliCloud Resource Vpc Endpoint Service User.")
 	return nil
 }
 
@@ -160,7 +160,7 @@ func resourceAliCloudPrivateLinkVpcEndpointServiceUserDelete(d *schema.ResourceD
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

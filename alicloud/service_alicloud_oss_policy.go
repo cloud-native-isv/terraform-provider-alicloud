@@ -21,7 +21,7 @@ func (s *OssService) DescribeOssBucketPolicy(id string) (object map[string]inter
 
 	policy, err := ossAPI.GetBucketPolicy(id)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("BucketPolicy", id), NotFoundMsg, err)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketPolicy", AlibabaCloudSdkGoERROR)
@@ -40,7 +40,7 @@ func (s *OssService) OssBucketPolicyStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketPolicy(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -228,7 +228,7 @@ func resourceAliCloudRdsDBProxyRead(d *schema.ResourceData, meta interface{}) er
 	}
 	proxy, proxyErr := rdsService.DescribeDBProxy(d.Id())
 	if proxyErr != nil {
-		if IsNotFoundError(proxyErr) {
+		if NotFoundError(proxyErr) {
 			d.SetId("")
 			return nil
 		}
@@ -241,7 +241,7 @@ func resourceAliCloudRdsDBProxyRead(d *schema.ResourceData, meta interface{}) er
 
 	endpointInfo, endpointError := rdsService.DescribeRdsProxyEndpoint(d.Id())
 	if endpointError != nil {
-		if IsNotFoundError(endpointError) {
+		if NotFoundError(endpointError) {
 			d.SetId("")
 			return nil
 		}
@@ -289,7 +289,7 @@ func resourceAliCloudRdsDBProxyRead(d *schema.ResourceData, meta interface{}) er
 	}
 	proxySsl, proxySslError := rdsService.GetDbProxyInstanceSsl(d.Id())
 	if proxySslError != nil {
-		if IsNotFoundError(endpointError) {
+		if NotFoundError(endpointError) {
 			d.SetId("")
 			return nil
 		}
@@ -309,7 +309,7 @@ func resourceAliCloudRdsDBProxyUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	proxy, proxyErr := rdsService.DescribeDBProxy(d.Id())
 	if proxyErr != nil {
-		if IsNotFoundError(proxyErr) {
+		if NotFoundError(proxyErr) {
 			d.SetId("")
 			return nil
 		}
@@ -475,7 +475,7 @@ func resourceAliCloudRdsDBProxyUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 		ProxyEndpoint, ProxyEndpointErr := rdsService.DescribeRdsProxyEndpoint(d.Id())
 		if ProxyEndpointErr != nil {
-			if IsNotFoundError(ProxyEndpointErr) {
+			if NotFoundError(ProxyEndpointErr) {
 				d.SetId("")
 				return nil
 			}
@@ -551,7 +551,7 @@ func resourceAliCloudRdsDBProxyDelete(d *schema.ResourceData, meta interface{}) 
 	}
 	_, proxyErr := rdsService.DescribeDBProxy(d.Id())
 	if proxyErr != nil {
-		if IsNotFoundError(proxyErr) {
+		if NotFoundError(proxyErr) {
 			return nil
 		}
 		return WrapError(proxyErr)
@@ -569,7 +569,7 @@ func resourceAliCloudRdsDBProxyDelete(d *schema.ResourceData, meta interface{}) 
 			if IsExpectedErrors(err, OperationDeniedDBStatus) || NeedRetry(err) {
 				return resource.RetryableError(err)
 			}
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			return resource.NonRetryableError(err)

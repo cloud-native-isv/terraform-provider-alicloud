@@ -64,7 +64,7 @@ func (s *ExpressConnectServiceV2) ExpressConnectEcFailoverTestJobStateRefreshFun
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectEcFailoverTestJob(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -131,7 +131,7 @@ func (s *ExpressConnectServiceV2) ExpressConnectBgpPeerStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectBgpPeer(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -201,7 +201,7 @@ func (s *ExpressConnectServiceV2) ExpressConnectTrafficQosStateRefreshFunc(id st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectTrafficQos(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -286,7 +286,7 @@ func (s *ExpressConnectServiceV2) ExpressConnectTrafficQosAssociationStateRefres
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectTrafficQosAssociation(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -347,7 +347,7 @@ func (s *ExpressConnectServiceV2) DescribeAsyncExpressConnectTrafficQosAssociati
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncTrafficQosAssociationDescribeExpressConnectTrafficQos(d, res)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -425,7 +425,7 @@ func (s *ExpressConnectServiceV2) ExpressConnectTrafficQosQueueStateRefreshFunc(
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectTrafficQosQueue(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -486,7 +486,7 @@ func (s *ExpressConnectServiceV2) DescribeAsyncExpressConnectTrafficQosQueueStat
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncTrafficQosQueueDescribeExpressConnectTrafficQos(d, res)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -565,7 +565,7 @@ func (s *ExpressConnectServiceV2) ExpressConnectTrafficQosRuleStateRefreshFunc(i
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeExpressConnectTrafficQosRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -626,7 +626,7 @@ func (s *ExpressConnectServiceV2) DescribeAsyncExpressConnectTrafficQosRuleState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAsyncTrafficQosRuleDescribeExpressConnectTrafficQos(d, res)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

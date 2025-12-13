@@ -122,7 +122,7 @@ func resourceAliCloudArmsEnvCustomJobRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := armsService.DescribeArmsEnvCustomJob(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_env_custom_job DescribeArmsEnvCustomJob Failed!!! %s", err)
 			d.SetId("")
 			return nil

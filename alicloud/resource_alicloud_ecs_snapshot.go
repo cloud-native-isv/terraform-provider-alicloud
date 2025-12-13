@@ -167,7 +167,7 @@ func resourceAliCloudEcsSnapshotRead(d *schema.ResourceData, meta interface{}) e
 
 	objectRaw, err := ecsServiceV2.DescribeEcsSnapshot(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_snapshot DescribeEcsSnapshot Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -346,7 +346,7 @@ func resourceAliCloudEcsSnapshotDelete(d *schema.ResourceData, meta interface{})
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidResource.NotFound", "InvalidParameter"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidResource.NotFound", "InvalidParameter"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

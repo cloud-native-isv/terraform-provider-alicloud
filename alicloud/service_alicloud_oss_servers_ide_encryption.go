@@ -24,7 +24,7 @@ func (s *OssService) DescribeOssBucketServerSideEncryption(id string) (object ma
 		Bucket: id,
 	})
 	if err != nil {
-		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"NoSuchServerSideEncryptionRule", "NoSuchBucket"}) {
+		if NotFoundError(err) || IsExpectedErrors(err, []string{"NoSuchServerSideEncryptionRule", "NoSuchBucket"}) {
 			return object, WrapErrorf(NotFoundErr("BucketServerSideEncryption", id), NotFoundMsg, err)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketEncryption", AlibabaCloudSdkGoERROR)
@@ -43,7 +43,7 @@ func (s *OssService) OssBucketServerSideEncryptionStateRefreshFunc(id string, fi
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketServerSideEncryption(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -148,7 +148,7 @@ func resourceAliCloudAligreenKeywordLibRead(d *schema.ResourceData, meta interfa
 
 	objectRaw, err := aligreenServiceV2.DescribeAligreenKeywordLib(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_aligreen_keyword_lib DescribeAligreenKeywordLib Failed!!! %s", err)
 			d.SetId("")
 			return nil

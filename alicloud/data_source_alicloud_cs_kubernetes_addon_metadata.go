@@ -13,11 +13,11 @@ import (
 )
 
 const MASKED_CONFIG_KEY_PREFIX = "x-ui"
-const DatasourceAlicloudCSKubernetesAddonMetadata = "alicloud_cs_kubernetes_addon_metadata"
+const DatasourceAliCloudCSKubernetesAddonMetadata = "alicloud_cs_kubernetes_addon_metadata"
 
 func dataSourceAliCloudCSKubernetesAddonMetadata() *schema.Resource {
 	return &schema.Resource{
-		Read: dataAlicloudCSKubernetesAddonMetadataRead,
+		Read: dataAliCloudCSKubernetesAddonMetadataRead,
 
 		Schema: map[string]*schema.Schema{
 			"cluster_id": {
@@ -40,7 +40,7 @@ func dataSourceAliCloudCSKubernetesAddonMetadata() *schema.Resource {
 	}
 }
 
-func dataAlicloudCSKubernetesAddonMetadataRead(d *schema.ResourceData, meta interface{}) error {
+func dataAliCloudCSKubernetesAddonMetadataRead(d *schema.ResourceData, meta interface{}) error {
 	clusterId := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
 	version := d.Get("version").(string)
@@ -48,12 +48,12 @@ func dataAlicloudCSKubernetesAddonMetadataRead(d *schema.ResourceData, meta inte
 	component, err := DescribeClusterAddonMetadata(d, meta)
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, DatasourceAlicloudCSKubernetesAddonMetadata, "DescribeClusterAddonMetadata", err)
+		return WrapErrorf(err, DefaultErrorMsg, DatasourceAliCloudCSKubernetesAddonMetadata, "DescribeClusterAddonMetadata", err)
 	}
 
 	config, err := fetchJsonSchema(component.ConfigSchema)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, DatasourceAlicloudCSKubernetesAddonMetadata, "DescribeClusterAddonMetadata", err)
+		return WrapErrorf(err, DefaultErrorMsg, DatasourceAliCloudCSKubernetesAddonMetadata, "DescribeClusterAddonMetadata", err)
 	}
 
 	d.Set("cluster_id", clusterId)
@@ -85,16 +85,16 @@ func fetchJsonSchema(schema string) (string, error) {
 	}
 	var i interface{}
 	if err := json.Unmarshal([]byte(schema), &i); err != nil {
-		return "", WrapErrorf(err, DefaultErrorMsg, DatasourceAlicloudCSKubernetesAddonMetadata, "fetchJsonSchema", err)
+		return "", WrapErrorf(err, DefaultErrorMsg, DatasourceAliCloudCSKubernetesAddonMetadata, "fetchJsonSchema", err)
 	}
 	if v, ok := i.(map[string]interface{}); ok {
 		result, err := json.MarshalIndent(parseNode(v), "", "\t")
 		if err != nil {
-			return "", WrapErrorf(Error("addon config schema marshal error"), DefaultErrorMsg, DatasourceAlicloudCSKubernetesAddonMetadata, "fetchJsonSchema")
+			return "", WrapErrorf(Error("addon config schema marshal error"), DefaultErrorMsg, DatasourceAliCloudCSKubernetesAddonMetadata, "fetchJsonSchema")
 		}
 		return string(result), nil
 	}
-	return "", WrapErrorf(Error("addon config schema parse error"), DefaultErrorMsg, DatasourceAlicloudCSKubernetesAddonMetadata, "fetchJsonSchema")
+	return "", WrapErrorf(Error("addon config schema parse error"), DefaultErrorMsg, DatasourceAliCloudCSKubernetesAddonMetadata, "fetchJsonSchema")
 }
 
 func parseNode(p map[string]interface{}) map[string]interface{} {

@@ -84,7 +84,7 @@ func resourceAliCloudExpressConnectGrantRuleToCenRead(d *schema.ResourceData, me
 
 	object, err := vpcService.DescribeExpressConnectGrantRuleToCen(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

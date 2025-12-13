@@ -221,7 +221,7 @@ func resourceAliCloudServiceCatalogProvisionedProductRead(d *schema.ResourceData
 
 	object, err := servicecatalogService.DescribeServiceCatalogProvisionedProduct(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_service_catalog_provisioned_product servicecatalogService.DescribeServiceCatalogProvisionedProduct Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -370,7 +370,7 @@ func resourceAliCloudServiceCatalogProvisionedProductDelete(d *schema.ResourceDa
 		return nil
 	})
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidProvisionedProduct.NotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidProvisionedProduct.NotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

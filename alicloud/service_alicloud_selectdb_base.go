@@ -77,7 +77,7 @@ func (s *SelectDBService) DescribeSelectDBInstance(instanceId string) (*selectdb
 
 	instance, err := s.GetAPI().GetInstance(instanceId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)

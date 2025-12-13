@@ -315,7 +315,7 @@ func resourceAliCloudVpcVpcRead(d *schema.ResourceData, meta interface{}) error 
 
 	objectRaw, err := vpcServiceV2.DescribeVpcVpc(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc DescribeVpcVpc Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -359,7 +359,7 @@ func resourceAliCloudVpcVpcRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("user_cidrs", userCidrRaw)
 
 	objectRaw, err = vpcServiceV2.DescribeVpcDescribeRouteTableList(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -744,7 +744,7 @@ func resourceAliCloudVpcVpcDelete(d *schema.ResourceData, meta interface{}) erro
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidResource.NotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidResource.NotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

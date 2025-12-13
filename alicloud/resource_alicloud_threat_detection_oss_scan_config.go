@@ -142,7 +142,7 @@ func resourceAliCloudThreatDetectionOssScanConfigRead(d *schema.ResourceData, me
 
 	objectRaw, err := threatDetectionServiceV2.DescribeThreatDetectionOssScanConfig(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_oss_scan_config DescribeThreatDetectionOssScanConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil

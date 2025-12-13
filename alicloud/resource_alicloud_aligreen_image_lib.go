@@ -109,7 +109,7 @@ func resourceAliCloudAligreenImageLibRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := aligreenServiceV2.DescribeAligreenImageLib(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_aligreen_image_lib DescribeAligreenImageLib Failed!!! %s", err)
 			d.SetId("")
 			return nil

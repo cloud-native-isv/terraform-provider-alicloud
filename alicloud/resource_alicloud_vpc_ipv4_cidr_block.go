@@ -117,7 +117,7 @@ func resourceAliCloudVpcIpv4CidrBlockRead(d *schema.ResourceData, meta interface
 
 	objectRaw, err := vpcServiceV2.DescribeVpcIpv4CidrBlock(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_vpc_ipv4_cidr_block DescribeVpcIpv4CidrBlock Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -142,7 +142,7 @@ func resourceAliCloudVpcIpv4CidrBlockRead(d *schema.ResourceData, meta interface
 }
 
 func resourceAliCloudVpcIpv4CidrBlockUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[INFO] Cannot update resource Alicloud Resource Ipv4 Cidr Block.")
+	log.Printf("[INFO] Cannot update resource AliCloud Resource Ipv4 Cidr Block.")
 	return nil
 }
 
@@ -179,7 +179,7 @@ func resourceAliCloudVpcIpv4CidrBlockDelete(d *schema.ResourceData, meta interfa
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

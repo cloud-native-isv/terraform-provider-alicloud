@@ -91,7 +91,7 @@ func resourceAliCloudOssBucketVersioningRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketVersioning(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_versioning DescribeOssBucketVersioning Failed!!! %s", err)
 			d.SetId("")
 			return nil

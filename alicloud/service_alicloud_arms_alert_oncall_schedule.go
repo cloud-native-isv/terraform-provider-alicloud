@@ -33,7 +33,7 @@ func (s *ArmsService) DescribeArmsOnCallSchedule(scheduleId string, startTime, e
 
 	schedule, err := s.armsAPI.GetOnCallScheduleDetail(id, startTime, endTime)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapErrorf(err, DefaultErrorMsg, scheduleId, "GetOnCallScheduleDetail", AlibabaCloudSdkGoERROR)
@@ -57,7 +57,7 @@ func (s *ArmsService) ArmsOnCallScheduleStateRefreshFunc(id string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeArmsOnCallSchedule(id, "", "")
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

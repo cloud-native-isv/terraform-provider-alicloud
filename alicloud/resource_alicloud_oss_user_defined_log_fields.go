@@ -113,7 +113,7 @@ func resourceAliCloudOssBucketUserDefinedLogFieldsRead(d *schema.ResourceData, m
 
 	objectRaw, err := ossServiceV2.DescribeOssBucketUserDefinedLogFields(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_oss_bucket_user_defined_log_fields DescribeOssBucketUserDefinedLogFields Failed!!! %s", err)
 			d.SetId("")
 			return nil

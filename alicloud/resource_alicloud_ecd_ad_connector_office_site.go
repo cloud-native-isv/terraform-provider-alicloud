@@ -211,7 +211,7 @@ func resourceAliCloudEcdAdConnectorOfficeSiteRead(d *schema.ResourceData, meta i
 	ecdService := EcdService{client}
 	object, err := ecdService.DescribeEcdAdConnectorOfficeSite(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecd_ad_connector_office_site ecdService.DescribeEcdAdConnectorOfficeSite Failed!!! %s", err)
 			d.SetId("")
 			return nil

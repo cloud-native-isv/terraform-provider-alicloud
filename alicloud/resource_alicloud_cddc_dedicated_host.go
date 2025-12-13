@@ -164,7 +164,7 @@ func resourceAliCloudCddcDedicatedHostRead(d *schema.ResourceData, meta interfac
 	cddcService := CddcService{client}
 	object, err := cddcService.DescribeCddcDedicatedHost(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cddc_dedicated_host cddcService.DescribeCddcDedicatedHost Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -271,7 +271,7 @@ func resourceAliCloudCddcDedicatedHostUpdate(d *schema.ResourceData, meta interf
 	return resourceAliCloudCddcDedicatedHostRead(d, meta)
 }
 func resourceAliCloudCddcDedicatedHostDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resource AlicloudResourceCddcDedicatedHost. Terraform will remove this resource from the state file, however resources may remain.")
+	log.Printf("[WARN] Cannot destroy resource AliCloudResourceCddcDedicatedHost. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }
 

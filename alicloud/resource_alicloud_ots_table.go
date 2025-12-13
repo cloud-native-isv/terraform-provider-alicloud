@@ -202,7 +202,7 @@ func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) erro
 	if err := resource.Retry(1*time.Minute, func() *resource.RetryError {
 		_, e := otsService.DescribeOtsInstance(instanceName)
 		if e != nil {
-			if IsNotFoundError(e) {
+			if NotFoundError(e) {
 				return resource.RetryableError(e)
 			}
 			return resource.NonRetryableError(e)
@@ -368,7 +368,7 @@ func resourceAliyunOtsTableRead(d *schema.ResourceData, meta interface{}) error 
 
 	table, err := otsService.DescribeOtsTable(instanceName, tableName)
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -521,7 +521,7 @@ func resourceAliyunOtsTableDelete(d *schema.ResourceData, meta interface{}) erro
 		}
 		err := otsService.DeleteOtsTable(instanceName, tableName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil
 			}
 			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable"}) {

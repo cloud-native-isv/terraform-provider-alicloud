@@ -149,7 +149,7 @@ func resourceAliCloudDtsMigrationInstanceRead(d *schema.ResourceData, meta inter
 	dtsService := DtsService{client}
 	object, err := dtsService.DescribeDtsMigrationInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dts_migration_instance dtsService.DescribeDtsMigrationInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

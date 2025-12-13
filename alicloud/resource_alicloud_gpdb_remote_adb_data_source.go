@@ -142,7 +142,7 @@ func resourceAliCloudGpdbRemoteADBDataSourceRead(d *schema.ResourceData, meta in
 
 	objectRaw, err := gpdbServiceV2.DescribeGpdbRemoteADBDataSource(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_gpdb_remote_adb_data_source DescribeGpdbRemoteADBDataSource Failed!!! %s", err)
 			d.SetId("")
 			return nil

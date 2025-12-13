@@ -23,7 +23,7 @@ func (s *OssService) DescribeOssBucketRequestPayment(id string) (object map[stri
 		Bucket: id,
 	})
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return object, WrapErrorf(NotFoundErr("BucketRequestPayment", id), NotFoundMsg, err)
 		}
 		return object, WrapErrorf(err, DefaultErrorMsg, id, "GetBucketRequestPayment", AlibabaCloudSdkGoERROR)
@@ -42,7 +42,7 @@ func (s *OssService) OssBucketRequestPaymentStateRefreshFunc(id string, field st
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeOssBucketRequestPayment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

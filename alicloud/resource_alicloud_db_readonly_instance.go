@@ -394,7 +394,7 @@ func resourceAliCloudDBReadonlyInstanceUpdate(d *schema.ResourceData, meta inter
 	if sslUpdate {
 		instance, err := rdsService.DescribeDBInstance(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				d.SetId("")
 				return nil
 			}
@@ -733,7 +733,7 @@ func resourceAliCloudDBReadonlyInstanceRead(d *schema.ResourceData, meta interfa
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -843,7 +843,7 @@ func resourceAliCloudDBReadonlyInstanceDelete(d *schema.ResourceData, meta inter
 
 	instance, err := rdsService.DescribeDBInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)
@@ -870,7 +870,7 @@ func resourceAliCloudDBReadonlyInstanceDelete(d *schema.ResourceData, meta inter
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

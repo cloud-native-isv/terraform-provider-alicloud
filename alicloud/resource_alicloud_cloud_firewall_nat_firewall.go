@@ -198,7 +198,7 @@ func resourceAliCloudCloudFirewallNatFirewallRead(d *schema.ResourceData, meta i
 
 	objectRaw, err := cloudFirewallServiceV2.DescribeCloudFirewallNatFirewall(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_firewall_nat_firewall DescribeCloudFirewallNatFirewall Failed!!! %s", err)
 			d.SetId("")
 			return nil

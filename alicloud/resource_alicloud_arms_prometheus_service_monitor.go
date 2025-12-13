@@ -123,7 +123,7 @@ func resourceAliCloudArmsEnvServiceMonitorRead(d *schema.ResourceData, meta inte
 
 	objectRaw, err := armsService.DescribeArmsEnvServiceMonitor(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_env_service_monitor DescribeArmsEnvServiceMonitor Failed!!! %s", err)
 			d.SetId("")
 			return nil

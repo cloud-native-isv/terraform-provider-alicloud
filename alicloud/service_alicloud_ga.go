@@ -61,7 +61,7 @@ func (s *GaService) GaAcceleratorStateRefreshFunc(id string, failStates []string
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaAccelerator(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -116,7 +116,7 @@ func (s *GaService) GaListenerStateRefreshFunc(id string, failStates []string) r
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaListener(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -178,7 +178,7 @@ func (s *GaService) GaBandwidthPackageStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaBandwidthPackage(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -387,7 +387,7 @@ func (s *GaService) GaBandwidthPackageAttachmentStateRefreshFunc(id string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaBandwidthPackageAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -408,7 +408,7 @@ func (s *GaService) GaEndpointGroupStateRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaEndpointGroup(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -428,7 +428,7 @@ func (s *GaService) GaForwardingRuleStateRefreshFunc(id string, failStates []str
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaForwardingRule(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -449,7 +449,7 @@ func (s *GaService) GaIpSetStateRefreshFunc(d *schema.ResourceData, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaIpSet(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -534,7 +534,7 @@ func (s *GaService) GaAclStateRefreshFunc(id string, failStates []string) resour
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaAcl(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -644,7 +644,7 @@ func (s *GaService) GaAclAttachmentStateRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaAclAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -767,7 +767,7 @@ func (s *GaService) GaAcceleratorSpareIpAttachmentStateRefreshFunc(id string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaAcceleratorSpareIpAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -865,7 +865,7 @@ func (s *GaService) GaAccessLogStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaAccessLog(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -981,7 +981,7 @@ func (s *GaService) GaBasicAcceleratorStateRefreshFunc(id string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaBasicAccelerator(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1042,7 +1042,7 @@ func (s *GaService) GaBasicEndpointGroupStateRefreshFunc(id string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaBasicEndpointGroup(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1103,7 +1103,7 @@ func (s *GaService) GaBasicIpSetStateRefreshFunc(id string, failStates []string)
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaBasicIpSet(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1164,7 +1164,7 @@ func (s *GaService) GaBasicAccelerateIpStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaBasicAccelerateIp(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1230,7 +1230,7 @@ func (s *GaService) GaBasicEndpointStateRefreshFunc(id string, failStates []stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaBasicEndpoint(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1299,7 +1299,7 @@ func (s *GaService) GaBasicAccelerateIpEndpointRelationStateRefreshFunc(id strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaBasicAccelerateIpEndpointRelation(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1406,7 +1406,7 @@ func (s *GaService) GaCustomRoutingEndpointGroupStateRefreshFunc(id string, fail
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaCustomRoutingEndpointGroup(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1478,7 +1478,7 @@ func (s *GaService) GaCustomRoutingEndpointGroupDestinationStateRefreshFunc(id s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaCustomRoutingEndpointGroupDestination(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1551,7 +1551,7 @@ func (s *GaService) GaCustomRoutingEndpointStateRefreshFunc(id string, failState
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaCustomRoutingEndpoint(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -1624,7 +1624,7 @@ func (s *GaService) GaCustomRoutingEndpointTrafficPolicyStateRefreshFunc(id stri
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeGaCustomRoutingEndpointTrafficPolicy(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

@@ -123,7 +123,7 @@ func resourceAliCloudLogDashboardRead(d *schema.ResourceData, meta interface{}) 
 	}
 	dashboard, err := logService.DescribeSlsDashboard(parts[0], parts[1])
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

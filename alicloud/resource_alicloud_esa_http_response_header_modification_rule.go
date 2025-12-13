@@ -150,7 +150,7 @@ func resourceAliCloudEsaHttpResponseHeaderModificationRuleRead(d *schema.Resourc
 
 	objectRaw, err := esaServiceV2.DescribeEsaHttpResponseHeaderModificationRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_esa_http_response_header_modification_rule DescribeEsaHttpResponseHeaderModificationRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -300,7 +300,7 @@ func resourceAliCloudEsaHttpResponseHeaderModificationRuleDelete(d *schema.Resou
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

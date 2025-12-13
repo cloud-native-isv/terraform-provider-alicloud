@@ -127,7 +127,7 @@ func resourceAliCloudThreatDetectionMaliciousFileWhitelistConfigRead(d *schema.R
 
 	objectRaw, err := threatDetectionServiceV2.DescribeThreatDetectionMaliciousFileWhitelistConfig(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_threat_detection_malicious_file_whitelist_config DescribeThreatDetectionMaliciousFileWhitelistConfig Failed!!! %s", err)
 			d.SetId("")
 			return nil

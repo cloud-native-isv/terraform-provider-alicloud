@@ -247,7 +247,7 @@ func resourceAliCloudFlinkJobCreate(d *schema.ResourceData, meta interface{}) er
 			withSavepoint := true // Use savepoint when stopping existing job
 			stopErr := flinkService.StopJob(existingJobId, withSavepoint)
 			if stopErr != nil {
-				if !IsNotFoundError(stopErr) {
+				if !NotFoundError(stopErr) {
 					return WrapErrorf(stopErr, DefaultErrorMsg, existingJobId, "StopJob", AlibabaCloudSdkGoERROR)
 				}
 			}
@@ -312,7 +312,7 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 
 	job, err := flinkService.DescribeFlinkJob(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -328,7 +328,7 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 
 		deploymentResourceId := fmt.Sprintf("%s:%s:%s", workspaceId, namespaceName, deploymentId)
 		_, deploymentErr := flinkService.GetDeployment(deploymentResourceId)
-		if deploymentErr != nil && IsNotFoundError(deploymentErr) {
+		if deploymentErr != nil && NotFoundError(deploymentErr) {
 			// Parent deployment no longer exists, remove job from state
 			d.SetId("")
 			return nil
@@ -454,7 +454,7 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 	// StopJob now handles status checking internally
 	stopErr := flinkService.StopJob(d.Id(), withSavepoint)
 	if stopErr != nil {
-		if IsNotFoundError(stopErr) {
+		if NotFoundError(stopErr) {
 			return nil
 		}
 		return WrapError(stopErr)
@@ -467,7 +467,7 @@ func resourceAliCloudFlinkJobDelete(d *schema.ResourceData, meta interface{}) er
 
 	err = flinkService.DeleteJob(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

@@ -92,7 +92,7 @@ func resourceAliCloudCloudPhoneImageRead(d *schema.ResourceData, meta interface{
 
 	objectRaw, err := cloudPhoneServiceV2.DescribeCloudPhoneImage(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cloud_phone_image DescribeCloudPhoneImage Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -173,7 +173,7 @@ func resourceAliCloudCloudPhoneImageDelete(d *schema.ResourceData, meta interfac
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

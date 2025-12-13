@@ -95,7 +95,7 @@ func resourceAliCloudMseZnodeRead(d *schema.ResourceData, meta interface{}) erro
 	mseService := MseService{client}
 	object, err := mseService.DescribeMseZnode(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mse_znode mseService.DescribeMseZnode Failed!!! %s", err)
 			d.SetId("")
 			return nil

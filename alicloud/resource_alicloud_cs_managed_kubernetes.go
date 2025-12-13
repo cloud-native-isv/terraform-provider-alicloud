@@ -1080,7 +1080,7 @@ func resourceAliCloudCSManagedKubernetesRead(d *schema.ResourceData, meta interf
 
 	object, err := csClient.DescribeClusterDetail(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cs_managed_kubernetes DescribeClusterDetail Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -1323,7 +1323,7 @@ func resourceAliCloudCSManagedKubernetesUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	err := UpgradeAlicloudKubernetesCluster(d, meta)
+	err := UpgradeAliCloudKubernetesCluster(d, meta)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -1332,7 +1332,7 @@ func resourceAliCloudCSManagedKubernetesUpdate(d *schema.ResourceData, meta inte
 	return resourceAliCloudCSManagedKubernetesRead(d, meta)
 }
 
-func UpgradeAlicloudKubernetesCluster(d *schema.ResourceData, meta interface{}) error {
+func UpgradeAliCloudKubernetesCluster(d *schema.ResourceData, meta interface{}) error {
 	if !d.HasChange("version") {
 		return nil
 	}
@@ -1400,7 +1400,7 @@ func UpgradeAlicloudKubernetesCluster(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func migrateAlicloudManagedKubernetesCluster(d *schema.ResourceData, meta interface{}) error {
+func migrateAliCloudManagedKubernetesCluster(d *schema.ResourceData, meta interface{}) error {
 	action := "MigrateCluster"
 	client := meta.(*connectivity.AliyunClient)
 	csService := CsService{client}

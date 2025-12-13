@@ -121,7 +121,7 @@ func resourceAliCloudApigHttpApiRead(d *schema.ResourceData, meta interface{}) e
 
 	objectRaw, err := apigServiceV2.DescribeApigHttpApi(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_apig_http_api DescribeApigHttpApi Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -276,7 +276,7 @@ func resourceAliCloudApigHttpApiDelete(d *schema.ResourceData, meta interface{})
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"Error.DatabaseError.RecordNotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"Error.DatabaseError.RecordNotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -524,7 +524,7 @@ func csManagedKubernetesClusterDescriptionAttributes(d *schema.ResourceData, clu
 		mapping["state"] = ct.State
 		object, err := csClient.DescribeClusterDetail(ct.ClusterID)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				log.Printf("[DEBUG] Resource alicloud_cs_managed_kubernetes DescribeClusterDetail Failed!!! %s", err)
 				continue
 			}

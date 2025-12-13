@@ -129,7 +129,7 @@ func resourceAliCloudPrivateLinkVpcEndpointZoneRead(d *schema.ResourceData, meta
 
 	objectRaw, err := privateLinkServiceV2.DescribePrivateLinkVpcEndpointZone(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_privatelink_vpc_endpoint_zone DescribePrivateLinkVpcEndpointZone Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -160,7 +160,7 @@ func resourceAliCloudPrivateLinkVpcEndpointZoneRead(d *schema.ResourceData, meta
 }
 
 func resourceAliCloudPrivateLinkVpcEndpointZoneUpdate(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[INFO] Cannot update resource Alicloud Resource Vpc Endpoint Zone.")
+	log.Printf("[INFO] Cannot update resource AliCloud Resource Vpc Endpoint Zone.")
 	return nil
 }
 
@@ -199,7 +199,7 @@ func resourceAliCloudPrivateLinkVpcEndpointZoneDelete(d *schema.ResourceData, me
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"EndpointZoneNotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"EndpointZoneNotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -75,7 +75,7 @@ func resourceAliCloudResourceManagerFolderRead(d *schema.ResourceData, meta inte
 	resourcemanagerService := ResourcemanagerService{client}
 	object, err := resourcemanagerService.DescribeResourceManagerFolder(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_resource_manager_folder resourcemanagerService.DescribeResourceManagerFolder Failed!!! %s", err)
 			d.SetId("")
 			return nil

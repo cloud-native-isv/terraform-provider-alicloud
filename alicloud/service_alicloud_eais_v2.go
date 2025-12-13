@@ -74,7 +74,7 @@ func (s *EaisServiceV2) EaisClientInstanceAttachmentStateRefreshFunc(id string, 
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEaisClientInstanceAttachment(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -151,7 +151,7 @@ func (s *EaisServiceV2) EaisInstanceStateRefreshFunc(id string, field string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeEaisInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return object, "", nil
 			}
 			return nil, "", WrapError(err)

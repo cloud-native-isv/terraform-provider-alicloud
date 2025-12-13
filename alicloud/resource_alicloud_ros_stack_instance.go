@@ -140,7 +140,7 @@ func resourceAliCloudRosStackInstanceRead(d *schema.ResourceData, meta interface
 	rosService := RosService{client}
 	object, err := rosService.DescribeRosStackInstance(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ros_stack_instance rosService.DescribeRosStackInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil

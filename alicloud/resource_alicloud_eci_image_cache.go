@@ -165,7 +165,7 @@ func resourceAliCloudEciImageCacheRead(d *schema.ResourceData, meta interface{})
 	eciService := EciService{client}
 	object, err := eciService.DescribeEciImageCache(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

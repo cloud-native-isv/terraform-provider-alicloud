@@ -158,7 +158,7 @@ func resourceAliCloudFlinkDeploymentFolderRead(d *schema.ResourceData, meta inte
 	// Get deployment folder
 	folder, err := service.GetDeploymentFolder(workspaceId, namespaceName, folderId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

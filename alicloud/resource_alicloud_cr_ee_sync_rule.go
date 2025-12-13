@@ -214,7 +214,7 @@ func resourceAliCloudCrRepoSyncRuleRead(d *schema.ResourceData, meta interface{}
 
 	objectRaw, err := crServiceV2.DescribeCrRepoSyncRule(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cr_ee_sync_rule DescribeCrRepoSyncRule Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -318,7 +318,7 @@ func resourceAliCloudCrRepoSyncRuleDelete(d *schema.ResourceData, meta interface
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

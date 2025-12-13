@@ -76,7 +76,7 @@ func resourceAliCloudDatabaseGatewayGatewayRead(d *schema.ResourceData, meta int
 	dgService := DgService{client}
 	object, err := dgService.DescribeDatabaseGatewayGateway(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_database_gateway_gateway dgService.DescribeDatabaseGatewayGateway Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -39,7 +39,7 @@ func (s *DrdsService) DrdsInstanceStateRefreshFunc(id string, failStates []strin
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeDrdsInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -63,7 +63,7 @@ func (s *DrdsService) WaitDrdsInstanceConfigEffect(id string, item map[string]st
 		object, err := s.DescribeDrdsInstance(id)
 
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 			}
 			return WrapError(err)

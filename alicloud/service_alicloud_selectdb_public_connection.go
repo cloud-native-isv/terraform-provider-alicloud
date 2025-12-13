@@ -51,7 +51,7 @@ func (s *SelectDBService) DescribeSelectDBPublicConnection(instanceId string) (*
 	// Get network information to check for public connection
 	networkInfo, err := s.GetAPI().GetNetworkInfo(instanceId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)
@@ -79,7 +79,7 @@ func (s *SelectDBService) GetSelectDBPublicConnections(instanceId string) ([]*se
 	// Get network information to check for public connections
 	networkInfo, err := s.GetAPI().GetNetworkInfo(instanceId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)
@@ -143,7 +143,7 @@ func (s *SelectDBService) GetSelectDBAllConnections(instanceId string) ([]*selec
 	// Get network information to check for all connections
 	networkInfo, err := s.GetAPI().GetNetworkInfo(instanceId)
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil, WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR)
 		}
 		return nil, WrapError(err)
@@ -171,7 +171,7 @@ func (s *SelectDBService) SelectDBPublicConnectionStateRefreshFunc(instanceId st
 	return func() (interface{}, string, error) {
 		publicConnection, err := s.DescribeSelectDBPublicConnection(instanceId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "NotFound", WrapErrorf(Error(GetNotFoundMessage("SelectDB Public Connection", instanceId)), NotFoundMsg, ProviderERROR)
 			}
 			return nil, "", WrapError(err)
@@ -192,7 +192,7 @@ func (s *SelectDBService) WaitForSelectDBPublicConnection(instanceId string, sta
 	for {
 		publicConnection, err := s.DescribeSelectDBPublicConnection(instanceId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

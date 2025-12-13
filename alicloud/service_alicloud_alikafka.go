@@ -447,7 +447,7 @@ func (s *KafkaService) WaitForAlikafkaInstance(id string, status Status, timeout
 	for {
 		object, err := s.DescribeAlikafkaInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -489,7 +489,7 @@ func (s *KafkaService) WaitForAlikafkaConsumerGroup(id string, status Status, ti
 	for {
 		object, err := s.DescribeAlikafkaConsumerGroup(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -531,7 +531,7 @@ func (s *KafkaService) WaitForAlikafkaTopic(id string, status Status, timeout in
 	for {
 		object, err := s.DescribeAlikafkaTopic(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -561,7 +561,7 @@ func (s *KafkaService) WaitForAlikafkaSaslUser(id string, status Status, timeout
 	for {
 		object, err := s.DescribeAlikafkaSaslUser(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -592,7 +592,7 @@ func (s *KafkaService) WaitForAlikafkaSaslAcl(id string, status Status, timeout 
 		object, err := s.DescribeAlikafkaSaslAcl(id)
 		if err != nil {
 
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -968,7 +968,7 @@ func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id string, failStates []
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlikafkaInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}

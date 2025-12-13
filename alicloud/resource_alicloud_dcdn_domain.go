@@ -250,7 +250,7 @@ func resourceAliCloudDcdnDomainRead(d *schema.ResourceData, meta interface{}) er
 
 	objectRaw, err := dcdnServiceV2.DescribeDcdnDomain(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dcdn_domain DescribeDcdnDomain Failed!!! %s", err)
 			d.SetId("")
 			return nil

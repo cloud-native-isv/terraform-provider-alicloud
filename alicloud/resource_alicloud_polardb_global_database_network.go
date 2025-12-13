@@ -87,7 +87,7 @@ func resourceAliCloudPolarDBGlobalDatabaseNetworkRead(d *schema.ResourceData, me
 	polarDBService := PolarDBService{client}
 	object, err := polarDBService.DescribePolarDBGlobalDatabaseNetwork(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

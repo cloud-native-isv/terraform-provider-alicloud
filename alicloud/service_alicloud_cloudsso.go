@@ -624,7 +624,7 @@ func (s *CloudssoService) CloudssoServiceAccessAssignmentStateRefreshFunc(direct
 	return func() (interface{}, string, error) {
 		object, err := s.GetTaskStatus(directoryId, taskId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -693,7 +693,7 @@ func (s *CloudssoService) CloudssoServiceAccessConfigurationProvisioningStateRef
 	return func() (interface{}, string, error) {
 		object, err := s.GetTaskStatus(directoryId, taskId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -743,7 +743,7 @@ func (s *CloudssoService) CloudssoServicAccessConfigurationProvisioning(director
 	response = v.([]interface{})[0].(map[string]interface{})
 	_, err = s.GetTaskStatus(fmt.Sprint(request["DirectoryId"]), fmt.Sprint(response["TaskId"]))
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

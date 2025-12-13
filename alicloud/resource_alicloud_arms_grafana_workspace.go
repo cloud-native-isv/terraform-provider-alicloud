@@ -165,7 +165,7 @@ func resourceAliCloudArmsGrafanaWorkspaceRead(d *schema.ResourceData, meta inter
 
 	workspace, err := service.DescribeArmsGrafanaWorkspace(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_arms_grafana_workspace DescribeArmsGrafanaWorkspace Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -246,7 +246,7 @@ func resourceAliCloudArmsGrafanaWorkspaceDelete(d *schema.ResourceData, meta int
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteGrafanaWorkspace", AlibabaCloudSdkGoERROR)

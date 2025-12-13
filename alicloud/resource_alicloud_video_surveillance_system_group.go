@@ -128,7 +128,7 @@ func resourceAliCloudVideoSurveillanceSystemGroupRead(d *schema.ResourceData, me
 	vsService := VsService{client}
 	object, err := vsService.DescribeVideoSurveillanceSystemGroup(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_video_surveillance_system_group vsService.DescribeVideoSurveillanceSystemGroup Failed!!! %s", err)
 			d.SetId("")
 			return nil

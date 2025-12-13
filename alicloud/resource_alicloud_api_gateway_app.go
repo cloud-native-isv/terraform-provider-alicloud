@@ -92,7 +92,7 @@ func resourceAliyunApigatewayAppRead(d *schema.ResourceData, meta interface{}) e
 	if err := resource.Retry(3*time.Second, func() *resource.RetryError {
 		object, err := cloudApiService.DescribeApiGatewayApp(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)

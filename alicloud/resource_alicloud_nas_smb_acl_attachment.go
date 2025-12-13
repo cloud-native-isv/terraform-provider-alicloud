@@ -179,7 +179,7 @@ func resourceAliCloudNasSmbAclAttachmentRead(d *schema.ResourceData, meta interf
 
 	object, err := nasService.DescribeNasSmbAcl(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nas_smb_acl_attachment nasService.DescribeNasSmbAcl Failed!!! %s",
 				err)
 			d.SetId("")

@@ -163,7 +163,7 @@ func resourceAliCloudClickHouseEnterpriseDBClusterAccountRead(d *schema.Resource
 
 	objectRaw, err := clickHouseServiceV2.DescribeClickHouseEnterpriseDBClusterAccount(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_click_house_enterprise_db_cluster_account DescribeClickHouseEnterpriseDBClusterAccount Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -195,7 +195,7 @@ func resourceAliCloudClickHouseEnterpriseDBClusterAccountRead(d *schema.Resource
 	}
 
 	objectRaw, err = clickHouseServiceV2.DescribeEnterpriseDBClusterAccountDescribeAccounts(d.Id())
-	if err != nil && !IsNotFoundError(err) {
+	if err != nil && !NotFoundError(err) {
 		return WrapError(err)
 	}
 
@@ -368,7 +368,7 @@ func resourceAliCloudClickHouseEnterpriseDBClusterAccountDelete(d *schema.Resour
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

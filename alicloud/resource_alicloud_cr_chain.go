@@ -192,7 +192,7 @@ func resourceAliCloudCrChainRead(d *schema.ResourceData, meta interface{}) error
 	crService := CrService{client}
 	object, err := crService.DescribeCrChain(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cr_chain crService.DescribeCrChain Failed!!! %s", err)
 			d.SetId("")
 			return nil

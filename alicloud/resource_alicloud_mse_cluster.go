@@ -233,7 +233,7 @@ func resourceAliCloudMseClusterRead(d *schema.ResourceData, meta interface{}) er
 	mseService := MseService{client}
 	object, err := mseService.DescribeMseCluster(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_mse_cluster mseService.DescribeMseCluster Failed!!! %s", err)
 			d.SetId("")
 			return nil

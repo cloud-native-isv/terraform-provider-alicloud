@@ -215,7 +215,7 @@ func (s *FCService) FCFunctionStateRefreshFunc(functionName string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFCFunction(functionName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -271,7 +271,7 @@ func (s *FCService) WaitForFCFunctionDeleting(functionName string, timeout time.
 		Refresh: func() (interface{}, string, error) {
 			obj, err := s.DescribeFCFunction(functionName)
 			if err != nil {
-				if IsNotFoundError(err) {
+				if NotFoundError(err) {
 					return nil, "", nil
 				}
 				return nil, "", WrapError(err)
@@ -318,7 +318,7 @@ func (s *FCService) FunctionStateRefreshFunc(functionName string, failStates []s
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFCFunction(functionName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

@@ -127,7 +127,7 @@ func resourceAliCloudCenInterRegionTrafficQosQueueRead(d *schema.ResourceData, m
 
 	objectRaw, err := cenServiceV2.DescribeCenInterRegionTrafficQosQueue(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_cen_inter_region_traffic_qos_queue DescribeCenInterRegionTrafficQosQueue Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -251,7 +251,7 @@ func resourceAliCloudCenInterRegionTrafficQosQueueDelete(d *schema.ResourceData,
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

@@ -127,7 +127,7 @@ func resourceAliyunApigatewayGroupRead(d *schema.ResourceData, meta interface{})
 	cloudApiService := CloudApiService{client}
 	apiGroup, err := cloudApiService.DescribeApiGatewayGroup(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

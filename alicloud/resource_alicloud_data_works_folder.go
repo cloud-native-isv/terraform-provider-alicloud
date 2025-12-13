@@ -84,7 +84,7 @@ func resourceAliCloudDataWorksFolderRead(d *schema.ResourceData, meta interface{
 	dataworksPublicService := DataworksPublicService{client}
 	object, err := dataworksPublicService.DescribeDataWorksFolder(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_data_works_folder dataworksPublicService.DescribeDataWorksFolder Failed!!! %s", err)
 			d.SetId("")
 			return nil

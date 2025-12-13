@@ -110,7 +110,7 @@ func resourceAliCloudEcsNetworkInterfaceAttachmentRead(d *schema.ResourceData, m
 
 	object, err := ecsService.DescribeEcsNetworkInterfaceAttachment(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_network_interface_attachment ecsService.DescribeNetworkInterfaceAttachment Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -185,7 +185,7 @@ func resourceAliCloudEcsNetworkInterfaceAttachmentDelete(d *schema.ResourceData,
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsExpectedErrors(err, []string{"InvalidEcsId.NotFound", "InvalidEniId.NotFound", "InvalidSecurityGroupId.NotFound", "InvalidVSwitchId.NotFound"}) || IsNotFoundError(err) {
+		if IsExpectedErrors(err, []string{"InvalidEcsId.NotFound", "InvalidEniId.NotFound", "InvalidSecurityGroupId.NotFound", "InvalidVSwitchId.NotFound"}) || NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

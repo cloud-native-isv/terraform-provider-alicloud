@@ -102,7 +102,7 @@ func (s *FCService) TriggerStateRefreshFunc(functionName, triggerName string, fa
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeFCTrigger(EncodeTriggerResourceId(functionName, triggerName))
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)

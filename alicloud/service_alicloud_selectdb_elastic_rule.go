@@ -137,7 +137,7 @@ func (s *SelectDBService) SelectDBElasticRuleStateRefreshFunc(dbClusterId, dbIns
 	return func() (interface{}, string, error) {
 		rule, err := s.DescribeSelectDBElasticRule(dbClusterId, dbInstanceId, product, ruleId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", WrapErrorf(Error(GetNotFoundMessage("SelectDB Elastic Rule", fmt.Sprintf("%d", ruleId))), NotFoundMsg, ProviderERROR)
 			}
 			return nil, "", WrapError(err)
@@ -160,7 +160,7 @@ func (s *SelectDBService) WaitForSelectDBElasticRule(dbClusterId, dbInstanceId, 
 	for {
 		rule, err := s.DescribeSelectDBElasticRule(dbClusterId, dbInstanceId, product, ruleId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}

@@ -91,7 +91,7 @@ func (s *SelectDBService) SelectDBInstanceStateRefreshFunc(instanceId string, fa
 	return func() (interface{}, string, error) {
 		instance, err := s.DescribeSelectDBInstance(instanceId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
@@ -168,7 +168,7 @@ func (s *SelectDBService) WaitForSelectDBInstanceDeleted(instanceId string, time
 		Refresh: func() (interface{}, string, error) {
 			instance, err := s.DescribeSelectDBInstance(instanceId)
 			if err != nil {
-				if IsNotFoundError(err) {
+				if NotFoundError(err) {
 					return nil, "", nil
 				}
 				return nil, "", WrapError(err)

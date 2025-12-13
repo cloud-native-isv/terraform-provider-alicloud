@@ -176,7 +176,7 @@ func resourceAliCloudFCTriggerRead(d *schema.ResourceData, meta interface{}) err
 
 	objectRaw, err := fcService.DescribeFCTrigger(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_fc_trigger DescribeFCTrigger Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -269,7 +269,7 @@ func resourceAliCloudFCTriggerDelete(d *schema.ResourceData, meta interface{}) e
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := fcService.DeleteFCTrigger(functionName, triggerName)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				log.Printf("[DEBUG] FC Trigger not found during deletion: %s:%s", functionName, triggerName)
 				return nil
 			}
@@ -285,7 +285,7 @@ func resourceAliCloudFCTriggerDelete(d *schema.ResourceData, meta interface{}) e
 	})
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteTrigger", AlibabaCloudSdkGoERROR)

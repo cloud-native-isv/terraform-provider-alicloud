@@ -1061,7 +1061,7 @@ func resourceAliyunEssEciScalingConfigurationRead(d *schema.ResourceData, meta i
 	essService := EssService{client}
 	o, err := essService.DescribeEssEciScalingConfiguration(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
@@ -1436,7 +1436,7 @@ func resourceAliyunEssEciScalingConfigurationUpdate(d *schema.ResourceData, meta
 	if d.HasChange("active") {
 		c, err := essService.DescribeEssEciScalingConfiguration(d.Id())
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				d.SetId("")
 				return nil
 			}
@@ -1915,7 +1915,7 @@ func resourceAliyunEssEciScalingConfigurationDelete(d *schema.ResourceData, meta
 
 	o, err := essService.DescribeEssEciScalingConfiguration(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapError(err)

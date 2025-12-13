@@ -534,7 +534,7 @@ func resourceAliCloudSlsAlertRead(d *schema.ResourceData, meta interface{}) erro
 	// Get alert details
 	alertMap, err := slsService.DescribeSlsAlert(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			d.SetId("")
 			return nil
 		}

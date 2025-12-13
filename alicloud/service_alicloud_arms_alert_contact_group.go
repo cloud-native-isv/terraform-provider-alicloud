@@ -44,7 +44,7 @@ func (s *ArmsService) DescribeArmsAlertContactGroupsByIds(contactGroupIds []stri
 	for _, contactGroupId := range contactGroupIds {
 		group, err := s.DescribeArmsAlertContactGroup(contactGroupId)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				continue // Skip not found groups
 			}
 			return nil, err

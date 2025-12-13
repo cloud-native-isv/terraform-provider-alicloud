@@ -127,7 +127,7 @@ func resourceAliCloudNlbSecurityPolicyRead(d *schema.ResourceData, meta interfac
 
 	objectRaw, err := nlbServiceV2.DescribeNlbSecurityPolicy(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_nlb_security_policy DescribeNlbSecurityPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

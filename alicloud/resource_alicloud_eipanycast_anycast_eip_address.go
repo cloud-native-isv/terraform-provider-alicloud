@@ -147,7 +147,7 @@ func resourceAliCloudEipanycastAnycastEipAddressRead(d *schema.ResourceData, met
 
 	objectRaw, err := eipanycastServiceV2.DescribeEipanycastAnycastEipAddress(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_eipanycast_anycast_eip_address DescribeEipanycastAnycastEipAddress Failed!!! %s", err)
 			d.SetId("")
 			return nil

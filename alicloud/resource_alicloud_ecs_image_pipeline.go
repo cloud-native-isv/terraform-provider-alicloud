@@ -197,7 +197,7 @@ func resourceAliCloudEcsImagePipelineRead(d *schema.ResourceData, meta interface
 	ecsService := EcsService{client}
 	object, err := ecsService.DescribeEcsImagePipeline(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_ecs_image_pipeline ecsService.DescribeEcsImagePipeline Failed!!! %s", err)
 			d.SetId("")
 			return nil

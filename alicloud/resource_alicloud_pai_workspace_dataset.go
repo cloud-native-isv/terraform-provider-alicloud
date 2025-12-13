@@ -196,7 +196,7 @@ func resourceAliCloudPaiWorkspaceDatasetRead(d *schema.ResourceData, meta interf
 
 	objectRaw, err := paiWorkspaceServiceV2.DescribePaiWorkspaceDataset(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_pai_workspace_dataset DescribePaiWorkspaceDataset Failed!!! %s", err)
 			d.SetId("")
 			return nil
@@ -466,7 +466,7 @@ func resourceAliCloudPaiWorkspaceDatasetDelete(d *schema.ResourceData, meta inte
 	addDebug(action, response, request)
 
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)

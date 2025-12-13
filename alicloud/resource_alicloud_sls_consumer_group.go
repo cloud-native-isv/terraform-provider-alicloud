@@ -152,7 +152,7 @@ func resourceAliCloudSlsConsumerGroupRead(d *schema.ResourceData, meta interface
 
 	obj, err := service.DescribeSlsConsumerGroup(d.Id())
 	if err != nil {
-		if !d.IsNewResource() && IsNotFoundError(err) {
+		if !d.IsNewResource() && NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_sls_consumer_group DescribeSlsConsumerGroup NotFound: %s", err)
 			d.SetId("")
 			return nil
@@ -238,7 +238,7 @@ func resourceAliCloudSlsConsumerGroupDelete(d *schema.ResourceData, meta interfa
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		e := service.DeleteSlsConsumerGroup(project, logstore, group)
 		if e != nil {
-			if IsNotFoundError(e) {
+			if NotFoundError(e) {
 				return nil
 			}
 			if NeedRetry(e) {
@@ -255,7 +255,7 @@ func resourceAliCloudSlsConsumerGroupDelete(d *schema.ResourceData, meta interfa
 
 	if werr := service.WaitForSlsConsumerGroupDeleting(d.Id(), d.Timeout(schema.TimeoutDelete)); werr != nil {
 		// if already 404, treat as deleted
-		if IsNotFoundError(werr) {
+		if NotFoundError(werr) {
 			return nil
 		}
 		return WrapErrorf(werr, IdMsg, d.Id())

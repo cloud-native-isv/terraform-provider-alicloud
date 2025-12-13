@@ -33,7 +33,7 @@ func (s *RdsService) DescribeDBDatabase(id string) (object map[string]interface{
 			if IsExpectedErrors(err, []string{"InternalError", "OperationDenied.DBInstanceStatus"}) {
 				return resource.RetryableError(WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR))
 			}
-			if IsNotFoundError(err) || IsExpectedErrors(err, []string{"InvalidDBName.NotFound", "InvalidDBInstanceId.IsNotFoundError"}) {
+			if NotFoundError(err) || IsExpectedErrors(err, []string{"InvalidDBName.NotFound", "InvalidDBInstanceId.NotFoundError"}) {
 				return resource.NonRetryableError(WrapErrorf(err, NotFoundMsg, AlibabaCloudSdkGoERROR))
 			}
 			return resource.NonRetryableError(WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR))
@@ -63,7 +63,7 @@ func (s *RdsService) WaitForDBDatabase(id string, status Status, timeout int) er
 	for {
 		object, err := s.DescribeDBDatabase(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -195,7 +195,7 @@ func (s *RdsService) DeleteDBDatabase(id string) error {
 	}
 	response, err := s.client.RpcPost("Rds", "2014-08-15", action, nil, request, false)
 	if err != nil {
-		if IsNotFoundError(err) || IsExpectedErrors(err, []string{"InvalidDBName.NotFound"}) {
+		if NotFoundError(err) || IsExpectedErrors(err, []string{"InvalidDBName.NotFound"}) {
 			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, id, action, AlibabaCloudSdkGoERROR)
@@ -209,7 +209,7 @@ func (s *RdsService) DBDatabaseStateRefreshFunc(id string, failStates []string) 
 	return func() (interface{}, string, error) {
 		obj, err := s.DescribeDBDatabase(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Not existing
 				return nil, "", nil
 			}
@@ -240,7 +240,7 @@ func (s *RdsService) WaitForDBDatabaseDeleted(id string, timeout time.Duration) 
 	refresh := func() (interface{}, string, error) {
 		_, err := s.DescribeDBDatabase(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				return nil, "", nil
 			}
 			return nil, "Exists", WrapError(err)

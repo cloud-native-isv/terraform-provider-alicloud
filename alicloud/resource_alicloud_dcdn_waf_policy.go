@@ -90,7 +90,7 @@ func resourceAliCloudDcdnWafPolicyRead(d *schema.ResourceData, meta interface{})
 	dcdnService := DcdnService{client}
 	object, err := dcdnService.DescribeDcdnWafPolicy(d.Id())
 	if err != nil {
-		if IsNotFoundError(err) {
+		if NotFoundError(err) {
 			log.Printf("[DEBUG] Resource alicloud_dcdn_waf_policy dcdnService.DescribeDcdnWafPolicy Failed!!! %s", err)
 			d.SetId("")
 			return nil

@@ -165,7 +165,7 @@ func (c *CrService) WaitForCRNamespace(id string, status Status, timeout int) er
 	for {
 		object, err := c.DescribeCrNamespace(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -217,7 +217,7 @@ func (c *CrService) WaitForCrRepo(id string, status Status, timeout int) error {
 	for {
 		object, err := c.DescribeCrRepo(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				if status == Deleted {
 					return nil
 				}
@@ -244,7 +244,7 @@ func (c *CrService) InstanceStatusRefreshFunc(id string, failStates []string) re
 	return func() (interface{}, string, error) {
 		resp, err := c.DescribeCrEEInstance(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -350,7 +350,7 @@ func (s *CrService) CrEndpointAclServiceStateRefreshFunc(id string, failStates [
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCrEndpointAclService(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
@@ -586,7 +586,7 @@ func (s *CrService) CrVpcEndpointLinkedVpcStateRefreshFunc(id string, failStates
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeCrVpcEndpointLinkedVpc(id)
 		if err != nil {
-			if IsNotFoundError(err) {
+			if NotFoundError(err) {
 				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
