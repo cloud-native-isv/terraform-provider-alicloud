@@ -33,12 +33,12 @@
 
 **Core Principles Compliance**:
 
-- **Architecture Layering**: Resource/DataSource layers MUST call Service layer functions, NOT direct SDK/API calls
-- **State Management**: Proper StateRefreshFunc usage, NO direct Read calls in Create functions
-- **Error Handling**: Use encapsulated error functions (IsNotFoundError, IsAlreadyExistError, NeedRetry)
-- **Code Quality**: Follow naming conventions, use Id not ID, proper schema descriptions
-- **Strong Typing**: Prefer CWS-Lib-Go strong types over map[string]interface{}
-- **Testing**: Validate with 'make' command, implement proper unit/integration tests
+- **Library-First**: Feature implemented as standalone library component
+- **CLI Interface**: Text-based interface with JSON/human-readable output
+- **Test-First**: Comprehensive tests written before implementation
+- **Integration Testing**: Contract tests for all external interfaces
+- **Observability**: Structured logging and clear error messages
+- **Simplicity**: Minimal project structure, no unnecessary abstractions
 
 **Gates Status**: [✅ All gates pass / ❌ Specific gate failures with justification]
 

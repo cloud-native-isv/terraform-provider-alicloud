@@ -156,15 +156,6 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
-- [ ] TXXX [P] Validate all changes with 'make' command
-- [ ] TXXX [P] Ensure proper architecture layering (Provider → Resource/DataSource → Service → API → SDK)
-- [ ] TXXX [P] Verify CWS-Lib-Go encapsulation usage instead of direct SDK calls
-- [ ] TXXX [P] Check error handling uses encapsulated functions (IsNotFoundError, etc.)
-- [ ] TXXX [P] Confirm state management uses StateRefreshFunc, not direct Read calls
-- [ ] TXXX [P] Verify naming conventions (alicloud_<service>_<resource>, Id not ID)
-- [ ] TXXX [P] Ensure strong typing with CWS-Lib-Go instead of map[string]interface{}
-- [ ] TXXX [P] Split files exceeding 1000 lines by functional modules
-- [ ] TXXX [P] Encapsulate API pagination logic in Service layer
 
 ---
 

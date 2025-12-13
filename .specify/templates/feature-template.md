@@ -19,6 +19,10 @@
 
 [FEATURE_OVERVIEW]
 
+## Latest Review
+
+[FEATURE_LATEST_REVIEW_SUMMARY]
+
 ## Key Changes
 
 1. [KEY_CHANGE_1]
@@ -38,6 +42,12 @@
 - [IMPLEMENTATION_NOTE_5]
 
 <!-- Add additional notes if required -->
+
+## Future Evolution Suggestions
+
+- [FUTURE_SUGGESTION_1]
+- [FUTURE_SUGGESTION_2]
+- [FUTURE_SUGGESTION_3]
 
 ## Related Files
 
@@ -66,8 +76,10 @@
 | [FEATURE_CREATED_DATE] | ISO date when first created (YYYY-MM-DD) |
 | [FEATURE_LAST_UPDATED_DATE] | ISO date of last modification (YYYY-MM-DD) |
 | [FEATURE_OVERVIEW] | Paragraph explaining motivation and context |
+| [FEATURE_LATEST_REVIEW_SUMMARY] | Summary of the most recent end-to-end feature review |
 | [KEY_CHANGE_N] | Discrete planned change (prefer 3–7 items) |
 | [IMPLEMENTATION_NOTE_N] | Constraint, assumption, or technical nuance |
+| [FUTURE_SUGGESTION_N] | Suggested follow-up enhancements or experiments for this feature |
 | [STATUS_*_CRITERIA] | Definition of Done for each status |
 
 ## Replacement Rules
