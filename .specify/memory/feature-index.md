@@ -12,6 +12,7 @@
 | 003 | Kafka 实例管理 | 提供阿里云 Kafka 实例的全生命周期管理能力 | Implemented | .specify/specs/003-refactor-kafka-instance/spec.md | 2025-12-02 |
 | 004 | Makefile 构建系统 | 基于 Makefile 的自动化构建和开发工具链 | Implemented | (Not yet created) | 2025-12-02 |
 | 005 | 强类型 API 调用 | 使用 cws-lib-go 库提供的强类型结构体进行 API 调用 | Implemented | (Not yet created) | 2025-12-02 |
+| 006 | SelectDB Management | Provide lifecycle management for Alibaba Cloud SelectDB instances and clusters. | Implemented | .specify/specs/004-update-selectdb-resources/spec.md | 2025-12-14 |
 
 ## Feature Entry Format
 

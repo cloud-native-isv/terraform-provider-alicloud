@@ -1,6 +1,8 @@
 package alicloud
 
 import (
+	"fmt"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/selectdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -159,7 +161,7 @@ func dataSourceAliCloudSelectDBInstancesRead(d *schema.ResourceData, meta interf
 	}
 
 	// List all instances
-	instances, err := selectDBService.DescribeSelectDBInstances(1, 50)
+	instances, err := selectDBService.DescribeSelectDBInstances(int32(1), int32(50))
 	if err != nil {
 		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_instances", AlibabaCloudSdkGoERROR)
 	}
@@ -188,11 +190,13 @@ func dataSourceAliCloudSelectDBInstancesRead(d *schema.ResourceData, meta interf
 	for _, instance := range filteredInstances {
 		mapping := map[string]interface{}{
 			// New field names
+			"id":                   instance.Id,
 			"instance_id":          instance.Id,
 			"instance_name":        instance.Name,
 			"engine":               instance.Engine,
 			"engine_version":       instance.EngineVersion,
 			"engine_minor_version": instance.EngineMinorVersion,
+			"instance_description": instance.Name,
 			"status":               instance.Status,
 			"payment_type":         convertChargeTypeToPaymentType(instance.ChargeType),
 			"region_id":            instance.RegionId,
@@ -203,8 +207,8 @@ func dataSourceAliCloudSelectDBInstancesRead(d *schema.ResourceData, meta interf
 			"gmt_created":          instance.GmtCreated,
 			"gmt_modified":         instance.GmtModified,
 			"gmt_expired":          instance.ExpireTime,
-			"lock_mode":            "", // Default empty
-			"lock_reason":          "", // Default empty
+			"lock_mode":            fmt.Sprintf("%d", instance.LockMode),
+			"lock_reason":          instance.LockReason,
 
 			// Resource configuration
 			"cpu_prepaid":            0,

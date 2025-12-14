@@ -1,6 +1,8 @@
 package alicloud
 
 import (
+	"fmt"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/selectdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -211,36 +213,41 @@ func dataSourceAliCloudSelectDBClustersRead(d *schema.ResourceData, meta interfa
 				return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_selectdb_clusters", AlibabaCloudSdkGoERROR)
 			}
 
-			// For now, create a mock cluster object since we need actual cluster listing API
-			// This would be replaced with actual cluster listing when the API is available
-			if len(idsMap) > 0 {
-				for pairId, clusterId := range idsMap {
-					parts, err := ParseResourceId(pairId, 2)
-					if err != nil {
-						return WrapError(err)
-					}
-					if parts[0] == instanceId {
-						// Try to get cluster configuration to verify it exists
-						config, err := selectDBService.DescribeSelectDBClusterConfig(clusterId, instanceId)
-						if err == nil {
-							clusterObj := map[string]interface{}{
-								"ClusterId":          clusterId,
-								"InstanceId":         instanceId,
-								"InstanceName":       instance.Id,
-								"Status":             "Running",          // Default status
-								"ClusterClass":       "selectdb.2xlarge", // Default class
-								"ClusterName":        "cluster-" + clusterId,
-								"ChargeType":         instance.ChargeType,
-								"CreatedTime":        instance.GmtCreated,
-								"CpuCores":           16, // Default values
-								"Memory":             64,
-								"CacheStorageSizeGB": "200",
-								"Config":             config,
-							}
-							objects = append(objects, clusterObj)
+			for _, cluster := range instance.DBClusterList {
+				// Filter by cluster ID if specified
+				if len(idsMap) > 0 {
+					requested := false
+					for pairId, cId := range idsMap {
+						parts, _ := ParseResourceId(pairId, 2)
+						if parts[0] == instanceId && cId == cluster.ClusterId {
+							requested = true
+							break
 						}
 					}
+
+					if !requested {
+						continue
+					}
 				}
+
+				// Get cluster config
+				config, _ := selectDBService.DescribeSelectDBClusterConfig(cluster.ClusterId, instanceId)
+
+				clusterObj := map[string]interface{}{
+					"ClusterId":          cluster.ClusterId,
+					"InstanceId":         instanceId,
+					"InstanceName":       instance.Name,
+					"Status":             cluster.Status,
+					"ClusterClass":       cluster.ClusterClass,
+					"ClusterName":        cluster.ClusterName,
+					"ChargeType":         cluster.ChargeType,
+					"CreatedTime":        cluster.CreatedTime,
+					"CpuCores":           int(cluster.CpuCores),
+					"Memory":             int(cluster.Memory),
+					"CacheStorageSizeGB": fmt.Sprintf("%d", cluster.CacheSize),
+					"Config":             config,
+				}
+				objects = append(objects, clusterObj)
 			}
 		}
 	}
