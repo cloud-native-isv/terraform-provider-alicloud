@@ -229,6 +229,10 @@ func ConvertToPublicConnection(d *schema.ResourceData, service *SelectDBService)
 		connection.DBInstanceId = v.(string)
 	}
 
+	if v, ok := d.GetOk("connection_string_prefix"); ok {
+		connection.ConnectionStringPrefix = v.(string)
+	}
+
 	// Set fixed network type for public connection
 	connection.NetType = "Public"
 

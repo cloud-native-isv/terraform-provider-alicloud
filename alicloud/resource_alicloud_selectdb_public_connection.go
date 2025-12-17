@@ -29,6 +29,12 @@ func resourceAliCloudSelectDBPublicConnection() *schema.Resource {
 				ForceNew:    true,
 				Description: "The ID of the SelectDB instance for which to allocate the public connection.",
 			},
+			"connection_string_prefix": {
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The prefix of the connection string. The prefix must be 1 to 30 characters in length, and can contain lowercase letters, digits, and hyphens (-). It must start with a lowercase letter.",
+			},
 			"connection_list": {
 				Type:        schema.TypeList,
 				Computed:    true,

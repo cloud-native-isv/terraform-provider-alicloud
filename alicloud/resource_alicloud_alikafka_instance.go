@@ -11,6 +11,7 @@ import (
 	"github.com/denverdino/aliyungo/common"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -252,67 +253,59 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	vpcService := VpcService{client}
 
 	// 1. Create order
-	var createOrderResponse map[string]interface{}
-	createOrderReq := make(map[string]interface{})
-	createOrderReq["RegionId"] = client.RegionId
-
-	if v, ok := d.GetOk("partition_num"); ok {
-		createOrderReq["PartitionNum"] = v
-	} else if v, ok := d.GetOk("topic_quota"); ok {
-		createOrderReq["TopicQuota"] = v
+	order := &kafka.KafkaOrder{
+		RegionId:   client.RegionId,
+		DiskSize:   int32(d.Get("disk_size").(int)),
+		DiskType:   kafka.KafkaDiskType(d.Get("disk_type").(int)),
+		DeployType: kafka.KafkaDeployType(d.Get("deploy_type").(int)),
 	}
 
-	createOrderReq["DiskType"] = d.Get("disk_type")
-	createOrderReq["DiskSize"] = d.Get("disk_size")
-	createOrderReq["DeployType"] = d.Get("deploy_type")
+	if v, ok := d.GetOk("partition_num"); ok {
+		order.PartitionNum = int32(v.(int))
+	} else if v, ok := d.GetOk("topic_quota"); ok {
+		order.TopicQuota = int32(v.(int))
+	}
 
 	if v, ok := d.GetOk("io_max"); ok {
-		createOrderReq["IoMax"] = v
+		order.IoMax = int32(v.(int))
 	}
 
 	if v, ok := d.GetOk("io_max_spec"); ok {
-		createOrderReq["IoMaxSpec"] = v
+		order.IoMaxSpec = v.(string)
 	}
 
 	if v, ok := d.GetOk("spec_type"); ok {
-		createOrderReq["SpecType"] = v
+		order.SpecType = kafka.KafkaSpecType(v.(string))
 	}
 
 	if v, ok := d.GetOkExists("eip_max"); ok {
-		createOrderReq["EipMax"] = v
+		order.EipMax = int32(v.(int))
 	}
 
 	if v, ok := d.GetOk("resource_group_id"); ok {
-		createOrderReq["ResourceGroupId"] = v
+		order.ResourceGroupId = v.(string)
 	}
 
+	var orderId string
 	if v, ok := d.GetOk("paid_type"); ok {
 		switch v.(string) {
 		case "PostPaid":
-			createOrderResponse, err = kafkaService.CreatePostPayOrder(createOrderReq)
+			orderId, err = kafkaService.CreatePostPayOrder(order)
 			if err != nil {
 				return err
 			}
-			addDebug("CreatePostPayOrder", createOrderResponse, createOrderReq)
-
-			if fmt.Sprint(createOrderResponse["Success"]) == "false" {
-				return WrapError(fmt.Errorf("%s failed, response: %v", "CreatePostPayOrder", createOrderResponse))
-			}
+			addDebug("CreatePostPayOrder", orderId, order)
 
 		case "PrePaid":
-			createOrderResponse, err = kafkaService.CreatePrePayOrder(createOrderReq)
+			orderId, err = kafkaService.CreatePrePayOrder(order)
 			if err != nil {
 				return err
 			}
-			addDebug("CreatePrePayOrder", createOrderResponse, createOrderReq)
-
-			if fmt.Sprint(createOrderResponse["Success"]) == "false" {
-				return WrapError(fmt.Errorf("%s failed, response: %v", "CreatePrePayOrder", createOrderResponse))
-			}
+			addDebug("CreatePrePayOrder", orderId, order)
 		}
 	}
 
-	alikafkaInstanceVO, err := kafkaService.DescribeAlikafkaInstanceByOrderId(fmt.Sprint(createOrderResponse["OrderId"]), 60)
+	alikafkaInstanceVO, err := kafkaService.DescribeAlikafkaInstanceByOrderId(orderId, 60)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -320,77 +313,74 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	d.SetId(fmt.Sprint(alikafkaInstanceVO.InstanceId))
 
 	// 2. Start instance
-	startInstanceReq := make(map[string]interface{})
-	startInstanceReq["RegionId"] = client.RegionId
-	startInstanceReq["InstanceId"] = alikafkaInstanceVO.InstanceId
-	startInstanceReq["VSwitchId"] = d.Get("vswitch_id")
+	startInstanceReq := &StartInstanceRequest{
+		RegionId:   client.RegionId,
+		InstanceId: alikafkaInstanceVO.InstanceId,
+		VSwitchId:  d.Get("vswitch_id").(string),
+	}
 
 	if v, ok := d.GetOk("vpc_id"); ok {
-		startInstanceReq["VpcId"] = v
+		startInstanceReq.VpcId = v.(string)
 	}
 
 	if v, ok := d.GetOk("zone_id"); ok {
-		startInstanceReq["ZoneId"] = v
+		startInstanceReq.ZoneId = v.(string)
 	}
 
-	if startInstanceReq["VpcId"] == nil {
-		vsw, err := vpcService.DescribeVswitch(startInstanceReq["VSwitchId"].(string))
+	if startInstanceReq.VpcId == "" {
+		vsw, err := vpcService.DescribeVswitch(startInstanceReq.VSwitchId)
 		if err != nil {
 			return WrapError(err)
 		}
 
-		if v, ok := startInstanceReq["VpcId"].(string); !ok || v == "" {
+		if startInstanceReq.VpcId == "" {
 			if vpcId, ok := vsw["VpcId"].(string); ok {
-				startInstanceReq["VpcId"] = vpcId
+				startInstanceReq.VpcId = vpcId
 			}
 		}
 	}
 
 	if v, ok := d.GetOk("vswitch_ids"); ok {
-		startInstanceReq["VSwitchIds"] = v
+		startInstanceReq.VSwitchIds = expandStringList(v.([]interface{}))
 	}
 
 	if _, ok := d.GetOkExists("eip_max"); ok {
-		startInstanceReq["DeployModule"] = "eip"
-		startInstanceReq["IsEipInner"] = true
+		startInstanceReq.DeployModule = "eip"
+		startInstanceReq.IsEipInner = true
 	}
 
 	if v, ok := d.GetOk("name"); ok {
-		startInstanceReq["Name"] = v
+		startInstanceReq.Name = v.(string)
 	}
 
 	if v, ok := d.GetOk("security_group"); ok {
-		startInstanceReq["SecurityGroup"] = v
+		startInstanceReq.SecurityGroup = v.(string)
 	}
 
 	if v, ok := d.GetOk("service_version"); ok {
-		startInstanceReq["ServiceVersion"] = v
+		startInstanceReq.ServiceVersion = v.(string)
 	}
 
 	if v, ok := d.GetOk("config"); ok {
-		startInstanceReq["Config"] = v
+		startInstanceReq.Config = v.(string)
 	}
 
 	if v, ok := d.GetOk("kms_key_id"); ok {
-		startInstanceReq["KMSKeyId"] = v
+		startInstanceReq.KMSKeyId = v.(string)
 	}
 
 	if v, ok := d.GetOk("selected_zones"); ok {
-		startInstanceReq["SelectedZones"] = formatSelectedZonesReq(v.([]interface{}))
-		log.Printf("[DEBUG] Resource alicloud_alikakfa_instance SelectedZones=%s", startInstanceReq["SelectedZones"])
+		startInstanceReq.SelectedZones = formatSelectedZonesReq(v.([]interface{}))
+		log.Printf("[DEBUG] Resource alicloud_alikakfa_instance SelectedZones=%s", startInstanceReq.SelectedZones)
 	}
 
-	startInstanceReq["CrossZone"] = d.Get("cross_zone")
+	startInstanceReq.CrossZone = d.Get("cross_zone").(bool)
 
-	startInstanceResponse, err := kafkaService.StartInstance(startInstanceReq)
+	err = kafkaService.StartInstance(startInstanceReq)
 	if err != nil {
 		return err
 	}
-	addDebug("StartInstance", startInstanceResponse, startInstanceReq)
-
-	if fmt.Sprint(startInstanceResponse["Success"]) == "false" {
-		return WrapError(fmt.Errorf("%s failed, response: %v", "StartInstance", startInstanceResponse))
-	}
+	addDebug("StartInstance", "Success", startInstanceReq)
 
 	// 3. wait until running
 	stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
@@ -493,7 +483,6 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return WrapError(err)
 	}
-	var response map[string]interface{}
 	d.Partial(true)
 
 	if err := kafkaService.setInstanceTags(d, TagResourceInstance); err != nil {
@@ -502,24 +491,20 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 
 	// Process change instance name.
 	if !d.IsNewResource() && d.HasChange("name") {
-		request := map[string]interface{}{
-			"RegionId":   client.RegionId,
-			"InstanceId": d.Id(),
+		request := &ModifyInstanceNameRequest{
+			RegionId:   client.RegionId,
+			InstanceId: d.Id(),
 		}
 
 		if v, ok := d.GetOk("name"); ok {
-			request["InstanceName"] = v
+			request.InstanceName = v.(string)
 		}
 
-		response, err = kafkaService.ModifyInstanceName(request)
+		err = kafkaService.ModifyInstanceName(request)
 		if err != nil {
 			return err
 		}
-		addDebug("ModifyInstanceName", response, request)
-
-		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("ModifyInstanceName failed, response: %v", response))
-		}
+		addDebug("ModifyInstanceName", "Success", request)
 
 		d.SetPartial("name")
 	}
@@ -562,75 +547,76 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	update := false
-	request := map[string]interface{}{
-		"InstanceId": d.Id(),
-		"RegionId":   client.RegionId,
+	upgradeOrder := &kafka.KafkaOrder{
+		InstanceId: d.Id(),
+		RegionId:   client.RegionId,
 	}
+
 	// updating topic_quota only by updating partition_num
 	if !d.IsNewResource() && d.HasChange("partition_num") {
 		update = true
 	}
-	request["PartitionNum"] = d.Get("partition_num")
+	if v, ok := d.GetOk("partition_num"); ok {
+		upgradeOrder.PartitionNum = int32(v.(int))
+	}
 
 	if !d.IsNewResource() && d.HasChange("disk_size") {
 		update = true
 	}
-	request["DiskSize"] = d.Get("disk_size")
+	if v, ok := d.GetOk("disk_size"); ok {
+		upgradeOrder.DiskSize = int32(v.(int))
+	}
 
 	if !d.IsNewResource() && d.HasChange("io_max") {
 		update = true
-
 		if v, ok := d.GetOk("io_max"); ok {
-			request["IoMax"] = v
+			upgradeOrder.IoMax = int32(v.(int))
 		}
 	}
 
 	if !d.IsNewResource() && d.HasChange("io_max_spec") {
 		update = true
-
 		if v, ok := d.GetOk("io_max_spec"); ok {
-			request["IoMaxSpec"] = v
+			upgradeOrder.IoMaxSpec = v.(string)
 		}
 	}
 
 	if !d.IsNewResource() && d.HasChange("spec_type") {
 		update = true
 	}
-	request["SpecType"] = d.Get("spec_type")
+	if v, ok := d.GetOk("spec_type"); ok {
+		upgradeOrder.SpecType = kafka.KafkaSpecType(v.(string))
+	}
 
 	if !d.IsNewResource() && d.HasChange("deploy_type") {
 		update = true
 	}
 	if d.Get("deploy_type").(int) == 4 {
-		request["EipModel"] = true
+		upgradeOrder.EipModel = true
 	} else {
-		request["EipModel"] = false
+		upgradeOrder.EipModel = false
 	}
+
 	if !d.IsNewResource() && d.HasChange("eip_max") {
 		update = true
 	}
-	request["EipMax"] = d.Get("eip_max").(int)
+	if v, ok := d.GetOk("eip_max"); ok {
+		upgradeOrder.EipMax = int32(v.(int))
+	}
 
 	if update {
-		action := "UpgradePostPayOrder"
-
+		var orderId string
+		var err error
 		if d.Get("paid_type").(string) == string(PrePaid) {
-			action = "UpgradePrePayOrder"
+			orderId, err = kafkaService.UpgradePrePayOrder(upgradeOrder)
+		} else {
+			orderId, err = kafkaService.UpgradePostPayOrder(upgradeOrder)
 		}
 
-		if action == "UpgradePostPayOrder" {
-			response, err = kafkaService.UpgradePostPayOrder(request)
-		} else {
-			response, err = kafkaService.UpgradePrePayOrder(request)
-		}
 		if err != nil {
 			return err
 		}
-		addDebug(action, response, request)
-
-		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
-		}
+		addDebug("UpgradeOrder", orderId, upgradeOrder)
 
 		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("disk_size"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
@@ -668,24 +654,20 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if !d.IsNewResource() && d.HasChange("service_version") {
-		request := map[string]interface{}{
-			"InstanceId": d.Id(),
-			"RegionId":   client.RegionId,
+		request := &UpgradeInstanceVersionRequest{
+			InstanceId: d.Id(),
+			RegionId:   client.RegionId,
 		}
 
 		if v, ok := d.GetOk("service_version"); ok {
-			request["TargetVersion"] = v
+			request.TargetVersion = v.(string)
 		}
 
-		response, err = kafkaService.UpgradeInstanceVersion(request)
+		err = kafkaService.UpgradeInstanceVersion(request)
 		if err != nil {
 			return err
 		}
-		addDebug("UpgradeInstanceVersion", response, request)
-
-		if fmt.Sprint(response["Success"]) == "false" {
-			return WrapError(fmt.Errorf("UpgradeInstanceVersion failed, response: %v", response))
-		}
+		addDebug("UpgradeInstanceVersion", "Success", request)
 
 		// wait for upgrade task be invoke
 		time.Sleep(60 * time.Second)

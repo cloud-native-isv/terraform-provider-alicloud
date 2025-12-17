@@ -844,6 +844,7 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("vswitch_id", instance.VswitchId)
 	// Set charge type
 	d.Set("charge_type", instance.ChargeType)
+	d.Set("deploy_scheme", instance.DeployScheme)
 	d.Set("category", instance.Category)
 	d.Set("instance_used_type", instance.InstanceUsedType)
 	d.Set("connection_string", instance.ConnectionString)

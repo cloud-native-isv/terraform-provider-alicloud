@@ -12,19 +12,29 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/alikafka"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
 
 // NewKafkaService creates a new KafkaService using cws-lib-go implementation
 
 func NewKafkaService(client *connectivity.AliyunClient) (*KafkaService, error) {
-	// Legacy service wrapper that keeps using terraform-provider-alicloud's
-	// existing alikafka SDK client. CWS-Lib-Go KafkaAPI is not wired here yet.
-	return &KafkaService{client: client}, nil
+	creds := &common.Credentials{
+		AccessKey: client.AccessKey,
+		SecretKey: client.SecretKey,
+		RegionId:  client.RegionId,
+	}
+	kafkaApi, err := kafka.NewKafkaAPI(creds)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return &KafkaService{client: client, kafkaApi: kafkaApi}, nil
 }
 
 // KafkaService provides Kafka instance management operations
 type KafkaService struct {
-	client *connectivity.AliyunClient
+	client   *connectivity.AliyunClient
+	kafkaApi *kafka.KafkaAPI
 }
 
 // EncodeConsumerGroupId 将实例ID和消费者组ID编码为单一ID字符串
@@ -883,115 +893,115 @@ func (s *KafkaService) SetResourceTags(d *schema.ResourceData, resourceType stri
 }
 
 // CreatePostPayOrder creates a post-paid Kafka instance order using cws-lib-go API
-
-func (s *KafkaService) CreatePostPayOrder(request map[string]interface{}) (map[string]interface{}, error) {
-	// CWS-Lib-Go KafkaAPI does not yet expose instance order creation.
-	// Keep signature for forward compatibility but fail fast at runtime.
-	return nil, WrapError(fmt.Errorf("CreatePostPayOrder is not implemented in KafkaService"))
+func (s *KafkaService) CreatePostPayOrder(order *kafka.KafkaOrder) (string, error) {
+	order.PaidType = kafka.KafkaPaidTypePostPaid
+	return s.kafkaApi.CreateOrder(order)
 }
 
 // CreatePrePayOrder creates a pre-paid Kafka instance order using cws-lib-go API
-func (s *KafkaService) CreatePrePayOrder(request map[string]interface{}) (map[string]interface{}, error) {
-	// CWS-Lib-Go KafkaAPI does not yet expose instance order creation.
-	// Keep signature for forward compatibility but fail fast at runtime.
-	return nil, WrapError(fmt.Errorf("CreatePrePayOrder is not implemented in KafkaService"))
-}
-
-// StartInstanceRequest 启动Kafka实例的请求结构
-type StartInstanceRequest struct {
-	RegionId       string
-	InstanceId     string
-	VSwitchId      string
-	VpcId          string
-	ZoneId         string
-	VSwitchIds     []string
-	DeployModule   string
-	IsEipInner     bool
-	Name           string
-	SecurityGroup  string
-	ServiceVersion string
-	Config         string
-	KMSKeyId       string
-	SelectedZones  string
-	CrossZone      bool
+func (s *KafkaService) CreatePrePayOrder(order *kafka.KafkaOrder) (string, error) {
+	order.PaidType = kafka.KafkaPaidTypePrePaid
+	return s.kafkaApi.CreateOrder(order)
 }
 
 // StartInstance 启动Kafka实例
-func (s *KafkaService) StartInstance(request map[string]interface{}) (map[string]interface{}, error) {
-	// CWS-Lib-Go KafkaAPI does not yet expose instance start; this provider
-	// still relies on order-based flow. Keep method for compatibility only.
-	return nil, WrapError(fmt.Errorf("StartInstance is not implemented in KafkaService"))
-}
+func (s *KafkaService) StartInstance(request *StartInstanceRequest) error {
+	params := make(map[string]interface{})
+	if request.ZoneId != "" {
+		params["ZoneId"] = request.ZoneId
+	}
+	if request.DeployModule != "" {
+		params["DeployModule"] = request.DeployModule
+	}
+	if request.IsEipInner {
+		params["IsEipInner"] = request.IsEipInner
+	}
+	if request.IsSetUserAndPassword {
+		params["IsSetUserAndPassword"] = request.IsSetUserAndPassword
+	}
+	if request.Username != "" {
+		params["Username"] = request.Username
+	}
+	if request.Password != "" {
+		params["Password"] = request.Password
+	}
+	if request.Name != "" {
+		params["Name"] = request.Name
+	}
+	if request.CrossZone {
+		params["CrossZone"] = request.CrossZone
+	}
+	if request.SecurityGroup != "" {
+		params["SecurityGroup"] = request.SecurityGroup
+	}
+	if request.ServiceVersion != "" {
+		params["ServiceVersion"] = request.ServiceVersion
+	}
+	if request.Config != "" {
+		params["Config"] = request.Config
+	}
+	if request.KMSKeyId != "" {
+		params["KMSKeyId"] = request.KMSKeyId
+	}
+	if request.Notifier != "" {
+		params["Notifier"] = request.Notifier
+	}
+	if request.UserPhoneNum != "" {
+		params["UserPhoneNum"] = request.UserPhoneNum
+	}
+	if request.SelectedZones != "" {
+		params["SelectedZones"] = request.SelectedZones
+	}
+	if request.IsForceSelectedZones {
+		params["IsForceSelectedZones"] = request.IsForceSelectedZones
+	}
+	if len(request.VSwitchIds) > 0 {
+		params["VSwitchIds"] = request.VSwitchIds
+	}
 
-// ModifyInstanceNameRequest 修改实例名称的请求结构
-type ModifyInstanceNameRequest struct {
-	RegionId     string
-	InstanceId   string
-	InstanceName string
+	return s.kafkaApi.StartInstance(request.RegionId, request.InstanceId, request.VSwitchId, request.VpcId, params)
 }
 
 // ModifyInstanceName 修改Kafka实例名称
-func (s *KafkaService) ModifyInstanceName(request map[string]interface{}) (map[string]interface{}, error) {
-	// Not wired to CWS-Lib-Go yet; retain signature but error at runtime.
-	return nil, WrapError(fmt.Errorf("ModifyInstanceName is not implemented in KafkaService"))
+func (s *KafkaService) ModifyInstanceName(request *ModifyInstanceNameRequest) error {
+	return s.kafkaApi.ModifyInstanceName(request.RegionId, request.InstanceId, request.InstanceName)
 }
 
-// UpgradePostPayOrderRequest 升级后付费实例的请求结构
-type UpgradePostPayOrderRequest struct {
-	InstanceId   string
-	RegionId     string
-	PartitionNum int32
-	DiskSize     int32
-	IoMax        int32
-	IoMaxSpec    string
-	SpecType     string
-	EipMax       int32
-	EipModel     bool
+// UpgradeInstanceVersion 升级Kafka实例版本
+func (s *KafkaService) UpgradeInstanceVersion(request *UpgradeInstanceVersionRequest) error {
+	return s.kafkaApi.UpgradeInstanceVersion(request.RegionId, request.InstanceId, request.TargetVersion)
 }
 
-// UpgradePostPayOrder 升级后付费Kafka实例
-func (s *KafkaService) UpgradePostPayOrder(request map[string]interface{}) (map[string]interface{}, error) {
-	// Not yet integrated with CWS-Lib-Go KafkaAPI; keep signature
-	// but fail fast at runtime to avoid silent misuse.
-	return nil, WrapError(fmt.Errorf("UpgradePostPayOrder is not implemented in KafkaService"))
+// UpgradePostPayOrder upgrades a post-paid Kafka instance order using cws-lib-go API
+func (s *KafkaService) UpgradePostPayOrder(order *kafka.KafkaOrder) (string, error) {
+	order.PaidType = kafka.KafkaPaidTypePostPaid
+	return s.kafkaApi.UpgradeOrder(order)
 }
 
-// UpgradePrePayOrder 升级预付费Kafka实例
-func (s *KafkaService) UpgradePrePayOrder(request map[string]interface{}) (map[string]interface{}, error) {
-	// Not yet integrated with CWS-Lib-Go KafkaAPI; keep signature
-	// but fail fast at runtime to avoid silent misuse.
-	return nil, WrapError(fmt.Errorf("UpgradePrePayOrder is not implemented in KafkaService"))
+// UpgradePrePayOrder upgrades a pre-paid Kafka instance order using cws-lib-go API
+func (s *KafkaService) UpgradePrePayOrder(order *kafka.KafkaOrder) (string, error) {
+	order.PaidType = kafka.KafkaPaidTypePrePaid
+	return s.kafkaApi.UpgradeOrder(order)
 }
 
-// AliKafkaInstanceStateRefreshFunc Kafka instance state refresh function using cws-lib-go API
 func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlikafkaInstance(id)
 		if err != nil {
 			if NotFoundError(err) {
-				// Set this to nil as if we didn't find anything.
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
 		}
 
-		var currentStatus string
-		if object != nil {
-			currentStatus = fmt.Sprintf("%d", object.ServiceStatus)
-		}
+		status := fmt.Sprintf("%d", object.ServiceStatus)
 
 		for _, failState := range failStates {
-			if currentStatus == failState {
-				return object, currentStatus, WrapError(Error(FailedToReachTargetStatus, currentStatus))
+			if status == failState {
+				return object, status, fmt.Errorf("resource in failed state: %s", status)
 			}
 		}
-		return object, currentStatus, nil
-	}
-}
 
-// UpgradeInstanceVersion 升级Kafka实例版本
-func (s *KafkaService) UpgradeInstanceVersion(request map[string]interface{}) (map[string]interface{}, error) {
-	// Not yet integrated with CWS-Lib-Go KafkaAPI; keep signature
-	// but fail fast at runtime to avoid silent misuse.
-	return nil, WrapError(fmt.Errorf("UpgradeInstanceVersion is not implemented in KafkaService"))
+		return object, status, nil
+	}
 }
