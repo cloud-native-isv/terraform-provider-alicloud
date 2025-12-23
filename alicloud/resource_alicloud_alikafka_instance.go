@@ -37,7 +37,7 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 				ForceNew: true,
 			},
 			"disk_type": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
@@ -256,7 +256,7 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	order := &kafka.KafkaOrder{
 		RegionId:   client.RegionId,
 		DiskSize:   int32(d.Get("disk_size").(int)),
-		DiskType:   kafka.KafkaDiskType(d.Get("disk_type").(int)),
+		DiskType:   d.Get("disk_type").(string),
 		DeployType: kafka.KafkaDeployType(d.Get("deploy_type").(int)),
 	}
 

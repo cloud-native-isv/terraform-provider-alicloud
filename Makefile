@@ -26,7 +26,7 @@ Q := @
 default: auto-build
 
 # 自动检测操作系统类型并构建对应平台的二进制文件
-auto-build: fmt
+auto-build:
 	$(Q)echo "$(PREFIX_INFO) 检测操作系统类型..."
 	$(Q)OS=$$(uname -s); \
 	case "$$OS" in \
