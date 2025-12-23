@@ -27,64 +27,64 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			"vswitch_id": {
-				Type:     schema.TypeString,
+			"deploy_type": {
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: IntInSlice([]int{4, 5}),
+			},
+			"disk_size": {
+				Type:     schema.TypeInt,
 				Required: true,
-				ForceNew: true,
 			},
 			"disk_type": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-			"disk_size": {
+			"io_max": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
 			},
-			"deploy_type": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: IntInSlice([]int{4, 5}),
+			"io_max_spec": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"io_max", "io_max_spec"},
+			},
+			"spec_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "normal",
 			},
 			"partition_num": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				AtLeastOneOf: []string{"partition_num"},
 			},
-			"io_max": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-			},
-			"io_max_spec": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ExactlyOneOf: []string{"io_max", "io_max_spec"},
-			},
-			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"paid_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"spec_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"eip_max": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Computed: true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return d.Get("deploy_type").(int) == 5
 				},
 			},
+			"paid_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: StringInSlice([]string{"PrePaid", "PostPaid"}, false),
+				Default:      "PostPaid",
+			},
+			"duration": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"resource_group_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+			},
+			"tags": tagsSchema(),
+
+			"name": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"security_group": {
@@ -101,45 +101,40 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			},
 			"kms_key_id": {
 				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Computed: true,
 			},
 			"vpc_id": {
 				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
 				Computed: true,
 			},
 			"zone_id": {
 				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Computed: true,
+			},
+			"vswitch_id": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"enable_auto_group": {
 				Type:     schema.TypeBool,
-				Optional: true,
+				Computed: true,
 			},
 			"enable_auto_topic": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: StringInSlice([]string{"enable", "disable"}, false),
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"default_topic_partition_num": {
 				Type:     schema.TypeInt,
-				Optional: true,
 				Computed: true,
 			},
 			"vswitch_ids": {
 				Type:     schema.TypeList,
-				Optional: true,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"selected_zones": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeList,
 					Elem: &schema.Schema{
@@ -149,12 +144,9 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 				Description: "The JSON string of selected zones for the instance. Format: [[\"zone1\", \"zone2\"], [\"zone3\"]]",
 			},
 			"cross_zone": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     true,
-				Description: "Specifies whether to deploy the instance across zones. true: Deploy the instance across zones. false: Do not deploy the instance across zones. Default value: true.",
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
-			"tags": tagsSchema(),
 			"end_point": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -254,23 +246,30 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		order.ResourceGroupId = v.(string)
 	}
 
-	var orderId string
-	if v, ok := d.GetOk("paid_type"); ok {
-		switch v.(string) {
-		case "PostPaid":
-			orderId, err = kafkaService.CreatePostPayOrder(order)
-			if err != nil {
-				return err
-			}
-			addDebug("CreatePostPayOrder", orderId, order)
+	if v, ok := d.GetOk("duration"); ok {
+		order.Duration = int32(v.(int))
+	}
 
-		case "PrePaid":
-			orderId, err = kafkaService.CreatePrePayOrder(order)
-			if err != nil {
-				return err
-			}
-			addDebug("CreatePrePayOrder", orderId, order)
+	if _, ok := d.GetOk("tags"); ok {
+		order.Tags = extractTags(d)
+	}
+
+	var orderId string
+	v := d.Get("paid_type").(string)
+	switch v {
+	case "PostPaid":
+		orderId, err = kafkaService.CreatePostPayOrder(order)
+		if err != nil {
+			return err
 		}
+		addDebug("CreatePostPayOrder", orderId, order)
+
+	case "PrePaid":
+		orderId, err = kafkaService.CreatePrePayOrder(order)
+		if err != nil {
+			return err
+		}
+		addDebug("CreatePrePayOrder", orderId, order)
 	}
 
 	alikafkaInstanceVO, err := kafkaService.DescribeAlikafkaInstanceByOrderId(orderId, 60)
@@ -313,7 +312,6 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("vpc_id", object.VpcId)
 	d.Set("vswitch_id", object.VSwitchId)
 	d.Set("zone_id", object.ZoneId)
-	d.Set("paid_type", PostPaid)
 	d.Set("spec_type", object.SpecType)
 	d.Set("security_group", object.SecurityGroup)
 	d.Set("end_point", object.EndPoint)
@@ -324,10 +322,6 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("status", object.ServiceStatus)
 	d.Set("config", object.AllConfig)
 	d.Set("kms_key_id", object.KmsKeyId)
-
-	if object.PaidType == 0 {
-		d.Set("paid_type", PrePaid)
-	}
 
 	tags, err := kafkaService.DescribeTags(d.Id(), nil, TagResourceInstance)
 	if err != nil {
@@ -447,6 +441,13 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 	if v, ok := d.GetOk("eip_max"); ok {
 		upgradeOrder.EipMax = int32(v.(int))
+	}
+
+	if !d.IsNewResource() && d.HasChange("duration") {
+		update = true
+	}
+	if v, ok := d.GetOk("duration"); ok {
+		upgradeOrder.Duration = int32(v.(int))
 	}
 
 	if update {
@@ -642,4 +643,14 @@ func convertAliKafkaAutoCreateTopicEnableResponse(source interface{}) interface{
 	}
 
 	return source
+}
+
+func extractTags(d *schema.ResourceData) map[string]string {
+	tags := make(map[string]string)
+	if v, ok := d.GetOk("tags"); ok {
+		for k, v := range v.(map[string]interface{}) {
+			tags[k] = v.(string)
+		}
+	}
+	return tags
 }
