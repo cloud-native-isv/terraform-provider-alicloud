@@ -7,12 +7,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/denverdino/aliyungo/common"
-
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAliCloudAlikafkaInstance() *schema.Resource {
@@ -66,21 +63,16 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 				ExactlyOneOf: []string{"io_max", "io_max_spec"},
 			},
 			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: StringLenBetween(3, 64),
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"paid_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: StringInSlice([]string{string(common.PrePaid), string(common.PostPaid)}, false),
-				Default:      PostPaid,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"spec_type": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "normal",
+				Computed: true,
 			},
 			"eip_max": {
 				Type:     schema.TypeInt,
@@ -97,21 +89,15 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			},
 			"security_group": {
 				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
 				Computed: true,
 			},
 			"service_version": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"config": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: alikafkaInstanceConfigDiffSuppressFunc,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"kms_key_id": {
 				Type:     schema.TypeString,

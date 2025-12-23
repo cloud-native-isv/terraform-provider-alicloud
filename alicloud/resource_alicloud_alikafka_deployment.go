@@ -6,7 +6,6 @@ import (
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAliCloudAlikafkaDeployment() *schema.Resource {
@@ -52,15 +51,11 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 			},
 			"service_version": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"config": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: alikafkaInstanceConfigDiffSuppressFunc,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"kms_key_id": {
 				Type:     schema.TypeString,
@@ -70,6 +65,7 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 			"selected_zones": {
 				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeList,
 					Elem: &schema.Schema{
@@ -81,28 +77,23 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 			"cross_zone": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				ForceNew:    true,
 				Default:     true,
 				Description: "Specifies whether to deploy the instance across zones. true: Deploy the instance across zones. false: Do not deploy the instance across zones. Default value: true.",
 			},
 			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: StringLenBetween(3, 64),
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"vswitch_ids": {
 				Type:     schema.TypeList,
-				Optional: true,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"eip_max": {
 				Type:     schema.TypeInt,
 				Optional: true,
-			},
-			"status": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				ForceNew: true,
 			},
 		},
 	}
@@ -218,9 +209,9 @@ func resourceAliCloudAlikafkaDeploymentRead(d *schema.ResourceData, meta interfa
 	d.Set("vswitch_id", object.VSwitchId)
 	d.Set("zone_id", object.ZoneId)
 	d.Set("security_group", object.SecurityGroup)
-	d.Set("status", object.ServiceStatus)
 	d.Set("config", object.AllConfig)
 	d.Set("kms_key_id", object.KmsKeyId)
+	d.Set("vswitch_ids", []string{object.VSwitchId})
 
 	return nil
 }
