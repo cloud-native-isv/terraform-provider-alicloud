@@ -38,3 +38,9 @@ type UpgradeInstanceVersionRequest struct {
 	RegionId      string
 	TargetVersion string
 }
+
+// StopInstanceRequest represents the request to stop a Kafka instance
+type StopInstanceRequest struct {
+	InstanceId string
+	RegionId   string
+}

@@ -962,6 +962,11 @@ func (s *KafkaService) StartInstance(request *StartInstanceRequest) error {
 	return s.kafkaApi.StartInstance(request.RegionId, request.InstanceId, request.VSwitchId, request.VpcId, params)
 }
 
+// StopInstance stops a Kafka instance
+func (s *KafkaService) StopInstance(request *StopInstanceRequest) error {
+	return s.kafkaApi.StopInstance(request.RegionId, request.InstanceId)
+}
+
 // ModifyInstanceName 修改Kafka实例名称
 func (s *KafkaService) ModifyInstanceName(request *ModifyInstanceNameRequest) error {
 	return s.kafkaApi.ModifyInstanceName(request.RegionId, request.InstanceId, request.InstanceName)

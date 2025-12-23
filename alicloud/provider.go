@@ -959,6 +959,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_aligreen_keyword_lib":                                  resourceAliCloudAligreenKeywordLib(),
 			"alicloud_aligreen_oss_stock_task":                               resourceAliCloudAligreenOssStockTask(),
 			"alicloud_alikafka_consumer_group":                               resourceAliCloudAlikafkaConsumerGroup(),
+			"alicloud_alikafka_deployment":                                   resourceAliCloudAlikafkaDeployment(),
 			"alicloud_alikafka_instance":                                     resourceAliCloudAlikafkaInstance(),
 			"alicloud_alikafka_instance_allowed_ip_attachment":               resourceAliCloudAliKafkaInstanceAllowedIpAttachment(),
 			"alicloud_alikafka_sasl_acl":                                     resourceAliCloudAlikafkaSaslAcl(),

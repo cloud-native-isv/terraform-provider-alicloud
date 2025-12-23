@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/denverdino/aliyungo/common"
@@ -53,21 +52,7 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			"partition_num": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				AtLeastOneOf: []string{"partition_num", "topic_quota"},
-			},
-			"topic_quota": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					o, _ := strconv.Atoi(old)
-					partitionNum := d.Get("partition_num").(int)
-					if o > 0 {
-						return o-1000 == partitionNum
-					}
-					return false
-				},
-				Deprecated: "Attribute `topic_quota` has been deprecated since 1.194.0 and it will be removed in the next future. Using new attribute `partition_num` instead.",
+				AtLeastOneOf: []string{"partition_num"},
 			},
 			"io_max": {
 				Type:     schema.TypeInt,
@@ -250,7 +235,6 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return WrapError(err)
 	}
-	vpcService := VpcService{client}
 
 	// 1. Create order
 	order := &kafka.KafkaOrder{
@@ -262,8 +246,6 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 
 	if v, ok := d.GetOk("partition_num"); ok {
 		order.PartitionNum = int32(v.(int))
-	} else if v, ok := d.GetOk("topic_quota"); ok {
-		order.TopicQuota = int32(v.(int))
 	}
 
 	if v, ok := d.GetOk("io_max"); ok {
@@ -311,82 +293,6 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	}
 
 	d.SetId(fmt.Sprint(alikafkaInstanceVO.InstanceId))
-
-	// 2. Start instance
-	startInstanceReq := &StartInstanceRequest{
-		RegionId:   client.RegionId,
-		InstanceId: alikafkaInstanceVO.InstanceId,
-		VSwitchId:  d.Get("vswitch_id").(string),
-	}
-
-	if v, ok := d.GetOk("vpc_id"); ok {
-		startInstanceReq.VpcId = v.(string)
-	}
-
-	if v, ok := d.GetOk("zone_id"); ok {
-		startInstanceReq.ZoneId = v.(string)
-	}
-
-	if startInstanceReq.VpcId == "" {
-		vsw, err := vpcService.DescribeVswitch(startInstanceReq.VSwitchId)
-		if err != nil {
-			return WrapError(err)
-		}
-
-		if startInstanceReq.VpcId == "" {
-			if vpcId, ok := vsw["VpcId"].(string); ok {
-				startInstanceReq.VpcId = vpcId
-			}
-		}
-	}
-
-	if v, ok := d.GetOk("vswitch_ids"); ok {
-		startInstanceReq.VSwitchIds = expandStringList(v.([]interface{}))
-	}
-
-	if _, ok := d.GetOkExists("eip_max"); ok {
-		startInstanceReq.DeployModule = "eip"
-		startInstanceReq.IsEipInner = true
-	}
-
-	if v, ok := d.GetOk("name"); ok {
-		startInstanceReq.Name = v.(string)
-	}
-
-	if v, ok := d.GetOk("security_group"); ok {
-		startInstanceReq.SecurityGroup = v.(string)
-	}
-
-	if v, ok := d.GetOk("service_version"); ok {
-		startInstanceReq.ServiceVersion = v.(string)
-	}
-
-	if v, ok := d.GetOk("config"); ok {
-		startInstanceReq.Config = v.(string)
-	}
-
-	if v, ok := d.GetOk("kms_key_id"); ok {
-		startInstanceReq.KMSKeyId = v.(string)
-	}
-
-	if v, ok := d.GetOk("selected_zones"); ok {
-		startInstanceReq.SelectedZones = formatSelectedZonesReq(v.([]interface{}))
-		log.Printf("[DEBUG] Resource alicloud_alikakfa_instance SelectedZones=%s", startInstanceReq.SelectedZones)
-	}
-
-	startInstanceReq.CrossZone = d.Get("cross_zone").(bool)
-
-	err = kafkaService.StartInstance(startInstanceReq)
-	if err != nil {
-		return err
-	}
-	addDebug("StartInstance", "Success", startInstanceReq)
-
-	// 3. wait until running
-	stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
-	}
 
 	return resourceAliCloudAlikafkaInstanceUpdate(d, meta)
 }
