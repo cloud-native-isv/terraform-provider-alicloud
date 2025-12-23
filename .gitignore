@@ -1,44 +1,63 @@
-*.dll
-*.exe
+# OS Specific
 .DS_Store
-dump.rdb
-example.tf
-terraform.tfplan
-terraform.tfstate
+
+# Editor / IDE
+.idea
+*.iml
+*.bak
+*.backup
+*~
+.*.swp
+
+# Go Build & Dependencies
 bin/
-modules-dev/
 /pkg/
+vendor/
+*.exe
+*.dll
+*.test
+coverage.html
+coverage.out
+terraform-provider-alicloud
+
+# Terraform
+.terraform*
+terraform.tfstate
+terraform.tfplan
+./*.tfstate
+.terraform.lock.hcl
+*.tfvars
+
+# Local Development & Scratchpad
+example.tf
+*.tf
+modules-dev/
+
+# Website
 website/.vagrant
 website/.bundle
 website/build
 website/node_modules
+website/vendor
+
+# Vagrant
 .vagrant/
-*.backup
-./*.tfstate
-.terraform*
+
+# Logs & Temporary Files
 *.log
-*.tf
-*.bak
-*~
-.*.swp
-.idea
-*.iml
-*.test
-*.iml
-*.pem
+dump.rdb
+diff_*.zip
+
+# CI / CD / Scripts
 vars-pipeline*
 vars-publish*
 develop*
-vendor/
 task-config
-website/vendor
+scan.py
 
-# Test exclusions
+# Secrets
+*.pem
+
+# Test Exclusions
 !command/test-fixtures/**/*.tfstate
 !command/test-fixtures/**/.terraform/
-diff_*.zip
-scan.py
-coverage.html
-coverage.out
-.terraform.lock.hcl
-*.tfvars
