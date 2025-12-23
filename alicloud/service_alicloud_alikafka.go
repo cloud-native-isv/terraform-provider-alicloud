@@ -989,6 +989,16 @@ func (s *KafkaService) UpgradePrePayOrder(order *kafka.KafkaOrder) (string, erro
 	return s.kafkaApi.UpgradeOrder(order)
 }
 
+// UpdateInstanceConfig updates the configuration of a Kafka instance
+func (s *KafkaService) UpdateInstanceConfig(instanceId string, config map[string]*string) error {
+	return s.kafkaApi.UpdateInstanceConfig(instanceId, s.client.RegionId, config)
+}
+
+// UpdateInstance updates a Kafka instance
+func (s *KafkaService) UpdateInstance(instance *kafka.KafkaInstance) error {
+	return s.kafkaApi.UpdateInstance(instance)
+}
+
 func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlikafkaInstance(id)

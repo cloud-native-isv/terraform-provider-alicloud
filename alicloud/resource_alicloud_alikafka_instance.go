@@ -41,14 +41,9 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"io_max": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
 			"io_max_spec": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ExactlyOneOf: []string{"io_max", "io_max_spec"},
 			},
 			"spec_type": {
 				Type:     schema.TypeString,
@@ -69,9 +64,8 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			},
 			"paid_type": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required: true,
 				ValidateFunc: StringInSlice([]string{"PrePaid", "PostPaid"}, false),
-				Default:      "PostPaid",
 			},
 			"duration": {
 				Type:     schema.TypeInt,
@@ -97,6 +91,7 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			},
 			"config": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"kms_key_id": {
@@ -226,10 +221,6 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		order.PartitionNum = int32(v.(int))
 	}
 
-	if v, ok := d.GetOk("io_max"); ok {
-		order.IoMax = int32(v.(int))
-	}
-
 	if v, ok := d.GetOk("io_max_spec"); ok {
 		order.IoMaxSpec = v.(string)
 	}
@@ -347,20 +338,19 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 
 	// Process change instance name.
 	if !d.IsNewResource() && d.HasChange("name") {
-		request := &ModifyInstanceNameRequest{
-			RegionId:   client.RegionId,
+		instance := &kafka.KafkaInstance{
 			InstanceId: d.Id(),
 		}
 
 		if v, ok := d.GetOk("name"); ok {
-			request.InstanceName = v.(string)
+			instance.Name = v.(string)
 		}
 
-		err = kafkaService.ModifyInstanceName(request)
+		err = kafkaService.UpdateInstance(instance)
 		if err != nil {
 			return err
 		}
-		addDebug("ModifyInstanceName", "Success", request)
+		addDebug("UpdateInstance", "Success", instance)
 
 		d.SetPartial("name")
 	}
@@ -404,13 +394,6 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 	if v, ok := d.GetOk("disk_size"); ok {
 		upgradeOrder.DiskSize = int32(v.(int))
-	}
-
-	if !d.IsNewResource() && d.HasChange("io_max") {
-		update = true
-		if v, ok := d.GetOk("io_max"); ok {
-			upgradeOrder.IoMax = int32(v.(int))
-		}
 	}
 
 	if !d.IsNewResource() && d.HasChange("io_max_spec") {
@@ -469,13 +452,6 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 
-		if d.HasChange("io_max") {
-			stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("io_max"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
-			if _, err := stateConf.WaitForState(); err != nil {
-				return WrapErrorf(err, IdMsg, d.Id())
-			}
-		}
-
 		stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("eip_max"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
@@ -493,7 +469,6 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 
 		d.SetPartial("partition_num")
 		d.SetPartial("disk_size")
-		d.SetPartial("io_max")
 		d.SetPartial("io_max_spec")
 		d.SetPartial("spec_type")
 		d.SetPartial("eip_max")
@@ -526,15 +501,24 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if !d.IsNewResource() && d.HasChange("config") {
-		request := map[string]interface{}{
-			"RegionId":   client.RegionId,
-			"InstanceId": d.Id(),
-		}
-
 		if v, ok := d.GetOk("config"); ok {
-			request["Config"] = v
-		}
+			var configMap map[string]interface{}
+			if err := json.Unmarshal([]byte(v.(string)), &configMap); err != nil {
+				return WrapError(fmt.Errorf("failed to unmarshal config: %v", err))
+			}
 
+			apiConfig := make(map[string]*string)
+			for k, val := range configMap {
+				s := fmt.Sprintf("%v", val)
+				apiConfig[k] = &s
+			}
+
+			err = kafkaService.UpdateInstanceConfig(d.Id(), apiConfig)
+			if err != nil {
+				return err
+			}
+			addDebug("UpdateInstanceConfig", "Success", apiConfig)
+		}
 		d.SetPartial("config")
 	}
 
