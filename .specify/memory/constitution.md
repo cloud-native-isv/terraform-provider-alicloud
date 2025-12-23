@@ -74,6 +74,8 @@ and clearer contracts.
 ### VI. Testing and Validation Requirements
 Every code change MUST be validated by executing 'cd /cws_data/terraform-provider-alicloud && make' to ensure syntax correctness and successful compilation. Comprehensive unit tests and integration tests are mandatory. All resources MUST include proper Timeout configurations. Code files exceeding 1000 lines MUST be split by functional modules to ensure single responsibility.
 
+Binary generation MUST NOT occur in the root directory. All binary files MUST be output to the `bin` directory and ignored by `.gitignore`.
+
 API pagination logic MUST be encapsulated in `*_api.go` files:
 - External callers should not handle pagination details
 - Use page number/page size iteration until all results are collected
