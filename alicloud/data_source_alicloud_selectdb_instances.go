@@ -40,6 +40,10 @@ func dataSourceAliCloudSelectDBInstances() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"instance_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"engine": {
 							Type:     schema.TypeString,
 							Computed: true,

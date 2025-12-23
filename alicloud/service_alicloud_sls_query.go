@@ -19,7 +19,15 @@ func (s *SlsService) QuerySlsLogs(projectName, logstoreName string, from, to int
 	}
 
 	// Execute simple log query using SLS API
-	result, err := slsAPI.QueryLogSimple(projectName, logstoreName, from, to, query, lineNum)
+	logQuery := &sls.LogQuery{
+		ProjectName:  projectName,
+		LogstoreName: logstoreName,
+		From:         from,
+		To:           to,
+		Query:        query,
+		Line:         lineNum,
+	}
+	result, err := slsAPI.QueryLog(logQuery)
 	if err != nil {
 		return nil, WrapError(err)
 	}

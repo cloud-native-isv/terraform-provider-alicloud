@@ -115,6 +115,7 @@ func resourceAliCloudLogStore() *schema.Resource {
 			"max_split_shard_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: IntBetween(0, 256),
 			},
 			"metering_mode": {
