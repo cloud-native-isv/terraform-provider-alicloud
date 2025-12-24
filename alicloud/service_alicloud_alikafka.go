@@ -1020,3 +1020,27 @@ func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id string, failStates []
 		return object, status, nil
 	}
 }
+
+func (s *KafkaService) AliKafkaInstancePropertyRefreshFunc(id string, property string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		object, err := s.DescribeAlikafkaInstance(id)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil, "", nil
+			}
+			return nil, "", WrapError(err)
+		}
+
+		var val interface{}
+		switch property {
+		case "disk_size":
+			val = object.DiskSize
+		case "eip_max":
+			val = object.EipMax
+		case "spec_type":
+			val = object.SpecType
+		}
+
+		return object, fmt.Sprint(val), nil
+	}
+}
