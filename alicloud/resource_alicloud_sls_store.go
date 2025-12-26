@@ -250,6 +250,10 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 			d.SetId(fmt.Sprintf("%s%s%s", projectName, COLON_SEPARATED, logstoreName))
 		}
 
+		if v, ok := d.GetOk("max_split_shard_count"); ok {
+			d.Set("max_split_shard_count", v)
+		}
+
 		// Wait for the logstore to be available using state refresh function
 		stateConf := BuildStateConf([]string{}, []string{"available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.LogStoreStateRefreshFunc(d.Id(), "logstoreName", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
@@ -372,6 +376,10 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 	// Set ID if not already set (for new resources)
 	if d.Id() == "" {
 		d.SetId(fmt.Sprintf("%v:%v", *hostMap["project"], request["logstoreName"]))
+	}
+
+	if v, ok := d.GetOk("max_split_shard_count"); ok {
+		d.Set("max_split_shard_count", v)
 	}
 
 	// Wait for the logstore to be available using state refresh function
@@ -626,6 +634,10 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "UpdateLogStore", AliyunLogGoSdkERROR)
 		}
 
+		if v, ok := d.GetOk("max_split_shard_count"); ok {
+			d.Set("max_split_shard_count", v)
+		}
+
 		// Wait for the updated logstore to be available using state refresh function
 		stateConf := BuildStateConf([]string{}, []string{"available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, slsService.LogStoreStateRefreshFunc(d.Id(), "logstoreName", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
@@ -651,6 +663,10 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 		})
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		}
+
+		if v, ok := d.GetOk("max_split_shard_count"); ok {
+			d.Set("max_split_shard_count", v)
 		}
 
 		// Wait for the updated logstore to be available using state refresh function
