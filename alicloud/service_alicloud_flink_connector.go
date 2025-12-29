@@ -1,6 +1,8 @@
 package alicloud
 
 import (
+	"log"
+
 	flinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -11,7 +13,10 @@ func (s *FlinkService) ListCustomConnectors(workspaceId string, namespaceName st
 }
 
 func (s *FlinkService) RegisterCustomConnector(workspaceId string, namespaceName string, connector *flinkAPI.Connector) (*flinkAPI.Connector, error) {
-	return s.GetAPI().RegisterConnector(workspaceId, namespaceName, connector)
+	log.Printf("[DEBUG] FlinkService.RegisterCustomConnector enter. workspaceId: %s, namespaceName: %s, connector: %+v", workspaceId, namespaceName, connector)
+	res, err := s.GetAPI().CreateConnector(workspaceId, namespaceName, connector)
+	log.Printf("[DEBUG] FlinkService.RegisterCustomConnector exit. Res: %+v, Err: %v", res, err)
+	return res, err
 }
 
 func (s *FlinkService) GetConnector(workspaceId string, namespaceName string, connectorName string) (*flinkAPI.Connector, error) {
@@ -26,12 +31,14 @@ func (s *FlinkService) FlinkConnectorStateRefreshFunc(workspaceId string, namesp
 	return func() (interface{}, string, error) {
 		connector, err := s.GetConnector(workspaceId, namespaceName, connectorName)
 		if err != nil {
+			log.Printf("[DEBUG] FlinkConnectorStateRefreshFunc GetConnector error: %v", err)
 			if NotFoundError(err) {
 				// Connector not found, still being created or deleted
 				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
 		}
+		log.Printf("[DEBUG] FlinkConnectorStateRefreshFunc GetConnector success: %v", connector)
 
 		// For connectors, if we can get it successfully, it means it's available
 		for _, failState := range failStates {

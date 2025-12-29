@@ -100,17 +100,19 @@ func resourceAliCloudFlinkConnectorCreate(d *schema.ResourceData, meta interface
 		JarUrl: d.Get("jar_url").(string),
 	}
 
+	log.Printf("[DEBUG] Calling RegisterCustomConnector with workspaceId: %s, namespaceName: %s, connector: %+v", workspaceId, namespaceName, connector)
 	// Create connector
 	if _, err := flinkService.RegisterCustomConnector(workspaceId, namespaceName, connector); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_connector", "RegisterCustomConnector", AlibabaCloudSdkGoERROR)
 	}
+	log.Printf("[DEBUG] RegisterCustomConnector returned success")
 
 	d.SetId(workspaceId + ":" + namespaceName + ":" + connectorName)
 	d.Set("connector_name", connectorName)
 	d.Set("jar_url", connector.JarUrl)
 
 	// Wait for connector to be available
-	stateConf := BuildStateConf([]string{"CREATING"}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkConnectorStateRefreshFunc(workspaceId, namespaceName, connectorName, []string{"FAILED"}))
+	stateConf := BuildStateConf([]string{"CREATING", ""}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkConnectorStateRefreshFunc(workspaceId, namespaceName, connectorName, []string{"FAILED"}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
