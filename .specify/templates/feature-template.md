@@ -11,7 +11,6 @@
 **Name**: [FEATURE_NAME]  
 **Description**: [FEATURE_DESCRIPTION]  
 **Status**: [FEATURE_STATUS]  
-**Spec Path**: .specify/specs/[FEATURE_ID]-[FEATURE_SLUG]/spec.md  
 **Created**: [FEATURE_CREATED_DATE]  
 **Last Updated**: [FEATURE_LAST_UPDATED_DATE]
 
@@ -93,7 +92,6 @@
 ## Validation Checklist (To be removed after instantiation)
 
 - [ ] All tokens replaced
-- [ ] Spec path exists or will be created
 - [ ] Status is valid and criteria defined
 - [ ] Overview gives clear value proposition
 - [ ] Key Changes list distinct, actionable items

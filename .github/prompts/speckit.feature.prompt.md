@@ -26,7 +26,7 @@ Your responsibilities:
    - Status must be one of: Draft | Planned | Implemented | Ready for Review | Completed.
 4. For updates to existing features: load the existing detail file, apply changes preserving unchanged sections.
 5. Update `.specify/memory/feature-index.md`:
-   - Ensure table lists all features with columns: ID | Name | Description | Status | Spec Path | Last Updated.
+   - Ensure table lists all features with columns: ID | Name | Description | Status | Feature Details | Last Updated.
    - Regenerate `FEATURE_COUNT` and any other placeholders (if still a template) before finalizing.
 6. Validate:
    - No leftover bracketed placeholders in generated/updated files.
@@ -88,6 +88,6 @@ Fallbacks / Inference:
 
 * If description absent: derive a concise one-line summary from name.
 * If status absent: default to `Draft`.
-* If spec file does not yet exist: set Spec Path to `(Not yet created)`.
+* Feature Details path should always point to `.specify/memory/features/[FEATURE_ID].md` regardless of spec existence.
 
 Do not modify the template file itself; only instantiate copies based on `.specify/templates/feature-template.md`.

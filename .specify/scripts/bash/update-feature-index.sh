@@ -161,9 +161,9 @@ $FEATURE_ENTRIES
 
 Each feature entry should follow this format in the table:
 
-| ID | Name | Description | Status | Spec Path | Last Updated |
-|----|------|-------------|--------|-----------|--------------|
-| 001 | Feature Name | Brief description of the feature | Draft | .specify/specs/001-feature-name/spec.md | 2025-11-21 |
+| ID | Name | Description | Status | Feature Details | Last Updated |
+|----|------|-------------|--------|----------------|--------------|
+| 001 | Feature Name | Brief description of the feature | Draft | .specify/memory/features/001.md | 2025-11-21 |
 
 ### Column Definitions
 
@@ -173,7 +173,7 @@ Each feature entry should follow this format in the table:
 | Name | Short feature name (2-4 words) describing the feature |
 | Description | Brief summary of the feature's purpose and scope |
 | Status | Current implementation status (Draft, Planned, Implemented, Ready for Review, Completed) |
-| Spec Path | Path to specification file or "(Not yet created)" if not yet created |
+| Feature Details | Path to feature detail file in .specify/memory/features/[FEATURE_ID].md |
 | Last Updated | When the feature entry was last modified (YYYY-MM-DD format) |
 
 ## Template Usage Instructions

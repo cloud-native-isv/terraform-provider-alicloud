@@ -8,7 +8,6 @@
 
 **Feature ID**: [FEATURE_ID]  
 **Branch / Spec Key**: [FEATURE_KEY]  
-**Spec Path**: .specify/specs/[FEATURE_KEY]/spec.md  
 **Plan Path**: .specify/specs/[FEATURE_KEY]/plan.md  
 **Tasks Path**: .specify/specs/[FEATURE_KEY]/tasks.md  
 **Review Date**: [REVIEW_DATE]  
