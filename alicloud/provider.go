@@ -1448,6 +1448,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_flink_variable":                                        resourceAliCloudFlinkVariable(),
 			"alicloud_flink_workspace":                                       resourceAliCloudFlinkWorkspace(),
 			"alicloud_flink_connector":                                       resourceAliCloudFlinkConnector(),
+			"alicloud_flink_udf":                                             resourceAliCloudFlinkUdf(),
 			"alicloud_fnf_execution":                                         resourceAliCloudFnFExecution(),
 			"alicloud_fnf_flow":                                              resourceAliCloudFnfFlow(),
 			"alicloud_fnf_schedule":                                          resourceAliCloudFnfSchedule(),
