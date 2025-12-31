@@ -85,17 +85,21 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 			},
 			"multi_zone": {
 				Type:        schema.TypeList,
+				Optional:    true,
 				Computed:    true,
-				Description: "Multi-zone configuration for high availability (read-only, computed from service).",
+				ForceNew:    true,
+				Description: "Multi-zone configuration for high availability. Required when deploy_scheme is multi_az.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"zone_id": {
 							Type:        schema.TypeString,
+							Optional:    true,
 							Computed:    true,
 							Description: "The zone ID.",
 						},
 						"vswitch_ids": {
 							Type:        schema.TypeList,
+							Optional:    true,
 							Computed:    true,
 							Elem:        &schema.Schema{Type: schema.TypeString},
 							Description: "The VSwitch IDs in this zone.",
@@ -522,6 +526,18 @@ func resourceAliCloudSelectDBInstanceCreate(d *schema.ResourceData, meta interfa
 		return WrapError(err)
 	}
 
+	deployScheme := d.Get("deploy_scheme").(string)
+	if deployScheme == "multi_az" {
+		if v, ok := d.GetOk("multi_zone"); ok {
+			list := v.([]interface{})
+			if len(list) != 3 {
+				return fmt.Errorf("The number of zones (multi_zone field) must be three when deploy_scheme is multi_az")
+			}
+		} else {
+			return fmt.Errorf("multi_zone field is required when deploy_scheme is multi_az")
+		}
+	}
+
 	// Build instance directly using Instance struct fields
 	instance := &selectdb.Instance{
 		Engine:   "selectdb",
@@ -560,6 +576,23 @@ func resourceAliCloudSelectDBInstanceCreate(d *schema.ResourceData, meta interfa
 
 	if v, ok := d.GetOk("cache_size"); ok {
 		instance.CacheSize = int32(v.(int))
+	}
+
+	if v, ok := d.GetOk("multi_zone"); ok {
+		multiZones := v.([]interface{})
+		for _, mz := range multiZones {
+			mzMap := mz.(map[string]interface{})
+			vswitchIds := make([]string, 0)
+			if vIds, ok := mzMap["vswitch_ids"].([]interface{}); ok {
+				for _, id := range vIds {
+					vswitchIds = append(vswitchIds, id.(string))
+				}
+			}
+			instance.MultiZone = append(instance.MultiZone, selectdb.MultiZone{
+				ZoneId:     mzMap["zone_id"].(string),
+				VSwitchIds: vswitchIds,
+			})
+		}
 	}
 
 	// Set payment configuration

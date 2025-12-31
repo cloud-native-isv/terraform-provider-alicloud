@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -317,6 +318,13 @@ func resourceAliCloudFlinkJobRead(d *schema.ResourceData, meta interface{}) erro
 			return nil
 		}
 		return WrapError(err)
+	}
+
+	// Check if the job is in FAILED state
+	if job.Status != nil && job.Status.CurrentJobStatus != nil && *job.Status.CurrentJobStatus != "RUNNING" {
+		log.Printf("[WARN] Flink Job %s is in %s state (not RUNNING), removing from state to trigger recreation.", d.Id(), *job.Status.CurrentJobStatus)
+		d.SetId("")
+		return nil
 	}
 
 	// Check if the parent deployment still exists
