@@ -49,7 +49,12 @@ func resourceAliCloudFlinkUdf() *schema.Resource {
 			"artifact_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "JAR",
+				Default:  "ARTIFACT_TYPE_JAVA",
+				ValidateFunc: validation.StringInSlice([]string{
+					"ARTIFACT_TYPE_JAVA",
+					"ARTIFACT_TYPE_PYTHON",
+					"ARTIFACT_TYPE_UNKNOWN",
+				}, false),
 			},
 			"dependency_jar_uris": {
 				Type:     schema.TypeList,
