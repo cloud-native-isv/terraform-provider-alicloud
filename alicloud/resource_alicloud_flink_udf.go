@@ -61,22 +61,19 @@ func resourceAliCloudFlinkUdf() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"udf_classes": {
 				Type:     schema.TypeList,
+				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"class_name": {
 							Type:     schema.TypeString,
-							Computed: true,
+							Required: true,
 						},
 						"function_names": {
 							Type:     schema.TypeList,
-							Computed: true,
+							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
@@ -107,7 +104,6 @@ func resourceAliCloudFlinkUdfCreate(d *schema.ResourceData, meta interface{}) er
 		JarUrl:            d.Get("jar_url").(string),
 		ArtifactType:      d.Get("artifact_type").(string),
 		DependencyJarUris: expandStringList(d.Get("dependency_jar_uris").([]interface{})),
-		Description:       d.Get("description").(string),
 	}
 
 	log.Printf("[DEBUG] Calling CreateUdfArtifact with workspaceId: %s, namespaceName: %s, artifact: %+v", workspaceId, namespaceName, artifact)
@@ -122,6 +118,27 @@ func resourceAliCloudFlinkUdfCreate(d *schema.ResourceData, meta interface{}) er
 	stateConf := BuildStateConf([]string{"CREATING", ""}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkUdfArtifactStateRefreshFunc(workspaceId, namespaceName, udfArtifactName))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	if v, ok := d.GetOk("udf_classes"); ok {
+		udfClasses := v.([]interface{})
+		for _, c := range udfClasses {
+			classMap := c.(map[string]interface{})
+			className := classMap["class_name"].(string)
+			if funcs, ok := classMap["function_names"].([]interface{}); ok {
+				for _, f := range funcs {
+					functionName := f.(string)
+					function := &flinkAPI.UdfFunction{
+						FunctionName:    functionName,
+						ClassName:       className,
+						UdfArtifactName: udfArtifactName,
+					}
+					if _, err := flinkService.RegisterUdfFunction(workspaceId, namespaceName, function); err != nil {
+						return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_udf", "RegisterUdfFunction", AlibabaCloudSdkGoERROR)
+					}
+				}
+			}
+		}
 	}
 
 	return resourceAliCloudFlinkUdfRead(d, meta)
@@ -160,7 +177,6 @@ func resourceAliCloudFlinkUdfRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("jar_url", artifact.JarUrl)
 	d.Set("artifact_type", artifact.ArtifactType)
 	d.Set("dependency_jar_uris", artifact.DependencyJarUris)
-	d.Set("description", artifact.Description)
 	d.Set("udf_classes", flattenUdfClasses(artifact.UdfClasses))
 
 	return nil
@@ -184,11 +200,66 @@ func resourceAliCloudFlinkUdfUpdate(d *schema.ResourceData, meta interface{}) er
 			JarUrl:            d.Get("jar_url").(string),
 			ArtifactType:      d.Get("artifact_type").(string),
 			DependencyJarUris: expandStringList(d.Get("dependency_jar_uris").([]interface{})),
-			Description:       d.Get("description").(string),
 		}
 
 		if _, err := flinkService.UpdateUdfArtifact(workspaceId, namespaceName, artifact); err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_udf", "UpdateUdfArtifact", AlibabaCloudSdkGoERROR)
+		}
+	}
+
+	if d.HasChange("udf_classes") {
+		o, n := d.GetChange("udf_classes")
+		oldClasses := o.([]interface{})
+		newClasses := n.([]interface{})
+
+		// Helper to flatten classes to map[string]map[string]bool (className -> functionName -> true)
+		flatten := func(classes []interface{}) map[string]map[string]bool {
+			m := make(map[string]map[string]bool)
+			for _, c := range classes {
+				classMap := c.(map[string]interface{})
+				className := classMap["class_name"].(string)
+				if _, ok := m[className]; !ok {
+					m[className] = make(map[string]bool)
+				}
+				if funcs, ok := classMap["function_names"].([]interface{}); ok {
+					for _, f := range funcs {
+						m[className][f.(string)] = true
+					}
+				}
+			}
+			return m
+		}
+
+		oldMap := flatten(oldClasses)
+		newMap := flatten(newClasses)
+
+		// Find functions to delete
+		for className, funcs := range oldMap {
+			for funcName := range funcs {
+				if _, ok := newMap[className]; !ok || !newMap[className][funcName] {
+					if err := flinkService.DeleteUdfFunction(workspaceId, namespaceName, funcName, udfArtifactName, className); err != nil {
+						if !NotFoundError(err) {
+							return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteUdfFunction", AlibabaCloudSdkGoERROR)
+						}
+					}
+				}
+			}
+		}
+
+		// Find functions to register
+		for className, funcs := range newMap {
+			for funcName := range funcs {
+				if _, ok := oldMap[className]; !ok || !oldMap[className][funcName] {
+					function := &flinkAPI.UdfFunction{
+						FunctionName:    funcName,
+						ClassName:       className,
+						UdfArtifactName: udfArtifactName,
+					}
+					if _, err := flinkService.RegisterUdfFunction(workspaceId, namespaceName, function); err != nil {
+						return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_udf", "RegisterUdfFunction", AlibabaCloudSdkGoERROR)
+					}
+				}
+			}
 		}
 	}
 
@@ -209,6 +280,24 @@ func resourceAliCloudFlinkUdfDelete(d *schema.ResourceData, meta interface{}) er
 
 	if udfArtifactName == "" {
 		return nil
+	}
+
+	if v, ok := d.GetOk("udf_classes"); ok {
+		udfClasses := v.([]interface{})
+		for _, c := range udfClasses {
+			classMap := c.(map[string]interface{})
+			className := classMap["class_name"].(string)
+			if funcs, ok := classMap["function_names"].([]interface{}); ok {
+				for _, f := range funcs {
+					functionName := f.(string)
+					if err := flinkService.DeleteUdfFunction(workspaceId, namespaceName, functionName, udfArtifactName, className); err != nil {
+						if !NotFoundError(err) {
+							return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteUdfFunction", AlibabaCloudSdkGoERROR)
+						}
+					}
+				}
+			}
+		}
 	}
 
 	err = flinkService.DeleteUdfArtifact(workspaceId, namespaceName, udfArtifactName)

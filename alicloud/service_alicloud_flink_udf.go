@@ -45,3 +45,11 @@ func (s *FlinkService) FlinkUdfArtifactStateRefreshFunc(workspaceId string, name
 		return artifact, "Available", nil
 	}
 }
+
+func (s *FlinkService) RegisterUdfFunction(workspaceId string, namespaceName string, function *flinkAPI.UdfFunction) (*flinkAPI.UdfFunction, error) {
+	return s.GetAPI().RegisterUdfFunction(workspaceId, namespaceName, function)
+}
+
+func (s *FlinkService) DeleteUdfFunction(workspaceId string, namespaceName string, functionName string, udfArtifactName string, className string) error {
+	return s.GetAPI().DeleteUdfFunction(workspaceId, namespaceName, functionName, udfArtifactName, className)
+}
