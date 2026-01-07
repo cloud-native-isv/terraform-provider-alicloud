@@ -1,6 +1,6 @@
 # Terraform Provider Alicloud Feature Index
 
-**Last Updated**: 2026-01-06
+**Last Updated**: 2026-01-07
 **Total Features**: 7
 
 ## Features
@@ -13,4 +13,4 @@
 | 004 | Makefile 构建系统 | 基于 Makefile 的自动化构建和开发工具链 | Implemented | (Not yet created) | 2025-12-02 |
 | 005 | 强类型 API 调用 | 使用 cws-lib-go 库提供的强类型结构体进行 API 调用 | Implemented | (Not yet created) | 2025-12-02 |
 | 006 | SelectDB Management | Provide lifecycle management for Alibaba Cloud SelectDB instances and clusters. | Implemented | .specify/specs/004-update-selectdb-resources/spec.md | 2025-12-14 |
-| 007 | Tablestore VCU Instance Support | Support configuration of Tablestore instances using the VCU sizing model and elastic limits. | Implemented | .specify/specs/007-ots-vcu-support/spec.md | 2026-01-06 |
+| 007 | Tablestore VCU Instance Support | Support configuration of Tablestore instances using the VCU sizing model and elastic limits. | Completed | .specify/specs/007-ots-vcu-support/spec.md | 2026-01-07 |
