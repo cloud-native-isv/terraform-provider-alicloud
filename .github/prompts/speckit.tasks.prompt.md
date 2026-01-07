@@ -39,7 +39,7 @@ You **MUST** first analyze the content and structure of `$ARGUMENTS` to determin
    - **Optional**: data-model.md (entities), contracts/ (API endpoints), research.md (decisions), quickstart.md (test scenarios)
    - Note: Not all projects have all documents. Generate tasks based on what's available.
 
-3. **Execute task generation workflow**:
+3. **Generate task list workflow**:
    - **Analyze $ARGUMENTS input type**: Determine if input contains background context, task outline, or additional task items
    - Load plan.md and extract tech stack, libraries, project structure
    - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)

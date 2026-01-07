@@ -1,0 +1,35 @@
+openapi: 3.0.0
+info:
+  title: Tablestore VCU API
+  version: 1.0.0
+paths:
+  /CreateVCUInstance:
+    post:
+      summary: Create a VCU instance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                InstanceName:
+                  type: string
+                InstanceSpecification:
+                  type: string
+                  enum: [VCU]
+                Tags: 
+                  type: array
+  /UpdateInstanceElasticVCUUpperLimit:
+    post:
+      summary: Update elastic limit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                InstanceName:
+                  type: string
+                ElasticVCUUpperLimit:
+                  type: number
+                  format: float

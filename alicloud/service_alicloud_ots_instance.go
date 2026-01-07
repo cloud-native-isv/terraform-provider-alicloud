@@ -33,6 +33,10 @@ func convertSchemaToTablestoreInstance(d *schema.ResourceData) *tablestoreAPI.Ta
 		instance.ResourceGroupId = v.(string)
 	}
 
+	if v, ok := d.GetOk("elastic_vcu_upper_limit"); ok {
+		instance.ElasticVCUUpperLimit = float32(v.(float64))
+	}
+
 	// Convert network ACLs - only ACL fields are supported now (Network field is deprecated)
 	if v, ok := d.GetOk("network_source_acl"); ok {
 		if networkSourceAcl, ok := v.(*schema.Set); ok {
@@ -130,6 +134,16 @@ func (s *OtsService) UpdateOtsInstance(instance *tablestoreAPI.TablestoreInstanc
 
 	if err := api.UpdateInstance(instance); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, instance.InstanceName, "UpdateInstance", AlibabaCloudSdkGoERROR)
+	}
+
+	return nil
+}
+
+func (s *OtsService) UpdateOtsInstanceElasticVCUUpperLimit(instanceName string, limit float32) error {
+	api := s.GetAPI()
+
+	if err := api.UpdateInstanceElasticVCUUpperLimit(instanceName, limit); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, instanceName, "UpdateInstanceElasticVCUUpperLimit", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil

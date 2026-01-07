@@ -64,6 +64,11 @@ func dataSourceAliCloudOtsInstances() *schema.Resource {
 							Computed:    true,
 							Description: "The description of the Tablestore instance.",
 						},
+						"instance_specification": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The instance specification of the Tablestore instance.",
+						},
 						"cluster_type": {
 							Type:        schema.TypeString,
 							Computed:    true,
@@ -244,6 +249,7 @@ func otsInstancesDescriptionAttributes(d *schema.ResourceData, instances []table
 			"name":                    instance.InstanceName,
 			"alias_name":              instance.AliasName,
 			"description":             instance.InstanceDescription,
+			"instance_specification":  instance.InstanceSpecification,
 			"status":                  instance.InstanceStatus,
 			"network":                 instance.Network,
 			"network_type_acl":        convertStringSliceToSet(instance.NetworkTypeACL),

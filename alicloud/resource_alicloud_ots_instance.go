@@ -52,9 +52,9 @@ func resourceAliCloudOtsInstance() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"SSD", "HYBRID",
+					"SSD", "HYBRID", "VCU",
 				}, false),
-				Description: "The instance specification type of the Tablestore instance. Valid values: SSD, HYBRID.",
+				Description: "The instance specification type of the Tablestore instance. Valid values: SSD, HYBRID, VCU.",
 			},
 
 			// Network Configuration
@@ -119,6 +119,7 @@ func resourceAliCloudOtsInstance() *schema.Resource {
 			},
 			"elastic_vcu_upper_limit": {
 				Type:        schema.TypeFloat,
+				Optional:    true,
 				Computed:    true,
 				Description: "The elastic VCU upper limit of the Tablestore instance.",
 			},
@@ -245,6 +246,13 @@ func resourceAliCloudOtsInstanceUpdate(d *schema.ResourceData, meta interface{})
 		instance := convertSchemaToTablestoreInstanceForBasicUpdate(d)
 		if err := otsService.UpdateOtsInstance(instance); err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateInstanceBasic", AlibabaCloudSdkGoERROR)
+		}
+	}
+
+	// Handle elastic VCU upper limit updates
+	if d.HasChange("elastic_vcu_upper_limit") {
+		if err := otsService.UpdateOtsInstanceElasticVCUUpperLimit(d.Id(), float32(d.Get("elastic_vcu_upper_limit").(float64))); err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateInstanceElasticVCUUpperLimit", AlibabaCloudSdkGoERROR)
 		}
 	}
 

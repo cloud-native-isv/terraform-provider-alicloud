@@ -115,7 +115,7 @@ This command is intended to be used **after** `/speckit.implement` has completed
 2. `/speckit.specify` – create or update the specification
 3. `/speckit.plan` – produce the technical implementation plan
 4. `/speckit.tasks` – derive an executable task list
-5. `/speckit.implement` – execute tasks and complete the implementation
+5. `/speckit.implement` – implement tasks and complete the implementation
 6. `/speckit.review` – review the resulting artifacts and consolidate the feature description into `.specify/memory/features/*.md`
 
 Use `/speckit.review` whenever a feature's documentation should be brought up to date with the latest spec/plan/tasks and implementation outcomes.
