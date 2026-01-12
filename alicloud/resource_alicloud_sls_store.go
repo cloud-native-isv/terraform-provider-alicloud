@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PaesslerAG/jsonpath"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
@@ -208,173 +207,45 @@ func resourceAliCloudLogStore() *schema.Resource {
 }
 
 func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{}) error {
-
-	if v, ok := d.GetOk("telemetry_type"); ok && v == "Metrics" {
-		client := meta.(*connectivity.AliyunClient)
-		slsService, err := NewSlsService(client)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsService", AlibabaCloudSdkGoERROR)
-		}
-
-		projectName := d.Get("project_name").(string)
-		if v, ok := d.GetOkExists("project"); ok {
-			projectName = v.(string)
-		}
-		logstoreName := d.Get("logstore_name").(string)
-		if v, ok := d.GetOkExists("name"); ok {
-			logstoreName = v.(string)
-		}
-
-		logstore := buildLogStore(d)
-		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			err := slsService.GetAPI().CreateLogStore(projectName, logstore)
-			if err != nil {
-				// Handle LogStoreAlreadyExist error by importing existing resource
-				if IsExpectedErrors(err, []string{"LogStoreAlreadyExist"}) {
-					log.Printf("[INFO] LogStore %s already exists, importing existing resource", logstoreName)
-					d.SetId(fmt.Sprintf("%s%s%s", projectName, COLON_SEPARATED, logstoreName))
-					return nil
-				}
-				if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
-					time.Sleep(10 * time.Second)
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "CreateLogStoreV2", AliyunLogGoSdkERROR)
-		}
-
-		// Set ID if not already set (for new resources)
-		if d.Id() == "" {
-			d.SetId(fmt.Sprintf("%s%s%s", projectName, COLON_SEPARATED, logstoreName))
-		}
-
-		if v, ok := d.GetOk("max_split_shard_count"); ok {
-			d.Set("max_split_shard_count", v)
-		}
-
-		// Wait for the logstore to be available using state refresh function
-		stateConf := BuildStateConf([]string{}, []string{"available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.LogStoreStateRefreshFunc(d.Id(), "logstoreName", []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
-
-		return resourceAliCloudSlsLogStoreUpdate(d, meta)
-	}
-
 	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsService", AlibabaCloudSdkGoERROR)
+	}
 
-	action := fmt.Sprintf("/logstores")
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	body := make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	var err error
-	request = make(map[string]interface{})
-	request["logstoreName"] = d.Get("logstore_name")
-	hostMap["project"] = StringPointer(d.Get("project_name").(string))
+	projectName := d.Get("project_name").(string)
 	if v, ok := d.GetOkExists("project"); ok {
-		hostMap["project"] = tea.String(v.(string))
-	}
-	if v, ok := d.GetOkExists("name"); ok {
-		request["logstoreName"] = v
+		projectName = v.(string)
 	}
 
-	request["shardCount"] = 2
-	if v, ok := d.GetOkExists("shard_count"); ok {
-		request["shardCount"] = v
-	}
-	if v, ok := d.GetOk("auto_split"); ok {
-		request["autoSplit"] = v
-	}
-	if v, ok := d.GetOk("append_meta"); ok {
-		request["appendMeta"] = v
-	}
-	if v, ok := d.GetOk("telemetry_type"); ok {
-		request["telemetryType"] = v
-	}
-	if v, ok := d.GetOk("hot_ttl"); ok {
-		request["hot_ttl"] = v
-	}
-	if v, ok := d.GetOk("mode"); ok {
-		request["mode"] = v
-	}
-	objectDataLocalMap := make(map[string]interface{})
+	logstore := buildLogStore(d)
 
-	if v := d.Get("encrypt_conf"); !IsNil(v) {
-		enable1, _ := jsonpath.Get("$[0].enable", d.Get("encrypt_conf"))
-		if enable1 != nil && enable1 != "" {
-			objectDataLocalMap["enable"] = enable1
-		}
-		encryptType, _ := jsonpath.Get("$[0].encrypt_type", d.Get("encrypt_conf"))
-		if encryptType != nil && encryptType != "" {
-			objectDataLocalMap["encrypt_type"] = encryptType
-		}
-		user_cmk_info := make(map[string]interface{})
-		cmkKeyId, _ := jsonpath.Get("$[0].user_cmk_info[0].cmk_key_id", d.Get("encrypt_conf"))
-		if cmkKeyId != nil && cmkKeyId != "" {
-			user_cmk_info["cmk_key_id"] = cmkKeyId
-		}
-		arn1, _ := jsonpath.Get("$[0].user_cmk_info[0].arn", d.Get("encrypt_conf"))
-		if arn1 != nil && arn1 != "" {
-			user_cmk_info["arn"] = arn1
-		}
-		regionId, _ := jsonpath.Get("$[0].user_cmk_info[0].region_id", d.Get("encrypt_conf"))
-		if regionId != nil && regionId != "" {
-			user_cmk_info["region_id"] = regionId
-		}
-
-		user_cmk_info_map, _ := jsonpath.Get("$[0].user_cmk_info[0]", v)
-		if !IsNil(user_cmk_info_map) {
-			objectDataLocalMap["user_cmk_info"] = user_cmk_info
-		}
-
-		request["encrypt_conf"] = objectDataLocalMap
-	}
-
-	request["ttl"] = d.Get("ttl")
-	if v, ok := d.GetOk("max_split_shard_count"); ok {
-		request["maxSplitShard"] = v
-	}
-	if v, ok := d.GetOk("enable_web_tracking"); ok {
-		request["enable_tracking"] = v
-	}
-	if v, ok := d.GetOk("infrequent_access_ttl"); ok {
-		request["infrequentAccessTTL"] = v
-	}
-
-	body = request
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.Do("Sls", roaParam("POST", "2020-12-30", "CreateLogStore", action), query, body, nil, hostMap, false)
-		if err != nil {
-			// Handle LogStoreAlreadyExist error by importing existing resource
-			if IsExpectedErrors(err, []string{"LogStoreAlreadyExist"}) {
-				log.Printf("[INFO] LogStore %s already exists, importing existing resource", request["logstoreName"])
-				d.SetId(fmt.Sprintf("%v:%v", *hostMap["project"], request["logstoreName"]))
+		createErr := slsService.CreateLogStore(projectName, logstore)
+		if createErr != nil {
+			// Handle LogStoreAlreadyExist error by importing existing resource (preserve prior behavior)
+			if IsExpectedErrors(createErr, []string{"LogStoreAlreadyExist"}) {
+				log.Printf("[INFO] LogStore %s already exists, importing existing resource", logstore.LogstoreName)
+				d.SetId(fmt.Sprintf("%s:%s", projectName, logstore.LogstoreName))
 				return nil
 			}
-			if NeedRetry(err) {
+			if NeedRetry(createErr) {
 				wait()
-				return resource.RetryableError(err)
+				return resource.RetryableError(createErr)
 			}
-			return resource.NonRetryableError(err)
+			return resource.NonRetryableError(createErr)
 		}
-		addDebug(action, response, request)
 		return nil
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "CreateLogStore", AlibabaCloudSdkGoERROR)
 	}
 
 	// Set ID if not already set (for new resources)
 	if d.Id() == "" {
-		d.SetId(fmt.Sprintf("%v:%v", *hostMap["project"], request["logstoreName"]))
+		d.SetId(fmt.Sprintf("%s:%s", projectName, logstore.LogstoreName))
 	}
 
 	if v, ok := d.GetOk("max_split_shard_count"); ok {
@@ -382,11 +253,6 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	// Wait for the logstore to be available using state refresh function
-	slsService, err := NewSlsService(client)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsService", AlibabaCloudSdkGoERROR)
-	}
-
 	stateConf := BuildStateConf([]string{}, []string{"available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.LogStoreStateRefreshFunc(d.Id(), "logstoreName", []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -507,219 +373,105 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]*string
-	var body map[string]interface{}
-	update := false
-	d.Partial(true)
-	parts := strings.Split(d.Id(), ":")
-	logstore := parts[1]
-	action := fmt.Sprintf("/logstores/%s", logstore)
-	var err error
-	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	body = make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	hostMap["project"] = StringPointer(parts[0])
-
-	if !d.IsNewResource() && d.HasChange("auto_split") {
-		update = true
-	}
-	if v, ok := d.GetOk("auto_split"); ok || d.HasChange("auto_split") {
-		request["autoSplit"] = v
-	}
-	if !d.IsNewResource() && d.HasChange("append_meta") {
-		update = true
-	}
-	if v, ok := d.GetOk("append_meta"); ok || d.HasChange("append_meta") {
-		request["appendMeta"] = v
-	}
-	if !d.IsNewResource() && d.HasChange("hot_ttl") {
-		update = true
-	}
-	if v, ok := d.GetOk("hot_ttl"); ok || d.HasChange("hot_ttl") {
-		request["hot_ttl"] = v
-	}
-	if !d.IsNewResource() && d.HasChange("mode") {
-		update = true
-	}
-	if v, ok := d.GetOk("mode"); ok || d.HasChange("mode") {
-		request["mode"] = v
-	}
-	if !d.IsNewResource() && d.HasChange("ttl") {
-		update = true
-	}
-	request["ttl"] = d.Get("ttl")
-	if !d.IsNewResource() && d.HasChange("max_split_shard_count") {
-		update = true
-	}
-	if v, ok := d.GetOk("max_split_shard_count"); ok || d.HasChange("max_split_shard_count") {
-		request["maxSplitShard"] = v
-	}
-	if !d.IsNewResource() && d.HasChange("enable_web_tracking") {
-		update = true
-	}
-	if v, ok := d.GetOk("enable_web_tracking"); ok || d.HasChange("enable_web_tracking") {
-		request["enable_tracking"] = v
-	}
-	if !d.IsNewResource() && d.HasChange("encrypt_conf") {
-		update = true
-	}
-	objectDataLocalMap := make(map[string]interface{})
-
-	if v := d.Get("encrypt_conf"); !IsNil(v) || d.HasChange("encrypt_conf") {
-		enable1, _ := jsonpath.Get("$[0].enable", v)
-		if enable1 != nil && (d.HasChange("encrypt_conf.0.enable") || enable1 != "") {
-			objectDataLocalMap["enable"] = enable1
-		}
-		encryptType, _ := jsonpath.Get("$[0].encrypt_type", v)
-		if encryptType != nil && (d.HasChange("encrypt_conf.0.encrypt_type") || encryptType != "") {
-			objectDataLocalMap["encrypt_type"] = encryptType
-		}
-		user_cmk_info := make(map[string]interface{})
-		cmkKeyId, _ := jsonpath.Get("$[0].user_cmk_info[0].cmk_key_id", v)
-		if cmkKeyId != nil && (d.HasChange("encrypt_conf.0.user_cmk_info.0.cmk_key_id") || cmkKeyId != "") {
-			user_cmk_info["cmk_key_id"] = cmkKeyId
-		}
-		arn1, _ := jsonpath.Get("$[0].user_cmk_info[0].arn", v)
-		if arn1 != nil && (d.HasChange("encrypt_conf.0.user_cmk_info.0.arn") || arn1 != "") {
-			user_cmk_info["arn"] = arn1
-		}
-		regionId, _ := jsonpath.Get("$[0].user_cmk_info[0].region_id", v)
-		if regionId != nil && (d.HasChange("encrypt_conf.0.user_cmk_info.0.region_id") || regionId != "") {
-			user_cmk_info["region_id"] = regionId
-		}
-
-		user_cmk_info_map, _ := jsonpath.Get("$[0].user_cmk_info[0]", v)
-		if !IsNil(user_cmk_info_map) {
-			objectDataLocalMap["user_cmk_info"] = user_cmk_info
-		}
-
-		request["encrypt_conf"] = objectDataLocalMap
-	}
-
-	if !d.IsNewResource() && d.HasChange("infrequent_access_ttl") {
-		update = true
-	}
-	if v, ok := d.GetOk("infrequent_access_ttl"); ok || d.HasChange("infrequent_access_ttl") {
-		request["infrequentAccessTTL"] = v
-	}
-
-	if v, ok := d.GetOk("telemetry_type"); ok && v == "Metrics" {
-
-		projectName := d.Get("project_name").(string)
-		if v, ok := d.GetOkExists("project"); ok {
-			projectName = v.(string)
-		}
-
-		logstore := buildLogStore(d)
-		slsService, err := NewSlsService(client)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsService", AlibabaCloudSdkGoERROR)
-		}
-
-		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			err := slsService.GetAPI().UpdateLogStore(projectName, logstore.LogstoreName, logstore)
-			if err != nil {
-				if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
-					time.Sleep(10 * time.Second)
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "UpdateLogStore", AliyunLogGoSdkERROR)
-		}
-
-		if v, ok := d.GetOk("max_split_shard_count"); ok {
-			d.Set("max_split_shard_count", v)
-		}
-
-		// Wait for the updated logstore to be available using state refresh function
-		stateConf := BuildStateConf([]string{}, []string{"available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, slsService.LogStoreStateRefreshFunc(d.Id(), "logstoreName", []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
-
-		update = false
-	}
-	body = request
-	if update {
-		wait := incrementalWait(3*time.Second, 5*time.Second)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.Do("Sls", roaParam("PUT", "2020-12-30", "UpdateLogStore", action), query, body, nil, hostMap, false)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(action, response, request)
-			return nil
-		})
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-		}
-
-		if v, ok := d.GetOk("max_split_shard_count"); ok {
-			d.Set("max_split_shard_count", v)
-		}
-
-		// Wait for the updated logstore to be available using state refresh function
-		slsService, err := NewSlsService(client)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsService", AlibabaCloudSdkGoERROR)
-		}
-
-		stateConf := BuildStateConf([]string{}, []string{"available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, slsService.LogStoreStateRefreshFunc(d.Id(), "logstoreName", []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
-	}
-	update = false
-	parts = strings.Split(d.Id(), ":")
-	logstore = parts[1]
-	action = fmt.Sprintf("/logstores/%s/meteringmode", logstore)
-	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	body = make(map[string]interface{})
-	hostMap = make(map[string]*string)
-	hostMap["project"] = StringPointer(parts[0])
-
 	slsService, err := NewSlsService(client)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
+
+	update := false
+	d.Partial(true)
+	parts := strings.Split(d.Id(), ":")
+	projectName := parts[0]
+	logstoreName := parts[1]
+
+	if !d.IsNewResource() && d.HasChange("auto_split") {
+		update = true
+	}
+	if !d.IsNewResource() && d.HasChange("append_meta") {
+		update = true
+	}
+	if !d.IsNewResource() && d.HasChange("hot_ttl") {
+		update = true
+	}
+	if !d.IsNewResource() && d.HasChange("mode") {
+		update = true
+	}
+	if !d.IsNewResource() && d.HasChange("ttl") {
+		update = true
+	}
+	if !d.IsNewResource() && d.HasChange("max_split_shard_count") {
+		update = true
+	}
+	if !d.IsNewResource() && d.HasChange("enable_web_tracking") {
+		update = true
+	}
+	if !d.IsNewResource() && d.HasChange("encrypt_conf") {
+		update = true
+	}
+	if !d.IsNewResource() && d.HasChange("infrequent_access_ttl") {
+		update = true
+	}
+
+	// Apply updates via strongly-typed API when any field changes
+	if update {
+		logstoreObj := buildLogStore(d)
+		// Ensure name is correct
+		logstoreObj.LogstoreName = logstoreName
+
+		wait := incrementalWait(3*time.Second, 5*time.Second)
+		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			updateErr := slsService.UpdateLogStore(projectName, logstoreName, logstoreObj)
+			if updateErr != nil {
+				if NeedRetry(updateErr) {
+					wait()
+					return resource.RetryableError(updateErr)
+				}
+				return resource.NonRetryableError(updateErr)
+			}
+			return nil
+		})
+		if err != nil {
+			action := fmt.Sprintf("/logstores/%s", logstoreName)
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		}
+
+		if v, ok := d.GetOk("max_split_shard_count"); ok {
+			d.Set("max_split_shard_count", v)
+		}
+
+		stateConf := BuildStateConf([]string{}, []string{"available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, slsService.LogStoreStateRefreshFunc(d.Id(), "logstoreName", []string{}))
+		if _, err := stateConf.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
+	}
+
+	// Metering mode update via strongly-typed API
+	update = false
 	meteringModeObj, _ := slsService.DescribeGetLogStoreMeteringMode(d.Id())
 	if d.HasChange("metering_mode") && meteringModeObj != nil && meteringModeObj.MeteringMode != d.Get("metering_mode").(string) {
 		update = true
 	}
-	request["meteringMode"] = d.Get("metering_mode")
 
-	body = request
 	if update {
+		metering := &aliyunSlsAPI.LogStoreMeteringMode{MeteringMode: d.Get("metering_mode").(string)}
 		wait := incrementalWait(3*time.Second, 5*time.Second)
+		action := fmt.Sprintf("/logstores/%s/meteringmode", logstoreName)
+
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.Do("Sls", roaParam("PUT", "2020-12-30", "UpdateLogStoreMeteringMode", action), query, body, nil, hostMap, false)
-			if err != nil {
-				if NeedRetry(err) {
+			updateErr := slsService.UpdateLogStoreMeteringMode(projectName, logstoreName, metering)
+			if updateErr != nil {
+				if NeedRetry(updateErr) {
 					wait()
-					return resource.RetryableError(err)
+					return resource.RetryableError(updateErr)
 				}
-				return resource.NonRetryableError(err)
+				return resource.NonRetryableError(updateErr)
 			}
-			addDebug(action, response, request)
 			return nil
 		})
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 
-		// Wait for the metering mode update to complete using state refresh function
 		stateConf := BuildStateConf([]string{}, []string{"available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, slsService.LogStoreStateRefreshFunc(d.Id(), "logstoreName", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
@@ -731,30 +483,26 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceAliCloudSlsLogStoreDelete(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*connectivity.AliyunClient)
 	parts := strings.Split(d.Id(), ":")
 	logstore := parts[1]
 	action := fmt.Sprintf("/logstores/%s", logstore)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	hostMap := make(map[string]*string)
-	var err error
-	request = make(map[string]interface{})
-	hostMap["project"] = StringPointer(parts[0])
+
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_store", "NewSlsService", AlibabaCloudSdkGoERROR)
+	}
 
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.Do("Sls", roaParam("DELETE", "2020-12-30", "DeleteLogStore", action), query, nil, nil, hostMap, false)
-		if err != nil {
-			if NeedRetry(err) {
+		delErr := slsService.DeleteLogStore(parts[0], logstore)
+		if delErr != nil {
+			if NeedRetry(delErr) {
 				wait()
-				return resource.RetryableError(err)
+				return resource.RetryableError(delErr)
 			}
-			return resource.NonRetryableError(err)
+			return resource.NonRetryableError(delErr)
 		}
-		addDebug(action, response, request)
 		return nil
 	})
 

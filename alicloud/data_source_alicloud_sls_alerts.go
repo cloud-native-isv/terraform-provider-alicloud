@@ -4,12 +4,8 @@ package alicloud
 import (
 	"fmt"
 	"regexp"
-	"time"
 
-	"github.com/PaesslerAG/jsonpath"
-	util "github.com/alibabacloud-go/tea-utils/service"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -440,6 +436,10 @@ func dataSourceAliCloudSlsAlerts() *schema.Resource {
 
 func dataSourceAliCloudSlsAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_alerts", "NewSlsService", AlibabaCloudSdkGoERROR)
+	}
 
 	var objects []map[string]interface{}
 	var nameRegex *regexp.Regexp
@@ -461,47 +461,32 @@ func dataSourceAliCloudSlsAlertRead(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]*string
-	action := fmt.Sprintf("/alerts")
-	var err error
-	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	hostMap := make(map[string]*string)
-	hostMap["project"] = StringPointer(d.Get("project_name").(string))
-	runtime := util.RuntimeOptions{}
-	runtime.SetAutoretry(true)
-	wait := incrementalWait(3*time.Second, 5*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-		response, err = client.Do("Sls", roaParam("GET", "2020-12-30", "ListAlerts", action), query, nil, nil, hostMap, false)
-
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(action, response, request)
-		return nil
-	})
+	projectName := d.Get("project_name").(string)
+	alerts, err := slsService.ListSlsAlerts(projectName, nil)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ListSlsAlerts", AlibabaCloudSdkGoERROR)
 	}
 
-	resp, _ := jsonpath.Get("$.results[*]", response)
-
-	result, _ := resp.([]interface{})
-	for _, v := range result {
-		item := v.(map[string]interface{})
-		if nameRegex != nil && !nameRegex.MatchString(fmt.Sprint(item["name"])) {
+	for _, alert := range alerts {
+		if alert == nil || alert.Name == nil {
+			continue
+		}
+		alertName := *alert.Name
+		if nameRegex != nil && !nameRegex.MatchString(alertName) {
 			continue
 		}
 		if len(idsMap) > 0 {
-			if _, ok := idsMap[fmt.Sprint(*hostMap["project"], ":", item["name"])]; !ok {
+			if _, ok := idsMap[fmt.Sprint(projectName, ":", alertName)]; !ok {
 				continue
 			}
+		}
+
+		item, descErr := slsService.DescribeSlsAlert(fmt.Sprint(projectName, ":", alertName))
+		if descErr != nil {
+			if NeedRetry(descErr) {
+				continue
+			}
+			return WrapError(descErr)
 		}
 		objects = append(objects, item)
 	}
@@ -512,7 +497,7 @@ func dataSourceAliCloudSlsAlertRead(d *schema.ResourceData, meta interface{}) er
 	for _, objectRaw := range objects {
 		mapping := map[string]interface{}{}
 
-		mapping["id"] = fmt.Sprint(*hostMap["project"], ":", objectRaw["name"])
+		mapping["id"] = fmt.Sprint(projectName, ":", objectRaw["name"])
 
 		mapping["description"] = objectRaw["description"]
 		mapping["display_name"] = objectRaw["displayName"]

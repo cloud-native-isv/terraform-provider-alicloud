@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/alibabacloud-go/tea/tea"
 	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	cwsSls "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -400,6 +402,49 @@ func resourceAliCloudLogAlert() *schema.Resource {
 func resourceAliCloudLogAlertCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	project_name := d.Get("project_name").(string)
+
+	// Refactor using SlsService for Alert V2
+	isV2 := false
+	if _, ok := d.GetOk("version"); ok {
+		isV2 = true
+	}
+	// notification_list implies V1
+	if v, ok := d.GetOk("notification_list"); ok && len(v.([]interface{})) > 0 {
+		isV2 = false
+	}
+
+	if isV2 {
+		service, err := NewSlsService(client)
+		if err != nil {
+			return WrapError(err)
+		}
+
+		var alert *cwsSls.Alert = expandSlsAlert(d)
+
+		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+			err := service.CreateSlsAlert(project_name, alert)
+			if err != nil {
+				if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable", "InternalError", "SystemBusy"}) {
+					time.Sleep(5 * time.Second)
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
+
+		if err != nil {
+			if IsExpectedErrors(err, []string{"JobAlreadyExist"}) {
+				d.SetId(fmt.Sprintf("%s%s%s", project_name, COLON_SEPARATED, *alert.Name))
+				return resourceAliCloudLogAlertRead(d, meta)
+			}
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_alert", "CreateLogstoreAlert", AliyunLogGoSdkERROR)
+		}
+
+		d.SetId(fmt.Sprintf("%s%s%s", project_name, COLON_SEPARATED, *alert.Name))
+		return resourceAliCloudLogAlertRead(d, meta)
+	}
+
 	alert_name := d.Get("alert_name").(string)
 	alert_displayname := d.Get("alert_displayname").(string)
 
@@ -639,6 +684,45 @@ func resourceAliCloudLogAlertUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	client := meta.(*connectivity.AliyunClient)
+
+	// Refactor using SlsService for Alert V2
+	isV2 := false
+	if _, ok := d.GetOk("version"); ok {
+		isV2 = true
+	}
+	// notification_list implies V1
+	if v, ok := d.GetOk("notification_list"); ok && len(v.([]interface{})) > 0 {
+		isV2 = false
+	}
+
+	if isV2 {
+		service, err := NewSlsService(client)
+		if err != nil {
+			return WrapError(err)
+		}
+
+		var alert *cwsSls.Alert = expandSlsAlert(d)
+		alert.Name = tea.String(parts[1])
+
+		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
+			err := service.UpdateSlsAlert(parts[0], parts[1], alert)
+			if err != nil {
+				if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable", "InternalError", "SystemBusy"}) {
+					time.Sleep(5 * time.Second)
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
+
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateAlert", AliyunLogGoSdkERROR)
+		}
+
+		return resourceAliCloudLogAlertRead(d, meta)
+	}
+
 	schedule := &sls.Schedule{
 		Type:     d.Get("schedule_type").(string),
 		Interval: d.Get("schedule_interval").(string),
@@ -696,36 +780,50 @@ func resourceAliCloudLogAlertUpdate(d *schema.ResourceData, meta interface{}) er
 
 func resourceAliCloudLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	logService := LogService{client}
+	service, err := NewSlsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
 	parts, err := ParseResourceId(d.Id(), 2)
 	if err != nil {
 		return WrapError(err)
 	}
-	var requestInfo *sls.Client
-	err = resource.Retry(3*time.Minute, func() *resource.RetryError {
-		raw, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-			requestInfo = slsClient
-			return nil, slsClient.DeleteAlert(parts[0], parts[1])
-		})
+
+	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		err := service.DeleteSlsAlert(parts[0], parts[1])
 		if err != nil {
-			if IsExpectedErrors(err, []string{LogClientTimeout}) {
+			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable", "InternalError", "SystemBusy"}) {
 				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
+			if NotFoundError(err) {
+				return nil
+			}
 			return resource.NonRetryableError(err)
-		}
-		if debugOn() {
-			addDebug("DeleteAlert", raw, requestInfo, map[string]interface{}{
-				"project_name": parts[0],
-				"alert":        parts[1],
-			})
 		}
 		return nil
 	})
+
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_alert", "DeleteAlert", AliyunLogGoSdkERROR)
 	}
-	return WrapError(logService.WaitForLogstoreAlert(d.Id(), Deleted, DefaultTimeout))
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Enabled", "Disabled", "Creating", "Updating"},
+		Target:     []string{""},
+		Refresh:    service.SlsAlertStateRefreshFunc(parts[0], parts[1]),
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return nil
 }
 
 func createAlertConfig(d *schema.ResourceData, project, dashboard string, client *sls.Client) *sls.AlertConfiguration {

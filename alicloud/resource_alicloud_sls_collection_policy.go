@@ -150,14 +150,13 @@ func resourceAliCloudSlsCollectionPolicy() *schema.Resource {
 func resourceAliCloudSlsCollectionPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_collection_policy", "NewSlsService", AlibabaCloudSdkGoERROR)
+	}
 
 	action := fmt.Sprintf("/collectionpolicy")
 	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	body := make(map[string]interface{})
-	hostMap := make(map[string]*string)
-	var err error
 	request = make(map[string]interface{})
 	if v, ok := d.GetOk("policy_name"); ok {
 		request["policyName"] = v
@@ -241,18 +240,17 @@ func resourceAliCloudSlsCollectionPolicyCreate(d *schema.ResourceData, meta inte
 		request["resourceDirectory"] = objectDataLocalMap3
 	}
 
-	body = request
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.Do("Sls", roaParam("POST", "2020-12-30", "UpsertCollectionPolicy", action), query, body, nil, hostMap, false)
-		if err != nil {
-			if NeedRetry(err) {
+		policy := ConvertToSlsCollectionPolicy(request)
+		upsertErr := slsService.CreateSlsCollectionPolicy(policy)
+		if upsertErr != nil {
+			if NeedRetry(upsertErr) {
 				wait()
-				return resource.RetryableError(err)
+				return resource.RetryableError(upsertErr)
 			}
-			return resource.NonRetryableError(err)
+			return resource.NonRetryableError(upsertErr)
 		}
-		addDebug(action, response, request)
 		return nil
 	})
 
@@ -262,10 +260,6 @@ func resourceAliCloudSlsCollectionPolicyCreate(d *schema.ResourceData, meta inte
 
 	d.SetId(fmt.Sprint(request["policyName"]))
 
-	slsService, err := NewSlsService(client)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_sls_collection_policy", "NewSlsService", AlibabaCloudSdkGoERROR)
-	}
 	stateConf := BuildStateConf([]string{}, []string{"#CHECKSET"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.SlsCollectionPolicyStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -367,15 +361,9 @@ func resourceAliCloudSlsCollectionPolicyUpdate(d *schema.ResourceData, meta inte
 	}
 
 	var request map[string]interface{}
-	var response map[string]interface{}
-	var query map[string]*string
-	var body map[string]interface{}
 	update := false
 	action := fmt.Sprintf("/collectionpolicy")
 	request = make(map[string]interface{})
-	query = make(map[string]*string)
-	body = make(map[string]interface{})
-	hostMap := make(map[string]*string)
 	request["policyName"] = d.Id()
 
 	if d.HasChange("centralize_enabled") {
@@ -480,19 +468,18 @@ func resourceAliCloudSlsCollectionPolicyUpdate(d *schema.ResourceData, meta inte
 		request["dataConfig"] = objectDataLocalMap3
 	}
 
-	body = request
 	if update {
 		wait := incrementalWait(3*time.Second, 5*time.Second)
 		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.Do("Sls", roaParam("POST", "2020-12-30", "UpsertCollectionPolicy", action), query, body, nil, hostMap, false)
-			if err != nil {
-				if NeedRetry(err) {
+			policy := ConvertToSlsCollectionPolicy(request)
+			upsertErr := slsService.UpdateSlsCollectionPolicy(policy)
+			if upsertErr != nil {
+				if NeedRetry(upsertErr) {
 					wait()
-					return resource.RetryableError(err)
+					return resource.RetryableError(upsertErr)
 				}
-				return resource.NonRetryableError(err)
+				return resource.NonRetryableError(upsertErr)
 			}
-			addDebug(action, response, request)
 			return nil
 		})
 		if err != nil {
@@ -517,32 +504,18 @@ func resourceAliCloudSlsCollectionPolicyDelete(d *schema.ResourceData, meta inte
 
 	policyName := d.Id()
 	action := fmt.Sprintf("/collectionpolicy/%s", policyName)
-	var request map[string]interface{}
-	var response map[string]interface{}
-	query := make(map[string]*string)
-	hostMap := make(map[string]*string)
-	request = make(map[string]interface{})
-	request["policyName"] = d.Id()
-
-	if v, ok := d.GetOk("product_code"); ok {
-		query["productCode"] = StringPointer(v.(string))
-	}
-
-	if v, ok := d.GetOk("data_code"); ok {
-		query["dataCode"] = StringPointer(v.(string))
-	}
+	_ = action
 
 	wait := incrementalWait(3*time.Second, 5*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.Do("Sls", roaParam("DELETE", "2020-12-30", "DeleteCollectionPolicy", action), query, nil, nil, hostMap, false)
-		if err != nil {
-			if NeedRetry(err) {
+		delErr := slsService.DeleteSlsCollectionPolicy(policyName, d.Get("data_code").(string))
+		if delErr != nil {
+			if NeedRetry(delErr) {
 				wait()
-				return resource.RetryableError(err)
+				return resource.RetryableError(delErr)
 			}
-			return resource.NonRetryableError(err)
+			return resource.NonRetryableError(delErr)
 		}
-		addDebug(action, response, request)
 		return nil
 	})
 
