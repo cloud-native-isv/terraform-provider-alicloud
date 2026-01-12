@@ -417,8 +417,12 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("auto_split", logstore.AutoSplit)
 	d.Set("create_time", logstore.CreateTime)
 	d.Set("enable_web_tracking", logstore.EnableTracking)
-	d.Set("hot_ttl", logstore.HotTtl)
-	d.Set("infrequent_access_ttl", logstore.InfrequentAccessTTL)
+	if logstore.HotTtl != nil {
+		d.Set("hot_ttl", *logstore.HotTtl)
+	}
+	if logstore.InfrequentAccessTTL != nil {
+		d.Set("infrequent_access_ttl", *logstore.InfrequentAccessTTL)
+	}
 	d.Set("max_split_shard_count", logstore.MaxSplitShard)
 	d.Set("mode", logstore.Mode)
 	d.Set("ttl", logstore.Ttl)
@@ -777,7 +781,10 @@ func buildLogStore(d *schema.ResourceData) *aliyunSlsAPI.LogStore {
 		logstore.LogstoreName = v.(string)
 	}
 	if hotTTL, ok := d.GetOk("hot_ttl"); ok {
-		logstore.HotTtl = int32(hotTTL.(int))
+		logstore.HotTtl = tea.Int32(int32(hotTTL.(int)))
+	}
+	if infrequentAccessTTL, ok := d.GetOk("infrequent_access_ttl"); ok {
+		logstore.InfrequentAccessTTL = tea.Int32(int32(infrequentAccessTTL.(int)))
 	}
 	if encrypt := buildEncrypt(d); encrypt != nil {
 		logstore.EncryptConf = encrypt

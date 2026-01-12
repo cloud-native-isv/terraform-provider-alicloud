@@ -90,8 +90,12 @@ func (s *SlsService) LogStoreStateRefreshFunc(id string, field string, failState
 			object["autoSplit"] = logstore.AutoSplit
 			object["maxSplitShard"] = logstore.MaxSplitShard
 			object["appendMeta"] = logstore.AppendMeta
-			object["hotTtl"] = logstore.HotTtl
-			object["infrequentAccessTtl"] = logstore.InfrequentAccessTTL
+			if logstore.HotTtl != nil {
+				object["hotTtl"] = *logstore.HotTtl
+			}
+			if logstore.InfrequentAccessTTL != nil {
+				object["infrequentAccessTtl"] = *logstore.InfrequentAccessTTL
+			}
 			object["mode"] = logstore.Mode
 			object["telemetryType"] = logstore.TelemetryType
 			object["encryptConf"] = logstore.EncryptConf
