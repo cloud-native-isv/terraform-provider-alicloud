@@ -100,10 +100,12 @@ func resourceAliCloudLogStore() *schema.Resource {
 			"hot_ttl": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Default:  30,
 			},
 			"infrequent_access_ttl": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Default:  3650,
 			},
 			"logstore_name": {
 				Type:         schema.TypeString,
@@ -141,11 +143,6 @@ func resourceAliCloudLogStore() *schema.Resource {
 				ExactlyOneOf: []string{"project_name", "project"},
 				ForceNew:     true,
 			},
-			"retention_period": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  30,
-			},
 			"shard_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -162,6 +159,11 @@ func resourceAliCloudLogStore() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+			},
+			"ttl": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  360,
 			},
 			"project": {
 				Type:       schema.TypeString,
@@ -334,10 +336,7 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 		request["encrypt_conf"] = objectDataLocalMap
 	}
 
-	request["ttl"] = 30
-	if v, ok := d.GetOk("retention_period"); ok {
-		request["ttl"] = v
-	}
+	request["ttl"] = d.Get("ttl")
 	if v, ok := d.GetOk("max_split_shard_count"); ok {
 		request["maxSplitShard"] = v
 	}
@@ -422,7 +421,7 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("infrequent_access_ttl", logstore.InfrequentAccessTTL)
 	d.Set("max_split_shard_count", logstore.MaxSplitShard)
 	d.Set("mode", logstore.Mode)
-	d.Set("retention_period", logstore.Ttl)
+	d.Set("ttl", logstore.Ttl)
 	d.Set("shard_count", logstore.ShardCount)
 	d.Set("telemetry_type", logstore.TelemetryType)
 	d.Set("logstore_name", logstore.LogstoreName)
@@ -544,13 +543,10 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOk("mode"); ok || d.HasChange("mode") {
 		request["mode"] = v
 	}
-	if !d.IsNewResource() && d.HasChange("retention_period") {
+	if !d.IsNewResource() && d.HasChange("ttl") {
 		update = true
 	}
-	request["ttl"] = 30
-	if v, ok := d.GetOk("retention_period"); ok {
-		request["ttl"] = v
-	}
+	request["ttl"] = d.Get("ttl")
 	if !d.IsNewResource() && d.HasChange("max_split_shard_count") {
 		update = true
 	}
@@ -768,7 +764,7 @@ func resourceAliCloudSlsLogStoreDelete(d *schema.ResourceData, meta interface{})
 func buildLogStore(d *schema.ResourceData) *aliyunSlsAPI.LogStore {
 	logstore := &aliyunSlsAPI.LogStore{
 		LogstoreName:   d.Get("logstore_name").(string),
-		Ttl:            int32(d.Get("retention_period").(int)),
+		Ttl:            int32(d.Get("ttl").(int)),
 		ShardCount:     int32(d.Get("shard_count").(int)),
 		EnableTracking: d.Get("enable_web_tracking").(bool),
 		AutoSplit:      d.Get("auto_split").(bool),
