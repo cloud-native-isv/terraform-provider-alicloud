@@ -104,6 +104,11 @@ func resourceAliCloudLogStore() *schema.Resource {
 			"infrequent_access_ttl": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Default:  365,
+			},
+			"ttl": {
+				Type:     schema.TypeInt,
+				Optional: true,
 				Default:  3650,
 			},
 			"logstore_name": {
@@ -158,11 +163,6 @@ func resourceAliCloudLogStore() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-			},
-			"ttl": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  360,
 			},
 			"project": {
 				Type:       schema.TypeString,
