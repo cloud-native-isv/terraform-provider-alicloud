@@ -2,7 +2,10 @@ package alicloud
 
 import (
 	"fmt"
+	"math/big"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/PaesslerAG/jsonpath"
 	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
@@ -212,4 +215,152 @@ func (s *SlsService) SplitLogStoreShard(project, logstoreName string, shardId in
 // MergeLogStoreShards encapsulates the call to aliyunSlsAPI.MergeLogStoreShards
 func (s *SlsService) MergeLogStoreShards(project, logstoreName string, shardId int32) ([]*aliyunSlsAPI.LogStoreShard, error) {
 	return s.GetAPI().MergeLogStoreShards(project, logstoreName, shardId)
+}
+
+// FilterActiveShards filters shards that are in "readwrite" state
+func (s *SlsService) FilterActiveShards(shards []*aliyunSlsAPI.LogStoreShard) []*aliyunSlsAPI.LogStoreShard {
+	var activeShards []*aliyunSlsAPI.LogStoreShard
+	for _, shard := range shards {
+		if strings.ToLower(shard.Status) == "readwrite" {
+			activeShards = append(activeShards, shard)
+		}
+	}
+	return activeShards
+}
+
+// WaitForLogStoreShardCount waits until the number of active shards equals the target count
+func (s *SlsService) WaitForLogStoreShardCount(project, logstoreName string, targetCount int, timeout time.Duration) error {
+	return resource.Retry(timeout, func() *resource.RetryError {
+		shards, err := s.GetLogStoreShards(project, logstoreName)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		activeShards := s.FilterActiveShards(shards)
+		if len(activeShards) == targetCount {
+			return nil
+		}
+
+		return resource.RetryableError(fmt.Errorf("waiting for shard count to be %d, current: %d", targetCount, len(activeShards)))
+	})
+}
+
+// EnsureLogStoreShardCount adjusts the number of shards to match the target count
+func (s *SlsService) EnsureLogStoreShardCount(project, logstoreName string, targetCount int) error {
+	for i := 0; i < 500; i++ {
+		shards, err := s.GetLogStoreShards(project, logstoreName)
+		if err != nil {
+			return err
+		}
+		activeShards := s.FilterActiveShards(shards)
+		currentCount := len(activeShards)
+
+		if currentCount == targetCount {
+			return nil
+		}
+
+		if currentCount < targetCount {
+			if err := s.splitOneShard(project, logstoreName, activeShards); err != nil {
+				return err
+			}
+		} else {
+			if err := s.mergeOneShard(project, logstoreName, activeShards); err != nil {
+				return err
+			}
+		}
+
+		time.Sleep(3 * time.Second)
+	}
+	return fmt.Errorf("failed to reach target shard count %d after max attempts", targetCount)
+}
+
+func (s *SlsService) splitOneShard(project, logstoreName string, activeShards []*aliyunSlsAPI.LogStoreShard) error {
+	if len(activeShards) == 0 {
+		return fmt.Errorf("no active shards to split")
+	}
+
+	var targetShard *aliyunSlsAPI.LogStoreShard
+	var maxRange *big.Int = big.NewInt(0)
+
+	for _, shard := range activeShards {
+		begin := new(big.Int)
+		end := new(big.Int)
+		begin.SetString(shard.InclusiveBeginKey, 16)
+		end.SetString(shard.ExclusiveEndKey, 16)
+
+		r := new(big.Int).Sub(end, begin)
+		if r.Cmp(maxRange) > 0 {
+			maxRange = r
+			targetShard = shard
+		}
+	}
+
+	if targetShard == nil {
+		return fmt.Errorf("failed to identify shard to split")
+	}
+
+	begin := new(big.Int)
+	begin.SetString(targetShard.InclusiveBeginKey, 16)
+	halfRange := new(big.Int).Div(maxRange, big.NewInt(2))
+	splitKeyBig := new(big.Int).Add(begin, halfRange)
+
+	splitKey := fmt.Sprintf("%032s", splitKeyBig.Text(16))
+
+	_, err := s.SplitLogStoreShard(project, logstoreName, int32(targetShard.ShardId), splitKey)
+	return err
+}
+
+func (s *SlsService) mergeOneShard(project, logstoreName string, activeShards []*aliyunSlsAPI.LogStoreShard) error {
+	if len(activeShards) < 2 {
+		return fmt.Errorf("not enough shards to merge")
+	}
+
+	sort.Slice(activeShards, func(i, j int) bool {
+		bi := new(big.Int)
+		bj := new(big.Int)
+		bi.SetString(activeShards[i].InclusiveBeginKey, 16)
+		bj.SetString(activeShards[j].InclusiveBeginKey, 16)
+		return bi.Cmp(bj) < 0
+	})
+
+	var targetShardId int32 = -1
+	minCombinedRange := new(big.Int)
+	first := true
+
+	for i := 0; i < len(activeShards)-1; i++ {
+		s1 := activeShards[i]
+		s2 := activeShards[i+1]
+
+		if s1.ExclusiveEndKey != s2.InclusiveBeginKey {
+			continue
+		}
+
+		begin := new(big.Int)
+		end := new(big.Int)
+		begin.SetString(s1.InclusiveBeginKey, 16)
+		end.SetString(s2.ExclusiveEndKey, 16)
+
+		combined := new(big.Int).Sub(end, begin)
+
+		if first || combined.Cmp(minCombinedRange) < 0 {
+			minCombinedRange = combined
+			targetShardId = int32(s1.ShardId)
+			first = false
+		}
+	}
+
+	if targetShardId == -1 {
+		for i := 0; i < len(activeShards)-1; i++ {
+			if activeShards[i].ExclusiveEndKey == activeShards[i+1].InclusiveBeginKey {
+				targetShardId = int32(activeShards[i].ShardId)
+				break
+			}
+		}
+		if targetShardId == -1 {
+			return fmt.Errorf("failed to find adjacent shards to merge")
+		}
+	}
+
+	_, err := s.MergeLogStoreShards(project, logstoreName, targetShardId)
+	return err
 }

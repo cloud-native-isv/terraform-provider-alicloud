@@ -1,7 +1,7 @@
 # Terraform Provider Alicloud Feature Index
 
 **Last Updated**: 2026-01-12
-**Total Features**: 7
+**Total Features**: 8
 
 ## Features
 
@@ -14,3 +14,4 @@
 | 005 | 强类型 API 调用 | 使用 cws-lib-go 库提供的强类型结构体进行 API 调用 | Completed | .specify/specs/008-refactor-sls-resource-api/spec.md | 2026-01-12 |
 | 006 | SelectDB Management | Provide lifecycle management for Alibaba Cloud SelectDB instances and clusters. | Implemented | .specify/specs/004-update-selectdb-resources/spec.md | 2025-12-14 |
 | 007 | Tablestore VCU Instance Support | Support configuration of Tablestore instances using the VCU sizing model and elastic limits. | Completed | .specify/specs/007-ots-vcu-support/spec.md | 2026-01-07 |
+| 009 | SLS LogStore Shard Management | Enhance alicloud_log_store resource to support dynamic shard count updates (Split/Merge). | Planned | .specify/specs/009-sls-logstore-shard-update/spec.md | 2026-01-14 |

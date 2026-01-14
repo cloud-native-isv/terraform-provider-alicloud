@@ -25,7 +25,7 @@ func resourceAliCloudLogStore() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
@@ -150,14 +150,7 @@ func resourceAliCloudLogStore() *schema.Resource {
 			"shard_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				ForceNew: true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					if old == "" {
-						return false
-					}
-					return true
-				},
-				Default: 2,
+				Default:  2,
 			},
 			"telemetry_type": {
 				Type:     schema.TypeString,
@@ -358,6 +351,7 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	var shardList []map[string]interface{}
+	activeCount := 0
 	for _, s := range shards {
 		mapping := map[string]interface{}{
 			"id":        s.ShardId,
@@ -366,8 +360,12 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 			"end_key":   s.ExclusiveEndKey,
 		}
 		shardList = append(shardList, mapping)
+		if strings.ToLower(s.Status) == "readwrite" {
+			activeCount++
+		}
 	}
 	d.Set("shards", shardList)
+	d.Set("shard_count", activeCount)
 	return nil
 }
 
@@ -400,6 +398,9 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 		update = true
 	}
 	if !d.IsNewResource() && d.HasChange("max_split_shard_count") {
+		update = true
+	}
+	if !d.IsNewResource() && d.HasChange("shard_count") {
 		update = true
 	}
 	if !d.IsNewResource() && d.HasChange("enable_web_tracking") {
@@ -439,9 +440,21 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 			d.Set("max_split_shard_count", v)
 		}
 
+		if v, ok := d.GetOk("shard_count"); ok {
+			d.Set("shard_count", v)
+		}
+
 		stateConf := BuildStateConf([]string{}, []string{"available"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, slsService.LogStoreStateRefreshFunc(d.Id(), "logstoreName", []string{}))
 		if _, err := stateConf.WaitForState(); err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
+		}
+	}
+
+	if d.HasChange("shard_count") {
+		targetCount := d.Get("shard_count").(int)
+		err := slsService.EnsureLogStoreShardCount(projectName, logstoreName, targetCount)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "EnsureLogStoreShardCount", AlibabaCloudSdkGoERROR)
 		}
 	}
 
