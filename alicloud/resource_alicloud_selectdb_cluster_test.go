@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func TestAccAlicloudSelectDBCluster_basic(t *testing.T) {
+func TestAccAliCloudSelectDBCluster_basic(t *testing.T) {
 	var clusterId string
 
 	resource.Test(t, resource.TestCase{
@@ -17,12 +17,12 @@ func TestAccAlicloudSelectDBCluster_basic(t *testing.T) {
 			testAccPreCheck(t)
 		},
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckAlicloudSelectDBClusterDestroy,
+		CheckDestroy:      testAccCheckAliCloudSelectDBClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAlicloudSelectDBClusterConfig_basic,
+				Config: testAccAliCloudSelectDBClusterConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAlicloudSelectDBClusterExists("alicloud_selectdb_cluster.default", &clusterId),
+					testAccCheckAliCloudSelectDBClusterExists("alicloud_selectdb_cluster.default", &clusterId),
 					resource.TestCheckResourceAttr("alicloud_selectdb_cluster.default", "description", "tf-test-selectdb-cluster"),
 					resource.TestCheckResourceAttr("alicloud_selectdb_cluster.default", "engine", "selectdb"),
 					resource.TestCheckResourceAttr("alicloud_selectdb_cluster.default", "charge_type", "PostPaid"),
@@ -32,7 +32,7 @@ func TestAccAlicloudSelectDBCluster_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckAlicloudSelectDBClusterExists(n string, clusterId *string) resource.TestCheckFunc {
+func testAccCheckAliCloudSelectDBClusterExists(n string, clusterId *string) resource.TestCheckFunc {
 	return func(s *schema.TerraformState) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -68,7 +68,7 @@ func testAccCheckAlicloudSelectDBClusterExists(n string, clusterId *string) reso
 	}
 }
 
-func testAccCheckAlicloudSelectDBClusterDestroy(s *schema.TerraformState) error {
+func testAccCheckAliCloudSelectDBClusterDestroy(s *schema.TerraformState) error {
 	client := testAccProvider.Meta().(*connectivity.AliyunClient)
 	service, err := NewSelectDBService(client)
 	if err != nil {
@@ -101,7 +101,7 @@ func testAccCheckAlicloudSelectDBClusterDestroy(s *schema.TerraformState) error 
 	return nil
 }
 
-const testAccAlicloudSelectDBClusterConfig_basic = `
+const testAccAliCloudSelectDBClusterConfig_basic = `
 variable "name" {
   default = "tf-test-selectdb"
 }

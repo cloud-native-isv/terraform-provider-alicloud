@@ -819,7 +819,7 @@ func resourceAliCloudInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		request["InternetChargeType"] = v
 	}
 
-	if v, ok := d.GetOk("internet_max_bandwidth_out"); ok {
+	if v, ok := d.GetOkExists("internet_max_bandwidth_out"); ok {
 		request["InternetMaxBandwidthOut"] = v
 	}
 

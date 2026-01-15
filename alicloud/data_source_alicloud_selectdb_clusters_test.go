@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccAlicloudSelectDBClusters_basic(t *testing.T) {
+func TestAccAliCloudSelectDBClusters_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
@@ -14,7 +14,7 @@ func TestAccAlicloudSelectDBClusters_basic(t *testing.T) {
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAlicloudSelectDBClustersConfig_basic,
+				Config: testAccAliCloudSelectDBClustersConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.alicloud_selectdb_clusters.default", "clusters.#", "1"),
 					resource.TestCheckResourceAttrSet("data.alicloud_selectdb_clusters.default", "clusters.0.cluster_id"),
@@ -25,7 +25,7 @@ func TestAccAlicloudSelectDBClusters_basic(t *testing.T) {
 	})
 }
 
-const testAccAlicloudSelectDBClustersConfig_basic = `
+const testAccAliCloudSelectDBClustersConfig_basic = `
 variable "name" {
   default = "tf-test-selectdb"
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccAlicloudOtsInstance_vcu(t *testing.T) {
+func TestAccAliCloudOtsInstance_vcu(t *testing.T) {
 	var instanceId string
 	rName := "tf-test-ots-vcu-" + acctest.RandStringFromCharSet(5, acctest.CharSetAlphaNum)
 
@@ -19,20 +19,20 @@ func TestAccAlicloudOtsInstance_vcu(t *testing.T) {
 			testAccPreCheck(t)
 		},
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckAlicloudOtsInstanceDestroy,
+		CheckDestroy:      testAccCheckAliCloudOtsInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAlicloudOtsInstanceConfig_vcu(rName),
+				Config: testAccAliCloudOtsInstanceConfig_vcu(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAlicloudOtsInstanceExists("alicloud_ots_instance.default", &instanceId),
+					testAccCheckAliCloudOtsInstanceExists("alicloud_ots_instance.default", &instanceId),
 					resource.TestCheckResourceAttr("alicloud_ots_instance.default", "instance_specification", "VCU"),
 					resource.TestCheckResourceAttr("alicloud_ots_instance.default", "elastic_vcu_upper_limit", "1"),
 				),
 			},
 			{
-				Config: testAccAlicloudOtsInstanceConfig_updateVcuLimit(rName),
+				Config: testAccAliCloudOtsInstanceConfig_updateVcuLimit(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAlicloudOtsInstanceExists("alicloud_ots_instance.default", &instanceId),
+					testAccCheckAliCloudOtsInstanceExists("alicloud_ots_instance.default", &instanceId),
 					resource.TestCheckResourceAttr("alicloud_ots_instance.default", "instance_specification", "VCU"),
 					resource.TestCheckResourceAttr("alicloud_ots_instance.default", "elastic_vcu_upper_limit", "2"),
 				),
@@ -41,7 +41,7 @@ func TestAccAlicloudOtsInstance_vcu(t *testing.T) {
 	})
 }
 
-func testAccCheckAlicloudOtsInstanceExists(n string, instanceId *string) resource.TestCheckFunc {
+func testAccCheckAliCloudOtsInstanceExists(n string, instanceId *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -72,7 +72,7 @@ func testAccCheckAlicloudOtsInstanceExists(n string, instanceId *string) resourc
 	}
 }
 
-func testAccCheckAlicloudOtsInstanceDestroy(s *terraform.State) error {
+func testAccCheckAliCloudOtsInstanceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*connectivity.AliyunClient)
 	otsService, err := NewOtsService(client)
 	if err != nil {
@@ -100,7 +100,7 @@ func testAccCheckAlicloudOtsInstanceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAlicloudOtsInstanceConfig_vcu(name string) string {
+func testAccAliCloudOtsInstanceConfig_vcu(name string) string {
 	return fmt.Sprintf(`
 variable "name" {
   default = "%s"
@@ -116,7 +116,7 @@ resource "alicloud_ots_instance" "default" {
 `, name)
 }
 
-func testAccAlicloudOtsInstanceConfig_updateVcuLimit(name string) string {
+func testAccAliCloudOtsInstanceConfig_updateVcuLimit(name string) string {
 	return fmt.Sprintf(`
 variable "name" {
   default = "%s"

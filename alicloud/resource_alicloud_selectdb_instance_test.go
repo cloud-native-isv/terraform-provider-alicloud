@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func TestAccAlicloudSelectDBInstance_basic(t *testing.T) {
+func TestAccAliCloudSelectDBInstance_basic(t *testing.T) {
 	var instanceId string
 
 	resource.Test(t, resource.TestCase{
@@ -17,12 +17,12 @@ func TestAccAlicloudSelectDBInstance_basic(t *testing.T) {
 			testAccPreCheck(t)
 		},
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckAlicloudSelectDBInstanceDestroy,
+		CheckDestroy:      testAccCheckAliCloudSelectDBInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAlicloudSelectDBInstanceConfig_basic,
+				Config: testAccAliCloudSelectDBInstanceConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAlicloudSelectDBInstanceExists("alicloud_selectdb_instance.default", &instanceId),
+					testAccCheckAliCloudSelectDBInstanceExists("alicloud_selectdb_instance.default", &instanceId),
 					resource.TestCheckResourceAttr("alicloud_selectdb_instance.default", "instance_name", "tf-test-selectdb"),
 					resource.TestCheckResourceAttr("alicloud_selectdb_instance.default", "engine", "selectdb"),
 					resource.TestCheckResourceAttr("alicloud_selectdb_instance.default", "charge_type", "PostPaid"),
@@ -32,7 +32,7 @@ func TestAccAlicloudSelectDBInstance_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckAlicloudSelectDBInstanceExists(n string, instanceId *string) resource.TestCheckFunc {
+func testAccCheckAliCloudSelectDBInstanceExists(n string, instanceId *string) resource.TestCheckFunc {
 	return func(s *schema.TerraformState) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -63,7 +63,7 @@ func testAccCheckAlicloudSelectDBInstanceExists(n string, instanceId *string) re
 	}
 }
 
-func testAccCheckAlicloudSelectDBInstanceDestroy(s *schema.TerraformState) error {
+func testAccCheckAliCloudSelectDBInstanceDestroy(s *schema.TerraformState) error {
 	client := testAccProvider.Meta().(*connectivity.AliyunClient)
 	service, err := NewSelectDBService(client)
 	if err != nil {
@@ -91,7 +91,7 @@ func testAccCheckAlicloudSelectDBInstanceDestroy(s *schema.TerraformState) error
 	return nil
 }
 
-const testAccAlicloudSelectDBInstanceConfig_basic = `
+const testAccAliCloudSelectDBInstanceConfig_basic = `
 variable "name" {
   default = "tf-test-selectdb"
 }
