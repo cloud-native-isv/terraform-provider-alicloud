@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAliCloudKvstoreAuditLogConfig() *schema.Resource {
+func resourceAlicloudKvstoreAuditLogConfig() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudKvstoreAuditLogConfigCreate,
-		Read:   resourceAliCloudKvstoreAuditLogConfigRead,
-		Update: resourceAliCloudKvstoreAuditLogConfigUpdate,
-		Delete: resourceAliCloudKvstoreAuditLogConfigDelete,
+		Create: resourceAlicloudKvstoreAuditLogConfigCreate,
+		Read:   resourceAlicloudKvstoreAuditLogConfigRead,
+		Update: resourceAlicloudKvstoreAuditLogConfigUpdate,
+		Delete: resourceAlicloudKvstoreAuditLogConfigDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +49,7 @@ func resourceAliCloudKvstoreAuditLogConfig() *schema.Resource {
 	}
 }
 
-func resourceAliCloudKvstoreAuditLogConfigCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAlicloudKvstoreAuditLogConfigCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	var response map[string]interface{}
 	var err error
@@ -88,9 +88,9 @@ func resourceAliCloudKvstoreAuditLogConfigCreate(d *schema.ResourceData, meta in
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAliCloudKvstoreAuditLogConfigRead(d, meta)
+	return resourceAlicloudKvstoreAuditLogConfigRead(d, meta)
 }
-func resourceAliCloudKvstoreAuditLogConfigRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAlicloudKvstoreAuditLogConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rKvstoreService := RKvstoreService{client}
 	object, err := rKvstoreService.DescribeKvstoreAuditLogConfig(d.Id())
@@ -116,7 +116,7 @@ func resourceAliCloudKvstoreAuditLogConfigRead(d *schema.ResourceData, meta inte
 	d.Set("status", describeInstanceAttributeObject["InstanceStatus"])
 	return nil
 }
-func resourceAliCloudKvstoreAuditLogConfigUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAlicloudKvstoreAuditLogConfigUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	rKvstoreService := RKvstoreService{client}
 	var response map[string]interface{}
@@ -162,9 +162,9 @@ func resourceAliCloudKvstoreAuditLogConfigUpdate(d *schema.ResourceData, meta in
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 	}
-	return resourceAliCloudKvstoreAuditLogConfigRead(d, meta)
+	return resourceAlicloudKvstoreAuditLogConfigRead(d, meta)
 }
-func resourceAliCloudKvstoreAuditLogConfigDelete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[WARN] Cannot destroy resourceAliCloudKvstoreAuditLogConfig. Terraform will remove this resource from the state file, however resources may remain.")
+func resourceAlicloudKvstoreAuditLogConfigDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[WARN] Cannot destroy resourceAlicloudKvstoreAuditLogConfig. Terraform will remove this resource from the state file, however resources may remain.")
 	return nil
 }
