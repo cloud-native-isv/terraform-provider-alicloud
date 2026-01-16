@@ -15,3 +15,4 @@
 | 006 | SelectDB Management | Provide lifecycle management for Alibaba Cloud SelectDB instances and clusters. | Implemented | .specify/specs/004-update-selectdb-resources/spec.md | 2025-12-14 |
 | 007 | Tablestore VCU Instance Support | Support configuration of Tablestore instances using the VCU sizing model and elastic limits. | Completed | .specify/specs/007-ots-vcu-support/spec.md | 2026-01-07 |
 | 009 | SLS LogStore Shard Management | Enhance alicloud_log_store resource to support dynamic shard count updates (Split/Merge). | Planned | .specify/specs/009-sls-logstore-shard-update/spec.md | 2026-01-14 |
+| 010 | Use CreateInstance API for Instance Resource | Switch the backend API of alicloud_instance resource create operation from RunInstances to CreateInstance. | Implemented | .specify/specs/010-use-create-instance-api/spec.md | 2026-01-16 |

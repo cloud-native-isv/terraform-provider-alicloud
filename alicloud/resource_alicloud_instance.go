@@ -721,118 +721,119 @@ func resourceAliCloudInstance() *schema.Resource {
 func resourceAliCloudInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
-	var response map[string]interface{}
-	action := "RunInstances"
-	request := make(map[string]interface{})
+	var response *ecs.CreateInstanceResponse
+	action := "CreateInstance"
+	request := ecs.CreateCreateInstanceRequest()
 	var err error
 
-	request["RegionId"] = client.RegionId
-	request["ClientToken"] = buildClientToken(action)
+	request.RegionId = client.RegionId
+	request.ClientToken = buildClientToken(action)
 
 	if v, ok := d.GetOk("instance_type"); ok {
-		request["InstanceType"] = v
+		request.InstanceType = v.(string)
 	}
 
 	if v, ok := d.GetOk("image_id"); ok {
-		request["ImageId"] = v
+		request.ImageId = v.(string)
 	}
 
 	if v, ok := d.GetOk("availability_zone"); ok {
-		request["ZoneId"] = v
+		request.ZoneId = v.(string)
 	}
 
 	if v, ok := d.GetOk("system_disk_name"); ok {
-		request["SystemDisk.DiskName"] = v
+		request.SystemDiskDiskName = v.(string)
 	}
 
 	if v, ok := d.GetOk("system_disk_description"); ok {
-		request["SystemDisk.Description"] = v
+		request.SystemDiskDescription = v.(string)
 	}
 
 	if v, ok := d.GetOk("system_disk_performance_level"); ok {
-		request["SystemDisk.PerformanceLevel"] = v
+		request.SystemDiskPerformanceLevel = v.(string)
 	}
 
 	if v, ok := d.GetOk("system_disk_category"); ok {
-		request["SystemDisk.Category"] = v
+		request.SystemDiskCategory = v.(string)
 	}
 
+	// ...existing code...
 	if v, ok := d.GetOk("system_disk_size"); ok {
-		request["SystemDisk.Size"] = v
+		request.SystemDiskSize = requests.NewInteger(v.(int))
 	}
 
-	if v, ok := d.GetOk("system_disk_auto_snapshot_policy_id"); ok {
-		request["SystemDisk.AutoSnapshotPolicyId"] = v
-	}
+	// if v, ok := d.GetOk("system_disk_auto_snapshot_policy_id"); ok {
+	// 	request.SystemDiskAutoSnapshotPolicyId = v.(string)
+	// }
 
-	if v, ok := d.GetOk("system_disk_storage_cluster_id"); ok {
-		request["SystemDisk.StorageClusterId"] = v
-	}
+	// if v, ok := d.GetOk("system_disk_storage_cluster_id"); ok {
+	// 	request.SystemDiskStorageClusterId = v.(string)
+	// }
 
-	if v, ok := d.GetOkExists("system_disk_encrypted"); ok {
-		request["SystemDisk.Encrypted"] = v
-	}
+	// if v, ok := d.GetOkExists("system_disk_encrypted"); ok {
+	// 	request.SystemDiskEncrypted = requests.NewBoolean(v.(bool))
+	// }
 
-	if v, ok := d.GetOk("system_disk_kms_key_id"); ok {
-		request["SystemDisk.KMSKeyId"] = v
-	}
+	// if v, ok := d.GetOk("system_disk_kms_key_id"); ok {
+	// 	request.SystemDiskKMSKeyId = v.(string)
+	// }
 
-	if v, ok := d.GetOk("system_disk_encrypt_algorithm"); ok {
-		request["SystemDisk.EncryptAlgorithm"] = v
-	}
+	// if v, ok := d.GetOk("system_disk_encrypt_algorithm"); ok {
+	// 	request.SystemDiskEncryptAlgorithm = v.(string)
+	// }
 
-	if v, ok := d.GetOkExists("system_disk_provisioned_iops"); ok {
-		request["SystemDisk.ProvisionedIops"] = v
-	}
+	// if v, ok := d.GetOkExists("system_disk_provisioned_iops"); ok {
+	// 	request.SystemDiskProvisionedIops = requests.NewInteger(v.(int))
+	// }
 
-	if v, ok := d.GetOkExists("system_disk_bursting_enabled"); ok {
-		request["SystemDisk.BurstingEnabled"] = v
-	}
+	// if v, ok := d.GetOkExists("system_disk_bursting_enabled"); ok {
+	// 	request.SystemDiskBurstingEnabled = requests.NewBoolean(v.(bool))
+	// }
 
 	if v, ok := d.GetOk("instance_name"); ok {
-		request["InstanceName"] = v
+		request.InstanceName = v.(string)
 	}
 
 	if v, ok := d.GetOk("credit_specification"); ok {
-		request["CreditSpecification"] = v
+		request.CreditSpecification = v.(string)
 	}
 
 	if v, ok := d.GetOk("resource_group_id"); ok {
-		request["ResourceGroupId"] = v
+		request.ResourceGroupId = v.(string)
 	}
 
 	if v, ok := d.GetOk("description"); ok {
-		request["Description"] = v
+		request.Description = v.(string)
 	}
 
-	if v, ok := d.GetOk("launch_template_name"); ok {
-		request["LaunchTemplateName"] = v
-	}
-	if v, ok := d.GetOk("launch_template_id"); ok {
-		request["LaunchTemplateId"] = v
-	}
-	if v, ok := d.GetOk("launch_template_version"); ok {
-		request["LaunchTemplateVersion"] = v
-	}
+	// if v, ok := d.GetOk("launch_template_name"); ok {
+	// 	request.LaunchTemplateName = v.(string)
+	// }
+	// if v, ok := d.GetOk("launch_template_id"); ok {
+	// 	request.LaunchTemplateId = v.(string)
+	// }
+	// if v, ok := d.GetOk("launch_template_version"); ok {
+	// 	request.LaunchTemplateVersion = requests.NewInteger(d.Get("launch_template_version").(string))
+	// }
 
 	if v, ok := d.GetOk("internet_charge_type"); ok {
-		request["InternetChargeType"] = v
+		request.InternetChargeType = v.(string)
 	}
 
 	if v, ok := d.GetOkExists("internet_max_bandwidth_out"); ok {
-		request["InternetMaxBandwidthOut"] = v
+		request.InternetMaxBandwidthOut = requests.NewInteger(v.(int))
 	}
 
 	if v, ok := d.GetOk("internet_max_bandwidth_in"); ok {
-		request["InternetMaxBandwidthIn"] = v
+		request.InternetMaxBandwidthIn = requests.NewInteger(v.(int))
 	}
 
 	if v, ok := d.GetOk("host_name"); ok {
-		request["HostName"] = v
+		request.HostName = v.(string)
 	}
 
 	if v, ok := d.GetOk("password"); ok {
-		request["Password"] = v
+		request.Password = v.(string)
 	}
 
 	if v, ok := d.GetOk("kms_encrypted_password"); ok {
@@ -841,322 +842,229 @@ func resourceAliCloudInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		if err != nil {
 			return WrapError(err)
 		}
-		request["Password"] = decryptResp
+		request.Password = decryptResp
 	}
 
 	if v, ok := d.GetOkExists("password_inherit"); ok {
-		request["PasswordInherit"] = v
+		request.PasswordInherit = requests.NewBoolean(v.(bool))
 	}
 
-	vswitchValue := d.Get("vswitch_id")
+	vswitchValue := d.Get("vswitch_id").(string)
 	if vswitchValue == "" {
-		vswitchValue = d.Get("subnet_id")
+		vswitchValue = d.Get("subnet_id").(string)
 	}
 
 	if v, ok := d.GetOk("instance_charge_type"); ok {
-		request["InstanceChargeType"] = v
+		request.InstanceChargeType = v.(string)
 	}
 
-	if request["InstanceChargeType"] == string(PrePaid) {
+	if request.InstanceChargeType == string(PrePaid) {
 		if v, ok := d.GetOk("period"); ok {
-			request["Period"] = v
+			request.Period = requests.NewInteger(v.(int))
 		}
 		if v, ok := d.GetOk("period_unit"); ok {
-			request["PeriodUnit"] = v
+			request.PeriodUnit = v.(string)
 		}
 		if v, ok := d.GetOk("renewal_status"); ok && v.(string) == "AutoRenewal" {
-			request["AutoRenew"] = true
+			request.AutoRenew = requests.NewBoolean(true)
 		}
 		if v, ok := d.GetOk("auto_renew_period"); ok {
-			request["AutoRenewPeriod"] = v
+			request.AutoRenewPeriod = requests.NewInteger(v.(int))
 		}
 	} else {
 		if v, ok := d.GetOk("spot_strategy"); ok {
-			request["SpotStrategy"] = v
+			request.SpotStrategy = v.(string)
 		}
 		if v, ok := d.GetOk("spot_price_limit"); ok {
-			request["SpotPriceLimit"] = v
+			request.SpotPriceLimit = requests.NewFloat(v.(float64))
 		}
 	}
 
 	if v, ok := d.GetOk("user_data"); ok {
 		_, base64DecodeError := base64.StdEncoding.DecodeString(v.(string))
 		if base64DecodeError == nil {
-			request["UserData"] = v
+			request.UserData = v.(string)
 		} else {
-			request["UserData"] = base64.StdEncoding.EncodeToString([]byte(v.(string)))
+			request.UserData = base64.StdEncoding.EncodeToString([]byte(v.(string)))
 		}
 	}
 
 	if v, ok := d.GetOk("role_name"); ok {
-		request["RamRoleName"] = v
+		request.RamRoleName = v.(string)
 	}
 
 	if v, ok := d.GetOk("key_name"); ok {
-		request["KeyPairName"] = v
+		request.KeyPairName = v.(string)
 	}
 
 	if v, ok := d.GetOk("security_enhancement_strategy"); ok {
-		request["SecurityEnhancementStrategy"] = v
+		request.SecurityEnhancementStrategy = v.(string)
 	}
 
-	if v, ok := d.GetOk("auto_release_time"); ok && v.(string) != "" {
-		request["AutoReleaseTime"] = v
-	}
+	// if v, ok := d.GetOk("auto_release_time"); ok && v.(string) != "" {
+	// 	request.AutoReleaseTime = v.(string) // undefined in this SDK version
+	// }
 
 	if v, ok := d.GetOkExists("dry_run"); ok {
-		request["DryRun"] = v
+		request.DryRun = requests.NewBoolean(v.(bool))
 	}
 
 	if v, ok := d.GetOkExists("deletion_protection"); ok {
-		request["DeletionProtection"] = v
+		request.DeletionProtection = requests.NewBoolean(v.(bool))
 	}
 
 	if v, ok := d.GetOk("tags"); ok {
-		count := 1
+		tags := make([]ecs.CreateInstanceTag, 0)
 		for key, value := range v.(map[string]interface{}) {
-			request[fmt.Sprintf("Tag.%d.Key", count)] = key
-			request[fmt.Sprintf("Tag.%d.Value", count)] = value
-			count++
+			tags = append(tags, ecs.CreateInstanceTag{
+				Key:   key,
+				Value: value.(string),
+			})
 		}
+		request.Tag = &tags
 	}
 
 	if v, ok := d.GetOk("data_disks"); ok {
-		disksMaps := make([]map[string]interface{}, 0)
 		disks := v.([]interface{})
-		for _, rew := range disks {
-
-			disksMap := make(map[string]interface{})
-			item := rew.(map[string]interface{})
-
-			disksMap["DeleteWithInstance"] = item["delete_with_instance"].(bool)
-			disksMap["Encrypted"] = item["encrypted"].(bool)
-			disksMap["Size"] = item["size"].(int)
-
-			if category, ok := item["category"].(string); ok && category != "" {
-				disksMap["Category"] = category
+		var dataDisks []ecs.CreateInstanceDataDisk
+		for _, ds := range disks {
+			item := ds.(map[string]interface{})
+			dd := ecs.CreateInstanceDataDisk{
+				Size:               string(requests.NewInteger(item["size"].(int))),
+				Category:           item["category"].(string),
+				Encrypted:          string(requests.NewBoolean(item["encrypted"].(bool))),
+				DeleteWithInstance: string(requests.NewBoolean(item["delete_with_instance"].(bool))),
+			}
+			if v, ok := item["name"].(string); ok && v != "" {
+				dd.DiskName = v
+			}
+			if v, ok := item["snapshot_id"].(string); ok && v != "" {
+				dd.SnapshotId = v
+			}
+			if v, ok := item["description"].(string); ok && v != "" {
+				dd.Description = v
+			}
+			if v, ok := item["performance_level"].(string); ok && v != "" {
+				dd.PerformanceLevel = v
+			}
+			if v, ok := item["kms_key_id"].(string); ok && v != "" {
+				dd.KMSKeyId = v
+			}
+			// if v, ok := item["auto_snapshot_policy_id"].(string); ok && v != "" {
+			// 	dd.AutoSnapshotPolicyId = v
+			// }
+			if v, ok := item["device"].(string); ok && v != "" {
+				dd.Device = v
 			}
 
-			if name, ok := item["name"].(string); ok && name != "" {
-				disksMap["DiskName"] = name
-			}
+			// if v, ok := item["provisioned_iops"].(int); ok && v > 0 {
+			// 	dd.ProvisionedIops = string(requests.NewInteger(v))
+			// }
+			// if v, ok := item["bursting_enabled"].(bool); ok {
+			// 	dd.BurstingEnabled = string(requests.NewBoolean(v))
+			// }
 
-			if kmsKeyId, ok := item["kms_key_id"].(string); ok && kmsKeyId != "" {
-				disksMap["KMSKeyId"] = kmsKeyId
-			}
-
-			if snapshotId, ok := item["snapshot_id"].(string); ok && snapshotId != "" {
-				disksMap["SnapshotId"] = snapshotId
-			}
-
-			if description, ok := item["description"].(string); ok && description != "" {
-				disksMap["Description"] = description
-			}
-
-			if autoSnapshotPolicyId, ok := item["auto_snapshot_policy_id"].(string); ok && autoSnapshotPolicyId != "" {
-				disksMap["AutoSnapshotPolicyId"] = autoSnapshotPolicyId
-			}
-
-			if device, ok := item["device"].(string); ok && device != "" {
-				disksMap["Device"] = device
-			}
-
-			if device, ok := item["provisioned_iops"].(string); ok && disksMap["Category"] == string(DiskCloudAuto) {
-				disksMap["ProvisionedIops"] = device
-			}
-
-			if device, ok := item["bursting_enabled"].(string); ok && disksMap["Category"] == string(DiskCloudAuto) {
-				disksMap["BurstingEnabled"] = device
-			}
-
-			if performanceLevel, ok := item["performance_level"].(string); ok && performanceLevel != "" && disksMap["Category"] == string(DiskCloudESSD) {
-				disksMap["PerformanceLevel"] = performanceLevel
-			}
-
-			if disksMap["Category"] == string(DiskEphemeralSSD) {
-				disksMap["DeleteWithInstance"] = ""
-			}
-
-			disksMaps = append(disksMaps, disksMap)
+			dataDisks = append(dataDisks, dd)
 		}
-		request["DataDisk"] = disksMaps
+		request.DataDisk = &dataDisks
 	}
 
-	networkInterfacesMaps := make([]map[string]interface{}, 0)
+	// var networkInterfaces []ecs.CreateInstanceNetworkInterface
+	var remainingSgs []string
 
-	_, networkInterfaceTrafficModeOk := d.GetOk("network_interface_traffic_mode")
-	_, networkCardIndexOk := d.GetOkExists("network_card_index")
-	_, queuePairNumberOk := d.GetOkExists("queue_pair_number")
+	// _, networkInterfaceTrafficModeOk := d.GetOk("network_interface_traffic_mode")
+	// _, networkCardIndexOk := d.GetOkExists("network_card_index")
+	// _, queuePairNumberOk := d.GetOkExists("queue_pair_number")
 
-	if networkInterfaceTrafficModeOk || networkCardIndexOk || queuePairNumberOk {
-		primaryNetworkInterfacesMap := make(map[string]interface{})
-		primaryNetworkInterfacesMap["InstanceType"] = "Primary"
-
-		if v, ok := d.GetOk("security_groups"); ok {
-			// At present, the classic network instance does not support multi sg in runInstances
-			sgs := expandStringList(v.(*schema.Set).List())
-			if d.Get("vswitch_id").(string) == "" && len(sgs) > 0 {
-				primaryNetworkInterfacesMap["SecurityGroupId"] = sgs[0]
-			} else {
-				primaryNetworkInterfacesMap["SecurityGroupIds"] = sgs
-			}
-		}
-
-		if vswitchValue != "" {
-			primaryNetworkInterfacesMap["VSwitchId"] = vswitchValue
-
-			if v, ok := d.GetOk("private_ip"); ok {
-				primaryNetworkInterfacesMap["PrimaryIpAddress"] = v
-			}
-		}
-
-		if v, ok := d.GetOk("ipv6_addresses"); ok {
-			primaryNetworkInterfacesMap["Ipv6Address"] = v.(*schema.Set).List()
-		}
-
-		if v, ok := d.GetOkExists("ipv6_address_count"); ok {
-			primaryNetworkInterfacesMap["Ipv6AddressCount"] = v
-		}
-
-		if v, ok := d.GetOk("network_interface_traffic_mode"); ok {
-			primaryNetworkInterfacesMap["NetworkInterfaceTrafficMode"] = v
-		}
-
-		if v, ok := d.GetOkExists("network_card_index"); ok {
-			primaryNetworkInterfacesMap["NetworkCardIndex"] = v
-		}
-
-		if v, ok := d.GetOkExists("queue_pair_number"); ok {
-			primaryNetworkInterfacesMap["QueuePairNumber"] = v
-		}
-
-		networkInterfacesMaps = append(networkInterfacesMaps, primaryNetworkInterfacesMap)
-	} else {
-		if vswitchValue != "" {
-			request["VSwitchId"] = vswitchValue
-
-			if v, ok := d.GetOk("private_ip"); ok {
-				request["PrivateIpAddress"] = v
-			}
-		}
-
-		if v, ok := d.GetOk("security_groups"); ok {
-			// At present, the classic network instance does not support multi sg in runInstances
-			sgs := expandStringList(v.(*schema.Set).List())
-			if d.Get("vswitch_id").(string) == "" && len(sgs) > 0 {
-				request["SecurityGroupId"] = sgs[0]
-			} else {
-				request["SecurityGroupIds"] = sgs
-			}
-		}
-
-		if v, ok := d.GetOk("ipv6_addresses"); ok {
-			request["Ipv6Address"] = v.(*schema.Set).List()
-		}
-
-		if v, ok := d.GetOkExists("ipv6_address_count"); ok {
-			request["Ipv6AddressCount"] = v
+	securityGroupsIds := expandStringList(d.Get("security_groups").(*schema.Set).List())
+	if len(securityGroupsIds) > 0 {
+		request.SecurityGroupId = securityGroupsIds[0]
+		if len(securityGroupsIds) > 1 {
+			remainingSgs = securityGroupsIds[1:]
 		}
 	}
 
-	if v, ok := d.GetOk("network_interfaces"); ok {
-		for _, networkInterfaces := range v.([]interface{}) {
-			secondaryNetworkInterfacesMap := make(map[string]interface{})
-			secondaryNetworkInterfacesArg := networkInterfaces.(map[string]interface{})
-
-			if networkInterfaceId, ok := secondaryNetworkInterfacesArg["network_interface_id"]; ok && fmt.Sprint(networkInterfaceId) != "" {
-				secondaryNetworkInterfacesMap["NetworkInterfaceId"] = networkInterfaceId
-			} else {
-				secondaryNetworkInterfacesMap["InstanceType"] = "Secondary"
-
-				if vSwitchId, ok := secondaryNetworkInterfacesArg["vswitch_id"]; ok {
-					secondaryNetworkInterfacesMap["VSwitchId"] = vSwitchId
-				}
-
-				if networkInterfaceTrafficMode, ok := secondaryNetworkInterfacesArg["network_interface_traffic_mode"]; ok {
-					secondaryNetworkInterfacesMap["NetworkInterfaceTrafficMode"] = networkInterfaceTrafficMode
-				}
-
-				isSupported, err := ecsService.isSupportedNetworkCardIndex(fmt.Sprint(request["InstanceType"]))
-				if err != nil {
-					return WrapError(err)
-				}
-
-				if networkCardIndex, ok := secondaryNetworkInterfacesArg["network_card_index"]; ok && isSupported {
-					secondaryNetworkInterfacesMap["NetworkCardIndex"] = networkCardIndex
-				}
-
-				if queuePairNumber, ok := secondaryNetworkInterfacesArg["queue_pair_number"]; ok && fmt.Sprint(queuePairNumber) != "0" {
-					secondaryNetworkInterfacesMap["QueuePairNumber"] = queuePairNumber
-				}
-
-				if securityGroupIds, ok := secondaryNetworkInterfacesArg["security_group_ids"]; ok {
-					secondaryNetworkInterfacesMap["SecurityGroupIds"] = securityGroupIds
-				}
-			}
-
-			networkInterfacesMaps = append(networkInterfacesMaps, secondaryNetworkInterfacesMap)
+	// if networkInterfaceTrafficModeOk || networkCardIndexOk || queuePairNumberOk {
+	// 	// Primary ENI via NetworkInterface list - NOT SUPPORTED
+	// } else {
+	// Flat params for Primary
+	if vswitchValue != "" {
+		request.VSwitchId = vswitchValue
+		if v, ok := d.GetOk("private_ip"); ok {
+			request.PrivateIpAddress = v.(string)
 		}
 	}
+	// SecurityGroupId is already set above
+	// }
 
-	if len(networkInterfacesMaps) > 0 {
-		request["NetworkInterface"] = networkInterfacesMaps
-	}
+	// if v, ok := d.GetOk("network_interfaces"); ok {
+	// NOT SUPPORTED in current SDK version
+	// }
 
-	networkOptionsMap := make(map[string]interface{})
+	// if len(networkInterfaces) > 0 {
+	// 	request.NetworkInterface = &networkInterfaces
+	// }
 
-	if v, ok := d.GetOkExists("enable_jumbo_frame"); ok {
-		networkOptionsMap["EnableJumboFrame"] = v
-	}
-
-	if len(networkOptionsMap) > 0 {
-		request["NetworkOptions"] = networkOptionsMap
-	}
+	// Network Options
+	// needNetworkOptions := false
+	// // networkOptions := ecs.CreateInstanceNetworkOptions{} // undefined
+	// if v, ok := d.GetOkExists("enable_jumbo_frame"); ok {
+	// 	// networkOptions.EnableJumboFrame = requests.NewBoolean(v.(bool))
+	// 	// needNetworkOptions = true
+	// }
+	// if needNetworkOptions {
+	// 	// request.NetworkOptions = &networkOptions
+	// }
 
 	if v, ok := d.GetOk("hpc_cluster_id"); ok {
-		request["HpcClusterId"] = v
+		request.HpcClusterId = v.(string)
 	}
 
 	if v, ok := d.GetOk("deployment_set_id"); ok {
-		request["DeploymentSetId"] = v
+		request.DeploymentSetId = v.(string)
 	}
 
 	if v, ok := d.GetOk("http_tokens"); ok {
-		request["HttpTokens"] = v
+		request.HttpTokens = v.(string)
 	}
 
 	if v, ok := d.GetOk("http_endpoint"); ok {
-		request["HttpEndpoint"] = v
+		request.HttpEndpoint = v.(string)
 	}
 
 	if v, ok := d.GetOk("http_put_response_hop_limit"); ok {
-		request["HttpPutResponseHopLimit"] = v
+		request.HttpPutResponseHopLimit = requests.NewInteger(v.(int))
 	}
 
 	if d.Get("is_outdated").(bool) {
-		request["IoOptimized"] = "none"
+		request.IoOptimized = "none"
 	}
 
 	if v, ok := d.GetOkExists("spot_duration"); ok {
-		request["SpotDuration"] = v
+		request.SpotDuration = requests.NewInteger(v.(int))
 	}
 
 	if v, ok := d.GetOk("dedicated_host_id"); ok {
-		request["DedicatedHostId"] = v
+		request.DedicatedHostId = v.(string)
 	}
 
 	if v, ok := d.GetOk("image_options"); ok {
-		for _, raw := range v.(*schema.Set).List() {
-			imageOptionsArg := raw.(map[string]interface{})
-			if v, ok := imageOptionsArg["login_as_non_root"]; ok {
-				request["ImageOptions.LoginAsNonRoot"] = v
-			}
+		for _, _ = range v.(*schema.Set).List() {
+			// imageOptionsArg := raw.(map[string]interface{})
+			// if v, ok := imageOptionsArg["login_as_non_root"]; ok {
+			// Struct mapping implies `ImageOptions` struct.
+			// request.ImageOptions = &ecs.CreateInstanceImageOptions{ LoginAsNonRoot: ... }
+			// options := ecs.CreateInstanceImageOptions{
+			// 	LoginAsNonRoot: requests.NewBoolean(v.(bool)),
+			// }
+			// request.ImageOptions = &options
+			// }
 		}
 	}
 
 	wait := incrementalWait(1*time.Second, 1*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RpcPost("Ecs", "2014-05-26", action, nil, request, false)
+		response, err = ecsService.CreateInstance(request)
 		if err != nil {
 			if NeedRetry(err) || IsExpectedErrors(err, []string{"IncorrectVSwitchStatus"}) {
 				wait()
@@ -1166,17 +1074,61 @@ func resourceAliCloudInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		}
 		return nil
 	})
-	addDebug(action, response, request)
 
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_instance", action, AlibabaCloudSdkGoERROR)
 	}
 
-	d.SetId(fmt.Sprint(response["InstanceIdSets"].(map[string]interface{})["InstanceIdSet"].([]interface{})[0]))
+	d.SetId(response.InstanceId)
 
-	stateConf := BuildStateConf([]string{"Pending", "Starting", "Stopped"}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, ecsService.InstanceStateRefreshFunc(d.Id(), []string{"Stopping"}))
+	// Wait for Stopped
+	stateConf := BuildStateConf([]string{"Pending", "Starting", "Stopped", "Stopping"}, []string{"Stopped"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, ecsService.InstanceStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	// Join Additional Security Groups
+	if len(remainingSgs) > 0 {
+		if err := ecsService.JoinSecurityGroups(d.Id(), remainingSgs); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
+	}
+
+	// Start Instance Logic
+	target, targetExist := d.GetOk("status")
+	if !targetExist || target.(string) == string(Running) {
+		// Default to Start
+		startRequest := ecs.CreateStartInstanceRequest()
+		startRequest.InstanceId = d.Id()
+
+		err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+			_, err := ecsService.StartInstance(startRequest)
+			if err != nil {
+				if IsExpectedErrors(err, []string{"IncorrectInstanceStatus"}) {
+					time.Sleep(time.Second)
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
+
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), startRequest.GetActionName(), AlibabaCloudSdkGoERROR)
+		}
+
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{"Pending", "Starting", "Stopped"},
+			Target:     []string{"Running"},
+			Refresh:    ecsService.InstanceStateRefreshFunc(d.Id(), []string{}),
+			Timeout:    d.Timeout(schema.TimeoutCreate),
+			Delay:      5 * time.Second,
+			MinTimeout: 3 * time.Second,
+		}
+
+		if _, err = stateConf.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
 	}
 
 	return resourceAliCloudInstanceUpdate(d, meta)
