@@ -34,6 +34,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/yaml.v2"
+	yamlV3 "gopkg.in/yaml.v3"
 )
 
 type PayType string
@@ -254,6 +255,7 @@ const (
 
 const (
 	// HeaderEnableEBTrigger header key for enabling eventbridge trigger
+	// TODO: delete the header after eventbridge trigger is totally exposed to user
 	HeaderEnableEBTrigger = "x-fc-enable-eventbridge-trigger"
 )
 
@@ -338,8 +340,8 @@ func convertListToJsonString(configured []interface{}) string {
 }
 
 func convertJsonStringToStringList(src interface{}) (result []interface{}) {
-	if _, ok := src.([]interface{}); !ok {
-		panic("src is not a []interface{}")
+	if err, ok := src.([]interface{}); !ok {
+		panic(err)
 	}
 	for _, v := range src.([]interface{}) {
 		result = append(result, fmt.Sprint(formatInt(v)))
@@ -385,11 +387,14 @@ func convertListToCommaSeparate(configured []interface{}) string {
 	}
 	result := ""
 	for i, v := range configured {
+		if v == nil {
+			continue
+		}
 		rail := ","
 		if i == len(configured)-1 {
 			rail = ""
 		}
-		result += v.(string) + rail
+		result += fmt.Sprint(v) + rail
 	}
 	return result
 }
@@ -1772,15 +1777,25 @@ func compareCmsHybridMonitorFcTaskYamlConfigAreEquivalent(tem1, tem2 string) (bo
 	return reflect.DeepEqual(y1, y2), nil
 }
 
-func getOneStringOrAllStringSlice(stringSli []interface{}) interface{} {
+func getOneStringOrAllStringSlice(stringSli []interface{}, fieldName string) (interface{}, error) {
 	if len(stringSli) == 1 {
-		return stringSli[0].(string)
+		if Trim(fmt.Sprint(stringSli[0])) == "" || IsNil(stringSli[0]) {
+			return nil, WrapError(fmt.Errorf("[ERROR] Field \"%s\" cannot contain empty strings(\"\") ! ", fieldName))
+		}
+
+		return stringSli[0].(string), nil
 	}
+
 	sli := make([]string, len(stringSli))
 	for i, v := range stringSli {
+		if Trim(fmt.Sprint(v)) == "" || IsNil(v) {
+			return nil, WrapError(fmt.Errorf("[ERROR] Field \"%s\" cannot contain empty strings(\"\") ! ", fieldName))
+		}
+
 		sli[i] = v.(string)
 	}
-	return sli
+
+	return sli, nil
 }
 
 func Unique(strings []string) []string {
@@ -1961,6 +1976,22 @@ func ConvertTags(tagsMap map[string]interface{}) []map[string]interface{} {
 	return tags
 }
 
+func ConvertLowercaseTags(tagsMap map[string]interface{}) []map[string]interface{} {
+	tags := make([]map[string]interface{}, 0)
+	for key, value := range tagsMap {
+		if value != nil {
+			if v, ok := value.(string); ok {
+				tags = append(tags, map[string]interface{}{
+					"key":   key,
+					"value": v,
+				})
+			}
+		}
+	}
+
+	return tags
+}
+
 func ConvertTagsForKms(tagsMap map[string]interface{}) []map[string]interface{} {
 	tags := make([]map[string]interface{}, 0)
 	for key, value := range tagsMap {
@@ -1986,6 +2017,19 @@ func expandTagsToMap(originMap map[string]interface{}, tags []map[string]interfa
 			}
 		}
 	}
+	return originMap
+}
+
+func expandTagsToMapWithTags(originMap map[string]interface{}, tags []map[string]interface{}) map[string]interface{} {
+	for i, tag := range tags {
+		for key, value := range tag {
+			if key == "Key" || key == "Value" {
+				newKey := "Tags" + "." + strconv.Itoa(i+1) + "." + key
+				originMap[newKey] = fmt.Sprintf("%v", value)
+			}
+		}
+	}
+
 	return originMap
 }
 
@@ -2043,4 +2087,126 @@ func compressIPv6OrCIDR(input string) (string, error) {
 
 func randIntRange(min int, max int) int {
 	return min + acctest.RandIntRange(min, max)
+}
+
+func NormalizeMap(data map[string]interface{}) map[string]interface{} {
+	if data == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+	for k, v := range data {
+		normalizedValue, err := normalizeValue(v)
+		if err != nil {
+			result[k] = v
+		} else {
+			result[k] = normalizedValue
+		}
+	}
+	return result
+}
+
+func normalizeValue(value interface{}) (interface{}, error) {
+	switch val := value.(type) {
+	case string:
+		trimmed := strings.TrimSpace(val)
+		// handle JSON array
+		if strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") {
+			var arr []interface{}
+			if err := json.Unmarshal([]byte(val), &arr); err == nil {
+				result := make([]interface{}, len(arr))
+				for i, item := range arr {
+					normalizedItem, err := normalizeValue(item)
+					if err != nil {
+						return nil, err
+					}
+					result[i] = normalizedItem
+				}
+				return result, nil
+			}
+		}
+
+		// handle JSON object
+		if strings.HasPrefix(trimmed, "{") && strings.HasSuffix(trimmed, "}") {
+			var obj map[string]interface{}
+			if err := json.Unmarshal([]byte(val), &obj); err == nil {
+				normalizedObj := NormalizeMap(obj)
+				return normalizedObj, nil
+			}
+		}
+
+		switch val {
+		case "true":
+			return true, nil
+		case "false":
+			return false, nil
+		}
+
+		if num, err := strconv.Atoi(val); err == nil {
+			return num, nil
+		}
+
+		return val, nil
+
+	case map[string]interface{}:
+		normalizedMap := NormalizeMap(val)
+		return normalizedMap, nil
+
+	case []interface{}:
+		result := make([]interface{}, len(val))
+		for i, item := range val {
+			normalizedItem, err := normalizeValue(item)
+			if err != nil {
+				return nil, err
+			}
+			result[i] = normalizedItem
+		}
+		return result, nil
+
+	default:
+		return val, nil
+	}
+}
+
+func convertToJsonWithoutEscapeHTML(m map[string]interface{}) (string, error) {
+	var buffer bytes.Buffer
+	encoder := json.NewEncoder(&buffer)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(m); err != nil {
+		return "", err
+	}
+	return buffer.String(), nil
+}
+
+func convertToInterfaceArray(v interface{}) []interface{} {
+	if v == nil {
+		return []interface{}{}
+	}
+
+	if set, ok := v.(*schema.Set); ok {
+		return set.List()
+	}
+
+	if array, ok := v.([]interface{}); ok {
+		return array
+	}
+
+	val := reflect.ValueOf(v)
+	if val.Kind() == reflect.Slice {
+		result := make([]interface{}, val.Len())
+		for i := 0; i < val.Len(); i++ {
+			result[i] = val.Index(i).Interface()
+		}
+		return result
+	}
+
+	return []interface{}{v}
+}
+
+func convertYamlToObject(configured interface{}) (map[string]interface{}, error) {
+	result := make(map[string]interface{})
+	if err := yamlV3.Unmarshal([]byte(configured.(string)), &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

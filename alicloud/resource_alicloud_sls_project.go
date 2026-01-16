@@ -110,7 +110,7 @@ func resourceAliCloudLogProject() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validateDataRedundancyType,
-				Default:      string(aliyunSlsAPI.DataRedundancyTypeLRS),
+				Default:      string(aliyunSlsAPI.DataRedundancyTypeZRS),
 			},
 			"recycle_bin_enabled": {
 				Type:     schema.TypeBool,

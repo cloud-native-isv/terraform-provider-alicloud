@@ -1540,7 +1540,6 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_kms_network_rule":                                      resourceAliCloudKmsNetworkRule(),
 			"alicloud_kms_policy":                                            resourceAliCloudKmsPolicy(),
 			"alicloud_kms_secret":                                            resourceAliCloudKmsSecret(),
-			"alicloud_kvstore_account":                                       resourceAliCloudKvstoreAccount(),
 			"alicloud_kvstore_audit_log_config":                              resourceAliCloudKvstoreAuditLogConfig(),
 			"alicloud_kvstore_backup_policy":                                 resourceAliCloudKvStoreBackupPolicy(),
 			"alicloud_kvstore_connection":                                    resourceAliCloudKvstoreConnection(),
