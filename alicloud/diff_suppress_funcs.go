@@ -250,6 +250,18 @@ func PostPaidDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
 	return true
 }
 
+func PrePaidDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+	// payment_type is the instance_charge_type's replacement.
+	// If both instance_charge_type and payment_type are "", it means hiding a default "PrePaid"
+	if v, ok := d.GetOk("instance_charge_type"); ok && strings.ToLower(v.(string)) == "prepaid" {
+		return true
+	}
+	if v, ok := d.GetOk("payment_type"); ok && v.(string) == "Subscription" {
+		return true
+	}
+	return false
+}
+
 func ChargeTypeDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
 	// payment_type is the instance_charge_type's replacement.
 	if _, ok := d.GetOk("payment_type"); ok {
@@ -354,11 +366,16 @@ func polardbPostPaidDiffSuppressFunc(k, old, new string, d *schema.ResourceData)
 	return true
 }
 
-func polardbPostPaidAndRenewDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	if d.Get("pay_type").(string) == "PrePaid" && d.Get("renewal_status").(string) != string(RenewNotRenewal) {
-		return false
+func polardbDBClusterVersionDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+	var latestVersion interface{}
+	latestVersion, ok := d.GetOk("cluster_latest_version")
+	if !ok {
+		return true
 	}
-	return true
+	if old == latestVersion.(string) {
+		return true
+	}
+	return false
 }
 
 func polardbTDEAndEnabledDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
@@ -382,10 +399,17 @@ func polardbServrelessTypeDiffSuppressFunc(k, old, new string, d *schema.Resourc
 		if d.Get("serverless_type").(string) == "AgileServerless" || (d.Get("serverless_type").(string) == "SteadyServerless" && d.Get("serverless_steady_switch").(string) == "ON") {
 			return false
 		}
-	} else if d.Get("db_type").(string) == "PostgreSQL" && d.Get("db_version").(string) == "14" {
-		if d.Get("serverless_type").(string) == "AgileServerless" {
+	} else if (d.Get("db_type").(string) == "PostgreSQL" || d.Get("db_type").(string) == "Oracle") && d.Get("db_version").(string) == "14" {
+		if d.Get("serverless_type").(string) == "AgileServerless" || (d.Get("serverless_type").(string) == "SteadyServerless" && d.Get("serverless_steady_switch").(string) == "ON") {
 			return false
 		}
+	}
+	return true
+}
+
+func polardbPostPaidAndRenewDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+	if d.Get("pay_type").(string) == "PrePaid" && d.Get("renewal_status").(string) != string(RenewNotRenewal) {
+		return false
 	}
 	return true
 }
@@ -631,8 +655,8 @@ func sagClientUserPasswordSuppressFunc(k, old, new string, d *schema.ResourceDat
 }
 
 func selectdbPostPaidDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	if d.Get("charge_type").(string) == "Prepaid" {
-		return d.Id() != "" && old == ""
+	if d.Get("payment_type").(string) == "Subscription" {
+		return false
 	}
 	return true
 }

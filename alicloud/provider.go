@@ -1527,6 +1527,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_imp_app_template":                                      resourceAliCloudImpAppTemplate(),
 			"alicloud_ims_oidc_provider":                                     resourceAliCloudImsOidcProvider(),
 			"alicloud_instance":                                              resourceAliCloudInstance(),
+			"alicloud_ecs_instance":                                          resourceAliCloudEcsInstance(),
 			"alicloud_iot_device_group":                                      resourceAliCloudIotDeviceGroup(),
 			"alicloud_key_pair":                                              resourceAliCloudEcsKeyPair(),
 			"alicloud_key_pair_attachment":                                   resourceAliCloudEcsKeyPairAttachment(),

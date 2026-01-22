@@ -1,28 +1,31 @@
 package alicloud
 
 import (
-	"encoding/base64"
 	"fmt"
 	"log"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/denverdino/aliyungo/common"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
+	"encoding/base64"
+
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/denverdino/aliyungo/common"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAliCloudInstance() *schema.Resource {
+func resourceAliCloudEcsInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudInstanceCreate,
-		Read:   resourceAliCloudInstanceRead,
-		Update: resourceAliCloudInstanceUpdate,
-		Delete: resourceAliCloudInstanceDelete,
+		Create: resourceAliCloudEcsInstanceCreate,
+		Read:   resourceAliCloudEcsInstanceRead,
+		Update: resourceAliCloudEcsInstanceUpdate,
+		Delete: resourceAliCloudEcsInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -180,7 +183,6 @@ func resourceAliCloudInstance() *schema.Resource {
 			"system_disk_auto_snapshot_policy_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 			"system_disk_storage_cluster_id": {
 				Type:     schema.TypeString,
@@ -465,6 +467,7 @@ func resourceAliCloudInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"spot_strategy": {
 				Type:             schema.TypeString,
@@ -482,9 +485,9 @@ func resourceAliCloudInstance() *schema.Resource {
 				DiffSuppressFunc: ecsSpotPriceLimitDiffSuppressFunc,
 			},
 			"deletion_protection": {
-				Type:             schema.TypeBool,
-				Optional:         true,
-				DiffSuppressFunc: PrePaidDiffSuppressFunc,
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 			"force_delete": {
 				Type:             schema.TypeBool,
@@ -684,17 +687,6 @@ func resourceAliCloudInstance() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"private_pool_options_match_criteria": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: StringInSlice([]string{"Open", "Target", "None"}, false),
-			},
-			"private_pool_options_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
 			"create_time": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -722,150 +714,126 @@ func resourceAliCloudInstance() *schema.Resource {
 					},
 				},
 			},
-			"cpu_options": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"core_count": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-						},
-						"threads_per_core": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-						},
-						"topology_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
 
-func resourceAliCloudInstanceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsInstanceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
-	var response map[string]interface{}
-	action := "RunInstances"
-	request := make(map[string]interface{})
+	var response *ecs.CreateInstanceResponse
+	action := "CreateInstance"
+	request := ecs.CreateCreateInstanceRequest()
 	var err error
 
-	request["RegionId"] = client.RegionId
-	request["ClientToken"] = buildClientToken(action)
+	request.RegionId = client.RegionId
+	request.ClientToken = buildClientToken(action)
 
 	if v, ok := d.GetOk("instance_type"); ok {
-		request["InstanceType"] = v
+		request.InstanceType = v.(string)
 	}
 
 	if v, ok := d.GetOk("image_id"); ok {
-		request["ImageId"] = v
+		request.ImageId = v.(string)
 	}
 
 	if v, ok := d.GetOk("availability_zone"); ok {
-		request["ZoneId"] = v
+		request.ZoneId = v.(string)
 	}
 
 	if v, ok := d.GetOk("system_disk_name"); ok {
-		request["SystemDisk.DiskName"] = v
+		request.SystemDiskDiskName = v.(string)
 	}
 
 	if v, ok := d.GetOk("system_disk_description"); ok {
-		request["SystemDisk.Description"] = v
+		request.SystemDiskDescription = v.(string)
 	}
 
 	if v, ok := d.GetOk("system_disk_performance_level"); ok {
-		request["SystemDisk.PerformanceLevel"] = v
+		request.SystemDiskPerformanceLevel = v.(string)
 	}
 
 	if v, ok := d.GetOk("system_disk_category"); ok {
-		request["SystemDisk.Category"] = v
+		request.SystemDiskCategory = v.(string)
 	}
 
+	// ...existing code...
 	if v, ok := d.GetOk("system_disk_size"); ok {
-		request["SystemDisk.Size"] = v
+		request.SystemDiskSize = requests.NewInteger(v.(int))
 	}
 
-	if v, ok := d.GetOk("system_disk_auto_snapshot_policy_id"); ok {
-		request["SystemDisk.AutoSnapshotPolicyId"] = v
-	}
+	// if v, ok := d.GetOk("system_disk_auto_snapshot_policy_id"); ok {
+	// 	request.SystemDiskAutoSnapshotPolicyId = v.(string)
+	// }
 
-	if v, ok := d.GetOk("system_disk_storage_cluster_id"); ok {
-		request["SystemDisk.StorageClusterId"] = v
-	}
+	// if v, ok := d.GetOk("system_disk_storage_cluster_id"); ok {
+	// 	request.SystemDiskStorageClusterId = v.(string)
+	// }
 
-	if v, ok := d.GetOkExists("system_disk_encrypted"); ok {
-		request["SystemDisk.Encrypted"] = v
-	}
+	// if v, ok := d.GetOkExists("system_disk_encrypted"); ok {
+	// 	request.SystemDiskEncrypted = requests.NewBoolean(v.(bool))
+	// }
 
-	if v, ok := d.GetOk("system_disk_kms_key_id"); ok {
-		request["SystemDisk.KMSKeyId"] = v
-	}
+	// if v, ok := d.GetOk("system_disk_kms_key_id"); ok {
+	// 	request.SystemDiskKMSKeyId = v.(string)
+	// }
 
-	if v, ok := d.GetOk("system_disk_encrypt_algorithm"); ok {
-		request["SystemDisk.EncryptAlgorithm"] = v
-	}
+	// if v, ok := d.GetOk("system_disk_encrypt_algorithm"); ok {
+	// 	request.SystemDiskEncryptAlgorithm = v.(string)
+	// }
 
-	if v, ok := d.GetOkExists("system_disk_provisioned_iops"); ok {
-		request["SystemDisk.ProvisionedIops"] = v
-	}
+	// if v, ok := d.GetOkExists("system_disk_provisioned_iops"); ok {
+	// 	request.SystemDiskProvisionedIops = requests.NewInteger(v.(int))
+	// }
 
-	if v, ok := d.GetOkExists("system_disk_bursting_enabled"); ok {
-		request["SystemDisk.BurstingEnabled"] = v
-	}
+	// if v, ok := d.GetOkExists("system_disk_bursting_enabled"); ok {
+	// 	request.SystemDiskBurstingEnabled = requests.NewBoolean(v.(bool))
+	// }
 
 	if v, ok := d.GetOk("instance_name"); ok {
-		request["InstanceName"] = v
+		request.InstanceName = v.(string)
 	}
 
 	if v, ok := d.GetOk("credit_specification"); ok {
-		request["CreditSpecification"] = v
+		request.CreditSpecification = v.(string)
 	}
 
 	if v, ok := d.GetOk("resource_group_id"); ok {
-		request["ResourceGroupId"] = v
+		request.ResourceGroupId = v.(string)
 	}
 
 	if v, ok := d.GetOk("description"); ok {
-		request["Description"] = v
+		request.Description = v.(string)
 	}
 
-	if v, ok := d.GetOk("launch_template_name"); ok {
-		request["LaunchTemplateName"] = v
-	}
-	if v, ok := d.GetOk("launch_template_id"); ok {
-		request["LaunchTemplateId"] = v
-	}
-	if v, ok := d.GetOk("launch_template_version"); ok {
-		request["LaunchTemplateVersion"] = v
-	}
+	// if v, ok := d.GetOk("launch_template_name"); ok {
+	// 	request.LaunchTemplateName = v.(string)
+	// }
+	// if v, ok := d.GetOk("launch_template_id"); ok {
+	// 	request.LaunchTemplateId = v.(string)
+	// }
+	// if v, ok := d.GetOk("launch_template_version"); ok {
+	// 	request.LaunchTemplateVersion = requests.NewInteger(d.Get("launch_template_version").(string))
+	// }
 
 	if v, ok := d.GetOk("internet_charge_type"); ok {
-		request["InternetChargeType"] = v
+		request.InternetChargeType = v.(string)
 	}
 
-	if v, ok := d.GetOk("internet_max_bandwidth_out"); ok {
-		request["InternetMaxBandwidthOut"] = v
+	if v, ok := d.GetOkExists("internet_max_bandwidth_out"); ok {
+		request.InternetMaxBandwidthOut = requests.NewInteger(v.(int))
 	}
 
 	if v, ok := d.GetOk("internet_max_bandwidth_in"); ok {
-		request["InternetMaxBandwidthIn"] = v
+		request.InternetMaxBandwidthIn = requests.NewInteger(v.(int))
 	}
 
 	if v, ok := d.GetOk("host_name"); ok {
-		request["HostName"] = v
+		request.HostName = v.(string)
 	}
 
 	if v, ok := d.GetOk("password"); ok {
-		request["Password"] = v
+		request.Password = v.(string)
 	}
 
 	if v, ok := d.GetOk("kms_encrypted_password"); ok {
@@ -874,342 +842,229 @@ func resourceAliCloudInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		if err != nil {
 			return WrapError(err)
 		}
-		request["Password"] = decryptResp
+		request.Password = decryptResp
 	}
 
 	if v, ok := d.GetOkExists("password_inherit"); ok {
-		request["PasswordInherit"] = v
+		request.PasswordInherit = requests.NewBoolean(v.(bool))
 	}
 
-	vswitchValue := d.Get("vswitch_id")
+	vswitchValue := d.Get("vswitch_id").(string)
 	if vswitchValue == "" {
-		vswitchValue = d.Get("subnet_id")
+		vswitchValue = d.Get("subnet_id").(string)
 	}
 
 	if v, ok := d.GetOk("instance_charge_type"); ok {
-		request["InstanceChargeType"] = v
+		request.InstanceChargeType = v.(string)
 	}
 
-	if request["InstanceChargeType"] == string(PrePaid) {
+	if request.InstanceChargeType == string(PrePaid) {
 		if v, ok := d.GetOk("period"); ok {
-			request["Period"] = v
+			request.Period = requests.NewInteger(v.(int))
 		}
 		if v, ok := d.GetOk("period_unit"); ok {
-			request["PeriodUnit"] = v
+			request.PeriodUnit = v.(string)
 		}
 		if v, ok := d.GetOk("renewal_status"); ok && v.(string) == "AutoRenewal" {
-			request["AutoRenew"] = true
+			request.AutoRenew = requests.NewBoolean(true)
 		}
 		if v, ok := d.GetOk("auto_renew_period"); ok {
-			request["AutoRenewPeriod"] = v
+			request.AutoRenewPeriod = requests.NewInteger(v.(int))
 		}
 	} else {
 		if v, ok := d.GetOk("spot_strategy"); ok {
-			request["SpotStrategy"] = v
+			request.SpotStrategy = v.(string)
 		}
 		if v, ok := d.GetOk("spot_price_limit"); ok {
-			request["SpotPriceLimit"] = v
+			request.SpotPriceLimit = requests.NewFloat(v.(float64))
 		}
 	}
 
 	if v, ok := d.GetOk("user_data"); ok {
 		_, base64DecodeError := base64.StdEncoding.DecodeString(v.(string))
 		if base64DecodeError == nil {
-			request["UserData"] = v
+			request.UserData = v.(string)
 		} else {
-			request["UserData"] = base64.StdEncoding.EncodeToString([]byte(v.(string)))
+			request.UserData = base64.StdEncoding.EncodeToString([]byte(v.(string)))
 		}
 	}
 
 	if v, ok := d.GetOk("role_name"); ok {
-		request["RamRoleName"] = v
+		request.RamRoleName = v.(string)
 	}
 
 	if v, ok := d.GetOk("key_name"); ok {
-		request["KeyPairName"] = v
+		request.KeyPairName = v.(string)
 	}
 
 	if v, ok := d.GetOk("security_enhancement_strategy"); ok {
-		request["SecurityEnhancementStrategy"] = v
+		request.SecurityEnhancementStrategy = v.(string)
 	}
 
-	if v, ok := d.GetOk("auto_release_time"); ok && v.(string) != "" {
-		request["AutoReleaseTime"] = v
-	}
+	// if v, ok := d.GetOk("auto_release_time"); ok && v.(string) != "" {
+	// 	request.AutoReleaseTime = v.(string) // undefined in this SDK version
+	// }
 
 	if v, ok := d.GetOkExists("dry_run"); ok {
-		request["DryRun"] = v
+		request.DryRun = requests.NewBoolean(v.(bool))
 	}
 
 	if v, ok := d.GetOkExists("deletion_protection"); ok {
-		request["DeletionProtection"] = v
+		request.DeletionProtection = requests.NewBoolean(v.(bool))
 	}
 
 	if v, ok := d.GetOk("tags"); ok {
-		count := 1
+		tags := make([]ecs.CreateInstanceTag, 0)
 		for key, value := range v.(map[string]interface{}) {
-			request[fmt.Sprintf("Tag.%d.Key", count)] = key
-			request[fmt.Sprintf("Tag.%d.Value", count)] = value
-			count++
+			tags = append(tags, ecs.CreateInstanceTag{
+				Key:   key,
+				Value: value.(string),
+			})
 		}
+		request.Tag = &tags
 	}
 
 	if v, ok := d.GetOk("data_disks"); ok {
-		disksMaps := make([]map[string]interface{}, 0)
 		disks := v.([]interface{})
-		for _, rew := range disks {
-
-			disksMap := make(map[string]interface{})
-			item := rew.(map[string]interface{})
-
-			disksMap["DeleteWithInstance"] = item["delete_with_instance"].(bool)
-			disksMap["Encrypted"] = item["encrypted"].(bool)
-			disksMap["Size"] = item["size"].(int)
-
-			if category, ok := item["category"].(string); ok && category != "" {
-				disksMap["Category"] = category
+		var dataDisks []ecs.CreateInstanceDataDisk
+		for _, ds := range disks {
+			item := ds.(map[string]interface{})
+			dd := ecs.CreateInstanceDataDisk{
+				Size:               string(requests.NewInteger(item["size"].(int))),
+				Category:           item["category"].(string),
+				Encrypted:          string(requests.NewBoolean(item["encrypted"].(bool))),
+				DeleteWithInstance: string(requests.NewBoolean(item["delete_with_instance"].(bool))),
+			}
+			if v, ok := item["name"].(string); ok && v != "" {
+				dd.DiskName = v
+			}
+			if v, ok := item["snapshot_id"].(string); ok && v != "" {
+				dd.SnapshotId = v
+			}
+			if v, ok := item["description"].(string); ok && v != "" {
+				dd.Description = v
+			}
+			if v, ok := item["performance_level"].(string); ok && v != "" {
+				dd.PerformanceLevel = v
+			}
+			if v, ok := item["kms_key_id"].(string); ok && v != "" {
+				dd.KMSKeyId = v
+			}
+			// if v, ok := item["auto_snapshot_policy_id"].(string); ok && v != "" {
+			// 	dd.AutoSnapshotPolicyId = v
+			// }
+			if v, ok := item["device"].(string); ok && v != "" {
+				dd.Device = v
 			}
 
-			if name, ok := item["name"].(string); ok && name != "" {
-				disksMap["DiskName"] = name
-			}
+			// if v, ok := item["provisioned_iops"].(int); ok && v > 0 {
+			// 	dd.ProvisionedIops = string(requests.NewInteger(v))
+			// }
+			// if v, ok := item["bursting_enabled"].(bool); ok {
+			// 	dd.BurstingEnabled = string(requests.NewBoolean(v))
+			// }
 
-			if kmsKeyId, ok := item["kms_key_id"].(string); ok && kmsKeyId != "" {
-				disksMap["KMSKeyId"] = kmsKeyId
-			}
-
-			if snapshotId, ok := item["snapshot_id"].(string); ok && snapshotId != "" {
-				disksMap["SnapshotId"] = snapshotId
-			}
-
-			if description, ok := item["description"].(string); ok && description != "" {
-				disksMap["Description"] = description
-			}
-
-			if autoSnapshotPolicyId, ok := item["auto_snapshot_policy_id"].(string); ok && autoSnapshotPolicyId != "" {
-				disksMap["AutoSnapshotPolicyId"] = autoSnapshotPolicyId
-			}
-
-			if device, ok := item["device"].(string); ok && device != "" {
-				disksMap["Device"] = device
-			}
-
-			if device, ok := item["provisioned_iops"].(string); ok && disksMap["Category"] == string(DiskCloudAuto) {
-				disksMap["ProvisionedIops"] = device
-			}
-
-			if device, ok := item["bursting_enabled"].(string); ok && disksMap["Category"] == string(DiskCloudAuto) {
-				disksMap["BurstingEnabled"] = device
-			}
-
-			if performanceLevel, ok := item["performance_level"].(string); ok && performanceLevel != "" && disksMap["Category"] == string(DiskCloudESSD) {
-				disksMap["PerformanceLevel"] = performanceLevel
-			}
-
-			if disksMap["Category"] == string(DiskEphemeralSSD) {
-				disksMap["DeleteWithInstance"] = ""
-			}
-
-			disksMaps = append(disksMaps, disksMap)
+			dataDisks = append(dataDisks, dd)
 		}
-		request["DataDisk"] = disksMaps
+		request.DataDisk = &dataDisks
 	}
 
-	networkInterfacesMaps := make([]map[string]interface{}, 0)
+	// var networkInterfaces []ecs.CreateInstanceNetworkInterface
+	var remainingSgs []string
 
-	_, networkInterfaceTrafficModeOk := d.GetOk("network_interface_traffic_mode")
-	_, networkCardIndexOk := d.GetOkExists("network_card_index")
-	_, queuePairNumberOk := d.GetOkExists("queue_pair_number")
+	// _, networkInterfaceTrafficModeOk := d.GetOk("network_interface_traffic_mode")
+	// _, networkCardIndexOk := d.GetOkExists("network_card_index")
+	// _, queuePairNumberOk := d.GetOkExists("queue_pair_number")
 
-	if networkInterfaceTrafficModeOk || networkCardIndexOk || queuePairNumberOk {
-		primaryNetworkInterfacesMap := make(map[string]interface{})
-		primaryNetworkInterfacesMap["InstanceType"] = "Primary"
-
-		if v, ok := d.GetOk("security_groups"); ok {
-			// At present, the classic network instance does not support multi sg in runInstances
-			sgs := expandStringList(v.(*schema.Set).List())
-			if d.Get("vswitch_id").(string) == "" && len(sgs) > 0 {
-				primaryNetworkInterfacesMap["SecurityGroupId"] = sgs[0]
-			} else {
-				primaryNetworkInterfacesMap["SecurityGroupIds"] = sgs
-			}
-		}
-
-		if vswitchValue != "" {
-			primaryNetworkInterfacesMap["VSwitchId"] = vswitchValue
-
-			if v, ok := d.GetOk("private_ip"); ok {
-				primaryNetworkInterfacesMap["PrimaryIpAddress"] = v
-			}
-		}
-
-		if v, ok := d.GetOk("ipv6_addresses"); ok {
-			primaryNetworkInterfacesMap["Ipv6Address"] = v.(*schema.Set).List()
-		}
-
-		if v, ok := d.GetOkExists("ipv6_address_count"); ok {
-			primaryNetworkInterfacesMap["Ipv6AddressCount"] = v
-		}
-
-		if v, ok := d.GetOk("network_interface_traffic_mode"); ok {
-			primaryNetworkInterfacesMap["NetworkInterfaceTrafficMode"] = v
-		}
-
-		if v, ok := d.GetOkExists("network_card_index"); ok {
-			primaryNetworkInterfacesMap["NetworkCardIndex"] = v
-		}
-
-		if v, ok := d.GetOkExists("queue_pair_number"); ok {
-			primaryNetworkInterfacesMap["QueuePairNumber"] = v
-		}
-
-		networkInterfacesMaps = append(networkInterfacesMaps, primaryNetworkInterfacesMap)
-	} else {
-		if vswitchValue != "" {
-			request["VSwitchId"] = vswitchValue
-
-			if v, ok := d.GetOk("private_ip"); ok {
-				request["PrivateIpAddress"] = v
-			}
-		}
-
-		if v, ok := d.GetOk("security_groups"); ok {
-			// At present, the classic network instance does not support multi sg in runInstances
-			sgs := expandStringList(v.(*schema.Set).List())
-			if d.Get("vswitch_id").(string) == "" && len(sgs) > 0 {
-				request["SecurityGroupId"] = sgs[0]
-			} else {
-				request["SecurityGroupIds"] = sgs
-			}
-		}
-
-		if v, ok := d.GetOk("ipv6_addresses"); ok {
-			request["Ipv6Address"] = v.(*schema.Set).List()
-		}
-
-		if v, ok := d.GetOkExists("ipv6_address_count"); ok {
-			request["Ipv6AddressCount"] = v
+	securityGroupsIds := expandStringList(d.Get("security_groups").(*schema.Set).List())
+	if len(securityGroupsIds) > 0 {
+		request.SecurityGroupId = securityGroupsIds[0]
+		if len(securityGroupsIds) > 1 {
+			remainingSgs = securityGroupsIds[1:]
 		}
 	}
 
-	if v, ok := d.GetOk("network_interfaces"); ok {
-		for _, networkInterfaces := range v.([]interface{}) {
-			secondaryNetworkInterfacesMap := make(map[string]interface{})
-			secondaryNetworkInterfacesArg := networkInterfaces.(map[string]interface{})
-
-			if networkInterfaceId, ok := secondaryNetworkInterfacesArg["network_interface_id"]; ok && fmt.Sprint(networkInterfaceId) != "" {
-				secondaryNetworkInterfacesMap["NetworkInterfaceId"] = networkInterfaceId
-			} else {
-				secondaryNetworkInterfacesMap["InstanceType"] = "Secondary"
-
-				if vSwitchId, ok := secondaryNetworkInterfacesArg["vswitch_id"]; ok {
-					secondaryNetworkInterfacesMap["VSwitchId"] = vSwitchId
-				}
-
-				if networkInterfaceTrafficMode, ok := secondaryNetworkInterfacesArg["network_interface_traffic_mode"]; ok {
-					secondaryNetworkInterfacesMap["NetworkInterfaceTrafficMode"] = networkInterfaceTrafficMode
-				}
-
-				isSupported, err := ecsService.isSupportedNetworkCardIndex(fmt.Sprint(request["InstanceType"]))
-				if err != nil {
-					return WrapError(err)
-				}
-
-				if networkCardIndex, ok := secondaryNetworkInterfacesArg["network_card_index"]; ok && isSupported {
-					secondaryNetworkInterfacesMap["NetworkCardIndex"] = networkCardIndex
-				}
-
-				if queuePairNumber, ok := secondaryNetworkInterfacesArg["queue_pair_number"]; ok && fmt.Sprint(queuePairNumber) != "0" {
-					secondaryNetworkInterfacesMap["QueuePairNumber"] = queuePairNumber
-				}
-
-				if securityGroupIds, ok := secondaryNetworkInterfacesArg["security_group_ids"]; ok {
-					secondaryNetworkInterfacesMap["SecurityGroupIds"] = securityGroupIds
-				}
-			}
-
-			networkInterfacesMaps = append(networkInterfacesMaps, secondaryNetworkInterfacesMap)
+	// if networkInterfaceTrafficModeOk || networkCardIndexOk || queuePairNumberOk {
+	// 	// Primary ENI via NetworkInterface list - NOT SUPPORTED
+	// } else {
+	// Flat params for Primary
+	if vswitchValue != "" {
+		request.VSwitchId = vswitchValue
+		if v, ok := d.GetOk("private_ip"); ok {
+			request.PrivateIpAddress = v.(string)
 		}
 	}
+	// SecurityGroupId is already set above
+	// }
 
-	if len(networkInterfacesMaps) > 0 {
-		request["NetworkInterface"] = networkInterfacesMaps
-	}
+	// if v, ok := d.GetOk("network_interfaces"); ok {
+	// NOT SUPPORTED in current SDK version
+	// }
 
-	networkOptionsMap := make(map[string]interface{})
+	// if len(networkInterfaces) > 0 {
+	// 	request.NetworkInterface = &networkInterfaces
+	// }
 
-	if v, ok := d.GetOkExists("enable_jumbo_frame"); ok {
-		networkOptionsMap["EnableJumboFrame"] = v
-	}
-
-	if len(networkOptionsMap) > 0 {
-		request["NetworkOptions"] = networkOptionsMap
-	}
+	// Network Options
+	// needNetworkOptions := false
+	// // networkOptions := ecs.CreateInstanceNetworkOptions{} // undefined
+	// if v, ok := d.GetOkExists("enable_jumbo_frame"); ok {
+	// 	// networkOptions.EnableJumboFrame = requests.NewBoolean(v.(bool))
+	// 	// needNetworkOptions = true
+	// }
+	// if needNetworkOptions {
+	// 	// request.NetworkOptions = &networkOptions
+	// }
 
 	if v, ok := d.GetOk("hpc_cluster_id"); ok {
-		request["HpcClusterId"] = v
+		request.HpcClusterId = v.(string)
 	}
 
 	if v, ok := d.GetOk("deployment_set_id"); ok {
-		request["DeploymentSetId"] = v
+		request.DeploymentSetId = v.(string)
 	}
 
 	if v, ok := d.GetOk("http_tokens"); ok {
-		request["HttpTokens"] = v
+		request.HttpTokens = v.(string)
 	}
 
 	if v, ok := d.GetOk("http_endpoint"); ok {
-		request["HttpEndpoint"] = v
+		request.HttpEndpoint = v.(string)
 	}
 
 	if v, ok := d.GetOk("http_put_response_hop_limit"); ok {
-		request["HttpPutResponseHopLimit"] = v
+		request.HttpPutResponseHopLimit = requests.NewInteger(v.(int))
 	}
 
 	if d.Get("is_outdated").(bool) {
-		request["IoOptimized"] = "none"
+		request.IoOptimized = "none"
 	}
 
 	if v, ok := d.GetOkExists("spot_duration"); ok {
-		request["SpotDuration"] = v
+		request.SpotDuration = requests.NewInteger(v.(int))
 	}
 
 	if v, ok := d.GetOk("dedicated_host_id"); ok {
-		request["DedicatedHostId"] = v
-	}
-
-	if v, ok := d.GetOk("private_pool_options_match_criteria"); ok {
-		request["PrivatePoolOptions.MatchCriteria"] = v
-	}
-
-	if v, ok := d.GetOk("private_pool_options_id"); ok {
-		request["PrivatePoolOptions.Id"] = v
+		request.DedicatedHostId = v.(string)
 	}
 
 	if v, ok := d.GetOk("image_options"); ok {
-		for _, raw := range v.(*schema.Set).List() {
-			imageOptionsArg := raw.(map[string]interface{})
-			if v, ok := imageOptionsArg["login_as_non_root"]; ok {
-				request["ImageOptions.LoginAsNonRoot"] = v
-			}
+		for _, _ = range v.(*schema.Set).List() {
+			// imageOptionsArg := raw.(map[string]interface{})
+			// if v, ok := imageOptionsArg["login_as_non_root"]; ok {
+			// Struct mapping implies `ImageOptions` struct.
+			// request.ImageOptions = &ecs.CreateInstanceImageOptions{ LoginAsNonRoot: ... }
+			// options := ecs.CreateInstanceImageOptions{
+			// 	LoginAsNonRoot: requests.NewBoolean(v.(bool)),
+			// }
+			// request.ImageOptions = &options
+			// }
 		}
-	}
-
-	if coreCount, ok := d.GetOkExists("cpu_options.0.core_count"); ok {
-		request["CpuOptions.Core"] = coreCount
-	}
-
-	if threadsPerCore, ok := d.GetOkExists("cpu_options.0.threads_per_core"); ok {
-		request["CpuOptions.ThreadsPerCore"] = threadsPerCore
-	}
-
-	if topologyType, ok := d.GetOk("cpu_options.0.topology_type"); ok {
-		request["CpuOptions.TopologyType"] = topologyType
 	}
 
 	wait := incrementalWait(1*time.Second, 1*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RpcPost("Ecs", "2014-05-26", action, nil, request, false)
+		response, err = ecsService.CreateInstance(request)
 		if err != nil {
 			if NeedRetry(err) || IsExpectedErrors(err, []string{"IncorrectVSwitchStatus"}) {
 				wait()
@@ -1219,31 +1074,67 @@ func resourceAliCloudInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		}
 		return nil
 	})
-	addDebug(action, response, request)
 
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_instance", action, AlibabaCloudSdkGoERROR)
 	}
 
-	if instanceIdSets, ok := response["InstanceIdSets"].(map[string]interface{}); ok {
-		if instanceIdSet, ok := instanceIdSets["InstanceIdSet"].([]interface{}); ok && len(instanceIdSet) > 0 {
-			d.SetId(fmt.Sprint(instanceIdSet[0]))
-		} else {
-			return WrapErrorf(err, IdMsg, "alicloud_instance")
-		}
-	} else {
-		return WrapErrorf(err, IdMsg, "alicloud_instance")
-	}
+	d.SetId(response.InstanceId)
 
-	stateConf := BuildStateConf([]string{"Pending", "Starting", "Stopped"}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, ecsService.InstanceStateRefreshFunc(d.Id(), []string{"Stopping"}))
+	// Wait for Stopped
+	stateConf := BuildStateConf([]string{"Pending", "Starting", "Stopped", "Stopping"}, []string{"Stopped"}, d.Timeout(schema.TimeoutCreate), 10*time.Second, ecsService.InstanceStateRefreshFunc(d.Id(), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAliCloudInstanceUpdate(d, meta)
+	// Join Additional Security Groups
+	if len(remainingSgs) > 0 {
+		if err := ecsService.JoinSecurityGroups(d.Id(), remainingSgs); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
+	}
+
+	// Start Instance Logic
+	target, targetExist := d.GetOk("status")
+	if !targetExist || target.(string) == string(Running) {
+		// Default to Start
+		startRequest := ecs.CreateStartInstanceRequest()
+		startRequest.InstanceId = d.Id()
+
+		err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+			_, err := ecsService.StartInstance(startRequest)
+			if err != nil {
+				if IsExpectedErrors(err, []string{"IncorrectInstanceStatus"}) {
+					time.Sleep(time.Second)
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
+
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), startRequest.GetActionName(), AlibabaCloudSdkGoERROR)
+		}
+
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{"Pending", "Starting", "Stopped"},
+			Target:     []string{"Running"},
+			Refresh:    ecsService.InstanceStateRefreshFunc(d.Id(), []string{}),
+			Timeout:    d.Timeout(schema.TimeoutCreate),
+			Delay:      5 * time.Second,
+			MinTimeout: 3 * time.Second,
+		}
+
+		if _, err = stateConf.WaitForState(); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
+	}
+
+	return resourceAliCloudEcsInstanceUpdate(d, meta)
 }
 
-func resourceAliCloudInstanceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 
@@ -1276,13 +1167,9 @@ func resourceAliCloudInstanceRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("system_disk_encrypted", disk["Encrypted"])
 		d.Set("system_disk_kms_key_id", disk["KMSKeyId"])
 		d.Set("system_disk_provisioned_iops", disk["ProvisionedIops"])
+		d.Set("system_disk_bursting_enabled", disk["BurstingEnabled"])
 		d.Set("system_disk_id", disk["DiskId"])
 		d.Set("system_disk_performance_level", disk["PerformanceLevel"])
-
-		if disk["BurstingEnabled"] != nil {
-			d.Set("system_disk_bursting_enabled", disk["BurstingEnabled"])
-		}
-
 		if v, ok := disk["Tags"].(map[string]interface{}); ok {
 			d.Set("volume_tags", tagsToMap(v["Tag"]))
 		}
@@ -1402,142 +1289,6 @@ func resourceAliCloudInstanceRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	networkInterfaceId := ""
-	networkInterfaceMaps := make([]map[string]interface{}, 0)
-	for _, obj := range instance.NetworkInterfaces.NetworkInterface {
-		if obj.Type == "Primary" {
-			networkInterfaceId = obj.NetworkInterfaceId
-			object, err := ecsService.DescribeEcsNetworkInterface(obj.NetworkInterfaceId)
-			if err != nil {
-				return WrapError(err)
-			}
-
-			d.Set("primary_ip_address", obj.PrimaryIpAddress)
-			d.Set("network_interface_traffic_mode", object["NetworkInterfaceTrafficMode"])
-			d.Set("queue_pair_number", object["QueuePairNumber"])
-
-			if attachment, ok := object["Attachment"]; ok {
-				attachmentArg := attachment.(map[string]interface{})
-
-				if networkCardIndex, ok := attachmentArg["NetworkCardIndex"]; ok {
-					d.Set("network_card_index", networkCardIndex)
-				}
-			}
-		} else {
-			networkInterfaceMap := make(map[string]interface{})
-			networkInterfaceMap["network_interface_id"] = obj.NetworkInterfaceId
-
-			object, err := ecsService.DescribeEcsNetworkInterface(obj.NetworkInterfaceId)
-			if err != nil {
-				return WrapError(err)
-			}
-
-			networkInterfaceMap["vswitch_id"] = object["VSwitchId"]
-			networkInterfaceMap["network_interface_traffic_mode"] = object["NetworkInterfaceTrafficMode"]
-			networkInterfaceMap["queue_pair_number"] = object["QueuePairNumber"]
-
-			if securityGroupIds, ok := object["SecurityGroupIds"]; ok {
-				securityGroupIdsArg := securityGroupIds.(map[string]interface{})
-
-				if securityGroupId, ok := securityGroupIdsArg["SecurityGroupId"]; ok {
-					networkInterfaceMap["security_group_ids"] = securityGroupId
-				}
-			}
-
-			if attachment, ok := object["Attachment"]; ok {
-				attachmentArg := attachment.(map[string]interface{})
-
-				if networkCardIndex, ok := attachmentArg["NetworkCardIndex"]; ok {
-					networkInterfaceMap["network_card_index"] = networkCardIndex
-				}
-			}
-
-			networkInterfaceMaps = append(networkInterfaceMaps, networkInterfaceMap)
-		}
-	}
-
-	d.Set("network_interfaces", networkInterfaceMaps)
-
-	if len(networkInterfaceId) != 0 {
-		d.Set("network_interface_id", networkInterfaceId)
-
-		object, err := ecsService.DescribeEcsNetworkInterface(networkInterfaceId)
-		if err != nil {
-			return WrapError(err)
-		}
-
-		if privateIpSets, ok := object["PrivateIpSets"].(map[string]interface{}); ok {
-			if privateIpSetList, ok := privateIpSets["PrivateIpSet"].([]interface{}); ok {
-				secondaryPrivateIpsSli := make([]interface{}, 0, len(privateIpSetList))
-
-				for _, privateIpSet := range privateIpSetList {
-					if privateIpSetArg, ok := privateIpSet.(map[string]interface{}); ok {
-						if !privateIpSetArg["Primary"].(bool) {
-							secondaryPrivateIpsSli = append(secondaryPrivateIpsSli, privateIpSetArg["PrivateIpAddress"])
-						}
-					}
-				}
-
-				d.Set("secondary_private_ips", secondaryPrivateIpsSli)
-				d.Set("secondary_private_ip_address_count", len(secondaryPrivateIpsSli))
-			}
-		}
-
-		if ipv6Sets, ok := object["Ipv6Sets"].(map[string]interface{}); ok {
-			if ipv6SetList, ok := ipv6Sets["Ipv6Set"].([]interface{}); ok {
-				ipv6AddressesSli := make([]interface{}, 0)
-
-				for _, ipv6Set := range ipv6SetList {
-					ipv6SetArg := ipv6Set.(map[string]interface{})
-					ipv6AddressesSli = append(ipv6AddressesSli, ipv6SetArg["Ipv6Address"])
-				}
-
-				d.Set("ipv6_addresses", ipv6AddressesSli)
-				d.Set("ipv6_address_count", len(ipv6AddressesSli))
-			}
-		}
-	}
-
-	maintenanceAttribute, err := ecsService.DescribeInstanceMaintenanceAttribute(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-
-	if maintenanceWindows, ok := maintenanceAttribute["MaintenanceWindows"].(map[string]interface{}); ok {
-		if maintenanceWindowsList, ok := maintenanceWindows["MaintenanceWindow"].([]interface{}); ok {
-			maintenanceWindowsMaps := make([]map[string]interface{}, 0)
-			maintenanceWindowsMap := make(map[string]interface{})
-
-			for _, maintenanceWindowsItem := range maintenanceWindowsList {
-				if maintenanceWindowsItemArg, ok := maintenanceWindowsItem.(map[string]interface{}); ok {
-					maintenanceWindowsMap["start_time"] = maintenanceWindowsItemArg["StartTime"]
-					maintenanceWindowsMap["end_time"] = maintenanceWindowsItemArg["EndTime"]
-					maintenanceWindowsMaps = append(maintenanceWindowsMaps, maintenanceWindowsMap)
-				}
-			}
-
-			d.Set("maintenance_time", maintenanceWindowsMaps)
-		}
-	}
-
-	if actionOnMaintenance, ok := maintenanceAttribute["ActionOnMaintenance"]; ok {
-		actionOnMaintenanceArg := actionOnMaintenance.(map[string]interface{})
-
-		if value, ok := actionOnMaintenanceArg["Value"]; ok {
-			d.Set("maintenance_action", value)
-		}
-	}
-
-	d.Set("maintenance_notify", maintenanceAttribute["NotifyOnMaintenance"])
-
-	instanceAttribute, err := ecsService.DescribeInstanceAttribute(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-
-	d.Set("enable_jumbo_frame", instanceAttribute.EnableJumboFrame)
-
-	// move the DescribeInstanceAutoRenewAttributeRequest to final to void the unexpected error InvalidParameter
 	if instance.InstanceChargeType == string(PrePaid) {
 		request := ecs.CreateDescribeInstanceAutoRenewAttributeRequest()
 		request.RegionId = client.RegionId
@@ -1551,7 +1302,7 @@ func resourceAliCloudInstanceRead(d *schema.ResourceData, meta interface{}) erro
 				return ecsClient.DescribeInstanceAutoRenewAttribute(request)
 			})
 			if err != nil {
-				if NeedRetry(err) || IsExpectedErrors(err, []string{"InvalidParameter"}) {
+				if NeedRetry(err) {
 					wait()
 					return resource.RetryableError(err)
 				}
@@ -1593,51 +1344,114 @@ func resourceAliCloudInstanceRead(d *schema.ResourceData, meta interface{}) erro
 		//	d.Set("period", period)
 		//}
 		d.Set("period_unit", periodUnit)
-	} else {
-		d.Set("renewal_status", nil)
-		d.Set("auto_renew_period", nil)
-		d.Set("period_unit", nil)
+	}
+	networkInterfaceId := ""
+	networkInterfaceMaps := make([]map[string]interface{}, 0)
+	for _, obj := range instance.NetworkInterfaces.NetworkInterface {
+		if obj.Type == "Primary" {
+			networkInterfaceId = obj.NetworkInterfaceId
+			object, err := ecsService.DescribeEcsNetworkInterface(obj.NetworkInterfaceId)
+			if err != nil {
+				return WrapError(err)
+			}
+
+			d.Set("primary_ip_address", obj.PrimaryIpAddress)
+			d.Set("network_interface_traffic_mode", object["NetworkInterfaceTrafficMode"])
+			d.Set("queue_pair_number", object["QueuePairNumber"])
+
+			if attachment, ok := object["Attachment"]; ok {
+				attachmentArg := attachment.(map[string]interface{})
+
+				if networkCardIndex, ok := attachmentArg["NetworkCardIndex"]; ok {
+					d.Set("network_card_index", networkCardIndex)
+				}
+			}
+		} else {
+			networkInterfaceMap := make(map[string]interface{})
+			networkInterfaceMap["network_interface_id"] = obj.NetworkInterfaceId
+
+			object, err := ecsService.DescribeEcsNetworkInterface(obj.NetworkInterfaceId)
+			if err != nil {
+				return WrapError(err)
+			}
+
+			networkInterfaceMap["vswitch_id"] = object["VSwitchId"]
+			networkInterfaceMap["network_interface_traffic_mode"] = object["NetworkInterfaceTrafficMode"]
+			networkInterfaceMap["queue_pair_number"] = object["QueuePairNumber"]
+			networkInterfaceMap["security_group_ids"] = object["SecurityGroupIds"].(map[string]interface{})["SecurityGroupId"]
+
+			if attachment, ok := object["Attachment"]; ok {
+				attachmentArg := attachment.(map[string]interface{})
+
+				if networkCardIndex, ok := attachmentArg["NetworkCardIndex"]; ok {
+					networkInterfaceMap["network_card_index"] = networkCardIndex
+				}
+			}
+
+			networkInterfaceMaps = append(networkInterfaceMaps, networkInterfaceMap)
+		}
+	}
+	d.Set("network_interfaces", networkInterfaceMaps)
+
+	if len(networkInterfaceId) != 0 {
+		object, err := ecsService.DescribeEcsNetworkInterface(networkInterfaceId)
+		if err != nil {
+			return WrapError(err)
+		}
+		secondaryPrivateIpsSli := make([]interface{}, 0, len(object["PrivateIpSets"].(map[string]interface{})["PrivateIpSet"].([]interface{})))
+		for _, v := range object["PrivateIpSets"].(map[string]interface{})["PrivateIpSet"].([]interface{}) {
+			if !v.(map[string]interface{})["Primary"].(bool) {
+				secondaryPrivateIpsSli = append(secondaryPrivateIpsSli, v.(map[string]interface{})["PrivateIpAddress"])
+			}
+		}
+		ipv6SetList := make([]interface{}, 0)
+		for _, v := range object["Ipv6Sets"].(map[string]interface{})["Ipv6Set"].([]interface{}) {
+			ipv6Set := v.(map[string]interface{})
+			ipv6SetList = append(ipv6SetList, ipv6Set["Ipv6Address"])
+		}
+
+		d.Set("network_interface_id", networkInterfaceId)
+		d.Set("ipv6_addresses", ipv6SetList)
+		d.Set("ipv6_address_count", len(ipv6SetList))
+		d.Set("secondary_private_ips", secondaryPrivateIpsSli)
+		d.Set("secondary_private_ip_address_count", len(secondaryPrivateIpsSli))
 	}
 
-	instanceAttachmentAttribute, err := ecsService.DescribeInstanceAttachmentAttribute(d.Id())
+	maintenanceAttribute, err := ecsService.DescribeInstanceMaintenanceAttribute(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+	if v, ok := maintenanceAttribute["MaintenanceWindows"]; ok {
+		maintenanceWindowsMaps := make([]map[string]interface{}, 0)
+		maintenanceWindowsList := v.(map[string]interface{})["MaintenanceWindow"].([]interface{})
+		maintenanceWindowsMap := make(map[string]interface{})
+		for _, maintenanceWindowsItem := range maintenanceWindowsList {
+			if maintenanceWindowsItemArg, ok := maintenanceWindowsItem.(map[string]interface{}); ok {
+				maintenanceWindowsMap["start_time"] = maintenanceWindowsItemArg["StartTime"]
+				maintenanceWindowsMap["end_time"] = maintenanceWindowsItemArg["EndTime"]
+				maintenanceWindowsMaps = append(maintenanceWindowsMaps, maintenanceWindowsMap)
+			}
+		}
+		d.Set("maintenance_time", maintenanceWindowsMaps)
+	}
+
+	if v, ok := maintenanceAttribute["ActionOnMaintenance"]; ok {
+		d.Set("maintenance_action", v.(map[string]interface{})["Value"])
+	}
+
+	d.Set("maintenance_notify", maintenanceAttribute["NotifyOnMaintenance"])
+
+	instanceAttribute, err := ecsService.DescribeInstanceAttribute(d.Id())
 	if err != nil {
 		return WrapError(err)
 	}
 
-	d.Set("private_pool_options_match_criteria", instanceAttachmentAttribute["PrivatePoolOptionsMatchCriteria"])
-	d.Set("private_pool_options_id", instanceAttachmentAttribute["PrivatePoolOptionsId"])
-
-	ecsInstanceAttribute, err := ecsService.DescribeEcsInstance(d.Id())
-	if err != nil {
-		return WrapError(err)
-	}
-
-	if cpuOptions, ok := ecsInstanceAttribute["CpuOptions"]; ok {
-		cpuOptionsArg := cpuOptions.(map[string]interface{})
-		cpuOptionsMaps := make([]map[string]interface{}, 0)
-		cpuOptionsMap := map[string]interface{}{}
-
-		if coreCount, ok := cpuOptionsArg["CoreCount"]; ok {
-			cpuOptionsMap["core_count"] = coreCount
-		}
-
-		if threadsPerCore, ok := cpuOptionsArg["ThreadsPerCore"]; ok {
-			cpuOptionsMap["threads_per_core"] = threadsPerCore
-		}
-
-		if topologyType, ok := cpuOptionsArg["TopologyType"]; ok {
-			cpuOptionsMap["topology_type"] = topologyType
-		}
-
-		cpuOptionsMaps = append(cpuOptionsMaps, cpuOptionsMap)
-
-		d.Set("cpu_options", cpuOptionsMaps)
-	}
+	d.Set("enable_jumbo_frame", instanceAttribute.EnableJumboFrame)
 
 	return nil
 }
 
-func resourceAliCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 	var err error
@@ -1867,11 +1681,6 @@ func resourceAliCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		return WrapError(err)
 	}
 
-	cpuOptionsUpdate, err := modifyInstanceAttributeNeedStopped(d, meta, run)
-	if err != nil {
-		return WrapError(err)
-	}
-
 	if err := modifyInstanceChargeType(d, meta, false); err != nil {
 		return WrapError(err)
 	}
@@ -1881,7 +1690,7 @@ func resourceAliCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 	if d.IsNewResource() && targetExist && target.(string) == string(Running) {
 		statusUpdate = false
 	}
-	if imageUpdate || vpcUpdate || passwordUpdate || typeUpdate || cpuOptionsUpdate || statusUpdate {
+	if imageUpdate || vpcUpdate || passwordUpdate || typeUpdate || statusUpdate {
 		run = true
 		instance, errDesc := ecsService.DescribeInstance(d.Id())
 		if errDesc != nil {
@@ -1930,10 +1739,6 @@ func resourceAliCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 			return WrapError(err)
 		}
 
-		if _, err := modifyInstanceAttributeNeedStopped(d, meta, run); err != nil {
-			return WrapError(err)
-		}
-
 		if targetExist && target == string(Running) {
 			startRequest := ecs.CreateStartInstanceRequest()
 			startRequest.InstanceId = d.Id()
@@ -1943,7 +1748,7 @@ func resourceAliCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 					return ecsClient.StartInstance(startRequest)
 				})
 				if err != nil {
-					if IsExpectedErrors(err, []string{"IncorrectInstanceStatus", "InvalidOperation.Conflict"}) || NeedRetry(err) {
+					if IsExpectedErrors(err, []string{"IncorrectInstanceStatus"}) {
 						time.Sleep(time.Second)
 						return resource.RetryableError(err)
 					}
@@ -2368,146 +2173,12 @@ func resourceAliCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		d.SetPartial("ipv6_addresses")
 	}
 
-	if !d.IsNewResource() && d.HasChange("key_name") {
-		var response map[string]interface{}
-		instance, err := ecsService.DescribeInstance(d.Id())
-		if err != nil {
-			return WrapError(err)
-		}
-
-		oldEntry, newEntry := d.GetChange("key_name")
-		oldKeyName := oldEntry.(string)
-		newKeyName := newEntry.(string)
-
-		if oldKeyName != "" {
-			action := "DetachKeyPair"
-
-			detachKeyPairReq := map[string]interface{}{
-				"RegionId":    client.RegionId,
-				"InstanceIds": convertListToJsonString([]interface{}{d.Id()}),
-				"KeyPairName": oldKeyName,
-			}
-
-			wait := incrementalWait(3*time.Second, 5*time.Second)
-			err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutUpdate)), func() *resource.RetryError {
-				response, err = client.RpcPost("Ecs", "2014-05-26", action, nil, detachKeyPairReq, true)
-				if err != nil {
-					if NeedRetry(err) {
-						wait()
-						return resource.RetryableError(err)
-					}
-					return resource.NonRetryableError(err)
-				}
-				return nil
-			})
-			addDebug(action, response, detachKeyPairReq)
-
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-			}
-		}
-
-		if newKeyName != "" {
-			action := "AttachKeyPair"
-
-			attachKeyPairReq := map[string]interface{}{
-				"RegionId":    client.RegionId,
-				"InstanceIds": convertListToJsonString([]interface{}{d.Id()}),
-				"KeyPairName": newKeyName,
-			}
-
-			wait := incrementalWait(3*time.Second, 5*time.Second)
-			err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutUpdate)), func() *resource.RetryError {
-				response, err = client.RpcPost("Ecs", "2014-05-26", action, nil, attachKeyPairReq, true)
-				if err != nil {
-					if NeedRetry(err) {
-						wait()
-						return resource.RetryableError(err)
-					}
-					return resource.NonRetryableError(err)
-				}
-				return nil
-			})
-			addDebug(action, response, attachKeyPairReq)
-
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-			}
-		}
-
-		if instance.Status == "Stopped" {
-			err := ecsService.StartEcsInstance(d.Id())
-			if err != nil {
-				return WrapError(err)
-			}
-		}
-
-		if instance.Status == "Running" {
-			err := ecsService.RebootEcsInstance(d.Id())
-			if err != nil {
-				return WrapError(err)
-			}
-		}
-
-		stateConf := BuildStateConf([]string{}, []string{"Running"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, ecsService.InstanceStateRefreshFunc(d.Id(), []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
-
-		d.SetPartial("key_name")
-	}
-
-	update := false
-	var response map[string]interface{}
-	modifyInstanceAttachmentAttributesReq := map[string]interface{}{
-		"RegionId":   client.RegionId,
-		"InstanceId": d.Id(),
-	}
-
-	if !d.IsNewResource() && d.HasChange("private_pool_options_match_criteria") {
-		update = true
-	}
-	if v, ok := d.GetOk("private_pool_options_match_criteria"); ok {
-		modifyInstanceAttachmentAttributesReq["PrivatePoolOptions.MatchCriteria"] = v
-	}
-
-	if !d.IsNewResource() && d.HasChange("private_pool_options_id") {
-		update = true
-	}
-	if v, ok := d.GetOk("private_pool_options_id"); ok && fmt.Sprint(modifyInstanceAttachmentAttributesReq["PrivatePoolOptions.MatchCriteria"]) != "None" {
-		modifyInstanceAttachmentAttributesReq["PrivatePoolOptions.Id"] = v
-	}
-
-	if update {
-		action := "ModifyInstanceAttachmentAttributes"
-		wait := incrementalWait(3*time.Second, 3*time.Second)
-		err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutUpdate)), func() *resource.RetryError {
-			response, err = client.RpcPost("Ecs", "2014-05-26", action, nil, modifyInstanceAttachmentAttributesReq, false)
-			if err != nil {
-				if NeedRetry(err) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, modifyInstanceAttachmentAttributesReq)
-
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-		}
-
-		d.SetPartial("private_pool_options_match_criteria")
-		d.SetPartial("private_pool_options_id")
-	}
-
 	d.Partial(false)
 
-	return resourceAliCloudInstanceRead(d, meta)
+	return resourceAliCloudEcsInstanceRead(d, meta)
 }
 
-func resourceAliCloudInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudEcsInstanceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	ecsService := EcsService{client}
 
@@ -2556,642 +2227,6 @@ func resourceAliCloudInstanceDelete(d *schema.ResourceData, meta interface{}) er
 
 	if _, err = stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
-	}
-	return nil
-}
-
-func modifyInstanceChargeType(d *schema.ResourceData, meta interface{}, forceDelete bool) error {
-	if d.IsNewResource() {
-		d.Partial(false)
-		return nil
-	}
-
-	client := meta.(*connectivity.AliyunClient)
-	ecsService := EcsService{client}
-	chargeType := d.Get("instance_charge_type").(string)
-	if d.HasChange("instance_charge_type") || forceDelete {
-		if forceDelete {
-			chargeType = string(PostPaid)
-		}
-		request := ecs.CreateModifyInstanceChargeTypeRequest()
-		request.InstanceIds = convertListToJsonString(append(make([]interface{}, 0, 1), d.Id()))
-		request.IncludeDataDisks = requests.NewBoolean(d.Get("include_data_disks").(bool))
-		request.AutoPay = requests.NewBoolean(true)
-		request.DryRun = requests.NewBoolean(d.Get("dry_run").(bool))
-		request.ClientToken = buildClientToken(request.GetActionName())
-		if chargeType == string(PrePaid) {
-			if v, ok := d.GetOk("period"); ok {
-				request.Period = requests.NewInteger(v.(int))
-			}
-			request.PeriodUnit = d.Get("period_unit").(string)
-		}
-		request.InstanceChargeType = chargeType
-		if err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			raw, err := client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
-				return ecsClient.ModifyInstanceChargeType(request)
-			})
-			if err != nil {
-				if NeedRetry(err) || IsExpectedErrors(err, []string{"InternalError"}) {
-					time.Sleep(3 * time.Second)
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-			return nil
-		}); err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
-		}
-		// Wait for instance charge type has been changed
-		if err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-			if instance, err := ecsService.DescribeInstance(d.Id()); err != nil {
-				return resource.NonRetryableError(err)
-			} else if instance.InstanceChargeType == chargeType {
-				return nil
-			}
-			return resource.RetryableError(Error("Waitting for instance %s to be %s timeout.", d.Id(), chargeType))
-		}); err != nil {
-			return WrapError(err)
-		}
-
-		d.SetPartial("instance_charge_type")
-		return nil
-	}
-
-	return nil
-}
-
-func modifyInstanceImage(d *schema.ResourceData, meta interface{}, run bool) (bool, error) {
-	if d.IsNewResource() {
-		d.Partial(false)
-		return false, nil
-	}
-	client := meta.(*connectivity.AliyunClient)
-	ecsService := EcsService{client}
-	update := false
-	if d.HasChange("image_id") {
-		update = true
-		if !run {
-			return update, nil
-		}
-		instance, err := ecsService.DescribeInstance(d.Id())
-		if err != nil {
-			return update, WrapError(err)
-		}
-		keyPairName := instance.KeyPairName
-		request := ecs.CreateReplaceSystemDiskRequest()
-		request.InstanceId = d.Id()
-		request.ImageId = d.Get("image_id").(string)
-		request.SystemDiskSize = requests.NewInteger(d.Get("system_disk_size").(int))
-		if v, ok := d.GetOk("system_disk_encrypted"); ok {
-			request.Encrypted = requests.NewBoolean(v.(bool))
-		}
-		if v, ok := d.GetOk("system_disk_encrypt_algorithm"); ok {
-			request.EncryptAlgorithm = v.(string)
-		}
-		if v, ok := d.GetOk("security_enhancement_strategy"); ok {
-			request.SecurityEnhancementStrategy = v.(string)
-		}
-		if v, ok := d.GetOk("password"); ok {
-			request.Password = v.(string)
-		}
-		if v, ok := d.GetOkExists("password_inherit"); ok {
-			request.PasswordInherit = requests.NewBoolean(v.(bool))
-		}
-		if v, ok := d.GetOk("system_disk_kms_key_id"); ok {
-			request.KMSKeyId = v.(string)
-		}
-		request.ClientToken = buildClientToken(request.GetActionName())
-		raw, err := client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
-			return ecsClient.ReplaceSystemDisk(request)
-		})
-		if err != nil {
-			return update, WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
-		}
-		response, _ := raw.(*ecs.ReplaceSystemDiskResponse)
-		d.Set("system_disk_id", response.DiskId)
-		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-		// Ensure instance's image has been replaced successfully.
-		timeout := DefaultTimeoutMedium
-		for {
-			instance, errDesc := ecsService.DescribeInstance(d.Id())
-			if errDesc != nil {
-				return update, WrapError(errDesc)
-			}
-			disk, err := ecsService.DescribeInstanceSystemDisk(d.Id(), "", d.Get("system_disk_id").(string))
-			if err != nil {
-				return update, WrapError(err)
-			}
-
-			if instance.ImageId == d.Get("image_id") && disk.Size == d.Get("system_disk_size").(int) {
-				break
-			}
-			time.Sleep(DefaultIntervalShort * time.Second)
-
-			timeout = timeout - DefaultIntervalShort
-			if timeout <= 0 {
-				return update, WrapError(GetTimeErrorFromString(fmt.Sprintf("Replacing instance %s system disk timeout.", d.Id())))
-			}
-		}
-
-		// After updating image, it need to re-attach key pair
-		if keyPairName != "" {
-			if err := ecsService.AttachKeyPair(keyPairName, []interface{}{d.Id()}); err != nil {
-				return update, WrapError(err)
-			}
-		}
-	}
-	return update, nil
-}
-
-func modifyInstanceAttribute(d *schema.ResourceData, meta interface{}) (bool, error) {
-	if d.IsNewResource() {
-		d.Partial(false)
-		return false, nil
-	}
-
-	update := false
-	reboot := false
-	client := meta.(*connectivity.AliyunClient)
-	var response map[string]interface{}
-	action := "ModifyInstanceAttribute"
-	request := make(map[string]interface{})
-	var err error
-
-	request["RegionId"] = client.RegionId
-	request["ClientToken"] = buildClientToken(action)
-
-	request["InstanceId"] = d.Id()
-
-	if d.HasChange("instance_name") {
-		d.SetPartial("instance_name")
-		request["InstanceName"] = d.Get("instance_name").(string)
-		update = true
-	}
-
-	if d.HasChange("description") {
-		d.SetPartial("description")
-		request["Description"] = d.Get("description").(string)
-		update = true
-	}
-
-	if d.HasChange("user_data") {
-		d.SetPartial("user_data")
-		v := d.Get("user_data")
-		_, base64DecodeError := base64.StdEncoding.DecodeString(v.(string))
-		if base64DecodeError == nil {
-			request["UserData"] = v.(string)
-		} else {
-			request["UserData"] = base64.StdEncoding.EncodeToString([]byte(v.(string)))
-		}
-
-		update = true
-		reboot = true
-	}
-
-	if d.HasChange("host_name") {
-		d.SetPartial("host_name")
-		request["HostName"] = d.Get("host_name").(string)
-		update = true
-		reboot = true
-	}
-
-	if d.HasChange("password") || d.HasChange("kms_encrypted_password") {
-		if v := d.Get("password").(string); v != "" {
-			d.SetPartial("password")
-			request["Password"] = v
-			update = true
-			reboot = true
-		}
-		if v := d.Get("kms_encrypted_password").(string); v != "" {
-			kmsService := KmsService{meta.(*connectivity.AliyunClient)}
-			decryptResp, err := kmsService.Decrypt(v, d.Get("kms_encryption_context").(map[string]interface{}))
-			if err != nil {
-				return reboot, WrapError(err)
-			}
-			request["Password"] = decryptResp
-			d.SetPartial("kms_encrypted_password")
-			d.SetPartial("kms_encryption_context")
-			update = true
-			reboot = true
-		}
-	}
-
-	if d.HasChange("deletion_protection") {
-		d.SetPartial("deletion_protection")
-
-		if v, ok := d.GetOkExists("deletion_protection"); ok {
-			request["DeletionProtection"] = v
-		}
-		update = true
-	}
-
-	if d.HasChange("credit_specification") {
-		d.SetPartial("credit_specification")
-		request["CreditSpecification"] = d.Get("credit_specification").(string)
-		update = true
-	}
-
-	if d.HasChange("enable_jumbo_frame") {
-		d.SetPartial("enable_jumbo_frame")
-
-		if v, ok := d.GetOkExists("enable_jumbo_frame"); ok {
-			request["EnableJumboFrame"] = v
-		}
-
-		update = true
-	}
-
-	if update {
-		wait := incrementalWait(1*time.Minute, 1*time.Minute)
-		err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-			response, err = client.RpcPost("Ecs", "2014-05-26", action, nil, request, false)
-			if err != nil {
-				if NeedRetry(err) || IsExpectedErrors(err, []string{"InvalidChargeType.ValueNotSupported"}) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
-
-		if err != nil {
-			return reboot, WrapErrorf(err, DefaultErrorMsg, "alicloud_instance", action, AlibabaCloudSdkGoERROR)
-		}
-	}
-
-	return reboot, nil
-}
-
-func modifyVpcAttribute(d *schema.ResourceData, meta interface{}, run bool) (bool, error) {
-	if d.IsNewResource() {
-		d.Partial(false)
-		return false, nil
-	}
-
-	update := false
-	request := ecs.CreateModifyInstanceVpcAttributeRequest()
-	request.InstanceId = d.Id()
-	request.VSwitchId = d.Get("vswitch_id").(string)
-
-	if d.HasChange("vswitch_id") {
-		update = true
-		if d.Get("vswitch_id").(string) == "" {
-			return update, WrapError(Error("Field 'vswitch_id' is required when modifying the instance VPC attribute."))
-		}
-	}
-
-	if d.HasChange("subnet_id") {
-		update = true
-		if d.Get("subnet_id").(string) == "" {
-			return update, WrapError(Error("Field 'subnet_id' is required when modifying the instance VPC attribute."))
-		}
-		request.VSwitchId = d.Get("subnet_id").(string)
-	}
-
-	if request.VSwitchId != "" && d.HasChange("private_ip") {
-		request.PrivateIpAddress = d.Get("private_ip").(string)
-		update = true
-	}
-
-	if d.HasChange("vpc_id") {
-		update = true
-
-		if v, ok := d.GetOk("vpc_id"); ok {
-			request.VpcId = v.(string)
-		}
-
-		if v, ok := d.GetOk("security_groups"); ok {
-			securityGroupIds := expandStringList(v.(*schema.Set).List())
-			if len(securityGroupIds) > 0 {
-				request.SecurityGroupId = &securityGroupIds
-			}
-		}
-	}
-
-	if !run {
-		return update, nil
-	}
-
-	if update {
-		client := meta.(*connectivity.AliyunClient)
-		err := resource.Retry(1*time.Minute, func() *resource.RetryError {
-			raw, err := client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
-				return ecsClient.ModifyInstanceVpcAttribute(request)
-			})
-			if err != nil {
-				if IsExpectedErrors(err, []string{"OperationConflict"}) {
-					time.Sleep(1 * time.Second)
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-			return nil
-		})
-
-		if err != nil {
-			return update, WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
-		}
-		ecsService := EcsService{client}
-		if err := ecsService.WaitForVpcAttributesChanged(d.Id(), request.VSwitchId, request.PrivateIpAddress); err != nil {
-			return update, WrapError(err)
-		}
-
-		d.SetPartial("vswitch_id")
-		d.SetPartial("subnet_id")
-		d.SetPartial("private_ip")
-		d.SetPartial("vpc_id")
-		d.SetPartial("security_groups")
-	}
-
-	return update, nil
-}
-
-func modifyInstanceType(d *schema.ResourceData, meta interface{}, run bool) (bool, error) {
-	if d.IsNewResource() {
-		d.Partial(false)
-		return false, nil
-	}
-	client := meta.(*connectivity.AliyunClient)
-	ecsService := EcsService{client}
-	update := false
-	if d.HasChange("instance_type") {
-		update = true
-		if !run {
-			return update, nil
-		}
-		// Ensure instance_type is valid
-		//zoneId, validZones, err := ecsService.DescribeAvailableResources(d, meta, InstanceTypeResource)
-		//if err != nil {
-		//	return update, WrapError(err)
-		//}
-		//if err = ecsService.InstanceTypeValidation(d.Get("instance_type").(string), zoneId, validZones); err != nil {
-		//	return update, WrapError(err)
-		//}
-
-		// There should use the old instance charge type to decide API method because of instance_charge_type will be updated at last step
-		oldCharge, _ := d.GetChange("instance_charge_type")
-		if oldCharge.(string) == string(PrePaid) {
-			request := ecs.CreateModifyPrepayInstanceSpecRequest()
-			request.InstanceId = d.Id()
-			request.InstanceType = d.Get("instance_type").(string)
-			if v, ok := d.GetOk("operator_type"); ok {
-				request.OperatorType = v.(string)
-			}
-
-			err := resource.Retry(6*time.Minute, func() *resource.RetryError {
-				raw, err := client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
-					return ecsClient.ModifyPrepayInstanceSpec(request)
-				})
-				if err != nil {
-					if IsExpectedErrors(err, []string{Throttling}) {
-						time.Sleep(5 * time.Second)
-						return resource.RetryableError(err)
-					}
-					return resource.NonRetryableError(err)
-				}
-				addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-				return nil
-			})
-			if err != nil {
-				return update, WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
-			}
-		} else {
-			//An instance that was successfully modified once cannot be modified again within 5 minutes.
-			request := ecs.CreateModifyInstanceSpecRequest()
-			request.InstanceId = d.Id()
-			request.InstanceType = d.Get("instance_type").(string)
-			request.ClientToken = buildClientToken(request.GetActionName())
-
-			err := resource.Retry(6*time.Minute, func() *resource.RetryError {
-				args := *request
-				raw, err := client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
-					return ecsClient.ModifyInstanceSpec(&args)
-				})
-				if err != nil {
-					if IsExpectedErrors(err, []string{Throttling}) {
-						time.Sleep(10 * time.Second)
-						return resource.RetryableError(err)
-					}
-					return resource.NonRetryableError(err)
-				}
-				addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-				return nil
-			})
-			if err != nil {
-				return update, WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
-			}
-		}
-
-		// Ensure instance's type has been replaced successfully.
-		timeout := DefaultTimeoutMedium
-		for {
-			instance, err := ecsService.DescribeInstance(d.Id())
-
-			if err != nil {
-				return update, WrapError(err)
-			}
-
-			if instance.InstanceType == d.Get("instance_type").(string) {
-				break
-			}
-
-			timeout = timeout - DefaultIntervalShort
-			if timeout <= 0 {
-				return update, WrapErrorf(err, WaitTimeoutMsg, d.Id(), GetFunc(1), timeout, instance.InstanceType, d.Get("instance_type"), ProviderERROR)
-			}
-
-			time.Sleep(DefaultIntervalShort * time.Second)
-		}
-		d.SetPartial("instance_type")
-	}
-	return update, nil
-}
-
-func modifyInstanceAttributeNeedStopped(d *schema.ResourceData, meta interface{}, run bool) (bool, error) {
-	if d.IsNewResource() {
-		d.Partial(false)
-		return false, nil
-	}
-
-	update := false
-	reboot := false
-	client := meta.(*connectivity.AliyunClient)
-	var response map[string]interface{}
-	action := "ModifyInstanceAttribute"
-	request := make(map[string]interface{})
-	var err error
-
-	request["RegionId"] = client.RegionId
-	request["ClientToken"] = buildClientToken(action)
-
-	request["InstanceId"] = d.Id()
-
-	if d.HasChange("cpu_options") {
-		d.SetPartial("cpu_options")
-
-		if coreCount, ok := d.GetOkExists("cpu_options.0.core_count"); ok {
-			request["CpuOptions.Core"] = coreCount
-		}
-
-		if threadsPerCore, ok := d.GetOkExists("cpu_options.0.threads_per_core"); ok {
-			request["CpuOptions.ThreadsPerCore"] = threadsPerCore
-		}
-
-		if topologyType, ok := d.GetOk("cpu_options.0.topology_type"); ok {
-			request["CpuOptions.TopologyType"] = topologyType
-		}
-
-		update = true
-	}
-
-	if !run {
-		return update, nil
-	}
-
-	if update {
-		wait := incrementalWait(1*time.Minute, 1*time.Minute)
-		err = resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			response, err = client.RpcPost("Ecs", "2014-05-26", action, nil, request, false)
-			if err != nil {
-				if NeedRetry(err) || IsExpectedErrors(err, []string{"InvalidChargeType.ValueNotSupported"}) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			return nil
-		})
-		addDebug(action, response, request)
-
-		if err != nil {
-			return reboot, WrapErrorf(err, DefaultErrorMsg, "alicloud_instance", action, AlibabaCloudSdkGoERROR)
-		}
-	}
-
-	return reboot, nil
-}
-
-func modifyInstanceNetworkSpec(d *schema.ResourceData, meta interface{}) error {
-	if d.IsNewResource() {
-		d.Partial(false)
-		return nil
-	}
-
-	allocate := false
-	update := false
-	request := ecs.CreateModifyInstanceNetworkSpecRequest()
-	request.InstanceId = d.Id()
-	request.ClientToken = buildClientToken(request.GetActionName())
-
-	if d.HasChange("internet_charge_type") {
-		request.NetworkChargeType = d.Get("internet_charge_type").(string)
-		update = true
-		d.SetPartial("internet_charge_type")
-	}
-
-	if d.HasChange("internet_max_bandwidth_out") {
-		o, n := d.GetChange("internet_max_bandwidth_out")
-		if o.(int) <= 0 && n.(int) > 0 {
-			allocate = true
-		}
-		request.InternetMaxBandwidthOut = requests.NewInteger(n.(int))
-		update = true
-		d.SetPartial("internet_max_bandwidth_out")
-	}
-
-	if d.HasChange("internet_max_bandwidth_in") {
-		request.InternetMaxBandwidthIn = requests.NewInteger(d.Get("internet_max_bandwidth_in").(int))
-		update = true
-		d.SetPartial("internet_max_bandwidth_in")
-	}
-
-	//An instance that was successfully modified once cannot be modified again within 5 minutes.
-	wait := incrementalWait(2*time.Second, 2*time.Second)
-	client := meta.(*connectivity.AliyunClient)
-	if update {
-		if err := resource.Retry(d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
-			raw, err := client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
-				return ecsClient.ModifyInstanceNetworkSpec(request)
-			})
-			if err != nil {
-				if IsExpectedErrors(err, []string{Throttling, "LastOrderProcessing", "LastRequestProcessing", "LastTokenProcessing"}) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				if IsExpectedErrors(err, []string{"InternalError"}) {
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-			return nil
-		}); err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
-		}
-		ecsService := EcsService{client: client}
-
-		deadline := time.Now().Add(DefaultTimeout * time.Second)
-		for {
-			instance, err := ecsService.DescribeInstance(d.Id())
-			if err != nil {
-				return WrapError(err)
-			}
-
-			if instance.InternetMaxBandwidthOut == d.Get("internet_max_bandwidth_out").(int) &&
-				instance.InternetChargeType == d.Get("internet_charge_type").(string) {
-				break
-			}
-
-			if time.Now().After(deadline) {
-				return WrapError(Error(`Wait for internet update timeout! Expected internet_charge_type value %s, get %s
-					expect internet_max_bandwidth_out value %d, get %d`,
-					d.Get("internet_charge_type").(string), instance.InternetChargeType, d.Get("internet_max_bandwidth_out").(int),
-					instance.InternetMaxBandwidthOut))
-			}
-
-			time.Sleep(1 * time.Second)
-		}
-
-		// For PrePaid instance modify internet_max_bandwidth_out
-		deadline = time.Now().Add(DefaultTimeout * time.Second)
-		if d.Get("instance_charge_type").(string) == string(PrePaid) && d.Get("internet_max_bandwidth_out").(int) > 0 {
-			for {
-				instance, err := ecsService.DescribeInstance(d.Id())
-				if err != nil {
-					return WrapError(err)
-				}
-
-				if len(instance.PublicIpAddress.IpAddress) > 0 {
-					break
-				}
-
-				if time.Now().After(deadline) {
-					return WrapError(Error(`Wait for PrePaid internet update timeout! Expected public_ip's length %d, got %d`, 1, len(instance.PublicIpAddress.IpAddress)))
-				}
-
-				time.Sleep(1 * time.Second)
-			}
-		}
-
-		/**
-		Only PostPaid Instance need to call AllocatePublicIpAddress
-		https://www.alibabacloud.com/help/en/ecs/developer-reference/api-ecs-2014-05-26-modifyinstancenetworkspec
-		*/
-		if allocate && d.Get("instance_charge_type").(string) == string(PostPaid) {
-			request := ecs.CreateAllocatePublicIpAddressRequest()
-			request.InstanceId = d.Id()
-			raw, err := client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
-				return ecsClient.AllocatePublicIpAddress(request)
-			})
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
-			}
-			addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-		}
 	}
 	return nil
 }
