@@ -36,6 +36,7 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
    - Apply appropriate processing strategy based on content type
 
 3. **Load context**: Read FEATURE_SPEC, `/.specify/memory/constitution.md`, and processed `$ARGUMENTS` context. Load IMPL_PLAN template (already copied).
+   - **Crucial**: You MUST also read and analyze the project's **existing documentation** (`README.md`, `docs/`) and **feature memory** (`.specify/memory/`) to ensure the plan aligns with the system's architecture and evolution.
 
 4. **Implement plan workflow**: Follow the structure in IMPL_PLAN template to:
    - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
@@ -72,12 +73,16 @@ This integration ensures that all feature planning activities are properly track
 
 ### Phase 0: Outline & Research
 
-1. **Extract unknowns from Technical Context** above:
+1. **Information Gathering**:
+   - **Project Docs**: Read `README.md` and all files in `docs/` to understand system architecture, guidelines, and setup.
+   - **Feature Memory**: Read `.specify/memory/feature-index.md` and all files in `.specify/memory/features/` to identify reusable patterns, potential conflicts, and integration points with existing features.
+
+2. **Extract unknowns from Technical Context** above:
    - For each NEEDS CLARIFICATION → research task
    - For each dependency → best practices task
    - For each integration → patterns task
 
-2. **Generate and dispatch research agents**:
+3. **Generate and dispatch research agents**:
 
    ```text
    For each unknown in Technical Context:
@@ -86,10 +91,24 @@ This integration ensures that all feature planning activities are properly track
      Task: "Find best practices for {tech} in {domain}"
    ```
 
-3. **Consolidate findings** in `research.md` using format:
-   - Decision: [what was chosen]
-   - Rationale: [why chosen]
-   - Alternatives considered: [what else evaluated]
+4. **Consolidate findings** in `research.md`. The file MUST structured as follows:
+
+   ```markdown
+   # Research Findings: [Feature Name]
+   
+   ## Project Context Analysis
+   [Summarize insights from project docs and feature memory relevant to this plan. Mention constraints or patterns adopted.]
+   
+   ## References
+   - [List specific doc files or feature memory files referenced]
+   
+   ## Decisions
+   
+   ### [Decision Topic 1]
+   - **Decision**: [what was chosen]
+   - **Rationale**: [why chosen, citing references where applicable]
+   - **Alternatives considered**: [what else evaluated]
+   ```
 
 **Output**: research.md with all NEEDS CLARIFICATION resolved
 

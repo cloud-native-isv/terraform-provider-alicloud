@@ -12,8 +12,8 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
 
 You are managing feature metadata in two artifacts:
 
-1. Feature Detail files: `.specify/memory/features/<ID>.md` generated from the installed template at `.specify/templates/feature-template.md` (source development template: `.specify/templates/feature-template.md`).
-2. Feature Index: `.specify/memory/feature-index.md` (acts as a table of contents and summary).
+1. Feature Detail files: `.specify/memory/features/<ID>.md` generated from the installed template at `.specify/templates/feature-details-template.md` (source development template: `.specify/templates/feature-details-template.md`).
+2. Feature Index: `.specify/memory/feature-index.md` generated from the installed template at `.specify/templates/feature-index-template.md` (source development template: `.specify/templates/feature-index-template.md`).
 
 Your responsibilities:
 
@@ -73,7 +73,7 @@ Your responsibilities:
 
 再将这些信息汇总为一组非功能性 Feature 条目（例如“基于 Spring Boot 的服务端框架”“使用 Maven 作为构建系统”“通过 Docker/Helm 进行部署”等），并在 Feature 详情中明确其对可维护性、可测性、可扩展性等方面的影响。
 
-Template reference (do NOT inline full template here): `.specify/templates/feature-template.md`.
+Template reference (do NOT inline full template here): `.specify/templates/feature-details-template.md`.
 
 Formatting & Style Requirements:
 
@@ -90,4 +90,4 @@ Fallbacks / Inference:
 * If status absent: default to `Draft`.
 * Feature Details path should always point to `.specify/memory/features/[FEATURE_ID].md` regardless of spec existence.
 
-Do not modify the template file itself; only instantiate copies based on `.specify/templates/feature-template.md`.
+Do not modify the template file itself; only instantiate copies based on `.specify/templates/feature-details-template.md`.

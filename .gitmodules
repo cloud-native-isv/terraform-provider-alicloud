@@ -1,0 +1,3 @@
+[submodule "lib"]
+	path = lib
+	url = git@gitlab.alibaba-inc.com:cloud-native-tools/cws-lib-go.git
