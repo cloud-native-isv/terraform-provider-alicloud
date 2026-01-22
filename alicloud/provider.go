@@ -1668,6 +1668,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_oss_bucket_worm":                                       resourceAliCloudOssBucketWorm(),
 			"alicloud_ots_index":                                             resourceAliCloudOtsIndex(),
 			"alicloud_ots_instance":                                          resourceAliCloudOtsInstance(),
+			"alicloud_ots_instance_vcu":                                      resourceAliCloudOtsInstanceVCU(),
 			"alicloud_ots_instance_attachment":                               resourceAliCloudOtsInstanceAttachment(),
 			// "alicloud_ots_tunnel":                                            resourceAliCloudOtsTunnel(),
 			"alicloud_ots_search_index":                                 resourceAliCloudOtsSearchIndex(),

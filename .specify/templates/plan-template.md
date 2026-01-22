@@ -33,12 +33,11 @@
 
 **Core Principles Compliance**:
 
-- **Library-First**: Feature implemented as standalone library component
-- **CLI Interface**: Text-based interface with JSON/human-readable output
-- **Test-First**: Comprehensive tests written before implementation
-- **Integration Testing**: Contract tests for all external interfaces
-- **Observability**: Structured logging and clear error messages
-- **Simplicity**: Minimal project structure, no unnecessary abstractions
+- **Spec-Driven**: Feature flow is Spec -> Plan -> Task -> Implement
+- **Agent-First**: Artifacts are structured for both Human and AI consumption
+- **Library/CLI-First**: Feature implemented as reusable library with CLI
+- **Test-First**: TDD flow followed, tests written before code
+- **Context Preservation**: Update logs and decision records maintained
 
 **Gates Status**: [✅ All gates pass / ❌ Specific gate failures with justification]
 

@@ -25,6 +25,9 @@ set -e
 JSON_MODE=false
 REQUIRE_TASKS=false
 INCLUDE_TASKS=false
+REQUIRE_SPEC=false
+INCLUDE_SPEC=false
+INCLUDE_PLAN=false
 PATHS_ONLY=false
 
 for arg in "$@"; do
@@ -37,6 +40,15 @@ for arg in "$@"; do
             ;;
         --include-tasks)
             INCLUDE_TASKS=true
+            ;;
+        --require-spec)
+            REQUIRE_SPEC=true
+            ;;
+        --include-spec)
+            INCLUDE_SPEC=true
+            ;;
+        --include-plan)
+            INCLUDE_PLAN=true
             ;;
         --paths-only)
             PATHS_ONLY=true
@@ -51,6 +63,9 @@ OPTIONS:
   --json              Output in JSON format
   --require-tasks     Require tasks.md to exist (for implementation phase)
   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
+  --require-spec      Require spec.md to exist
+  --include-spec      Include spec.md in AVAILABLE_DOCS list
+  --include-plan      Include plan.md in AVAILABLE_DOCS list
   --paths-only        Only output path variables (no prerequisite validation)
   --help, -h          Show this help message
 
@@ -109,6 +124,13 @@ if [[ ! -d "$FEATURE_DIR" ]]; then
     exit 1
 fi
 
+# Check for spec.md if required
+if $REQUIRE_SPEC && [[ ! -f "$FEATURE_SPEC" ]]; then
+    echo "ERROR: spec.md not found in $FEATURE_DIR" >&2
+    echo "Run /speckit.specify first to create the specification." >&2
+    exit 1
+fi
+
 if [[ ! -f "$IMPL_PLAN" ]]; then
     echo "ERROR: plan.md not found in $FEATURE_DIR" >&2
     echo "Run /speckit.plan first to create the implementation plan." >&2
@@ -124,6 +146,16 @@ fi
 
 # Build list of available documents
 docs=()
+
+# Include spec.md if requested and it exists
+if $INCLUDE_SPEC && [[ -f "$FEATURE_SPEC" ]]; then
+    docs+=("spec.md")
+fi
+
+# Include plan.md if requested and it exists
+if $INCLUDE_PLAN && [[ -f "$IMPL_PLAN" ]]; then
+    docs+=("plan.md")
+fi
 
 # Always check these optional docs
 [[ -f "$RESEARCH" ]] && docs+=("research.md")
@@ -158,6 +190,12 @@ else
     echo "AVAILABLE_DOCS:"
     
     # Show status of each potential document
+    if $INCLUDE_SPEC; then
+        check_file "$FEATURE_SPEC" "spec.md"
+    fi
+    if $INCLUDE_PLAN; then
+        check_file "$IMPL_PLAN" "plan.md"
+    fi
     check_file "$RESEARCH" "research.md"
     check_file "$DATA_MODEL" "data-model.md"
     check_dir "$CONTRACTS_DIR" "contracts/"

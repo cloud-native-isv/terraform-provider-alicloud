@@ -33,10 +33,6 @@ func convertSchemaToTablestoreInstance(d *schema.ResourceData) *tablestoreAPI.Ta
 		instance.ResourceGroupId = v.(string)
 	}
 
-	if v, ok := d.GetOk("elastic_vcu_upper_limit"); ok {
-		instance.ElasticVCUUpperLimit = float32(v.(float64))
-	}
-
 	// Convert network ACLs - only ACL fields are supported now (Network field is deprecated)
 	if v, ok := d.GetOk("network_source_acl"); ok {
 		if networkSourceAcl, ok := v.(*schema.Set); ok {
@@ -73,8 +69,6 @@ func convertTablestoreInstanceToSchema(d *schema.ResourceData, instance *tablest
 	d.Set("policy_version", instance.PolicyVersion)
 	d.Set("is_multi_az", instance.IsMultiAZ)
 	d.Set("table_quota", instance.TableQuota)
-	d.Set("vcu_quota", instance.VCUQuota)
-	d.Set("elastic_vcu_upper_limit", instance.ElasticVCUUpperLimit)
 
 	// 添加缺失的保留CU相关字段
 	d.Set("is_reserved_cu_instance", instance.IsReservedCUInstance)

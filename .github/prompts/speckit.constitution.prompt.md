@@ -15,7 +15,7 @@ You are updating the project constitution at `/.specify/memory/constitution.md`.
 Follow this execution flow:
 
 1. Ensure the constitution file exists at `/.specify/memory/constitution.md`.
-   - If the file does **not** exist, generate it from the template at `/.specify/templates/consitution-template.md` (copy the template content as the initial constitution, then immediately adapt it to the project's actual context by adding/removing/modifying principles and sections as needed).
+   - If the file does **not** exist, generate it from the template at `/.specify/templates/constitution-template.md` (copy the template content as the initial constitution, then immediately adapt it to the project's actual context by adding/removing/modifying principles and sections as needed).
    - Once ensured, load the existing constitution template content from `/.specify/memory/constitution.md`.
    - Identify every placeholder token of the form `[ALL_CAPS_IDENTIFIER]`.
    **IMPORTANT**: The user might require less or more principles than the ones used in the template. If a number is specified, respect that - follow the general template. You will update the doc accordingly.

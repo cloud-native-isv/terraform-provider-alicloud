@@ -37,7 +37,7 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
 
 3. **Load context**: Read FEATURE_SPEC, `/.specify/memory/constitution.md`, and processed `$ARGUMENTS` context. Load IMPL_PLAN template (already copied).
 
-4. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
+4. **Implement plan workflow**: Follow the structure in IMPL_PLAN template to:
    - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
      - Incorporate relevant background information from `$ARGUMENTS`
    - Fill Constitution Check section from constitution

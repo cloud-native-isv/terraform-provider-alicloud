@@ -1,7 +1,7 @@
 # Terraform Provider Alicloud Feature Index
 
 **Last Updated**: 2026-01-12
-**Total Features**: 8
+**Total Features**: 9
 
 ## Features
 
@@ -16,3 +16,4 @@
 | 007 | Tablestore VCU Instance Support | Support configuration of Tablestore instances using the VCU sizing model and elastic limits. | Completed | .specify/specs/007-ots-vcu-support/spec.md | 2026-01-07 |
 | 009 | SLS LogStore Shard Management | Enhance alicloud_log_store resource to support dynamic shard count updates (Split/Merge). | Planned | .specify/specs/009-sls-logstore-shard-update/spec.md | 2026-01-14 |
 | 010 | Use CreateInstance API for Instance Resource | Switch the backend API of alicloud_instance resource create operation from RunInstances to CreateInstance. | Implemented | .specify/specs/010-use-create-instance-api/spec.md | 2026-01-16 |
+| 011 | Split OTS Instance Resources | Split the alicloud_ots_instance resource into alicloud_ots_instance and alicloud_ots_instance_vcu to separate logic. | Implemented | .specify/specs/011-split-ots-instance/spec.md | 2026-01-20 |

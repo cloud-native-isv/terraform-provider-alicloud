@@ -729,6 +729,7 @@ func resourceAliCloudServiceResourceDelete(d *schema.ResourceData, meta interfac
 - Go 1.22 + `github.com/cloud-native-tools/cws-lib-go` (006-split-alikafka-instance)
 - Terraform State (006-split-alikafka-instance)
 - Go 1.20+ (010-use-create-instance-api)
+- Go 1.22 (Current project version) (011-split-ots-instance)
 
 ## Recent Changes
 - 005-implement-kafka-service: Added Go 1.24 + `github.com/cloud-native-tools/cws-lib-go` (aliyun/api/kafka)

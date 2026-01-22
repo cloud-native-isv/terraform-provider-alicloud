@@ -11,7 +11,7 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
 ## Outline
 
 1. **Resolve feature context**
-   1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-spec --include-plan --include-tasks` from repo root and parse FEATURE_DIR, FEATURE_ID, FEATURE_NAME, and AVAILABLE_DOCS. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g. `'I'\''m Groot'` (or double-quote if possible: `"I'm Groot"`).
+   1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-spec --include-spec --include-plan --include-tasks` from repo root and parse FEATURE_DIR, FEATURE_ID, FEATURE_NAME, and AVAILABLE_DOCS. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g. `'I'\''m Groot'` (or double-quote if possible: `"I'm Groot"`).
    2. FEATURE_DIR MUST follow the pattern `.specify/specs/[FEATURE_KEY]/` where `[FEATURE_KEY]` typically looks like `NNN-short-name`.
    3. Determine the corresponding feature memory file path:
       - Base directory: `.specify/memory/features/`
