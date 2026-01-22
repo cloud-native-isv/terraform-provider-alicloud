@@ -47,6 +47,7 @@ require (
 	github.com/hashicorp/go-hclog v1.6.2
 	github.com/samber/lo v1.49.1
 	github.com/tidwall/sjson v1.2.5
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -224,7 +225,6 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/resty.v1 v1.12.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog/v2 v2.80.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20220803162953-67bda5d908f1 // indirect
 	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed // indirect
@@ -235,31 +235,31 @@ require (
 
 go 1.24
 
-replace github.com/cloud-native-tools/cws-lib-go => ../cws-lib-go
+replace github.com/cloud-native-tools/cws-lib-go => ./pkg/cws-lib-go
 
-replace github.com/cloud-native-tools/cws-lib-go/lib => ../cws-lib-go/lib
+replace github.com/cloud-native-tools/cws-lib-go/lib => ./pkg/cws-lib-go/lib
 
-replace github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api => ../cws-lib-go/lib/cloud/aliyun/api
+replace github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api => ./pkg/cws-lib-go/lib/cloud/aliyun/api
 
 replace (
-	github.com/alibabacloud-go/alikafka-20190916/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/alikafka-20190916
-	github.com/alibabacloud-go/arms-20190808/v9 => ../cws-lib-go/lib/cloud/aliyun/sdk/arms-20190808
-	github.com/alibabacloud-go/clickhouse-20230522 => ../cws-lib-go/lib/cloud/aliyun/sdk/clickhouse-20230522
-	github.com/alibabacloud-go/darabonba-openapi/v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/darabonba-openapi/golang
-	github.com/alibabacloud-go/dds-20151201/v10 => ../cws-lib-go/lib/cloud/aliyun/sdk/dds-20151201
-	github.com/alibabacloud-go/fc-20230330/v4 => ../cws-lib-go/lib/cloud/aliyun/sdk/fc-20230330
-	github.com/alibabacloud-go/foasconsole-20211028 => ../cws-lib-go/lib/cloud/aliyun/sdk/foasconsole-20211028
-	github.com/alibabacloud-go/nas-20170626/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/nas-20170626
-	github.com/alibabacloud-go/ons-20190214/v3 => ../cws-lib-go/lib/cloud/aliyun/sdk/ons-20190214
-	github.com/alibabacloud-go/oss-20190517/v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/oss-20190517
-	github.com/alibabacloud-go/rds-20140815/v12 => ../cws-lib-go/lib/cloud/aliyun/sdk/rds-20140815
-	github.com/alibabacloud-go/selectdb-20230522/v4 => ../cws-lib-go/lib/cloud/aliyun/sdk/selectdb-20230522
-	github.com/alibabacloud-go/sls-20201230/v6 => ../cws-lib-go/lib/cloud/aliyun/sdk/sls-20201230
-	github.com/alibabacloud-go/tablestore-20201209 => ../cws-lib-go/lib/cloud/aliyun/sdk/tablestore-20201209
-	github.com/alibabacloud-go/ververica-20220718 => ../cws-lib-go/lib/cloud/aliyun/sdk/ververica-20220718
+	github.com/alibabacloud-go/alikafka-20190916/v3 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/alikafka-20190916
+	github.com/alibabacloud-go/arms-20190808/v9 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/arms-20190808
+	github.com/alibabacloud-go/clickhouse-20230522 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/clickhouse-20230522
+	github.com/alibabacloud-go/darabonba-openapi/v2 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/darabonba-openapi/golang
+	github.com/alibabacloud-go/dds-20151201/v10 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/dds-20151201
+	github.com/alibabacloud-go/fc-20230330/v4 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/fc-20230330
+	github.com/alibabacloud-go/foasconsole-20211028 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/foasconsole-20211028
+	github.com/alibabacloud-go/nas-20170626/v3 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/nas-20170626
+	github.com/alibabacloud-go/ons-20190214/v3 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/ons-20190214
+	github.com/alibabacloud-go/oss-20190517/v2 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/oss-20190517
+	github.com/alibabacloud-go/rds-20140815/v12 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/rds-20140815
+	github.com/alibabacloud-go/selectdb-20230522/v4 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/selectdb-20230522
+	github.com/alibabacloud-go/sls-20201230/v6 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/sls-20201230
+	github.com/alibabacloud-go/tablestore-20201209 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/tablestore-20201209
+	github.com/alibabacloud-go/ververica-20220718 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/ververica-20220718
 
-	github.com/aliyun/alibaba-cloud-sdk-go => ../cws-lib-go/lib/cloud/aliyun/sdk/alibaba-cloud-sdk-go
-	github.com/aliyun/alibabacloud-oss-go-sdk-v2 => ../cws-lib-go/lib/cloud/aliyun/sdk/alibabacloud-oss-go-sdk-v2
-	github.com/aliyun/aliyun-log-go-sdk => ../cws-lib-go/lib/cloud/aliyun/sdk/aliyun-log-go-sdk
-	github.com/aliyun/aliyun-tablestore-go-sdk => ../cws-lib-go/lib/cloud/aliyun/sdk/aliyun-tablestore-go-sdk
+	github.com/aliyun/alibaba-cloud-sdk-go => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/alibaba-cloud-sdk-go
+	github.com/aliyun/alibabacloud-oss-go-sdk-v2 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/alibabacloud-oss-go-sdk-v2
+	github.com/aliyun/aliyun-log-go-sdk => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/aliyun-log-go-sdk
+	github.com/aliyun/aliyun-tablestore-go-sdk => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/aliyun-tablestore-go-sdk
 )

@@ -1,23 +1,7 @@
-# OS Specific
-.DS_Store
 
-# Editor / IDE
-.idea
-*.iml
-*.bak
-*.backup
-*~
-.*.swp
 
 # Go Build & Dependencies
 bin/
-/pkg/
-vendor/
-*.exe
-*.dll
-*.test
-coverage.html
-coverage.out
 terraform-provider-alicloud
 
 # Terraform
@@ -27,11 +11,6 @@ terraform.tfplan
 ./*.tfstate
 .terraform.lock.hcl
 *.tfvars
-
-# Local Development & Scratchpad
-example.tf
-*.tf
-modules-dev/
 
 # Website
 website/.vagrant
@@ -47,17 +26,3 @@ website/vendor
 *.log
 dump.rdb
 diff_*.zip
-
-# CI / CD / Scripts
-vars-pipeline*
-vars-publish*
-develop*
-task-config
-scan.py
-
-# Secrets
-*.pem
-
-# Test Exclusions
-!command/test-fixtures/**/*.tfstate
-!command/test-fixtures/**/.terraform/
