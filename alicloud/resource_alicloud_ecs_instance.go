@@ -2190,19 +2190,9 @@ func resourceAliCloudEcsInstanceDelete(d *schema.ResourceData, meta interface{})
 			return WrapError(err)
 		}
 	}
-	stopRequest := ecs.CreateStopInstanceRequest()
-	stopRequest.InstanceId = d.Id()
-	stopRequest.ForceStop = requests.NewBoolean(true)
-
-	deleteRequest := ecs.CreateDeleteInstanceRequest()
-	deleteRequest.InstanceId = d.Id()
-	deleteRequest.Force = requests.NewBoolean(true)
-
 	wait := incrementalWait(1*time.Second, 1*time.Second)
 	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		raw, err := client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
-			return ecsClient.DeleteInstance(deleteRequest)
-		})
+		err := ecsService.DeleteInstance(d.Id())
 		if err != nil {
 			if IsExpectedErrors(err, []string{"IncorrectInstanceStatus", "DependencyViolation.RouteEntry", "IncorrectInstanceStatus.Initializing"}) {
 				return resource.RetryableError(err)
@@ -2213,14 +2203,13 @@ func resourceAliCloudEcsInstanceDelete(d *schema.ResourceData, meta interface{})
 			}
 			return resource.NonRetryableError(err)
 		}
-		addDebug(deleteRequest.GetActionName(), raw)
 		return nil
 	})
 	if err != nil {
 		if IsExpectedErrors(err, EcsNotFound) {
 			return nil
 		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), deleteRequest.GetActionName(), AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteInstance", AlibabaCloudSdkGoERROR)
 	}
 
 	stateConf := BuildStateConf([]string{"Pending", "Running", "Stopped", "Stopping"}, []string{}, d.Timeout(schema.TimeoutDelete), 10*time.Second, ecsService.InstanceStateRefreshFunc(d.Id(), []string{}))

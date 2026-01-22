@@ -3825,3 +3825,46 @@ func (s *EcsService) RebootEcsInstance(id string) (err error) {
 
 	return nil
 }
+
+func (s *EcsService) CreateInstance(request *ecs.CreateInstanceRequest) (*ecs.CreateInstanceResponse, error) {
+	raw, err := s.client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
+		return ecsClient.CreateInstance(request)
+	})
+	if err != nil {
+		return nil, err
+	}
+	response, _ := raw.(*ecs.CreateInstanceResponse)
+	return response, nil
+}
+
+func (s *EcsService) StartInstance(request *ecs.StartInstanceRequest) (*ecs.StartInstanceResponse, error) {
+	raw, err := s.client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
+		return ecsClient.StartInstance(request)
+	})
+	if err != nil {
+		return nil, err
+	}
+	response, _ := raw.(*ecs.StartInstanceResponse)
+	return response, nil
+}
+
+func (s *EcsService) StopInstance(request *ecs.StopInstanceRequest) (*ecs.StopInstanceResponse, error) {
+	raw, err := s.client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
+		return ecsClient.StopInstance(request)
+	})
+	if err != nil {
+		return nil, err
+	}
+	response, _ := raw.(*ecs.StopInstanceResponse)
+	return response, nil
+}
+
+func (s *EcsService) DeleteInstance(instanceId string) error {
+	request := ecs.CreateDeleteInstanceRequest()
+	request.InstanceId = instanceId
+	request.Force = requests.NewBoolean(true)
+	_, err := s.client.WithEcsClient(func(ecsClient *ecs.Client) (interface{}, error) {
+		return ecsClient.DeleteInstance(request)
+	})
+	return err
+}

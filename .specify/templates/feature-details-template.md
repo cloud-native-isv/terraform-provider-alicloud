@@ -1,6 +1,6 @@
 <!--
-  SOURCE TEMPLATE (development path): templates/feature-template.md
-  INSTALLED TEMPLATE (runtime path): .specify/templates/feature-template.md
+  SOURCE TEMPLATE (development path): templates/feature-details-template.md
+  INSTALLED TEMPLATE (runtime path): .specify/templates/feature-details-template.md
   Do NOT remove placeholder tokens. Each [TOKEN] must be replaced during feature instantiation.
   This template is derived from an actual feature detail file and generalized.
 -->

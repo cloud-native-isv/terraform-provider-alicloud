@@ -1,24 +1,21 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 1.2.0 → 1.3.0
+**Version change**: 1.3.0 → 1.3.1
 **Modified principles**: 
-- Updated: All principles refined and reorganized for clarity
+- VI. Testing and Validation Requirements: Strengthened pagination language (should → MUST NOT)
 
-**Added sections**: 
-- Development Workflow Standards
-- Quality Assurance Requirements
+**Added sections**: None
 
 **Removed sections**: None
 
 **Templates requiring updates**:
-✅ .specify/templates/plan-template.md – Constitution Check updated to include strong typing and layering/state/error gates
-✅ .specify/templates/spec-template.md – Added non-functional requirements placeholders aligned to constitution (incl. strong typing)
-✅ .specify/templates/tasks-template.md – Added cross-cutting task to enforce strong typing and build verification
-⚠ .specify/templates/commands/*.md – Not present in repository; N/A (no action)
+⚠ .specify/templates/plan-template.md – Constitution Check sections obsolete; needs update to match Provider principles (Layering, Strong Types, etc.)
+⚠ .specify/templates/spec-template.md – Missing strong typing constraints
+⚠ .specify/templates/tasks-template.md – Article references outdated (IV vs VI)
 
 **Follow-up TODOs**: 
-None
+- Update templates to align with Constitution v1.3.1
 -->
 
 # Terraform Provider Alicloud Constitution
@@ -77,7 +74,7 @@ Every code change MUST be validated by executing 'cd /cws_data/terraform-provide
 Binary generation MUST NOT occur in the root directory. All binary files MUST be output to the `bin` directory and ignored by `.gitignore`.
 
 API pagination logic MUST be encapsulated in `*_api.go` files:
-- External callers should not handle pagination details
+- External callers MUST NOT handle pagination details
 - Use page number/page size iteration until all results are collected
 - Return complete result sets to callers
 
@@ -119,4 +116,4 @@ Data validation and conversion MUST be properly implemented:
 ## Governance
 This Constitution supersedes all other development practices and guidelines. All pull requests and code reviews MUST verify compliance with these principles. Any complexity or deviation from these standards MUST be explicitly justified. Use the development guide at .github/copilot-instructions.md for runtime development guidance. Amendments require documentation, team approval, and migration plans for existing code.
 
-**Version**: 1.3.0 | **Ratified**: 2017-01-19 | **Last Amended**: 2025-12-02
+**Version**: 1.3.1 | **Ratified**: 2017-01-19 | **Last Amended**: 2026-01-22

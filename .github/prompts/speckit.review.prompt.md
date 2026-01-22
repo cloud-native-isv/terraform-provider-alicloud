@@ -17,7 +17,7 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
       - Base directory: `.specify/memory/features/`
       - File name: `[FEATURE_KEY].md` **if it exists**
       - If no file named `[FEATURE_KEY].md` exists, but a `feature-index.md` entry for this feature is present, use the path recorded there
-      - If neither is available, create a new memory file at `.specify/memory/features/[FEATURE_KEY].md` using `.specify/templates/feature-template.md` as the base structure.
+      - If neither is available, create a new memory file at `.specify/memory/features/[FEATURE_KEY].md` using `.specify/templates/feature-details-template.md` as the base structure.
 
 2. **Load core SDD artifacts for this feature** from FEATURE_DIR:
    - **REQUIRED**: `spec.md` (user-facing specification)
@@ -69,7 +69,7 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
    3. **Avoid implementation trivia**: details like exact function names, minor refactors, or internal-only code structure should not appear here unless they are essential to understanding the feature boundary.
 
 6. **Update the feature memory file** in `.specify/memory/features/`:
-   1. Load the existing feature memory file (or instantiate from `.specify/templates/feature-template.md` if creating it for the first time).
+   1. Load the existing feature memory file (or instantiate from `.specify/templates/feature-details-template.md` if creating it for the first time).
    2. Preserve any existing historical context or notes that are still valid.
    3. Update the `## Latest Review` section so it reflects the **most recent consolidated review** of this feature:
       - Replace the body corresponding to `[FEATURE_LATEST_REVIEW_SUMMARY]` (or its instantiated equivalent) with the synthesized narrative from step 5, focusing on:
