@@ -655,8 +655,10 @@ func sagClientUserPasswordSuppressFunc(k, old, new string, d *schema.ResourceDat
 }
 
 func selectdbPostPaidDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	if d.Get("payment_type").(string) == "Subscription" {
-		return false
+	if v, ok := d.GetOk("payment_type"); ok {
+		if paymentType, ok := v.(string); ok && paymentType == "Subscription" {
+			return false
+		}
 	}
 	return true
 }
