@@ -47,6 +47,8 @@
 - N/A (Cloud Resource) (002-fix-oss-force-destroy)
 - Go 1.22 + `github.com/aliyun/aliyun-oss-go-sdk/oss` (002-fix-oss-force-destroy)
 - Alibaba Cloud OSS (002-fix-oss-force-destroy)
+- Go 1.20+ + terraform-plugin-sdk v1.17.x, cws-lib-go OSS API, aliyun-oss-go-sdk (indirect) (003-oss-prune-bucket)
+- N/A (remote OSS service) (003-oss-prune-bucket)
 
 ## Recent Changes
 - 002-fix-oss-force-destroy: Added Go 1.22+

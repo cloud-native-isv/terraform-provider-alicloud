@@ -1,8 +1,6 @@
 package alicloud
 
 import (
-	"fmt"
-	"log"
 	"time"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -193,98 +191,16 @@ func getStringValue(ptr *string) string {
 	return *ptr
 }
 
-// EmptyBucket checks for objects, versions, delete markers and multipart uploads,
-// and deletes them all.
-func (s *OssService) EmptyBucket(bucketName string) error {
-	action := "EmptyBucket"
-	_, err := s.client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
-		bucket, err := ossClient.Bucket(bucketName)
-		if err != nil {
-			return nil, err
-		}
-
-		// 1. Abort all multipart uploads
-		// Pagination loop for ListMultipartUploads
-		keyMarker := ""
-		uploadIdMarker := ""
-		for {
-			lmur, err := bucket.ListMultipartUploads(
-				oss.KeyMarker(keyMarker),
-				oss.UploadIDMarker(uploadIdMarker),
-				oss.MaxUploads(1000),
-			)
-			if err != nil {
-				return nil, fmt.Errorf("listing multipart uploads failed: %w", err)
-			}
-
-			for _, upload := range lmur.Uploads {
-				err = bucket.AbortMultipartUpload(oss.InitiateMultipartUploadResult{
-					Bucket:   bucketName,
-					Key:      upload.Key,
-					UploadID: upload.UploadID,
-				})
-				if err != nil {
-					return nil, fmt.Errorf("aborting multipart upload %s/%s failed: %w", upload.Key, upload.UploadID, err)
-				}
-			}
-
-			if !lmur.IsTruncated {
-				break
-			}
-			keyMarker = lmur.NextKeyMarker
-			uploadIdMarker = lmur.NextUploadIDMarker
-		}
-
-		// 2. Delete all object versions and delete markers
-		// Pagination loop for ListObjectVersions
-		keyMarker = ""
-		versionIdMarker := ""
-		for {
-			lovr, err := bucket.ListObjectVersions(
-				oss.KeyMarker(keyMarker),
-				oss.VersionIdMarker(versionIdMarker),
-				oss.MaxKeys(1000),
-			)
-			if err != nil {
-				return nil, fmt.Errorf("listing object versions failed: %w", err)
-			}
-
-			// Collect all objects and delete markers to delete
-			var objectsToDelete []oss.DeleteObject
-			for _, obj := range lovr.ObjectVersions {
-				objectsToDelete = append(objectsToDelete, oss.DeleteObject{
-					Key:       obj.Key,
-					VersionId: obj.VersionId,
-				})
-			}
-			for _, dm := range lovr.ObjectDeleteMarkers {
-				objectsToDelete = append(objectsToDelete, oss.DeleteObject{
-					Key:       dm.Key,
-					VersionId: dm.VersionId,
-				})
-			}
-
-			// Batch delete if there are any
-			if len(objectsToDelete) > 0 {
-				_, err = bucket.DeleteObjectVersions(objectsToDelete, oss.DeleteObjectsQuiet(true))
-				if err != nil {
-					return nil, fmt.Errorf("deleting object versions failed: %w", err)
-				}
-				log.Printf("[DEBUG] Deleted %d objects/versions from bucket %s", len(objectsToDelete), bucketName)
-			}
-
-			if !lovr.IsTruncated {
-				break
-			}
-			keyMarker = lovr.NextKeyMarker
-			versionIdMarker = lovr.NextVersionIdMarker
-		}
-
-		return nil, nil
-	})
-
+// PruneBucket deletes all objects, versions, delete markers and multipart uploads.
+func (s *OssService) PruneBucket(bucketName string) error {
+	action := "PruneBucket"
+	ossAPI, err := s.GetOssAPI()
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, bucketName, action, AliyunOssGoSdk)
+		return WrapError(err)
+	}
+
+	if err = ossAPI.PruneBucket(bucketName); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, bucketName, action, "OSS API")
 	}
 
 	return nil

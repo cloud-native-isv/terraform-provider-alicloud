@@ -143,6 +143,15 @@ The `/speckit.implement` command automatically integrates with the feature track
     - Update the "Last Updated" date
   - Automatically stage the changes to `.specify/memory/feature-index.md` for git commit
 
+In addition, **implement 阶段必须复核 Feature 列表**：
+
+- 实现结果可能引入新的 Feature、削弱/替代已有 Feature 或需要删除 Feature。
+- 确保功能性/非功能性 Feature 分类保持一致。
+- 若有变更，必须同步更新：
+  - `.specify/memory/features/<ID>.md`
+  - `.specify/memory/feature-index.md`
+- 在 Feature 详情中记录实现带来的“关键变化/备注”。
+
 This integration ensures that all feature implementation activities are properly tracked and linked to their corresponding entries in the project's feature index.
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.

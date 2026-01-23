@@ -96,6 +96,15 @@ The `/speckit.tasks` command automatically integrates with the feature tracking 
     - Update the "Last Updated" date
   - Automatically stage the changes to `.specify/memory/feature-index.md` for git commit
 
+In addition, **tasks 阶段必须复核 Feature 列表**：
+
+- 任务拆分可能暴露新的 Feature 或提示旧 Feature 不再适用。
+- 确保功能性/非功能性 Feature 分类保持一致。
+- 若发现 Feature 变更，必须同步更新：
+   - `.specify/memory/features/<ID>.md`
+   - `.specify/memory/feature-index.md`
+- 在 Feature 详情中记录任务拆分带来的“关键变化/备注”。
+
 This integration ensures that all feature task generation activities are properly tracked and linked to their corresponding entries in the project's feature index.
 
 ## Task Generation Rules

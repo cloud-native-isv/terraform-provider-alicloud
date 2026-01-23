@@ -273,8 +273,19 @@ func resourceAliCloudOssBucketDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.Get("force_destroy").(bool) {
-		if err := ossService.EmptyBucket(d.Id()); err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "EmptyBucket", AliyunOssGoSdk)
+		// Prune bucket contents before deletion when force_destroy is enabled.
+		err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+			err := ossService.PruneBucket(d.Id())
+			if err != nil {
+				if NeedRetry(err) {
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+			return nil
+		})
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "PruneBucket", "OSS API")
 		}
 	}
 

@@ -222,6 +222,16 @@ When creating a new spec you MUST:
     - `.specify/memory/features/*.md` detail files
 3. Use the feature branch information (e.g. `SPECIFY_FEATURE` env, current git branch name, or the numeric prefix in `BRANCH_NAME`) as hints, but **do not** assume a strict `branch == feature` 1:1 mapping.
 
+### Feature 持续演进要求（spec 阶段）
+
+- 在生成或更新 spec 之前，必须回顾 **Feature 列表与 Feature 详情**：
+   - 新的 SPEC 可能引入新的 Feature，或让现有 Feature 失效/被替代。
+   - 需要保持 **功能性 Feature** 与 **非功能性 Feature** 的分类一致性。
+- 任何 Feature 的新增/合并/拆分/删除都必须同步更新：
+   - `.specify/memory/features/<ID>.md`
+   - `.specify/memory/feature-index.md`
+- Feature 变更需要记录来源（对应 spec 的证据），写入 Feature 详情的“关键变化/备注”。
+
 ### Feature lookup rules
 
 When `/speckit.specify` is invoked for a new spec:

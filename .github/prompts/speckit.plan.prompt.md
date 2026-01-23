@@ -69,6 +69,15 @@ The `/speckit.plan` command automatically integrates with the feature tracking s
     - Update the "Last Updated" date
   - Automatically stage the changes to `.specify/memory/feature-index.md` for git commit
 
+In addition, **plan 阶段必须复核 Feature 列表**：
+
+- 检查本次 plan 是否引入新的 Feature 或淘汰/合并已有 Feature。
+- 确保功能性/非功能性 Feature 分类保持一致。
+- 若有变更，必须同步更新：
+   - `.specify/memory/features/<ID>.md`
+   - `.specify/memory/feature-index.md`
+- 在 Feature 详情中记录本次 plan 对应的“关键变化/备注”。
+
 This integration ensures that all feature planning activities are properly tracked and linked to their corresponding entries in the project's feature index.
 
 ## Phases

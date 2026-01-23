@@ -7,6 +7,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-22
 - N/A (Cloud Resource) (002-fix-oss-force-destroy)
 - Go 1.22 + `github.com/aliyun/aliyun-oss-go-sdk/oss` (002-fix-oss-force-destroy)
 - Alibaba Cloud OSS (002-fix-oss-force-destroy)
+- Go 1.20+ + terraform-plugin-sdk v1.17.x, cws-lib-go OSS API, aliyun-oss-go-sdk (indirect) (003-oss-prune-bucket)
+- N/A (remote OSS service) (003-oss-prune-bucket)
 
 - (001-implement-ecs-instance)
 
@@ -26,10 +28,10 @@ tests/
 : Follow standard conventions
 
 ## Recent Changes
+- 003-oss-prune-bucket: Added Go 1.20+ + terraform-plugin-sdk v1.17.x, cws-lib-go OSS API, aliyun-oss-go-sdk (indirect)
+- 003-oss-prune-bucket: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 002-fix-oss-force-destroy: Added Go 1.22 + `github.com/aliyun/aliyun-oss-go-sdk/oss`
-- 002-fix-oss-force-destroy: Added Go 1.22+
 
-- 001-implement-ecs-instance: Added
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

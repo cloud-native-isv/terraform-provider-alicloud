@@ -17,28 +17,52 @@ You are managing feature metadata in two artifacts:
 
 Your responsibilities:
 
+0. **识别项目类型（必须先做）**
+    - 从仓库结构、README/文档、构建配置与常见目录布局判断项目类型：
+       - 命令行工具（CLI）
+       - 代码库（Library/SDK）
+       - 编程框架（Framework）
+       - 微服务（Microservice）
+       - 其他（Other）
+    - 输出一个明确的 `PROJECT_TYPE`，并说明关键证据（例如关键配置文件或目录结构）。
+
 1. Parse `$ARGUMENTS` for one or more feature descriptions or updates. Each feature may include name, short description, status, and optional key changes/notes.
-2. Determine next sequential `FEATURE_ID` (three digits) for any new features (scan existing `.specify/memory/features/*.md`).
-3. Instantiate the feature detail template for each new feature:
+2. **生成 Feature 列表（区分功能性/非功能性）**
+    - 功能性 Feature：根据 `PROJECT_TYPE` 动态生成，与业务能力或用户场景直接相关。
+       - CLI：命令/子命令、输入输出格式、配置管理、脚本/管道集成等。
+       - 代码库/SDK：核心 API 能力、扩展点、兼容性策略、示例与文档体验等。
+       - 编程框架：核心抽象、扩展机制、约定与默认策略、脚手架/生成器等。
+       - 微服务：领域能力、对外接口、工作流/业务规则、服务间协作等。
+       - 其他：基于仓库证据推导的主要业务能力。
+    - 非功能性 Feature：统一工程特性（可观测性、可维护性、可测性、可扩展性、性能、安全、依赖注入、分层架构、设计模式、日志、监控、发布/回滚、容灾等）。
+    - 功能性与非功能性 Feature 必须分别标注类型，并在描述中体现其价值与边界。
+3. Determine next sequential `FEATURE_ID` (three digits) for any new features (scan existing `.specify/memory/features/*.md`).
+4. Instantiate the feature detail template for each new feature:
    - Replace all placeholders `[FEATURE_*]`, `[KEY_CHANGE_N]`, `[IMPLEMENTATION_NOTE_N]`, `[STATUS_*_CRITERIA]` with provided or inferred values.
    - Omit unused trailing placeholder lines (e.g. if only 2 key changes provided, remove lines 3–5).
    - Dates: `FEATURE_CREATED_DATE` and `FEATURE_LAST_UPDATED_DATE` = today (YYYY-MM-DD) unless updating existing.
    - Status must be one of: Draft | Planned | Implemented | Ready for Review | Completed.
-4. For updates to existing features: load the existing detail file, apply changes preserving unchanged sections.
-5. Update `.specify/memory/feature-index.md`:
+5. For updates to existing features: load the existing detail file, apply changes preserving unchanged sections.
+6. Update `.specify/memory/feature-index.md`:
    - Ensure table lists all features with columns: ID | Name | Description | Status | Feature Details | Last Updated.
    - Regenerate `FEATURE_COUNT` and any other placeholders (if still a template) before finalizing.
-6. Validate:
+7. Validate:
    - No leftover bracketed placeholders in generated/updated files.
    - IDs are unique and sequential.
    - Dates valid ISO format.
    - Markdown tables render correctly (pipe/alignment syntax).
-7. Write changes:
+8. Write changes:
    - Save new/updated detail files.
    - Overwrite updated feature index.
-8. Output a summary:
+9. **同步更新项目根目录 README 的特性列表**：
+   - 读取 `.specify/memory/feature-index.md` 的表格内容并进行整理。
+   - 在 README 中生成或更新一个“特性列表”章节（按 README 现有风格与标题层级）。
+   - 输出内容必须为“功能性 Feature / 非功能性 Feature”两个小节，并基于索引内容分类汇总。
+   - 若 README 已存在该章节，则覆盖为最新内容；若不存在则追加并保持格式一致。
+10. Output a summary:
    - New feature IDs created.
    - Updated feature IDs (if any).
+   - README 特性列表是否已更新。
    - Suggested commit message (e.g. `feat: add feature 00X <slug>` or `docs: update feature index`).
 
 项目中的 Feature 分为**功能性 Feature**和**非功能性 Feature**两大类：
@@ -53,6 +77,17 @@ Your responsibilities:
 - 对无法从当前仓库中自动推导出的非功能性需求，保留为待补充条目，标记为 Draft 状态，方便后续由团队在评审和规划过程中补全。
 
 这样可以保证：即便在项目早期，非功能性需求也能以 Feature 的形式被显式管理和追踪，而不是分散在隐含约定或零散文档中。
+
+## Feature 的持续演进要求（关键）
+
+Feature 是项目的核心框架，需要在 SDD 全流程中被反复审视与更新：
+
+- 在 `spec → plan → tasks → implement` 的每个阶段，必须回顾**Feature 列表与 Feature 详情**：
+   - 新的 SPEC 可能引入新的 Feature。
+   - 现有 Feature 可能需要合并、拆分、降级或删除。
+   - 需要更新 Feature 的状态与“关键变化/实现影响”。
+- 在执行 `/speckit.specify`、`/speckit.plan`、`/speckit.tasks`、`/speckit.implement` 后，都应主动同步更新 `.specify/memory/features/*.md` 与 `.specify/memory/feature-index.md`（若有变化）。
+- 任何 Feature 变更都必须能追溯到对应的 Spec 或 Plan 依据（记录在 Feature 的“关键变化/备注”中）。
 
 ### Practical scanning hints（扫描配置文件的操作建议）
 

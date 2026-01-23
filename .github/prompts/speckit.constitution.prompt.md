@@ -34,6 +34,10 @@ Follow this execution flow:
    - Replace every placeholder with concrete text (no bracketed tokens left except intentionally retained template slots that the project has chosen not to define yet—explicitly justify any left).
    - Preserve heading hierarchy and comments can be removed once replaced unless they still add clarifying guidance.
    - Ensure each Principle section: succinct name line, paragraph (or bullet list) capturing non‑negotiable rules, explicit rationale if not obvious.
+   - **MUST include** a principle for “以特性（Feature）为核心的开发理念” that mandates:
+     - Feature list is the long‑lived project backbone.
+     - Every spec/plan/tasks/implement step must re‑evaluate Feature additions/removals.
+     - Feature changes are recorded and traceable to spec/plan evidence.
    - Ensure Governance section lists amendment procedure, versioning policy, and compliance review expectations.
 
 4. Consistency propagation checklist (convert prior checklist into active validations):

@@ -1,21 +1,21 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 1.3.0 → 1.3.1
-**Modified principles**: 
-- VI. Testing and Validation Requirements: Strengthened pagination language (should → MUST NOT)
-
-**Added sections**: None
+**Version change**: 1.3.1 → 1.4.0
+**Modified principles**:
+- V. Strong Typing with CWS-Lib-Go: Wording tightened, formatting normalized
+- VI. Testing and Validation Requirements: Clarified validation scope and pagination rule placement
+**Added sections**:
+- VII. Feature-Centric Development
+- Governance: Amendment procedure, versioning policy, compliance review expectations
 
 **Removed sections**: None
 
 **Templates requiring updates**:
-⚠ .specify/templates/plan-template.md – Constitution Check sections obsolete; needs update to match Provider principles (Layering, Strong Types, etc.)
-⚠ .specify/templates/spec-template.md – Missing strong typing constraints
-⚠ .specify/templates/tasks-template.md – Article references outdated (IV vs VI)
+✅ .specify/templates/plan-template.md – Constitution Check updated to match current principles
+✅ .specify/templates/tasks-template.md – Constitution reference updated
+✅ .specify/templates/spec-template.md – No change required (aligned with Constitution)
 
-**Follow-up TODOs**: 
-- Update templates to align with Constitution v1.3.1
 -->
 
 # Terraform Provider Alicloud Constitution
@@ -60,13 +60,13 @@ requirement applies across Service and API layers to ensure type safety, maintai
 and clearer contracts.
 
 - MUST use generated/defined structs and enums from `github.com/cloud-native-tools/cws-lib-go`
-	wherever applicable.
+- wherever applicable.
 - MUST NOT introduce new usages of `map[string]interface{}` for request/response shapes,
-	except when interacting with legacy code paths.
+  except when interacting with legacy code paths.
 - Legacy code is exempt (read-only, minimal-touch). Any refactoring SHOULD migrate to
-	strong types opportunistically while maintaining backward compatibility.
+- strong types opportunistically while maintaining backward compatibility.
 - Code reviews MUST flag weak typing in new/modified code unless explicitly justified
-	(e.g., bridging adapters to third-party libs not yet modeled in cws-lib-go).
+- (e.g., bridging adapters to third-party libs not yet modeled in cws-lib-go).
 
 ### VI. Testing and Validation Requirements
 Every code change MUST be validated by executing 'cd /cws_data/terraform-provider-alicloud && make' to ensure syntax correctness and successful compilation. Comprehensive unit tests and integration tests are mandatory. All resources MUST include proper Timeout configurations. Code files exceeding 1000 lines MUST be split by functional modules to ensure single responsibility.
@@ -77,6 +77,12 @@ API pagination logic MUST be encapsulated in `*_api.go` files:
 - External callers MUST NOT handle pagination details
 - Use page number/page size iteration until all results are collected
 - Return complete result sets to callers
+
+### VII. Feature-Centric Development
+Feature 是项目的长期核心框架：
+- Feature 列表必须保持为项目的“单一事实来源”。
+- 在 spec → plan → tasks → implement 的每个阶段都必须复核 Feature 的新增/合并/拆分/删除。
+- Feature 变更必须可追溯到相应的 spec/plan 依据，并记录在 Feature 详情中。
 
 ## Development Workflow Standards
 
@@ -114,6 +120,23 @@ Data validation and conversion MUST be properly implemented:
 - Validate nested object structures with proper Elem definitions
 
 ## Governance
-This Constitution supersedes all other development practices and guidelines. All pull requests and code reviews MUST verify compliance with these principles. Any complexity or deviation from these standards MUST be explicitly justified. Use the development guide at .github/copilot-instructions.md for runtime development guidance. Amendments require documentation, team approval, and migration plans for existing code.
+This Constitution supersedes all other development practices and guidelines. All pull
+requests and code reviews MUST verify compliance with these principles. Any complexity
+or deviation from these standards MUST be explicitly justified. Use the development
+guide at .github/copilot-instructions.md for runtime development guidance.
 
-**Version**: 1.3.1 | **Ratified**: 2017-01-19 | **Last Amended**: 2026-01-22
+**Amendment Procedure**:
+- Proposals MUST document rationale, scope, and migration impact.
+- Changes MUST be reviewed and approved by the project maintainers.
+- Amendments MUST update dependent templates and guidance artifacts.
+
+**Versioning Policy**:
+- MAJOR: backward-incompatible governance changes or principle removals.
+- MINOR: new principles or material expansions of requirements.
+- PATCH: clarifications, wording fixes, or non-semantic refinements.
+
+**Compliance Review**:
+- Every spec/plan/tasks artifact MUST include a Constitution check.
+- Reviews MUST document any deviations and their approved justification.
+
+**Version**: 1.4.0 | **Ratified**: 2026-01-23 | **Last Amended**: 2026-01-23
