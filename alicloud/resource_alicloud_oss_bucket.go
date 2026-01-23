@@ -272,6 +272,12 @@ func resourceAliCloudOssBucketDelete(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
+	if d.Get("force_destroy").(bool) {
+		if err := ossService.EmptyBucket(d.Id()); err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "EmptyBucket", AliyunOssGoSdk)
+		}
+	}
+
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
 		raw, err = client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
 			return nil, ossClient.DeleteBucket(d.Id())
@@ -279,89 +285,6 @@ func resourceAliCloudOssBucketDelete(d *schema.ResourceData, meta interface{}) e
 		if err != nil {
 			if IsExpectedErrors(err, []string{"BucketNotEmpty"}) {
 				if d.Get("force_destroy").(bool) {
-					raw, er := client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
-						bucket, _ := ossClient.Bucket(d.Id())
-
-						// List and delete all object versions
-						prefix := ""
-						keyMarker := ""
-						versionIdMarker := ""
-						for {
-							lor, err := bucket.ListObjectVersions(
-								oss.Prefix(prefix),
-								oss.KeyMarker(keyMarker),
-								oss.VersionIdMarker(versionIdMarker),
-							)
-							if err != nil {
-								return nil, WrapErrorf(err, DefaultErrorMsg, d.Id(), "ListObjectVersions", AliyunOssGoSdk)
-							}
-
-							objectsToDelete := make([]oss.DeleteObject, 0)
-							for _, object := range lor.ObjectDeleteMarkers {
-								objectsToDelete = append(objectsToDelete, oss.DeleteObject{
-									Key:       object.Key,
-									VersionId: object.VersionId,
-								})
-							}
-							for _, object := range lor.ObjectVersions {
-								objectsToDelete = append(objectsToDelete, oss.DeleteObject{
-									Key:       object.Key,
-									VersionId: object.VersionId,
-								})
-							}
-
-							if len(objectsToDelete) > 0 {
-								_, delErr := bucket.DeleteObjectVersions(objectsToDelete)
-								if delErr != nil {
-									return nil, WrapErrorf(delErr, DefaultErrorMsg, d.Id(), "DeleteObjectVersions", AliyunOssGoSdk)
-								}
-							}
-
-							if !lor.IsTruncated {
-								break
-							}
-							keyMarker = lor.NextKeyMarker
-							versionIdMarker = lor.NextVersionIdMarker
-						}
-
-						// List and abort all multipart uploads
-						keyMarker = ""
-						uploadIdMarker := ""
-						for {
-							lmur, err := bucket.ListMultipartUploads(
-								oss.Prefix(prefix),
-								oss.KeyMarker(keyMarker),
-								oss.UploadIDMarker(uploadIdMarker),
-							)
-							if err != nil {
-								return nil, WrapErrorf(err, DefaultErrorMsg, d.Id(), "ListMultipartUploads", AliyunOssGoSdk)
-							}
-
-							for _, upload := range lmur.Uploads {
-								imur := oss.InitiateMultipartUploadResult{
-									Bucket:   d.Id(),
-									Key:      upload.Key,
-									UploadID: upload.UploadID,
-								}
-								abortErr := bucket.AbortMultipartUpload(imur)
-								if abortErr != nil {
-									return nil, WrapErrorf(abortErr, DefaultErrorMsg, d.Id(), "AbortMultipartUpload", AliyunOssGoSdk)
-								}
-							}
-
-							if !lmur.IsTruncated {
-								break
-							}
-							keyMarker = lmur.NextKeyMarker
-							uploadIdMarker = lmur.NextUploadIDMarker
-						}
-
-						return nil, nil
-					})
-					if er != nil {
-						return resource.NonRetryableError(er)
-					}
-					addDebug("DeleteObjectVersions", raw, requestInfo, map[string]string{"bucketName": d.Id()})
 					return resource.RetryableError(err)
 				}
 			}
