@@ -3,7 +3,7 @@
 **Branch**: `[###-spec-name]` | **Date**: [DATE] | **Spec**: [link]
 **Input**: Specification from `.specify/specs/[###-spec-name]/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command.
+**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
@@ -33,12 +33,11 @@
 
 **Core Principles Compliance**:
 
-- **Architecture Layering**: Resource/DataSource → Service → API → SDK enforced
-- **State Management**: WaitFor/StateRefreshFunc used; Create avoids direct Read
-- **Error Handling**: WrapError patterns and standard helpers used
-- **Strong Typing**: CWS-Lib-Go types preferred; no new weak typing
-- **Testing & Validation**: `make` run required; timeouts configured
-- **Feature-Centric Development**: Feature list reviewed/updated for this spec
+- **Spec-Driven**: Spec flow is Spec -> Plan -> Task -> Implement
+- **Agent-First**: Artifacts are structured for both Human and AI consumption
+- **Library/CLI-First**: Feature implemented as reusable library with CLI
+- **Test-First**: TDD flow followed, tests written before code
+- **Context Preservation**: Update logs and decision records maintained
 
 **Gates Status**: [✅ All gates pass / ❌ Specific gate failures with justification]
 

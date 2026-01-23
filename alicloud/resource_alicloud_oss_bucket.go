@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"log"
 	"time"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -258,6 +259,7 @@ func resourceAliCloudOssBucketDelete(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*connectivity.AliyunClient)
 	ossService := NewOssService(client)
 	var requestInfo *oss.Client
+	forceDestroy := d.Get("force_destroy").(bool)
 	raw, err := client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
 		requestInfo = ossClient
 		return ossClient.IsBucketExist(d.Id())
@@ -272,7 +274,8 @@ func resourceAliCloudOssBucketDelete(d *schema.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	if d.Get("force_destroy").(bool) {
+	log.Printf("[DEBUG] OSS bucket delete force_destroy=%t, bucket=%s", forceDestroy, d.Id())
+	if forceDestroy {
 		// Prune bucket contents before deletion when force_destroy is enabled.
 		err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 			err := ossService.PruneBucket(d.Id())
