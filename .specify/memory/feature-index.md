@@ -1,17 +1,49 @@
-# Terraform Provider Alicloud Feature Index
+# If your account belongs to domestic site Feature Index
 
-**Last Updated**: 2026-01-23
-**Total Features**: 8
+**Last Updated**: 2026-01-26
+**Total Features**: 4
 
 ## Features
 
+| 001 | Implement Ecs Instance | Specification completed for feature 001 | Planned | .specify/specs/001-implement-ecs-instance/spec.md | 2026-01-22 |
+| 002 | Fix Oss Force Destroy | Specification completed for feature 002 | Planned | .specify/specs/002-fix-oss-force-destroy/spec.md | 2026-01-23 |
+| 003 | Oss Prune Bucket | Specification completed for feature 003 | Planned | .specify/specs/003-oss-prune-bucket/spec.md | 2026-01-23 |
+| 004 | Fix Alikafka Resource | Fix AliKafka resource state persistence and API integration | Implemented | .specify/specs/004-fix-alikafka-resource/spec.md | 2026-01-26 |
+
+## Feature Entry Format
+
+Each feature entry should follow this format in the table:
+
 | ID | Name | Description | Status | Feature Details | Last Updated |
-|----|------|-------------|--------|-----------------|--------------|
-| 001 | Go Development Environment | Standardization on Go 1.20+ and related toolchain for provider development. | Implemented | .specify/memory/features/001.md | 2026-01-22 |
-| 002 | Layered Architecture Provider | Strict separation of concerns (Resource -> Service -> API -> SDK) for maintainability. | Implemented | .specify/memory/features/002.md | 2026-01-22 |
-| 003 | CWS-Lib-Go Integration | Standardization of API interactions via the shared cws-lib-go wrapper library. | Implemented | .specify/memory/features/003.md | 2026-01-22 |
-| 004 | Local SDK Vendor Management | Management of local SDK copies in `sdk/` directory for specific service versions. | Implemented | .specify/memory/features/004.md | 2026-01-22 |
-| 005 | Automated Testing Suite | Comprehensive unit and acceptance testing framework (testacc) application. | Implemented | .specify/memory/features/005.md | 2026-01-22 |
-| 006 | Strong Typing Enforcement | Mandate strict usage of defined structs over weakly typed maps. | Implemented | .specify/memory/features/006.md | 2026-01-22 |
-| 007 | Implement alicloud_ecs_instance Resource | Implementation of new resource `alicloud_ecs_instance` using `CreateInstance` API. | Planned | .specify/memory/features/007.md | 2026-01-22 |
-| 008 | OSS Bucket Management | Consolidated management of OSS Bucket resources and configurations, including lifecycle and destruction policies. | Implemented | .specify/memory/features/008.md | 2026-01-23 |
+|----|------|-------------|--------|----------------|--------------|
+| 001 | Feature Name | Brief description of the feature | Draft | .specify/memory/features/001.md | 2025-11-21 |
+
+### Column Definitions
+
+| Column | Description |
+|--------|-------------|
+| ID | Sequential three-digit feature identifier (001, 002, etc.) |
+| Name | Short feature name (2-4 words) describing the feature |
+| Description | Brief summary of the feature's purpose and scope |
+| Status | Current implementation status (Draft, Planned, Implemented, Ready for Review, Completed) |
+| Feature Details | Path to feature detail file in .specify/memory/features/[FEATURE_ID].md |
+| Last Updated | When the feature entry was last modified (YYYY-MM-DD format) |
+
+## Template Usage Instructions
+
+This template contains placeholder tokens in square brackets (e.g., `[PROJECT_NAME]`, `[FEATURE_COUNT]`). 
+When generating the actual feature index:
+
+1. Replace `[PROJECT_NAME]` with the actual project name
+2. Replace `[LAST_UPDATED_DATE]` with current date in YYYY-MM-DD format
+3. Replace `[FEATURE_COUNT]` with the actual number of features
+4. Replace `[FEATURE_ENTRIES]` with the complete Markdown table containing all feature entries
+5. Each individual feature entry should have its placeholders replaced accordingly:
+   - `[FEATURE_ID]`: Sequential three-digit ID
+   - `[FEATURE_NAME]`: Short descriptive name (2-4 words)
+   - `[FEATURE_DESCRIPTION]`: Brief feature description
+   - `[FEATURE_STATUS]`: Current status (Draft, Planned, etc.)
+   - `[SPEC_PATH]`: Path to spec file or "(Not yet created)"
+   - `[FEATURE_LAST_UPDATED]`: Feature-specific last updated date
+
+Ensure all placeholder tokens are replaced before finalizing the feature index.

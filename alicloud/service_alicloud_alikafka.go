@@ -494,6 +494,49 @@ func (s *KafkaService) WaitForAlikafkaInstance(id string, status Status, timeout
 	}
 }
 
+// WaitForAliKafkaInstanceCreating waits for the Kafka instance to be in the running state (state 5)
+// considering all intermediate states (0, 2, 3, 4) as pending
+func (s *KafkaService) WaitForAliKafkaInstanceCreating(id string, timeout time.Duration) error {
+	stateConf := BuildStateConf(
+		[]string{"0", "2", "3", "4"}, // pending states: Order Processing, Creating, Configuring, Starting
+		[]string{"5"},                // target state: Running
+		timeout,
+		5*time.Second,
+		s.AliKafkaInstanceStateRefreshFunc(id, []string{}),
+	)
+
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, id)
+}
+
+// WaitForAliKafkaInstanceUpdating waits for the Kafka instance to complete an update operation
+func (s *KafkaService) WaitForAliKafkaInstanceUpdating(id string, timeout time.Duration) error {
+	stateConf := BuildStateConf(
+		[]string{"0", "2", "3", "4"}, // pending states during update
+		[]string{"5"},                // target state: Running
+		timeout,
+		5*time.Second,
+		s.AliKafkaInstanceStateRefreshFunc(id, []string{}),
+	)
+
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, id)
+}
+
+// WaitForAliKafkaInstanceStopping waits for the Kafka instance to be stopped (state that indicates stopped)
+func (s *KafkaService) WaitForAliKafkaInstanceStopping(id string, timeout time.Duration) error {
+	stateConf := BuildStateConf(
+		[]string{"5"},       // pending state: Running
+		[]string{"1", "10"}, // target states: Stopped, Released
+		timeout,
+		5*time.Second,
+		s.AliKafkaInstanceStateRefreshFunc(id, []string{}),
+	)
+
+	_, err := stateConf.WaitForState()
+	return WrapErrorf(err, IdMsg, id)
+}
+
 func (s *KafkaService) WaitForAlikafkaConsumerGroup(id string, status Status, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
@@ -1011,6 +1054,7 @@ func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id string, failStates []
 
 		status := fmt.Sprintf("%d", object.ServiceStatus)
 
+		// Check if the current status is a fail state
 		for _, failState := range failStates {
 			if status == failState {
 				return object, status, fmt.Errorf("resource in failed state: %s", status)
@@ -1043,4 +1087,19 @@ func (s *KafkaService) AliKafkaInstancePropertyRefreshFunc(id string, property s
 
 		return object, fmt.Sprint(val), nil
 	}
+}
+
+// DescribeInstance retrieves a Kafka instance using CWS-Lib-Go
+func (s *KafkaService) DescribeInstance(instanceId string) (*kafka.KafkaInstance, error) {
+	return s.kafkaApi.GetInstance(instanceId)
+}
+
+// CreateInstance creates a Kafka instance using CWS-Lib-Go
+func (s *KafkaService) CreateInstance(instance *kafka.KafkaInstance) (*kafka.KafkaInstance, error) {
+	return s.kafkaApi.CreateInstance(instance)
+}
+
+// UpgradeInstance upgrades a Kafka instance using CWS-Lib-Go
+func (s *KafkaService) UpgradeInstance(instance *kafka.KafkaInstance) error {
+	return s.kafkaApi.UpgradeInstance(instance)
 }

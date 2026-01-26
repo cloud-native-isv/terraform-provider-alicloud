@@ -105,82 +105,66 @@ func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta inter
 	if err != nil {
 		return WrapError(err)
 	}
-	vpcService := VpcService{client}
 
-	startInstanceReq := &StartInstanceRequest{
-		RegionId:   client.RegionId,
-		InstanceId: d.Get("instance_id").(string),
-		VSwitchId:  d.Get("vswitch_id").(string),
-	}
+	instanceId := d.Get("instance_id").(string)
+	vswitchId := d.Get("vswitch_id").(string)
+
+	// Create options map for deployment
+	options := make(map[string]interface{})
 
 	if v, ok := d.GetOk("vpc_id"); ok {
-		startInstanceReq.VpcId = v.(string)
+		options["vpc_id"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("zone_id"); ok {
-		startInstanceReq.ZoneId = v.(string)
-	}
-
-	if startInstanceReq.VpcId == "" {
-		vsw, err := vpcService.DescribeVswitch(startInstanceReq.VSwitchId)
-		if err != nil {
-			return WrapError(err)
-		}
-
-		if startInstanceReq.VpcId == "" {
-			if vpcId, ok := vsw["VpcId"].(string); ok {
-				startInstanceReq.VpcId = vpcId
-			}
-		}
-	}
-
-	if v, ok := d.GetOk("vswitch_ids"); ok {
-		startInstanceReq.VSwitchIds = expandStringList(v.([]interface{}))
-	}
-
-	if _, ok := d.GetOkExists("eip_max"); ok {
-		startInstanceReq.DeployModule = "eip"
-		startInstanceReq.IsEipInner = true
+		options["zone_id"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("name"); ok {
-		startInstanceReq.Name = v.(string)
+		options["name"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("security_group"); ok {
-		startInstanceReq.SecurityGroup = v.(string)
+		options["security_group"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("service_version"); ok {
-		startInstanceReq.ServiceVersion = v.(string)
+		options["service_version"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("config"); ok {
-		startInstanceReq.Config = v.(string)
+		options["config"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("kms_key_id"); ok {
-		startInstanceReq.KMSKeyId = v.(string)
+		options["kms_key_id"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("selected_zones"); ok {
-		startInstanceReq.SelectedZones = formatSelectedZonesReq(v.([]interface{}))
-		log.Printf("[DEBUG] Resource alicloud_alikafka_deployment SelectedZones=%s", startInstanceReq.SelectedZones)
+		options["selected_zones"] = formatSelectedZonesReq(v.([]interface{}))
+		log.Printf("[DEBUG] Resource alicloud_alikafka_deployment SelectedZones=%s", formatSelectedZonesReq(v.([]interface{})))
 	}
 
-	startInstanceReq.CrossZone = d.Get("cross_zone").(bool)
+	if v, ok := d.GetOk("vswitch_ids"); ok {
+		vswitchList := expandStringList(v.([]interface{}))
+		if len(vswitchList) > 0 {
+			options["vswitch_ids"] = vswitchList
+		}
+	}
 
-	err = kafkaService.StartInstance(startInstanceReq)
+	// Use CWS-Lib-Go API to start the instance
+	err = kafkaService.kafkaApi.StartInstance(instanceId, client.RegionId, options["vpc_id"].(string), vswitchId, options)
 	if err != nil {
-		return err
+		return WrapError(err)
 	}
-	addDebug("StartInstance", "Success", startInstanceReq)
 
-	d.SetId(startInstanceReq.InstanceId)
+	addDebug("StartInstance", "Success", instanceId)
 
-	// wait until running
-	stateConf := BuildStateConf([]string{}, []string{"5"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
-	if _, err := stateConf.WaitForState(); err != nil {
+	d.SetId(instanceId)
+
+	// Wait for deployment to complete using the new wait function
+	err = kafkaService.WaitForAliKafkaInstanceCreating(d.Id(), d.Timeout(schema.TimeoutCreate))
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
@@ -223,14 +207,19 @@ func resourceAliCloudAlikafkaDeploymentDelete(d *schema.ResourceData, meta inter
 		return WrapError(err)
 	}
 
-	request := &StopInstanceRequest{
-		RegionId:   client.RegionId,
-		InstanceId: d.Id(),
-	}
+	instanceId := d.Id()
 
-	err = kafkaService.StopInstance(request)
+	// Use CWS-Lib-Go API to stop the instance
+	err = kafkaService.kafkaApi.StopInstance(instanceId, client.RegionId)
 	if err != nil {
 		return WrapError(err)
+	}
+
+	// Optionally wait for instance to stop using the new wait function
+	err = kafkaService.WaitForAliKafkaInstanceStopping(instanceId, d.Timeout(schema.TimeoutDelete))
+	if err != nil {
+		// If wait fails, just log the error but don't fail the delete operation
+		log.Printf("[WARN] Failed to wait for instance to stop: %v", err)
 	}
 
 	return nil

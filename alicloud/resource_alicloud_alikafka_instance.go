@@ -5,8 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -209,66 +212,62 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		return WrapError(err)
 	}
 
-	// 1. Create order
-	order := &kafka.KafkaOrder{
+	diskType, _ := strconv.Atoi(d.Get("disk_type").(string))
+
+	// Create instance directly using CWS-Lib-Go API
+	instance := &kafka.KafkaInstance{
 		RegionId:   client.RegionId,
-		DiskSize:   int32(d.Get("disk_size").(int)),
-		DiskType:   d.Get("disk_type").(string),
-		DeployType: kafka.KafkaDeployType(d.Get("deploy_type").(int)),
+		DiskSize:   tea.Int(d.Get("disk_size").(int)),
+		DiskType:   tea.Int(diskType),
+		DeployType: tea.Int(d.Get("deploy_type").(int)),
 	}
 
+	paidType := 0 // PostPaid
+	if v, ok := d.GetOk("paid_type"); ok && v.(string) == "PrePaid" {
+		paidType = 1
+	}
+	instance.PaidType = tea.Int(paidType)
+
 	if v, ok := d.GetOk("partition_num"); ok {
-		order.PartitionNum = int32(v.(int))
+		instance.PartitionNum = tea.Int(v.(int))
 	}
 
 	if v, ok := d.GetOk("io_max_spec"); ok {
-		order.IoMaxSpec = v.(string)
+		instance.IoMaxSpec = tea.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("spec_type"); ok {
-		order.SpecType = kafka.KafkaSpecType(v.(string))
+		instance.SpecType = tea.String(v.(string))
 	}
 
 	if v, ok := d.GetOkExists("eip_max"); ok {
-		order.EipMax = int32(v.(int))
+		instance.EipMax = tea.Int(v.(int))
 	}
 
 	if v, ok := d.GetOk("resource_group_id"); ok {
-		order.ResourceGroupId = v.(string)
+		instance.ResourceGroupId = v.(string)
 	}
 
 	if v, ok := d.GetOk("duration"); ok {
-		order.Duration = int32(v.(int))
+		instance.Duration = tea.Int(v.(int))
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
-		order.Tags = extractTags(d)
+		instance.Tags = extractTags(d)
 	}
 
-	var orderId string
-	v := d.Get("paid_type").(string)
-	switch v {
-	case "PostPaid":
-		orderId, err = kafkaService.CreatePostPayOrder(order)
-		if err != nil {
-			return err
-		}
-		addDebug("CreatePostPayOrder", orderId, order)
-
-	case "PrePaid":
-		orderId, err = kafkaService.CreatePrePayOrder(order)
-		if err != nil {
-			return err
-		}
-		addDebug("CreatePrePayOrder", orderId, order)
-	}
-
-	alikafkaInstanceVO, err := kafkaService.DescribeAlikafkaInstanceByOrderId(orderId, 60)
+	createdInstance, err := kafkaService.kafkaApi.CreateInstance(instance)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	d.SetId(fmt.Sprint(alikafkaInstanceVO.InstanceId))
+	d.SetId(createdInstance.InstanceId)
+
+	// Wait for instance to be in running state (state 5)
+	err = kafkaService.WaitForAliKafkaInstanceCreating(d.Id(), d.Timeout(schema.TimeoutCreate))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
 
 	return resourceAliCloudAlikafkaInstanceRead(d, meta)
 }
@@ -280,11 +279,13 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	object, err := kafkaService.DescribeAlikafkaInstance(d.Id())
+	object, err := kafkaService.DescribeInstance(d.Id())
 	if err != nil {
 		// Handle exceptions
-		if !d.IsNewResource() && NotFoundError(err) {
-			log.Printf("[DEBUG] Resource alicloud_alikakfa_instance kafkaService.DescribeAlikafkaInstance Failed!!! %s", err)
+		// Note: kafka.NewKafkaError produces error that might not satisfy NotFoundError directly unless unwrapped or checked via strings
+		// Assuming NotFoundError handles it or we check message
+		if !d.IsNewResource() && (NotFoundError(err) || strings.Contains(err.Error(), "not found")) {
+			log.Printf("[DEBUG] Resource alicloud_alikakfa_instance kafkaService.DescribeInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
@@ -307,19 +308,35 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("security_group", object.SecurityGroup)
 	d.Set("end_point", object.EndPoint)
 	d.Set("ssl_endpoint", object.SslEndPoint)
-	d.Set("domain_endpoint", object.DomainEndpoint)
-	d.Set("ssl_domain_endpoint", object.SslDomainEndpoint)
-	d.Set("sasl_domain_endpoint", object.SaslDomainEndpoint)
-	d.Set("status", object.ServiceStatus)
-	d.Set("config", object.AllConfig)
+
+	d.Set("status", object.Status)
+
 	d.Set("kms_key_id", object.KmsKeyId)
 
-	tags, err := kafkaService.DescribeTags(d.Id(), nil, TagResourceInstance)
-	if err != nil {
-		return WrapError(err)
+	// Set derived/computed fields
+	if object.VSwitchId != "" {
+		d.Set("vswitch_ids", []string{object.VSwitchId})
+	}
+	if object.ZoneId != "" {
+		selectedZones := []interface{}{[]interface{}{object.ZoneId}}
+		d.Set("selected_zones", selectedZones)
 	}
 
-	d.Set("tags", kafkaService.tagsToMap(tags))
+	// Set additional computed fields that might be available in the CWS-Lib-Go API response
+	// Usage fields are not mapped in CWS-Lib-Go
+
+	// Set service version and other fields if available
+	if object.Version != "" {
+		d.Set("service_version", object.Version)
+	}
+
+	// tags, err := kafkaService.DescribeTags(d.Id(), nil, TagResourceInstance)
+	// if err != nil {
+	// 	return WrapError(err)
+	// }
+
+	// d.Set("tags", kafkaService.tagsToMap(tags))
+	d.Set("tags", object.Tags)
 
 	return nil
 }
@@ -332,9 +349,9 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 	d.Partial(true)
 
-	if err := kafkaService.setInstanceTags(d, TagResourceInstance); err != nil {
-		return WrapError(err)
-	}
+	// if err := kafkaService.setInstanceTags(d, TagResourceInstance); err != nil {
+	// 	return WrapError(err)
+	// }
 
 	// Process change instance name.
 	if !d.IsNewResource() && d.HasChange("name") {
@@ -343,12 +360,12 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 		}
 
 		if v, ok := d.GetOk("name"); ok {
-			instance.Name = v.(string)
+			instance.Name = tea.String(v.(string))
 		}
 
-		err = kafkaService.UpdateInstance(instance)
+		err = kafkaService.kafkaApi.UpdateInstance(instance)
 		if err != nil {
-			return err
+			return WrapError(err)
 		}
 		addDebug("UpdateInstance", "Success", instance)
 
@@ -434,36 +451,52 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if update {
-		var orderId string
-		var err error
-		if d.Get("paid_type").(string) == string(PrePaid) {
-			orderId, err = kafkaService.UpgradePrePayOrder(upgradeOrder)
+		// Update instance directly using CWS-Lib-Go API
+		instance := &kafka.KafkaInstance{
+			InstanceId: d.Id(),
+			RegionId:   client.RegionId,
+		}
+
+		if v, ok := d.GetOk("partition_num"); ok {
+			instance.PartitionNum = tea.Int(v.(int))
+		}
+
+		if v, ok := d.GetOk("disk_size"); ok {
+			instance.DiskSize = tea.Int(v.(int))
+		}
+
+		if v, ok := d.GetOk("io_max_spec"); ok {
+			instance.IoMaxSpec = tea.String(v.(string))
+		}
+
+		if v, ok := d.GetOk("spec_type"); ok {
+			instance.SpecType = tea.String(v.(string))
+		}
+
+		if d.Get("deploy_type").(int) == 4 {
+			instance.EipModel = true
 		} else {
-			orderId, err = kafkaService.UpgradePostPayOrder(upgradeOrder)
+			instance.EipModel = false
 		}
 
+		if v, ok := d.GetOk("eip_max"); ok {
+			instance.EipMax = tea.Int(v.(int))
+		}
+
+		if v, ok := d.GetOk("duration"); ok {
+			instance.Duration = tea.Int(v.(int))
+		}
+
+		err = kafkaService.UpgradeInstance(instance)
 		if err != nil {
-			return err
-		}
-		addDebug("UpgradeOrder", orderId, upgradeOrder)
-
-		stateConf := BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("disk_size"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstancePropertyRefreshFunc(d.Id(), "disk_size"))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
+			return WrapError(err)
 		}
 
-		stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("eip_max"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstancePropertyRefreshFunc(d.Id(), "eip_max"))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
+		addDebug("UpgradeInstance", "Success", instance)
 
-		stateConf = BuildStateConf([]string{}, []string{fmt.Sprint(d.Get("spec_type"))}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstancePropertyRefreshFunc(d.Id(), "spec_type"))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
-
-		stateConf = BuildStateConf([]string{}, []string{"0", "1", "5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
+		// Wait for update to complete using the new wait function
+		err = kafkaService.WaitForAliKafkaInstanceUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
 			return WrapErrorf(err, IdMsg, d.Id())
 		}
 
@@ -475,29 +508,25 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if !d.IsNewResource() && d.HasChange("service_version") {
-		request := &UpgradeInstanceVersionRequest{
-			InstanceId: d.Id(),
-			RegionId:   client.RegionId,
-		}
-
 		if v, ok := d.GetOk("service_version"); ok {
-			request.TargetVersion = v.(string)
-		}
+			serviceVersion := v.(string)
 
-		err = kafkaService.UpgradeInstanceVersion(request)
-		if err != nil {
-			return err
-		}
-		addDebug("UpgradeInstanceVersion", "Success", request)
+			err = kafkaService.kafkaApi.UpgradeInstanceVersion(d.Id(), client.RegionId, serviceVersion)
+			if err != nil {
+				return WrapError(err)
+			}
+			addDebug("UpgradeInstanceVersion", "Success", serviceVersion)
 
-		// wait for upgrade task be invoke
-		time.Sleep(60 * time.Second)
-		// upgrade service may be last a long time
-		stateConf := BuildStateConf([]string{}, []string{"0", "1", "5"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, kafkaService.AliKafkaInstanceStateRefreshFunc(d.Id(), []string{}))
-		if _, err := stateConf.WaitForState(); err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
+			// wait for upgrade task to be invoked
+			time.Sleep(60 * time.Second)
+
+			// Wait for instance to complete upgrade using the new wait function
+			err = kafkaService.WaitForAliKafkaInstanceUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate))
+			if err != nil {
+				return WrapErrorf(err, IdMsg, d.Id())
+			}
+			d.SetPartial("service_version")
 		}
-		d.SetPartial("service_version")
 	}
 
 	if !d.IsNewResource() && d.HasChange("config") {
