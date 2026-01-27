@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
@@ -442,9 +443,12 @@ func (s *KafkaService) WaitForAlikafkaInstanceUpdated(id string, topicQuota int,
 		}
 
 		// Wait for all variables be equal.
-		currentPaidType := object.PaidType
+		currentPaidType := 0
+		if object.PaidType != nil {
+			currentPaidType = int(*object.PaidType)
+		}
 
-		if object.InstanceId == id && int(object.PartitionNum) == topicQuota && int(object.DiskSize) == diskSize && int(object.IoMax) == ioMax && int(object.EipMax) == eipMax && currentPaidType == paidType && object.SpecType == specType {
+		if object.InstanceId == id && tea.IntValue(object.PartitionNum) == topicQuota && tea.IntValue(object.DiskSize) == diskSize && tea.IntValue(object.IoMax) == ioMax && tea.IntValue(object.EipMax) == eipMax && currentPaidType == paidType && tea.StringValue(object.SpecType) == specType {
 			return nil
 		}
 
@@ -940,13 +944,13 @@ func (s *KafkaService) SetResourceTags(d *schema.ResourceData, resourceType stri
 
 // CreatePostPayOrder creates a post-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) CreatePostPayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePostPaid
+	order.PaidType = kafka.KafkaPaidTypePostPay
 	return s.kafkaApi.CreateOrder(order)
 }
 
 // CreatePrePayOrder creates a pre-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) CreatePrePayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePrePaid
+	order.PaidType = kafka.KafkaPaidTypePrePay
 	return s.kafkaApi.CreateOrder(order)
 }
 
@@ -1036,13 +1040,13 @@ func (s *KafkaService) UpgradeInstanceVersion(request *UpgradeInstanceVersionReq
 
 // UpgradePostPayOrder upgrades a post-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) UpgradePostPayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePostPaid
+	order.PaidType = kafka.KafkaPaidTypePostPay
 	return s.kafkaApi.UpgradeOrder(order)
 }
 
 // UpgradePrePayOrder upgrades a pre-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) UpgradePrePayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePrePaid
+	order.PaidType = kafka.KafkaPaidTypePrePay
 	return s.kafkaApi.UpgradeOrder(order)
 }
 
@@ -1092,11 +1096,11 @@ func (s *KafkaService) AliKafkaInstancePropertyRefreshFunc(id string, property s
 		var val interface{}
 		switch property {
 		case "disk_size":
-			val = int(object.DiskSize)
+			val = tea.IntValue(object.DiskSize)
 		case "eip_max":
-			val = int(object.EipMax)
+			val = tea.IntValue(object.EipMax)
 		case "spec_type":
-			val = object.SpecType
+			val = tea.StringValue(object.SpecType)
 		}
 
 		return object, fmt.Sprint(val), nil
