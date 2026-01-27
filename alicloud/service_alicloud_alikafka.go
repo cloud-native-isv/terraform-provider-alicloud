@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/alikafka"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
@@ -435,13 +437,18 @@ func (s *KafkaService) WaitForAlikafkaInstanceUpdated(id string, topicQuota int,
 	eipMax int, paidType int, specType string, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
-		object, err := s.DescribeAlikafkaInstance(id)
+		object, err := s.DescribeInstance(id)
 		if err != nil {
 			return WrapError(err)
 		}
 
 		// Wait for all variables be equal.
-		if object.InstanceId == id && object.TopicNumLimit == topicQuota && object.DiskSize == diskSize && object.IoMax == ioMax && object.EipMax == eipMax && object.PaidType == paidType && object.SpecType == specType {
+		currentPaidType := 0
+		if object.PaidType != nil {
+			currentPaidType = int(*object.PaidType)
+		}
+
+		if object.InstanceId == id && tea.IntValue(object.PartitionNum) == topicQuota && tea.IntValue(object.DiskSize) == diskSize && tea.IntValue(object.IoMax) == ioMax && tea.IntValue(object.EipMax) == eipMax && currentPaidType == paidType && tea.StringValue(object.SpecType) == specType {
 			return nil
 		}
 
@@ -455,7 +462,7 @@ func (s *KafkaService) WaitForAlikafkaInstanceUpdated(id string, topicQuota int,
 func (s *KafkaService) WaitForAlikafkaInstance(id string, status Status, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
-		object, err := s.DescribeAlikafkaInstance(id)
+		object, err := s.DescribeInstance(id)
 		if err != nil {
 			if NotFoundError(err) {
 				if status == Deleted {
@@ -937,82 +944,93 @@ func (s *KafkaService) SetResourceTags(d *schema.ResourceData, resourceType stri
 
 // CreatePostPayOrder creates a post-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) CreatePostPayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePostPaid
+	order.PaidType = kafka.KafkaPaidTypePostPay
 	return s.kafkaApi.CreateOrder(order)
 }
 
 // CreatePrePayOrder creates a pre-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) CreatePrePayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePrePaid
+	order.PaidType = kafka.KafkaPaidTypePrePay
 	return s.kafkaApi.CreateOrder(order)
 }
 
 // StartInstance 启动Kafka实例
 func (s *KafkaService) StartInstance(request *StartInstanceRequest) error {
-	params := make(map[string]interface{})
+	req := alikafka.CreateStartInstanceRequest()
+	req.InstanceId = request.InstanceId
+	req.RegionId = request.RegionId
 	if request.ZoneId != "" {
-		params["ZoneId"] = request.ZoneId
+		req.ZoneId = request.ZoneId
 	}
 	if request.DeployModule != "" {
-		params["DeployModule"] = request.DeployModule
+		req.DeployModule = request.DeployModule
 	}
 	if request.IsEipInner {
-		params["IsEipInner"] = request.IsEipInner
+		req.IsEipInner = requests.NewBoolean(request.IsEipInner)
 	}
 	if request.IsSetUserAndPassword {
-		params["IsSetUserAndPassword"] = request.IsSetUserAndPassword
+		req.IsSetUserAndPassword = requests.NewBoolean(request.IsSetUserAndPassword)
 	}
 	if request.Username != "" {
-		params["Username"] = request.Username
+		req.Username = request.Username
 	}
 	if request.Password != "" {
-		params["Password"] = request.Password
+		req.Password = request.Password
 	}
 	if request.Name != "" {
-		params["Name"] = request.Name
+		req.Name = request.Name
 	}
 	if request.CrossZone {
-		params["CrossZone"] = request.CrossZone
+		req.CrossZone = requests.NewBoolean(request.CrossZone)
 	}
 	if request.SecurityGroup != "" {
-		params["SecurityGroup"] = request.SecurityGroup
+		req.SecurityGroup = request.SecurityGroup
 	}
 	if request.ServiceVersion != "" {
-		params["ServiceVersion"] = request.ServiceVersion
+		req.ServiceVersion = request.ServiceVersion
 	}
 	if request.Config != "" {
-		params["Config"] = request.Config
+		req.Config = request.Config
 	}
 	if request.KMSKeyId != "" {
-		params["KMSKeyId"] = request.KMSKeyId
+		req.KMSKeyId = request.KMSKeyId
 	}
 	if request.Notifier != "" {
-		params["Notifier"] = request.Notifier
+		req.Notifier = request.Notifier
 	}
 	if request.UserPhoneNum != "" {
-		params["UserPhoneNum"] = request.UserPhoneNum
+		req.UserPhoneNum = request.UserPhoneNum
 	}
 	if request.SelectedZones != "" {
-		params["SelectedZones"] = request.SelectedZones
+		req.SelectedZones = request.SelectedZones
 	}
 	if request.IsForceSelectedZones {
-		params["IsForceSelectedZones"] = request.IsForceSelectedZones
+		req.IsForceSelectedZones = requests.NewBoolean(request.IsForceSelectedZones)
 	}
 	if len(request.VSwitchIds) > 0 {
-		params["VSwitchIds"] = request.VSwitchIds
+		req.VSwitchIds = &request.VSwitchIds
+	}
+	if request.VSwitchId != "" {
+		req.VSwitchId = request.VSwitchId
+	}
+	if request.VpcId != "" {
+		req.VpcId = request.VpcId
 	}
 
-	return s.kafkaApi.StartInstance(request.RegionId, request.InstanceId, request.VSwitchId, request.VpcId, params)
+	_, err := s.client.WithAlikafkaClient(func(client *alikafka.Client) (interface{}, error) {
+		return client.StartInstance(req)
+	})
+	return err
 }
 
 // StopInstance stops a Kafka instance
 func (s *KafkaService) StopInstance(request *StopInstanceRequest) error {
-	return s.kafkaApi.StopInstance(request.RegionId, request.InstanceId)
+	return s.kafkaApi.StopInstance(request.InstanceId)
 }
 
 // ModifyInstanceName 修改Kafka实例名称
 func (s *KafkaService) ModifyInstanceName(request *ModifyInstanceNameRequest) error {
-	return s.kafkaApi.ModifyInstanceName(request.RegionId, request.InstanceId, request.InstanceName)
+	return s.kafkaApi.ModifyInstanceName(request.InstanceId, request.InstanceName)
 }
 
 // UpgradeInstanceVersion 升级Kafka实例版本
@@ -1022,19 +1040,25 @@ func (s *KafkaService) UpgradeInstanceVersion(request *UpgradeInstanceVersionReq
 
 // UpgradePostPayOrder upgrades a post-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) UpgradePostPayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePostPaid
+	order.PaidType = kafka.KafkaPaidTypePostPay
 	return s.kafkaApi.UpgradeOrder(order)
 }
 
 // UpgradePrePayOrder upgrades a pre-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) UpgradePrePayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePrePaid
+	order.PaidType = kafka.KafkaPaidTypePrePay
 	return s.kafkaApi.UpgradeOrder(order)
 }
 
 // UpdateInstanceConfig updates the configuration of a Kafka instance
 func (s *KafkaService) UpdateInstanceConfig(instanceId string, config map[string]*string) error {
-	return s.kafkaApi.UpdateInstanceConfig(instanceId, s.client.RegionId, config)
+	c := make(map[string]string)
+	for k, v := range config {
+		if v != nil {
+			c[k] = *v
+		}
+	}
+	return s.kafkaApi.UpdateInstanceConfig(instanceId, c)
 }
 
 // UpdateInstance updates a Kafka instance
@@ -1044,7 +1068,7 @@ func (s *KafkaService) UpdateInstance(instance *kafka.KafkaInstance) error {
 
 func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		object, err := s.DescribeAlikafkaInstance(id)
+		object, err := s.DescribeInstance(id)
 		if err != nil {
 			if NotFoundError(err) {
 				return nil, "", nil
@@ -1067,7 +1091,7 @@ func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id string, failStates []
 
 func (s *KafkaService) AliKafkaInstancePropertyRefreshFunc(id string, property string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		object, err := s.DescribeAlikafkaInstance(id)
+		object, err := s.DescribeInstance(id)
 		if err != nil {
 			if NotFoundError(err) {
 				return nil, "", nil
@@ -1078,11 +1102,11 @@ func (s *KafkaService) AliKafkaInstancePropertyRefreshFunc(id string, property s
 		var val interface{}
 		switch property {
 		case "disk_size":
-			val = object.DiskSize
+			val = tea.IntValue(object.DiskSize)
 		case "eip_max":
-			val = object.EipMax
+			val = tea.IntValue(object.EipMax)
 		case "spec_type":
-			val = object.SpecType
+			val = tea.StringValue(object.SpecType)
 		}
 
 		return object, fmt.Sprint(val), nil
@@ -1091,7 +1115,30 @@ func (s *KafkaService) AliKafkaInstancePropertyRefreshFunc(id string, property s
 
 // DescribeInstance retrieves a Kafka instance using CWS-Lib-Go
 func (s *KafkaService) DescribeInstance(instanceId string) (*kafka.KafkaInstance, error) {
-	return s.kafkaApi.GetInstance(instanceId)
+	var object *kafka.KafkaInstance
+	var err error
+
+	wait := incrementalWait(2*time.Second, 1*time.Second)
+	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
+		object, err = s.kafkaApi.GetInstance(instanceId)
+		if err != nil {
+			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
+				wait()
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		if object != nil && object.ServiceStatus == 10 {
+			return resource.NonRetryableError(WrapErrorf(NotFoundErr("AlikafkaInstance", instanceId), NotFoundMsg, ProviderERROR))
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, WrapError(err)
+	}
+
+	return object, nil
 }
 
 // CreateInstance creates a Kafka instance using CWS-Lib-Go

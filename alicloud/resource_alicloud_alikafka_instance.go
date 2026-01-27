@@ -125,22 +125,6 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"vswitch_ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-			"selected_zones": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeList,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-				},
-				Description: "The JSON string of selected zones for the instance. Format: [[\"zone1\", \"zone2\"], [\"zone3\"]]",
-			},
 			"cross_zone": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -215,18 +199,22 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	diskType, _ := strconv.Atoi(d.Get("disk_type").(string))
 
 	// Create instance directly using CWS-Lib-Go API
+	dt := kafka.KafkaDiskType(diskType)
+	dpt := kafka.KafkaDeployType(d.Get("deploy_type").(int))
+
 	instance := &kafka.KafkaInstance{
 		RegionId:   client.RegionId,
 		DiskSize:   tea.Int(d.Get("disk_size").(int)),
-		DiskType:   tea.Int(diskType),
-		DeployType: tea.Int(d.Get("deploy_type").(int)),
+		DiskType:   &dt,
+		DeployType: &dpt,
 	}
 
 	paidType := 0 // PostPaid
 	if v, ok := d.GetOk("paid_type"); ok && v.(string) == "PrePaid" {
 		paidType = 1
 	}
-	instance.PaidType = tea.Int(paidType)
+	pt := kafka.KafkaPaidType(paidType)
+	instance.PaidType = &pt
 
 	if v, ok := d.GetOk("partition_num"); ok {
 		instance.PartitionNum = tea.Int(v.(int))
@@ -256,7 +244,7 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		instance.Tags = extractTags(d)
 	}
 
-	createdInstance, err := kafkaService.kafkaApi.CreateInstance(instance)
+	createdInstance, err := kafkaService.CreateInstance(instance)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -293,18 +281,22 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	}
 
 	// Set all schema fields using the correct field access
-	d.Set("name", object.Name)
-	d.Set("disk_type", object.DiskType)
-	d.Set("disk_size", object.DiskSize)
-	d.Set("deploy_type", object.DeployType)
-	d.Set("io_max", object.IoMax)
-	d.Set("io_max_spec", object.IoMaxSpec)
-	d.Set("eip_max", object.EipMax)
+	d.Set("name", tea.StringValue(object.Name))
+	if object.DiskType != nil {
+		d.Set("disk_type", fmt.Sprintf("%d", *object.DiskType))
+	}
+	d.Set("disk_size", tea.IntValue(object.DiskSize))
+	if object.DeployType != nil {
+		d.Set("deploy_type", int(*object.DeployType))
+	}
+	d.Set("io_max", tea.IntValue(object.IoMax))
+	d.Set("io_max_spec", tea.StringValue(object.IoMaxSpec))
+	d.Set("eip_max", tea.IntValue(object.EipMax))
 	d.Set("resource_group_id", object.ResourceGroupId)
 	d.Set("vpc_id", object.VpcId)
 	d.Set("vswitch_id", object.VSwitchId)
 	d.Set("zone_id", object.ZoneId)
-	d.Set("spec_type", object.SpecType)
+	d.Set("spec_type", tea.StringValue(object.SpecType))
 	d.Set("security_group", object.SecurityGroup)
 	d.Set("end_point", object.EndPoint)
 	d.Set("ssl_endpoint", object.SslEndPoint)
@@ -312,18 +304,6 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("status", object.Status)
 
 	d.Set("kms_key_id", object.KmsKeyId)
-
-	// Set derived/computed fields
-	if object.VSwitchId != "" {
-		d.Set("vswitch_ids", []string{object.VSwitchId})
-	}
-	if object.ZoneId != "" {
-		selectedZones := []interface{}{[]interface{}{object.ZoneId}}
-		d.Set("selected_zones", selectedZones)
-	}
-
-	// Set additional computed fields that might be available in the CWS-Lib-Go API response
-	// Usage fields are not mapped in CWS-Lib-Go
 
 	// Set service version and other fields if available
 	if object.Version != "" {
@@ -363,7 +343,7 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			instance.Name = tea.String(v.(string))
 		}
 
-		err = kafkaService.kafkaApi.UpdateInstance(instance)
+		err = kafkaService.UpdateInstance(instance)
 		if err != nil {
 			return WrapError(err)
 		}
@@ -511,7 +491,12 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 		if v, ok := d.GetOk("service_version"); ok {
 			serviceVersion := v.(string)
 
-			err = kafkaService.kafkaApi.UpgradeInstanceVersion(d.Id(), client.RegionId, serviceVersion)
+			req := &UpgradeInstanceVersionRequest{
+				RegionId:      client.RegionId,
+				InstanceId:    d.Id(),
+				TargetVersion: serviceVersion,
+			}
+			err = kafkaService.UpgradeInstanceVersion(req)
 			if err != nil {
 				return WrapError(err)
 			}

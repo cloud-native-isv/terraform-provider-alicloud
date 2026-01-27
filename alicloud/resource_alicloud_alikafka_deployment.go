@@ -153,7 +153,65 @@ func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta inter
 	}
 
 	// Use CWS-Lib-Go API to start the instance
-	err = kafkaService.kafkaApi.StartInstance(instanceId, client.RegionId, options["vpc_id"].(string), vswitchId, options)
+	req := &StartInstanceRequest{
+		InstanceId: instanceId,
+		RegionId:   client.RegionId,
+		VpcId:      options["vpc_id"].(string),
+		VSwitchId:  vswitchId,
+	}
+	if v, ok := options["zone_id"].(string); ok {
+		req.ZoneId = v
+	}
+	if v, ok := options["deploy_module"].(string); ok {
+		req.DeployModule = v
+	}
+	if v, ok := options["is_eip_inner"].(bool); ok {
+		req.IsEipInner = v
+	}
+	if v, ok := options["is_set_user_and_password"].(bool); ok {
+		req.IsSetUserAndPassword = v
+	}
+	if v, ok := options["username"].(string); ok {
+		req.Username = v
+	}
+	if v, ok := options["password"].(string); ok {
+		req.Password = v
+	}
+	if v, ok := options["name"].(string); ok {
+		req.Name = v
+	}
+	if v, ok := options["cross_zone"].(bool); ok {
+		req.CrossZone = v
+	}
+	if v, ok := options["security_group"].(string); ok {
+		req.SecurityGroup = v
+	}
+	if v, ok := options["service_version"].(string); ok {
+		req.ServiceVersion = v
+	}
+	if v, ok := options["config"].(string); ok {
+		req.Config = v
+	}
+	if v, ok := options["kms_key_id"].(string); ok {
+		req.KMSKeyId = v
+	}
+	if v, ok := options["notifier"].(string); ok {
+		req.Notifier = v
+	}
+	if v, ok := options["user_phone_num"].(string); ok {
+		req.UserPhoneNum = v
+	}
+	if v, ok := options["selected_zones"].(string); ok {
+		req.SelectedZones = v
+	}
+	if v, ok := options["is_force_selected_zones"].(bool); ok {
+		req.IsForceSelectedZones = v
+	}
+	if v, ok := options["vswitch_ids"].([]string); ok {
+		req.VSwitchIds = v
+	}
+
+	err = kafkaService.StartInstance(req)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -210,7 +268,9 @@ func resourceAliCloudAlikafkaDeploymentDelete(d *schema.ResourceData, meta inter
 	instanceId := d.Id()
 
 	// Use CWS-Lib-Go API to stop the instance
-	err = kafkaService.kafkaApi.StopInstance(instanceId, client.RegionId)
+	err = kafkaService.StopInstance(&StopInstanceRequest{
+		InstanceId: instanceId,
+	})
 	if err != nil {
 		return WrapError(err)
 	}
