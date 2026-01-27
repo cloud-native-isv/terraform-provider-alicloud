@@ -70,11 +70,6 @@ func resourceAliCloudEcsInstance() *schema.Resource {
 				Optional:     true,
 				AtLeastOneOf: []string{"security_groups", "launch_template_id", "launch_template_name"},
 			},
-			"allocate_public_ip": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "Field 'allocate_public_ip' has been deprecated from provider version 1.6.1. Setting 'internet_max_bandwidth_out' larger than 0 will allocate public ip for instance.",
-			},
 			"instance_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -91,25 +86,6 @@ func resourceAliCloudEcsInstance() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: StringLenBetween(2, 256),
 				Computed:     true,
-			},
-			"internet_charge_type": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateFunc:     StringInSlice([]string{"PayByBandwidth", "PayByTraffic"}, false),
-				DiffSuppressFunc: ecsInternetDiffSuppressFunc,
-				Computed:         true,
-			},
-			"internet_max_bandwidth_in": {
-				Type:             schema.TypeInt,
-				Optional:         true,
-				Computed:         true,
-				DiffSuppressFunc: ecsInternetDiffSuppressFunc,
-				Deprecated:       "The attribute is invalid and no any affect for the instance. So it has been deprecated since version v1.121.2.",
-			},
-			"internet_max_bandwidth_out": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
 			},
 			"host_name": {
 				Type:     schema.TypeString,
@@ -806,28 +782,6 @@ func resourceAliCloudEcsInstanceCreate(d *schema.ResourceData, meta interface{})
 		request.Description = v.(string)
 	}
 
-	// if v, ok := d.GetOk("launch_template_name"); ok {
-	// 	request.LaunchTemplateName = v.(string)
-	// }
-	// if v, ok := d.GetOk("launch_template_id"); ok {
-	// 	request.LaunchTemplateId = v.(string)
-	// }
-	// if v, ok := d.GetOk("launch_template_version"); ok {
-	// 	request.LaunchTemplateVersion = requests.NewInteger(d.Get("launch_template_version").(string))
-	// }
-
-	if v, ok := d.GetOk("internet_charge_type"); ok {
-		request.InternetChargeType = v.(string)
-	}
-
-	if v, ok := d.GetOkExists("internet_max_bandwidth_out"); ok {
-		request.InternetMaxBandwidthOut = requests.NewInteger(v.(int))
-	}
-
-	if v, ok := d.GetOk("internet_max_bandwidth_in"); ok {
-		request.InternetMaxBandwidthIn = requests.NewInteger(v.(int))
-	}
-
 	if v, ok := d.GetOk("host_name"); ok {
 		request.HostName = v.(string)
 	}
@@ -1183,13 +1137,10 @@ func resourceAliCloudEcsInstanceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("image_id", instance.ImageId)
 	d.Set("instance_type", instance.InstanceType)
 	d.Set("password", d.Get("password").(string))
-	d.Set("internet_max_bandwidth_out", instance.InternetMaxBandwidthOut)
-	d.Set("internet_max_bandwidth_in", instance.InternetMaxBandwidthIn)
 	d.Set("instance_charge_type", instance.InstanceChargeType)
 	d.Set("key_name", instance.KeyPairName)
 	d.Set("spot_strategy", instance.SpotStrategy)
 	d.Set("spot_price_limit", instance.SpotPriceLimit)
-	d.Set("internet_charge_type", instance.InternetChargeType)
 	d.Set("deletion_protection", instance.DeletionProtection)
 	d.Set("credit_specification", instance.CreditSpecification)
 	// There is an api bug that it returns non-RFC3339 timestamp, like "2023-07-26T23:50Z"

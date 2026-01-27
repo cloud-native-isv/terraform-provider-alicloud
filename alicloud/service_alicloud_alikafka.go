@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/PaesslerAG/jsonpath"
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
@@ -443,12 +442,9 @@ func (s *KafkaService) WaitForAlikafkaInstanceUpdated(id string, topicQuota int,
 		}
 
 		// Wait for all variables be equal.
-		currentPaidType := 0
-		if object.PaidType != nil {
-			currentPaidType = int(*object.PaidType)
-		}
+		currentPaidType := object.PaidType
 
-		if object.InstanceId == id && tea.IntValue(object.PartitionNum) == topicQuota && tea.IntValue(object.DiskSize) == diskSize && tea.IntValue(object.IoMax) == ioMax && tea.IntValue(object.EipMax) == eipMax && currentPaidType == paidType && tea.StringValue(object.SpecType) == specType {
+		if object.InstanceId == id && int(object.PartitionNum) == topicQuota && int(object.DiskSize) == diskSize && int(object.IoMax) == ioMax && int(object.EipMax) == eipMax && currentPaidType == paidType && object.SpecType == specType {
 			return nil
 		}
 
@@ -944,13 +940,13 @@ func (s *KafkaService) SetResourceTags(d *schema.ResourceData, resourceType stri
 
 // CreatePostPayOrder creates a post-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) CreatePostPayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePostPay
+	order.PaidType = kafka.KafkaPaidTypePostPaid
 	return s.kafkaApi.CreateOrder(order)
 }
 
 // CreatePrePayOrder creates a pre-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) CreatePrePayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePrePay
+	order.PaidType = kafka.KafkaPaidTypePrePaid
 	return s.kafkaApi.CreateOrder(order)
 }
 
@@ -1025,12 +1021,12 @@ func (s *KafkaService) StartInstance(request *StartInstanceRequest) error {
 
 // StopInstance stops a Kafka instance
 func (s *KafkaService) StopInstance(request *StopInstanceRequest) error {
-	return s.kafkaApi.StopInstance(request.InstanceId)
+	return s.kafkaApi.StopInstance(request.InstanceId, request.RegionId)
 }
 
 // ModifyInstanceName 修改Kafka实例名称
 func (s *KafkaService) ModifyInstanceName(request *ModifyInstanceNameRequest) error {
-	return s.kafkaApi.ModifyInstanceName(request.InstanceId, request.InstanceName)
+	return s.kafkaApi.ModifyInstanceName(request.InstanceId, request.RegionId, request.InstanceName)
 }
 
 // UpgradeInstanceVersion 升级Kafka实例版本
@@ -1040,25 +1036,19 @@ func (s *KafkaService) UpgradeInstanceVersion(request *UpgradeInstanceVersionReq
 
 // UpgradePostPayOrder upgrades a post-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) UpgradePostPayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePostPay
+	order.PaidType = kafka.KafkaPaidTypePostPaid
 	return s.kafkaApi.UpgradeOrder(order)
 }
 
 // UpgradePrePayOrder upgrades a pre-paid Kafka instance order using cws-lib-go API
 func (s *KafkaService) UpgradePrePayOrder(order *kafka.KafkaOrder) (string, error) {
-	order.PaidType = kafka.KafkaPaidTypePrePay
+	order.PaidType = kafka.KafkaPaidTypePrePaid
 	return s.kafkaApi.UpgradeOrder(order)
 }
 
 // UpdateInstanceConfig updates the configuration of a Kafka instance
 func (s *KafkaService) UpdateInstanceConfig(instanceId string, config map[string]*string) error {
-	c := make(map[string]string)
-	for k, v := range config {
-		if v != nil {
-			c[k] = *v
-		}
-	}
-	return s.kafkaApi.UpdateInstanceConfig(instanceId, c)
+	return s.kafkaApi.UpdateInstanceConfig(instanceId, s.client.RegionId, config)
 }
 
 // UpdateInstance updates a Kafka instance
@@ -1102,11 +1092,11 @@ func (s *KafkaService) AliKafkaInstancePropertyRefreshFunc(id string, property s
 		var val interface{}
 		switch property {
 		case "disk_size":
-			val = tea.IntValue(object.DiskSize)
+			val = int(object.DiskSize)
 		case "eip_max":
-			val = tea.IntValue(object.EipMax)
+			val = int(object.EipMax)
 		case "spec_type":
-			val = tea.StringValue(object.SpecType)
+			val = object.SpecType
 		}
 
 		return object, fmt.Sprint(val), nil
