@@ -127,41 +127,9 @@ func resourceAliCloudOtsInstanceVCUCreate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	instance := &tablestore.TablestoreInstance{
-		InstanceName:          d.Get("name").(string),
-		InstanceSpecification: "VCU", // Hardcoded for VCU resource
-	}
+	instance := convertSchemaToTablestoreVCUInstanceCreate(d)
 
-	if v, ok := d.GetOk("description"); ok {
-		instance.InstanceDescription = v.(string)
-	}
-	if v, ok := d.GetOk("resource_group_id"); ok {
-		instance.ResourceGroupId = v.(string)
-	}
-	if v, ok := d.GetOk("elastic_vcu_upper_limit"); ok {
-		instance.ElasticVCUUpperLimit = float32(v.(float64))
-	}
-
-	// Convert network ACLs
-	if v, ok := d.GetOk("network_source_acl"); ok {
-		if networkSourceAcl, ok := v.(*schema.Set); ok {
-			instance.NetworkSourceACL = convertSetToStringSlice(networkSourceAcl)
-		}
-	}
-	if v, ok := d.GetOk("network_type_acl"); ok {
-		if networkTypeAcl, ok := v.(*schema.Set); ok {
-			instance.NetworkTypeACL = convertSetToStringSlice(networkTypeAcl)
-		}
-	}
-
-	// Convert tags
-	if v, ok := d.GetOk("tags"); ok {
-		if tagsMap, ok := v.(map[string]interface{}); ok {
-			instance.Tags = convertMapToTablestoreInstanceTags(tagsMap)
-		}
-	}
-
-	if err := otsService.CreateOtsInstance(instance); err != nil {
+	if err := otsService.CreateOtsVCUInstance(instance); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_instance_vcu", "CreateInstance", AlibabaCloudSdkGoERROR)
 	}
 
@@ -225,7 +193,7 @@ func resourceAliCloudOtsInstanceVCUUpdate(d *schema.ResourceData, meta interface
 
 	// Update ACL
 	if d.HasChange("network_source_acl") || d.HasChange("network_type_acl") {
-		instance := &tablestore.TablestoreInstance{
+		instance := &tablestore.TablestoreInstanceUpdate{
 			InstanceName: d.Id(),
 		}
 		if v, ok := d.GetOk("network_source_acl"); ok {
@@ -249,7 +217,7 @@ func resourceAliCloudOtsInstanceVCUUpdate(d *schema.ResourceData, meta interface
 
 	// Update Basic Info
 	if d.HasChange("description") {
-		instance := &tablestore.TablestoreInstance{
+		instance := &tablestore.TablestoreInstanceUpdate{
 			InstanceName:        d.Id(),
 			InstanceDescription: d.Get("description").(string),
 		}

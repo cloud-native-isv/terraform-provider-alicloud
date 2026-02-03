@@ -183,7 +183,7 @@ func dataSourceAliCloudOtsInstancesRead(d *schema.ResourceData, meta interface{}
 	}
 
 	// Apply filters
-	var filteredInstances []tablestoreAPI.TablestoreInstance
+	var filteredInstances []tablestoreAPI.TablestoreInstanceInfo
 
 	// Prepare IDs filter
 	idsMap := make(map[string]bool)
@@ -238,7 +238,7 @@ func dataSourceAliCloudOtsInstancesRead(d *schema.ResourceData, meta interface{}
 	return otsInstancesDescriptionAttributes(d, filteredInstances, meta)
 }
 
-func otsInstancesDescriptionAttributes(d *schema.ResourceData, instances []tablestoreAPI.TablestoreInstance, meta interface{}) error {
+func otsInstancesDescriptionAttributes(d *schema.ResourceData, instances []tablestoreAPI.TablestoreInstanceInfo, meta interface{}) error {
 	var ids []string
 	var names []string
 	var s []map[string]interface{}

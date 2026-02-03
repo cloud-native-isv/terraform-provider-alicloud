@@ -178,7 +178,7 @@ func resourceAliCloudOtsInstanceCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	// Convert schema to TablestoreInstance
-	instance := convertSchemaToTablestoreInstance(d)
+	instance := convertSchemaToTablestoreInstanceCreate(d)
 
 	// Create instance
 	if err := otsService.CreateOtsInstance(instance); err != nil {
@@ -231,10 +231,16 @@ func resourceAliCloudOtsInstanceUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	// Handle other updates
-	if d.HasChanges("alias_name", "description", "policy") {
+	if d.HasChanges("alias_name", "description") {
 		instance := convertSchemaToTablestoreInstanceForBasicUpdate(d)
 		if err := otsService.UpdateOtsInstance(instance); err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateInstanceBasic", AlibabaCloudSdkGoERROR)
+		}
+	}
+
+	if d.HasChange("policy") {
+		if err := otsService.UpdateOtsInstancePolicy(d.Id(), d.Get("policy").(string)); err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateInstancePolicy", AlibabaCloudSdkGoERROR)
 		}
 	}
 
@@ -289,8 +295,8 @@ func resourceAliCloudOtsInstanceDelete(d *schema.ResourceData, meta interface{})
 }
 
 // convertSchemaToTablestoreInstanceForACLUpdate creates an instance object for ACL-only updates
-func convertSchemaToTablestoreInstanceForACLUpdate(d *schema.ResourceData) *tablestoreAPI.TablestoreInstance {
-	instance := &tablestoreAPI.TablestoreInstance{
+func convertSchemaToTablestoreInstanceForACLUpdate(d *schema.ResourceData) *tablestoreAPI.TablestoreInstanceUpdate {
+	instance := &tablestoreAPI.TablestoreInstanceUpdate{
 		InstanceName: d.Id(),
 	}
 
@@ -314,8 +320,8 @@ func convertSchemaToTablestoreInstanceForACLUpdate(d *schema.ResourceData) *tabl
 }
 
 // convertSchemaToTablestoreInstanceForBasicUpdate creates an instance object for basic field updates
-func convertSchemaToTablestoreInstanceForBasicUpdate(d *schema.ResourceData) *tablestoreAPI.TablestoreInstance {
-	instance := &tablestoreAPI.TablestoreInstance{
+func convertSchemaToTablestoreInstanceForBasicUpdate(d *schema.ResourceData) *tablestoreAPI.TablestoreInstanceUpdate {
+	instance := &tablestoreAPI.TablestoreInstanceUpdate{
 		InstanceName: d.Id(),
 	}
 
@@ -325,10 +331,6 @@ func convertSchemaToTablestoreInstanceForBasicUpdate(d *schema.ResourceData) *ta
 
 	if v, ok := d.GetOk("description"); ok {
 		instance.InstanceDescription = v.(string)
-	}
-
-	if v, ok := d.GetOk("policy"); ok {
-		instance.Policy = v.(string)
 	}
 
 	return instance

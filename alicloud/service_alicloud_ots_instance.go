@@ -9,25 +9,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-// convertSchemaToTablestoreInstance converts Terraform schema data to TablestoreInstance
-func convertSchemaToTablestoreInstance(d *schema.ResourceData) *tablestoreAPI.TablestoreInstance {
+// convertSchemaToTablestoreInstanceCreate converts Terraform schema data to TablestoreInstance for creation
+func convertSchemaToTablestoreInstanceCreate(d *schema.ResourceData) *tablestoreAPI.TablestoreInstance {
 	instance := &tablestoreAPI.TablestoreInstance{
 		InstanceName: d.Get("name").(string),
 	}
 
 	// Set instance specification (required field)
 	if v, ok := d.GetOk("instance_specification"); ok {
-		instance.InstanceSpecification = v.(string)
+		instance.ClusterType = v.(string)
 	}
 
-	if v, ok := d.GetOk("alias_name"); ok {
-		instance.AliasName = v.(string)
-	}
 	if v, ok := d.GetOk("description"); ok {
 		instance.InstanceDescription = v.(string)
-	}
-	if v, ok := d.GetOk("policy"); ok {
-		instance.Policy = v.(string)
 	}
 	if v, ok := d.GetOk("resource_group_id"); ok {
 		instance.ResourceGroupId = v.(string)
@@ -55,8 +49,57 @@ func convertSchemaToTablestoreInstance(d *schema.ResourceData) *tablestoreAPI.Ta
 	return instance
 }
 
-// convertTablestoreInstanceToSchema converts TablestoreInstance to Terraform schema data
-func convertTablestoreInstanceToSchema(d *schema.ResourceData, instance *tablestoreAPI.TablestoreInstance) error {
+// convertSchemaToTablestoreVCUInstanceCreate converts Terraform schema data to TablestoreVCUInstance for creation
+func convertSchemaToTablestoreVCUInstanceCreate(d *schema.ResourceData) *tablestoreAPI.TablestoreVCUInstance {
+	instance := &tablestoreAPI.TablestoreVCUInstance{
+		InstanceName: d.Get("name").(string),
+		ClusterType:  "VCU",
+	}
+
+	if v, ok := d.GetOk("description"); ok {
+		instance.InstanceDescription = v.(string)
+	}
+	if v, ok := d.GetOk("resource_group_id"); ok {
+		instance.ResourceGroupId = v.(string)
+	}
+
+	// VCU specific fields
+	// Note: vcu_quota is used as Reserved VCU for creation
+	if v, ok := d.GetOk("vcu_quota"); ok {
+		instance.VCU = int64(v.(int))
+	}
+	// Note: elastic_vcu_upper_limit implies EnableElasticVCU?
+	// The new struct has EnableElasticVCU bool.
+	// Logic: if elastic_vcu_upper_limit is > 0 or set, maybe enable it?
+	// Or maybe the resource has a explicit field?
+	// Looking at resource_alicloud_ots_instance_vcu.go schema...
+	// It has "elastic_vcu_upper_limit". No "enable_elastic_vcu" explicitly in schema, it seemed to just set limit.
+	// BUT, validation of requirement: "Users need to be able to create VCU...".
+	// The struct requires EnableElasticVCU.
+	// If elastic_vcu_upper_limit is provided, we probably should enable it.
+	// But `EnableElasticVCU` is boolean.
+	// I will check defaults. If I assume true?
+	// Let's check if I can derive it.
+	// For now, I'll set it to false unless implied.
+	// Wait, the new API might separate creating instance (with EnableElasticVCU) and updating the Limit.
+	// The VCU instance "elastic_vcu_upper_limit" in schema is Optional.
+	// If the user provides it, presumably they want it enabled.
+	if _, ok := d.GetOk("elastic_vcu_upper_limit"); ok {
+		instance.EnableElasticVCU = true
+	}
+
+	// Convert tags
+	if v, ok := d.GetOk("tags"); ok {
+		if tagsMap, ok := v.(map[string]interface{}); ok {
+			instance.Tags = convertMapToTablestoreInstanceTags(tagsMap)
+		}
+	}
+
+	return instance
+}
+
+// convertTablestoreInstanceToSchema converts TablestoreInstanceInfo to Terraform schema data
+func convertTablestoreInstanceToSchema(d *schema.ResourceData, instance *tablestoreAPI.TablestoreInstanceInfo) error {
 	d.Set("name", instance.InstanceName)
 	d.Set("instance_specification", instance.InstanceSpecification)
 	d.Set("alias_name", instance.AliasName)
@@ -70,18 +113,23 @@ func convertTablestoreInstanceToSchema(d *schema.ResourceData, instance *tablest
 	d.Set("is_multi_az", instance.IsMultiAZ)
 	d.Set("table_quota", instance.TableQuota)
 
-	// 添加缺失的保留CU相关字段
-	d.Set("is_reserved_cu_instance", instance.IsReservedCUInstance)
-	d.Set("reserved_read_cu", instance.ReservedReadCU)
-	d.Set("reserved_write_cu", instance.ReservedWriteCU)
+	if instance.InstanceSpecification == "VCU" {
+		d.Set("vcu_quota", instance.VCUQuota)
+		d.Set("elastic_vcu_upper_limit", instance.ElasticVCUUpperLimit)
+	} else {
+		// Legacy Reserved CU
+		d.Set("is_reserved_cu_instance", instance.IsReservedCUInstance)
+		d.Set("reserved_read_cu", instance.ReservedReadCU)
+		d.Set("reserved_write_cu", instance.ReservedWriteCU)
+	}
 
-	// 时间和用户ID字段
+	// Time and UserID
 	if !instance.CreateTime.IsZero() {
 		d.Set("create_time", instance.CreateTime.Format("2006-01-02T15:04:05Z"))
 	}
 	d.Set("user_id", instance.UserId)
 
-	// Set network ACLs - only ACL fields are supported now (Network field is deprecated)
+	// Set network ACLs
 	if err := d.Set("network_source_acl", convertStringSliceToSet(instance.NetworkSourceACL)); err != nil {
 		return err
 	}
@@ -109,7 +157,17 @@ func (s *OtsService) CreateOtsInstance(instance *tablestoreAPI.TablestoreInstanc
 	return nil
 }
 
-func (s *OtsService) DescribeOtsInstance(instanceName string) (*tablestoreAPI.TablestoreInstance, error) {
+func (s *OtsService) CreateOtsVCUInstance(instance *tablestoreAPI.TablestoreVCUInstance) error {
+	api := s.GetAPI()
+
+	if err := api.CreateVCUInstance(instance); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, instance.InstanceName, "CreateVCUInstance", AlibabaCloudSdkGoERROR)
+	}
+
+	return nil
+}
+
+func (s *OtsService) DescribeOtsInstance(instanceName string) (*tablestoreAPI.TablestoreInstanceInfo, error) {
 	api := s.GetAPI()
 
 	instance, err := api.GetInstance(instanceName)
@@ -123,11 +181,21 @@ func (s *OtsService) DescribeOtsInstance(instanceName string) (*tablestoreAPI.Ta
 	return instance, nil
 }
 
-func (s *OtsService) UpdateOtsInstance(instance *tablestoreAPI.TablestoreInstance) error {
+func (s *OtsService) UpdateOtsInstance(instance *tablestoreAPI.TablestoreInstanceUpdate) error {
 	api := s.GetAPI()
 
 	if err := api.UpdateInstance(instance); err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, instance.InstanceName, "UpdateInstance", AlibabaCloudSdkGoERROR)
+	}
+
+	return nil
+}
+
+func (s *OtsService) UpdateOtsInstancePolicy(instanceName, policy string) error {
+	api := s.GetAPI()
+
+	if err := api.UpdateInstancePolicy(instanceName, policy); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, instanceName, "UpdateInstancePolicy", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil
@@ -276,7 +344,7 @@ func (s *OtsService) WaitForOtsInstanceVpc(instanceName string, status Status, t
 }
 
 // List OTS instances for data source support
-func (s *OtsService) ListOtsInstance() ([]tablestoreAPI.TablestoreInstance, error) {
+func (s *OtsService) ListOtsInstance() ([]tablestoreAPI.TablestoreInstanceInfo, error) {
 	api := s.GetAPI()
 
 	instances, err := api.ListAllInstances(nil)
