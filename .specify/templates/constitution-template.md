@@ -29,7 +29,7 @@ CLIs MUST:
 
 Rationale: standardizes integration, observability, and automation.
 
-### III. Test-First Development (NON-NEGOTIABLE)
+### III. Test-First Development
 Implementation MUST follow a Test-Driven Development style for core logic:
 - Write or update tests BEFORE implementing new behavior.
 - Ensure tests FAIL first (Red), then implement to make them PASS (Green).

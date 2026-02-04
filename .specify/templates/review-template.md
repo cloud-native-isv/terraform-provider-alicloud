@@ -1,16 +1,14 @@
 <!--
-  SOURCE TEMPLATE (development path): templates/review-template.md
-  INSTALLED TEMPLATE (runtime path): .specify/templates/review-template.md
   Do NOT remove placeholder tokens. Each [TOKEN] must be replaced when generating a concrete review report.
 -->
 
-# SDD Process Review Report: [FEATURE_NAME]
+# Specification-Driven Development (SDD) Process Review Report: [REQUIREMENT NAME]
 
 **Feature ID**: [FEATURE_ID]  
-**Branch / Spec Key**: [FEATURE_KEY]  
-**Spec Path**: .specify/specs/[FEATURE_KEY]/spec.md  
-**Plan Path**: .specify/specs/[FEATURE_KEY]/plan.md  
-**Tasks Path**: .specify/specs/[FEATURE_KEY]/tasks.md  
+**Branch / Spec Key**: [REQUIREMENTS_KEY]  
+**Spec Path**: .specify/specs/[REQUIREMENTS_KEY]/requirements.md  
+**Plan Path**: .specify/specs/[REQUIREMENTS_KEY]/plan.md  
+**Tasks Path**: .specify/specs/[REQUIREMENTS_KEY]/tasks.md  
 **Review Date**: [REVIEW_DATE]  
 **Reviewer (Agent)**: [REVIEWER_NAME]
 
@@ -27,7 +25,7 @@
   - [PROCESS_GAP_1]
   - [PROCESS_GAP_2]
 
-## 2. Spec Quality Review (`spec.md`)
+## 2. Spec Quality Review (`requirements.md`)
 
 ### 2.1 Clarity & Testability
 
@@ -107,13 +105,13 @@
 
 ## 8. Links & Artifacts
 
-- **Specification**: .specify/specs/[FEATURE_KEY]/spec.md
-- **Plan**: .specify/specs/[FEATURE_KEY]/plan.md
-- **Tasks**: .specify/specs/[FEATURE_KEY]/tasks.md
-- **Data Model** (if any): .specify/specs/[FEATURE_KEY]/data-model.md
-- **Contracts** (if any): .specify/specs/[FEATURE_KEY]/contracts/
-- **Research** (if any): .specify/specs/[FEATURE_KEY]/research.md
-- **Quickstart** (if any): .specify/specs/[FEATURE_KEY]/quickstart.md
+- **Specification**: .specify/specs/[REQUIREMENTS_KEY]/requirements.md
+- **Plan**: .specify/specs/[REQUIREMENTS_KEY]/plan.md
+- **Tasks**: .specify/specs/[REQUIREMENTS_KEY]/tasks.md
+- **Data Model** (if any): .specify/specs/[REQUIREMENTS_KEY]/data-model.md
+- **Contracts** (if any): .specify/specs/[REQUIREMENTS_KEY]/contracts/
+- **Research** (if any): .specify/specs/[REQUIREMENTS_KEY]/research.md
+- **Quickstart** (if any): .specify/specs/[REQUIREMENTS_KEY]/quickstart.md
 
 ---
 
@@ -123,13 +121,13 @@
 |-------|------------------|
 | [FEATURE_ID] | Sequential three-digit feature identifier (e.g., 001) |
 | [FEATURE_NAME] | Short human-readable name of the feature |
-| [FEATURE_KEY] | Combined ID + slug used as spec directory name (e.g., 001-create-taskify) |
+| [REQUIREMENTS_KEY] | Combined ID + slug used as spec directory name (e.g., 001-create-taskify) |
 | [REVIEW_DATE] | ISO date when this review was generated (YYYY-MM-DD) |
 | [REVIEWER_NAME] | Name/label of the reviewing agent or persona |
 | [PROCESS_*] | Process-level observations and summaries |
-| [SPEC_*] | Spec quality observations derived from `.specify/specs/[FEATURE_KEY]/spec.md` |
-| [PLAN_*] | Plan quality observations derived from `.specify/specs/[FEATURE_KEY]/plan.md` |
-| [TASKS_*] | Task quality observations derived from `.specify/specs/[FEATURE_KEY]/tasks.md` |
+| [SPEC_*] | Spec quality observations derived from `.specify/specs/[REQUIREMENTS_KEY]/requirements.md` |
+| [PLAN_*] | Plan quality observations derived from `.specify/specs/[REQUIREMENTS_KEY]/plan.md` |
+| [TASKS_*] | Task quality observations derived from `.specify/specs/[REQUIREMENTS_KEY]/tasks.md` |
 | [TRACE_*] | Cross-artifact traceability observations |
 | [IMPROVE_*] | Suggestions for improving speckit/SDD templates, prompts, checks, and workflow |
 

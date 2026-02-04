@@ -17,15 +17,15 @@ Note: This clarification workflow is expected to run (and be completed) BEFORE i
 Execution steps:
 
 1. Run `.specify/scripts/bash/research-project.sh --json` from repo root **once** (combined `--json` mode). Parse JSON payload fields:
-   - `FEATURE_DIR`
+   - `REQUIREMENTS_DIR`
    - `FEATURE_SPEC`
    - `AVAILABLE_DOCS`
    - (Optionally capture `IMPL_PLAN` for future chained flows.)
-   - If JSON parsing fails, abort and instruct user to re-run `/speckit.specify` or verify feature branch environment.
+   - If JSON parsing fails, abort and instruct user to re-run `/speckit.requirements` or verify feature branch environment.
 
 2. **Preliminary Research & Context Loading**:
    - Analyze the `AVAILABLE_DOCS` list from the script output.
-   - Read `FEATURE_SPEC`, `/.specify/memory/constitution.md`.
+   - Read `FEATURE_SPEC`, `.specify/memory/constitution.md`.
    - **Check for answers in existing docs**: Before asking the user, check if any apparent ambiguities in the spec are already resolved in the project's documentation (`README.md`, `docs/`, `.specify/memory/`).
    - If you find definitive answers in the docs, **auto-resolve** them by updating the spec directly (and noting "Resolved via [Doc Name]" in the update summary).
 
@@ -173,7 +173,7 @@ Execution steps:
 Behavior rules:
 
 - If no meaningful ambiguities found (or all potential questions would be low-impact), respond: "No critical ambiguities detected worth formal clarification." and suggest proceeding.
-- If spec file missing, instruct user to run `/speckit.specify` first (do not create a new spec here).
+- If spec file missing, instruct user to run `/speckit.requirements` first (do not create a new spec here).
 - Never exceed 5 total asked questions (clarification retries for a single question do not count as new questions).
 - Avoid speculative tech stack questions unless the absence blocks functional clarity.
 - Respect user early termination signals ("stop", "done", "proceed").
@@ -181,3 +181,13 @@ Behavior rules:
 - If quota reached with unresolved high-impact categories remaining, explicitly flag them under Deferred with rationale.
 
 Context for prioritization: {ARGS}
+
+## Handoffs
+
+**Before running this command**:
+
+- Run `/speckit.requirements` first to produce or update `requirements.md`.
+
+**After running this command**:
+
+- Proceed to `/speckit.plan` once key ambiguities are resolved.

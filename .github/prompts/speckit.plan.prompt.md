@@ -1,4 +1,4 @@
-> Note: `$ARGUMENTS` 为**可选补充输入**。当本次调用未提供任何 `$ARGUMENTS` 时，仍须按下文流程基于当前 `FEATURE_SPEC` 与 `/.specify/memory/constitution.md` 生成或更新实施计划及相关设计产物。
+> Note: `$ARGUMENTS` 为**可选补充输入**。当本次调用未提供任何 `$ARGUMENTS` 时，仍须按下文流程基于当前 `FEATURE_SPEC` 与 `.specify/memory/constitution.md` 生成或更新实施计划及相关设计产物。
 
 ## User Input Analysis and Processing
 
@@ -35,7 +35,7 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
    - Determine if it contains background information, planning outline, or specific constraints
    - Apply appropriate processing strategy based on content type
 
-3. **Load context**: Read FEATURE_SPEC, `/.specify/memory/constitution.md`, and processed `$ARGUMENTS` context. Load IMPL_PLAN template (already copied).
+3. **Load context**: Read FEATURE_SPEC, `.specify/memory/constitution.md`, and processed `$ARGUMENTS` context. Load IMPL_PLAN template (already copied).
    - Check if `SPECS_DIR/research.md` exists. If so, read it.
    - **Crucial**: You MUST also read and analyze the project's **existing documentation** (`README.md`, `docs/`) and **feature memory** (`.specify/memory/`) to ensure the plan aligns with the system's architecture and evolution.
 
@@ -60,14 +60,14 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
 
 The `/speckit.plan` command automatically integrates with the feature tracking system:
 
-- If a `.specify/memory/feature-index.md` file exists, the command will:
+- If a `.specify/memory/features.md` file exists, the command will:
   - Detect the current feature directory (format: `.specify/specs/###-feature-name/`)
   - Extract the feature ID from the directory name
-  - Update the corresponding feature entry in `.specify/memory/feature-index.md`:
+  - Update the corresponding feature entry in `.specify/memory/features.md`:
     - Change status from "Planned" to "Implemented"
     - Keep the specification path unchanged
     - Update the "Last Updated" date
-  - Automatically stage the changes to `.specify/memory/feature-index.md` for git commit
+  - Automatically stage the changes to `.specify/memory/features.md` for git commit
 
 In addition, **plan 阶段必须复核 Feature 列表**：
 
@@ -75,7 +75,7 @@ In addition, **plan 阶段必须复核 Feature 列表**：
 - 确保功能性/非功能性 Feature 分类保持一致。
 - 若有变更，必须同步更新：
    - `.specify/memory/features/<ID>.md`
-   - `.specify/memory/feature-index.md`
+   - `.specify/memory/features.md`
 - 在 Feature 详情中记录本次 plan 对应的“关键变化/备注”。
 
 This integration ensures that all feature planning activities are properly tracked and linked to their corresponding entries in the project's feature index.
@@ -86,7 +86,7 @@ This integration ensures that all feature planning activities are properly track
 
 1. **Information Gathering**:
    - **Project Docs**: Read `README.md` and all files in `docs/` to understand system architecture, guidelines, and setup.
-   - **Feature Memory**: Read `.specify/memory/feature-index.md` and all files in `.specify/memory/features/` to identify reusable patterns, potential conflicts, and integration points with existing features.
+   - **Feature Memory**: Read `.specify/memory/features.md` and all files in `.specify/memory/features/` to identify reusable patterns, potential conflicts, and integration points with existing features.
    - **Research Check**: Check if `research.md` exists in the local directory.
      - **If yes**: Read and analyze its contents. Use the Decisions and Rationale to resolve "NEEDS CLARIFICATION" items in the Technical Context.
      - **If no**: Perform sufficient analysis of project docs and memory to populate the Technical Context. If significant unknowns remain, ERROR and instruct the user to run `/speckit.research`.
@@ -124,3 +124,15 @@ This integration ensures that all feature planning activities are properly track
 
 - Use absolute paths
 - ERROR on gate failures or unresolved clarifications
+
+## Handoffs
+
+**Before running this command**:
+
+- Ensure `/speckit.requirements` has produced a requirements specification.
+- If `requirements.md` contains any `[NEEDS CLARIFICATION]`, run `/speckit.clarify` first.
+
+**After running this command**:
+
+- Typically run `/speckit.tasks` to decompose the plan into an executable task list.
+- Optionally run `/speckit.checklist` to introduce domain-specific quality gates before implementation.

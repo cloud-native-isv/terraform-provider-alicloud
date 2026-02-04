@@ -33,11 +33,8 @@ ensure_utf8_locale || true
 # Get all paths and variables from common functions
 eval $(get_feature_paths)
 
-# Check if we're on a proper feature branch (only for git repos)
-check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
-
 # Ensure the feature directory exists
-mkdir -p "$FEATURE_DIR"
+mkdir -p "$REQUIREMENTS_DIR"
 
 # --- NEW: Research Gathering ---
 
@@ -90,7 +87,7 @@ fi
 # 3. Memory (Constitution and Feature Index)
 if [ -d ".specify/memory" ]; then
     add_doc_path ".specify/memory/constitution.md"
-    add_doc_path ".specify/memory/feature-index.md"
+    add_doc_path ".specify/memory/features.md"
 fi
 
 # 4. Current Feature Spec (if likely planning)
@@ -108,7 +105,7 @@ done
 # Output results
 if $JSON_MODE; then
     # Use python to format JSON correctly
-    export FEATURE_SPEC IMPL_PLAN FEATURE_DIR CURRENT_BRANCH HAS_GIT
+    export FEATURE_SPEC IMPL_PLAN REQUIREMENTS_DIR CURRENT_BRANCH HAS_GIT
     export DOC_PATHS_STR=$(printf "%s\n" "${DOC_PATHS[@]}")
     python3 -c "
 import json, os, re
@@ -150,7 +147,7 @@ for p in doc_paths:
 data = {
     'FEATURE_SPEC': os.environ.get('FEATURE_SPEC'),
     'IMPL_PLAN': os.environ.get('IMPL_PLAN'),
-    'SPECS_DIR': os.environ.get('FEATURE_DIR'),
+    'SPECS_DIR': os.environ.get('REQUIREMENTS_DIR'),
     'BRANCH': os.environ.get('CURRENT_BRANCH'),
     'HAS_GIT': os.environ.get('HAS_GIT'),
     'AVAILABLE_DOCS': available_docs
@@ -160,7 +157,7 @@ print(json.dumps(data, ensure_ascii=False))
 else
     echo "FEATURE_SPEC: $FEATURE_SPEC"
     echo "IMPL_PLAN: $IMPL_PLAN" 
-    echo "SPECS_DIR: $FEATURE_DIR"
+    echo "SPECS_DIR: $REQUIREMENTS_DIR"
     echo "BRANCH: $CURRENT_BRANCH"
     echo "HAS_GIT: $HAS_GIT"
     echo "AVAILABLE_DOCS:"

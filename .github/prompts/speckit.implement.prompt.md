@@ -10,9 +10,9 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
 
 ## Outline
 
-1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. Run `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse REQUIREMENTS_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
-2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
+2. **Check checklists status** (if REQUIREMENTS_DIR/checklists/ exists):
    - Scan all checklist files in the checklists/ directory
    - For each checklist, count:
      - Total items: All lines matching `- [ ]` or `- [X]` or `- [x]`
@@ -134,14 +134,14 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
 
 The `/speckit.implement` command automatically integrates with the feature tracking system:
 
-- If a `.specify/memory/feature-index.md` file exists, the command will:
+- If a `.specify/memory/features.md` file exists, the command will:
   - Detect the current feature directory (format: `.specify/specs/###-feature-name/`)
   - Extract the feature ID from the directory name
-  - Update the corresponding feature entry in `.specify/memory/feature-index.md`:
+  - Update the corresponding feature entry in `.specify/memory/features.md`:
     - Ensure status remains "Implemented" (maintains status from planning phase)
     - Keep the specification path unchanged
     - Update the "Last Updated" date
-  - Automatically stage the changes to `.specify/memory/feature-index.md` for git commit
+  - Automatically stage the changes to `.specify/memory/features.md` for git commit
 
 In addition, **implement 阶段必须复核 Feature 列表**：
 
@@ -149,9 +149,21 @@ In addition, **implement 阶段必须复核 Feature 列表**：
 - 确保功能性/非功能性 Feature 分类保持一致。
 - 若有变更，必须同步更新：
   - `.specify/memory/features/<ID>.md`
-  - `.specify/memory/feature-index.md`
+  - `.specify/memory/features.md`
 - 在 Feature 详情中记录实现带来的“关键变化/备注”。
 
 This integration ensures that all feature implementation activities are properly tracked and linked to their corresponding entries in the project's feature index.
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
+
+## Handoffs
+
+**Before running this command**:
+
+- Run `/speckit.tasks` to ensure a complete, ordered `tasks.md` exists.
+- If checklists exist under `checklists/`, complete them or explicitly decide to proceed with known risks.
+
+**After running this command**:
+
+- Run `/speckit.review` to evaluate SDD process quality and propose workflow improvements.
+- Optionally run `/speckit.analyze` to catch any spec/plan/tasks drift introduced during implementation.

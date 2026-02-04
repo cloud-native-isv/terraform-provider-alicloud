@@ -1,7 +1,7 @@
 # Implementation Plan: [SPEC]
 
 **Branch**: `[###-spec-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Specification from `.specify/specs/[###-spec-name]/spec.md`
+**Input**: Specification from `.specify/specs/[###-spec-name]/requirements.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
@@ -33,11 +33,13 @@
 
 **Core Principles Compliance**:
 
-- **Spec-Driven**: Spec flow is Spec -> Plan -> Task -> Implement
-- **Agent-First**: Artifacts are structured for both Human and AI consumption
-- **Library/CLI-First**: Feature implemented as reusable library with CLI
-- **Test-First**: TDD flow followed, tests written before code
-- **Context Preservation**: Update logs and decision records maintained
+- **I. Layered Architecture & Library-First**: Resource -> Service -> API -> SDK; No direct SDK calls.
+- **II. Standardized Interfaces**: Strong typing (no map[string]interface{}); Encapsulated pagination.
+- **III. Test-First Development**: TDD style; Acceptance tests cover critical flows.
+- **IV. Integration & Contract Testing**: Service layer verification against API contracts; State consistency (WaitFor).
+- **V. Observability & Versioning**: Structured logs; SemVer; English comments/logs.
+- **VI. Continuous Integration**: `make` passes; Quality gates respected.
+- **VII. Feature-Centric Development**: Feature Index is single source of truth; all phases re-evaluate Feature changes.
 
 **Gates Status**: [✅ All gates pass / ❌ Specific gate failures with justification]
 

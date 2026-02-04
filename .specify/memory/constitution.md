@@ -1,82 +1,65 @@
+# Terraform Provider Alicloud Constitution
 <!--
-## Sync Impact Report
-
-**Version change**: 1.3.1 → 1.4.0
-**Modified principles**:
-- V. Strong Typing with CWS-Lib-Go: Wording tightened, formatting normalized
-- VI. Testing and Validation Requirements: Clarified validation scope and pagination rule placement
-**Added sections**:
-- VII. Feature-Centric Development
-- Governance: Amendment procedure, versioning policy, compliance review expectations
-
-**Removed sections**: None
-
-**Templates requiring updates**:
-✅ .specify/templates/plan-template.md – Constitution Check updated to match current principles
-✅ .specify/templates/tasks-template.md – Constitution reference updated
-✅ .specify/templates/spec-template.md – No change required (aligned with Constitution)
-
+Synced: 2026-02-04
 -->
 
-# Terraform Provider Alicloud Constitution
+<!--
+  Sync Impact Report: (2026-02-04)
+  - Version: 0.0.0 -> 1.0.0
+  - Principles: Defines 7 core principles including Architecture, Testing, and Feature-Centric Development.
+  - Added Sections:
+    - Engineering Standards (Architecture, Strong Typing, State Management, Pagination)
+    - Development Workflow (Verification, Language, File Splitting)
+  - Templates requiring updates:
+    - /.specify/templates/plan-template.md (Needs to align Constitution Check with new principles)
+-->
 
 ## Core Principles
 
-### I. Architecture Layering Principle
-Resource or DataSource layers MUST call functions provided by the Service layer, NOT directly call underlying SDK or API functions. The architecture hierarchy is strictly: Provider Layer → Resource/DataSource Layer → Service Layer → API Layer (CWS-Lib-Go) → SDK Layer (Alibaba Cloud official SDK). Service layers contain Go files with CRUD methods and state refresh methods for resource objects.
+### I. Layered Architecture & Library-First Design
+Every resource or data source MUST be built upon a robust Service Layer:
+- **Resource/DataSource** -> **Service** -> **API (CWS-Lib-Go)** -> **SDK**.
+- Service Layer MUST be cohesive, reusable, and independently testable.
+- Avoid direct SDK calls in Resource/DataSource layers.
 
-Service layer API calls MUST use CWS-Lib-Go encapsulation:
-- ✅ RECOMMENDED: Use `github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api` imports
-- ❌ AVOID: Direct HTTP requests or third-party SDKs like `github.com/aliyun/aliyun-log-go-sdk`
+Rationale: separates concerns, encourages reuse, and simplifies maintenance.
 
-### II. State Management Best Practices
-State management MUST follow proper patterns: NEVER call Read functions directly in Create functions; use StateRefreshFunc mechanisms to wait for resource creation completion; use d.SetId("") when resources don't exist; set all computed properties in Read methods; implement idempotent operations; use Service layer WaitFor functions to wait for resource readiness after Create/Delete operations.
+### II. Standardized Interfaces
+The provider MUST expose consistent interfaces:
+- Use standard Terraform Resource/DataSource schemas.
+- Implement strictly typed Service methods (no `map[string]interface{}`).
+- Pagination logic MUST be encapsulated in the API/Service layer, not exposed to callers.
 
-Service layer MUST implement proper state refresh and wait functions:
-- `*StateRefreshFunc` for state polling with fail state handling
-- `WaitFor*` functions using `BuildStateConf` with proper pending/target states
-- Timeout configurations aligned with resource timeouts
+Rationale: ensures type safety, reliability, and uniform behavior.
 
-### III. Error Handling Standardization
-Error handling MUST use encapsulated error judgment functions from alicloud/errors.go rather than IsExpectedErrors directly. Priority order: IsNotFoundError(err) for resource not found, IsAlreadyExistError(err) for resource already exists, NeedRetry(err) for retryable errors. Use predefined error code lists (EcsNotFound, SlbIsBusy, OperationDeniedDBStatus) for service-specific errors. Always wrap errors using WrapError(err) or WrapErrorf(err, msg, args...) with detailed context.
+### III. Test-First Development
+Implementation MUST follow a Test-Driven Development style for core logic:
+- Write or update tests BEFORE implementing new behavior.
+- Ensure integration/acceptance tests (Terraform Acceptance Tests) cover critical flows.
 
-Retry logic MUST handle common retryable errors:
-- `ServiceUnavailable`, `ThrottlingException`, `InternalError`
-- `Throttling`, `SystemBusy`, `OperationConflict`
-- Use `resource.Retry` with proper timeout handling
+Rationale: reduces regressions and clarifies intent.
 
-### IV. Code Quality and Consistency
-All code MUST follow strict naming conventions: Resources use alicloud_<service>_<resource> format, Data sources use plural form alicloud_<service>_<resource>s, service names use lowercase underscore (ecs, rds, slb). Functions use camelCase, variables use snake_case, ID fields use resourceId format, constants use uppercase underscore. All ID fields MUST use Id not ID (e.g., WorkspaceId not WorkspaceID). All schema fields MUST include appropriate Description.
+### IV. Integration & Contract Testing
+Service layer interactions SHOULD be verified against the real API or mocks:
+- Usage of CWS-Lib-Go implies API contract adherence.
+- State inconsistencies MUST be handled gracefully (e.g., `WaitFor` logic).
 
-Service layer MUST implement proper ID encoding/decoding:
-- `Encode*Id` functions format: `workspaceId:namespace:jobId`
-- `Decode*Id` functions with proper error handling for invalid formats
-- Consistent ID handling across all service operations
+Rationale: validates real-world behavior and cloud consistency.
 
-### V. Strong Typing with CWS-Lib-Go
-Implementations MUST prefer strong types provided by CWS-Lib-Go over weakly typed
-structures such as `map[string]interface{}` or untyped `interface{}` payloads. This
-requirement applies across Service and API layers to ensure type safety, maintainability,
-and clearer contracts.
+### V. Observability, Versioning & Simplicity
+All components MUST be observable and maintainable:
+- Use structured logs (standard Terraform logging) for important events.
+- Adhere to Semantic Versioning for the provider releases.
+- Documentation MUST be clear, with API docs in English and internal docs/guides in Chinese.
 
-- MUST use generated/defined structs and enums from `github.com/cloud-native-tools/cws-lib-go`
-- wherever applicable.
-- MUST NOT introduce new usages of `map[string]interface{}` for request/response shapes,
-  except when interacting with legacy code paths.
-- Legacy code is exempt (read-only, minimal-touch). Any refactoring SHOULD migrate to
-- strong types opportunistically while maintaining backward compatibility.
-- Code reviews MUST flag weak typing in new/modified code unless explicitly justified
-- (e.g., bridging adapters to third-party libs not yet modeled in cws-lib-go).
+Rationale: makes systems debuggable, upgradable, and maintainable.
 
-### VI. Testing and Validation Requirements
-Every code change MUST be validated by executing 'cd /cws_data/terraform-provider-alicloud && make' to ensure syntax correctness and successful compilation. Comprehensive unit tests and integration tests are mandatory. All resources MUST include proper Timeout configurations. Code files exceeding 1000 lines MUST be split by functional modules to ensure single responsibility.
+### VI. Continuous Integration & Quality Gates
+Changes MUST be safe to merge:
+- `make` MUST pass (compilation, linting).
+- New behavior MUST be reflected in specs/plan/tasks/docs.
 
-Binary generation MUST NOT occur in the root directory. All binary files MUST be output to the `bin` directory and ignored by `.gitignore`.
-
-API pagination logic MUST be encapsulated in `*_api.go` files:
-- External callers MUST NOT handle pagination details
-- Use page number/page size iteration until all results are collected
-- Return complete result sets to callers
+Rationale: ensures consistent quality and predictable releases.
 
 ### VII. Feature-Centric Development
 Feature 是项目的长期核心框架：
@@ -84,59 +67,38 @@ Feature 是项目的长期核心框架：
 - 在 spec → plan → tasks → implement 的每个阶段都必须复核 Feature 的新增/合并/拆分/删除。
 - Feature 变更必须可追溯到相应的 spec/plan 依据，并记录在 Feature 详情中。
 
-## Development Workflow Standards
+Rationale: 让项目演进以 Feature 为中心，确保长期一致性与可维护性。
 
-All complex tasks MUST create a TODO.md file listing plans and steps, then execute step by step with updates to the TODO.md after each completion. Large refactoring tasks SHOULD be performed in phases with validation checkpoints recorded. Complex file operations SHOULD generate Python or Shell scripts first, then execute scripts. Batch operations MUST be backed up before execution. All changes MUST be tracked using version control.
+## Engineering Standards
 
-## Quality Assurance Requirements
+### Architecture & API
+- **Layering**: Strictly follow `Resource -> Service -> API -> SDK`.
+- **Strong Typing**: MUST use `cws-lib-go` strong types. `map[string]interface{}` is FORBIDDEN in new code.
+- **Pagination**: MUST be handled in `*_api.go` or Service methods; return full slices to callers.
 
-Documentation MUST be generated in Chinese, while code comments and logs MUST use English to maintain international compatibility for API documentation and error messages. Programming language code files (*.go, *.java, *.py, *.ts, *.js, *.c, *.cpp, *.cs, *.php, *.rb, *.rs, etc.) exceeding 1000 lines MUST be split by functional modules. Data files (*.json, *.yaml, *.csv, *.xml, etc.) are exempt from this restriction. All schema definitions MUST properly use Required/Optional/Computed fields with appropriate validation functions.
+### State Management
+- **Refresh & Wait**: Service layer MUST implement `StateRefreshFunc` and `WaitFor*` methods.
+- **No Polling in Resource**: Resource `Create` methods MUST NOT contain polling loops; use Service `WaitFor`.
 
-CRUD operations MUST follow standardized patterns:
+## Development Workflow
 
-**Create Pattern:**
-- Build request objects from Terraform schema data
-- Use `resource.Retry` for creation with proper error handling
-- Set resource ID from creation response
-- Wait for resource readiness using Service layer WaitFor functions
-- Call Read function to synchronize final state
+### Verification & Operations
+- **Syntax Check**: Execute `make` to verify code before committing.
+- **Safety**: Generate scripts for complex file ops; backup before batch changes.
+- **Binaries**: Output binaries to `bin/`, never root.
 
-**Read Pattern:**
-- Call Service layer Describe function
-- Handle `IsNotFoundError` for non-new resources by clearing ID
-- Set all schema fields including computed properties
-- Return proper error wrapping for unexpected errors
-
-**Delete Pattern:**
-- Call Service layer Delete function
-- Handle `IsNotFoundError` as successful deletion
-- Use StateChangeConf to wait for actual deletion completion
-- Proper timeout and delay configuration
-
-Data validation and conversion MUST be properly implemented:
-- Use `validation.StringMatch` for string validation with regex
-- Implement proper type conversion functions (e.g., `convertToStringSlice`)
-- Handle nil values appropriately in conversion functions
-- Validate nested object structures with proper Elem definitions
+### Code Organization
+- **Splitting**: Split files exceeding 1000 lines.
+- **Language**: Generate documents in Chinese. Code comments, logs, API docs, and error messages in English.
 
 ## Governance
-This Constitution supersedes all other development practices and guidelines. All pull
-requests and code reviews MUST verify compliance with these principles. Any complexity
-or deviation from these standards MUST be explicitly justified. Use the development
-guide at .github/copilot-instructions.md for runtime development guidance.
 
-**Amendment Procedure**:
-- Proposals MUST document rationale, scope, and migration impact.
-- Changes MUST be reviewed and approved by the project maintainers.
-- Amendments MUST update dependent templates and guidance artifacts.
+### Authority
+This Constitution and the `docs/development_guide.md` are authoritative.
+- **Precedence**: This Constitution defines high-level principles. `docs/development_guide.md` defines specific engineering constraints.
+- **Compliance**: All PRs MUST check compliance with these principles.
 
-**Versioning Policy**:
-- MAJOR: backward-incompatible governance changes or principle removals.
-- MINOR: new principles or material expansions of requirements.
-- PATCH: clarifications, wording fixes, or non-semantic refinements.
+### Amendments
+- Changes to these principles require a PR, review, and a version bump of this Constitution.
 
-**Compliance Review**:
-- Every spec/plan/tasks artifact MUST include a Constitution check.
-- Reviews MUST document any deviations and their approved justification.
-
-**Version**: 1.4.0 | **Ratified**: 2026-01-23 | **Last Amended**: 2026-01-23
+**Version**: 1.0.0 | **Ratified**: 2026-02-04 | **Last Amended**: 2026-02-04

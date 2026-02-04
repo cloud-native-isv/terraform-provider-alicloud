@@ -29,12 +29,12 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
 
 2. **Load Context**: 
    - Read `FEATURE_SPEC`.
-   - Read `/.specify/memory/constitution.md`.
+   - Read `.specify/memory/constitution.md`.
    - **Crucial**: Based on `AVAILABLE_DOCS` and the feature requirements, read and analyze relevant files from the project documentation. DO NOT rely only on memory; check `README.md` and key docs found in the list.
 
 3. **Information Gathering & Analysis**:
    - **Project Architecture**: Understand how the new feature fits into existing system.
-   - **Feature Interdependencies**: check `.specify/memory/feature-index.md` and `.specify/memory/features/` for conflicts or reuse opportunities.
+   - **Feature Interdependencies**: check `.specify/memory/features.md` and `.specify/memory/features/` for conflicts or reuse opportunities.
    - **Unknown Resolution**: Address any defined "NEEDS CLARIFICATION" or questions from `$ARGUMENTS`.
    - **Technology Selection**: Verify best practices using the gathered context.
 
@@ -70,3 +70,13 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
 ```
 
 5. **Stop and report**: Report the path of the generated `research.md` and summarize key findings.
+
+## Handoffs
+
+**Before running this command**:
+
+- Run when the plan/spec has open questions that require evidence or repo context confirmation.
+
+**After running this command**:
+
+- Proceed to `/speckit.plan` (or re-run it) to encode research decisions into the technical plan.

@@ -1,6 +1,4 @@
 <!--
-  SOURCE TEMPLATE (development path): templates/feature-details-template.md
-  INSTALLED TEMPLATE (runtime path): .specify/templates/feature-details-template.md
   Do NOT remove placeholder tokens. Each [TOKEN] must be replaced during feature instantiation.
   This template is derived from an actual feature detail file and generalized.
 -->
@@ -50,8 +48,8 @@
 
 ## Related Files
 
-- Specification: .specify/specs/[FEATURE_ID]-[FEATURE_SLUG]/spec.md
-- Feature Index: memory/feature-index.md
+- Specification: .specify/specs/[FEATURE_ID]-[FEATURE_SLUG]/requirements.md
+- Feature Index: memory/features.md
 - Feature Detail: memory/features/[FEATURE_ID].md
 - Quality Checklist: .specify/specs/[FEATURE_ID]-[FEATURE_SLUG]/checklists/requirements.md
 

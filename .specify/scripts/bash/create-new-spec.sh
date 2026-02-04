@@ -237,11 +237,11 @@ else
     >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
 fi
 
-FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
-mkdir -p "$FEATURE_DIR"
+REQUIREMENTS_DIR="$SPECS_DIR/$BRANCH_NAME"
+mkdir -p "$REQUIREMENTS_DIR"
 
 TEMPLATE="$REPO_ROOT/.specify/templates/spec-template.md"
-SPEC_FILE="$FEATURE_DIR/spec.md"
+SPEC_FILE="$REQUIREMENTS_DIR/requirements.md"
 if [ -f "$TEMPLATE" ]; then 
     cp "$TEMPLATE" "$SPEC_FILE"
     

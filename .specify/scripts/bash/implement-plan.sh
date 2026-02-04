@@ -79,7 +79,7 @@ eval $(get_feature_paths)
 check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 
 # Ensure the feature directory exists
-mkdir -p "$FEATURE_DIR"
+mkdir -p "$REQUIREMENTS_DIR"
 
 # Copy plan template if it exists
 TEMPLATE="$REPO_ROOT/.specify/templates/plan-template.md"
@@ -241,26 +241,19 @@ main() {
     # Execute Phase 1: Design & Contracts  
     handle_design_phase "$FEATURE_SPEC" "$DATA_MODEL" "$CONTRACTS_DIR" "$QUICKSTART"
     
-    # Update agent context (for bash agent)
-    AGENT_CONTEXT_SCRIPT="$SCRIPT_DIR/update-agent-context.sh"
-    if [[ -f "$AGENT_CONTEXT_SCRIPT" ]]; then
-        echo "Updating agent context..."
-        "$AGENT_CONTEXT_SCRIPT" "bash" || echo "Agent context update failed (non-fatal)"
-    fi
-    
     # Output results
     if $JSON_MODE; then
         printf '{"FEATURE_SPEC":"%s","IMPL_PLAN":"%s","SPECS_DIR":"%s","BRANCH":"%s","HAS_GIT":"%s","USER_INPUT":"%s"}\n' \
             "$(json_escape "$FEATURE_SPEC")" \
             "$(json_escape "$IMPL_PLAN")" \
-            "$(json_escape "$FEATURE_DIR")" \
+            "$(json_escape "$REQUIREMENTS_DIR")" \
             "$(json_escape "$CURRENT_BRANCH")" \
             "$HAS_GIT" \
             "$(json_escape "$USER_INPUT")"
     else
         echo "FEATURE_SPEC: $FEATURE_SPEC"
         echo "IMPL_PLAN: $IMPL_PLAN" 
-        echo "SPECS_DIR: $FEATURE_DIR"
+        echo "SPECS_DIR: $REQUIREMENTS_DIR"
         echo "BRANCH: $CURRENT_BRANCH"
         echo "HAS_GIT: $HAS_GIT"
         if [ -n "$USER_INPUT" ]; then
