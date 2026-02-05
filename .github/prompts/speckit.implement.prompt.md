@@ -37,7 +37,13 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
      - **STOP** and ask: "Some checklists are incomplete. Do you want to proceed with implementation anyway? (yes/no)"
      - Wait for user response before continuing
      - If user says "no" or "wait" or "stop", halt execution
-     - If user says "yes" or "proceed" or "continue", proceed to step 3
+     - If user says "yes" or "proceed" or "continue":
+       1. **Require a waiver comment** (short risk-acceptance note) before proceeding
+       2. Record the waiver in `REQUIREMENTS_DIR/waivers.md` (create if missing) with:
+          - Date (ISO)
+          - Checklist summary table
+          - Waiver comment
+       3. Proceed to step 3
 
    - **If all checklists are complete**:
      - Display the table showing all checklists passed

@@ -44,17 +44,17 @@ This project includes the following key directories:
 
 ### 功能性 Feature
 
-- alicloud_ecs_instance 资源实现：提供基于 CreateInstance 语义的 ECS 实例资源。
-- OSS Bucket 管理：覆盖桶生命周期与强制删除前的清理策略。
+- **ECS Instance Management**: ECS 实例与其生命周期管理 (create, read, update, delete)。
+- **OSS Bucket Management**: OSS 存储桶生命周期与清理策略管理。
 
 ### 非功能性 Feature
 
-- Go 开发环境：统一 Go 1.20+ 与工具链标准。
-- 分层架构：Resource → Service → API → SDK 严格分层。
-- CWS-Lib-Go 集成：统一 API 调用封装与强类型接口。
-- 本地 SDK 管理：使用 sdk/ 目录固定关键 SDK 版本。
-- 自动化测试套件：单元测试与验收测试覆盖关键流程。
-- 强类型约束：禁止新增弱类型 map 作为请求/响应载体。
+- **Go Development Environment**: 统一 Go 1.20+ 与工具链标准。
+- **Layered Architecture**: Resource -> Service -> API -> SDK 严格分层架构。
+- **CWS-Lib-Go Integration**: 统一 API 调用封装与强类型接口 (cws-lib-go)。
+- **Local SDK Management**: 使用 sdk/ 目录固定关键 SDK 版本。
+- **Automated Testing Suite**: 单元测试与验收测试覆盖关键流程。
+- **Strong Typing Constraints**: 禁止新增弱类型 map 作为请求/响应载体。
 
 Building The Provider
 ---------------------

@@ -33,13 +33,13 @@
 
 **Core Principles Compliance**:
 
-- **I. Layered Architecture & Library-First**: Resource -> Service -> API -> SDK; No direct SDK calls.
-- **II. Standardized Interfaces**: Strong typing (no map[string]interface{}); Encapsulated pagination.
-- **III. Test-First Development**: TDD style; Acceptance tests cover critical flows.
-- **IV. Integration & Contract Testing**: Service layer verification against API contracts; State consistency (WaitFor).
-- **V. Observability & Versioning**: Structured logs; SemVer; English comments/logs.
-- **VI. Continuous Integration**: `make` passes; Quality gates respected.
-- **VII. Feature-Centric Development**: Feature Index is single source of truth; all phases re-evaluate Feature changes.
+- **I. Layered Architecture**: Resource/DataSource -> Service -> API (CWS-Lib-Go) -> SDK
+- **II. Standardized Interfaces**: Strict typing, no map[string]interface{}, encapsulated pagination
+- **III. Test-First Development**: TDD for core logic, integration tests cover critical flows
+- **IV. Integration & Contract Testing**: Service layer interaction verification, WaitFor logic
+- **V. Observability & Versioning**: Structured logs, Semantic Versioning, clear docs
+- **VI. CI/CD & Quality**: Make pass, strictly aligned with specs
+- **VII. Feature-Centric Development**: Feature list is single source of truth; updates traceable
 
 **Gates Status**: [✅ All gates pass / ❌ Specific gate failures with justification]
 
@@ -108,6 +108,7 @@ directories captured above]
 ## Complexity Tracking
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
+> If no violations, explicitly write "N/A" and remove the table.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|

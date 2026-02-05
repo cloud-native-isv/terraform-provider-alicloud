@@ -1,4 +1,16 @@
-This file is a placeholder for the project's **feature registry**. It should be replaced with actual content during development.
+# Feature Index
 
-- Use `/speckit.feature` to create/update the long-lived feature index and per-feature memory under `.specify/memory/`.
-- Use `/speckit.requirements` to create/update the detailed requirements specification for a feature iteration under `.specify/specs/<REQUIREMENTS_KEY>/requirements.md`.
+This index tracks all functional and non-functional features managed within the project. It serves as the central directory for specifications, plans, and implementation status.
+
+**Total Features**: 8
+
+| ID | Name | Description | Status | Feature Details | Last Updated |
+|---|---|---|---|---|---|
+| 001 | ECS Instance Management | ECS 实例与其生命周期管理 (create, read, update, delete) | Implemented | [Details](features/001.md) | 2026-02-06 |
+| 002 | OSS Bucket Management | OSS 存储桶生命周期与清理策略管理 | Implemented | [Details](features/002.md) | 2026-02-06 |
+| 003 | Go Development Environment | 统一 Go 1.20+ 与工具链标准 | Implemented | [Details](features/003.md) | 2026-02-06 |
+| 004 | Layered Architecture | Resource -> Service -> API -> SDK 严格分层架构 | Implemented | [Details](features/004.md) | 2026-02-06 |
+| 005 | CWS-Lib-Go Integration | 统一 API 调用封装与强类型接口 (cws-lib-go) | Implemented | [Details](features/005.md) | 2026-02-06 |
+| 006 | Local SDK Management | 使用 sdk/ 目录固定关键 SDK 版本 | Implemented | [Details](features/006.md) | 2026-02-06 |
+| 007 | Automated Testing Suite | 单元测试与验收测试覆盖关键流程 | Implemented | [Details](features/007.md) | 2026-02-06 |
+| 008 | Strong Typing Constraints | 禁止新增弱类型 map 作为请求/响应载体 | Implemented | [Details](features/008.md) | 2026-02-06 |

@@ -1,10 +1,13 @@
 #!/bin/bash
 set -e
 
-# Source common for logging
+# Load common helpers for Unicode support and shared functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -f "$SCRIPT_DIR/common.sh" ]; then
-  source "$SCRIPT_DIR/common.sh"
+    # shellcheck source=/dev/null
+    source "$SCRIPT_DIR/common.sh"
+    # Ensure UTF-8 locale for better Unicode handling
+    ensure_utf8_locale || true
 fi
 
 if ! command -v log &>/dev/null; then
@@ -14,6 +17,7 @@ fi
 PROJECT_ROOT="$PWD"
 PROJECT_NAME="$(basename "$PROJECT_ROOT")"
 CURRENT_DATE="$(date +%Y-%m-%d)"
+REPO_ROOT="$(git_repo_root)"
 
 TEMPLATE_FILE=".specify/templates/instructions-template.md"
 # Detect template path (User perspective vs Source perspective)
@@ -36,6 +40,7 @@ if [ -f "$SCRIPT_DIR/refresh-tools.sh" ]; then
   "$SCRIPT_DIR/refresh-tools.sh" --system --format markdown > "$TOOLS_DIR/system.md"
   "$SCRIPT_DIR/refresh-tools.sh" --shell --format markdown > "$TOOLS_DIR/shell.md"
   "$SCRIPT_DIR/refresh-tools.sh" --project --format markdown > "$TOOLS_DIR/project.md"
+  gitignore_add_pattern ".ai/tools/*.md" "$REPO_ROOT/.gitignore"
 else
   log warning "refresh-tools.sh not found, skipping tools documentation generation."
 fi

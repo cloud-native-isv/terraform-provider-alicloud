@@ -23,6 +23,7 @@ if ! locale 2>/dev/null | grep -qi 'utf-8'; then
 fi
 
 JSON_MODE=false
+REFRESH_ONLY=false
 SKILL_NAME=""
 DESCRIPTION=""
 CUSTOM_OUTPUT_DIR=""
@@ -34,6 +35,9 @@ while [ $i -le $# ]; do
     case "$arg" in
         --json)
             JSON_MODE=true
+            ;;
+        --refresh-only)
+            REFRESH_ONLY=true
             ;;
         --name)
             if [ $((i + 1)) -gt $# ]; then
@@ -79,6 +83,7 @@ while [ $i -le $# ]; do
             echo ""
             echo "Options:"
             echo "  --json                  Output in JSON format"
+            echo "  --refresh-only          Refresh tools for existing skills only"
             echo "  --name <name>           Skill name"
             echo "  --description, -d <desc> Skill description"
             echo "  --output-dir, -o <dir>  Custom output directory"
@@ -87,6 +92,7 @@ while [ $i -le $# ]; do
             echo "Behavior:"
             echo "  - If skill_string is provided in format 'Name - Description', it parses name and description."
             echo "  - Otherwise, positional arguments are treated as description if name is provided via flag."
+            echo "  - With --refresh-only, only refresh tools for existing skills and exit."
             echo ""
             exit 0
             ;;
@@ -132,6 +138,82 @@ elif [ -z "$DESCRIPTION" ] && [ -n "$STDIN_INPUT" ]; then
     DESCRIPTION="$STDIN_INPUT"
 fi
 
+# Set root dir
+if git rev-parse --show-toplevel >/dev/null 2>&1; then
+    ROOT_DIR=$(git rev-parse --show-toplevel)
+else
+    # Fallback: assume script is in scripts/bash (depth 2)
+    ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
+
+# Determine target directory
+if [ -n "$CUSTOM_OUTPUT_DIR" ]; then
+    SKILLS_DIR="$CUSTOM_OUTPUT_DIR"
+else
+    SKILLS_DIR="$ROOT_DIR/.github/skills"
+fi
+
+refresh_tools_for_target() {
+    local tools_dir="$TARGET_DIR/tools"
+    mkdir -p "$tools_dir"
+
+    if [ -f "$SCRIPT_DIR/refresh-tools.sh" ]; then
+        "$SCRIPT_DIR/refresh-tools.sh" --mcp --format markdown > "$tools_dir/mcp.md"
+        "$SCRIPT_DIR/refresh-tools.sh" --system --format markdown > "$tools_dir/system.md"
+        "$SCRIPT_DIR/refresh-tools.sh" --shell --format markdown > "$tools_dir/shell.md"
+        "$SCRIPT_DIR/refresh-tools.sh" --project --format markdown > "$tools_dir/project.md"
+
+        # Add generated tools docs to .gitignore
+        REPO_ROOT="$(git_repo_root)"
+        if [[ "$TARGET_DIR" == "$REPO_ROOT/"* ]]; then
+            REL_TARGET_DIR="${TARGET_DIR#$REPO_ROOT/}"
+            gitignore_add_pattern "$REL_TARGET_DIR/tools/*.md" "$REPO_ROOT/.gitignore"
+        else
+            gitignore_add_pattern "$TARGET_DIR/tools/*.md" "$REPO_ROOT/.gitignore"
+        fi
+    else
+        echo "Warning: refresh-tools.sh not found, skipping tools documentation generation." >&2
+    fi
+}
+
+# Auto-switch to refresh mode if no skill name determined (implies empty or invalid format)
+if [ -z "$SKILL_NAME" ] && [ "$REFRESH_ONLY" = false ]; then
+    REFRESH_ONLY=true
+    REFRESH_REASON="Notice: Input did not match required formats (Name - Description) or flags. Refreshed existing skills instead."
+fi
+
+if [ "$REFRESH_ONLY" = true ]; then
+    if [ ! -d "$SKILLS_DIR" ]; then
+        report_error "Skills directory not found at $SKILLS_DIR" "$JSON_MODE"
+        exit 1
+    fi
+
+    if [ -n "$SKILL_NAME" ]; then
+        TARGET_DIR="$SKILLS_DIR/$SKILL_NAME"
+        if [ ! -d "$TARGET_DIR" ]; then
+            report_error "Skill directory not found at $TARGET_DIR" "$JSON_MODE"
+            exit 1
+        fi
+        REFRESH_SINGLE=true
+        refresh_tools_for_target
+    fi
+
+    # Refresh all skills
+    for skill_dir in "$SKILLS_DIR"/*; do
+        if [ -d "$skill_dir" ]; then
+            TARGET_DIR="$skill_dir"
+            refresh_tools_for_target
+        fi
+    done
+
+    if [ -n "$REFRESH_REASON" ]; then
+        echo "$REFRESH_REASON"
+    fi
+    
+    echo "All skills refreshed in $SKILLS_DIR"
+    exit 0
+fi
+
 # Validate inputs
 if [ -z "$SKILL_NAME" ]; then
     report_error "Skill name is required. Use --name <name> or 'speckit.skills name - desc'" "$JSON_MODE"
@@ -149,21 +231,6 @@ if [ -z "$DESCRIPTION" ]; then
     DESCRIPTION="Skill for $SKILL_NAME"
 fi
 
-# Set root dir
-if git rev-parse --show-toplevel >/dev/null 2>&1; then
-    ROOT_DIR=$(git rev-parse --show-toplevel)
-else
-    # Fallback: assume script is in scripts/bash (depth 2)
-    ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
-fi
-
-# Determine target directory
-if [ -n "$CUSTOM_OUTPUT_DIR" ]; then
-    SKILLS_DIR="$CUSTOM_OUTPUT_DIR"
-else
-    SKILLS_DIR="$ROOT_DIR/.github/skills"
-fi
-
 TARGET_DIR="$SKILLS_DIR/$SKILL_NAME"
 SKILL_FILE="$TARGET_DIR/SKILL.md"
 
@@ -177,15 +244,7 @@ fi
 create_skill_structure "$TARGET_DIR"
 
 # Create tools directory and populate it
-mkdir -p "$TARGET_DIR/tools"
-if [ -f "$SCRIPT_DIR/refresh-tools.sh" ]; then
-    "$SCRIPT_DIR/refresh-tools.sh" --mcp --format markdown > "$TARGET_DIR/tools/mcp.md"
-    "$SCRIPT_DIR/refresh-tools.sh" --system --format markdown > "$TARGET_DIR/tools/system.md"
-    "$SCRIPT_DIR/refresh-tools.sh" --shell --format markdown > "$TARGET_DIR/tools/shell.md"
-    "$SCRIPT_DIR/refresh-tools.sh" --project --format markdown > "$TARGET_DIR/tools/project.md"
-else
-    echo "Warning: refresh-tools.sh not found, skipping tools documentation generation." >&2
-fi
+refresh_tools_for_target
 
 # Detect template path
 if [ -f "$ROOT_DIR/.specify/templates/skills-template.md" ]; then
@@ -195,55 +254,4 @@ elif [ -f "$ROOT_DIR/templates/skills-template.md" ]; then
 else
     # Fallback default
     TEMPLATE_FILE="$ROOT_DIR/templates/skills-template.md"
-fi
-
-# Define fallback template content
-FALLBACK_TEMPLATE='---
-name: {{SKILL_NAME}}
-description: |
-  {{DESCRIPTION}}
----
-
-# {{SKILL_NAME}}
-
-## Overview
-{{DESCRIPTION}}
-
-## Workflow / Instructions
-1. [Step 1]
-2. [Step 2]
-
-## Available Tools & Resources
-
-### Scripts (`./scripts/`)
-- [Add scripts here]
-
-### References (`./references/`)
-- [Add references here]
-
-### Assets (`./assets/`)
-- [Add assets here]
-'
-
-# Create SKILL.md
-if [ -f "$TEMPLATE_FILE" ]; then
-    TEMPLATE_CONTENT=$(cat "$TEMPLATE_FILE")
-else
-    echo "Warning: Template file not found at $TEMPLATE_FILE. Using built-in fallback." >&2
-    TEMPLATE_CONTENT="$FALLBACK_TEMPLATE"
-fi
-
-export TEMPLATE_CONTENT
-# Use python for safe string replacement
-python3 -c "import os, sys; content = os.environ.get('TEMPLATE_CONTENT', ''); print(content.replace('{{SKILL_NAME}}', sys.argv[1]).replace('{{DESCRIPTION}}', sys.argv[2]))" "$SKILL_NAME" "$DESCRIPTION" > "$SKILL_FILE"
-
-if [ "$JSON_MODE" = true ]; then
-    # Output JSON
-    report_success "Skill created" "\"SKILL_DIR\": \"$TARGET_DIR\", \"SKILL_FILE\": \"$SKILL_FILE\", \"SKILL_NAME\": \"$SKILL_NAME\", \"CREATED\": true" "true"
-else
-    echo "Skill created at: $SKILL_FILE"
-    echo "  ├── SKILL.md"
-    echo "  ├── scripts/"
-    echo "  ├── references/"
-    echo "  └── assets/"
 fi

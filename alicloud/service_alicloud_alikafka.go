@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -1137,10 +1138,204 @@ func (s *KafkaService) DescribeInstance(instanceId string) (*kafka.KafkaInstance
 
 // CreateInstance creates a Kafka instance using CWS-Lib-Go
 func (s *KafkaService) CreateInstance(instance *kafka.KafkaInstance) (*kafka.KafkaInstance, error) {
-	return s.kafkaApi.CreateInstance(instance)
+	result, err := s.kafkaApi.CreateInstance(instance)
+	if err != nil {
+		return nil, err
+	}
+
+	if result != nil && result.InstanceId == "" && instance.Name != nil && *instance.Name != "" {
+		targetName := *instance.Name
+		var foundId string
+
+		_ = resource.Retry(2*time.Minute, func() *resource.RetryError {
+			req := alikafka.CreateGetInstanceListRequest()
+			req.RegionId = s.client.RegionId
+			if instance.ResourceGroupId != "" {
+				req.ResourceGroupId = instance.ResourceGroupId
+			}
+
+			raw, err := s.client.WithAlikafkaClient(func(client *alikafka.Client) (interface{}, error) {
+				return client.GetInstanceList(req)
+			})
+			if err != nil {
+				if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
+					return resource.RetryableError(err)
+				}
+				return resource.NonRetryableError(err)
+			}
+
+			resp, _ := raw.(*alikafka.GetInstanceListResponse)
+			if resp != nil && resp.InstanceList.InstanceVO != nil {
+				for _, v := range resp.InstanceList.InstanceVO {
+					// ServiceStatus 10 means Released
+					if v.Name == targetName && v.ServiceStatus != 10 {
+						foundId = v.InstanceId
+						return nil
+					}
+				}
+			}
+			return resource.RetryableError(fmt.Errorf("instance with name %s not found yet", targetName))
+		})
+
+		if foundId != "" {
+			result.InstanceId = foundId
+		}
+	}
+
+	return result, nil
 }
 
 // UpgradeInstance upgrades a Kafka instance using CWS-Lib-Go
 func (s *KafkaService) UpgradeInstance(instance *kafka.KafkaInstance) error {
 	return s.kafkaApi.UpgradeInstance(instance)
+}
+
+// DescribeTopic retrieves a Kafka topic using CWS-Lib-Go
+func (s *KafkaService) DescribeTopic(instanceId, topicName string) (*kafka.KafkaTopic, error) {
+	var object *kafka.KafkaTopic
+	var err error
+
+	wait := incrementalWait(2*time.Second, 1*time.Second)
+	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+		object, err = s.kafkaApi.GetTopic(instanceId, topicName)
+		if err != nil {
+			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
+				wait()
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, topicName, "GetTopic", AlibabaCloudSdkGoERROR)
+	}
+
+	return object, nil
+}
+
+// DescribeTopicStatus retrieves a Kafka topic status using CWS-Lib-Go
+func (s *KafkaService) DescribeTopicStatus(instanceId, topicName string) (*kafka.TopicStatus, error) {
+	var object *kafka.TopicStatus
+	var err error
+
+	wait := incrementalWait(2*time.Second, 1*time.Second)
+	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+		object, err = s.kafkaApi.GetTopicStatus(instanceId, topicName)
+		if err != nil {
+			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
+				wait()
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, topicName, "GetTopicStatus", AlibabaCloudSdkGoERROR)
+	}
+	return object, nil
+}
+
+// DescribeConsumerGroup retrieves a Kafka consumer group using CWS-Lib-Go
+func (s *KafkaService) DescribeConsumerGroup(instanceId, consumerId string) (*kafka.ConsumerGroup, error) {
+	var object *kafka.ConsumerGroup
+	var err error
+
+	wait := incrementalWait(2*time.Second, 1*time.Second)
+	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
+		object, err = s.kafkaApi.GetConsumerGroup(instanceId, consumerId)
+		if err != nil {
+			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
+				wait()
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, consumerId, "GetConsumerGroup", AlibabaCloudSdkGoERROR)
+	}
+	return object, nil
+}
+
+// DescribeSaslUser retrieves a Kafka SASL user using CWS-Lib-Go
+func (s *KafkaService) DescribeSaslUser(instanceId, username string) (*kafka.SaslUser, error) {
+	var object kafka.SaslUser
+	var err error
+
+	wait := incrementalWait(2*time.Second, 1*time.Second)
+	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+		resp, e := s.kafkaApi.DescribeSaslUsers(context.Background(), s.client.RegionId, instanceId)
+		if e != nil {
+			if IsExpectedErrors(e, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
+				wait()
+				return resource.RetryableError(e)
+			}
+			return resource.NonRetryableError(e)
+		}
+
+		found := false
+		for _, u := range resp.SaslUserList {
+			if u.Username == username {
+				object = u
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return resource.NonRetryableError(WrapErrorf(NotFoundErr("AlikafkaSaslUser", username), NotFoundMsg, ProviderERROR))
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return &object, nil
+}
+
+// DescribeSaslAcl retrieves a Kafka SASL ACL using CWS-Lib-Go
+func (s *KafkaService) DescribeSaslAcl(instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType string) (*kafka.AclRule, error) {
+	var object kafka.AclRule
+	var err error
+
+	wait := incrementalWait(2*time.Second, 1*time.Second)
+	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+		options := map[string]interface{}{
+			"aclResourcePatternType": aclResourcePatternType,
+			"aclOperationType":       aclOperationType,
+		}
+		resp, e := s.kafkaApi.DescribeAcls(context.Background(), s.client.RegionId, instanceId, username, aclResourceType, aclResourceName, options)
+		if e != nil {
+			if IsExpectedErrors(e, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
+				wait()
+				return resource.RetryableError(e)
+			}
+			return resource.NonRetryableError(e)
+		}
+
+		if len(resp.AclList) == 0 {
+			return resource.NonRetryableError(WrapErrorf(NotFoundErr("AlikafkaSaslAcl", username), NotFoundMsg, ProviderERROR))
+		}
+
+		// Exact match check if multiple returned
+		for _, acl := range resp.AclList {
+			if acl.Username == username && acl.AclResourceType == aclResourceType && acl.AclResourceName == aclResourceName {
+				object = acl
+				return nil
+			}
+		}
+		return resource.NonRetryableError(WrapErrorf(NotFoundErr("AlikafkaSaslAcl", username), NotFoundMsg, ProviderERROR))
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return &object, nil
 }

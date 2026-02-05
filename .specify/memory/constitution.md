@@ -1,17 +1,17 @@
 # Terraform Provider Alicloud Constitution
 <!--
-Synced: 2026-02-04
+Synced: 2026-02-06
 -->
 
 <!--
-  Sync Impact Report: (2026-02-04)
-  - Version: 0.0.0 -> 1.0.0
-  - Principles: Defines 7 core principles including Architecture, Testing, and Feature-Centric Development.
-  - Added Sections:
-    - Engineering Standards (Architecture, Strong Typing, State Management, Pagination)
-    - Development Workflow (Verification, Language, File Splitting)
+  Sync Impact Report: (2026-02-06)
+  - Version: 1.0.0 -> 1.0.1
+  - Updates:
+    - Refreshed Constitution Check in plan-template.md
+    - Corrected Principle references in tasks-template.md
   - Templates requiring updates:
-    - /.specify/templates/plan-template.md (Needs to align Constitution Check with new principles)
+    - /.specify/templates/plan-template.md (✅ updated)
+    - /.specify/templates/tasks-template.md (✅ updated)
 -->
 
 ## Core Principles
@@ -101,4 +101,4 @@ This Constitution and the `docs/development_guide.md` are authoritative.
 ### Amendments
 - Changes to these principles require a PR, review, and a version bump of this Constitution.
 
-**Version**: 1.0.0 | **Ratified**: 2026-02-04 | **Last Amended**: 2026-02-04
+**Version**: 1.0.1 | **Ratified**: 2026-02-04 | **Last Amended**: 2026-02-06

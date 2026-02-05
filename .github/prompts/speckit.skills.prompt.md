@@ -14,11 +14,17 @@ Goal: Interactively guide the user to create a high-quality SpecKit Skill, ensur
 
 Execution Steps:
 
-1.  **Initialize Skill Structure**:
-    - Execute `.specify/scripts/bash/create-new-skill.sh --json $ARGUMENTS` (which runs `create-new-skill.sh --json "$ARGUMENTS"`).
-    - Parse JSON output for `SKILL_DIR`, `SKILL_NAME`, `SKILL_DESCRIPTION`.
-    - Detect failure: If script errors, show clear reason and stop.
-    - Confirm success: "Created skill backbone at `SKILL_DIR`."
+1.  **Initialize or Refresh**:
+    - Execute `.specify/scripts/bash/create-new-skill.sh --json $ARGUMENTS`.
+    - Parse JSON output.
+    - **Case 1: Refresh Only** (Input was empty or invalid format):
+        - Output includes `"status": "refreshed"`.
+        - Action: Display the message from `.specify/scripts/bash/create-new-skill.sh --json $ARGUMENTS` output.
+        - **STOP**. (Do not proceed to step 2).
+    - **Case 2: Created Skill**:
+        - Output includes `"SKILL_DIR"`.
+        - Parse `SKILL_DIR`, `SKILL_NAME`, `SKILL_DESCRIPTION`.
+        - Confirm success: "Created skill backbone at `SKILL_DIR`."
 
 2.  **Sequential Configuration Loop (Interactive)**:
     - **Constraint**: Ask **EXACTLY ONE** question at a time. Wait for user response before proceeding.
@@ -59,7 +65,6 @@ Execution Steps:
 4.  **Completion**:
     - Summarize what was created.
     - Verify `SKILL.md` exists.
-    - Mention packaging: "When ready to share, run `.specify/scripts/package_skill.py {SKILL_DIR}`."
 
 ## Handoffs
 

@@ -115,6 +115,18 @@
 
 ---
 
+## 9. Conclusion & Next Steps
+
+- **Priority of recommendations (P0/P1/P2)**: [RECOMMENDATION_PRIORITY]
+- **Proposed owner(s)**: [RECOMMENDATION_OWNERS]
+- **Expected impact**: [RECOMMENDATION_IMPACT]
+
+## 10. Feedback
+
+Please share the contents of this document with the spec-kit framework developers.
+
+---
+
 ## Placeholder Glossary
 
 | Token | Meaning / Source |
@@ -130,6 +142,7 @@
 | [TASKS_*] | Task quality observations derived from `.specify/specs/[REQUIREMENTS_KEY]/tasks.md` |
 | [TRACE_*] | Cross-artifact traceability observations |
 | [IMPROVE_*] | Suggestions for improving speckit/SDD templates, prompts, checks, and workflow |
+| [RECOMMENDATION_*] | Summary-level conclusion fields for priority, owners, and impact |
 
 ## Replacement Rules
 

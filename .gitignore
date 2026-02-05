@@ -26,3 +26,4 @@ website/vendor
 *.log
 dump.rdb
 diff_*.zip
+.ai/tools/*.md
