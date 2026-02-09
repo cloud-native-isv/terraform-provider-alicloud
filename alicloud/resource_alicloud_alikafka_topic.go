@@ -220,7 +220,12 @@ func resourceAliCloudAlikafkaTopicRead(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	object, err := kafkaService.DescribeAlikafkaTopic(d.Id())
+	instanceId, topicName, err := DecodeTopicId(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+
+	object, err := kafkaService.DescribeAlikafkaTopic(instanceId, topicName)
 	if err != nil {
 		// Handle exceptions
 		if NotFoundError(err) {

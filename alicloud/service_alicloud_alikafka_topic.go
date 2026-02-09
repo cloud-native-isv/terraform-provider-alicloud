@@ -90,9 +90,14 @@ func (s *KafkaService) KafkaTopicStatusRefreshFunc(id string) resource.StateRefr
 }
 
 func (s *KafkaService) WaitForAlikafkaTopic(id string, status Status, timeout int) error {
+	instanceId, topicName, err := DecodeTopicId(id)
+	if err != nil {
+		return err
+	}
+
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
-		object, err := s.DescribeAlikafkaTopic(id)
+		object, err := s.DescribeAlikafkaTopic(instanceId, topicName)
 		if err != nil {
 			if NotFoundError(err) {
 				if status == Deleted {
