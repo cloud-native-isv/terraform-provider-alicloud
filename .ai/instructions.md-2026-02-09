@@ -9,9 +9,10 @@ This project documentation is distributed across several key files. You MUST ref
 |----------|----------|---------|-------------|
 | **Constitution** | `.specify/memory/constitution.md` | Single source of truth for principles | Coding standards, architectural rules, constraints |
 | **Feature Index** | `.specify/memory/features.md` | Feature roadmap status | List of project features |
-| **Development** | `docs/development_guide.md` | Setup and Guidelines | Engineering constraints, setup, testing |
-| **Readme** | `README.md` | basic information of project | Project overview, support versions, setup, and build instructions |
+| **Development** | `docs/development_guide.md` | Setup and Guidelines | Setup, testing, and pull request guidelines |
+| **Readme** | `README.md` | basic information of project | Project structure, requirements, and links |
 | **Project Documents** | `docs/` | High-level architecture | Architecture and design documentation |
+| **Wait For State** | `docs/wait_for_state.md` | Best Practices | Guide on handling asynchronous resource states |
 
 > **Directive**: When answering questions or generating code, ALWAYS check the relevant document from the map above first.
 
@@ -22,12 +23,13 @@ This project documentation is distributed across several key files. You MUST ref
 [Detected tech stack from config files]
 - **Languages**: Go 1.20+
 - **Package Manager**: Go Modules
-- **Frameworks**: Terraform Plugin SDK, Alibaba Cloud SDK (Go)
+- **Frameworks**: Terraform Plugin SDK v1, Alibaba Cloud SDK, cws-lib-go
 - **Key Directories**:
-  - `alicloud/`: Main provider resources and data sources
-  - `website/`: Documentation
-  - `examples/`: Example configurations
+  - `alicloud/`: Main provider code
   - `sdk/`: Local copies of Alibaba Cloud service SDKs
+  - `docs/`: Project documentation
+  - `examples/`: Example usage configurations
+  - `bin/`: Compiled provider binaries
 
 # Tool And Skills Usage Guide
 

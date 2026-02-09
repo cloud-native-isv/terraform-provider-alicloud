@@ -2,7 +2,7 @@
 
 This index tracks all functional and non-functional features managed within the project. It serves as the central directory for specifications, plans, and implementation status.
 
-**Total Features**: 8
+**Total Features**: 9
 
 | ID | Name | Description | Status | Feature Details | Last Updated |
 |---|---|---|---|---|---|
@@ -14,3 +14,4 @@ This index tracks all functional and non-functional features managed within the 
 | 006 | Local SDK Management | 使用 sdk/ 目录固定关键 SDK 版本 | Implemented | [Details](features/006.md) | 2026-02-06 |
 | 007 | Automated Testing Suite | 单元测试与验收测试覆盖关键流程 | Implemented | [Details](features/007.md) | 2026-02-06 |
 | 008 | Strong Typing Constraints | 禁止新增弱类型 map 作为请求/响应载体 | Implemented | [Details](features/008.md) | 2026-02-06 |
+| 009 | AliKafka Instance Management | AliKafka 实例与其生命周期管理 | Implemented | [Details](features/009.md) | 2026-02-09 |

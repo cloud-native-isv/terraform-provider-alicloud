@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -211,12 +212,12 @@ func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta inter
 		req.VSwitchIds = v
 	}
 
-	err = kafkaService.StartInstance(req)
+	err = kafkaService.StartAlikafkaInstance(req)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	addDebug("StartInstance", "Success", instanceId)
+	addDebug("StartAlikafkaInstance", "Success", instanceId)
 
 	d.SetId(instanceId)
 
@@ -246,12 +247,12 @@ func resourceAliCloudAlikafkaDeploymentRead(d *schema.ResourceData, meta interfa
 	}
 
 	d.Set("instance_id", object.InstanceId)
-	d.Set("name", object.Name)
+	d.Set("name", tea.StringValue(object.Name))
 	d.Set("vpc_id", object.VpcId)
 	d.Set("vswitch_id", object.VSwitchId)
 	d.Set("zone_id", object.ZoneId)
 	d.Set("security_group", object.SecurityGroup)
-	d.Set("config", object.AllConfig)
+	d.Set("config", object.Config)
 	d.Set("kms_key_id", object.KmsKeyId)
 	d.Set("vswitch_ids", []string{object.VSwitchId})
 
@@ -268,7 +269,7 @@ func resourceAliCloudAlikafkaDeploymentDelete(d *schema.ResourceData, meta inter
 	instanceId := d.Id()
 
 	// Use CWS-Lib-Go API to stop the instance
-	err = kafkaService.StopInstance(&StopInstanceRequest{
+	err = kafkaService.StopAlikafkaInstance(&StopInstanceRequest{
 		InstanceId: instanceId,
 	})
 	if err != nil {

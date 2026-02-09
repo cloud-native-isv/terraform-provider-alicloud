@@ -242,7 +242,7 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		instance.Tags = extractTags(d)
 	}
 
-	createdInstance, err := kafkaService.CreateInstance(instance)
+	createdInstance, err := kafkaService.CreateAlikafkaInstance(instance)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -265,22 +265,22 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	object, err := kafkaService.DescribeInstance(d.Id())
+	object, err := kafkaService.DescribeAlikafkaInstance(d.Id())
 	if err != nil {
 		// Handle exceptions
 		// Note: kafka.NewKafkaError produces error that might not satisfy NotFoundError directly unless unwrapped or checked via strings
 		// Assuming NotFoundError handles it or we check message
 		if !d.IsNewResource() && (NotFoundError(err) || strings.Contains(err.Error(), "not found")) {
-			log.Printf("[DEBUG] Resource alicloud_alikakfa_instance kafkaService.DescribeInstance Failed!!! %s", err)
+			log.Printf("[DEBUG] Resource alicloud_alikakfa_instance kafkaService.DescribeAlikafkaInstance Failed!!! %s", err)
 			d.SetId("")
 			return nil
 		}
 		return WrapError(err)
 	}
 
-	d.Set("name", tea.StringValue(object.Name))
+	d.Set("name", tea.StringValue(object.Name)) // object.Name is *string
 	if object.DiskType != nil {
-		d.Set("disk_type", fmt.Sprint(int(*object.DiskType)))
+		d.Set("disk_type", fmt.Sprint(*object.DiskType)) // int -> string
 	}
 	d.Set("disk_size", tea.IntValue(object.DiskSize))
 	if object.DeployType != nil {
@@ -296,18 +296,28 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("spec_type", tea.StringValue(object.SpecType))
 	d.Set("security_group", object.SecurityGroup)
 	d.Set("end_point", object.EndPoint)
-	d.Set("ssl_endpoint", object.SslEndPoint)
+	d.Set("domain_endpoint", object.DomainEndpoint)
+	d.Set("ssl_endpoint", object.SslEndPoint) // Field in VO is SslEndPoint
+	d.Set("ssl_domain_endpoint", object.SslDomainEndpoint)
+	d.Set("sasl_domain_endpoint", object.SaslDomainEndpoint)
+	// d.Set("service_version", object.ServiceVersion) // Missing in VO
+	d.Set("config", object.Config)
 
-	d.Set("status", object.Status)
+	d.Set("status", object.ServiceStatus) // ServiceStatus in VO (int)
 
 	d.Set("kms_key_id", object.KmsKeyId)
 
 	// Set service version and other fields if available
-	if object.Version != "" {
-		d.Set("service_version", object.Version)
+	// if object.Version != "" {
+	// 	d.Set("service_version", object.Version)
+	// }
+
+	tags, err := kafkaService.DescribeTags(d.Id(), nil, TagResourceInstance)
+	if err != nil {
+		return WrapError(err)
 	}
 
-	// tags, err := kafkaService.DescribeTags(d.Id(), nil, TagResourceInstance)
+	d.Set("tags", kafkaService.tagsToMap(tags))
 	// if err != nil {
 	// 	return WrapError(err)
 	// }
@@ -340,11 +350,11 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			instance.Name = tea.String(v.(string))
 		}
 
-		err = kafkaService.UpdateInstance(instance)
+		err = kafkaService.UpdateAlikafkaInstance(instance)
 		if err != nil {
 			return WrapError(err)
 		}
-		addDebug("UpdateInstance", "Success", instance)
+		addDebug("UpdateAlikafkaInstance", "Success", instance)
 
 		d.SetPartial("name")
 	}
@@ -464,12 +474,12 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 			instance.Duration = tea.Int(v.(int))
 		}
 
-		err = kafkaService.UpgradeInstance(instance)
+		err = kafkaService.UpgradeAlikafkaInstance(instance)
 		if err != nil {
 			return WrapError(err)
 		}
 
-		addDebug("UpgradeInstance", "Success", instance)
+		addDebug("UpgradeAlikafkaInstance", "Success", instance)
 
 		// Wait for update to complete using the new wait function
 		err = kafkaService.WaitForAliKafkaInstanceUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate))
