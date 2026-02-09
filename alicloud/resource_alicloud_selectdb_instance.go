@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -930,6 +931,9 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 			}
 			multiZoneList = append(multiZoneList, multiZone)
 		}
+		sort.Slice(multiZoneList, func(i, j int) bool {
+			return multiZoneList[i]["zone_id"].(string) < multiZoneList[j]["zone_id"].(string)
+		})
 		d.Set("multi_zone", multiZoneList)
 	} else {
 		d.Set("multi_zone", []map[string]interface{}{})

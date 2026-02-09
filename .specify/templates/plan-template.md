@@ -33,13 +33,13 @@
 
 **Core Principles Compliance**:
 
-- **I. Layered Architecture**: Resource/DataSource -> Service -> API (CWS-Lib-Go) -> SDK
-- **II. Standardized Interfaces**: Strict typing, no map[string]interface{}, encapsulated pagination
-- **III. Test-First Development**: TDD for core logic, integration tests cover critical flows
-- **IV. Integration & Contract Testing**: Service layer interaction verification, WaitFor logic
-- **V. Observability & Versioning**: Structured logs, Semantic Versioning, clear docs
-- **VI. CI/CD & Quality**: Make pass, strictly aligned with specs
-- **VII. Feature-Centric Development**: Feature list is single source of truth; updates traceable
+- **Feature-Centric Development**: Feature Index is single source of truth; all phases re-evaluate Feature changes.
+- **Specification-Driven Development**: Code serves specifications; specifications are executable and generate working systems
+- **Intent-Driven Development**: Focus on "what" and "why" before "how"; use rich specifications with guardrails
+- **Test-First & Contract-Driven**: TDD flow followed; pure functions have unit tests; critical flows have regression coverage
+- **AI Agent Integration**: Only approved agents (GitHub Copilot, Qwen Code, opencode); configuration rejects unsupported providers
+- **Continuous Quality & Observability**: Structured logging; semantic versioning; CI quality gates; simple designs (YAGNI)
+- **SDD Workflow Compliance**: Follow spec → plan → tasks → implement workflow with proper validation at each phase
 
 **Gates Status**: [✅ All gates pass / ❌ Specific gate failures with justification]
 

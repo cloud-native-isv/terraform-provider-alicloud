@@ -9,8 +9,6 @@ description: |
 ## Overview
 Briefly describe what this skill does. (Conciseness is key!)
 
-## 适用场景
-
 ## Workflow / Instructions
 1. Step 1
 2. Step 2

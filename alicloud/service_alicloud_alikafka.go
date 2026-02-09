@@ -1138,7 +1138,50 @@ func (s *KafkaService) DescribeInstance(instanceId string) (*kafka.KafkaInstance
 
 // CreateInstance creates a Kafka instance using CWS-Lib-Go
 func (s *KafkaService) CreateInstance(instance *kafka.KafkaInstance) (*kafka.KafkaInstance, error) {
-	result, err := s.kafkaApi.CreateInstance(instance)
+	config := kafka.InstanceCreationConfig{
+		RegionId:        instance.RegionId,
+		ResourceGroupId: instance.ResourceGroupId,
+		Tags:            instance.Tags,
+	}
+
+	if instance.Name != nil {
+		config.Name = *instance.Name
+	}
+	if instance.Description != nil {
+		config.Description = *instance.Description
+	}
+	if instance.ZoneId != "" {
+		config.ZoneId = instance.ZoneId
+	}
+	if instance.VpcId != "" {
+		config.VpcId = instance.VpcId
+	}
+	if instance.VSwitchId != "" {
+		config.VSwitchId = instance.VSwitchId
+	}
+	if instance.SpecType != nil {
+		config.SpecType = *instance.SpecType
+	}
+	if instance.DiskType != nil {
+		config.DiskType = fmt.Sprintf("%d", *instance.DiskType)
+	}
+	if instance.DiskSize != nil {
+		config.DiskSize = *instance.DiskSize
+	}
+	if instance.PartitionNum != nil {
+		config.PartitionNum = *instance.PartitionNum
+	}
+	if instance.IoMaxSpec != nil {
+		config.IoMaxSpec = *instance.IoMaxSpec
+	}
+	if instance.DeployType != nil {
+		config.DeployType = int(*instance.DeployType)
+	}
+	if instance.EipMax != nil {
+		config.EipMax = *instance.EipMax
+	}
+
+	result, err := s.kafkaApi.CreateInstance(config)
 	if err != nil {
 		return nil, err
 	}
@@ -1182,7 +1225,10 @@ func (s *KafkaService) CreateInstance(instance *kafka.KafkaInstance) (*kafka.Kaf
 		}
 	}
 
-	return result, nil
+	return &kafka.KafkaInstance{
+		InstanceId: result.InstanceId,
+		RegionId:   config.RegionId,
+	}, nil
 }
 
 // UpgradeInstance upgrades a Kafka instance using CWS-Lib-Go

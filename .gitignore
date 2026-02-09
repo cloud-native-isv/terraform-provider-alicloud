@@ -27,3 +27,10 @@ website/vendor
 dump.rdb
 diff_*.zip
 .ai/tools/*.md
+
+# Python specific
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
