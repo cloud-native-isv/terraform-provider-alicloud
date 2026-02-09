@@ -37,6 +37,13 @@ terraform-provider-alicloud
 
 Service 层包含一个或多个 Go 文件，包含针对资源对象的增删改查方法和状态刷新方法。
 
+#### 1.1.1 AliKafka 分层约束
+
+- AliKafka 相关 Resource 只能通过 `KafkaService` 调用，不得直接调用 SDK/RPC。
+- 服务层优先使用 CWS-Lib-Go 强类型；如需扩展能力，先补齐服务层方法。
+- 分页与重试逻辑应封装在服务层（或 CWS-Lib-Go API 层），资源层不得自行处理分页/重试。
+- 资源 ID 编解码统一维护在 `service_alicloud_alikafka_types.go`。
+
 ### 1.2 Service层API调用规范
 
 #### 1.2.1 ✅ 推荐：CWS-Lib-Go封装调用

@@ -1,8 +1,6 @@
 package alicloud
 
 import (
-	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -11,21 +9,31 @@ import (
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
 
-// EncodeConsumerGroupId 将实例ID和消费者组ID编码为单一ID字符串
-// 格式: instanceId:consumerId
-func EncodeConsumerGroupId(instanceId, consumerId string) string {
-	return fmt.Sprintf("%s:%s", instanceId, consumerId)
-}
-
-// DecodeConsumerGroupId 解析消费者组ID字符串为实例ID和消费者组ID组件
-func DecodeConsumerGroupId(id string) (string, string, error) {
-	parts := regexp.MustCompile(`^([^\:]+):(.+)$`).FindStringSubmatch(id)
-	if len(parts) != 3 {
-		return "", "", fmt.Errorf("invalid consumer group ID format, expected instanceId:consumerId, got %s", id)
+// ListAlikafkaConsumerGroups lists Kafka consumer groups using CWS-Lib-Go
+func (s *KafkaService) ListAlikafkaConsumerGroups(instanceId string) ([]*kafka.ConsumerGroup, error) {
+	groups, err := s.kafkaApi.ListConsumerGroups(instanceId)
+	if err != nil {
+		return nil, WrapError(err)
 	}
-	return parts[1], parts[2], nil
+	return groups, nil
 }
 
+// CreateAlikafkaConsumerGroup creates a consumer group using CWS-Lib-Go
+func (s *KafkaService) CreateAlikafkaConsumerGroup(instanceId, consumerGroupId, description string, tags map[string]string) (*kafka.ConsumerGroup, error) {
+	group, err := s.kafkaApi.CreateConsumerGroup(instanceId, s.client.RegionId, consumerGroupId, description, tags)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return group, nil
+}
+
+// DeleteAlikafkaConsumerGroup deletes a consumer group using CWS-Lib-Go
+func (s *KafkaService) DeleteAlikafkaConsumerGroup(instanceId, consumerGroupId string) error {
+	if err := s.kafkaApi.DeleteConsumerGroup(instanceId, s.client.RegionId, consumerGroupId); err != nil {
+		return WrapError(err)
+	}
+	return nil
+}
 
 func (s *KafkaService) DescribeAlikafkaConsumerGroup(id string) (*alikafka.ConsumerVO, error) {
 	alikafkaConsumerGroup := &alikafka.ConsumerVO{}
@@ -73,7 +81,6 @@ func (s *KafkaService) DescribeAlikafkaConsumerGroup(id string) (*alikafka.Consu
 	return alikafkaConsumerGroup, WrapErrorf(NotFoundErr("AlikafkaConsumerGroup", id), NotFoundMsg, ProviderERROR)
 }
 
-
 func (s *KafkaService) WaitForAlikafkaConsumerGroup(id string, status Status, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	for {
@@ -99,27 +106,15 @@ func (s *KafkaService) WaitForAlikafkaConsumerGroup(id string, status Status, ti
 	}
 }
 
-
 // DescribeConsumerGroup retrieves a Kafka consumer group using CWS-Lib-Go
 func (s *KafkaService) DescribeConsumerGroup(instanceId, consumerId string) (*kafka.ConsumerGroup, error) {
 	var object *kafka.ConsumerGroup
-	var err error
-
-	wait := incrementalWait(2*time.Second, 1*time.Second)
-	err = resource.Retry(10*time.Minute, func() *resource.RetryError {
+	if err := s.retryWithCommonErrors(10*time.Minute, func() error {
+		var err error
 		object, err = s.kafkaApi.GetConsumerGroup(instanceId, consumerId)
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	if err != nil {
+		return err
+	}); err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, consumerId, "GetConsumerGroup", AlibabaCloudSdkGoERROR)
 	}
 	return object, nil
 }
-

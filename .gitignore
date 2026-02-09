@@ -28,6 +28,20 @@ dump.rdb
 diff_*.zip
 .ai/tools/*.md
 
+# Universal
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
+
+# Go build artifacts
+*.exe
+*.test
+*.out
+vendor/
+
 # Python specific
 __pycache__/
 *.py[cod]

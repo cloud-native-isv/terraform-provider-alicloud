@@ -2,8 +2,6 @@ package alicloud
 
 import (
 	"context"
-	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -12,36 +10,36 @@ import (
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
 
-// EncodeSaslUserId 将实例ID和用户名编码为单一ID字符串
-// 格式: instanceId:username
-func EncodeSaslUserId(instanceId, username string) string {
-	return fmt.Sprintf("%s:%s", instanceId, username)
-}
-
-// DecodeSaslUserId 解析SASL用户ID字符串为实例ID和用户名组件
-func DecodeSaslUserId(id string) (string, string, error) {
-	parts := regexp.MustCompile(`^([^\:]+):(.+)$`).FindStringSubmatch(id)
-	if len(parts) != 3 {
-		return "", "", fmt.Errorf("invalid SASL user ID format, expected instanceId:username, got %s", id)
+// CreateAlikafkaSaslUser creates a SASL user using CWS-Lib-Go
+func (s *KafkaService) CreateAlikafkaSaslUser(instanceId, username, password string, options map[string]interface{}) error {
+	if options == nil {
+		options = map[string]interface{}{}
 	}
-	return parts[1], parts[2], nil
-}
-
-// EncodeSaslAclId 将SASL ACL的所有组件编码为单一ID字符串
-// 格式: instanceId:username:aclResourceType:aclResourceName:aclResourcePatternType:aclOperationType
-func EncodeSaslAclId(instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType string) string {
-	return fmt.Sprintf("%s:%s:%s:%s:%s:%s", instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType)
-}
-
-// DecodeSaslAclId 解析SASL ACL ID字符串为所有组件
-func DecodeSaslAclId(id string) (string, string, string, string, string, string, error) {
-	parts := regexp.MustCompile(`^([^\:]+):([^\:]+):([^\:]+):([^\:]+):([^\:]+):(.+)$`).FindStringSubmatch(id)
-	if len(parts) != 7 {
-		return "", "", "", "", "", "", fmt.Errorf("invalid SASL ACL ID format, expected instanceId:username:aclResourceType:aclResourceName:aclResourcePatternType:aclOperationType, got %s", id)
+	if err := s.kafkaApi.CreateSaslUser(context.Background(), s.client.RegionId, instanceId, username, password, options); err != nil {
+		return WrapError(err)
 	}
-	return parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], nil
+	return nil
 }
 
+// DeleteAlikafkaSaslUser deletes a SASL user using CWS-Lib-Go
+func (s *KafkaService) DeleteAlikafkaSaslUser(instanceId, username string, options map[string]interface{}) error {
+	if options == nil {
+		options = map[string]interface{}{}
+	}
+	if err := s.kafkaApi.DeleteSaslUser(context.Background(), s.client.RegionId, instanceId, username, options); err != nil {
+		return WrapError(err)
+	}
+	return nil
+}
+
+// ListAlikafkaSaslUsers lists SASL users using CWS-Lib-Go
+func (s *KafkaService) ListAlikafkaSaslUsers(instanceId string) ([]kafka.SaslUser, error) {
+	resp, err := s.kafkaApi.DescribeSaslUsers(context.Background(), s.client.RegionId, instanceId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return resp.SaslUserList, nil
+}
 
 func (s *KafkaService) DescribeAlikafkaSaslUser(id string) (*alikafka.SaslUserVO, error) {
 	alikafkaSaslUser := &alikafka.SaslUserVO{}
@@ -90,7 +88,6 @@ func (s *KafkaService) DescribeAlikafkaSaslUser(id string) (*alikafka.SaslUserVO
 	return alikafkaSaslUser, WrapErrorf(NotFoundErr("AlikafkaSaslUser", id), NotFoundMsg, ProviderERROR)
 }
 
-
 func (s *KafkaService) WaitForAlikafkaSaslUser(id string, status Status, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
 	parts, err := ParseResourceId(id, 2)
@@ -121,42 +118,24 @@ func (s *KafkaService) WaitForAlikafkaSaslUser(id string, status Status, timeout
 	}
 }
 
-
 // DescribeSaslUser retrieves a Kafka SASL user using CWS-Lib-Go
 func (s *KafkaService) DescribeSaslUser(instanceId, username string) (*kafka.SaslUser, error) {
 	var object kafka.SaslUser
-	var err error
-
-	wait := incrementalWait(2*time.Second, 1*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+	if err := s.retryWithCommonErrors(5*time.Minute, func() error {
 		resp, e := s.kafkaApi.DescribeSaslUsers(context.Background(), s.client.RegionId, instanceId)
 		if e != nil {
-			if IsExpectedErrors(e, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-				wait()
-				return resource.RetryableError(e)
-			}
-			return resource.NonRetryableError(e)
+			return e
 		}
 
-		found := false
 		for _, u := range resp.SaslUserList {
 			if u.Username == username {
 				object = u
-				found = true
-				break
+				return nil
 			}
 		}
-
-		if !found {
-			return resource.NonRetryableError(WrapErrorf(NotFoundErr("AlikafkaSaslUser", username), NotFoundMsg, ProviderERROR))
-		}
-
-		return nil
-	})
-
-	if err != nil {
+		return WrapErrorf(NotFoundErr("AlikafkaSaslUser", username), NotFoundMsg, ProviderERROR)
+	}); err != nil {
 		return nil, err
 	}
 	return &object, nil
 }
-

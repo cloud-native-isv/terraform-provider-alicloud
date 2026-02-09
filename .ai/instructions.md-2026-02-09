@@ -9,10 +9,10 @@ This project documentation is distributed across several key files. You MUST ref
 |----------|----------|---------|-------------|
 | **Constitution** | `.specify/memory/constitution.md` | Single source of truth for principles | Coding standards, architectural rules, constraints |
 | **Feature Index** | `.specify/memory/features.md` | Feature roadmap status | List of project features |
-| **Development** | `docs/development_guide.md` | Setup and Guidelines | Setup, testing, and pull request guidelines |
-| **Readme** | `README.md` | basic information of project | Project structure, requirements, and links |
+| **Development** | `CONTRIBUTING.md` | Setup and Guidelines | Setup, testing, and pull request guidelines |
+| **Readme** | `README.md` or `README` | basic information of project | {TODO} |
 | **Project Documents** | `docs/` | High-level architecture | Architecture and design documentation |
-| **Wait For State** | `docs/wait_for_state.md` | Best Practices | Guide on handling asynchronous resource states |
+| [Other Doc] | [Path] | [Purpose] | [Summary] |
 
 > **Directive**: When answering questions or generating code, ALWAYS check the relevant document from the map above first.
 
@@ -21,15 +21,13 @@ This project documentation is distributed across several key files. You MUST ref
 - **Root Path**: /cws_data/terraform-provider-alicloud
 
 [Detected tech stack from config files]
-- **Languages**: Go 1.20+
-- **Package Manager**: Go Modules
-- **Frameworks**: Terraform Plugin SDK v1, Alibaba Cloud SDK, cws-lib-go
+- **Languages**: [e.g. Python 3.11+]
+- **Package Manager**: [e.g. uv]
+- **Frameworks**: [e.g. FastAPI, React]
 - **Key Directories**:
-  - `alicloud/`: Main provider code
-  - `sdk/`: Local copies of Alibaba Cloud service SDKs
-  - `docs/`: Project documentation
-  - `examples/`: Example usage configurations
-  - `bin/`: Compiled provider binaries
+  - `src/`: Source code
+  - `tests/`: Test suite
+  - [Other detected dirs]
 
 # Tool And Skills Usage Guide
 

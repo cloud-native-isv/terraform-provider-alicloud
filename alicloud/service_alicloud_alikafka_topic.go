@@ -1,8 +1,6 @@
 package alicloud
 
 import (
-	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -11,19 +9,45 @@ import (
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
 
-// EncodeTopicId 将实例ID和主题名称编码为单一ID字符串
-// 格式: instanceId:topic
-func EncodeTopicId(instanceId, topic string) string {
-	return fmt.Sprintf("%s:%s", instanceId, topic)
+// CreateAlikafkaTopic creates a Kafka topic using CWS-Lib-Go
+func (s *KafkaService) CreateAlikafkaTopic(topic *kafka.KafkaTopic) error {
+	if err := s.kafkaApi.CreateTopic(topic); err != nil {
+		return WrapError(err)
+	}
+	return nil
 }
 
-// DecodeTopicId 解析主题ID字符串为实例ID和主题名称组件
-func DecodeTopicId(id string) (string, string, error) {
-	parts := regexp.MustCompile(`^([^\:]+):(.+)$`).FindStringSubmatch(id)
-	if len(parts) != 3 {
-		return "", "", fmt.Errorf("invalid topic ID format, expected instanceId:topic, got %s", id)
+// DeleteAlikafkaTopic deletes a Kafka topic using CWS-Lib-Go
+func (s *KafkaService) DeleteAlikafkaTopic(instanceId, topicName string) error {
+	if err := s.kafkaApi.DeleteTopic(instanceId, topicName); err != nil {
+		return WrapError(err)
 	}
-	return parts[1], parts[2], nil
+	return nil
+}
+
+// ListAlikafkaTopics lists Kafka topics using CWS-Lib-Go
+func (s *KafkaService) ListAlikafkaTopics(instanceId string) ([]*kafka.KafkaTopic, error) {
+	topics, err := s.kafkaApi.ListTopics(instanceId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return topics, nil
+}
+
+// ModifyAlikafkaTopicRemark updates a topic remark using CWS-Lib-Go
+func (s *KafkaService) ModifyAlikafkaTopicRemark(instanceId, topicName, remark string) error {
+	if err := s.kafkaApi.ModifyTopicRemark(instanceId, topicName, remark); err != nil {
+		return WrapError(err)
+	}
+	return nil
+}
+
+// ModifyAlikafkaTopicPartitions updates topic partition count using CWS-Lib-Go
+func (s *KafkaService) ModifyAlikafkaTopicPartitions(instanceId, topicName string, addPartitionNum int32) error {
+	if err := s.kafkaApi.ModifyPartitionNum(instanceId, topicName, s.client.RegionId, addPartitionNum); err != nil {
+		return WrapError(err)
+	}
+	return nil
 }
 
 func (s *KafkaService) DescribeAlikafkaTopicStatus(id string) (*alikafka.TopicStatus, error) {
@@ -122,22 +146,11 @@ func (s *KafkaService) WaitForAlikafkaTopic(id string, status Status, timeout in
 // DescribeAlikafkaTopic retrieves a Kafka topic using CWS-Lib-Go
 func (s *KafkaService) DescribeAlikafkaTopic(instanceId, topicName string) (*kafka.KafkaTopic, error) {
 	var object *kafka.KafkaTopic
-	var err error
-
-	wait := incrementalWait(2*time.Second, 1*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+	if err := s.retryWithCommonErrors(5*time.Minute, func() error {
+		var err error
 		object, err = s.kafkaApi.GetTopic(instanceId, topicName)
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-
-	if err != nil {
+		return err
+	}); err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, topicName, "GetTopic", AlibabaCloudSdkGoERROR)
 	}
 
@@ -147,22 +160,11 @@ func (s *KafkaService) DescribeAlikafkaTopic(instanceId, topicName string) (*kaf
 // DescribeTopicStatus retrieves a Kafka topic status using CWS-Lib-Go
 func (s *KafkaService) DescribeTopicStatus(instanceId, topicName string) (*kafka.TopicStatus, error) {
 	var object *kafka.TopicStatus
-	var err error
-
-	wait := incrementalWait(2*time.Second, 1*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+	if err := s.retryWithCommonErrors(5*time.Minute, func() error {
+		var err error
 		object, err = s.kafkaApi.GetTopicStatus(instanceId, topicName)
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-
-	if err != nil {
+		return err
+	}); err != nil {
 		return nil, WrapErrorf(err, DefaultErrorMsg, topicName, "GetTopicStatus", AlibabaCloudSdkGoERROR)
 	}
 	return object, nil

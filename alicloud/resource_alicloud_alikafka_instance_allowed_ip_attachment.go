@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -50,41 +49,21 @@ func resourceAliCloudAliKafkaInstanceAllowedIpAttachment() *schema.Resource {
 
 func resourceAliCloudAliKafkaInstanceAllowedIpAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var response map[string]interface{}
-	action := "UpdateAllowedIp"
-	request := make(map[string]interface{})
-	var err error
-
-	request["RegionId"] = client.RegionId
-	request["UpdateType"] = "add"
-	request["InstanceId"] = d.Get("instance_id")
-	request["AllowedListType"] = d.Get("allowed_type")
-	request["PortRange"] = d.Get("port_range")
-	request["AllowedListIp"] = d.Get("allowed_ip")
-
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutCreate)), func() *resource.RetryError {
-		response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
+	kafkaService, err := NewKafkaService(client)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_alikafka_instance_allowed_ip_attachment", action, AlibabaCloudSdkGoERROR)
+		return WrapError(err)
 	}
 
-	if fmt.Sprint(response["Success"]) == "false" {
-		return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+	instanceId := d.Get("instance_id").(string)
+	allowedType := d.Get("allowed_type").(string)
+	portRange := d.Get("port_range").(string)
+	allowedIp := d.Get("allowed_ip").(string)
+
+	if err := kafkaService.AttachAlikafkaAllowedIp(instanceId, allowedType, portRange, allowedIp, ""); err != nil {
+		return WrapError(err)
 	}
 
-	d.SetId(fmt.Sprintf("%v:%v:%v:%v", request["InstanceId"], request["AllowedListType"], request["PortRange"], request["AllowedListIp"]))
+	d.SetId(fmt.Sprintf("%v:%v:%v:%v", instanceId, allowedType, portRange, allowedIp))
 
 	return resourceAliCloudAliKafkaInstanceAllowedIpAttachmentRead(d, meta)
 }
@@ -116,48 +95,21 @@ func resourceAliCloudAliKafkaInstanceAllowedIpAttachmentRead(d *schema.ResourceD
 
 func resourceAliCloudAliKafkaInstanceAllowedIpAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	action := "UpdateAllowedIp"
-	var response map[string]interface{}
-
-	var err error
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
 	parts, err := ParseResourceId(d.Id(), 4)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	request := map[string]interface{}{
-		"RegionId":        client.RegionId,
-		"UpdateType":      "delete",
-		"InstanceId":      parts[0],
-		"AllowedListType": parts[1],
-		"PortRange":       parts[2],
-		"AllowedListIp":   parts[3],
-	}
-
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(client.GetRetryTimeout(d.Timeout(schema.TimeoutDelete)), func() *resource.RetryError {
-		response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, true)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-
-	if err != nil {
+	if err := kafkaService.DetachAlikafkaAllowedIp(parts[0], parts[1], parts[2], parts[3], ""); err != nil {
 		if NotFoundError(err) {
 			return nil
 		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-	}
-
-	if fmt.Sprint(response["Success"]) == "false" {
-		return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+		return WrapError(err)
 	}
 
 	return nil

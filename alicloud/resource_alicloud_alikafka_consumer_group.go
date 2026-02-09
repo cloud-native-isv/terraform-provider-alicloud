@@ -3,10 +3,8 @@ package alicloud
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -44,37 +42,27 @@ func resourceAliCloudAlikafkaConsumerGroup() *schema.Resource {
 
 func resourceAliCloudAlikafkaConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	var response map[string]interface{}
-	action := "CreateConsumerGroup"
-	request := make(map[string]interface{})
-	var err error
-	request["ConsumerId"] = d.Get("consumer_id")
-	request["InstanceId"] = d.Get("instance_id")
-	request["RegionId"] = client.RegionId
-	if v, ok := d.GetOk("description"); ok {
-		request["Remark"] = v
-	}
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
+	kafkaService, err := NewKafkaService(client)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_alikafka_consumer_group", action, AlibabaCloudSdkGoERROR)
-	}
-	if fmt.Sprint(response["Success"]) == "false" {
-		return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+		return WrapError(err)
 	}
 
-	d.SetId(fmt.Sprint(request["InstanceId"], ":", request["ConsumerId"]))
+	instanceId := d.Get("instance_id").(string)
+	consumerId := d.Get("consumer_id").(string)
+	remark := ""
+	if v, ok := d.GetOk("description"); ok {
+		remark = v.(string)
+	}
+
+	if _, err := kafkaService.CreateAlikafkaConsumerGroup(instanceId, consumerId, remark, extractTags(d)); err != nil {
+		return WrapError(err)
+	}
+
+	d.SetId(fmt.Sprint(instanceId, ":", consumerId))
+
+	if err := kafkaService.WaitForAlikafkaConsumerGroup(d.Id(), Running, int(d.Timeout(schema.TimeoutCreate).Seconds())); err != nil {
+		return WrapError(err)
+	}
 
 	return resourceAliCloudAlikafkaConsumerGroupUpdate(d, meta)
 }
@@ -133,32 +121,8 @@ func resourceAliCloudAlikafkaConsumerGroupDelete(d *schema.ResourceData, meta in
 	if err != nil {
 		return WrapError(err)
 	}
-	action := "DeleteConsumerGroup"
-	var response map[string]interface{}
-	request := map[string]interface{}{
-		"ConsumerId": parts[1],
-		"InstanceId": parts[0],
-	}
-
-	request["RegionId"] = client.RegionId
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		response, err = client.RpcPost("alikafka", "2019-09-16", action, nil, request, false)
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) || NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-	addDebug(action, response, request)
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
-	}
-	if fmt.Sprint(response["Success"]) == "false" {
-		return WrapError(fmt.Errorf("%s failed, response: %v", action, response))
+	if err := kafkaService.DeleteAlikafkaConsumerGroup(parts[0], parts[1]); err != nil {
+		return WrapError(err)
 	}
 	return WrapError(kafkaService.WaitForAlikafkaConsumerGroup(d.Id(), Deleted, DefaultTimeoutMedium))
 }

@@ -606,8 +606,20 @@ func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interfa
 		return nil
 	}
 
-	// Instance delete is not implemented against Kafka API in this provider.
-	// Keep a no-op delete to allow Terraform state removal without remote call.
+	client := meta.(*connectivity.AliyunClient)
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	if err := kafkaService.DeleteAlikafkaInstance(d.Id()); err != nil {
+		return WrapError(err)
+	}
+
+	if err := kafkaService.WaitForAlikafkaInstance(d.Id(), Deleted, int(d.Timeout(schema.TimeoutDelete).Seconds())); err != nil {
+		return WrapError(err)
+	}
+
 	return nil
 }
 

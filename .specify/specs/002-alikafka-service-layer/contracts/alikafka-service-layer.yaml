@@ -1,0 +1,209 @@
+openapi: 3.0.3
+info:
+  title: AliKafka Service Layer Contracts
+  version: 1.0.0
+  description: |
+    以服务层为边界的内部操作契约，用于统一资源层对 AliKafka 资源的核心生命周期操作调用。
+    该契约不代表对外 API，仅用于规范服务层能力与输入输出结构。
+paths:
+  /alikafka/instances:
+    post:
+      summary: Create instance
+      responses:
+        "200": { description: Instance created }
+    get:
+      summary: List instances
+      responses:
+        "200": { description: Instances listed }
+  /alikafka/instances/{instanceId}:
+    get:
+      summary: Describe instance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Instance details }
+    delete:
+      summary: Delete instance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Instance deleted }
+  /alikafka/instances/{instanceId}/topics:
+    post:
+      summary: Create topic
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Topic created }
+    get:
+      summary: List topics
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Topics listed }
+  /alikafka/instances/{instanceId}/topics/{topicName}:
+    get:
+      summary: Describe topic
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: topicName
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Topic details }
+    delete:
+      summary: Delete topic
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: topicName
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Topic deleted }
+  /alikafka/instances/{instanceId}/sasl-users:
+    post:
+      summary: Create SASL user
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: SASL user created }
+    get:
+      summary: List SASL users
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: SASL users listed }
+  /alikafka/instances/{instanceId}/sasl-users/{userName}:
+    get:
+      summary: Describe SASL user
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: userName
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: SASL user details }
+    delete:
+      summary: Delete SASL user
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: userName
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: SASL user deleted }
+  /alikafka/instances/{instanceId}/sasl-acls:
+    post:
+      summary: Create SASL ACL
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: SASL ACL created }
+    get:
+      summary: List SASL ACLs
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: SASL ACLs listed }
+  /alikafka/instances/{instanceId}/sasl-acls/{aclId}:
+    delete:
+      summary: Delete SASL ACL
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: aclId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: SASL ACL deleted }
+  /alikafka/instances/{instanceId}/consumer-groups:
+    get:
+      summary: List consumer groups
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Consumer groups listed }
+  /alikafka/instances/{instanceId}/deployments:
+    get:
+      summary: List deployments
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Deployments listed }
+  /alikafka/instances/{instanceId}/allowed-ips:
+    post:
+      summary: Attach allowed IPs
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Allowed IPs attached }
+    get:
+      summary: List allowed IPs
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Allowed IPs listed }
+    delete:
+      summary: Detach allowed IPs
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Allowed IPs detached }

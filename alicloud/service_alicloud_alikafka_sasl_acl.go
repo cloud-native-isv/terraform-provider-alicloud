@@ -2,8 +2,6 @@ package alicloud
 
 import (
 	"context"
-	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -12,19 +10,42 @@ import (
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
 
-// EncodeAllowedIpId 将允许IP的所有组件编码为单一ID字符串
-// 格式: instanceId:allowedType:portRange:ipAddress
-func EncodeAllowedIpId(instanceId, allowedType, portRange, ipAddress string) string {
-	return fmt.Sprintf("%s:%s:%s:%s", instanceId, allowedType, portRange, ipAddress)
+// CreateAlikafkaSaslAcl creates a SASL ACL using CWS-Lib-Go
+func (s *KafkaService) CreateAlikafkaSaslAcl(instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType string, options map[string]interface{}) error {
+	if options == nil {
+		options = map[string]interface{}{}
+	}
+	if err := s.kafkaApi.CreateAcl(context.Background(), s.client.RegionId, instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType, options); err != nil {
+		return WrapError(err)
+	}
+	return nil
 }
 
-// DecodeAllowedIpId 解析允许IP ID字符串为所有组件
-func DecodeAllowedIpId(id string) (string, string, string, string, error) {
-	parts := regexp.MustCompile(`^([^\:]+):([^\:]+):([^\:]+):(.+)$`).FindStringSubmatch(id)
-	if len(parts) != 5 {
-		return "", "", "", "", fmt.Errorf("invalid allowed IP ID format, expected instanceId:allowedType:portRange:ipAddress, got %s", id)
+// DeleteAlikafkaSaslAcl deletes a SASL ACL using CWS-Lib-Go
+func (s *KafkaService) DeleteAlikafkaSaslAcl(instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType string, options map[string]interface{}) error {
+	if options == nil {
+		options = map[string]interface{}{}
 	}
-	return parts[1], parts[2], parts[3], parts[4], nil
+	if err := s.kafkaApi.DeleteAcl(context.Background(), s.client.RegionId, instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType, options); err != nil {
+		return WrapError(err)
+	}
+	return nil
+}
+
+// ListAlikafkaSaslAcls lists SASL ACLs using CWS-Lib-Go
+func (s *KafkaService) ListAlikafkaSaslAcls(instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType string) ([]kafka.AclRule, error) {
+	options := map[string]interface{}{}
+	if aclResourcePatternType != "" {
+		options["aclResourcePatternType"] = aclResourcePatternType
+	}
+	if aclOperationType != "" {
+		options["aclOperationType"] = aclOperationType
+	}
+	resp, err := s.kafkaApi.DescribeAcls(context.Background(), s.client.RegionId, instanceId, username, aclResourceType, aclResourceName, options)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return resp.AclList, nil
 }
 
 func (s *KafkaService) DescribeAlikafkaSaslAcl(id string) (*alikafka.KafkaAclVO, error) {
@@ -112,25 +133,14 @@ func (s *KafkaService) WaitForAlikafkaSaslAcl(id string, status Status, timeout 
 // DescribeSaslAcl retrieves a Kafka SASL ACL using CWS-Lib-Go
 func (s *KafkaService) DescribeSaslAcl(instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType string) (*kafka.AclRule, error) {
 	var object kafka.AclRule
-	var err error
-
-	wait := incrementalWait(2*time.Second, 1*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+	if err := s.retryWithCommonErrors(5*time.Minute, func() error {
 		options := map[string]interface{}{
 			"aclResourcePatternType": aclResourcePatternType,
 			"aclOperationType":       aclOperationType,
 		}
 		resp, e := s.kafkaApi.DescribeAcls(context.Background(), s.client.RegionId, instanceId, username, aclResourceType, aclResourceName, options)
 		if e != nil {
-			if IsExpectedErrors(e, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-				wait()
-				return resource.RetryableError(e)
-			}
-			return resource.NonRetryableError(e)
-		}
-
-		if len(resp.AclList) == 0 {
-			return resource.NonRetryableError(WrapErrorf(NotFoundErr("AlikafkaSaslAcl", username), NotFoundMsg, ProviderERROR))
+			return e
 		}
 
 		// Exact match check if multiple returned
@@ -140,10 +150,8 @@ func (s *KafkaService) DescribeSaslAcl(instanceId, username, aclResourceType, ac
 				return nil
 			}
 		}
-		return resource.NonRetryableError(WrapErrorf(NotFoundErr("AlikafkaSaslAcl", username), NotFoundMsg, ProviderERROR))
-	})
-
-	if err != nil {
+		return WrapErrorf(NotFoundErr("AlikafkaSaslAcl", username), NotFoundMsg, ProviderERROR)
+	}); err != nil {
 		return nil, err
 	}
 	return &object, nil

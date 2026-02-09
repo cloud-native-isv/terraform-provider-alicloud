@@ -3,11 +3,8 @@ package alicloud
 import (
 	"fmt"
 	"log"
-	"time"
 
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/alikafka"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -74,44 +71,22 @@ func resourceAliCloudAlikafkaSaslAclCreate(d *schema.ResourceData, meta interfac
 	}
 
 	instanceId := d.Get("instance_id").(string)
-	regionId := client.RegionId
 	username := d.Get("username").(string)
 	aclResourceType := d.Get("acl_resource_type").(string)
 	aclResourceName := d.Get("acl_resource_name").(string)
 	aclResourcePatternType := d.Get("acl_resource_pattern_type").(string)
 	aclOperationType := d.Get("acl_operation_type").(string)
 
-	request := alikafka.CreateCreateAclRequest()
-	request.InstanceId = instanceId
-	request.RegionId = regionId
-	request.Username = username
-	request.AclResourceType = aclResourceType
-	request.AclResourceName = aclResourceName
-	request.AclResourcePatternType = aclResourcePatternType
-	request.AclOperationType = aclOperationType
-
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
-			return alikafkaClient.CreateAcl(request)
-		})
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-				time.Sleep(2 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-		return nil
-	})
-
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_alikafka_sasl_acl", request.GetActionName(), AlibabaCloudSdkGoERROR)
+	if err := kafkaService.CreateAlikafkaSaslAcl(instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType, nil); err != nil {
+		return WrapError(err)
 	}
 
-	// Server may have cache, sleep a while.
-	time.Sleep(60 * time.Second)
 	d.SetId(fmt.Sprintf("%s:%s:%s:%s:%s:%s", instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType))
+
+	if err := kafkaService.WaitForAlikafkaSaslAcl(d.Id(), Running, int(d.Timeout(schema.TimeoutCreate).Seconds())); err != nil {
+		return WrapError(err)
+	}
+
 	return resourceAliCloudAlikafkaSaslAclRead(d, meta)
 }
 
@@ -168,35 +143,9 @@ func resourceAliCloudAlikafkaSaslAclDelete(d *schema.ResourceData, meta interfac
 	aclResourcePatternType := parts[4]
 	aclOperationType := parts[5]
 
-	request := alikafka.CreateDeleteAclRequest()
-	request.RegionId = client.RegionId
-	request.InstanceId = instanceId
-	request.Username = username
-	request.AclResourceType = aclResourceType
-	request.AclResourceName = aclResourceName
-	request.AclResourcePatternType = aclResourcePatternType
-	request.AclOperationType = aclOperationType
-
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
-			return alikafkaClient.DeleteAcl(request)
-		})
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-				time.Sleep(10 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-		return nil
-	})
-
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
+	if err := kafkaService.DeleteAlikafkaSaslAcl(instanceId, username, aclResourceType, aclResourceName, aclResourcePatternType, aclOperationType, nil); err != nil {
+		return WrapError(err)
 	}
 
-	// Server may have cache, sleep a while.
-	time.Sleep(60 * time.Second)
 	return WrapError(kafkaService.WaitForAlikafkaSaslAcl(d.Id(), Deleted, DefaultTimeoutMedium))
 }

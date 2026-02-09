@@ -421,3 +421,20 @@ func (s *KafkaService) CreateAlikafkaInstance(instance *kafka.KafkaInstance) (*k
 func (s *KafkaService) UpgradeAlikafkaInstance(instance *kafka.KafkaInstance) error {
 	return s.kafkaApi.UpgradeInstance(instance)
 }
+
+// ListAlikafkaInstances lists Kafka instances using CWS-Lib-Go
+func (s *KafkaService) ListAlikafkaInstances(regionId string) ([]*kafka.KafkaInstance, error) {
+	instances, err := s.kafkaApi.ListInstances(regionId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return instances, nil
+}
+
+// DeleteAlikafkaInstance deletes a Kafka instance using CWS-Lib-Go
+func (s *KafkaService) DeleteAlikafkaInstance(instanceId string) error {
+	if err := s.kafkaApi.DeleteInstance(instanceId); err != nil {
+		return WrapError(err)
+	}
+	return nil
+}

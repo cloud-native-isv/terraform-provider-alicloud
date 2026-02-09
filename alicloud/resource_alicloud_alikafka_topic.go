@@ -2,13 +2,10 @@ package alicloud
 
 import (
 	"errors"
-	"strconv"
 	"time"
 
-	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/alikafka"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -75,51 +72,27 @@ func resourceAliCloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{
 	}
 
 	instanceId := d.Get("instance_id").(string)
-	regionId := client.RegionId
-	topic := d.Get("topic").(string)
+	topicName := d.Get("topic").(string)
 
-	request := alikafka.CreateCreateTopicRequest()
-	request.InstanceId = instanceId
-	request.RegionId = regionId
-	request.Topic = topic
-	if v, ok := d.GetOk("local_topic"); ok {
-		request.LocalTopic = requests.NewBoolean(v.(bool))
-	}
-	if v, ok := d.GetOk("compact_topic"); ok {
-		request.CompactTopic = requests.NewBoolean(v.(bool))
-	}
-	if v, ok := d.GetOk("partition_num"); ok {
-		request.PartitionNum = strconv.Itoa(v.(int))
+	newTopic := &kafka.KafkaTopic{
+		InstanceId:   instanceId,
+		Topic:        topicName,
+		PartitionNum: d.Get("partition_num").(int),
+		ReplicaNum:   3,
+		LocalTopic:   d.Get("local_topic").(bool),
+		CompactTopic: d.Get("compact_topic").(bool),
 	}
 	if v, ok := d.GetOk("remark"); ok {
-		request.Remark = v.(string)
+		newTopic.Remark = v.(string)
 	}
 
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
-			return alikafkaClient.CreateTopic(request)
-		})
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-				time.Sleep(10 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-		return nil
-	})
-
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_alikafka_topic", request.GetActionName(), AlibabaCloudSdkGoERROR)
+	if err := kafkaService.CreateAlikafkaTopic(newTopic); err != nil {
+		return WrapError(err)
 	}
 
-	d.SetId(instanceId + ":" + topic)
+	d.SetId(instanceId + ":" + topicName)
 
-	// wait topic status change from Creating to running
-	stateConf := BuildStateConf([]string{"Creating"}, []string{"Running"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, kafkaService.KafkaTopicStatusRefreshFunc(d.Id()))
-
-	if _, err := stateConf.WaitForState(); err != nil {
+	if err := kafkaService.WaitForAlikafkaTopic(d.Id(), Running, int(d.Timeout(schema.TimeoutCreate).Seconds())); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
@@ -146,28 +119,8 @@ func resourceAliCloudAlikafkaTopicUpdate(d *schema.ResourceData, meta interface{
 	if d.HasChange("remark") {
 		remark := d.Get("remark").(string)
 		topic := d.Get("topic").(string)
-		modifyRemarkRequest := alikafka.CreateModifyTopicRemarkRequest()
-		modifyRemarkRequest.InstanceId = instanceId
-		modifyRemarkRequest.RegionId = client.RegionId
-		modifyRemarkRequest.Topic = topic
-		modifyRemarkRequest.Remark = remark
-
-		err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-			raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
-				return alikafkaClient.ModifyTopicRemark(modifyRemarkRequest)
-			})
-			if err != nil {
-				if IsExpectedErrors(err, []string{ThrottlingUser}) {
-					time.Sleep(10 * time.Second)
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(modifyRemarkRequest.GetActionName(), raw, modifyRemarkRequest.RpcRequest, modifyRemarkRequest)
-			return nil
-		})
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), modifyRemarkRequest.GetActionName(), AlibabaCloudSdkGoERROR)
+		if err := kafkaService.ModifyAlikafkaTopicRemark(instanceId, topic, remark); err != nil {
+			return WrapError(err)
 		}
 		d.SetPartial("remark")
 	}
@@ -181,28 +134,8 @@ func resourceAliCloudAlikafkaTopicUpdate(d *schema.ResourceData, meta interface{
 			return WrapError(errors.New("partition_num only support adjust to a greater value."))
 		} else {
 			topic := d.Get("topic").(string)
-			modifyPartitionReq := alikafka.CreateModifyPartitionNumRequest()
-			modifyPartitionReq.InstanceId = instanceId
-			modifyPartitionReq.RegionId = client.RegionId
-			modifyPartitionReq.Topic = topic
-			modifyPartitionReq.AddPartitionNum = requests.NewInteger(newPartitionNum - oldPartitionNum)
-
-			err := resource.Retry(5*time.Minute, func() *resource.RetryError {
-				raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
-					return alikafkaClient.ModifyPartitionNum(modifyPartitionReq)
-				})
-				if err != nil {
-					if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-						time.Sleep(10 * time.Second)
-						return resource.RetryableError(err)
-					}
-					return resource.NonRetryableError(err)
-				}
-				addDebug(modifyPartitionReq.GetActionName(), raw, modifyPartitionReq.RpcRequest, modifyPartitionReq)
-				return nil
-			})
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), modifyPartitionReq.GetActionName(), AlibabaCloudSdkGoERROR)
+			if err := kafkaService.ModifyAlikafkaTopicPartitions(instanceId, topic, int32(newPartitionNum-oldPartitionNum)); err != nil {
+				return WrapError(err)
 			}
 			d.SetPartial("partition_num")
 		}
@@ -266,31 +199,9 @@ func resourceAliCloudAlikafkaTopicDelete(d *schema.ResourceData, meta interface{
 	instanceId := parts[0]
 	topic := parts[1]
 
-	request := alikafka.CreateDeleteTopicRequest()
-	request.Topic = topic
-	request.InstanceId = instanceId
-	request.RegionId = client.RegionId
-
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		raw, err := kafkaService.client.WithAlikafkaClient(func(alikafkaClient *alikafka.Client) (interface{}, error) {
-			return alikafkaClient.DeleteTopic(request)
-		})
-		if err != nil {
-			if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-				time.Sleep(10 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		addDebug(request.GetActionName(), raw, request.RpcRequest, request)
-		return nil
-	})
-	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
+	if err := kafkaService.DeleteAlikafkaTopic(instanceId, topic); err != nil {
+		return WrapError(err)
 	}
-	// stateConf := BuildStateConf([]string{}, []string{}, d.Timeout(schema.TimeoutDelete), 5*time.Second, kafkaService.AliKafkaTopicStateRefreshFunc(d.Id(), "Status", []string{}))
-	// if _, err := stateConf.WaitForState(); err != nil {
-	// 	return WrapErrorf(err, IdMsg, d.Id())
-	// }
+
 	return WrapError(kafkaService.WaitForAlikafkaTopic(d.Id(), Deleted, DefaultTimeoutMedium))
 }
