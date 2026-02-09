@@ -1,16 +1,15 @@
 # Terraform Provider Alicloud Constitution
 <!--
-Synced: 2026-02-06
+Synced: 2026-02-09
 -->
 
 <!--
-  Sync Impact Report: (2026-02-06)
-  - Version: 1.0.0 -> 1.0.1
+  Sync Impact Report: (2026-02-09)
+  - Version: 1.0.1 -> 1.0.2
   - Updates:
-    - Refreshed Constitution Check in plan-template.md
-    - Corrected Principle references in tasks-template.md
+    - Verified Principle alignment
+    - Corrected Principle reference in tasks-template.md (Principle V -> Principle III)
   - Templates requiring updates:
-    - /.specify/templates/plan-template.md (✅ updated)
     - /.specify/templates/tasks-template.md (✅ updated)
 -->
 
@@ -101,4 +100,4 @@ This Constitution and the `docs/development_guide.md` are authoritative.
 ### Amendments
 - Changes to these principles require a PR, review, and a version bump of this Constitution.
 
-**Version**: 1.0.1 | **Ratified**: 2026-02-04 | **Last Amended**: 2026-02-06
+**Version**: 1.0.2 | **Ratified**: 2026-02-04 | **Last Amended**: 2026-02-09
