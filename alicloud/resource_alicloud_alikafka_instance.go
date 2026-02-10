@@ -30,18 +30,26 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
+			"instance_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				Default:      AliKafkaInstanceTypeReserved,
+				ValidateFunc: StringInSlice([]string{AliKafkaInstanceTypeReserved, AliKafkaInstanceTypeServerless}, false),
+			},
 			"deploy_type": {
 				Type:         schema.TypeInt,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: IntInSlice([]int{4, 5}),
 			},
 			"disk_size": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
 			},
 			"disk_type": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 			"io_max_spec": {
@@ -67,7 +75,17 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			},
 			"paid_type": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
+				Default:      AliKafkaBillingTypePostPaid,
+				ValidateFunc: StringInSlice([]string{"PrePaid", "PostPaid"}, false),
+			},
+			"billing_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				Default:      AliKafkaBillingTypePostPaid,
 				ValidateFunc: StringInSlice([]string{"PrePaid", "PostPaid"}, false),
 			},
 			"duration": {
@@ -197,19 +215,76 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	}
 
 	// Create instance directly using CWS-Lib-Go API
-	diskTypeInt, _ := strconv.Atoi(d.Get("disk_type").(string))
-	diskType := kafka.KafkaDiskType(diskTypeInt)
-	deployType := kafka.KafkaDeployType(d.Get("deploy_type").(int))
+	instanceTypeInput := ""
+	if v, ok := d.GetOk("instance_type"); ok {
+		instanceTypeInput = v.(string)
+	}
+	billingTypeInput := ""
+	if v, ok := d.GetOk("billing_type"); ok {
+		billingTypeInput = v.(string)
+	}
+	paidTypeInput := ""
+	if v, ok := d.GetOk("paid_type"); ok {
+		paidTypeInput = v.(string)
+	}
+
+	instanceType, billingType, err := resolveAliKafkaInstanceBilling(instanceTypeInput, billingTypeInput, paidTypeInput)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	if instanceType == kafka.InstanceSeriesReserved {
+		if _, ok := d.GetOk("disk_size"); !ok {
+			return WrapError(fmt.Errorf("disk_size is required for reserved instances"))
+		}
+		if _, ok := d.GetOk("disk_type"); !ok {
+			return WrapError(fmt.Errorf("disk_type is required for reserved instances"))
+		}
+		if _, ok := d.GetOk("deploy_type"); !ok {
+			return WrapError(fmt.Errorf("deploy_type is required for reserved instances"))
+		}
+	} else {
+		if _, ok := d.GetOk("disk_size"); ok {
+			return WrapError(fmt.Errorf("disk_size is not supported for serverless instances"))
+		}
+		if _, ok := d.GetOk("disk_type"); ok {
+			return WrapError(fmt.Errorf("disk_type is not supported for serverless instances"))
+		}
+		if _, ok := d.GetOk("partition_num"); ok {
+			return WrapError(fmt.Errorf("partition_num is not supported for serverless instances"))
+		}
+		if _, ok := d.GetOk("io_max_spec"); ok {
+			return WrapError(fmt.Errorf("io_max_spec is not supported for serverless instances"))
+		}
+		if _, ok := d.GetOk("deploy_type"); ok {
+			return WrapError(fmt.Errorf("deploy_type is not supported for serverless instances"))
+		}
+		if _, ok := d.GetOk("eip_max"); ok {
+			return WrapError(fmt.Errorf("eip_max is not supported for serverless instances"))
+		}
+	}
 
 	instance := &kafka.KafkaInstance{
-		RegionId:   client.RegionId,
-		DiskSize:   tea.Int(d.Get("disk_size").(int)),
-		DiskType:   &diskType,
-		DeployType: &deployType,
+		RegionId: client.RegionId,
+	}
+
+	if instanceType == kafka.InstanceSeriesReserved {
+		if v, ok := d.GetOk("disk_type"); ok {
+			diskTypeInt, _ := strconv.Atoi(v.(string))
+			diskType := kafka.KafkaDiskType(diskTypeInt)
+			instance.DiskType = &diskType
+		}
+		if v, ok := d.GetOk("disk_size"); ok {
+			instance.DiskSize = tea.Int(v.(int))
+		}
+		if v, ok := d.GetOk("deploy_type"); ok {
+			deployType := kafka.KafkaDeployType(v.(int))
+			instance.DeployType = &deployType
+		}
 	}
 
 	paidType := kafka.KafkaPaidTypePostPay
-	if v, ok := d.GetOk("paid_type"); ok && v.(string) == "PrePaid" {
+	if billingType == kafka.BillingTypePrePay {
 		paidType = kafka.KafkaPaidTypePrePay
 	}
 	instance.PaidType = &paidType
@@ -242,12 +317,29 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		instance.Tags = extractTags(d)
 	}
 
-	createdInstance, err := kafkaService.CreateAlikafkaInstance(instance)
+	createConfig := buildAliKafkaInstanceCreationConfig(instance, instanceType, billingType)
+	createResult, err := kafkaService.CreateAlikafkaInstance(createConfig)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	d.SetId(createdInstance.InstanceId)
+	if createResult == nil {
+		return WrapError(fmt.Errorf("create instance result is nil"))
+	}
+
+	instanceId := createResult.InstanceId
+	if instanceId == "" && createResult.OrderId != "" {
+		instanceVO, err := kafkaService.DescribeAlikafkaInstanceByOrderId(createResult.OrderId, int(d.Timeout(schema.TimeoutCreate).Seconds()))
+		if err != nil {
+			return WrapError(err)
+		}
+		instanceId = instanceVO.InstanceId
+	}
+	if instanceId == "" {
+		return WrapError(fmt.Errorf("instance id is empty after creation"))
+	}
+
+	d.SetId(instanceId)
 
 	// Wait for instance to be in running state (state 5)
 	err = kafkaService.WaitForAliKafkaInstanceCreating(d.Id(), d.Timeout(schema.TimeoutCreate))
@@ -304,6 +396,14 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("config", object.Config)
 
 	d.Set("status", object.ServiceStatus) // ServiceStatus in VO (int)
+
+	if billingType := FormatAliKafkaBillingType(object.PaidType); billingType != "" {
+		d.Set("paid_type", billingType)
+		d.Set("billing_type", billingType)
+	}
+	if instanceType := inferAliKafkaInstanceType(object); instanceType != "" {
+		d.Set("instance_type", instanceType)
+	}
 
 	d.Set("kms_key_id", object.KmsKeyId)
 
@@ -670,4 +770,46 @@ func extractTags(d *schema.ResourceData) map[string]string {
 		}
 	}
 	return tags
+}
+
+func resolveAliKafkaBillingTypeInput(billingTypeInput, paidTypeInput string) (string, error) {
+	if billingTypeInput != "" && paidTypeInput != "" && billingTypeInput != paidTypeInput {
+		return "", fmt.Errorf("billing_type and paid_type conflict: %s vs %s", billingTypeInput, paidTypeInput)
+	}
+	if billingTypeInput != "" {
+		return billingTypeInput, nil
+	}
+	return paidTypeInput, nil
+}
+
+func resolveAliKafkaInstanceBilling(instanceTypeInput, billingTypeInput, paidTypeInput string) (kafka.KafkaInstanceSeries, kafka.KafkaBillingType, error) {
+	instanceType, err := ResolveAliKafkaInstanceType(instanceTypeInput)
+	if err != nil {
+		return "", "", err
+	}
+	resolvedBillingInput, err := resolveAliKafkaBillingTypeInput(billingTypeInput, paidTypeInput)
+	if err != nil {
+		return "", "", err
+	}
+	billingType, err := ResolveAliKafkaBillingType(resolvedBillingInput)
+	if err != nil {
+		return "", "", err
+	}
+	if err := validateAliKafkaBillingCombination(instanceType, billingType); err != nil {
+		return "", "", err
+	}
+	return instanceType, billingType, nil
+}
+
+func inferAliKafkaInstanceType(object *kafka.KafkaInstance) string {
+	if object == nil {
+		return ""
+	}
+	if object.DeployType != nil || object.DiskSize != nil || object.DiskType != nil || object.PartitionNum != nil || object.IoMaxSpec != nil {
+		return AliKafkaInstanceTypeReserved
+	}
+	if object.SpecType != nil && *object.SpecType != "" {
+		return AliKafkaInstanceTypeServerless
+	}
+	return AliKafkaInstanceTypeReserved
 }

@@ -44,3 +44,43 @@ func TestAliKafkaIdEncodeDecode(t *testing.T) {
 		t.Fatalf("unexpected deployment id decode: %v, %s", err, id)
 	}
 }
+
+func TestAliKafkaBillingAndInstanceTypeResolve(t *testing.T) {
+	instanceType, err := ResolveAliKafkaInstanceType(AliKafkaInstanceTypeReserved)
+	if err != nil || instanceType != "Reserved" {
+		t.Fatalf("unexpected instance type: %v, %v", instanceType, err)
+	}
+
+	instanceType, err = ResolveAliKafkaInstanceType(AliKafkaInstanceTypeServerless)
+	if err != nil || instanceType != "Serverless" {
+		t.Fatalf("unexpected instance type: %v, %v", instanceType, err)
+	}
+
+	instanceType, err = ResolveAliKafkaInstanceType("")
+	if err != nil || instanceType != "Reserved" {
+		t.Fatalf("unexpected default instance type: %v, %v", instanceType, err)
+	}
+
+	if _, err = ResolveAliKafkaInstanceType("invalid"); err == nil {
+		t.Fatalf("expected error for invalid instance type")
+	}
+
+	billingType, err := ResolveAliKafkaBillingType(AliKafkaBillingTypePostPaid)
+	if err != nil || billingType != "PostPay" {
+		t.Fatalf("unexpected billing type: %v, %v", billingType, err)
+	}
+
+	billingType, err = ResolveAliKafkaBillingType(AliKafkaBillingTypePrePaid)
+	if err != nil || billingType != "PrePay" {
+		t.Fatalf("unexpected billing type: %v, %v", billingType, err)
+	}
+
+	billingType, err = ResolveAliKafkaBillingType("")
+	if err != nil || billingType != "PostPay" {
+		t.Fatalf("unexpected default billing type: %v, %v", billingType, err)
+	}
+
+	if _, err = ResolveAliKafkaBillingType("invalid"); err == nil {
+		t.Fatalf("expected error for invalid billing type")
+	}
+}

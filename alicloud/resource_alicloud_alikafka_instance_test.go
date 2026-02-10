@@ -17,3 +17,18 @@ func TestAccAliKafkaInstance(t *testing.T) {
 	}
 	t.Skip("AliKafka instance testacc requires real infrastructure")
 }
+
+func TestAliKafkaInstanceBillingValidation(t *testing.T) {
+	if _, _, err := resolveAliKafkaInstanceBilling(AliKafkaInstanceTypeServerless, AliKafkaBillingTypePrePaid, ""); err == nil {
+		t.Fatalf("expected error for serverless + prepaid")
+	}
+	if _, _, err := resolveAliKafkaInstanceBilling(AliKafkaInstanceTypeReserved, AliKafkaBillingTypePrePaid, ""); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, _, err := resolveAliKafkaInstanceBilling(AliKafkaInstanceTypeReserved, "", AliKafkaBillingTypePostPaid); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, _, err := resolveAliKafkaInstanceBilling(AliKafkaInstanceTypeReserved, AliKafkaBillingTypePrePaid, AliKafkaBillingTypePostPaid); err == nil {
+		t.Fatalf("expected error for conflicting billing inputs")
+	}
+}

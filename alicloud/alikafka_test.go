@@ -1,5 +1,4 @@
 package alicloud
-package alicloud
 
 import (
 	"os"
@@ -26,4 +25,20 @@ func testAccAliKafkaService(t *testing.T) *KafkaService {
 		t.Fatalf("failed to create AliKafka service: %v", err)
 	}
 	return service
+}
+
+func TestAccAliKafkaReservedInstancesBilling(t *testing.T) {
+	service := testAccAliKafkaService(t)
+	if service == nil {
+		t.Fatal("expected AliKafka service")
+	}
+	t.Skip("AliKafka reserved instance billing test requires real infrastructure")
+}
+
+func TestAccAliKafkaServerlessInstanceBilling(t *testing.T) {
+	service := testAccAliKafkaService(t)
+	if service == nil {
+		t.Fatal("expected AliKafka service")
+	}
+	t.Skip("AliKafka serverless instance billing test requires real infrastructure")
 }

@@ -14,4 +14,4 @@ This index tracks all functional and non-functional features managed within the 
 | 006 | Local SDK Management | 使用 sdk/ 目录固定关键 SDK 版本 | Implemented | [Details](features/006.md) | - | 2026-02-06 |
 | 007 | Automated Testing Suite | 单元测试与验收测试覆盖关键流程 | Implemented | [Details](features/007.md) | - | 2026-02-06 |
 | 008 | Strong Typing Constraints | 禁止新增弱类型 map 作为请求/响应载体 | Implemented | [Details](features/008.md) | - | 2026-02-06 |
-| 009 | AliKafka Resource Layering | AliKafka 相关资源的分层架构与生命周期操作一致性 | Implemented | [Details](features/009.md) | .specify/specs/002-alikafka-service-layer/requirements.md | 2026-02-09 |
+| 009 | AliKafka Resource Layering | AliKafka 相关资源的分层架构与生命周期操作一致性 | Implemented | [Details](features/009.md) | .specify/specs/003-alikafka-instance-billing/requirements.md | 2026-02-10 |

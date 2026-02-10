@@ -1,0 +1,108 @@
+openapi: 3.0.3
+info:
+  title: AliKafka Instance Billing Contracts
+  version: 1.0.0
+  description: |
+    以服务层为边界的内部操作契约，用于规范 AliKafka 实例创建的计费组合校验与返回结构。
+    该契约不代表对外 API，仅用于统一资源层与服务层的输入输出。
+paths:
+  /alikafka/instances:
+    post:
+      summary: Create instance with billing combination
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstanceCreateRequest"
+      responses:
+        "200":
+          description: Instance created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceCreateResponse"
+        "400":
+          description: Invalid billing combination
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+  /alikafka/instances/{instanceId}:
+    get:
+      summary: Describe instance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Instance details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstanceDescribeResponse"
+components:
+  schemas:
+    InstanceType:
+      type: string
+      enum: [Reserved, Serverless]
+    BillingType:
+      type: string
+      enum: [Prepaid, Postpaid]
+    InstanceCreateRequest:
+      type: object
+      required: [regionId]
+      properties:
+        instanceType:
+          $ref: "#/components/schemas/InstanceType"
+        billingType:
+          $ref: "#/components/schemas/BillingType"
+        regionId:
+          type: string
+        name:
+          type: string
+        spec:
+          type: string
+      additionalProperties: false
+    InstanceCreateResponse:
+      type: object
+      required: [instanceId, instanceType, billingType]
+      properties:
+        instanceId:
+          type: string
+        orderId:
+          type: string
+          nullable: true
+        instanceType:
+          $ref: "#/components/schemas/InstanceType"
+        billingType:
+          $ref: "#/components/schemas/BillingType"
+    InstanceDescribeResponse:
+      type: object
+      required: [instanceId, instanceType, billingType]
+      properties:
+        instanceId:
+          type: string
+        instanceType:
+          $ref: "#/components/schemas/InstanceType"
+        billingType:
+          $ref: "#/components/schemas/BillingType"
+        status:
+          type: string
+    ValidationError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        invalidCombination:
+          type: string
+        allowedCombinations:
+          type: array
+          items:
+            type: string

@@ -54,6 +54,65 @@ func (s *KafkaService) DescribeAlikafkaInstanceByOrderId(orderId string, timeout
 	}
 }
 
+func validateAliKafkaBillingCombination(instanceType kafka.KafkaInstanceSeries, billingType kafka.KafkaBillingType) error {
+	if instanceType == kafka.InstanceSeriesServerless && billingType == kafka.BillingTypePrePay {
+		return fmt.Errorf("unsupported instance/billing combination: %s + %s; allowed combinations: Reserved + PrePaid, Reserved + PostPaid, Serverless + PostPaid", instanceType, billingType)
+	}
+	return nil
+}
+
+func buildAliKafkaInstanceCreationConfig(instance *kafka.KafkaInstance, instanceType kafka.KafkaInstanceSeries, billingType kafka.KafkaBillingType) kafka.InstanceCreationConfig {
+	config := kafka.InstanceCreationConfig{
+		RegionId:        instance.RegionId,
+		ResourceGroupId: instance.ResourceGroupId,
+		Tags:            instance.Tags,
+		InstanceType:    instanceType,
+		BillingType:     billingType,
+	}
+
+	if instance.Name != nil {
+		config.Name = *instance.Name
+	}
+	if instance.Description != nil {
+		config.Description = *instance.Description
+	}
+	if instance.ZoneId != "" {
+		config.ZoneId = instance.ZoneId
+	}
+	if instance.VpcId != "" {
+		config.VpcId = instance.VpcId
+	}
+	if instance.VSwitchId != "" {
+		config.VSwitchId = instance.VSwitchId
+	}
+	if instance.SpecType != nil {
+		config.SpecType = *instance.SpecType
+	}
+	if instance.DiskType != nil {
+		config.DiskType = fmt.Sprintf("%d", *instance.DiskType)
+	}
+	if instance.DiskSize != nil {
+		config.DiskSize = *instance.DiskSize
+	}
+	if instance.PartitionNum != nil {
+		config.PartitionNum = *instance.PartitionNum
+	}
+	if instance.IoMaxSpec != nil {
+		config.IoMaxSpec = *instance.IoMaxSpec
+	}
+	if instance.DeployType != nil {
+		config.DeployType = int(*instance.DeployType)
+	}
+	if instance.EipMax != nil {
+		config.EipMax = *instance.EipMax
+	}
+	if instance.Duration != nil {
+		config.Duration = *instance.Duration
+	}
+
+	return config
+}
+
 func (s *KafkaService) WaitForAlikafkaInstanceUpdated(id string, topicQuota int, diskSize int, ioMax int,
 	eipMax int, paidType int, specType string, timeout int) error {
 	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
@@ -323,98 +382,12 @@ func (s *KafkaService) DescribeAlikafkaInstance(instanceId string) (*kafka.Kafka
 	return instance, nil
 }
 
-func (s *KafkaService) CreateAlikafkaInstance(instance *kafka.KafkaInstance) (*kafka.KafkaInstance, error) {
-	config := kafka.InstanceCreationConfig{
-		RegionId:        instance.RegionId,
-		ResourceGroupId: instance.ResourceGroupId,
-		Tags:            instance.Tags,
-	}
-
-	if instance.Name != nil {
-		config.Name = *instance.Name
-	}
-	if instance.Description != nil {
-		config.Description = *instance.Description
-	}
-	if instance.ZoneId != "" {
-		config.ZoneId = instance.ZoneId
-	}
-	if instance.VpcId != "" {
-		config.VpcId = instance.VpcId
-	}
-	if instance.VSwitchId != "" {
-		config.VSwitchId = instance.VSwitchId
-	}
-	if instance.SpecType != nil {
-		config.SpecType = *instance.SpecType
-	}
-	if instance.DiskType != nil {
-		config.DiskType = fmt.Sprintf("%d", *instance.DiskType)
-	}
-	if instance.DiskSize != nil {
-		config.DiskSize = *instance.DiskSize
-	}
-	if instance.PartitionNum != nil {
-		config.PartitionNum = *instance.PartitionNum
-	}
-	if instance.IoMaxSpec != nil {
-		config.IoMaxSpec = *instance.IoMaxSpec
-	}
-	if instance.DeployType != nil {
-		config.DeployType = int(*instance.DeployType)
-	}
-	if instance.EipMax != nil {
-		config.EipMax = *instance.EipMax
-	}
-
+func (s *KafkaService) CreateAlikafkaInstance(config kafka.InstanceCreationConfig) (*kafka.InstanceCreationResult, error) {
 	result, err := s.kafkaApi.CreateInstance(config)
 	if err != nil {
-		return nil, err
+		return nil, WrapError(err)
 	}
-
-	if result != nil && result.InstanceId == "" && instance.Name != nil && *instance.Name != "" {
-		targetName := *instance.Name
-		var foundId string
-
-		_ = resource.Retry(2*time.Minute, func() *resource.RetryError {
-			req := alikafka.CreateGetInstanceListRequest()
-			req.RegionId = s.client.RegionId
-			if instance.ResourceGroupId != "" {
-				req.ResourceGroupId = instance.ResourceGroupId
-			}
-
-			raw, err := s.client.WithAlikafkaClient(func(client *alikafka.Client) (interface{}, error) {
-				return client.GetInstanceList(req)
-			})
-			if err != nil {
-				if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-
-			resp, _ := raw.(*alikafka.GetInstanceListResponse)
-			if resp != nil && resp.InstanceList.InstanceVO != nil {
-				for _, v := range resp.InstanceList.InstanceVO {
-					// ServiceStatus 10 means Released
-					if v.Name == targetName && v.ServiceStatus != 10 {
-						foundId = v.InstanceId
-						return nil
-					}
-				}
-			}
-			return resource.RetryableError(fmt.Errorf("instance with name %s not found yet", targetName))
-		})
-
-		if foundId != "" {
-			result.InstanceId = foundId
-		}
-	}
-
-	return &kafka.KafkaInstance{
-		InstanceId: result.InstanceId,
-		RegionId:   config.RegionId,
-	}, nil
+	return result, nil
 }
 
 // UpgradeAlikafkaInstance upgrades a Kafka instance using CWS-Lib-Go

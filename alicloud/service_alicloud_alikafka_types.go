@@ -3,7 +3,58 @@ package alicloud
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
+
+const (
+	AliKafkaInstanceTypeReserved   = "Reserved"
+	AliKafkaInstanceTypeServerless = "Serverless"
+	AliKafkaBillingTypePrePaid     = "PrePaid"
+	AliKafkaBillingTypePostPaid    = "PostPaid"
+)
+
+func ResolveAliKafkaInstanceType(value string) (kafka.KafkaInstanceSeries, error) {
+	if value == "" {
+		return kafka.InstanceSeriesReserved, nil
+	}
+	switch value {
+	case AliKafkaInstanceTypeReserved:
+		return kafka.InstanceSeriesReserved, nil
+	case AliKafkaInstanceTypeServerless:
+		return kafka.InstanceSeriesServerless, nil
+	default:
+		return "", fmt.Errorf("unsupported instance_type: %s", value)
+	}
+}
+
+func ResolveAliKafkaBillingType(value string) (kafka.KafkaBillingType, error) {
+	if value == "" {
+		return kafka.BillingTypePostPay, nil
+	}
+	switch value {
+	case AliKafkaBillingTypePostPaid:
+		return kafka.BillingTypePostPay, nil
+	case AliKafkaBillingTypePrePaid:
+		return kafka.BillingTypePrePay, nil
+	default:
+		return "", fmt.Errorf("unsupported billing_type: %s", value)
+	}
+}
+
+func FormatAliKafkaBillingType(paidType *kafka.KafkaPaidType) string {
+	if paidType == nil {
+		return ""
+	}
+	switch *paidType {
+	case kafka.KafkaPaidTypePrePay:
+		return AliKafkaBillingTypePrePaid
+	case kafka.KafkaPaidTypePostPay:
+		return AliKafkaBillingTypePostPaid
+	default:
+		return fmt.Sprintf("%d", *paidType)
+	}
+}
 
 // EncodeInstanceId returns the instance ID as-is
 func EncodeInstanceId(instanceId string) string {
