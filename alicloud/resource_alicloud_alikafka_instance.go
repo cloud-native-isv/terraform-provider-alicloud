@@ -33,7 +33,6 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			"instance_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ForceNew:     true,
 				Default:      AliKafkaInstanceTypeReserved,
 				ValidateFunc: StringInSlice([]string{AliKafkaInstanceTypeReserved, AliKafkaInstanceTypeServerless}, false),
@@ -76,14 +75,12 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			"paid_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
 				Default:      AliKafkaBillingTypePostPaid,
 				ValidateFunc: StringInSlice([]string{"PrePaid", "PostPaid"}, false),
 			},
 			"billing_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ForceNew:     true,
 				Default:      AliKafkaBillingTypePostPaid,
 				ValidateFunc: StringInSlice([]string{"PrePaid", "PostPaid"}, false),
