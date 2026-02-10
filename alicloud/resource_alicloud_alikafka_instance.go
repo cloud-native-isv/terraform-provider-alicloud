@@ -325,20 +325,12 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	}
 
 	instanceId := createResult.InstanceId
-	if instanceId == "" && createResult.OrderId != "" {
-		instanceVO, err := kafkaService.DescribeAlikafkaInstanceByOrderId(createResult.OrderId, int(d.Timeout(schema.TimeoutCreate).Seconds()))
-		if err != nil {
-			return WrapError(err)
-		}
-		instanceId = instanceVO.InstanceId
-	}
 	if instanceId == "" {
 		return WrapError(fmt.Errorf("instance id is empty after creation"))
 	}
 
 	d.SetId(instanceId)
 
-	// Wait for instance to be in running state (state 5)
 	err = kafkaService.WaitForAliKafkaInstanceCreating(d.Id(), d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
@@ -369,7 +361,15 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 
 	d.Set("name", tea.StringValue(object.Name)) // object.Name is *string
 	if object.DiskType != nil {
-		d.Set("disk_type", fmt.Sprint(*object.DiskType)) // int -> string
+		diskType := *object.DiskType
+		switch diskType {
+		case kafka.KafkaDiskTypeSSD:
+			d.Set("disk_type", "SSD")
+		case kafka.KafkaDiskTypeUltra:
+			d.Set("disk_type", "Ultra")
+		default:
+			d.Set("disk_type", fmt.Sprint(diskType))
+		}
 	}
 	d.Set("disk_size", tea.IntValue(object.DiskSize))
 	if object.DeployType != nil {
@@ -377,7 +377,9 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	}
 	d.Set("io_max", tea.IntValue(object.IoMax))
 	d.Set("io_max_spec", tea.StringValue(object.IoMaxSpec))
-	d.Set("eip_max", tea.IntValue(object.EipMax))
+	if v := tea.IntValue(object.EipMax); v != 0 {
+		d.Set("eip_max", v)
+	}
 	d.Set("resource_group_id", object.ResourceGroupId)
 	d.Set("vpc_id", object.VpcId)
 	d.Set("vswitch_id", object.VSwitchId)
@@ -389,14 +391,12 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("ssl_endpoint", object.SslEndPoint) // Field in VO is SslEndPoint
 	d.Set("ssl_domain_endpoint", object.SslDomainEndpoint)
 	d.Set("sasl_domain_endpoint", object.SaslDomainEndpoint)
-	// d.Set("service_version", object.ServiceVersion) // Missing in VO
 	d.Set("config", object.Config)
 
 	d.Set("status", object.ServiceStatus) // ServiceStatus in VO (int)
 
 	if billingType := FormatAliKafkaBillingType(object.PaidType); billingType != "" {
 		d.Set("paid_type", billingType)
-		d.Set("billing_type", billingType)
 	}
 	if instanceType := inferAliKafkaInstanceType(object); instanceType != "" {
 		d.Set("instance_type", instanceType)
@@ -404,23 +404,12 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 
 	d.Set("kms_key_id", object.KmsKeyId)
 
-	// Set service version and other fields if available
-	// if object.Version != "" {
-	// 	d.Set("service_version", object.Version)
-	// }
-
 	tags, err := kafkaService.DescribeTags(d.Id(), nil, TagResourceInstance)
 	if err != nil {
 		return WrapError(err)
 	}
 
 	d.Set("tags", kafkaService.tagsToMap(tags))
-	// if err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// d.Set("tags", kafkaService.tagsToMap(tags))
-	d.Set("tags", object.Tags)
 
 	return nil
 }
@@ -713,7 +702,7 @@ func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interfa
 		return WrapError(err)
 	}
 
-	if err := kafkaService.WaitForAlikafkaInstance(d.Id(), Deleted, int(d.Timeout(schema.TimeoutDelete).Seconds())); err != nil {
+	if err := kafkaService.WaitForAliKafkaInstanceDeleting(d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
 		return WrapError(err)
 	}
 

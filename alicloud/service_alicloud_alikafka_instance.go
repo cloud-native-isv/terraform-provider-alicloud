@@ -7,52 +7,8 @@ import (
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/alikafka"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
-
-func (s *KafkaService) DescribeAlikafkaInstanceByOrderId(orderId string, timeout int) (*alikafka.InstanceVO, error) {
-	alikafkaInstance := &alikafka.InstanceVO{}
-	instanceListReq := alikafka.CreateGetInstanceListRequest()
-	instanceListReq.RegionId = s.client.RegionId
-	instanceListReq.OrderId = orderId
-
-	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
-	for {
-
-		wait := incrementalWait(2*time.Second, 1*time.Second)
-		var raw interface{}
-		var err error
-		err = resource.Retry(10*time.Minute, func() *resource.RetryError {
-			raw, err = s.client.WithAlikafkaClient(func(client *alikafka.Client) (interface{}, error) {
-				return client.GetInstanceList(instanceListReq)
-			})
-			if err != nil {
-				if IsExpectedErrors(err, []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}) {
-					wait()
-					return resource.RetryableError(err)
-				}
-				return resource.NonRetryableError(err)
-			}
-			addDebug(instanceListReq.GetActionName(), raw, instanceListReq.RpcRequest, instanceListReq)
-			return nil
-		})
-
-		if err != nil {
-			return alikafkaInstance, WrapErrorf(err, DefaultErrorMsg, orderId, instanceListReq.GetActionName(), AlibabaCloudSdkGoERROR)
-		}
-
-		instanceListResp, _ := raw.(*alikafka.GetInstanceListResponse)
-		addDebug(instanceListReq.GetActionName(), raw, instanceListReq.RpcRequest, instanceListReq)
-		for _, v := range instanceListResp.InstanceList.InstanceVO {
-			return &v, nil
-		}
-		if time.Now().After(deadline) {
-			return alikafkaInstance, WrapErrorf(NotFoundErr("AlikafkaInstance", orderId), NotFoundMsg, ProviderERROR)
-		}
-		time.Sleep(DefaultIntervalShort * time.Second)
-	}
-}
 
 func validateAliKafkaBillingCombination(instanceType kafka.KafkaInstanceSeries, billingType kafka.KafkaBillingType) error {
 	if instanceType == kafka.InstanceSeriesServerless && billingType == kafka.BillingTypePrePay {
@@ -113,114 +69,111 @@ func buildAliKafkaInstanceCreationConfig(instance *kafka.KafkaInstance, instance
 	return config
 }
 
-func (s *KafkaService) WaitForAlikafkaInstanceUpdated(id string, topicQuota int, diskSize int, ioMax int,
-	eipMax int, paidType int, specType string, timeout int) error {
-	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
-	for {
-		object, err := s.DescribeAlikafkaInstance(id)
-		if err != nil {
-			return WrapError(err)
-		}
-
-		// Wait for all variables be equal.
-		currentPaidType := 0
-		if object.PaidType != nil {
-			currentPaidType = int(*object.PaidType)
-		}
-
-		if object.InstanceId == id && tea.IntValue(object.PartitionNum) == topicQuota && tea.IntValue(object.DiskSize) == diskSize && tea.IntValue(object.IoMax) == ioMax && tea.IntValue(object.EipMax) == eipMax && currentPaidType == paidType && tea.StringValue(object.SpecType) == specType {
-			return nil
-		}
-
-		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, id, GetFunc(1), timeout, object.InstanceId, id, ProviderERROR)
-		}
-		time.Sleep(DefaultIntervalShort * time.Second)
-	}
-}
-
-func (s *KafkaService) WaitForAlikafkaInstance(id string, status Status, timeout int) error {
-	deadline := time.Now().Add(time.Duration(timeout) * time.Second)
-	for {
-		object, err := s.DescribeAlikafkaInstance(id)
-		if err != nil {
-			if NotFoundError(err) {
-				if status == Deleted {
-					return nil
-				}
-			} else {
-				return WrapError(err)
-			}
-		}
-
-		// Process wait for running.
-		if object.InstanceId == id && status == Running {
-
-			// ServiceStatus equals 5, means the server is in service.
-			if object.ServiceStatus == 5 {
-				return nil
-			}
-
-		} else if object.InstanceId == id {
-
-			// If target status is not deleted and found a instance, return.
-			if status != Deleted {
-				return nil
-			} else {
-				// ServiceStatus equals 10, means the server is in released.
-				if object.ServiceStatus == 10 {
-					return nil
-				}
-			}
-		}
-
-		if time.Now().After(deadline) {
-			return WrapErrorf(err, WaitTimeoutMsg, id, GetFunc(1), timeout, object.InstanceId, id, ProviderERROR)
-		}
-		time.Sleep(DefaultIntervalShort * time.Second)
-	}
-}
-
-// WaitForAliKafkaInstanceCreating waits for the Kafka instance to be in the running state (state 5)
-// considering all intermediate states (0, 2, 3, 4) as pending
+// WaitForAliKafkaInstanceCreating waits for the Kafka instance to reach pending after create.
 func (s *KafkaService) WaitForAliKafkaInstanceCreating(id string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
-		[]string{"0", "2", "3", "4"}, // pending states: Order Processing, Creating, Configuring, Starting
-		[]string{"5"},                // target state: Running
+		[]string{
+			fmt.Sprint(kafka.KafkaViewInstanceStatusCreated),
+		}, // pending states during create
+		[]string{fmt.Sprint(kafka.KafkaViewInstanceStatusCreated)}, // target state: PendingDeploy
 		timeout,
 		5*time.Second,
-		s.AliKafkaInstanceStateRefreshFunc(id, []string{}),
+		s.AliKafkaInstancePropertyRefreshFunc(id, "view_instance_status_code"),
 	)
 
 	_, err := stateConf.WaitForState()
+	if err == nil {
+		return nil
+	}
 	return WrapErrorf(err, IdMsg, id)
 }
 
 // WaitForAliKafkaInstanceUpdating waits for the Kafka instance to complete an update operation
 func (s *KafkaService) WaitForAliKafkaInstanceUpdating(id string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
-		[]string{"0", "2", "3", "4"}, // pending states during update
-		[]string{"5"},                // target state: Running
+		[]string{
+			fmt.Sprint(kafka.KafkaViewInstanceStatusDeploying),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusStarting),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusUpgrading),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusMigrating),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusAutoScaling),
+		}, // pending states during update
+		[]string{fmt.Sprint(kafka.KafkaViewInstanceStatusRunning)},
 		timeout,
 		5*time.Second,
-		s.AliKafkaInstanceStateRefreshFunc(id, []string{}),
+		s.AliKafkaInstancePropertyRefreshFunc(id, "view_instance_status_code"),
 	)
 
 	_, err := stateConf.WaitForState()
+	if err == nil {
+		return nil
+	}
 	return WrapErrorf(err, IdMsg, id)
 }
 
 // WaitForAliKafkaInstanceStopping waits for the Kafka instance to be stopped (state that indicates stopped)
 func (s *KafkaService) WaitForAliKafkaInstanceStopping(id string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
-		[]string{"5"},       // pending state: Running
-		[]string{"1", "10"}, // target states: Stopped, Released
+		[]string{
+			fmt.Sprint(kafka.KafkaViewInstanceStatusRunning),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusStopping),
+		}, // pending states during stop
+		[]string{
+			fmt.Sprint(kafka.KafkaViewInstanceStatusStopped),
+		}, // target state: Stopped
 		timeout,
 		5*time.Second,
-		s.AliKafkaInstanceStateRefreshFunc(id, []string{}),
+		s.AliKafkaInstancePropertyRefreshFunc(id, "view_instance_status_code"),
 	)
 
 	_, err := stateConf.WaitForState()
+	if err == nil {
+		return nil
+	}
+	return WrapErrorf(err, IdMsg, id)
+}
+
+// WaitForAliKafkaInstanceStarting waits for the Kafka instance to reach running after start/deploy.
+func (s *KafkaService) WaitForAliKafkaInstanceStarting(id string, timeout time.Duration) error {
+	stateConf := BuildStateConf(
+		[]string{
+			fmt.Sprint(kafka.KafkaViewInstanceStatusCreated),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusDeploying),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusStarting),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusAutoScaling),
+		}, // pending states during start
+		[]string{fmt.Sprint(kafka.KafkaViewInstanceStatusRunning)},
+		timeout,
+		5*time.Second,
+		s.AliKafkaInstancePropertyRefreshFunc(id, "view_instance_status_code"),
+	)
+
+	_, err := stateConf.WaitForState()
+	if err == nil {
+		return nil
+	}
+	return WrapErrorf(err, IdMsg, id)
+}
+
+// WaitForAliKafkaInstanceDeleting waits for the Kafka instance to be released after delete.
+func (s *KafkaService) WaitForAliKafkaInstanceDeleting(id string, timeout time.Duration) error {
+	stateConf := BuildStateConf(
+		[]string{
+			fmt.Sprint(kafka.KafkaViewInstanceStatusRunning),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusStopping),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusReleasing),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusStopped),
+		}, // pending states during delete
+		[]string{},
+		timeout,
+		5*time.Second,
+		s.AliKafkaInstancePropertyRefreshFunc(id, "view_instance_status_code"),
+	)
+
+	_, err := stateConf.WaitForState()
+	if err == nil {
+		return nil
+	}
 	return WrapErrorf(err, IdMsg, id)
 }
 
@@ -328,7 +281,7 @@ func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id string, failStates []
 			return nil, "", WrapError(err)
 		}
 
-		status := fmt.Sprintf("%d", object.ServiceStatus)
+		status := fmt.Sprint(object.ViewInstanceStatusCode)
 
 		// Check if the current status is a fail state
 		for _, failState := range failStates {
@@ -359,6 +312,8 @@ func (s *KafkaService) AliKafkaInstancePropertyRefreshFunc(id string, property s
 			val = tea.IntValue(object.EipMax)
 		case "spec_type":
 			val = tea.StringValue(object.SpecType)
+		case "view_instance_status_code":
+			val = object.ViewInstanceStatusCode
 		}
 
 		return object, fmt.Sprint(val), nil
@@ -375,7 +330,7 @@ func (s *KafkaService) DescribeAlikafkaInstance(instanceId string) (*kafka.Kafka
 		return nil, WrapError(err)
 	}
 
-	if instance.ServiceStatus == 10 {
+	if instance.ViewInstanceStatusCode == kafka.KafkaViewInstanceStatusReleased {
 		return nil, WrapErrorf(NotFoundErr("AlikafkaInstance", instanceId), NotFoundMsg, ProviderERROR)
 	}
 

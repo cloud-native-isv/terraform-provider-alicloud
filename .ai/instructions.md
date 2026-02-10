@@ -12,6 +12,7 @@ This project documentation is distributed across several key files. You MUST ref
 | **Development** | `CONTRIBUTING.md` | Setup and Guidelines | Setup, testing, and pull request guidelines |
 | **Readme** | `README.md` or `README` | basic information of project | {TODO} |
 | **Project Documents** | `docs/` | High-level architecture | Architecture and design documentation |
+| **cws-lib-go** | `pkg/cws-lib-go` | cws-lib-go library | provider aliyun API wrapper and SDK |
 | [Other Doc] | [Path] | [Purpose] | [Summary] |
 
 > **Directive**: When answering questions or generating code, ALWAYS check the relevant document from the map above first.

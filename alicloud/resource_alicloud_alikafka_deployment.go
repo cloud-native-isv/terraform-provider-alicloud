@@ -221,8 +221,8 @@ func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(instanceId)
 
-	// Wait for deployment to complete using the new wait function
-	err = kafkaService.WaitForAliKafkaInstanceCreating(d.Id(), d.Timeout(schema.TimeoutCreate))
+	// Wait for deployment(start) to complete: instance should be running
+	err = kafkaService.WaitForAliKafkaInstanceStarting(d.Id(), d.Timeout(schema.TimeoutCreate))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
