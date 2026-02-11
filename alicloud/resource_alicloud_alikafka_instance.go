@@ -691,34 +691,6 @@ func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func formatSelectedZonesReq(configured []interface{}) string {
-	if len(configured) == 0 {
-		return ""
-	}
-
-	var zones [][]string
-	for _, item := range configured {
-		if innerList, ok := item.([]interface{}); ok {
-			var innerZones []string
-			for _, z := range innerList {
-				if s, ok := z.(string); ok {
-					innerZones = append(innerZones, s)
-				}
-			}
-			zones = append(zones, innerZones)
-		}
-	}
-
-	// 使用json.Marshal进行序列化
-	jsonBytes, err := json.Marshal(zones)
-	if err != nil {
-		// 如果序列化失败，返回空字符串
-		return ""
-	}
-
-	return strings.ReplaceAll(string(jsonBytes), "\"", "\\\"")
-}
-
 func extractTags(d *schema.ResourceData) map[string]string {
 	tags := make(map[string]string)
 	if v, ok := d.GetOk("tags"); ok {

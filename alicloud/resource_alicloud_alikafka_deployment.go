@@ -79,13 +79,8 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeList,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-				},
-				Description: "The JSON string of selected zones for the instance. Format: [[\"zone1\", \"zone2\"], [\"zone3\"]]",
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Description: "The JSON string of selected zones for the instance. Format: [\"zone1\", \"zone2\"]",
 			},
 			"vswitch_ids": {
 				Type:     schema.TypeList,
@@ -99,6 +94,39 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 			},
 		},
 	}
+}
+
+
+func formatSelectedZonesReq(configured []interface{}) string {
+	doubleList := make([][]interface{}, len(configured))
+	for i, v := range configured {
+		doubleList[i] = []interface{}{v}
+	}
+
+	if len(doubleList) < 1 {
+		return ""
+	}
+
+	if len(doubleList) == 1 {
+		return "[[\"" + doubleList[0][0].(string) + "\"],[]]"
+	}
+
+	result := "[["
+
+	for i := 0; i < len(doubleList); i++ {
+		switch i {
+		case len(doubleList) - 2:
+			result += "\"" + doubleList[i][0].(string) + "\""
+		case len(doubleList) - 1:
+			result += "],[\"" + doubleList[i][0].(string) + "\"]"
+		default:
+			result += "\"" + doubleList[i][0].(string) + "\","
+		}
+	}
+
+	result += "]"
+
+	return result
 }
 
 func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
