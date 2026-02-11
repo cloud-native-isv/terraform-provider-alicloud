@@ -190,47 +190,7 @@ func (s *KafkaService) CreatePrePayOrder(order *kafka.KafkaOrder) (string, error
 }
 
 // StartAlikafkaInstance 启动Kafka实例
-func (s *KafkaService) StartAlikafkaInstance(request *StartInstanceRequest) error {
-	var isEipInner *bool
-	if request.IsEipInner {
-		isEipInner = &request.IsEipInner
-	}
-	var isSetUserAndPassword *bool
-	if request.IsSetUserAndPassword {
-		isSetUserAndPassword = &request.IsSetUserAndPassword
-	}
-	var crossZone *bool
-	if request.CrossZone {
-		crossZone = &request.CrossZone
-	}
-	var isForceSelectedZones *bool
-	if request.IsForceSelectedZones {
-		isForceSelectedZones = &request.IsForceSelectedZones
-	}
-
-	config := kafka.StartInstanceConfig{
-		InstanceId:           request.InstanceId,
-		RegionId:             request.RegionId,
-		VpcId:                request.VpcId,
-		VSwitchId:            request.VSwitchId,
-		ZoneId:               request.ZoneId,
-		DeployModule:         request.DeployModule,
-		IsEipInner:           isEipInner,
-		IsSetUserAndPassword: isSetUserAndPassword,
-		Username:             request.Username,
-		Password:             request.Password,
-		Name:                 request.Name,
-		CrossZone:            crossZone,
-		SecurityGroup:        request.SecurityGroup,
-		ServiceVersion:       request.ServiceVersion,
-		Config:               request.Config,
-		KMSKeyId:             request.KMSKeyId,
-		Notifier:             request.Notifier,
-		UserPhoneNum:         request.UserPhoneNum,
-		SelectedZones:        request.SelectedZones,
-		IsForceSelectedZones: isForceSelectedZones,
-		VSwitchIds:           request.VSwitchIds,
-	}
+func (s *KafkaService) StartAlikafkaInstance(config kafka.StartInstanceConfig) error {
 	return s.kafkaApi.StartInstance(config)
 }
 

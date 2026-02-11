@@ -65,22 +65,22 @@ func TestAliKafkaBillingAndInstanceTypeResolve(t *testing.T) {
 		t.Fatalf("expected error for invalid instance type")
 	}
 
-	billingType, err := ResolveAliKafkaBillingType(AliKafkaBillingTypePostPaid)
+	billingType, err := ResolveAliKafkaPaidType(AliKafkaBillingTypePostPaid)
 	if err != nil || billingType != "PostPay" {
 		t.Fatalf("unexpected billing type: %v, %v", billingType, err)
 	}
 
-	billingType, err = ResolveAliKafkaBillingType(AliKafkaBillingTypePrePaid)
+	billingType, err = ResolveAliKafkaPaidType(AliKafkaBillingTypePrePaid)
 	if err != nil || billingType != "PrePay" {
 		t.Fatalf("unexpected billing type: %v, %v", billingType, err)
 	}
 
-	billingType, err = ResolveAliKafkaBillingType("")
+	billingType, err = ResolveAliKafkaPaidType("")
 	if err != nil || billingType != "PostPay" {
 		t.Fatalf("unexpected default billing type: %v, %v", billingType, err)
 	}
 
-	if _, err = ResolveAliKafkaBillingType("invalid"); err == nil {
+	if _, err = ResolveAliKafkaPaidType("invalid"); err == nil {
 		t.Fatalf("expected error for invalid billing type")
 	}
 }

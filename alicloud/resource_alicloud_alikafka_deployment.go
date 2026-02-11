@@ -6,6 +6,7 @@ import (
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -154,65 +155,65 @@ func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta inter
 	}
 
 	// Use CWS-Lib-Go API to start the instance
-	req := &StartInstanceRequest{
+	config := kafka.StartInstanceConfig{
 		InstanceId: instanceId,
 		RegionId:   client.RegionId,
 		VpcId:      options["vpc_id"].(string),
 		VSwitchId:  vswitchId,
 	}
 	if v, ok := options["zone_id"].(string); ok {
-		req.ZoneId = v
+		config.ZoneId = v
 	}
 	if v, ok := options["deploy_module"].(string); ok {
-		req.DeployModule = v
+		config.DeployModule = v
 	}
-	if v, ok := options["is_eip_inner"].(bool); ok {
-		req.IsEipInner = v
+	if v, ok := options["is_eip_inner"].(bool); ok && v {
+		config.IsEipInner = tea.Bool(v)
 	}
-	if v, ok := options["is_set_user_and_password"].(bool); ok {
-		req.IsSetUserAndPassword = v
+	if v, ok := options["is_set_user_and_password"].(bool); ok && v {
+		config.IsSetUserAndPassword = tea.Bool(v)
 	}
 	if v, ok := options["username"].(string); ok {
-		req.Username = v
+		config.Username = v
 	}
 	if v, ok := options["password"].(string); ok {
-		req.Password = v
+		config.Password = v
 	}
 	if v, ok := options["name"].(string); ok {
-		req.Name = v
+		config.Name = v
 	}
-	if v, ok := options["cross_zone"].(bool); ok {
-		req.CrossZone = v
+	if v, ok := options["cross_zone"].(bool); ok && v {
+		config.CrossZone = tea.Bool(v)
 	}
 	if v, ok := options["security_group"].(string); ok {
-		req.SecurityGroup = v
+		config.SecurityGroup = v
 	}
 	if v, ok := options["service_version"].(string); ok {
-		req.ServiceVersion = v
+		config.ServiceVersion = v
 	}
 	if v, ok := options["config"].(string); ok {
-		req.Config = v
+		config.Config = v
 	}
 	if v, ok := options["kms_key_id"].(string); ok {
-		req.KMSKeyId = v
+		config.KMSKeyId = v
 	}
 	if v, ok := options["notifier"].(string); ok {
-		req.Notifier = v
+		config.Notifier = v
 	}
 	if v, ok := options["user_phone_num"].(string); ok {
-		req.UserPhoneNum = v
+		config.UserPhoneNum = v
 	}
 	if v, ok := options["selected_zones"].(string); ok {
-		req.SelectedZones = v
+		config.SelectedZones = v
 	}
-	if v, ok := options["is_force_selected_zones"].(bool); ok {
-		req.IsForceSelectedZones = v
+	if v, ok := options["is_force_selected_zones"].(bool); ok && v {
+		config.IsForceSelectedZones = tea.Bool(v)
 	}
 	if v, ok := options["vswitch_ids"].([]string); ok {
-		req.VSwitchIds = v
+		config.VSwitchIds = v
 	}
 
-	err = kafkaService.StartAlikafkaInstance(req)
+	err = kafkaService.StartAlikafkaInstance(config)
 	if err != nil {
 		return WrapError(err)
 	}

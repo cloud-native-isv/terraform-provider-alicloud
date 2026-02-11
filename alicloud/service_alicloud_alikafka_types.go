@@ -28,7 +28,7 @@ func ResolveAliKafkaInstanceType(value string) (kafka.KafkaInstanceSeries, error
 	}
 }
 
-func ResolveAliKafkaBillingType(value string) (kafka.KafkaBillingType, error) {
+func ResolveAliKafkaPaidType(value string) (kafka.KafkaBillingType, error) {
 	if value == "" {
 		return kafka.BillingTypePostPay, nil
 	}
@@ -38,11 +38,11 @@ func ResolveAliKafkaBillingType(value string) (kafka.KafkaBillingType, error) {
 	case AliKafkaBillingTypePrePaid:
 		return kafka.BillingTypePrePay, nil
 	default:
-		return "", fmt.Errorf("unsupported billing_type: %s", value)
+		return "", fmt.Errorf("unsupported paid_type: %s", value)
 	}
 }
 
-func FormatAliKafkaBillingType(paidType *kafka.KafkaPaidType) string {
+func FormatAliKafkaPaidType(paidType *kafka.KafkaPaidType) string {
 	if paidType == nil {
 		return ""
 	}
@@ -154,30 +154,6 @@ func DecodeAllowedIpId(id string) (string, string, string, string, error) {
 	return parts[1], parts[2], parts[3], parts[4], nil
 }
 
-// StartInstanceRequest represents the request to start a Kafka instance
-type StartInstanceRequest struct {
-	InstanceId           string
-	RegionId             string
-	VpcId                string
-	VSwitchId            string
-	ZoneId               string
-	DeployModule         string
-	IsEipInner           bool
-	IsSetUserAndPassword bool
-	Username             string
-	Password             string
-	Name                 string
-	CrossZone            bool
-	SecurityGroup        string
-	ServiceVersion       string
-	Config               string
-	KMSKeyId             string
-	Notifier             string
-	UserPhoneNum         string
-	SelectedZones        string
-	IsForceSelectedZones bool
-	VSwitchIds           []string
-}
 
 // ModifyInstanceNameRequest represents the request to modify a Kafka instance name
 type ModifyInstanceNameRequest struct {

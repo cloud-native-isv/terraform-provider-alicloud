@@ -78,13 +78,6 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 				Default:      AliKafkaBillingTypePostPaid,
 				ValidateFunc: StringInSlice([]string{"PrePaid", "PostPaid"}, false),
 			},
-			"billing_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      AliKafkaBillingTypePostPaid,
-				ValidateFunc: StringInSlice([]string{"PrePaid", "PostPaid"}, false),
-			},
 			"duration": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -216,16 +209,12 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	if v, ok := d.GetOk("instance_type"); ok {
 		instanceTypeInput = v.(string)
 	}
-	billingTypeInput := ""
-	if v, ok := d.GetOk("billing_type"); ok {
-		billingTypeInput = v.(string)
-	}
 	paidTypeInput := ""
 	if v, ok := d.GetOk("paid_type"); ok {
 		paidTypeInput = v.(string)
 	}
 
-	instanceType, billingType, err := resolveAliKafkaInstanceBilling(instanceTypeInput, billingTypeInput, paidTypeInput)
+	instanceType, billingType, err := resolveAliKafkaInstanceBilling(instanceTypeInput, paidTypeInput)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -362,14 +351,7 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("name", tea.StringValue(object.Name)) // object.Name is *string
 	if object.DiskType != nil {
 		diskType := *object.DiskType
-		switch diskType {
-		case kafka.KafkaDiskTypeSSD:
-			d.Set("disk_type", "SSD")
-		case kafka.KafkaDiskTypeUltra:
-			d.Set("disk_type", "Ultra")
-		default:
-			d.Set("disk_type", fmt.Sprint(diskType))
-		}
+		d.Set("disk_type", fmt.Sprint(diskType))
 	}
 	d.Set("disk_size", tea.IntValue(object.DiskSize))
 	if object.DeployType != nil {
@@ -395,7 +377,7 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 
 	d.Set("status", object.ServiceStatus) // ServiceStatus in VO (int)
 
-	if billingType := FormatAliKafkaBillingType(object.PaidType); billingType != "" {
+	if billingType := FormatAliKafkaPaidType(object.PaidType); billingType != "" {
 		d.Set("paid_type", billingType)
 	}
 	if instanceType := inferAliKafkaInstanceType(object); instanceType != "" {
@@ -734,18 +716,7 @@ func formatSelectedZonesReq(configured []interface{}) string {
 		return ""
 	}
 
-	return string(jsonBytes)
-}
-
-func convertAliKafkaAutoCreateTopicEnableResponse(source interface{}) interface{} {
-	switch source {
-	case true:
-		return "enable"
-	case false:
-		return "disable"
-	}
-
-	return source
+	return strings.ReplaceAll(string(jsonBytes), "\"", "\\\"")
 }
 
 func extractTags(d *schema.ResourceData) map[string]string {
@@ -758,26 +729,12 @@ func extractTags(d *schema.ResourceData) map[string]string {
 	return tags
 }
 
-func resolveAliKafkaBillingTypeInput(billingTypeInput, paidTypeInput string) (string, error) {
-	if billingTypeInput != "" && paidTypeInput != "" && billingTypeInput != paidTypeInput {
-		return "", fmt.Errorf("billing_type and paid_type conflict: %s vs %s", billingTypeInput, paidTypeInput)
-	}
-	if billingTypeInput != "" {
-		return billingTypeInput, nil
-	}
-	return paidTypeInput, nil
-}
-
-func resolveAliKafkaInstanceBilling(instanceTypeInput, billingTypeInput, paidTypeInput string) (kafka.KafkaInstanceSeries, kafka.KafkaBillingType, error) {
+func resolveAliKafkaInstanceBilling(instanceTypeInput, paidTypeInput string) (kafka.KafkaInstanceSeries, kafka.KafkaBillingType, error) {
 	instanceType, err := ResolveAliKafkaInstanceType(instanceTypeInput)
 	if err != nil {
 		return "", "", err
 	}
-	resolvedBillingInput, err := resolveAliKafkaBillingTypeInput(billingTypeInput, paidTypeInput)
-	if err != nil {
-		return "", "", err
-	}
-	billingType, err := ResolveAliKafkaBillingType(resolvedBillingInput)
+	billingType, err := ResolveAliKafkaPaidType(paidTypeInput)
 	if err != nil {
 		return "", "", err
 	}
