@@ -1,0 +1,83 @@
+package alicloud
+
+import (
+	"testing"
+)
+
+func TestFormatSelectedZonesReq(t *testing.T) {
+	cases := []struct {
+		name        string
+		input       []interface{}
+		expectError bool
+		expectText  string
+	}{
+		{
+			name: "valid input",
+			input: []interface{}{
+				[]interface{}{"zoneh", "zonef"},
+				[]interface{}{"zonek"},
+			},
+			expectError: false,
+			expectText:  `[["zoneh","zonef"],["zonek"]]`,
+		},
+		{
+			name: "valid input single",
+			input: []interface{}{
+				[]interface{}{"zoneh"},
+				[]interface{}{},
+			},
+			expectError: false,
+			expectText:  `[["zoneh"],[]]`,
+		},
+		{
+			name: "valid empty inner lists",
+			input: []interface{}{
+				[]interface{}{},
+				[]interface{}{},
+			},
+			expectError: false,
+			expectText:  `[[],[]]`,
+		},
+		{
+			name:        "invalid length (empty)",
+			input:       []interface{}{},
+			expectError: true,
+		},
+		{
+			name: "invalid length (too many)",
+			input: []interface{}{
+				[]interface{}{"zone1"},
+				[]interface{}{"zone2"},
+				[]interface{}{"zone3"},
+			},
+			expectError: true,
+		},
+		{
+			name: "invalid inner element type",
+			input: []interface{}{
+				[]interface{}{"zone1"},
+				"not a list",
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := formatSelectedZonesReq(tc.input)
+
+			if tc.expectError {
+				if err == nil {
+					t.Errorf("Expected error but got nil")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Expected no error but got: %v", err)
+				}
+				if result != tc.expectText {
+					t.Errorf("Expected text %s but got %s", tc.expectText, result)
+				}
+			}
+		})
+	}
+}

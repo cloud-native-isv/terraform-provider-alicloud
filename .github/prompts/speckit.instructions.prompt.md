@@ -1,4 +1,4 @@
-> Note: `$ARGUMENTS` 为**可选补充输入**。`$ARGUMENTS` 是用户的输入，根据用户输入的不同整体的执行流程也会不同：如果 `$ARGUMENTS` 为空，则代表进行整体性的创建或更新；如果 `$ARGUMENTS` 有内容，则需要针对具体的部分内容进行更新或修改。
+> Note: `$ARGUMENTS` is **optional additional input** from the user. The execution flow depends on it: if `$ARGUMENTS` is empty, perform a full creation/update; if `$ARGUMENTS` is provided, update only the requested parts.
 
 ## User Input
 
@@ -10,7 +10,29 @@ You **MUST** analyze the content of `$ARGUMENTS` to determine the execution flow
 - If `$ARGUMENTS` is empty: Perform a comprehensive creation or update of the instructions.
 - If `$ARGUMENTS` has content: Update or modify specific parts based on the provided input.
 
-## Outline
+## Overview
+
+Analyze this repository and generate or update `.ai/instructions.md` to guide AI coding agents.
+
+Focus on capturing *discoverable, project-specific* knowledge that makes a fresh AI instance immediately productive, including:
+
+- The “big picture” architecture that requires reading multiple files to understand (major components, boundaries, data flows, and the rationale behind key structure)
+- Critical developer workflows (build, test, debug), especially commands that are not obvious from file inspection alone
+- Conventions and patterns that differ from common defaults
+- Integration points, external dependencies, and cross-component communication patterns
+
+Content guidelines for `.ai/instructions.md`:
+
+- If `.ai/instructions.md` already exists, merge intelligently: preserve valuable content and update only what is outdated
+- Keep it concise and actionable (~20–50 lines) using Markdown structure
+- Use concrete examples from this repo when describing patterns
+- Avoid generic advice; document only this project’s specific approaches
+- Document only what you can observe in the codebase (not aspirational practices)
+- Reference key files/directories that exemplify important patterns
+
+After updating `.ai/instructions.md`, ask the user for feedback on anything unclear or incomplete so you can iterate.
+
+## Actions
 
 1. **Setup**: Run `.specify/scripts/bash/generate-instructions.sh` to ensure the basic directory structure, `.copilotignore`, and template `.ai/instructions.md` exist.
    - This script handles the "heavy lifting" of creating directories, ignoring files, and establishing symlinks for various AI tools (`.clinerules`, `.github`, `.lingma`, etc.).

@@ -51,7 +51,6 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
      - Ensure all required sections are properly filled
    - Phase 0: Resolve clarifications (refer to `research.md` or conduct analysis)
    - Phase 1: Generate data-model.md, contracts/, quickstart.md
-   - Phase 1: Update agent context by running the agent script
    - Re-evaluate Constitution Check post-design
 
 5. **Stop and report**: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
@@ -111,14 +110,7 @@ This integration ensures that all feature planning activities are properly track
    - Use standard REST/GraphQL patterns
    - Output OpenAPI/GraphQL schema to `/contracts/`
 
-3. **Agent context update**:
-   - Run `{AGENT_SCRIPT}`
-   - These scripts detect which AI agent is in use
-   - Update the appropriate agent-specific context file
-   - Add only new technology from current plan
-   - Preserve manual additions between markers
-
-**Output**: data-model.md, /contracts/*, quickstart.md, agent-specific file
+**Output**: data-model.md, /contracts/*, quickstart.md file
 
 ## Key rules
 

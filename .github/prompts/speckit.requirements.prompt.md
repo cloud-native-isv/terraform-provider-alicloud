@@ -45,7 +45,7 @@ Given that feature description, do this:
    
    d. Prepare to run the script `
 ```bash
-cat << 'EOF' | .specify/scripts/bash/create-new-spec.sh --json --number <NUMBER> --short-name "<SHORT_NAME>"
+cat << 'EOF' | .specify/scripts/bash/create-new-spec.sh --json --short-name "<SHORT_NAME>"
 $ARGUMENTS
 EOF
 ```
@@ -53,7 +53,7 @@ EOF
    
 2. Run the script `
 ```bash
-cat << 'EOF' | .specify/scripts/bash/create-new-spec.sh --json --number <NUMBER> --short-name "<SHORT_NAME>"
+cat << 'EOF' | .specify/scripts/bash/create-new-spec.sh --json --short-name "<SHORT_NAME>"
 $ARGUMENTS
 EOF
 ```
@@ -63,7 +63,7 @@ EOF
 
    - For Bash, this expands to a heredoc-based, safe JSON handoff that writes the raw user input to stdin and passes its contents to `
 ```bash
-cat << 'EOF' | .specify/scripts/bash/create-new-spec.sh --json --number <NUMBER> --short-name "<SHORT_NAME>"
+cat << 'EOF' | .specify/scripts/bash/create-new-spec.sh --json --short-name "<SHORT_NAME>"
 $ARGUMENTS
 EOF
 ```

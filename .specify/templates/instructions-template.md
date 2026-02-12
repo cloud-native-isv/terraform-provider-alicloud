@@ -19,6 +19,20 @@ This project documentation is distributed across several key files. You MUST ref
 
 > **Directive**: When answering questions or generating code, ALWAYS check the relevant document from the map above first.
 
+## Fact, Correctness & Logic Checks (Input Sanity)
+User-provided context can be wrong (misconceptions), incomplete, or contain typos. Before acting on user input, perform a basic sanity check to avoid propagating errors.
+
+Minimum checks:
+- **Names & identifiers**: Verify file paths, module/package names, commands, and symbols exist in the repo. If uncertain, search the workspace rather than guessing.
+- **Factual claims**: Treat user statements as hypotheses; confirm against the repo (code/config), the Documentation Map, or authoritative references.
+- **Logical consistency**: Detect contradictions between requirements, constraints, and desired outcomes (e.g., incompatible versions, mutually exclusive goals).
+- **Typos & near-misses**: Correct obvious typos (paths, flags, option names) and explicitly state the corrected interpretation.
+- **Assumptions**: If you must assume, keep assumptions minimal, label them clearly, and prefer reversible changes.
+
+Escalation rules:
+- If the suspected error impacts correctness, security, data loss, or large refactors: **pause and ask a clarifying question**.
+- If the issue is low-risk and the fix is obvious: proceed with the correction and mention it briefly.
+
 ## Tech Stack & Resources
 - **Project Name**: {{PROJECT_NAME}}
 - **Root Path**: {{PROJECT_ROOT}}

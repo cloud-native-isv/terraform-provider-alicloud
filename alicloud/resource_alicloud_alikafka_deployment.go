@@ -1,6 +1,8 @@
 package alicloud
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -79,8 +81,13 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Description: "The JSON string of selected zones for the instance. Format: [\"zone1\", \"zone2\"]",
+				Elem: &schema.Schema{
+					Type: schema.TypeList,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				Description: "The JSON string of selected zones for the instance. Format: [[\"zone1\", \"zone2\"], [\"zone3\"]]",
 			},
 			"vswitch_ids": {
 				Type:     schema.TypeList,
@@ -96,37 +103,37 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 	}
 }
 
-
-func formatSelectedZonesReq(configured []interface{}) string {
-	doubleList := make([][]interface{}, len(configured))
-	for i, v := range configured {
-		doubleList[i] = []interface{}{v}
+func formatSelectedZonesReq(configured []interface{}) (string, error) {
+	if len(configured) != 2 {
+		return "", fmt.Errorf("the selected_zones must be a two-dimensional array with exactly two elements")
 	}
 
-	if len(doubleList) < 1 {
-		return ""
-	}
-
-	if len(doubleList) == 1 {
-		return "[[\"" + doubleList[0][0].(string) + "\"],[]]"
-	}
-
-	result := "[["
-
-	for i := 0; i < len(doubleList); i++ {
-		switch i {
-		case len(doubleList) - 2:
-			result += "\"" + doubleList[i][0].(string) + "\""
-		case len(doubleList) - 1:
-			result += "],[\"" + doubleList[i][0].(string) + "\"]"
-		default:
-			result += "\"" + doubleList[i][0].(string) + "\","
+	var zones [][]string
+	for _, v := range configured {
+		list, ok := v.([]interface{})
+		if !ok {
+			return "", fmt.Errorf("the element of selected_zones must be a list")
 		}
+
+		items := []string{}
+		for _, item := range list {
+			str, ok := item.(string)
+			if !ok {
+				return "", fmt.Errorf("the element of inner zone list must be a string")
+			}
+			items = append(items, str)
+		}
+		zones = append(zones, items)
 	}
 
-	result += "]"
+	data, err := json.Marshal(zones)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal selected_zones: %s", err)
+	}
 
-	return result
+	result := string(data)
+	log.Printf("[DEBUG] formatSelectedZonesReq result: %s", result)
+	return result, nil
 }
 
 func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
@@ -171,8 +178,12 @@ func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta inter
 	}
 
 	if v, ok := d.GetOk("selected_zones"); ok {
-		options["selected_zones"] = formatSelectedZonesReq(v.([]interface{}))
-		log.Printf("[DEBUG] Resource alicloud_alikafka_deployment SelectedZones=%s", formatSelectedZonesReq(v.([]interface{})))
+		zonesStr, err := formatSelectedZonesReq(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("formatting selected_zones failed: %s", err)
+		}
+		options["selected_zones"] = zonesStr
+		log.Printf("[DEBUG] Resource alicloud_alikafka_deployment SelectedZones=%s", zonesStr)
 	}
 
 	if v, ok := d.GetOk("vswitch_ids"); ok {

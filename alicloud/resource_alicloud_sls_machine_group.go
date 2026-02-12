@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"sort"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -118,6 +119,7 @@ func resourceAliCloudLogMachineGroupRead(d *schema.ResourceData, meta interface{
 	d.Set("project", projectName)
 	d.Set("name", machineGroup.Name)
 	d.Set("identify_type", machineGroup.MachineIdType)
+	sort.Strings(machineGroup.MachineIdList)
 	d.Set("identify_list", machineGroup.MachineIdList)
 
 	// Set topic if available
