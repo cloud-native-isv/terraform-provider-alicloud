@@ -57,6 +57,13 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 				Default:     true,
 				Description: "Specifies whether to deploy the instance across zones. true: Deploy the instance across zones. false: Do not deploy the instance across zones. Default value: true.",
 			},
+			"deploy_module": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Default:     "vpc",
+				Description: "The deployment module of the instance. valid: vpc, eip",
+			},
 			"security_group": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -159,6 +166,14 @@ func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta inter
 
 	if v, ok := d.GetOk("name"); ok {
 		options["name"] = v.(string)
+	}
+
+	if v, ok := d.GetOk("cross_zone"); ok {
+		options["cross_zone"] = v.(bool)
+	}
+
+	if v, ok := d.GetOk("deploy_module"); ok {
+		options["deploy_module"] = v.(string)
 	}
 
 	if v, ok := d.GetOk("security_group"); ok {
