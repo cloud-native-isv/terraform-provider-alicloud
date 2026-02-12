@@ -22,3 +22,16 @@ func ValidateLogtailConfigJsonObject(jsonStr string) error {
 	}
 	return nil
 }
+
+func validateLogtailConfigJsonObjectString(v interface{}, k string) (ws []string, errors []error) {
+	jsonStr, ok := v.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("%s must be a JSON string", k))
+		return
+	}
+
+	if err := ValidateLogtailConfigJsonObject(jsonStr); err != nil {
+		errors = append(errors, fmt.Errorf("%s: %s", k, err.Error()))
+	}
+	return
+}

@@ -48,3 +48,5 @@ __pycache__/
 *$py.class
 .venv/
 venv/
+
+local_tmp/

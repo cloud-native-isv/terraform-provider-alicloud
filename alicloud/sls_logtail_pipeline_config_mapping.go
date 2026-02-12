@@ -18,6 +18,8 @@ func (c *SlsLogtailPipelineConfigPlugin) ToMap() (map[string]interface{}, error)
 	}
 
 	// Ensure type is set and overrides any existing type in json
+	delete(m, "type")
+	delete(m, "Type")
 	m["type"] = c.Type
 	return m, nil
 }
@@ -108,6 +110,8 @@ func FromLibConfigPlugin(m map[string]interface{}) SlsLogtailPipelineConfigPlugi
 	p := SlsLogtailPipelineConfigPlugin{}
 	if t, ok := m["type"].(string); ok {
 		p.Type = t
+	} else if t, ok := m["Type"].(string); ok {
+		p.Type = t
 	}
 
 	// Clone map to avoid modifying original, and remove type from JSON to be cleaner?
@@ -125,7 +129,7 @@ func FromLibConfigPlugin(m map[string]interface{}) SlsLogtailPipelineConfigPlugi
 	// Copy map
 	cMap := make(map[string]interface{})
 	for k, v := range m {
-		if k != "type" {
+		if k != "type" && k != "Type" {
 			cMap[k] = v
 		}
 	}

@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -31,10 +32,8 @@ func resourceAliCloudLogtailConfig() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
-					// Match typical Logtail config name rules if known, strictly alphanumeric+dash/underscore
-					// But rely on API validation mostly.
-					// cws-lib-go regex: ^[a-z0-9-_]+$
-					nil, "",
+					regexp.MustCompile(`^[a-z0-9-_]+$`),
+					"name must match ^[a-z0-9-_]+$",
 				),
 			},
 			"inputs":      pluginSchema("inputs", true),
@@ -49,7 +48,7 @@ func resourceAliCloudLogtailConfig() *schema.Resource {
 					s, _ := NormalizeLogtailConfigJson(v.(string))
 					return s
 				},
-				ValidateFunc: validation.StringIsJSON,
+				ValidateFunc: validateLogtailConfigJsonObjectString,
 			},
 			"task_json": {
 				Type:     schema.TypeString,
@@ -58,7 +57,7 @@ func resourceAliCloudLogtailConfig() *schema.Resource {
 					s, _ := NormalizeLogtailConfigJson(v.(string))
 					return s
 				},
-				ValidateFunc: validation.StringIsJSON,
+				ValidateFunc: validateLogtailConfigJsonObjectString,
 			},
 			"log_sample": {
 				Type:     schema.TypeString,

@@ -155,3 +155,81 @@ func TestSlsLogtailPipelineConfigPlugin_ToMap(t *testing.T) {
 		t.Errorf("ToMap lost config keys. Got %s", m["k"])
 	}
 }
+
+func TestSlsLogtailPipelineConfigMapping_ProductionYamlShape(t *testing.T) {
+	libCfg := &sls.LogtailPipelineConfig{
+		ConfigName: "kangaroo-pai-file-fabricmanager-proxy",
+		Inputs: []map[string]interface{}{
+			{
+				"Type":                           "input_file",
+				"AllowingIncludedByMultiConfigs": true,
+				"EnableContainerDiscovery":       false,
+				"FileEncoding":                   "utf8",
+				"FilePaths": []interface{}{
+					"/logtail_host/var/log/fabricmanager-proxy/**/fabric.log",
+				},
+				"MaxDirSearchDepth": float64(10),
+				"TailSizeKB":        float64(10485760),
+			},
+		},
+		Processors: []map[string]interface{}{
+			{
+				"Type":      "processor_parse_json_native",
+				"SourceKey": "content",
+			},
+		},
+		Flushers: []map[string]interface{}{
+			{
+				"Type":          "flusher_sls",
+				"Endpoint":      "cn-shanghai-b-intranet.log.aliyuncs.com",
+				"Logstore":      "kangaroo-pai-fabricmanager-proxy",
+				"Region":        "cn-shanghai-b",
+				"TelemetryType": "logs",
+			},
+		},
+		Aggregators:    []map[string]interface{}{},
+		Global:         map[string]interface{}{"TopicType": "default"},
+		Task:           map[string]interface{}{},
+		LogSample:      "",
+		CreateTime:     1770809720,
+		LastModifyTime: 1770869527,
+	}
+
+	domain := FromLibConfig(libCfg, "test-project")
+	if domain.Name != "kangaroo-pai-file-fabricmanager-proxy" {
+		t.Fatalf("unexpected name: %s", domain.Name)
+	}
+	if len(domain.Inputs) != 1 || domain.Inputs[0].Type != "input_file" {
+		t.Fatalf("unexpected input type: %+v", domain.Inputs)
+	}
+	if len(domain.Processors) != 1 || domain.Processors[0].Type != "processor_parse_json_native" {
+		t.Fatalf("unexpected processor type: %+v", domain.Processors)
+	}
+	if len(domain.Flushers) != 1 || domain.Flushers[0].Type != "flusher_sls" {
+		t.Fatalf("unexpected flusher type: %+v", domain.Flushers)
+	}
+	if len(domain.Aggregators) != 0 {
+		t.Fatalf("aggregators should be empty")
+	}
+	if domain.GlobalJson != `{"TopicType":"default"}` {
+		t.Fatalf("unexpected global_json: %s", domain.GlobalJson)
+	}
+	if domain.TaskJson != `{}` {
+		t.Fatalf("unexpected task_json: %s", domain.TaskJson)
+	}
+	if domain.CreateTime != 1770809720 || domain.LastModifyTime != 1770869527 {
+		t.Fatalf("unexpected timestamps: %d/%d", domain.CreateTime, domain.LastModifyTime)
+	}
+
+	// round-trip back to lib model
+	newLib, err := domain.ToLibConfig()
+	if err != nil {
+		t.Fatalf("ToLibConfig failed: %v", err)
+	}
+	if newLib.Inputs[0]["type"] != "input_file" {
+		t.Fatalf("unexpected round-trip input type: %v", newLib.Inputs[0]["type"])
+	}
+	if _, exists := newLib.Inputs[0]["Type"]; exists {
+		t.Fatalf("round-trip should not keep uppercase Type key")
+	}
+}
