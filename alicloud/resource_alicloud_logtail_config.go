@@ -1,13 +1,10 @@
 package alicloud
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	slsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -20,18 +17,48 @@ func resourceAliCloudLogtailConfig() *schema.Resource {
 		Update: resourceAliCloudLogtailConfigUpdate,
 		Delete: resourceAliCloudLogtailConfigDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceAliCloudLogtailConfigImport,
 		},
+
 		Schema: map[string]*schema.Schema{
-			"name": {
+			"project": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-			"input_type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"file", "plugin"}, false),
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					// Match typical Logtail config name rules if known, strictly alphanumeric+dash/underscore
+					// But rely on API validation mostly.
+					// cws-lib-go regex: ^[a-z0-9-_]+$
+					nil, "",
+				),
+			},
+			"inputs":      pluginSchema("inputs", true),
+			"processors":  pluginSchema("processors", false),
+			"flushers":    pluginSchema("flushers", true),
+			"aggregators": pluginSchema("aggregators", false),
+
+			"global_json": {
+				Type:     schema.TypeString,
+				Optional: true,
+				StateFunc: func(v interface{}) string {
+					s, _ := NormalizeLogtailConfigJson(v.(string))
+					return s
+				},
+				ValidateFunc: validation.StringIsJSON,
+			},
+			"task_json": {
+				Type:     schema.TypeString,
+				Optional: true,
+				StateFunc: func(v interface{}) string {
+					s, _ := NormalizeLogtailConfigJson(v.(string))
+					return s
+				},
+				ValidateFunc: validation.StringIsJSON,
 			},
 			"log_sample": {
 				Type:     schema.TypeString,
@@ -45,39 +72,37 @@ func resourceAliCloudLogtailConfig() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"project": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"logstore": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"output_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"LogService"}, false),
-			},
-			"input_detail": {
-				Type:     schema.TypeString,
-				Required: true,
-				StateFunc: func(v interface{}) string {
-					jsonString, _ := normalizeJsonString(v)
-					return jsonString
+		},
+	}
+}
+
+func pluginSchema(name string, required bool) *schema.Schema {
+	s := &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: !required,
+		Required: required,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
 				},
-				ValidateFunc: validation.StringIsJSON,
-			},
-			"output_detail": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				"config_json": {
+					Type:     schema.TypeString,
+					Optional: true,
+					StateFunc: func(v interface{}) string {
+						s, _ := NormalizeLogtailConfigJson(v.(string))
+						return s
+					},
+					ValidateFunc: validation.StringIsJSON,
 				},
 			},
 		},
 	}
+	if required {
+		s.MinItems = 1
+	}
+	return s
 }
 
 func resourceAliCloudLogtailConfigCreate(d *schema.ResourceData, meta interface{}) error {
@@ -87,57 +112,28 @@ func resourceAliCloudLogtailConfigCreate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
 
-	projectName := d.Get("project").(string)
-	configName := d.Get("name").(string)
-	logstoreName := d.Get("logstore").(string)
-
-	// Parse input detail JSON directly to strongly typed structure
-	inputDetailStr := d.Get("input_detail").(string)
-	inputDetail := &slsAPI.LogtailConfigInputDetail{}
-	if err := json.Unmarshal([]byte(inputDetailStr), inputDetail); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "ParseInputDetail", AlibabaCloudSdkGoERROR)
+	domainConfig, err := expandSlsLogtailPipelineConfig(d)
+	if err != nil {
+		return WrapError(err)
 	}
 
-	// Build output detail - use a default SLS endpoint
-	endpoint := fmt.Sprintf("%s.%s.log.aliyuncs.com", projectName, client.RegionId)
-	outputDetail := &slsAPI.LogtailConfigOutputDetail{
-		Endpoint:     endpoint,
-		LogstoreName: logstoreName,
+	libConfig, err := domainConfig.ToLibConfig()
+	if err != nil {
+		return WrapError(err)
 	}
 
-	// Create LogtailConfig object with strongly typed InputDetail
-	config := &slsAPI.LogtailConfig{
-		ConfigName:   configName,
-		InputType:    d.Get("input_type").(string),
-		InputDetail:  inputDetail,
-		OutputType:   d.Get("output_type").(string),
-		OutputDetail: outputDetail,
-	}
+	projectName := domainConfig.Project
+	configName := domainConfig.Name
 
-	if v, ok := d.GetOk("log_sample"); ok {
-		config.LogSample = v.(string)
-	}
-
-	// Validate config
-	if err := slsService.ValidateSlsLogtailConfig(config); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "ValidateConfig", AlibabaCloudSdkGoERROR)
-	}
-
-	// Set resource ID before creation
-	resourceId := fmt.Sprintf("%s%s%s%s%s", projectName, COLON_SEPARATED, "config", COLON_SEPARATED, configName)
-	d.SetId(resourceId)
-
-	// Create logtail config with retry logic to handle ConfigAlreadyExist error
+	// Retry logic for creation
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		err := slsService.CreateSlsLogtailConfig(projectName, config)
+		err := slsService.CreateSlsLogtailPipelineConfig(projectName, libConfig)
 		if err != nil {
-			// Handle ConfigAlreadyExist error by importing existing resource
 			if IsExpectedErrors(err, []string{"ConfigAlreadyExist"}) {
-				log.Printf("[INFO] LogtailConfig %s already exists, importing existing resource", configName)
-				return nil
+				return resource.NonRetryableError(fmt.Errorf("Logtail pipeline config %s already exists in project %s", configName, projectName))
 			}
 			if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
-				time.Sleep(10 * time.Second)
+				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
 			}
 			return resource.NonRetryableError(err)
@@ -146,16 +142,24 @@ func resourceAliCloudLogtailConfigCreate(d *schema.ResourceData, meta interface{
 	})
 
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "CreateLogtailConfig", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "CreateLogtailPipelineConfig", AlibabaCloudSdkGoERROR)
 	}
 
-	// Use state refresh function to wait for the logtail config to be fully created and available
-	stateConf := BuildStateConf([]string{""}, []string{config.ConfigName}, d.Timeout(schema.TimeoutCreate), 5*time.Second, slsService.LogtailConfigStateRefreshFunc(resourceId, "configName", []string{"Failed"}))
+	resourceId := fmt.Sprintf("%s:%s:%s", projectName, "config", configName)
+	d.SetId(resourceId)
+
+	// Wait for state
+	stateConf := BuildStateConf(
+		[]string{""},       // Pending (doesn't apply strictly here)
+		[]string{"active"}, // Target
+		d.Timeout(schema.TimeoutCreate),
+		5*time.Second,
+		slsService.LogtailPipelineConfigStateRefreshFunc(resourceId, []string{}),
+	)
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, resourceId)
 	}
 
-	// Read the resource state to ensure all fields including output_detail are properly set
 	return resourceAliCloudLogtailConfigRead(d, meta)
 }
 
@@ -166,7 +170,8 @@ func resourceAliCloudLogtailConfigRead(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
 
-	object, err := slsService.DescribeSlsLogtailConfig(d.Id())
+	// 1. Get from API
+	libConfig, err := slsService.DescribeSlsLogtailPipelineConfig(d.Id())
 	if err != nil {
 		if NotFoundError(err) {
 			d.SetId("")
@@ -175,40 +180,19 @@ func resourceAliCloudLogtailConfigRead(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
+	// 2. Convert to Domain
+	// Need project name from ID because Describe returns config obj which might not have Project field populated (depends on SDK response)
 	parts, err := ParseResourceId(d.Id(), 3)
 	if err != nil {
 		return WrapError(err)
 	}
+	projectName := parts[0]
 
-	d.Set("project", parts[0])
-	d.Set("name", object.ConfigName)
-	d.Set("input_type", object.InputType)
-	d.Set("output_type", object.OutputType)
-	d.Set("log_sample", object.LogSample)
-	d.Set("create_time", object.CreateTime)
-	d.Set("last_modify_time", object.LastModifyTime)
+	domainConfig := FromLibConfig(libConfig, projectName)
 
-	// Set logstore from output detail
-	if object.OutputDetail != nil {
-		d.Set("logstore", object.OutputDetail.LogstoreName)
-	}
-
-	// Convert input detail to JSON string
-	if object.InputDetail != nil {
-		inputDetailBytes, err := json.Marshal(object.InputDetail)
-		if err != nil {
-			return WrapError(err)
-		}
-		d.Set("input_detail", string(inputDetailBytes))
-	}
-
-	// Set output detail as map for schema compatibility
-	if object.OutputDetail != nil {
-		outputDetailMap := map[string]string{
-			"endpoint":     object.OutputDetail.Endpoint,
-			"logstoreName": object.OutputDetail.LogstoreName,
-		}
-		d.Set("output_detail", outputDetailMap)
+	// 3. Flatten to State
+	if err := flattenSlsLogtailPipelineConfig(d, domainConfig); err != nil {
+		return WrapError(err)
 	}
 
 	return nil
@@ -221,50 +205,26 @@ func resourceAliCloudLogtailConfigUpdate(d *schema.ResourceData, meta interface{
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "NewSlsService", AlibabaCloudSdkGoERROR)
 	}
 
-	parts, err := ParseResourceId(d.Id(), 3)
+	domainConfig, err := expandSlsLogtailPipelineConfig(d)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	projectName := parts[0]
-	configName := parts[2]
-
-	// Parse input detail JSON directly to strongly typed structure
-	inputDetailStr := d.Get("input_detail").(string)
-	inputDetail := &slsAPI.LogtailConfigInputDetail{}
-	if err := json.Unmarshal([]byte(inputDetailStr), inputDetail); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "ParseInputDetail", AlibabaCloudSdkGoERROR)
+	libConfig, err := domainConfig.ToLibConfig()
+	if err != nil {
+		return WrapError(err)
 	}
 
-	// Build output detail
-	endpoint := fmt.Sprintf("%s.%s.log.aliyuncs.com", projectName, client.RegionId)
-	outputDetail := &slsAPI.LogtailConfigOutputDetail{
-		Endpoint:     endpoint,
-		LogstoreName: d.Get("logstore").(string),
+	projectName := domainConfig.Project
+
+	// Update
+	if err := slsService.UpdateSlsLogtailPipelineConfig(projectName, libConfig); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "UpdateLogtailPipelineConfig", AlibabaCloudSdkGoERROR)
 	}
 
-	// Create updated LogtailConfig object
-	config := &slsAPI.LogtailConfig{
-		ConfigName:   configName,
-		InputType:    d.Get("input_type").(string),
-		InputDetail:  inputDetail,
-		OutputType:   d.Get("output_type").(string),
-		OutputDetail: outputDetail,
-	}
-
-	if v, ok := d.GetOk("log_sample"); ok {
-		config.LogSample = v.(string)
-	}
-
-	// Validate config
-	if err := slsService.ValidateSlsLogtailConfig(config); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "ValidateConfig", AlibabaCloudSdkGoERROR)
-	}
-
-	// Update logtail config
-	if err := slsService.UpdateSlsLogtailConfig(projectName, configName, config); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "UpdateLogtailConfig", AlibabaCloudSdkGoERROR)
-	}
+	// Wait for update (read back consistency)
+	// Usually strict consistency is not guaranteed immediately, but Refresh should eventually succeed with new values.
+	// For update, we rely on Read to sync state.
 
 	return resourceAliCloudLogtailConfigRead(d, meta)
 }
@@ -280,14 +240,136 @@ func resourceAliCloudLogtailConfigDelete(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return WrapError(err)
 	}
-
 	projectName := parts[0]
 	configName := parts[2]
 
-	// Delete logtail config
-	if err := slsService.DeleteSlsLogtailConfig(projectName, configName); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "DeleteLogtailConfig", AlibabaCloudSdkGoERROR)
+	if err := slsService.DeleteSlsLogtailPipelineConfig(projectName, configName); err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "DeleteLogtailPipelineConfig", AlibabaCloudSdkGoERROR)
 	}
 
 	return nil
+}
+
+func resourceAliCloudLogtailConfigImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	// ID format: project:config:name
+	_, err := ParseResourceId(d.Id(), 3)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	// Verify it exists
+	client := meta.(*connectivity.AliyunClient)
+	slsService, err := NewSlsService(client)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, "alicloud_logtail_config", "NewSlsService", AlibabaCloudSdkGoERROR)
+	}
+
+	_, err = slsService.DescribeSlsLogtailPipelineConfig(d.Id())
+	if err != nil {
+		if NotFoundError(err) {
+			return nil, fmt.Errorf("Logtail Pipeline Config not found with ID %s", d.Id())
+		}
+		return nil, WrapError(err)
+	}
+
+	return []*schema.ResourceData{d}, nil
+}
+
+// Helpers
+
+func expandSlsLogtailPipelineConfig(d *schema.ResourceData) (*SlsLogtailPipelineConfig, error) {
+	c := &SlsLogtailPipelineConfig{
+		Project:    d.Get("project").(string),
+		Name:       d.Get("name").(string),
+		LogSample:  d.Get("log_sample").(string),
+		GlobalJson: d.Get("global_json").(string),
+		TaskJson:   d.Get("task_json").(string),
+	}
+
+	var err error
+	c.Inputs, err = expandPlugins(d.Get("inputs").([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+
+	c.Processors, err = expandPlugins(d.Get("processors").([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+
+	c.Flushers, err = expandPlugins(d.Get("flushers").([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+
+	c.Aggregators, err = expandPlugins(d.Get("aggregators").([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+func expandPlugins(list []interface{}) ([]SlsLogtailPipelineConfigPlugin, error) {
+	if len(list) == 0 {
+		return nil, nil
+	}
+	plugins := make([]SlsLogtailPipelineConfigPlugin, 0, len(list))
+	for _, item := range list {
+		if item == nil {
+			continue
+		}
+		m := item.(map[string]interface{})
+
+		p := SlsLogtailPipelineConfigPlugin{
+			Type: m["type"].(string),
+		}
+		if v, ok := m["config_json"]; ok {
+			p.ConfigJson = v.(string)
+		}
+		plugins = append(plugins, p)
+	}
+	return plugins, nil
+}
+
+func flattenSlsLogtailPipelineConfig(d *schema.ResourceData, c *SlsLogtailPipelineConfig) error {
+	d.Set("project", c.Project)
+	d.Set("name", c.Name)
+	d.Set("log_sample", c.LogSample)
+	d.Set("create_time", c.CreateTime)
+	d.Set("last_modify_time", c.LastModifyTime)
+
+	// JSON fields - should be normalized before setting to avoid unnecessary diffs if API returns different format?
+	// But api returns map, we converted to json string in FromLibConfig using helper (which normalizes).
+	// So c.GlobalJson etc are already normalized.
+	d.Set("global_json", c.GlobalJson)
+	d.Set("task_json", c.TaskJson)
+
+	if err := d.Set("inputs", flattenPlugins(c.Inputs)); err != nil {
+		return err
+	}
+	if err := d.Set("processors", flattenPlugins(c.Processors)); err != nil {
+		return err
+	}
+	if err := d.Set("flushers", flattenPlugins(c.Flushers)); err != nil {
+		return err
+	}
+	if err := d.Set("aggregators", flattenPlugins(c.Aggregators)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func flattenPlugins(plugins []SlsLogtailPipelineConfigPlugin) []interface{} {
+	if len(plugins) == 0 {
+		return nil
+	}
+	list := make([]interface{}, 0, len(plugins))
+	for _, p := range plugins {
+		m := make(map[string]interface{})
+		m["type"] = p.Type
+		m["config_json"] = p.ConfigJson
+		list = append(list, m)
+	}
+	return list
 }

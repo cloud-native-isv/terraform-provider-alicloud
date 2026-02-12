@@ -3,6 +3,10 @@
 - **New Resource:** `alicloud_message_service_service` [GH-8766]
 - **New Resource:** `alicloud_sls_consumer_group` ([#XXXX](https://github.com/aliyun/terraform-provider-alicloud/issues/XXXX))
 
+RESOURCE BREAKING CHANGES:
+
+- resource/alicloud_logtail_config: Redesigned schema to support Logtail Pipeline Config, incompatible with previous versions.
+
 ENHANCEMENTS:
 
 - resource/alicloud_cs_kubernetes_addon: upgrade addon with overwrite policy. [GH-8739]
