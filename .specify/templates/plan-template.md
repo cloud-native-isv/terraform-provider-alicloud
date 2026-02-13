@@ -1,7 +1,7 @@
 # Implementation Plan: [SPEC]
 
 **Branch**: `[###-spec-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Specification from `.specify/specs/[###-spec-name]/requirements.md`
+**Input**: Specification from `.specify/specs/[REQUIREMENTS_KEY]/requirements.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
@@ -48,7 +48,7 @@
 ### Documentation (this spec)
 
 ```text
-.specify/specs/[###-spec]/
+.specify/specs/[REQUIREMENTS_KEY]/
 ├── plan.md              # This file (/speckit.plan command output)
 ├── research.md          # Phase 0 output (/speckit.plan command)
 ├── data-model.md        # Phase 1 output (/speckit.plan command)

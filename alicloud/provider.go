@@ -1562,6 +1562,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_log_store_index":                                       resourceAliCloudLogStoreIndex(),
 			"alicloud_logtail_attachment":                                    resourceAliCloudLogtailAttachment(),
 			"alicloud_logtail_config":                                        resourceAliCloudLogtailConfig(),
+			"alicloud_logtail_pipeline_config":                               resourceAliCloudLogtailPipelineConfig(),
 			"alicloud_market_order":                                          resourceAliCloudMarketOrder(),
 			"alicloud_max_compute_quota":                                     resourceAliCloudMaxComputeQuota(),
 			"alicloud_max_compute_quota_plan":                                resourceAliCloudMaxComputeQuotaPlan(),

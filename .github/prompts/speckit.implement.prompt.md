@@ -141,7 +141,7 @@ You **MUST** treat the user input ($ARGUMENTS) as parameters for the current com
 The `/speckit.implement` command automatically integrates with the feature tracking system:
 
 - If a `.specify/memory/features.md` file exists, the command will:
-  - Detect the current feature directory (format: `.specify/specs/###-feature-name/`)
+  - Detect the current feature directory (format: `.specify/specs/[REQUIREMENTS_KEY]/`)
   - Extract the feature ID from the directory name
   - Update the corresponding feature entry in `.specify/memory/features.md`:
     - Ensure status remains "Implemented" (maintains status from planning phase)
@@ -173,3 +173,36 @@ Note: This command assumes a complete task breakdown exists in tasks.md. If task
 
 - Run `/speckit.review` to evaluate SDD process quality and propose workflow improvements.
 - Optionally run `/speckit.analyze` to catch any spec/plan/tasks drift introduced during implementation.
+
+## Optional: Generate a Git Commit Command
+
+在实现与校验完成后，生成一条可直接执行的提交命令：
+
+```sh
+git add -A && git commit -m "{msg}"
+```
+
+### Commit Message 生成方式（基于模版）
+
+1. **加载 commit message 模版**：
+   - 优先：`.specify/templates/commit-template.md`
+   - 兜底：`.specify/templates/commit-template.md`
+
+2. **收集渲染模版所需上下文**（优先复用前文已解析出的 REQUIREMENTS_DIR）：
+   - `[BRANCH]`：`git rev-parse --abbrev-ref HEAD`
+   - `[REQUIREMENTS_KEY]`：从 `REQUIREMENTS_DIR` 目录名推导（形如 `.specify/specs/NNN-short-name/` → `NNN-short-name`）
+   - `[FEATURE_TITLE]`：优先读取 `REQUIREMENTS_DIR/requirements.md` 的标题或 Feature 名称
+   - `[TYPE]`：基于本次变更主要落点选择（feat/fix/docs/test/chore）
+   - `[SCOPE]`：优先用 `[REQUIREMENTS_KEY]`，否则从 `[BRANCH]` 推导
+   - `[SUBJECT]`：一句话摘要，需与 spec 文档与实现内容语义一致
+
+3. **按模版渲染生成 `{msg}`**，并生成完整命令：
+   - `git add -A && git commit -m "{msg}"`
+
+### 交互要求（必须执行）
+
+1. 将生成的 `{msg}` 与完整命令原样展示给用户。
+2. 明确提示用户：
+  - 是否现在执行提交动作？（yes/no）
+  - 如需改写 message，可先回复期望的 message，再生成命令。
+3. **仅当用户明确回复 yes/proceed/continue 时**，才执行该命令；否则只停留在提示与展示阶段。

@@ -15,4 +15,4 @@ This index tracks all functional and non-functional features managed within the 
 | 007 | Automated Testing Suite | 单元测试与验收测试覆盖关键流程 | Implemented | [Details](features/007.md) | - | 2026-02-06 |
 | 008 | Strong Typing Constraints | 禁止新增弱类型 map 作为请求/响应载体 | Implemented | [Details](features/008.md) | - | 2026-02-06 |
 | 009 | AliKafka Resource Layering | AliKafka 相关资源的分层架构与生命周期操作一致性 | Implemented | [Details](features/009.md) | .specify/specs/003-alikafka-instance-billing/requirements.md | 2026-02-10 |
-| 010 | SLS Logtail Pipeline Config | 基于新版 Logtail Pipeline Config 的资源与服务层升级（含 schema 重设计） | Implemented | [Details](features/010.md) | .specify/specs/004-logtail-pipeline-config/requirements.md | 2026-02-12 |
+| 010 | SLS Logtail Pipeline Config | Logtail 新旧资源并存与命名边界治理（旧版兼容 + 新版独立命名） | Implemented | [Details](features/010.md) | .specify/specs/005-restore-logtail-config/requirements.md | 2026-02-13 |

@@ -1,0 +1,306 @@
+openapi: 3.0.3
+info:
+  title: Terraform Provider Alicloud - Logtail Compatibility Planning Contract
+  version: 0.1.0
+  description: |
+    Planning-level contract for Feature 010 / Spec 005.
+    It models user actions as REST endpoints to define expected behavior for
+    legacy and pipeline resources during compatibility restoration.
+servers:
+  - url: https://provider.local/contracts
+paths:
+  /v1/logtail/legacy/validate:
+    post:
+      summary: Validate legacy alicloud_logtail_config payload
+      operationId: validateLegacyLogtailConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegacyLogtailConfigPayload'
+      responses:
+        '200':
+          description: Validation succeeded
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/logtail/pipeline/validate:
+    post:
+      summary: Validate alicloud_logtail_pipeline_config payload
+      operationId: validatePipelineLogtailConfig
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PipelineLogtailConfigPayload'
+      responses:
+        '200':
+          description: Validation succeeded
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/logtail/legacy/resources:
+    post:
+      summary: Create legacy resource behavior contract
+      operationId: createLegacyResource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LegacyLogtailConfigPayload'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceState'
+
+  /v1/logtail/pipeline/resources:
+    post:
+      summary: Create pipeline resource behavior contract
+      operationId: createPipelineResource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PipelineLogtailConfigPayload'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceState'
+
+  /v1/logtail/resources/{resourceType}/{id}:
+    get:
+      summary: Read resource behavior contract
+      operationId: readResource
+      parameters:
+        - in: path
+          name: resourceType
+          required: true
+          schema:
+            type: string
+            enum: [legacy, pipeline]
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceState'
+        '404':
+          description: Resource not found
+
+    put:
+      summary: Update resource behavior contract
+      operationId: updateResource
+      parameters:
+        - in: path
+          name: resourceType
+          required: true
+          schema:
+            type: string
+            enum: [legacy, pipeline]
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/LegacyLogtailConfigPayload'
+                - $ref: '#/components/schemas/PipelineLogtailConfigPayload'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceState'
+
+    delete:
+      summary: Delete resource behavior contract
+      operationId: deleteResource
+      parameters:
+        - in: path
+          name: resourceType
+          required: true
+          schema:
+            type: string
+            enum: [legacy, pipeline]
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+
+  /v1/logtail/coexistence/last-write-wins:
+    post:
+      summary: Verify coexistence behavior for same remote object
+      operationId: verifyLastWriteWins
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoexistenceWriteSequence'
+      responses:
+        '200':
+          description: Coexistence rule verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoexistenceResult'
+
+  /v1/logtail/compatibility-window:
+    get:
+      summary: Get documented compatibility window metadata
+      operationId: getCompatibilityWindow
+      responses:
+        '200':
+          description: Compatibility metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompatibilityWindow'
+
+components:
+  schemas:
+    LegacyLogtailConfigPayload:
+      type: object
+      required: [project, name]
+      properties:
+        project:
+          type: string
+        name:
+          type: string
+        legacyConfig:
+          type: object
+          description: Legacy logtail configuration fields
+          additionalProperties: true
+
+    PipelineLogtailConfigPayload:
+      type: object
+      required: [project, name, inputs, flushers]
+      properties:
+        project:
+          type: string
+        name:
+          type: string
+        inputs:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/PipelinePlugin'
+        processors:
+          type: array
+          items:
+            $ref: '#/components/schemas/PipelinePlugin'
+        flushers:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/PipelinePlugin'
+        aggregators:
+          type: array
+          items:
+            $ref: '#/components/schemas/PipelinePlugin'
+        global_json:
+          type: string
+        task_json:
+          type: string
+
+    PipelinePlugin:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+        config_json:
+          type: string
+
+    ResourceState:
+      type: object
+      required: [resourceType, id]
+      properties:
+        resourceType:
+          type: string
+          enum: [alicloud_logtail_config, alicloud_logtail_pipeline_config]
+        id:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: true
+
+    CoexistenceWriteSequence:
+      type: object
+      required: [legacyWrite, pipelineWrite, expectedWinner]
+      properties:
+        legacyWrite:
+          $ref: '#/components/schemas/LegacyLogtailConfigPayload'
+        pipelineWrite:
+          $ref: '#/components/schemas/PipelineLogtailConfigPayload'
+        expectedWinner:
+          type: string
+          enum: [legacy, pipeline]
+
+    CoexistenceResult:
+      type: object
+      required: [winner, observedState]
+      properties:
+        winner:
+          type: string
+          enum: [legacy, pipeline]
+        observedState:
+          type: object
+          additionalProperties: true
+
+    CompatibilityWindow:
+      type: object
+      required: [legacyResource, minimumMinorVersions]
+      properties:
+        legacyResource:
+          type: string
+          enum: [alicloud_logtail_config]
+        minimumMinorVersions:
+          type: integer
+          minimum: 2
+        deprecationNoticeMode:
+          type: string
+          enum: [documentation_only]
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
