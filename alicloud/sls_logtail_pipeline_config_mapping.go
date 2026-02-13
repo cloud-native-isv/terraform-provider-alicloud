@@ -20,7 +20,7 @@ func (c *SlsLogtailPipelineConfigPlugin) ToMap() (map[string]interface{}, error)
 	// Ensure type is set and overrides any existing type in json
 	delete(m, "type")
 	delete(m, "Type")
-	m["type"] = c.Type
+	m["Type"] = c.Type
 	return m, nil
 }
 

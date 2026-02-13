@@ -5,6 +5,26 @@ import (
 	"testing"
 )
 
+func TestSlsLogtailPipelineConfigPlugin_ToMap_UsesUppercaseType(t *testing.T) {
+	p := &SlsLogtailPipelineConfigPlugin{
+		Type:       "input_file",
+		ConfigJson: `{"project":"test-project","type":"should-be-overridden"}`,
+	}
+
+	m, err := p.ToMap()
+	if err != nil {
+		t.Fatalf("ToMap failed: %v", err)
+	}
+
+	if got, ok := m["Type"].(string); !ok || got != "input_file" {
+		t.Fatalf("expected Type=input_file, got %#v", m["Type"])
+	}
+
+	if _, exists := m["type"]; exists {
+		t.Fatalf("expected lowercase type key to be absent, got map: %#v", m)
+	}
+}
+
 func TestSlsLogtailPipelineConfig_Mapping_RoundTrip(t *testing.T) {
 	// Simple test to ensure mapping logic compiles and runs
 

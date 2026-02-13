@@ -242,7 +242,7 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 		d.SetId(fmt.Sprintf("%s:%s", projectName, logstore.LogstoreName))
 	}
 
-	if v, ok := d.GetOk("max_split_shard_count"); ok {
+	if v, ok := d.GetOkExists("max_split_shard_count"); ok {
 		d.Set("max_split_shard_count", v)
 	}
 
@@ -283,7 +283,15 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 	if logstore.InfrequentAccessTTL != nil {
 		d.Set("infrequent_access_ttl", *logstore.InfrequentAccessTTL)
 	}
-	d.Set("max_split_shard_count", logstore.MaxSplitShard)
+	// Some SLS API responses may not return a valid MaxSplitShard value and default to 0.
+	// Keep the existing state value in this case to avoid perpetual plan drift.
+	if logstore.MaxSplitShard > 0 {
+		d.Set("max_split_shard_count", logstore.MaxSplitShard)
+	} else if v, ok := d.GetOkExists("max_split_shard_count"); ok {
+		d.Set("max_split_shard_count", v)
+	} else {
+		d.Set("max_split_shard_count", logstore.MaxSplitShard)
+	}
 	d.Set("mode", logstore.Mode)
 	d.Set("ttl", logstore.Ttl)
 	d.Set("shard_count", logstore.ShardCount)
@@ -434,7 +442,7 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), action, AlibabaCloudSdkGoERROR)
 		}
 
-		if v, ok := d.GetOk("max_split_shard_count"); ok {
+		if v, ok := d.GetOkExists("max_split_shard_count"); ok {
 			d.Set("max_split_shard_count", v)
 		}
 
