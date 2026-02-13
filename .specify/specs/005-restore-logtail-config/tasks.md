@@ -71,10 +71,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] 将当前新版实现迁移到新资源文件并暴露资源工厂：`alicloud/resource_alicloud_logtail_pipeline_config.go`
-- [ ] T020 [US2] 在新版资源中实现 Create/Read/Update/Delete/Import 与等待逻辑：`alicloud/resource_alicloud_logtail_pipeline_config.go`
-- [ ] T021 [US2] 确保新版资源仅调用 Pipeline Service，不混用旧 API：`alicloud/resource_alicloud_logtail_pipeline_config.go`、`alicloud/service_alicloud_sls_logtail_pipeline_config.go`
-- [ ] T022 [US2] 清理旧资源文件中的新版残留实现，避免命名与语义混淆：`alicloud/resource_alicloud_logtail_config.go`
+- [x] T019 [US2] 将当前新版实现迁移到新资源文件并暴露资源工厂：`alicloud/resource_alicloud_logtail_pipeline_config.go`
+- [x] T020 [US2] 在新版资源中实现 Create/Read/Update/Delete/Import 与等待逻辑：`alicloud/resource_alicloud_logtail_pipeline_config.go`
+- [x] T021 [US2] 确保新版资源仅调用 Pipeline Service，不混用旧 API：`alicloud/resource_alicloud_logtail_pipeline_config.go`、`alicloud/service_alicloud_sls_logtail_pipeline_config.go`
+- [x] T022 [US2] 清理旧资源文件中的新版残留实现，避免命名与语义混淆：`alicloud/resource_alicloud_logtail_config.go`
 
 **Checkpoint**: 新资源可独立生命周期管理，且与旧资源语义边界明确。
 
@@ -88,15 +88,15 @@
 
 ### Tests for User Story 3（先测后改）
 
-- [ ] T023 [P] [US3] 新增并存场景验收测试（同对象双资源 + 最后写入生效）：`alicloud/resource_alicloud_logtail_config_test.go`、`alicloud/resource_alicloud_logtail_pipeline_config_test.go`
-- [ ] T024 [P] [US3] 新增混用语义错误反馈测试（错误信息可操作）：`alicloud/resource_alicloud_logtail_pipeline_config_test.go`
+- [x] T023 [P] [US3] 新增并存场景验收测试（同对象双资源 + 最后写入生效）：`alicloud/resource_alicloud_logtail_config_test.go`、`alicloud/resource_alicloud_logtail_pipeline_config_test.go`
+- [x] T024 [P] [US3] 新增混用语义错误反馈测试（错误信息可操作）：`alicloud/resource_alicloud_logtail_pipeline_config_test.go`
 
 ### Implementation for User Story 3
 
-- [ ] T025 [US3] 在资源/服务层补齐并存读写一致性处理与冲突场景行为说明：`alicloud/resource_alicloud_logtail_config.go`、`alicloud/resource_alicloud_logtail_pipeline_config.go`、`alicloud/service_alicloud_sls_logtail_config.go`、`alicloud/service_alicloud_sls_logtail_pipeline_config.go`
-- [ ] T026 [US3] 统一混用新旧语义时的错误消息文本，确保清晰可操作：`alicloud/resource_alicloud_logtail_config.go`、`alicloud/resource_alicloud_logtail_pipeline_config.go`
-- [ ] T027 [US3] 更新迁移文档与兼容窗口说明（至少 2 个小版本，文档提示弃用）：`README.md`、`CHANGELOG.md`
-- [ ] T028 [US3] 补充本 spec 的执行说明与并存验证记录模板：`.specify/specs/005-restore-logtail-config/quickstart.md`
+- [x] T025 [US3] 在资源/服务层补齐并存读写一致性处理与冲突场景行为说明：`alicloud/resource_alicloud_logtail_config.go`、`alicloud/resource_alicloud_logtail_pipeline_config.go`、`alicloud/service_alicloud_sls_logtail_config.go`、`alicloud/service_alicloud_sls_logtail_pipeline_config.go`
+- [x] T026 [US3] 统一混用新旧语义时的错误消息文本，确保清晰可操作：`alicloud/resource_alicloud_logtail_config.go`、`alicloud/resource_alicloud_logtail_pipeline_config.go`
+- [x] T027 [US3] 更新迁移文档与兼容窗口说明（至少 2 个小版本，文档提示弃用）：`README.md`、`CHANGELOG.md`
+- [x] T028 [US3] 补充本 spec 的执行说明与并存验证记录模板：`.specify/specs/005-restore-logtail-config/quickstart.md`
 
 **Checkpoint**: 并存治理可验证，迁移路径文档清晰。
 
@@ -106,11 +106,11 @@
 
 **Purpose**: 完成跨故事质量收敛与发布准备。
 
-- [ ] T029 [P] 运行编译与单元测试并修复回归：`Makefile`、`alicloud/`
-- [ ] T030 [P] 在具备凭证环境执行相关验收测试并记录结果：`alicloud/resource_alicloud_logtail_config_test.go`、`alicloud/resource_alicloud_logtail_pipeline_config_test.go`
-- [ ] T031 复核 WaitFor/Refresh 语义与 NotFound 处理符合规范：`docs/wait_for_state.md`、`alicloud/service_alicloud_sls_logtail_config.go`、`alicloud/service_alicloud_sls_logtail_pipeline_config.go`
-- [ ] T032 复核分层与强类型约束符合宪章并记录结论：`.specify/memory/constitution.md`、`docs/development_guide.md`
-- [ ] T033 更新 Feature 010 任务拆分关键变化备注（若无变更则显式记录无新增 Feature）：`.specify/memory/features/010.md`
+- [x] T029 [P] 运行编译与单元测试并修复回归：`Makefile`、`alicloud/`
+- [x] T030 [P] 在具备凭证环境执行相关验收测试并记录结果：`alicloud/resource_alicloud_logtail_config_test.go`、`alicloud/resource_alicloud_logtail_pipeline_config_test.go`
+- [x] T031 复核 WaitFor/Refresh 语义与 NotFound 处理符合规范：`docs/wait_for_state.md`、`alicloud/service_alicloud_sls_logtail_config.go`、`alicloud/service_alicloud_sls_logtail_pipeline_config.go`
+- [x] T032 复核分层与强类型约束符合宪章并记录结论：`.specify/memory/constitution.md`、`docs/development_guide.md`
+- [x] T033 更新 Feature 010 任务拆分关键变化备注（若无变更则显式记录无新增 Feature）：`.specify/memory/features/010.md`
 
 ---
 

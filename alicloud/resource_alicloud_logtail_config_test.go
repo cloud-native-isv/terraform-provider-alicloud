@@ -6,7 +6,7 @@ import (
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestResourceAlicloudLogtailConfig_SchemaBasics(t *testing.T) {

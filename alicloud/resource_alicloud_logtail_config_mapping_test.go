@@ -17,7 +17,7 @@ func TestResourceAliCloudLogtailConfig_StateFunc(t *testing.T) {
 	// The normalizeJsonString function typically unmarshals and marshals back, which sorts keys and removes whitespace.
 	// We expect keys to be sorted alphabetically.
 
-	normalized := inputDetailSchema.StateFunc(rawJSON).(string)
+	normalized := inputDetailSchema.StateFunc(rawJSON)
 
 	// Validate it is valid JSON
 	if !json.Valid([]byte(normalized)) {
@@ -70,7 +70,7 @@ func TestResourceAliCloudLogtailConfig_MappingBackfill_Stability(t *testing.T) {
 	// API reads back object. We Marshal it.
 	// `{"enable":true,"logPath":"/var/log"}` (Go json.Marshal matches StateFunc output usually if both use standard library).
 
-	normalizedConfig := inputDetailSchema.StateFunc(` { "enable": true, "logPath": "/var/log" } `).(string)
+	normalizedConfig := inputDetailSchema.StateFunc(` { "enable": true, "logPath": "/var/log" } `)
 
 	if readState != normalizedConfig {
 		// If map key order is different, this might fail unless we ensure consistent ordering.

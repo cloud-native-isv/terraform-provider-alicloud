@@ -46,6 +46,9 @@ This project includes the following key directories:
 
 - **ECS Instance Management**: ECS 实例与其生命周期管理 (create, read, update, delete)。
 - **OSS Bucket Management**: OSS 存储桶生命周期与清理策略管理。
+- **SLS Logtail Pipeline Config**: Logtail 采集配置管理。
+    - `alicloud_logtail_config`: [Legacy] 维持旧版 schema 兼容性，不再推荐新项目使用。
+    - `alicloud_logtail_pipeline_config`: [New] 支持完整 Pipeline 插件化配置能力，推荐升级。
 
 ### 非功能性 Feature
 

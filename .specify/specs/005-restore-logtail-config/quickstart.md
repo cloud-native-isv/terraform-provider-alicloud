@@ -60,3 +60,20 @@
 - 新资源替代入口与迁移建议
 
 预期：上述三项全部具备。
+
+## Verification Templates
+
+### Coexistence Log
+
+```text
+| Action | Resource Type | Result | Remote State |
+|--------|---------------|--------|--------------|
+| Create | Legacy        | OK     | Legacy JSON  |
+| Update | Pipeline      | OK     | Pipeline JSON|
+| Update | Legacy        | OK     | Legacy JSON  |
+```
+
+### Known Issues Note
+
+> **Migration Tip**: When migrating from Legacy to Pipeline resource, ensure your Terraform configuration for the new Pipeline resource accurately reflects the desired state. The Pipeline resource will adopt (import) the existing remote configuration during creation if names collide, allowing for a seamless transition.
+```

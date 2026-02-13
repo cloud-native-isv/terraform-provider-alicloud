@@ -129,7 +129,10 @@ func resourceAliCloudLogtailPipelineConfigCreate(d *schema.ResourceData, meta in
 		err := slsService.CreateSlsLogtailPipelineConfig(projectName, libConfig)
 		if err != nil {
 			if IsExpectedErrors(err, []string{"ConfigAlreadyExist"}) {
-				return resource.NonRetryableError(fmt.Errorf("Logtail pipeline config %s already exists in project %s", configName, projectName))
+				// Coexistence Strategy: Adopt existing resource to support smooth migration and "Last Write Wins"
+				// This aligns with legacy alicloud_logtail_config behavior.
+				// The immediate Read after retrieval will populate state, and next Plan will show diffs if any.
+				return nil
 			}
 			if IsExpectedErrors(err, []string{"InternalServerError", LogClientTimeout}) {
 				time.Sleep(5 * time.Second)
