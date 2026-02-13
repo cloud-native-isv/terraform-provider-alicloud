@@ -24,7 +24,7 @@ func (s *SlsService) CreateSlsAlert(projectName string, alert *aliyunSlsAPI.Aler
 	if err == nil {
 		addDebugJson("CreateSlsAlert", alert)
 	} else {
-		return WrapError(fmt.Errorf("failed to create alert %s: %w", alert.Name, err))
+		return WrapError(fmt.Errorf("failed to create alert %v: %w", alert.Name, err))
 	}
 
 	return nil
