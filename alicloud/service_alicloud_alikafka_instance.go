@@ -226,11 +226,6 @@ func (s *KafkaService) UpdateInstanceConfig(instanceId string, config map[string
 	return s.kafkaApi.UpdateInstanceConfig(instanceId, s.client.RegionId, config)
 }
 
-// UpdateAlikafkaInstance updates a Kafka instance
-func (s *KafkaService) UpdateAlikafkaInstance(instance *kafka.KafkaInstance) error {
-	return s.kafkaApi.UpdateInstance(instance)
-}
-
 func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlikafkaInstance(id)

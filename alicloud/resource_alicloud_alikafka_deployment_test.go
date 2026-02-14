@@ -81,3 +81,46 @@ func TestFormatSelectedZonesReq(t *testing.T) {
 		})
 	}
 }
+
+func TestIsJSONStringObjectSubset(t *testing.T) {
+	cases := []struct {
+		name     string
+		subset   string
+		superset string
+		expect   bool
+	}{
+		{
+			name:     "subset should be true",
+			subset:   `{"a":"1","b":"2"}`,
+			superset: `{"a":"1","b":"2","c":"3"}`,
+			expect:   true,
+		},
+		{
+			name:     "different value should be false",
+			subset:   `{"a":"1"}`,
+			superset: `{"a":"2","b":"2"}`,
+			expect:   false,
+		},
+		{
+			name:     "missing key should be false",
+			subset:   `{"d":"1"}`,
+			superset: `{"a":"2","b":"2"}`,
+			expect:   false,
+		},
+		{
+			name:     "invalid json should be false",
+			subset:   `{a:1}`,
+			superset: `{"a":"1"}`,
+			expect:   false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := isJSONStringObjectSubset(tc.subset, tc.superset)
+			if actual != tc.expect {
+				t.Fatalf("expect %v, got %v", tc.expect, actual)
+			}
+		})
+	}
+}

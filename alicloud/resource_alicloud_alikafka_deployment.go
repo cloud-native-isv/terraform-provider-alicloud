@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
@@ -16,12 +17,14 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudAlikafkaDeploymentCreate,
 		Read:   resourceAliCloudAlikafkaDeploymentRead,
+		Update: resourceAliCloudAlikafkaDeploymentUpdate,
 		Delete: resourceAliCloudAlikafkaDeploymentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
@@ -48,7 +51,6 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"cross_zone": {
 				Type:        schema.TypeBool,
@@ -77,7 +79,6 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 			"config": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"kms_key_id": {
 				Type:     schema.TypeString,
@@ -141,6 +142,31 @@ func formatSelectedZonesReq(configured []interface{}) (string, error) {
 	result := string(data)
 	log.Printf("[DEBUG] formatSelectedZonesReq result: %s", result)
 	return result, nil
+}
+
+func isJSONStringObjectSubset(subsetJSON, supersetJSON string) bool {
+	var subset map[string]interface{}
+	if err := json.Unmarshal([]byte(subsetJSON), &subset); err != nil {
+		return false
+	}
+
+	var superset map[string]interface{}
+	if err := json.Unmarshal([]byte(supersetJSON), &superset); err != nil {
+		return false
+	}
+
+	for k, subsetVal := range subset {
+		supersetVal, ok := superset[k]
+		if !ok {
+			return false
+		}
+
+		if !reflect.DeepEqual(subsetVal, supersetVal) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
@@ -305,13 +331,100 @@ func resourceAliCloudAlikafkaDeploymentRead(d *schema.ResourceData, meta interfa
 	d.Set("name", tea.StringValue(object.Name))
 	d.Set("vpc_id", object.VpcId)
 	d.Set("vswitch_id", object.VSwitchId)
-	d.Set("zone_id", object.ZoneId)
+	if object.ZoneId != "" {
+		d.Set("zone_id", object.ZoneId)
+	}
 	d.Set("security_group", object.SecurityGroup)
-	d.Set("config", object.Config)
+
+	stateConfig := d.Get("config").(string)
+	remoteConfig := object.Config
+	if remoteConfig != "" {
+		// Some Kafka APIs return a subset of config keys and omit defaults.
+		// Keep user/state config when remote values are only a subset to avoid false ForceNew drift.
+		if stateConfig != "" && isJSONStringObjectSubset(remoteConfig, stateConfig) {
+			d.Set("config", stateConfig)
+		} else {
+			d.Set("config", remoteConfig)
+		}
+	}
+
+	if object.EipMax != nil {
+		d.Set("eip_max", tea.IntValue(object.EipMax))
+	}
 	d.Set("kms_key_id", object.KmsKeyId)
 	d.Set("vswitch_ids", []string{object.VSwitchId})
 
 	return nil
+}
+
+func resourceAliCloudAlikafkaDeploymentUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	d.Partial(true)
+	defer d.Partial(false)
+
+	needWait := false
+
+	if !d.IsNewResource() && d.HasChange("name") {
+		name := d.Get("name").(string)
+		if name == "" {
+			return WrapError(fmt.Errorf("updating name failed: name cannot be empty"))
+		}
+
+		req := &ModifyInstanceNameRequest{
+			RegionId:     client.RegionId,
+			InstanceId:   d.Id(),
+			InstanceName: name,
+		}
+
+		err = kafkaService.ModifyAlikafkaInstanceName(req)
+		if err != nil {
+			return WrapError(err)
+		}
+
+		addDebug("ModifyAlikafkaInstanceName", "Success", name)
+		d.SetPartial("name")
+		needWait = true
+	}
+
+	if !d.IsNewResource() && d.HasChange("config") {
+		configStr := d.Get("config").(string)
+		apiConfig := make(map[string]*string)
+
+		if configStr != "" {
+			var configMap map[string]interface{}
+			if err := json.Unmarshal([]byte(configStr), &configMap); err != nil {
+				return WrapError(fmt.Errorf("failed to unmarshal config: %v", err))
+			}
+
+			for k, val := range configMap {
+				s := fmt.Sprintf("%v", val)
+				apiConfig[k] = &s
+			}
+		}
+
+		err = kafkaService.UpdateInstanceConfig(d.Id(), apiConfig)
+		if err != nil {
+			return WrapError(err)
+		}
+
+		addDebug("UpdateInstanceConfig", "Success", apiConfig)
+		d.SetPartial("config")
+		needWait = true
+	}
+
+	if needWait {
+		err = kafkaService.WaitForAliKafkaInstanceUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate))
+		if err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
+	}
+
+	return resourceAliCloudAlikafkaDeploymentRead(d, meta)
 }
 
 func resourceAliCloudAlikafkaDeploymentDelete(d *schema.ResourceData, meta interface{}) error {

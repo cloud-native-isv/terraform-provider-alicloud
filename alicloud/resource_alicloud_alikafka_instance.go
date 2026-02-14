@@ -1,8 +1,6 @@
 package alicloud
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -19,7 +17,6 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudAlikafkaInstanceCreate,
 		Read:   resourceAliCloudAlikafkaInstanceRead,
-		Update: resourceAliCloudAlikafkaInstanceUpdate,
 		Delete: resourceAliCloudAlikafkaInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -40,11 +37,13 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			"deploy_type": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: IntInSlice([]int{4, 5}),
 			},
 			"disk_size": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				ForceNew: true,
 			},
 			"disk_type": {
 				Type:     schema.TypeString,
@@ -54,20 +53,24 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			"io_max_spec": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 			"spec_type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  "normal",
 			},
 			"partition_num": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				ForceNew:     true,
 				AtLeastOneOf: []string{"partition_num"},
 			},
 			"eip_max": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return d.Get("deploy_type").(int) == 5
 				},
@@ -75,18 +78,21 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			"paid_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				Default:      AliKafkaBillingTypePostPaid,
 				ValidateFunc: StringInSlice([]string{"PrePaid", "PostPaid"}, false),
 			},
 			"duration": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				ForceNew: true,
 			},
 			"resource_group_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
-			"tags": tagsSchema(),
+			"tags": tagsSchemaForceNew(),
 
 			"name": {
 				Type:     schema.TypeString,
@@ -104,6 +110,7 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"kms_key_id": {
 				Type:     schema.TypeString,
@@ -394,278 +401,6 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("tags", kafkaService.tagsToMap(tags))
 
 	return nil
-}
-
-func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	kafkaService, err := NewKafkaService(client)
-	if err != nil {
-		return WrapError(err)
-	}
-	d.Partial(true)
-
-	// if err := kafkaService.setInstanceTags(d, TagResourceInstance); err != nil {
-	// 	return WrapError(err)
-	// }
-
-	// Process change instance name.
-	if !d.IsNewResource() && d.HasChange("name") {
-		instance := &kafka.KafkaInstance{
-			InstanceId: d.Id(),
-		}
-
-		if v, ok := d.GetOk("name"); ok {
-			instance.Name = tea.String(v.(string))
-		}
-
-		err = kafkaService.UpdateAlikafkaInstance(instance)
-		if err != nil {
-			return WrapError(err)
-		}
-		addDebug("UpdateAlikafkaInstance", "Success", instance)
-
-		d.SetPartial("name")
-	}
-
-	// Process paid type change, note only support change from post to pre pay.
-	if !d.IsNewResource() && d.HasChange("paid_type") {
-		o, n := d.GetChange("paid_type")
-		oldPaidType := o.(string)
-		newPaidType := n.(string)
-		oldPaidTypeInt := 1
-		newPaidTypeInt := 1
-		if oldPaidType == string(PrePaid) {
-			oldPaidTypeInt = 0
-		}
-		if newPaidType == string(PrePaid) {
-			newPaidTypeInt = 0
-		}
-		if oldPaidTypeInt == 1 && newPaidTypeInt == 0 {
-			return WrapError(errors.New("paid type conversion from post pay to pre pay is not supported in current implementation"))
-		} else {
-			return WrapError(errors.New("paid type only support change from post pay to pre pay"))
-		}
-	}
-
-	update := false
-	upgradeOrder := &kafka.KafkaOrder{
-		InstanceId: d.Id(),
-		RegionId:   client.RegionId,
-	}
-
-	// updating topic_quota only by updating partition_num
-	if !d.IsNewResource() && d.HasChange("partition_num") {
-		update = true
-	}
-	if v, ok := d.GetOk("partition_num"); ok {
-		upgradeOrder.PartitionNum = int32(v.(int))
-	}
-
-	if !d.IsNewResource() && d.HasChange("disk_size") {
-		update = true
-	}
-	if v, ok := d.GetOk("disk_size"); ok {
-		upgradeOrder.DiskSize = int32(v.(int))
-	}
-
-	if !d.IsNewResource() && d.HasChange("io_max_spec") {
-		update = true
-		if v, ok := d.GetOk("io_max_spec"); ok {
-			upgradeOrder.IoMaxSpec = v.(string)
-		}
-	}
-
-	if !d.IsNewResource() && d.HasChange("spec_type") {
-		update = true
-	}
-	if v, ok := d.GetOk("spec_type"); ok {
-		upgradeOrder.SpecType = kafka.KafkaSpecType(v.(string))
-	}
-
-	if !d.IsNewResource() && d.HasChange("deploy_type") {
-		update = true
-	}
-	if d.Get("deploy_type").(int) == 4 {
-		upgradeOrder.EipModel = true
-	} else {
-		upgradeOrder.EipModel = false
-	}
-
-	if !d.IsNewResource() && d.HasChange("eip_max") {
-		update = true
-	}
-	if v, ok := d.GetOk("eip_max"); ok {
-		upgradeOrder.EipMax = int32(v.(int))
-	}
-
-	if !d.IsNewResource() && d.HasChange("duration") {
-		update = true
-	}
-	if v, ok := d.GetOk("duration"); ok {
-		upgradeOrder.Duration = int32(v.(int))
-	}
-
-	if update {
-		// Update instance directly using CWS-Lib-Go API
-		instance := &kafka.KafkaInstance{
-			InstanceId: d.Id(),
-			RegionId:   client.RegionId,
-		}
-
-		if v, ok := d.GetOk("partition_num"); ok {
-			instance.PartitionNum = tea.Int(v.(int))
-		}
-
-		if v, ok := d.GetOk("disk_size"); ok {
-			instance.DiskSize = tea.Int(v.(int))
-		}
-
-		if v, ok := d.GetOk("io_max_spec"); ok {
-			instance.IoMaxSpec = tea.String(v.(string))
-		}
-
-		if v, ok := d.GetOk("spec_type"); ok {
-			instance.SpecType = tea.String(v.(string))
-		}
-
-		if d.Get("deploy_type").(int) == 4 {
-			instance.EipModel = true
-		} else {
-			instance.EipModel = false
-		}
-
-		if v, ok := d.GetOk("eip_max"); ok {
-			instance.EipMax = tea.Int(v.(int))
-		}
-
-		if v, ok := d.GetOk("duration"); ok {
-			instance.Duration = tea.Int(v.(int))
-		}
-
-		err = kafkaService.UpgradeAlikafkaInstance(instance)
-		if err != nil {
-			return WrapError(err)
-		}
-
-		addDebug("UpgradeAlikafkaInstance", "Success", instance)
-
-		// Wait for update to complete using the new wait function
-		err = kafkaService.WaitForAliKafkaInstanceUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate))
-		if err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
-
-		d.SetPartial("partition_num")
-		d.SetPartial("disk_size")
-		d.SetPartial("io_max_spec")
-		d.SetPartial("spec_type")
-		d.SetPartial("eip_max")
-	}
-
-	if !d.IsNewResource() && d.HasChange("service_version") {
-		if v, ok := d.GetOk("service_version"); ok {
-			serviceVersion := v.(string)
-
-			req := &UpgradeInstanceVersionRequest{
-				RegionId:      client.RegionId,
-				InstanceId:    d.Id(),
-				TargetVersion: serviceVersion,
-			}
-			err = kafkaService.UpgradeInstanceVersion(req)
-			if err != nil {
-				return WrapError(err)
-			}
-			addDebug("UpgradeInstanceVersion", "Success", serviceVersion)
-
-			// wait for upgrade task to be invoked
-			time.Sleep(60 * time.Second)
-
-			// Wait for instance to complete upgrade using the new wait function
-			err = kafkaService.WaitForAliKafkaInstanceUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate))
-			if err != nil {
-				return WrapErrorf(err, IdMsg, d.Id())
-			}
-			d.SetPartial("service_version")
-		}
-	}
-
-	if !d.IsNewResource() && d.HasChange("config") {
-		if v, ok := d.GetOk("config"); ok {
-			var configMap map[string]interface{}
-			if err := json.Unmarshal([]byte(v.(string)), &configMap); err != nil {
-				return WrapError(fmt.Errorf("failed to unmarshal config: %v", err))
-			}
-
-			apiConfig := make(map[string]*string)
-			for k, val := range configMap {
-				s := fmt.Sprintf("%v", val)
-				apiConfig[k] = &s
-			}
-
-			err = kafkaService.UpdateInstanceConfig(d.Id(), apiConfig)
-			if err != nil {
-				return err
-			}
-			addDebug("UpdateInstanceConfig", "Success", apiConfig)
-		}
-		d.SetPartial("config")
-	}
-
-	update = false
-	changeResourceGroupReq := map[string]interface{}{
-		"RegionId":   client.RegionId,
-		"ResourceId": d.Id(),
-	}
-
-	if !d.IsNewResource() && d.HasChange("resource_group_id") {
-		update = true
-	}
-	if v, ok := d.GetOk("resource_group_id"); ok {
-		changeResourceGroupReq["NewResourceGroupId"] = v
-	}
-
-	if update {
-		d.SetPartial("resource_group_id")
-	}
-
-	update = false
-	enableAutoGroupCreationReq := map[string]interface{}{
-		"RegionId":   client.RegionId,
-		"InstanceId": d.Id(),
-	}
-
-	if d.HasChange("enable_auto_group") {
-		update = true
-
-		if v, ok := d.GetOkExists("enable_auto_group"); ok {
-			enableAutoGroupCreationReq["Enable"] = v
-		}
-	}
-
-	if update {
-		d.SetPartial("enable_auto_group")
-	}
-
-	update = false
-	enableAutoTopicCreationReq := map[string]interface{}{
-		"RegionId":   client.RegionId,
-		"InstanceId": d.Id(),
-	}
-
-	if d.HasChange("enable_auto_topic") {
-		update = true
-	}
-	if v, ok := d.GetOk("enable_auto_topic"); ok {
-		enableAutoTopicCreationReq["Operate"] = v
-	}
-
-	if update {
-		d.SetPartial("enable_auto_topic")
-	}
-
-	d.Partial(false)
-
-	return resourceAliCloudAlikafkaInstanceRead(d, meta)
 }
 
 func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interface{}) error {
