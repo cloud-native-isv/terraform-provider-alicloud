@@ -79,6 +79,21 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 			"config": {
 				Type:     schema.TypeString,
 				Optional: true,
+				StateFunc: func(v interface{}) string {
+					jsonString, _ := normalizeJsonString(v)
+					return jsonString
+				},
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return isJSONStringObjectSubset(old, new) || isJSONStringObjectSubset(new, old)
+				},
+			},
+			"enable_auto_group": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"enable_auto_topic": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 			"kms_key_id": {
 				Type:     schema.TypeString,
@@ -105,6 +120,10 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 			},
 			"eip_max": {
 				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"paid_type": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
@@ -335,24 +354,28 @@ func resourceAliCloudAlikafkaDeploymentRead(d *schema.ResourceData, meta interfa
 		d.Set("zone_id", object.ZoneId)
 	}
 	d.Set("security_group", object.SecurityGroup)
-
 	stateConfig := d.Get("config").(string)
 	remoteConfig := object.Config
-	if remoteConfig != "" {
-		// Some Kafka APIs return a subset of config keys and omit defaults.
-		// Keep user/state config when remote values are only a subset to avoid false ForceNew drift.
-		if stateConfig != "" && isJSONStringObjectSubset(remoteConfig, stateConfig) {
-			d.Set("config", stateConfig)
-		} else {
-			d.Set("config", remoteConfig)
-		}
+	if stateConfig != "" && remoteConfig != "" && (isJSONStringObjectSubset(remoteConfig, stateConfig) || isJSONStringObjectSubset(stateConfig, remoteConfig)) {
+		d.Set("config", stateConfig)
+	} else {
+		d.Set("config", remoteConfig)
 	}
 
 	if object.EipMax != nil {
 		d.Set("eip_max", tea.IntValue(object.EipMax))
 	}
+
+	if stateVal, ok := d.GetOkExists("enable_auto_group"); ok {
+		d.Set("enable_auto_group", stateVal)
+	}
+	if stateVal, ok := d.GetOkExists("enable_auto_topic"); ok {
+		d.Set("enable_auto_topic", stateVal)
+	}
+
 	d.Set("kms_key_id", object.KmsKeyId)
 	d.Set("vswitch_ids", []string{object.VSwitchId})
+	d.Set("paid_type", FormatAliKafkaPaidType(object.PaidType))
 
 	return nil
 }
@@ -417,6 +440,28 @@ func resourceAliCloudAlikafkaDeploymentUpdate(d *schema.ResourceData, meta inter
 		needWait = true
 	}
 
+	if !d.IsNewResource() && d.HasChange("enable_auto_group") {
+		enable := d.Get("enable_auto_group").(bool)
+		err = kafkaService.EnableAutoGroupCreation(d.Id(), enable)
+		if err != nil {
+			return WrapError(err)
+		}
+
+		addDebug("EnableAutoGroupCreation", "Success", enable)
+		d.SetPartial("enable_auto_group")
+	}
+
+	if !d.IsNewResource() && d.HasChange("enable_auto_topic") {
+		enable := d.Get("enable_auto_topic").(bool)
+		err = kafkaService.EnableAutoTopicCreation(d.Id(), enable)
+		if err != nil {
+			return WrapError(err)
+		}
+
+		addDebug("EnableAutoTopicCreation", "Success", enable)
+		d.SetPartial("enable_auto_topic")
+	}
+
 	if needWait {
 		err = kafkaService.WaitForAliKafkaInstanceUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate))
 		if err != nil {
@@ -435,6 +480,11 @@ func resourceAliCloudAlikafkaDeploymentDelete(d *schema.ResourceData, meta inter
 	}
 
 	instanceId := d.Id()
+
+	if d.Get("paid_type").(string) == AliKafkaBillingTypePrePaid {
+		log.Printf("[INFO] Resource alicloud_alikafka_deployment instance %s is PrePaid, skip stop operation in delete.", instanceId)
+		return nil
+	}
 
 	// Use CWS-Lib-Go API to stop the instance
 	err = kafkaService.StopAlikafkaInstance(&StopInstanceRequest{

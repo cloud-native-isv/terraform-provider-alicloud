@@ -128,14 +128,6 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"enable_auto_group": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-			"enable_auto_topic": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"default_topic_partition_num": {
 				Type:     schema.TypeInt,
 				Computed: true,

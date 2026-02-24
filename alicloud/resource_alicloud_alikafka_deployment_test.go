@@ -124,3 +124,40 @@ func TestIsJSONStringObjectSubset(t *testing.T) {
 		})
 	}
 }
+
+func TestConfigReadPreserveStateForSubsetOrSuperset(t *testing.T) {
+	cases := []struct {
+		name   string
+		state  string
+		remote string
+		expect bool
+	}{
+		{
+			name:   "remote subset of state",
+			state:  `{"a":"1","b":"2","c":"3"}`,
+			remote: `{"a":"1","b":"2"}`,
+			expect: true,
+		},
+		{
+			name:   "remote superset of state",
+			state:  `{"a":"1","b":"2"}`,
+			remote: `{"a":"1","b":"2","c":"3"}`,
+			expect: true,
+		},
+		{
+			name:   "value changed should not preserve state",
+			state:  `{"a":"1","b":"2"}`,
+			remote: `{"a":"1","b":"9","c":"3"}`,
+			expect: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			preserve := isJSONStringObjectSubset(tc.remote, tc.state) || isJSONStringObjectSubset(tc.state, tc.remote)
+			if preserve != tc.expect {
+				t.Fatalf("expect %v, got %v", tc.expect, preserve)
+			}
+		})
+	}
+}

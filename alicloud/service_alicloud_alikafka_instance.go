@@ -226,6 +226,21 @@ func (s *KafkaService) UpdateInstanceConfig(instanceId string, config map[string
 	return s.kafkaApi.UpdateInstanceConfig(instanceId, s.client.RegionId, config)
 }
 
+// EnableAutoGroupCreation enables or disables automatic consumer group creation
+func (s *KafkaService) EnableAutoGroupCreation(instanceId string, enable bool) error {
+	return s.kafkaApi.EnableAutoGroupCreation(instanceId, enable)
+}
+
+// EnableAutoTopicCreation enables or disables automatic topic creation
+func (s *KafkaService) EnableAutoTopicCreation(instanceId string, enable bool) error {
+	operate := "disable"
+	if enable {
+		operate = "enable"
+	}
+
+	return s.kafkaApi.EnableAutoTopicCreation(instanceId, operate, 0, false)
+}
+
 func (s *KafkaService) AliKafkaInstanceStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		object, err := s.DescribeAlikafkaInstance(id)
