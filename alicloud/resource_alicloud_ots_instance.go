@@ -48,7 +48,7 @@ func resourceAliCloudOtsInstance() *schema.Resource {
 			"force": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     false,
+				Default:     true,
 				Description: "Whether to force delete the instance by deleting all tables and indexes first.",
 			},
 
@@ -285,7 +285,12 @@ func resourceAliCloudOtsInstanceDelete(d *schema.ResourceData, meta interface{})
 		return WrapError(err)
 	}
 
-	if d.Get("force").(bool) {
+	force := true
+	if v, ok := d.GetOkExists("force"); ok {
+		force = v.(bool)
+	}
+
+	if force {
 		tables, err := otsService.ListOtsTables(d.Id())
 		if err != nil {
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ListTables", AlibabaCloudSdkGoERROR)

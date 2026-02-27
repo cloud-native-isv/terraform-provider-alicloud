@@ -235,6 +235,22 @@ func (s *OtsService) OtsInstanceStateRefreshFunc(instanceName string, failStates
 		}
 
 		currentStatus := object.InstanceStatus
+		if currentStatus == tablestoreAPI.InstanceStatusDeleting.String() {
+			instances, listErr := s.ListOtsInstance()
+			if listErr == nil {
+				exists := false
+				for _, instance := range instances {
+					if instance.InstanceName == instanceName {
+						exists = true
+						break
+					}
+				}
+				if !exists {
+					return nil, tablestoreAPI.InstanceStatusNotFound.String(), nil
+				}
+			}
+		}
+
 		for _, failState := range failStates {
 			if currentStatus == failState {
 				return object, object.InstanceStatus, WrapError(Error(FailedToReachTargetStatus, object.InstanceStatus))
