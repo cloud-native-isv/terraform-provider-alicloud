@@ -45,6 +45,12 @@ func resourceAliCloudOtsInstance() *schema.Resource {
 				Optional:    true,
 				Description: "The description of the Tablestore instance.",
 			},
+			"force": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether to force delete the instance by deleting all tables and indexes first.",
+			},
 
 			// Instance Configuration - Required field
 			"instance_specification": {
@@ -277,6 +283,60 @@ func resourceAliCloudOtsInstanceDelete(d *schema.ResourceData, meta interface{})
 	otsService, err := NewOtsService(client)
 	if err != nil {
 		return WrapError(err)
+	}
+
+	if d.Get("force").(bool) {
+		tables, err := otsService.ListOtsTables(d.Id())
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ListTables", AlibabaCloudSdkGoERROR)
+		}
+
+		for _, table := range tables {
+			if table == nil {
+				continue
+			}
+
+			tableName := table.GetName()
+			if tableName == "" {
+				continue
+			}
+
+			indexes, err := otsService.ListOtsIndex(d.Id(), tableName)
+			if err != nil {
+				return WrapErrorf(err, DefaultErrorMsg, tableName, "ListIndexes", AlibabaCloudSdkGoERROR)
+			}
+
+			for _, idx := range indexes {
+				if idx == nil || idx.IndexName == "" {
+					continue
+				}
+
+				index := &tablestoreAPI.TablestoreIndex{
+					TableName: tableName,
+					IndexName: idx.IndexName,
+				}
+
+				if err := otsService.DeleteOtsIndex(d.Id(), index); err != nil {
+					if !NotFoundError(err) {
+						return WrapErrorf(err, DefaultErrorMsg, idx.IndexName, "DeleteOtsIndex", AlibabaCloudSdkGoERROR)
+					}
+				} else {
+					if err := otsService.WaitForOtsIndexDeleting(d.Id(), tableName, idx.IndexName, d.Timeout(schema.TimeoutDelete)); err != nil {
+						return WrapErrorf(err, IdMsg, EncodeOtsIndexId(d.Id(), tableName, idx.IndexName))
+					}
+				}
+			}
+
+			if err := otsService.DeleteOtsTable(d.Id(), tableName); err != nil {
+				if !NotFoundError(err) {
+					return WrapErrorf(err, DefaultErrorMsg, tableName, "DeleteOtsTable", AlibabaCloudSdkGoERROR)
+				}
+			} else {
+				if err := otsService.WaitForOtsTableDeleting(d.Id(), tableName, d.Timeout(schema.TimeoutDelete)); err != nil {
+					return WrapErrorf(err, IdMsg, EncodeOtsTableId(d.Id(), tableName))
+				}
+			}
+		}
 	}
 
 	if err := otsService.DeleteOtsInstance(d.Id()); err != nil {
