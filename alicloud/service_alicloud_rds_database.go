@@ -241,13 +241,13 @@ func (s *RdsService) WaitForDBDatabaseDeleted(id string, timeout time.Duration) 
 		_, err := s.DescribeDBDatabase(id)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, "", nil
+				return map[string]interface{}{"status": "Deleted"}, "Deleted", nil
 			}
 			return nil, "Exists", WrapError(err)
 		}
-		return nil, "Exists", nil
+		return map[string]interface{}{"status": "Exists"}, "Exists", nil
 	}
-	stateConf := BuildStateConf([]string{"Exists"}, []string{""}, timeout, 5*time.Second, refresh)
+	stateConf := BuildStateConf([]string{"Exists"}, []string{"Deleted"}, timeout, 5*time.Second, refresh)
 	_, err := stateConf.WaitForState()
 	if err != nil {
 		return WrapErrorf(err, IdMsg, id)

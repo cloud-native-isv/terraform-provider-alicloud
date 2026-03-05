@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -738,33 +739,33 @@ func resourceAliCloudEcsInstanceCreate(d *schema.ResourceData, meta interface{})
 		request.SystemDiskSize = requests.NewInteger(v.(int))
 	}
 
-	// if v, ok := d.GetOk("system_disk_auto_snapshot_policy_id"); ok {
-	// 	request.SystemDiskAutoSnapshotPolicyId = v.(string)
-	// }
+	if v, ok := d.GetOk("system_disk_auto_snapshot_policy_id"); ok {
+		request.QueryParams["SystemDisk.AutoSnapshotPolicyId"] = v.(string)
+	}
 
-	// if v, ok := d.GetOk("system_disk_storage_cluster_id"); ok {
-	// 	request.SystemDiskStorageClusterId = v.(string)
-	// }
+	if v, ok := d.GetOk("system_disk_storage_cluster_id"); ok {
+		request.SystemDisk = ecs.CreateInstanceSystemDisk{StorageClusterId: v.(string)}
+	}
 
-	// if v, ok := d.GetOkExists("system_disk_encrypted"); ok {
-	// 	request.SystemDiskEncrypted = requests.NewBoolean(v.(bool))
-	// }
+	if v, ok := d.GetOkExists("system_disk_encrypted"); ok {
+		request.QueryParams["SystemDisk.Encrypted"] = strconv.FormatBool(v.(bool))
+	}
 
-	// if v, ok := d.GetOk("system_disk_kms_key_id"); ok {
-	// 	request.SystemDiskKMSKeyId = v.(string)
-	// }
+	if v, ok := d.GetOk("system_disk_kms_key_id"); ok {
+		request.QueryParams["SystemDisk.KMSKeyId"] = v.(string)
+	}
 
-	// if v, ok := d.GetOk("system_disk_encrypt_algorithm"); ok {
-	// 	request.SystemDiskEncryptAlgorithm = v.(string)
-	// }
+	if v, ok := d.GetOk("system_disk_encrypt_algorithm"); ok {
+		request.QueryParams["SystemDisk.EncryptAlgorithm"] = v.(string)
+	}
 
-	// if v, ok := d.GetOkExists("system_disk_provisioned_iops"); ok {
-	// 	request.SystemDiskProvisionedIops = requests.NewInteger(v.(int))
-	// }
+	if v, ok := d.GetOkExists("system_disk_provisioned_iops"); ok {
+		request.QueryParams["SystemDisk.ProvisionedIops"] = string(requests.NewInteger(v.(int)))
+	}
 
-	// if v, ok := d.GetOkExists("system_disk_bursting_enabled"); ok {
-	// 	request.SystemDiskBurstingEnabled = requests.NewBoolean(v.(bool))
-	// }
+	if v, ok := d.GetOkExists("system_disk_bursting_enabled"); ok {
+		request.QueryParams["SystemDisk.BurstingEnabled"] = strconv.FormatBool(v.(bool))
+	}
 
 	if v, ok := d.GetOk("instance_name"); ok {
 		request.InstanceName = v.(string)
@@ -881,7 +882,7 @@ func resourceAliCloudEcsInstanceCreate(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOk("data_disks"); ok {
 		disks := v.([]interface{})
 		var dataDisks []ecs.CreateInstanceDataDisk
-		for _, ds := range disks {
+		for index, ds := range disks {
 			item := ds.(map[string]interface{})
 			dd := ecs.CreateInstanceDataDisk{
 				Size:               string(requests.NewInteger(item["size"].(int))),
@@ -904,19 +905,19 @@ func resourceAliCloudEcsInstanceCreate(d *schema.ResourceData, meta interface{})
 			if v, ok := item["kms_key_id"].(string); ok && v != "" {
 				dd.KMSKeyId = v
 			}
-			// if v, ok := item["auto_snapshot_policy_id"].(string); ok && v != "" {
-			// 	dd.AutoSnapshotPolicyId = v
-			// }
+			if v, ok := item["auto_snapshot_policy_id"].(string); ok && v != "" {
+				request.QueryParams[fmt.Sprintf("DataDisk.%d.AutoSnapshotPolicyId", index+1)] = v
+			}
 			if v, ok := item["device"].(string); ok && v != "" {
 				dd.Device = v
 			}
 
-			// if v, ok := item["provisioned_iops"].(int); ok && v > 0 {
-			// 	dd.ProvisionedIops = string(requests.NewInteger(v))
-			// }
-			// if v, ok := item["bursting_enabled"].(bool); ok {
-			// 	dd.BurstingEnabled = string(requests.NewBoolean(v))
-			// }
+			if v, ok := item["provisioned_iops"].(int); ok && v > 0 {
+				request.QueryParams[fmt.Sprintf("DataDisk.%d.ProvisionedIops", index+1)] = string(requests.NewInteger(v))
+			}
+			if v, ok := item["bursting_enabled"].(bool); ok {
+				request.QueryParams[fmt.Sprintf("DataDisk.%d.BurstingEnabled", index+1)] = strconv.FormatBool(v)
+			}
 
 			dataDisks = append(dataDisks, dd)
 		}
@@ -933,9 +934,13 @@ func resourceAliCloudEcsInstanceCreate(d *schema.ResourceData, meta interface{})
 	securityGroupsIds := expandStringList(d.Get("security_groups").(*schema.Set).List())
 	if len(securityGroupsIds) > 0 {
 		request.SecurityGroupId = securityGroupsIds[0]
-		if len(securityGroupsIds) > 1 {
+		if vswitchValue != "" && len(securityGroupsIds) > 1 {
 			remainingSgs = securityGroupsIds[1:]
 		}
+	}
+
+	if _, ok := d.GetOk("private_ip"); ok && vswitchValue == "" {
+		return WrapError(Error("Field 'vswitch_id' is required when setting 'private_ip'."))
 	}
 
 	// if networkInterfaceTrafficModeOk || networkCardIndexOk || queuePairNumberOk {
@@ -1003,16 +1008,11 @@ func resourceAliCloudEcsInstanceCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("image_options"); ok {
-		for _, _ = range v.(*schema.Set).List() {
-			// imageOptionsArg := raw.(map[string]interface{})
-			// if v, ok := imageOptionsArg["login_as_non_root"]; ok {
-			// Struct mapping implies `ImageOptions` struct.
-			// request.ImageOptions = &ecs.CreateInstanceImageOptions{ LoginAsNonRoot: ... }
-			// options := ecs.CreateInstanceImageOptions{
-			// 	LoginAsNonRoot: requests.NewBoolean(v.(bool)),
-			// }
-			// request.ImageOptions = &options
-			// }
+		for _, raw := range v.(*schema.Set).List() {
+			imageOptionsArg := raw.(map[string]interface{})
+			if loginAsNonRoot, ok := imageOptionsArg["login_as_non_root"].(bool); ok {
+				request.QueryParams["ImageOptions.LoginAsNonRoot"] = strconv.FormatBool(loginAsNonRoot)
+			}
 		}
 	}
 
