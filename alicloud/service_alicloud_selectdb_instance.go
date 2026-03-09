@@ -109,6 +109,12 @@ func (s *SelectDBService) SelectDBInstanceStateRefreshFunc(instanceId string, fa
 
 // WaitForSelectDBInstanceCreated waits for SelectDB instance to be created and active
 func (s *SelectDBService) WaitForSelectDBInstanceCreated(instanceId string, timeout time.Duration) error {
+	effectiveTimeout := timeout
+	minimumCreateTimeout := 90 * time.Minute
+	if effectiveTimeout < minimumCreateTimeout {
+		effectiveTimeout = minimumCreateTimeout
+	}
+
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{
 			selectdb.InstanceStatusCreating,
@@ -119,7 +125,7 @@ func (s *SelectDBService) WaitForSelectDBInstanceCreated(instanceId string, time
 		Refresh: s.SelectDBInstanceStateRefreshFunc(instanceId, []string{
 			"FAILED", "ERROR", "EXCEPTION",
 		}),
-		Timeout:    timeout,
+		Timeout:    effectiveTimeout,
 		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
