@@ -46,6 +46,19 @@ func resourceAliCloudAlikafkaTopic() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  false,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return !d.Get("local_topic").(bool)
+				},
+			},
+			"replica_num": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      3,
+				ValidateFunc: IntBetween(1, 3),
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return !d.Get("local_topic").(bool)
+				},
 			},
 			"partition_num": {
 				Type:         schema.TypeInt,
@@ -73,14 +86,17 @@ func resourceAliCloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{
 
 	instanceId := d.Get("instance_id").(string)
 	topicName := d.Get("topic").(string)
+	localTopic := d.Get("local_topic").(bool)
 
 	newTopic := &kafka.KafkaTopic{
 		InstanceId:   instanceId,
 		Topic:        topicName,
 		PartitionNum: d.Get("partition_num").(int),
-		ReplicaNum:   3,
-		LocalTopic:   d.Get("local_topic").(bool),
-		CompactTopic: d.Get("compact_topic").(bool),
+		LocalTopic:   localTopic,
+	}
+	if localTopic {
+		newTopic.ReplicaNum = d.Get("replica_num").(int)
+		newTopic.CompactTopic = d.Get("compact_topic").(bool)
 	}
 	if v, ok := d.GetOk("remark"); ok {
 		newTopic.Remark = v.(string)
@@ -171,7 +187,13 @@ func resourceAliCloudAlikafkaTopicRead(d *schema.ResourceData, meta interface{})
 	d.Set("instance_id", object.InstanceId)
 	d.Set("topic", object.Topic)
 	d.Set("local_topic", object.LocalTopic)
-	d.Set("compact_topic", object.CompactTopic)
+	if object.LocalTopic {
+		d.Set("compact_topic", object.CompactTopic)
+		d.Set("replica_num", object.ReplicaNum)
+	} else {
+		d.Set("compact_topic", false)
+		d.Set("replica_num", 3)
+	}
 	d.Set("partition_num", object.PartitionNum)
 	d.Set("remark", object.Remark)
 
