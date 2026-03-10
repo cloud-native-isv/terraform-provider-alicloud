@@ -19,7 +19,9 @@ func (s *KafkaService) CreateAlikafkaTopic(topic *kafka.KafkaTopic) error {
 
 // DeleteAlikafkaTopic deletes a Kafka topic using CWS-Lib-Go
 func (s *KafkaService) DeleteAlikafkaTopic(instanceId, topicName string) error {
-	if err := s.kafkaApi.DeleteTopic(instanceId, topicName); err != nil {
+	if err := s.retryWithCommonErrors(10*time.Minute, func() error {
+		return s.kafkaApi.DeleteTopic(instanceId, topicName)
+	}); err != nil {
 		return WrapError(err)
 	}
 	return nil

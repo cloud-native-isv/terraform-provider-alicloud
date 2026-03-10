@@ -14,6 +14,7 @@ import (
 
 	// Import unified error handling from cws-lib-go
 	commonErrors "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
 
 const (
@@ -143,6 +144,10 @@ func IsExpectedErrorCodes(code string, errorCodes []string) bool {
 func IsExpectedErrors(err error, expectCodes []string) bool {
 	if err == nil {
 		return false
+	}
+
+	if checkExpectedCodesInErrorCode("ONS_SYSTEM_FLOW_CONTROL", expectCodes) && kafka.IsKafkaFlowControlError(err) {
+		return true
 	}
 
 	// Handle ComplexError recursively
