@@ -2,6 +2,7 @@
 name: {{SKILL_NAME}}
 description: |
   {{DESCRIPTION}}
+skill_id: "{{SKILL_ID}}"
 ---
 
 # {{SKILL_NAME}}
@@ -13,6 +14,10 @@ Briefly describe what this skill does. (Conciseness is key!)
 1. Step 1
 2. Step 2
 ...
+
+## Resource ID
+- Canonical ID: `{{SKILL_ID}}`
+- Canonical Path: `.github/skills/{{SKILL_NAME}}/SKILL.md`
 
 ## Available Tools & Resources
 

@@ -269,8 +269,37 @@ report_success() {
 
 
 ensure_utf8_locale() {
-  export LANG=en_US.UTF-8
-  export LC_ALL=en_US.UTF-8
+  # Check if current locale is already UTF-8
+  if [ "$(locale charmap 2>/dev/null)" = "UTF-8" ]; then
+    return 0
+  fi
+
+  local utf8_locale=""
+  if type locale >/dev/null 2>&1; then
+    local locales
+    locales=$(locale -a 2>/dev/null)
+    
+    # Try en_US.UTF-8 or en_US.utf8
+    utf8_locale=$(echo "$locales" | grep -i -e '^en_US\.utf8$' -e '^en_US\.utf-8$' | head -n 1)
+    
+    # Fallback to C.UTF-8 or C.utf8
+    if [ -z "$utf8_locale" ]; then
+      utf8_locale=$(echo "$locales" | grep -i -e '^C\.utf8$' -e '^C\.utf-8$' | head -n 1)
+    fi
+    
+    # Fallback to any UTF-8 locale
+    if [ -z "$utf8_locale" ]; then
+      utf8_locale=$(echo "$locales" | grep -i -e 'utf8' -e 'utf-8' | head -n 1)
+    fi
+  fi
+
+  if [ -n "$utf8_locale" ]; then
+    export LANG="$utf8_locale"
+    export LC_ALL="$utf8_locale"
+  else
+    export LANG=C
+    export LC_ALL=C
+  fi
 }
 
 

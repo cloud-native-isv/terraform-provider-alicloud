@@ -15,11 +15,18 @@ You **MUST** analyze the content of `$ARGUMENTS` to determine the execution flow
 Analyze this repository and generate or update `.ai/instructions.md` to guide AI coding agents.
 
 Focus on capturing *discoverable, project-specific* knowledge that makes a fresh AI instance immediately productive, including:
-
 - The “big picture” architecture that requires reading multiple files to understand (major components, boundaries, data flows, and the rationale behind key structure)
 - Critical developer workflows (build, test, debug), especially commands that are not obvious from file inspection alone
 - Conventions and patterns that differ from common defaults
 - Integration points, external dependencies, and cross-component communication patterns
+
+Explore the codebase via subagent, 1-3 in parallel if needed
+Find essential knowledge that helps an AI agent be immediately productive:
+- Build/test commands (agents run these automatically)
+- Architecture decisions and component boundaries
+- Project-specific conventions that differ from common practices
+- Potential pitfalls or common development environment issues
+- Key files/directories that exemplify patterns
 
 Content guidelines for `.ai/instructions.md`:
 

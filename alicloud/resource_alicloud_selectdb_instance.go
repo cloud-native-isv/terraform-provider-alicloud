@@ -178,19 +178,6 @@ func resourceAliCloudSelectDBInstance() *schema.Resource {
 				Description: "The maintenance end time of the SelectDB instance in HH:MM format.",
 			},
 
-			// ======== Database Account Configuration ========
-			"username": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The admin username for the SelectDB instance. Once set, cannot be changed.",
-			},
-			"password": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Sensitive:   true,
-				Description: "The admin password for the SelectDB instance. This is write-only and cannot be read back.",
-			},
-
 			// ======== Security Configuration ========
 			"security_ip_groups": {
 				Type:        schema.TypeSet,
@@ -638,16 +625,6 @@ func resourceAliCloudSelectDBInstanceCreate(d *schema.ResourceData, meta interfa
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	// Set admin password if provided
-	if username, ok := d.GetOk("username"); ok {
-		if password, passwordOk := d.GetOk("password"); passwordOk {
-			err = selectDBService.resetSelectDBInstancePassword(d.Id(), username.(string), password.(string))
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ResetSelectDBInstancePassword", AlibabaCloudSdkGoERROR)
-			}
-		}
-	}
-
 	return resourceAliCloudSelectDBInstanceRead(d, meta)
 }
 
@@ -825,22 +802,6 @@ func resourceAliCloudSelectDBInstanceUpdate(d *schema.ResourceData, meta interfa
 		d.SetPartial("tags")
 	}
 
-	// Handle password update
-	if d.HasChange("password") {
-		if password, ok := d.GetOk("password"); ok {
-			username := d.Get("username").(string)
-			if username == "" {
-				return WrapErrorf(fmt.Errorf("username must be provided when setting password"), DefaultErrorMsg, d.Id(), "ResetSelectDBInstancePassword", AlibabaCloudSdkGoERROR)
-			}
-
-			err := selectDBService.resetSelectDBInstancePassword(d.Id(), username, password.(string))
-			if err != nil {
-				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "ResetSelectDBInstancePassword", AlibabaCloudSdkGoERROR)
-			}
-		}
-		d.SetPartial("password")
-	}
-
 	// Wait for all modifications to complete
 	err = selectDBService.WaitForSelectDBInstanceUpdated(d.Id(), d.Timeout(schema.TimeoutUpdate))
 	if err != nil {
@@ -912,12 +873,6 @@ func resourceAliCloudSelectDBInstanceRead(d *schema.ResourceData, meta interface
 
 	// Set resource group
 	d.Set("resource_group_id", instance.ResourceGroupId)
-
-	// Set username (password is write-only, so we don't set it from API response)
-	// Username is preserved from the Terraform state
-	if username, ok := d.GetOk("username"); ok {
-		d.Set("username", username.(string))
-	}
 
 	// Set multi-zone information (computed field)
 	if len(instance.MultiZone) > 0 {

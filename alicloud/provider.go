@@ -1819,6 +1819,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_security_center_service_linked_role":              resourceAliCloudSecurityCenterServiceLinkedRole(),
 			"alicloud_security_group":                                   resourceAliCloudEcsSecurityGroup(),
 			"alicloud_security_group_rule":                              resourceAliyunSecurityGroupRule(),
+			"alicloud_selectdb_account":                                 resourceAliCloudSelectDBAccount(),
 			"alicloud_selectdb_cluster":                                 resourceAliCloudSelectDBCluster(),
 			"alicloud_selectdb_cluster_binding":                         resourceAliCloudSelectDBClusterBinding(),
 			"alicloud_selectdb_instance":                                resourceAliCloudSelectDBInstance(),

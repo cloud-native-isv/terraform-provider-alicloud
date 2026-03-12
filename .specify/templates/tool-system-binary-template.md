@@ -1,13 +1,21 @@
-# MCP Tool Record: [MCP TOOL NAME]
+# Tool Record: [TOOL NAME]
 
-**Tool Name**: [MCP TOOL NAME]  
-**MCP Server**: [MCP SERVER NAME]  
+**Tool Name**: [TOOL NAME]  
+**Tool Type**: `system-binary`  
+**Source Identifier**: [BINARY PATH or COMMAND NAME]  
+**Tool ID**: [TOOL ID]  
+**Aliases**: [comma-separated aliases, optional]  
 **Status**: [Draft | Verified | Deprecated]  
 **Last Updated**: [YYYY-MM-DD]
 
 ## Description
 
-[Short, user-friendly description of what this MCP tool does and when to use it]
+[Short, user-friendly description of what this binary does and when to use it]
+
+## Resource ID
+
+- Canonical ID: `[RESOURCE ID]`
+- Canonical Path: `[CANONICAL PATH]`
 
 ## Parameters
 
@@ -24,7 +32,8 @@
 ## Usage Notes
 
 - [Any constraints, preconditions, or special handling]
-- [Rate limits, permission requirements, or error behavior]
+- [Required system packages]
+- [Platform-specific behavior]
 
 ## Examples
 
@@ -32,7 +41,7 @@
 
 ```json
 {
-  "tool": "[MCP TOOL NAME]",
+  "tool": "[TOOL NAME]",
   "arguments": {
     "[param]": "value"
   }
@@ -52,8 +61,8 @@
 ## Discovery Metadata
 
 - **Discovery Method**: [auto-discovery | manual-entry | imported]
-- **Discovery Source**: [server config path, tool registry, or reference]
+- **Discovery Source**: system PATH (shutil.which)
 - **Verification Status**: [unverified | verified]
 - **Notes**: [Any additional context]
 
-使用[MCP TOOL PARAMETERS]调用[MCP TOOL NAME]工具
+执行系统二进制命令 [TOOL NAME]
