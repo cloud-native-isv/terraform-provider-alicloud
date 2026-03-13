@@ -2,6 +2,8 @@ package alicloud
 
 import (
 	"testing"
+
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 )
 
 func TestFormatSelectedZonesReq(t *testing.T) {
@@ -30,6 +32,15 @@ func TestFormatSelectedZonesReq(t *testing.T) {
 			expectText:  `[["zoneh"],[]]`,
 		},
 		{
+			name: "valid input with inner []string",
+			input: []interface{}{
+				[]string{"zoneh", "zonef"},
+				[]string{"zonek"},
+			},
+			expectError: false,
+			expectText:  `[["zoneh","zonef"],["zonek"]]`,
+		},
+		{
 			name: "valid empty inner lists",
 			input: []interface{}{
 				[]interface{}{},
@@ -39,9 +50,16 @@ func TestFormatSelectedZonesReq(t *testing.T) {
 			expectText:  `[[],[]]`,
 		},
 		{
-			name:        "invalid length (empty)",
+			name:        "empty input returns empty string",
 			input:       []interface{}{},
-			expectError: true,
+			expectError: false,
+			expectText:  "",
+		},
+		{
+			name:        "nil input returns empty string",
+			input:       nil,
+			expectError: false,
+			expectText:  "",
 		},
 		{
 			name: "invalid length (too many)",
@@ -79,6 +97,13 @@ func TestFormatSelectedZonesReq(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestFormatSelectedZonesReqWithInvalidTopLevelType(t *testing.T) {
+	_, err := formatSelectedZonesReq("invalid")
+	if err == nil {
+		t.Fatalf("Expected error but got nil")
 	}
 }
 
@@ -157,6 +182,59 @@ func TestConfigReadPreserveStateForSubsetOrSuperset(t *testing.T) {
 			preserve := isJSONStringObjectSubset(tc.remote, tc.state) || isJSONStringObjectSubset(tc.state, tc.remote)
 			if preserve != tc.expect {
 				t.Fatalf("expect %v, got %v", tc.expect, preserve)
+			}
+		})
+	}
+}
+
+func TestInferDeployModuleFromDeployType(t *testing.T) {
+	eip := kafka.KafkaDeployType(4)
+	vpc := kafka.KafkaDeployType(5)
+	unknown := kafka.KafkaDeployType(9)
+
+	tests := []struct {
+		name       string
+		deployType *kafka.KafkaDeployType
+		expect     string
+	}{
+		{name: "nil", deployType: nil, expect: ""},
+		{name: "eip", deployType: &eip, expect: "eip"},
+		{name: "vpc", deployType: &vpc, expect: "vpc"},
+		{name: "unknown", deployType: &unknown, expect: ""},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := inferDeployModuleFromDeployType(tc.deployType)
+			if got != tc.expect {
+				t.Fatalf("expect %q, got %q", tc.expect, got)
+			}
+		})
+	}
+}
+
+func TestInferSelectedZonesState(t *testing.T) {
+	tests := []struct {
+		name   string
+		zoneId string
+		expect [][]string
+	}{
+		{name: "empty zone", zoneId: "", expect: [][]string{{}, {}}},
+		{name: "single zone", zoneId: "zoneb", expect: [][]string{{"zoneb"}, {}}},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := inferSelectedZonesState(tc.zoneId)
+			if len(got) != len(tc.expect) || len(got[0]) != len(tc.expect[0]) || len(got[1]) != len(tc.expect[1]) {
+				t.Fatalf("expect %v, got %v", tc.expect, got)
+			}
+			for i := range tc.expect {
+				for j := range tc.expect[i] {
+					if got[i][j] != tc.expect[i][j] {
+						t.Fatalf("expect %v, got %v", tc.expect, got)
+					}
+				}
 			}
 		})
 	}

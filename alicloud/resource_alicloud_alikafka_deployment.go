@@ -130,15 +130,42 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 	}
 }
 
-func formatSelectedZonesReq(configured []interface{}) (string, error) {
-	if len(configured) != 2 {
+func formatSelectedZonesReq(configured interface{}) (string, error) {
+	var outer []interface{}
+	switch val := configured.(type) {
+	case nil:
+		return "", nil
+	case []interface{}:
+		outer = val
+	case [][]string:
+		outer = make([]interface{}, 0, len(val))
+		for _, inner := range val {
+			outer = append(outer, inner)
+		}
+	default:
+		return "", fmt.Errorf("the selected_zones must be a list")
+	}
+
+	if len(outer) == 0 {
+		return "", nil
+	}
+
+	if len(outer) != 2 {
 		return "", fmt.Errorf("the selected_zones must be a two-dimensional array with exactly two elements")
 	}
 
 	var zones [][]string
-	for _, v := range configured {
-		list, ok := v.([]interface{})
-		if !ok {
+	for _, v := range outer {
+		var list []interface{}
+		switch inner := v.(type) {
+		case []interface{}:
+			list = inner
+		case []string:
+			list = make([]interface{}, 0, len(inner))
+			for _, s := range inner {
+				list = append(list, s)
+			}
+		default:
 			return "", fmt.Errorf("the element of selected_zones must be a list")
 		}
 
@@ -161,6 +188,28 @@ func formatSelectedZonesReq(configured []interface{}) (string, error) {
 	result := string(data)
 	log.Printf("[DEBUG] formatSelectedZonesReq result: %s", result)
 	return result, nil
+}
+
+func inferDeployModuleFromDeployType(deployType *kafka.KafkaDeployType) string {
+	if deployType == nil {
+		return ""
+	}
+
+	switch int(*deployType) {
+	case 4:
+		return "eip"
+	case 5:
+		return "vpc"
+	default:
+		return ""
+	}
+}
+
+func inferSelectedZonesState(zoneId string) [][]string {
+	if zoneId == "" {
+		return [][]string{{}, {}}
+	}
+	return [][]string{{zoneId}, {}}
 }
 
 func isJSONStringObjectSubset(subsetJSON, supersetJSON string) bool {
@@ -238,7 +287,7 @@ func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta inter
 	}
 
 	if v, ok := d.GetOk("selected_zones"); ok {
-		zonesStr, err := formatSelectedZonesReq(v.([]interface{}))
+		zonesStr, err := formatSelectedZonesReq(v)
 		if err != nil {
 			return fmt.Errorf("formatting selected_zones failed: %s", err)
 		}
@@ -350,9 +399,24 @@ func resourceAliCloudAlikafkaDeploymentRead(d *schema.ResourceData, meta interfa
 	d.Set("name", tea.StringValue(object.Name))
 	d.Set("vpc_id", object.VpcId)
 	d.Set("vswitch_id", object.VSwitchId)
+	d.Set("deploy_module", inferDeployModuleFromDeployType(object.DeployType))
+	d.Set("service_version", object.Version)
 	if object.ZoneId != "" {
 		d.Set("zone_id", object.ZoneId)
 	}
+
+	if stateVal, ok := d.GetOkExists("selected_zones"); ok {
+		d.Set("selected_zones", stateVal)
+	} else {
+		d.Set("selected_zones", inferSelectedZonesState(object.ZoneId))
+	}
+
+	if stateVal, ok := d.GetOkExists("cross_zone"); ok {
+		d.Set("cross_zone", stateVal)
+	} else {
+		d.Set("cross_zone", false)
+	}
+
 	d.Set("security_group", object.SecurityGroup)
 	stateConfig := d.Get("config").(string)
 	remoteConfig := object.Config

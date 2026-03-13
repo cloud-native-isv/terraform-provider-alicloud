@@ -118,6 +118,7 @@ func (s *SelectDBService) WaitForSelectDBInstanceCreated(instanceId string, time
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{
 			selectdb.InstanceStatusCreating,
+		  selectdb.InstanceStatusNetCreating,
 			selectdb.InstanceStatusOrderPreparing,
 			selectdb.InstanceStatusResourcePreparing,
 		},
@@ -145,6 +146,7 @@ func (s *SelectDBService) WaitForSelectDBInstanceUpdated(instanceId string, time
 			selectdb.InstanceStatusReadonlyResourceChanging,
 			selectdb.InstanceStatusOrderPreparing,
 			selectdb.InstanceStatusClassChanging,
+			selectdb.InstanceStatusNetCreating,
 		},
 		Target: []string{selectdb.InstanceStatusActivation},
 		Refresh: s.SelectDBInstanceStateRefreshFunc(instanceId, []string{
