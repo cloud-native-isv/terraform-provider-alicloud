@@ -239,3 +239,25 @@ func TestInferSelectedZonesState(t *testing.T) {
 		})
 	}
 }
+
+func TestResolveServiceVersionForState(t *testing.T) {
+	tests := []struct {
+		name          string
+		remoteVersion string
+		stateVersion  string
+		expect        string
+	}{
+		{name: "use remote when available", remoteVersion: "3.8.0", stateVersion: "2.6.2", expect: "3.8.0"},
+		{name: "fallback to state when remote empty", remoteVersion: "", stateVersion: "2.6.2", expect: "2.6.2"},
+		{name: "both empty", remoteVersion: "", stateVersion: "", expect: ""},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := resolveServiceVersionForState(tc.remoteVersion, tc.stateVersion)
+			if got != tc.expect {
+				t.Fatalf("expect %q, got %q", tc.expect, got)
+			}
+		})
+	}
+}

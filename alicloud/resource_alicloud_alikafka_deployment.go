@@ -212,6 +212,13 @@ func inferSelectedZonesState(zoneId string) [][]string {
 	return [][]string{{zoneId}, {}}
 }
 
+func resolveServiceVersionForState(remoteVersion, stateVersion string) string {
+	if remoteVersion != "" {
+		return remoteVersion
+	}
+	return stateVersion
+}
+
 func isJSONStringObjectSubset(subsetJSON, supersetJSON string) bool {
 	var subset map[string]interface{}
 	if err := json.Unmarshal([]byte(subsetJSON), &subset); err != nil {
@@ -366,6 +373,10 @@ func resourceAliCloudAlikafkaDeploymentCreate(d *schema.ResourceData, meta inter
 		return WrapError(err)
 	}
 
+	if v, ok := options["service_version"].(string); ok && v != "" {
+		d.Set("service_version", v)
+	}
+
 	addDebug("StartAlikafkaInstance", "Success", instanceId)
 
 	d.SetId(instanceId)
@@ -400,7 +411,8 @@ func resourceAliCloudAlikafkaDeploymentRead(d *schema.ResourceData, meta interfa
 	d.Set("vpc_id", object.VpcId)
 	d.Set("vswitch_id", object.VSwitchId)
 	d.Set("deploy_module", inferDeployModuleFromDeployType(object.DeployType))
-	d.Set("service_version", object.Version)
+	stateServiceVersion := d.Get("service_version").(string)
+	d.Set("service_version", resolveServiceVersionForState(object.Version, stateServiceVersion))
 	if object.ZoneId != "" {
 		d.Set("zone_id", object.ZoneId)
 	}
