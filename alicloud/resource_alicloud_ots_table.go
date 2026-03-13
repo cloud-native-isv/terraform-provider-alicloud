@@ -173,6 +173,12 @@ func resourceAliCloudOtsTable() *schema.Resource {
 				ValidateFunc: validation.IntBetween(0, 100000),
 				Description:  "The reserved write capacity units for the table.",
 			},
+			"force": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "Whether to force delete the table by deleting all indexes first.",
+			},
 			// Computed fields
 			"status": {
 				Type:        schema.TypeString,
@@ -514,11 +520,45 @@ func resourceAliyunOtsTableDelete(d *schema.ResourceData, meta interface{}) erro
 		return WrapError(err)
 	}
 
-	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		instanceName, tableName, idErr := DecodeOtsTableId(d.Id())
-		if idErr != nil {
-			return resource.NonRetryableError(idErr)
+	instanceName, tableName, idErr := DecodeOtsTableId(d.Id())
+	if idErr != nil {
+		return WrapError(idErr)
+	}
+
+	force := true
+	if v, ok := d.GetOkExists("force"); ok {
+		force = v.(bool)
+	}
+
+	if force {
+		indexes, err := otsService.ListOtsIndex(instanceName, tableName)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, tableName, "ListIndexes", AlibabaCloudSdkGoERROR)
 		}
+
+		for _, idx := range indexes {
+			if idx == nil || idx.IndexName == "" {
+				continue
+			}
+
+			index := &tablestoreAPI.TablestoreIndex{
+				TableName: tableName,
+				IndexName: idx.IndexName,
+			}
+
+			if err := otsService.DeleteOtsIndex(instanceName, index); err != nil {
+				if !NotFoundError(err) {
+					return WrapErrorf(err, DefaultErrorMsg, idx.IndexName, "DeleteOtsIndex", AlibabaCloudSdkGoERROR)
+				}
+			} else {
+				if err := otsService.WaitForOtsIndexDeleting(instanceName, tableName, idx.IndexName, d.Timeout(schema.TimeoutDelete)); err != nil {
+					return WrapErrorf(err, IdMsg, EncodeOtsIndexId(instanceName, tableName, idx.IndexName))
+				}
+			}
+		}
+	}
+
+	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		err := otsService.DeleteOtsTable(instanceName, tableName)
 		if err != nil {
 			if NotFoundError(err) {
@@ -535,11 +575,6 @@ func resourceAliyunOtsTableDelete(d *schema.ResourceData, meta interface{}) erro
 
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteOtsTable", AlibabaCloudSdkGoERROR)
-	}
-
-	instanceName, tableName, idErr := DecodeOtsTableId(d.Id())
-	if idErr != nil {
-		return WrapError(idErr)
 	}
 
 	// Wait for table deletion
