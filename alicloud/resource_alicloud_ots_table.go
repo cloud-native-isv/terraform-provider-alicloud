@@ -531,31 +531,7 @@ func resourceAliyunOtsTableDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if force {
-		indexes, err := otsService.ListOtsIndex(instanceName, tableName)
-		if err != nil {
-			return WrapErrorf(err, DefaultErrorMsg, tableName, "ListIndexes", AlibabaCloudSdkGoERROR)
-		}
-
-		for _, idx := range indexes {
-			if idx == nil || idx.IndexName == "" {
-				continue
-			}
-
-			index := &tablestoreAPI.TablestoreIndex{
-				TableName: tableName,
-				IndexName: idx.IndexName,
-			}
-
-			if err := otsService.DeleteOtsIndex(instanceName, index); err != nil {
-				if !NotFoundError(err) {
-					return WrapErrorf(err, DefaultErrorMsg, idx.IndexName, "DeleteOtsIndex", AlibabaCloudSdkGoERROR)
-				}
-			} else {
-				if err := otsService.WaitForOtsIndexDeleting(instanceName, tableName, idx.IndexName, d.Timeout(schema.TimeoutDelete)); err != nil {
-					return WrapErrorf(err, IdMsg, EncodeOtsIndexId(instanceName, tableName, idx.IndexName))
-				}
-			}
-		}
+		return forceDeleteOtsTable(otsService, instanceName, tableName, d.Timeout(schema.TimeoutDelete))
 	}
 
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
@@ -581,6 +557,87 @@ func resourceAliyunOtsTableDelete(d *schema.ResourceData, meta interface{}) erro
 	err = otsService.WaitForOtsTableDeleting(instanceName, tableName, d.Timeout(schema.TimeoutDelete))
 	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return nil
+}
+
+func forceDeleteOtsTable(otsService *OtsService, instanceName, tableName string, timeout time.Duration) error {
+	searchIndexes, err := otsService.ListOtsSearchIndexes(instanceName, tableName)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, tableName, "ListSearchIndex", AlibabaCloudSdkGoERROR)
+	}
+
+	for _, idx := range searchIndexes {
+		if idx == nil || idx.IndexName == "" {
+			continue
+		}
+
+		searchIndex := &tablestoreAPI.TablestoreSearchIndex{
+			TableName: tableName,
+			IndexName: idx.IndexName,
+		}
+
+		if err := otsService.DeleteOtsSearchIndex(instanceName, searchIndex); err != nil {
+			if !NotFoundError(err) {
+				return WrapErrorf(err, DefaultErrorMsg, idx.IndexName, "DeleteSearchIndex", AlibabaCloudSdkGoERROR)
+			}
+		} else {
+			if err := otsService.WaitForOtsSearchIndexDeleting(instanceName, tableName, idx.IndexName, timeout); err != nil {
+				return WrapErrorf(err, IdMsg, EncodeOtsSearchIndexId(instanceName, tableName, idx.IndexName))
+			}
+		}
+	}
+
+	indexes, err := otsService.ListOtsIndex(instanceName, tableName)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, tableName, "ListIndexes", AlibabaCloudSdkGoERROR)
+	}
+
+	for _, idx := range indexes {
+		if idx == nil || idx.IndexName == "" {
+			continue
+		}
+
+		index := &tablestoreAPI.TablestoreIndex{
+			TableName: tableName,
+			IndexName: idx.IndexName,
+		}
+
+		if err := otsService.DeleteOtsIndex(instanceName, index); err != nil {
+			if !NotFoundError(err) {
+				return WrapErrorf(err, DefaultErrorMsg, idx.IndexName, "DeleteOtsIndex", AlibabaCloudSdkGoERROR)
+			}
+		} else {
+			if err := otsService.WaitForOtsIndexDeleting(instanceName, tableName, idx.IndexName, timeout); err != nil {
+				return WrapErrorf(err, IdMsg, EncodeOtsIndexId(instanceName, tableName, idx.IndexName))
+			}
+		}
+	}
+
+	err = resource.Retry(timeout, func() *resource.RetryError {
+		err := otsService.DeleteOtsTable(instanceName, tableName)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil
+			}
+			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable"}) {
+				time.Sleep(5 * time.Second)
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, EncodeOtsTableId(instanceName, tableName), "DeleteOtsTable", AlibabaCloudSdkGoERROR)
+	}
+
+	// Wait for table deletion
+	err = otsService.WaitForOtsTableDeleting(instanceName, tableName, timeout)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, EncodeOtsTableId(instanceName, tableName))
 	}
 
 	return nil
