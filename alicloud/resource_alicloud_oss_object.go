@@ -213,7 +213,7 @@ func resourceAliCloudOssBucketObjectRead(d *schema.ResourceData, meta interface{
 	if err != nil {
 		if IsExpectedErrors(err, []string{"404 Not Found", "NoSuchKey"}) {
 			d.SetId("")
-			return WrapError(Error("To get the Object: %#v but it is not exist in the specified bucket %s.", d.Get("key").(string), d.Get("bucket").(string)))
+			return nil
 		}
 		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetObjectDetailedMeta", AliyunOssGoSdk)
 	}
