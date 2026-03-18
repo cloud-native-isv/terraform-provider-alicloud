@@ -5,6 +5,7 @@ import (
 	"regexp"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	timeUtils "github.com/cloud-native-tools/cws-lib-go/lib/common/time"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -157,7 +158,17 @@ func dataSourceAliCloudLogQueryRead(d *schema.ResourceData, meta interface{}) er
 	// Execute log query
 	result, err := slsService.QuerySlsLogs(projectName, logstoreName, fromTime32, toTime32, query, lineCount)
 	if err != nil {
-		return WrapError(err)
+		result = &sls.LogResult{
+			Data: []map[string]string{
+				{
+					"level":         "ERROR",
+					"error_code":    extractSlsQueryErrorCode(err),
+					"error_message": err.Error(),
+					"project_name":  projectName,
+					"logstore_name": logstoreName,
+				},
+			},
+		}
 	}
 
 	// Set unique ID for the data source
@@ -203,4 +214,18 @@ func dataSourceAliCloudLogQueryRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
+}
+
+func extractSlsQueryErrorCode(err error) string {
+	if err == nil {
+		return "UnknownQueryError"
+	}
+
+	errMsg := err.Error()
+	match := regexp.MustCompile(`Code:\s*([A-Za-z0-9_.-]+)`).FindStringSubmatch(errMsg)
+	if len(match) > 1 && match[1] != "" {
+		return match[1]
+	}
+
+	return "QueryExecutionFailed"
 }
