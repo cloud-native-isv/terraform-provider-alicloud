@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceAliCloudSlsConsumerGroup() *schema.Resource {
+func resourceAliCloudLogConsumerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudSlsConsumerGroupCreate,
-		Read:   resourceAliCloudSlsConsumerGroupRead,
-		Update: resourceAliCloudSlsConsumerGroupUpdate,
-		Delete: resourceAliCloudSlsConsumerGroupDelete,
+		Create: resourceAliCloudLogConsumerGroupCreate,
+		Read:   resourceAliCloudLogConsumerGroupRead,
+		Update: resourceAliCloudLogConsumerGroupUpdate,
+		Delete: resourceAliCloudLogConsumerGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -94,7 +94,7 @@ func resourceAliCloudSlsConsumerGroup() *schema.Resource {
 	}
 }
 
-func resourceAliCloudSlsConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	service, err := NewSlsService(client)
 	if err != nil {
@@ -135,10 +135,10 @@ func resourceAliCloudSlsConsumerGroupCreate(d *schema.ResourceData, meta interfa
 		return WrapErrorf(werr, IdMsg, d.Id())
 	}
 
-	return resourceAliCloudSlsConsumerGroupRead(d, meta)
+	return resourceAliCloudLogConsumerGroupRead(d, meta)
 }
 
-func resourceAliCloudSlsConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	service, err := NewSlsService(client)
 	if err != nil {
@@ -187,7 +187,7 @@ func resourceAliCloudSlsConsumerGroupRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceAliCloudSlsConsumerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogConsumerGroupUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	service, err := NewSlsService(client)
 	if err != nil {
@@ -220,10 +220,10 @@ func resourceAliCloudSlsConsumerGroupUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	return resourceAliCloudSlsConsumerGroupRead(d, meta)
+	return resourceAliCloudLogConsumerGroupRead(d, meta)
 }
 
-func resourceAliCloudSlsConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	service, err := NewSlsService(client)
 	if err != nil {

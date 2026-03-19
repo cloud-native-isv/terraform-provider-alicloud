@@ -111,12 +111,22 @@ get_feature_paths() {
     has_git_repo="true"
   fi
 
+  # Extract REQUIREMENT_ID from branch name (NOT feature name)
+  # Branch name format: NNN-requirement-name (e.g., 003-speckit-agents-command)
+  # This is the requirement/spec key identifier, NOT the feature name
+  # Feature metadata (ID, name) must be retrieved from .specify/memory/features.md
+  local requirement_id=""
+  if [[ $current_branch =~ ^([0-9]+)- ]]; then
+      requirement_id="${BASH_REMATCH[1]}"
+  fi
+
   # Use prefix-based lookup to support multiple branches per spec
   local feature_dir=$(find_feature_dir_by_prefix "$repo_root" "$current_branch")
 
   cat <<EOF
 REPO_ROOT='$repo_root'
 CURRENT_BRANCH='$current_branch'
+REQUIREMENT_ID='$requirement_id'
 HAS_GIT='$has_git_repo'
 REQUIREMENTS_DIR='$feature_dir'
 FEATURE_SPEC='$feature_dir/requirements.md'

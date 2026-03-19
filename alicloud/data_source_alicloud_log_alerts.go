@@ -434,6 +434,10 @@ func dataSourceAliCloudSlsAlerts() *schema.Resource {
 	}
 }
 
+func dataSourceAliCloudLogAlerts() *schema.Resource {
+	return dataSourceAliCloudSlsAlerts()
+}
+
 func dataSourceAliCloudSlsAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)

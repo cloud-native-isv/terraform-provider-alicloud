@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAliCloudSlsScheduledSQL() *schema.Resource {
+func resourceAliCloudLogScheduledSQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudSlsScheduledSQLCreate,
-		Read:   resourceAliCloudSlsScheduledSQLRead,
-		Update: resourceAliCloudSlsScheduledSQLUpdate,
-		Delete: resourceAliCloudSlsScheduledSQLDelete,
+		Create: resourceAliCloudLogScheduledSQLCreate,
+		Read:   resourceAliCloudLogScheduledSQLRead,
+		Update: resourceAliCloudLogScheduledSQLUpdate,
+		Delete: resourceAliCloudLogScheduledSQLDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -165,7 +165,7 @@ func resourceAliCloudSlsScheduledSQL() *schema.Resource {
 	}
 }
 
-func resourceAliCloudSlsScheduledSQLCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogScheduledSQLCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -284,10 +284,10 @@ func resourceAliCloudSlsScheduledSQLCreate(d *schema.ResourceData, meta interfac
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAliCloudSlsScheduledSQLRead(d, meta)
+	return resourceAliCloudLogScheduledSQLRead(d, meta)
 }
 
-func resourceAliCloudSlsScheduledSQLRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogScheduledSQLRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -361,7 +361,7 @@ func resourceAliCloudSlsScheduledSQLRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceAliCloudSlsScheduledSQLUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogScheduledSQLUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -515,10 +515,10 @@ func resourceAliCloudSlsScheduledSQLUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	return resourceAliCloudSlsScheduledSQLRead(d, meta)
+	return resourceAliCloudLogScheduledSQLRead(d, meta)
 }
 
-func resourceAliCloudSlsScheduledSQLDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogScheduledSQLDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {

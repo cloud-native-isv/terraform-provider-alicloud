@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func resourceAliCloudSlsCollectionPolicy() *schema.Resource {
+func resourceAliCloudLogCollectionPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudSlsCollectionPolicyCreate,
-		Read:   resourceAliCloudSlsCollectionPolicyRead,
-		Update: resourceAliCloudSlsCollectionPolicyUpdate,
-		Delete: resourceAliCloudSlsCollectionPolicyDelete,
+		Create: resourceAliCloudLogCollectionPolicyCreate,
+		Read:   resourceAliCloudLogCollectionPolicyRead,
+		Update: resourceAliCloudLogCollectionPolicyUpdate,
+		Delete: resourceAliCloudLogCollectionPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -147,7 +147,7 @@ func resourceAliCloudSlsCollectionPolicy() *schema.Resource {
 	}
 }
 
-func resourceAliCloudSlsCollectionPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogCollectionPolicyCreate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
@@ -265,10 +265,10 @@ func resourceAliCloudSlsCollectionPolicyCreate(d *schema.ResourceData, meta inte
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAliCloudSlsCollectionPolicyRead(d, meta)
+	return resourceAliCloudLogCollectionPolicyRead(d, meta)
 }
 
-func resourceAliCloudSlsCollectionPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogCollectionPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -353,7 +353,7 @@ func resourceAliCloudSlsCollectionPolicyRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAliCloudSlsCollectionPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogCollectionPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -491,10 +491,10 @@ func resourceAliCloudSlsCollectionPolicyUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	return resourceAliCloudSlsCollectionPolicyRead(d, meta)
+	return resourceAliCloudLogCollectionPolicyRead(d, meta)
 }
 
-func resourceAliCloudSlsCollectionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogCollectionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)

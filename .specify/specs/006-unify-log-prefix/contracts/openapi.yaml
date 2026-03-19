@@ -1,0 +1,198 @@
+openapi: 3.0.3
+info:
+  title: SLS Log Prefix Unification Governance API
+  version: 1.0.0
+  description: |
+    契约用于描述命名治理流程，不是对外云产品 API。
+    用于统一维护 alicloud_sls_* -> alicloud_log_* 映射、校验与迁移提示。
+servers:
+  - url: https://provider-internal.local
+paths:
+  /naming/mappings:
+    get:
+      summary: 查询命名映射清单
+      operationId: listNamingMappings
+      responses:
+        '200':
+          description: 成功返回映射列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NamingMappingItem'
+                  total:
+                    type: integer
+  /naming/validate:
+    post:
+      summary: 校验配置是否仍使用 alicloud_sls_* 前缀
+      operationId: validateLegacyPrefixUsage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationRequest'
+      responses:
+        '200':
+          description: 校验结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+  /migration/guidance/{legacyName}:
+    get:
+      summary: 获取单项迁移指引
+      operationId: getMigrationGuidance
+      parameters:
+        - name: legacyName
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^alicloud_sls_[a-z0-9_]+$'
+      responses:
+        '200':
+          description: 迁移指引详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigrationGuidanceItem'
+        '404':
+          description: 未找到映射关系
+  /governance/catalog:
+    get:
+      summary: 查询治理清单
+      operationId: getGovernanceCatalog
+      responses:
+        '200':
+          description: 治理清单
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovernanceCatalog'
+components:
+  schemas:
+    NamingMappingItem:
+      type: object
+      required:
+        - capabilityKey
+        - legacyName
+        - canonicalName
+        - mappingType
+        - status
+        - replacementHint
+        - effectiveVersion
+      properties:
+        capabilityKey:
+          type: string
+        legacyName:
+          type: string
+          pattern: '^alicloud_sls_[a-z0-9_]+$'
+        canonicalName:
+          type: string
+          pattern: '^alicloud_log_[a-z0-9_]+$'
+        mappingType:
+          type: string
+          enum: [one_to_one, many_to_one, retired]
+        status:
+          type: string
+          enum: [unified, pending, retired_with_note]
+        replacementHint:
+          type: string
+        effectiveVersion:
+          type: string
+    ValidationRequest:
+      type: object
+      required:
+        - hclText
+      properties:
+        hclText:
+          type: string
+          description: Terraform 配置文本
+    ValidationIssue:
+      type: object
+      required:
+        - legacyName
+        - canonicalName
+        - message
+      properties:
+        legacyName:
+          type: string
+        canonicalName:
+          type: string
+        message:
+          type: string
+    ValidationResult:
+      type: object
+      required:
+        - valid
+        - issues
+      properties:
+        valid:
+          type: boolean
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationIssue'
+    MigrationGuidanceItem:
+      type: object
+      required:
+        - legacyName
+        - canonicalName
+        - strategy
+        - executionSteps
+        - riskNotice
+      properties:
+        legacyName:
+          type: string
+        canonicalName:
+          type: string
+        strategy:
+          type: string
+          enum: [destroy_recreate]
+        preconditions:
+          type: array
+          items:
+            type: string
+        executionSteps:
+          type: array
+          items:
+            type: string
+        expectedResult:
+          type: string
+        riskNotice:
+          type: array
+          items:
+            type: string
+        rollbackGuidance:
+          type: array
+          items:
+            type: string
+    GovernanceCatalog:
+      type: object
+      required:
+        - scopeRule
+        - includedItems
+        - pendingItems
+        - releaseNoteRef
+      properties:
+        scopeRule:
+          type: string
+          enum: ['all alicloud_sls_* included']
+        includedItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/NamingMappingItem'
+        pendingItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/NamingMappingItem'
+        releaseNoteRef:
+          type: string
+        lastReviewedAt:
+          type: string
+          format: date-time

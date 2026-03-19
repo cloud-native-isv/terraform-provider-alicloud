@@ -81,6 +81,13 @@ func resourceAliCloudLogProject() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: StringMatch(regexp.MustCompile("^[0-9a-zA-Z_-]+$"), "The name of the log project. It is the only in one AliCloud account. The project name is globally unique in Alibaba Cloud and cannot be modified after it is created. The naming rules are as follows:- The project name must be globally unique. - The name can contain only lowercase letters, digits, and hyphens (-). - It must start and end with a lowercase letter or number. - The value contains 3 to 63 characters."),
 			},
+			"name": {
+				Type:       schema.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "Field 'name' has been deprecated since provider version 1.215.0. New field 'project_name' instead.",
+				ForceNew:   true,
+			},
 			"resource_group_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -129,14 +136,6 @@ func resourceAliCloudLogProject() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				Deprecated:   "Field 'name' has been deprecated since provider version 1.223.0. New field 'project_name' instead.",
-				ForceNew:     true,
-				ValidateFunc: StringMatch(regexp.MustCompile("^[0-9a-zA-Z_-]+$"), "The name of the log project. It is the only in one AliCloud account. The project name is globally unique in Alibaba Cloud and cannot be modified after it is created. The naming rules are as follows:- The project name must be globally unique. - The name can contain only lowercase letters, digits, and hyphens (-). - It must start and end with a lowercase letter or number. - The value contains 3 to 63 characters."),
-			},
 		},
 	}
 }
@@ -154,7 +153,7 @@ func resourceAliCloudLogProjectCreate(d *schema.ResourceData, meta interface{}) 
 		projectName = v.(string)
 	} else if v, ok := d.GetOk("name"); ok {
 		projectName = v.(string)
-	} else {
+	}  else {
 		return WrapError(fmt.Errorf("either project_name or name must be specified"))
 	}
 
@@ -237,6 +236,7 @@ func resourceAliCloudLogProjectRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("resource_group_id", project.ResourceGroupId)
 	d.Set("status", project.Status)
 	d.Set("project_name", project.ProjectName)
+	d.Set("name", project.ProjectName)
 	d.Set("owner", project.Owner)
 	d.Set("region", project.Region)
 	d.Set("location", project.Location)
@@ -244,9 +244,6 @@ func resourceAliCloudLogProjectRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("data_redundancy_type", project.DataRedundancyType)
 	d.Set("recycle_bin_enabled", project.RecycleBinEnabled)
 	d.Set("quota", project.Quota)
-
-	// Set deprecated name field for backward compatibility
-	d.Set("name", d.Get("project_name"))
 
 	return nil
 }

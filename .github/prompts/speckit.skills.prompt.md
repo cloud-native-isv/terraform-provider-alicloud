@@ -202,7 +202,13 @@ Skill 仅保留执行任务所需内容，不增加无关文档：
      - 工具说明 → `tools/`
    - 更新 `SKILL.md` 的资源链接，并询问用户是否导入已有文件。
 
-7. **Completion**
+7. **Register `skill_id` in instructions template**
+   - 创建或更新 skill 后，必须在 `.ai/instructions.md` 的 `## Resource Registry` → `### Skills` 小节中追加一个结构化列表条目，字段名称参考 `.specify/templates/skills-template.md`。
+   - 条目中必须包含 `Skill Name`、`Skill ID`、`Description`、`Canonical Path`；若模板中存在对应 frontmatter，也应按相同字段名补充。
+   - 条目使用 `skill_id` 的规范值；若同一 ID 已存在则不得重复写入。
+   - 保持 Skills 列表排序、去重；一旦存在真实条目，移除 `- None yet.`。
+
+8. **Completion**
    - 总结 Skill 能力与目录结构。
    - 给出示例提示词。
    - 给出下一步可选定制项。

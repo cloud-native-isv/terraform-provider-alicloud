@@ -17,6 +17,12 @@
 - Canonical ID: `[RESOURCE ID]`
 - Canonical Path: `[CANONICAL PATH]`
 
+## Invocation & I/O Contract
+
+- **Input Channel**: `[command-line | stdin]`
+- **Invocation Mode**: `[command-line | shell-environment]`
+- **Output Mode**: `[json | plain-log-lines]`
+
 ## Parameters
 
 | Name | Type | Required | Description | Default |
@@ -42,9 +48,15 @@
 ```json
 {
   "tool": "[TOOL NAME]",
+  "io": {
+    "input_channel": "command-line",
+    "invocation_mode": "command-line",
+    "output_mode": "json"
+  },
   "arguments": {
     "[param]": "value"
-  }
+  },
+  "stdin": "[optional stdin content when input_channel=stdin]"
 }
 ```
 
@@ -52,9 +64,11 @@
 
 ```json
 {
+  "output_mode": "json",
   "result": {
     "[field]": "value"
-  }
+  },
+  "stdout": "[optional plain log lines when output_mode=plain-log-lines]"
 }
 ```
 

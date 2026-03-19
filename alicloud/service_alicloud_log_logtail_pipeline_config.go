@@ -3,9 +3,100 @@ package alicloud
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
-	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+	slsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
+
+func (s *SlsService) DescribeSlsLogtailPipelineConfig(id string) (*slsAPI.LogtailPipelineConfig, error) {
+	parts := strings.Split(id, ":")
+	if len(parts) != 3 {
+		err := WrapError(fmt.Errorf("invalid Resource Id %s. Expected parts' length %d, got %d", id, 3, len(parts)))
+		return nil, err
+	}
+
+	projectName := parts[0]
+	// parts[1] is generally "config"
+	configName := parts[2]
+
+	config, err := s.GetAPI().GetLogtailPipelineConfig(projectName, configName)
+	if err != nil {
+		return nil, WrapErrorf(err, DefaultErrorMsg, id, "GetLogtailPipelineConfig", AlibabaCloudSdkGoERROR)
+	}
+
+	return config, nil
+}
+
+func (s *SlsService) CreateSlsLogtailPipelineConfig(projectName string, config *slsAPI.LogtailPipelineConfig) error {
+	err := s.GetAPI().CreateLogtailPipelineConfig(projectName, config)
+	if err == nil {
+		addDebugJson("CreateSlsLogtailPipelineConfig", config)
+	}
+	return err
+}
+
+func (s *SlsService) UpdateSlsLogtailPipelineConfig(projectName string, config *slsAPI.LogtailPipelineConfig) error {
+	err := s.GetAPI().UpdateLogtailPipelineConfig(projectName, config)
+	if err == nil {
+		addDebugJson("UpdateSlsLogtailPipelineConfig", config)
+	}
+	return err
+}
+
+func (s *SlsService) DeleteSlsLogtailPipelineConfig(projectName string, configName string) error {
+	err := s.GetAPI().DeleteLogtailPipelineConfig(projectName, configName)
+	if err == nil {
+		addDebugJson("DeleteSlsLogtailPipelineConfig", fmt.Sprintf("PipelineConfig %s deleted successfully", configName))
+	}
+	return err
+}
+
+func (s *SlsService) LogtailPipelineConfigStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		obj, err := s.DescribeSlsLogtailPipelineConfig(id)
+
+		if err != nil {
+			if NotFoundError(err) {
+				return nil, "", nil
+			}
+			return nil, "", err
+		}
+
+		return obj, "active", nil
+	}
+}
+
+func NormalizeLogtailConfigJson(jsonStr string) (string, error) {
+	return normalizeJsonString(jsonStr)
+}
+
+func ValidateLogtailConfigJsonObject(jsonStr string) error {
+	if jsonStr == "" {
+		return nil
+	}
+	var i interface{}
+	if err := json.Unmarshal([]byte(jsonStr), &i); err != nil {
+		return err
+	}
+	if _, ok := i.(map[string]interface{}); !ok {
+		return fmt.Errorf("expected JSON object")
+	}
+	return nil
+}
+
+func validateLogtailConfigJsonObjectString(v interface{}, k string) (ws []string, errors []error) {
+	jsonStr, ok := v.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("%s must be a JSON string", k))
+		return
+	}
+
+	if err := ValidateLogtailConfigJsonObject(jsonStr); err != nil {
+		errors = append(errors, fmt.Errorf("%s: %s", k, err.Error()))
+	}
+	return
+}
 
 func (c *SlsLogtailPipelineConfigPlugin) ToMap() (map[string]interface{}, error) {
 	m := make(map[string]interface{})
@@ -24,11 +115,11 @@ func (c *SlsLogtailPipelineConfigPlugin) ToMap() (map[string]interface{}, error)
 	return m, nil
 }
 
-func (c *SlsLogtailPipelineConfig) ToLibConfig() (*sls.LogtailPipelineConfig, error) {
+func (c *SlsLogtailPipelineConfig) ToLibConfig() (*slsAPI.LogtailPipelineConfig, error) {
 	if c == nil {
 		return nil, nil
 	}
-	libConfig := &sls.LogtailPipelineConfig{
+	libConfig := &slsAPI.LogtailPipelineConfig{
 		ConfigName: c.Name, // Project is passed separately in API
 		LogSample:  c.LogSample,
 	}
@@ -142,7 +233,7 @@ func FromLibConfigPlugin(m map[string]interface{}) SlsLogtailPipelineConfigPlugi
 	return p
 }
 
-func FromLibConfig(libConfig *sls.LogtailPipelineConfig, project string) *SlsLogtailPipelineConfig {
+func FromLibConfig(libConfig *slsAPI.LogtailPipelineConfig, project string) *SlsLogtailPipelineConfig {
 	if libConfig == nil {
 		return nil
 	}
@@ -194,4 +285,24 @@ func FromLibConfig(libConfig *sls.LogtailPipelineConfig, project string) *SlsLog
 	}
 
 	return c
+}
+
+// SlsLogtailPipelineConfig represents the domain model for Logtail Pipeline Config
+type SlsLogtailPipelineConfig struct {
+	Project        string
+	Name           string
+	Inputs         []SlsLogtailPipelineConfigPlugin
+	Processors     []SlsLogtailPipelineConfigPlugin
+	Flushers       []SlsLogtailPipelineConfigPlugin
+	Aggregators    []SlsLogtailPipelineConfigPlugin
+	GlobalJson     string
+	TaskJson       string
+	LogSample      string
+	CreateTime     int64
+	LastModifyTime int64
+}
+
+type SlsLogtailPipelineConfigPlugin struct {
+	Type       string
+	ConfigJson string
 }

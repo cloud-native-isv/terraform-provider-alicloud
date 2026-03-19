@@ -58,7 +58,7 @@ var SupportsDataRedundancyRegions = []string{
 	// "cn-heyuan",
 	// "cn-hongkong",
 	"cn-huhehaote",
-	"cn-qingdao",
+	// "cn-qingdao",
 	// "cn-shanghai-finance-1",
 	"cn-shanghai",
 	"cn-shenzhen",

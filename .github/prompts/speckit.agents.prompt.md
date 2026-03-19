@@ -68,11 +68,11 @@ Execution flow:
 
 8. **Define agent shape before writing**
    - Produce:
-     - Agent file name (kebab-case)
-     - Agent display name
-     - Trigger description (frontmatter `description`)
-     - **Least-privilege tool set**: If no tools specified, derive minimal required set using Copilot tool aliases
-     - Invocation mode (`user-invocable`, `disable-model-invocation`, subagent behavior)
+    - Agent file name (kebab-case)
+    - Agent display name
+    - Trigger description (frontmatter `description`)
+    - **Least-privilege tool set**: If no tools specified, derive minimal required set using Copilot tool aliases
+    - Invocation mode (`user-invocable`, `disable-model-invocation`, subagent behavior)
     - Placeholder value map used for template rendering (name/description/tools/model/handoffs/role/workflow/output)
    - Keep tools minimal. Avoid broad permissions unless explicitly needed.
    - **Approved providers only**: GitHub Copilot, Qwen Code, opencode
@@ -109,9 +109,21 @@ Execution flow:
        - Unresolved contradictions block save and request user correction
      - Verify instructions are specific enough for deterministic behavior
 
-12. **Report and next actions**
+12. **Generate and register `agent_id`**
+   - After the agent file is validated and saved, generate a deterministic `agent_id` from the canonical workspace-relative path `.github/agents/<agent-name>.agent.md`.
+   - Treat this canonical path string as the agent identifier unless the project later introduces a stricter `agent_id` schema.
+   - Update the `## Resource Registry` → `### Agents` subsection in `.ai/instructions.md` by adding one structured list entry for the new agent, using the field names defined in the agent template.
+   - Example:
+     - `Agent Name: Code Reviewer`
+       - `Agent ID: .github/agents/code-reviewer.agent.md`
+       - `Description: Reviews Python code for correctness and maintainability`
+       - `Canonical Path: .github/agents/code-reviewer.agent.md`
+   - Keep the Agents list sorted, deduplicated, and remove `- None yet.` once real entries exist.
+
+13. **Report and next actions**
    - Report created/updated file path.
-  - Report selected `agent type` and source template path.
+   - Report generated `agent_id`.
+   - Report selected `agent type` and source template path.
    - Provide 2-3 example prompts that should trigger the agent.
      - "Create a code reviewer agent for Python files"
      - "Build an agent that can analyze security vulnerabilities"

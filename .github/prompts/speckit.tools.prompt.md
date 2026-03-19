@@ -1,4 +1,10 @@
 > Note: `$ARGUMENTS` is **optional**. If empty, continue with discovery + interactive disambiguation. If provided, treat it as hint(s) for target tool, source type, alias preference, or execution priority.
+>
+> Intent interpretation rule:
+>
+> - Natural-language `$ARGUMENTS` describes the **tool capability to define/create or locate**, not an instruction to immediately execute that real-world action.
+> - Example: `/speckit.tools 下载钉钉文档到本地markdown文件` means “create/find a tool whose purpose is 下载钉钉文档到本地markdown文件”, **not** “immediately download the document now”.
+> - Actual tool invocation is allowed only after target tool resolution + parameter confirmation + explicit `Proceed with execution? (yes/no)` consent.
 
 ## User Input
 
@@ -27,7 +33,8 @@ In `refresh-tools.sh`, discovery MUST use JSON mode only when calling each Pytho
 Execution steps:
 
 1. **Identify target tool basic info**
-   - Parse `$ARGUMENTS` to extract tool name or intent.
+   - Parse `$ARGUMENTS` to extract **tool-definition intent** (tool name/capability description), not immediate runtime action.
+   - If user input is a verb phrase (e.g., “下载…/同步…/生成…”), interpret it as candidate tool purpose and continue create/find flow first.
    - If missing, present interactive selection from available tools.
 
 2. **Discover tools via script**
@@ -76,6 +83,12 @@ Execution steps:
    - Backfill missing `tool_id` for historical records touched during refresh.
    - Record invocation session status (`success|failed|cancelled`) with summary.
    - If user asks to rename/alias, update record aliases and ensure uniqueness.
+
+10. **Register `tool_id` in instructions template**
+   - After a tool is selected or created, add one structured list entry to the `## Resource Registry` → `### Tools` subsection in `.ai/instructions.md`, using field names aligned with the selected `.specify/templates/tool-*-template.md` file.
+   - Each entry must include at least `Tool Name`, `Tool ID`, `Tool Type`, `Source Identifier`, `Description`, and `Canonical Path`; include `Aliases`, `Status`, `Last Updated`, and `Resource ID` when available.
+   - Keep the Tools list sorted and deduplicated, and remove `- None yet.` once at least one real tool entry exists.
+   - Use the exact persisted `tool_id` value so future `/speckit.instructions` runs inherit the same registry.
 
 ## Output Requirements
 

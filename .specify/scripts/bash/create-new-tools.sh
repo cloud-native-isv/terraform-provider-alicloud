@@ -23,6 +23,7 @@ if ! locale 2>/dev/null | grep -qi 'utf-8'; then
 fi
 
 JSON_MODE=false
+DEBUG_MODE=false
 TOOL_NAME=""
 TOOL_TYPE=""
 ACTION=""
@@ -34,6 +35,9 @@ while [ $i -le $# ]; do
     case "$arg" in
         --json)
             JSON_MODE=true
+            ;;
+        --debug)
+            DEBUG_MODE=true
             ;;
         --name|-n)
             if [ $((i + 1)) -gt $# ]; then
@@ -75,10 +79,11 @@ while [ $i -le $# ]; do
             ACTION="$next_arg"
             ;;
         --help|-h)
-            echo "Usage: $0 [--json] [--name <name>] [--type <type>] [--action <action>] [<tool_name>]"
+            echo "Usage: $0 [--json] [--debug] [--name <name>] [--type <type>] [--action <action>] [<tool_name>]"
             echo ""
             echo "Options:"
             echo "  --json                  Output in JSON format"
+            echo "  --debug                 Output diagnostics to stderr"
             echo "  --name, -n <name>       Tool name"
             echo "  --type, -t <type>       Tool type (mcp-call|project-script|system-binary|shell-function)"
             echo "  --action, -a <action>   Action to perform (find|create|list)"
@@ -179,6 +184,51 @@ validate_tool_type() {
     esac
 }
 
+debug_log() {
+    if [ "$DEBUG_MODE" = true ]; then
+        echo "[create-new-tools][debug] $*" >&2
+    fi
+}
+
+json_diagnostic() {
+    local json_file="$1"
+    python3 - "$json_file" <<'PYEOF'
+import json
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+try:
+    json.loads(text)
+except json.JSONDecodeError as exc:
+    start = max(exc.pos - 120, 0)
+    end = min(exc.pos + 120, len(text))
+    excerpt = text[start:end].replace("\n", "\\n")
+    print(
+        json.dumps(
+            {
+                "message": exc.msg,
+                "line": exc.lineno,
+                "column": exc.colno,
+                "position": exc.pos,
+                "excerpt": excerpt,
+            },
+            ensure_ascii=False,
+        )
+    )
+    sys.exit(1)
+PYEOF
+}
+
+print_prefixed_file() {
+    local prefix="$1"
+    local file_path="$2"
+
+    if [ -s "$file_path" ]; then
+        sed "s/^/${prefix}/" "$file_path" >&2
+    fi
+}
+
 # Refresh all tools and get JSON output
 refresh_all_tools_json() {
     local refresh_script="$SCRIPT_DIR/refresh-tools.sh"
@@ -186,97 +236,72 @@ refresh_all_tools_json() {
         report_error "refresh-tools.sh not found at $refresh_script" "$JSON_MODE"
         exit 1
     fi
-    
-    # Create temporary directory for JSON files
-    local tmp_dir
-    tmp_dir=$(mktemp -d)
-    
-    # Call refresh-tools.sh and save to separate files
-    "$refresh_script" --mcp 2>/dev/null > "$tmp_dir/mcp.json" || echo '{"servers":[]}' > "$tmp_dir/mcp.json"
-    "$refresh_script" --system 2>/dev/null > "$tmp_dir/system.json" || echo '{"binaries":[]}' > "$tmp_dir/system.json"
-    "$refresh_script" --shell 2>/dev/null > "$tmp_dir/shell.json" || echo '[]' > "$tmp_dir/shell.json"
-    "$refresh_script" --project 2>/dev/null > "$tmp_dir/project.json" || echo '[]' > "$tmp_dir/project.json"
-    
-    # Create Python script to merge JSON files
-    local py_script
-    py_script=$(mktemp)
-    cat > "$py_script" << 'PYEOF'
-import sys
-import os
-import json
 
-tmp_dir = sys.argv[1]
+    local stdout_file stderr_file status validation
+    stdout_file=$(mktemp)
+    stderr_file=$(mktemp)
+    status=0
 
-def load_json_file(filename):
-    filepath = os.path.join(tmp_dir, filename)
-    try:
-        with open(filepath, 'r') as f:
-            return json.load(f)
-    except (json.JSONDecodeError, FileNotFoundError):
-        return None
+    if [ "$DEBUG_MODE" = true ]; then
+        REFRESH_TOOLS_DEBUG=1 "$refresh_script" --mcp --system --shell --project --json --debug >"$stdout_file" 2>"$stderr_file" || status=$?
+    else
+        "$refresh_script" --mcp --system --shell --project --json >"$stdout_file" 2>"$stderr_file" || status=$?
+    fi
 
-# Load all JSON files
-mcp_data = load_json_file('mcp.json') or {}
-system_data = load_json_file('system.json') or {}
-shell_data = load_json_file('shell.json') or []
-project_data = load_json_file('project.json') or []
+    if [ "$DEBUG_MODE" = true ]; then
+        print_prefixed_file "[create-new-tools][refresh-tools] " "$stderr_file"
+    fi
 
-# Combine into single object with normalized structure
-combined = {}
+    if [ "$status" -ne 0 ]; then
+        debug_log "refresh-tools.sh failed with exit code $status"
+        rm -f "$stdout_file" "$stderr_file"
+        return $status
+    fi
 
-# Handle MCP data (object with servers array)
-if isinstance(mcp_data, dict):
-    combined['servers'] = mcp_data.get('servers', [])
-    combined.update({k: v for k, v in mcp_data.items() if k != 'servers'})
+    if ! validation=$(json_diagnostic "$stdout_file"); then
+        debug_log "invalid JSON from refresh-tools.sh: $validation"
+        if [ "$DEBUG_MODE" = true ]; then
+            print_prefixed_file "[create-new-tools][raw-refresh-json] " "$stdout_file"
+        fi
+        rm -f "$stdout_file" "$stderr_file"
+        return 1
+    fi
 
-# Handle system data (object with binaries array)
-if isinstance(system_data, dict):
-    combined['binaries'] = system_data.get('binaries', [])
-    combined.update({k: v for k, v in system_data.items() if k != 'binaries'})
-
-# Handle shell data (can be array or object with functions array)
-if isinstance(shell_data, list):
-    combined['functions'] = shell_data
-elif isinstance(shell_data, dict):
-    combined['functions'] = shell_data.get('functions', [])
-
-# Handle project data (can be array or object with scripts array)
-if isinstance(project_data, list):
-    combined['scripts'] = project_data
-elif isinstance(project_data, dict):
-    combined['scripts'] = project_data.get('scripts', [])
-
-print(json.dumps(combined))
-PYEOF
-    
-    # Execute Python script
-    python3 "$py_script" "$tmp_dir"
-    local ret=$?
-    
-    # Cleanup
-    rm -f "$py_script"
-    rm -rf "$tmp_dir"
-    
-    return $ret
+    cat "$stdout_file"
+    rm -f "$stdout_file" "$stderr_file"
 }
 
 # Parse JSON and find tool by name
 find_tool_in_json() {
     local tool_name="$1"
     local json_data="$2"
-    
-    # Use Python to parse JSON and find tool
-    python3 - "$tool_name" << 'PYTHON_SCRIPT'
+
+    local json_file
+    json_file=$(mktemp)
+    printf '%s' "$json_data" > "$json_file"
+
+    python3 - "$tool_name" "$json_file" "$DEBUG_MODE" << 'PYTHON_SCRIPT'
 import sys
 import json
+from pathlib import Path
 
 tool_name = sys.argv[1]
-json_data = sys.stdin.read()
+json_path = Path(sys.argv[2])
+debug_mode = sys.argv[3] == "true"
+json_data = json_path.read_text(encoding="utf-8")
 
 try:
     data = json.loads(json_data)
-except json.JSONDecodeError:
-    print(json.dumps({"error": "Invalid JSON from refresh-tools.sh"}))
+except json.JSONDecodeError as exc:
+    if debug_mode:
+        start = max(exc.pos - 120, 0)
+        end = min(exc.pos + 120, len(json_data))
+        excerpt = json_data[start:end].replace("\n", "\\n")
+        print(
+            f"[create-new-tools][debug] JSON parse failed at line {exc.lineno}, column {exc.colno}: {exc.msg}",
+            file=sys.stderr,
+        )
+        print(f"[create-new-tools][debug] Raw excerpt: {excerpt}", file=sys.stderr)
     sys.exit(1)
 
 # Flatten all tool sources into a single list
@@ -284,6 +309,9 @@ all_tools = []
 
 # Handle different JSON structures from refresh-tools.sh
 if isinstance(data, dict):
+    if isinstance(data.get('tools'), list):
+        all_tools.extend(tool for tool in data.get('tools', []) if isinstance(tool, dict))
+
     # Check for MCP tools structure (with servers array)
     if 'servers' in data:
         for server in data.get('servers', []):
@@ -359,6 +387,9 @@ else:
 
 print(json.dumps(result, indent=2))
 PYTHON_SCRIPT
+    local ret=$?
+    rm -f "$json_file"
+    return $ret
 }
 
 # Get template file for tool type
@@ -433,7 +464,10 @@ create_tool_record() {
 # List all available tools
 list_all_tools() {
     local json_data
-    json_data=$(refresh_all_tools_json)
+    if ! json_data=$(refresh_all_tools_json); then
+        report_error "Failed to refresh tool inventory" "$JSON_MODE"
+        return 1
+    fi
     
     # Create Python script to format output
     local py_script
@@ -454,7 +488,9 @@ except json.JSONDecodeError:
 all_tools = []
 
 # Handle different JSON structures from refresh-tools.sh
-if isinstance(data, dict):
+if isinstance(data, dict) and isinstance(data.get('tools'), list):
+    all_tools.extend(tool for tool in data.get('tools', []) if isinstance(tool, dict))
+elif isinstance(data, dict):
     # Check for MCP tools structure (with servers array)
     if 'servers' in data:
         for server in data.get('servers', []):
@@ -522,10 +558,16 @@ case "$ACTION" in
         fi
         
         # Refresh and get all tools
-        json_data=$(refresh_all_tools_json)
+        if ! json_data=$(refresh_all_tools_json); then
+            report_error "Failed to refresh tool inventory" "$JSON_MODE"
+            exit 1
+        fi
         
         # Find tool in JSON data
-        find_result=$(echo "$json_data" | find_tool_in_json "$TOOL_NAME")
+        if ! find_result=$(find_tool_in_json "$TOOL_NAME" "$json_data"); then
+            report_error "Invalid JSON from refresh-tools.sh" "$JSON_MODE"
+            exit 1
+        fi
         
         if [ "$ACTION" = "find" ]; then
             echo "$find_result"

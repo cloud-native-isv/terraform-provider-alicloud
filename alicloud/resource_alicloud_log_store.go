@@ -16,10 +16,10 @@ import (
 
 func resourceAliCloudLogStore() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudSlsLogStoreCreate,
-		Read:   resourceAliCloudSlsLogStoreRead,
-		Update: resourceAliCloudSlsLogStoreUpdate,
-		Delete: resourceAliCloudSlsLogStoreDelete,
+		Create: resourceAliCloudLogLogStoreCreate,
+		Read:   resourceAliCloudLogLogStoreRead,
+		Update: resourceAliCloudLogLogStoreUpdate,
+		Delete: resourceAliCloudLogLogStoreDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -200,7 +200,7 @@ func resourceAliCloudLogStore() *schema.Resource {
 	}
 }
 
-func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogLogStoreCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -252,10 +252,10 @@ func resourceAliCloudSlsLogStoreCreate(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAliCloudSlsLogStoreUpdate(d, meta)
+	return resourceAliCloudLogLogStoreUpdate(d, meta)
 }
 
-func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogLogStoreRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -378,7 +378,7 @@ func resourceAliCloudSlsLogStoreRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogLogStoreUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -486,10 +486,10 @@ func resourceAliCloudSlsLogStoreUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.Partial(false)
-	return resourceAliCloudSlsLogStoreRead(d, meta)
+	return resourceAliCloudLogLogStoreRead(d, meta)
 }
 
-func resourceAliCloudSlsLogStoreDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogLogStoreDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts := strings.Split(d.Id(), ":")
 	logstore := parts[1]
