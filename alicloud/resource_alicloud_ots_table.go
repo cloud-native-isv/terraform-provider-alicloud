@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -330,11 +331,17 @@ func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) erro
 	readCapacity := d.Get("read_capacity").(int)
 	writeCapacity := d.Get("write_capacity").(int)
 	table.SetReservedThroughput(readCapacity, writeCapacity)
+	resourceId := EncodeOtsTableId(instanceName, tableName)
+	tableAlreadyExists := false
 
 	// Create table using service
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		err := otsService.CreateOtsTable(instanceName, table)
 		if err != nil {
+			if IsAlreadyExistError(err) {
+				tableAlreadyExists = true
+				return nil
+			}
 			if IsExpectedErrors(err, []string{"ThrottlingException", "ServiceUnavailable"}) {
 				time.Sleep(5 * time.Second)
 				return resource.RetryableError(err)
@@ -349,7 +356,12 @@ func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	// Set resource ID
-	d.SetId(EncodeOtsTableId(instanceName, tableName))
+	d.SetId(resourceId)
+
+	if tableAlreadyExists {
+		log.Printf("[INFO] OTS table %s already exists, importing existing resource", resourceId)
+		return resourceAliyunOtsTableRead(d, meta)
+	}
 
 	// Wait for table to be ready
 	err = otsService.WaitForOtsTableCreating(instanceName, tableName, d.Timeout(schema.TimeoutCreate))

@@ -261,3 +261,13 @@ func TestResolveServiceVersionForState(t *testing.T) {
 		})
 	}
 }
+
+func TestAliKafkaDeploymentNameSchemaIsForceNew(t *testing.T) {
+	nameSchema := resourceAliCloudAlikafkaDeployment().Schema["name"]
+	if nameSchema == nil {
+		t.Fatal("expected name schema")
+	}
+	if !nameSchema.ForceNew {
+		t.Fatal("expected deployment name schema to be force new")
+	}
+}

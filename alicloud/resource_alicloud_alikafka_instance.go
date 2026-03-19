@@ -92,6 +92,7 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 
 			"name": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"security_group": {
@@ -298,6 +299,10 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 		instance.ResourceGroupId = v.(string)
 	}
 
+	if v, ok := d.GetOk("name"); ok {
+		instance.Name = tea.String(v.(string))
+	}
+
 	if v, ok := d.GetOk("duration"); ok {
 		instance.Duration = tea.Int(v.(int))
 	}
@@ -405,6 +410,29 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	kafkaService, err := NewKafkaService(client)
 	if err != nil {
 		return WrapError(err)
+	}
+
+	if !d.IsNewResource() && d.HasChange("name") {
+		name := d.Get("name").(string)
+		if name == "" {
+			return WrapError(fmt.Errorf("updating name failed: name cannot be empty"))
+		}
+
+		req := &ModifyInstanceNameRequest{
+			RegionId:     client.RegionId,
+			InstanceId:   d.Id(),
+			InstanceName: name,
+		}
+
+		if err := kafkaService.ModifyAlikafkaInstanceName(req); err != nil {
+			return WrapError(err)
+		}
+
+		addDebug("ModifyAlikafkaInstanceName", "Success", name)
+
+		if err := kafkaService.WaitForAliKafkaInstanceUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate)); err != nil {
+			return WrapErrorf(err, IdMsg, d.Id())
+		}
 	}
 
 	if !hasAliKafkaInstanceOnlineUpgradeChanges(d) {

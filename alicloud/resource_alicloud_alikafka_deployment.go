@@ -51,6 +51,7 @@ func resourceAliCloudAlikafkaDeployment() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 			"cross_zone": {
 				Type:        schema.TypeBool,
@@ -467,28 +468,6 @@ func resourceAliCloudAlikafkaDeploymentUpdate(d *schema.ResourceData, meta inter
 	defer d.Partial(false)
 
 	needWait := false
-
-	if !d.IsNewResource() && d.HasChange("name") {
-		name := d.Get("name").(string)
-		if name == "" {
-			return WrapError(fmt.Errorf("updating name failed: name cannot be empty"))
-		}
-
-		req := &ModifyInstanceNameRequest{
-			RegionId:     client.RegionId,
-			InstanceId:   d.Id(),
-			InstanceName: name,
-		}
-
-		err = kafkaService.ModifyAlikafkaInstanceName(req)
-		if err != nil {
-			return WrapError(err)
-		}
-
-		addDebug("ModifyAlikafkaInstanceName", "Success", name)
-		d.SetPartial("name")
-		needWait = true
-	}
 
 	if !d.IsNewResource() && d.HasChange("config") {
 		configStr := d.Get("config").(string)

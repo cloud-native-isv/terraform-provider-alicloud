@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -87,6 +88,7 @@ func resourceAliCloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{
 	instanceId := d.Get("instance_id").(string)
 	topicName := d.Get("topic").(string)
 	localTopic := d.Get("local_topic").(bool)
+	resourceId := EncodeTopicId(instanceId, topicName)
 
 	newTopic := &kafka.KafkaTopic{
 		InstanceId:   instanceId,
@@ -103,10 +105,15 @@ func resourceAliCloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{
 	}
 
 	if err := kafkaService.CreateAlikafkaTopic(newTopic); err != nil {
+		if IsAlreadyExistError(err) {
+			log.Printf("[INFO] Alikafka topic %s already exists, importing existing resource", resourceId)
+			d.SetId(resourceId)
+			return resourceAliCloudAlikafkaTopicRead(d, meta)
+		}
 		return WrapError(err)
 	}
 
-	d.SetId(instanceId + ":" + topicName)
+	d.SetId(resourceId)
 
 	if err := kafkaService.WaitForAlikafkaTopic(d.Id(), Running, int(d.Timeout(schema.TimeoutCreate).Seconds())); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())

@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"log"
 	"sort"
 	"time"
 
@@ -77,6 +78,12 @@ func resourceAliCloudLogMachineGroupCreate(d *schema.ResourceData, meta interfac
 	// Create machine group
 	err = slsService.CreateSlsMachineGroup(projectName, machineGroup)
 	if err != nil {
+		if IsAlreadyExistError(err) {
+			resourceId := slsService.BuildMachineGroupId(projectName, machineGroupName)
+			log.Printf("[INFO] Log machine group %s already exists, importing existing resource", resourceId)
+			d.SetId(resourceId)
+			return resourceAliCloudLogMachineGroupRead(d, meta)
+		}
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_machine_group", "CreateMachineGroup", AlibabaCloudSdkGoERROR)
 	}
 

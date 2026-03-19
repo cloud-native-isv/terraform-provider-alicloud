@@ -133,3 +133,27 @@ func TestAliKafkaInstanceOnlineUpgradeableFields(t *testing.T) {
 		t.Fatalf("unexpected online upgradeable fields: %#v", aliKafkaInstanceOnlineUpgradeableFields)
 	}
 }
+
+func TestAliKafkaInstanceNameSchemaAllowsConfiguration(t *testing.T) {
+	nameSchema := resourceAliCloudAlikafkaInstance().Schema["name"]
+	if nameSchema == nil {
+		t.Fatal("expected name schema")
+	}
+	if !nameSchema.Optional {
+		t.Fatal("expected name schema to be optional")
+	}
+	if !nameSchema.Computed {
+		t.Fatal("expected name schema to remain computed")
+	}
+}
+
+func TestBuildAliKafkaInstanceCreationConfigWithName(t *testing.T) {
+	config := buildAliKafkaInstanceCreationConfig(&kafka.KafkaInstance{
+		RegionId: "cn-hangzhou",
+		Name:     tea.String("tf-test-kafka"),
+	}, kafka.InstanceSeriesReserved, kafka.BillingTypePostPay)
+
+	if config.Name != "tf-test-kafka" {
+		t.Fatalf("expected creation config name to be preserved, got %q", config.Name)
+	}
+}
