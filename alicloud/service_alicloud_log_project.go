@@ -161,6 +161,9 @@ func (s *SlsService) UpdateProject(request map[string]interface{}) error {
 	if description, ok := request["description"]; ok {
 		project.Description = description.(string)
 	}
+	if recycleBinEnabled, ok := request["recycleBinEnabled"]; ok {
+		project.RecycleBinEnabled = recycleBinEnabled.(bool)
+	}
 
 	err := s.GetAPI().UpdateLogProject(projectName, project)
 	if err != nil {

@@ -17,6 +17,7 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudAlikafkaInstanceCreate,
 		Read:   resourceAliCloudAlikafkaInstanceRead,
+		Update: resourceAliCloudAlikafkaInstanceUpdate,
 		Delete: resourceAliCloudAlikafkaInstanceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -43,7 +44,6 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			"disk_size": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				ForceNew: true,
 			},
 			"disk_type": {
 				Type:     schema.TypeString,
@@ -53,24 +53,20 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			"io_max_spec": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"spec_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				Default:  "normal",
 			},
 			"partition_num": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ForceNew:     true,
 				AtLeastOneOf: []string{"partition_num"},
 			},
 			"eip_max": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return d.Get("deploy_type").(int) == 5
 				},
@@ -194,6 +190,14 @@ func resourceAliCloudAlikafkaInstance() *schema.Resource {
 			},
 		},
 	}
+}
+
+var aliKafkaInstanceOnlineUpgradeableFields = []string{
+	"disk_size",
+	"spec_type",
+	"partition_num",
+	"io_max_spec",
+	"eip_max",
 }
 
 func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interface{}) error {
@@ -358,6 +362,7 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	}
 	d.Set("io_max", tea.IntValue(object.IoMax))
 	d.Set("io_max_spec", tea.StringValue(object.IoMaxSpec))
+	d.Set("partition_num", tea.IntValue(object.PartitionNum))
 	if v := tea.IntValue(object.EipMax); v != 0 {
 		d.Set("eip_max", v)
 	}
@@ -393,6 +398,34 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	d.Set("tags", kafkaService.tagsToMap(tags))
 
 	return nil
+}
+
+func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	kafkaService, err := NewKafkaService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+
+	if !hasAliKafkaInstanceOnlineUpgradeChanges(d) {
+		return resourceAliCloudAlikafkaInstanceRead(d, meta)
+	}
+
+	object, err := kafkaService.DescribeAlikafkaInstance(d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+
+	upgradeRequest := buildAliKafkaInstanceUpgradeRequest(d, object, client.RegionId)
+	if err := kafkaService.UpgradeAlikafkaInstance(upgradeRequest); err != nil {
+		return WrapError(err)
+	}
+
+	if err := kafkaService.WaitForAliKafkaInstanceUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate)); err != nil {
+		return WrapErrorf(err, IdMsg, d.Id())
+	}
+
+	return resourceAliCloudAlikafkaInstanceRead(d, meta)
 }
 
 func resourceAliCloudAlikafkaInstanceDelete(d *schema.ResourceData, meta interface{}) error {
@@ -441,6 +474,54 @@ func resolveAliKafkaInstanceBilling(instanceTypeInput, paidTypeInput string) (ka
 		return "", "", err
 	}
 	return instanceType, billingType, nil
+}
+
+func hasAliKafkaInstanceOnlineUpgradeChanges(d *schema.ResourceData) bool {
+	for _, field := range aliKafkaInstanceOnlineUpgradeableFields {
+		if d.HasChange(field) {
+			return true
+		}
+	}
+	return false
+}
+
+func buildAliKafkaInstanceUpgradeRequest(d *schema.ResourceData, remote *kafka.KafkaInstance, regionId string) *kafka.KafkaInstance {
+	request := &kafka.KafkaInstance{
+		InstanceId: d.Id(),
+		RegionId:   regionId,
+	}
+
+	if remote != nil {
+		if remote.RegionId != "" {
+			request.RegionId = remote.RegionId
+		}
+		request.PaidType = remote.PaidType
+		request.SpecType = remote.SpecType
+		request.DiskSize = remote.DiskSize
+		request.PartitionNum = remote.PartitionNum
+		request.IoMax = remote.IoMax
+		request.IoMaxSpec = remote.IoMaxSpec
+		request.EipMax = remote.EipMax
+		request.EipModel = remote.EipModel
+	}
+
+	if d.HasChange("disk_size") {
+		request.DiskSize = tea.Int(d.Get("disk_size").(int))
+	}
+	if d.HasChange("spec_type") {
+		request.SpecType = tea.String(d.Get("spec_type").(string))
+	}
+	if d.HasChange("partition_num") {
+		request.PartitionNum = tea.Int(d.Get("partition_num").(int))
+	}
+	if d.HasChange("io_max_spec") {
+		request.IoMaxSpec = tea.String(d.Get("io_max_spec").(string))
+	}
+	if d.HasChange("eip_max") {
+		request.EipMax = tea.Int(d.Get("eip_max").(int))
+	}
+
+	return request
 }
 
 func inferAliKafkaInstanceType(object *kafka.KafkaInstance) string {

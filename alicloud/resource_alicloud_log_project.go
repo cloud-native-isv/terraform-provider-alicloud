@@ -153,7 +153,7 @@ func resourceAliCloudLogProjectCreate(d *schema.ResourceData, meta interface{}) 
 		projectName = v.(string)
 	} else if v, ok := d.GetOk("name"); ok {
 		projectName = v.(string)
-	}  else {
+	} else {
 		return WrapError(fmt.Errorf("either project_name or name must be specified"))
 	}
 
@@ -269,6 +269,20 @@ func resourceAliCloudLogProjectUpdate(d *schema.ResourceData, meta interface{}) 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateProject", AlibabaCloudSdkGoERROR)
 		}
 		d.SetPartial("description")
+	}
+
+	// Update recycle bin setting
+	if d.HasChange("recycle_bin_enabled") {
+		updateRequest := map[string]interface{}{
+			"projectName":       d.Id(),
+			"recycleBinEnabled": d.Get("recycle_bin_enabled"),
+		}
+
+		err := slsService.UpdateProject(updateRequest)
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateProject", AlibabaCloudSdkGoERROR)
+		}
+		d.SetPartial("recycle_bin_enabled")
 	}
 
 	// Update resource group
