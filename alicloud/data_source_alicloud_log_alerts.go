@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func dataSourceAliCloudSlsAlerts() *schema.Resource {
+func dataSourceAliCloudLogAlerts() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAliCloudSlsAlertRead,
+		Read: dataSourceAliCloudLogAlertRead,
 		Schema: map[string]*schema.Schema{
 			"ids": {
 				Type:     schema.TypeList,
@@ -434,11 +434,7 @@ func dataSourceAliCloudSlsAlerts() *schema.Resource {
 	}
 }
 
-func dataSourceAliCloudLogAlerts() *schema.Resource {
-	return dataSourceAliCloudSlsAlerts()
-}
-
-func dataSourceAliCloudSlsAlertRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAliCloudLogAlertRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
