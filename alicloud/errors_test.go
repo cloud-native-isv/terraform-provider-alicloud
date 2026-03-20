@@ -22,6 +22,10 @@ func TestIsAlreadyExistError(t *testing.T) {
 			name: "ots table already exists",
 			err:  fmt.Errorf("OTSObjectAlreadyExist Requested table already exists"),
 		},
+		{
+			name: "alikafka consumer group already exists",
+			err:  fmt.Errorf("Code: BIZ_SUBSCRIPTION_ALREADY_EXISTS, Message: specified consumerId already exists. Please check and try again later"),
+		},
 	}
 
 	for _, tc := range testCases {

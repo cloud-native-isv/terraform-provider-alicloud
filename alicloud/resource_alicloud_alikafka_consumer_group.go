@@ -1,7 +1,6 @@
 package alicloud
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -49,16 +48,22 @@ func resourceAliCloudAlikafkaConsumerGroupCreate(d *schema.ResourceData, meta in
 
 	instanceId := d.Get("instance_id").(string)
 	consumerId := d.Get("consumer_id").(string)
+	resourceId := EncodeConsumerGroupId(instanceId, consumerId)
 	remark := ""
 	if v, ok := d.GetOk("description"); ok {
 		remark = v.(string)
 	}
 
 	if _, err := kafkaService.CreateAlikafkaConsumerGroup(instanceId, consumerId, remark, extractTags(d)); err != nil {
+		if IsAlreadyExistError(err) {
+			log.Printf("[INFO] Alikafka consumer group %s already exists, importing existing resource", resourceId)
+			d.SetId(resourceId)
+			return resourceAliCloudAlikafkaConsumerGroupRead(d, meta)
+		}
 		return WrapError(err)
 	}
 
-	d.SetId(fmt.Sprint(instanceId, ":", consumerId))
+	d.SetId(resourceId)
 
 	if err := kafkaService.WaitForAlikafkaConsumerGroup(d.Id(), Running, int(d.Timeout(schema.TimeoutCreate).Seconds())); err != nil {
 		return WrapError(err)
