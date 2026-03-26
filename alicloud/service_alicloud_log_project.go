@@ -193,6 +193,24 @@ func (s *SlsService) UpdateProjectPolicy(projectName string, policy string) erro
 	return nil
 }
 
+// EnableProjectTransferAcceleration enables transfer acceleration for an SLS project
+func (s *SlsService) EnableProjectTransferAcceleration(projectName string) error {
+	err := s.GetAPI().EnableProjectTransferAcceleration(projectName)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, projectName, "EnableProjectTransferAcceleration", AlibabaCloudSdkGoERROR)
+	}
+	return nil
+}
+
+// DisableProjectTransferAcceleration disables transfer acceleration for an SLS project
+func (s *SlsService) DisableProjectTransferAcceleration(projectName string) error {
+	err := s.GetAPI().DisableProjectTransferAcceleration(projectName)
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, projectName, "DisableProjectTransferAcceleration", AlibabaCloudSdkGoERROR)
+	}
+	return nil
+}
+
 // DeleteProject deletes an SLS project
 func (s *SlsService) DeleteProject(projectName string) error {
 	err := s.GetAPI().DeleteLogProject(projectName, false)

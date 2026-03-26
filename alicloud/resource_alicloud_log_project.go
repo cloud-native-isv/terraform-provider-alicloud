@@ -50,6 +50,21 @@ func validateDataRedundancyTypeForRegion(dataRedundancyType string, region strin
 	return nil
 }
 
+func setProjectTransferAccelerationEnabled(slsService *SlsService, projectName string, enabled bool) error {
+	if enabled {
+		if err := slsService.EnableProjectTransferAcceleration(projectName); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := slsService.DisableProjectTransferAcceleration(projectName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func resourceAliCloudLogProject() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAliCloudLogProjectCreate,
@@ -120,6 +135,11 @@ func resourceAliCloudLogProject() *schema.Resource {
 				Default:      string(aliyunSlsAPI.DataRedundancyTypeZRS),
 			},
 			"recycle_bin_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+			"transfer_acceleration_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -207,6 +227,10 @@ func resourceAliCloudLogProjectCreate(d *schema.ResourceData, meta interface{}) 
 	// Set the resource ID
 	d.SetId(projectName)
 
+	if err := setProjectTransferAccelerationEnabled(slsService, projectName, d.Get("transfer_acceleration_enabled").(bool)); err != nil {
+		return err
+	}
+
 	// For newly created projects, we can directly call Read since SLS projects are immediately available
 	return resourceAliCloudLogProjectRead(d, meta)
 }
@@ -243,6 +267,7 @@ func resourceAliCloudLogProjectRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("last_modify_time", project.LastModifyTime)
 	d.Set("data_redundancy_type", project.DataRedundancyType)
 	d.Set("recycle_bin_enabled", project.RecycleBinEnabled)
+	d.Set("transfer_acceleration_enabled", d.Get("transfer_acceleration_enabled"))
 	d.Set("quota", project.Quota)
 
 	return nil
@@ -312,6 +337,14 @@ func resourceAliCloudLogProjectUpdate(d *schema.ResourceData, meta interface{}) 
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateProjectPolicy", AlibabaCloudSdkGoERROR)
 		}
 		d.SetPartial("policy")
+	}
+
+	if d.HasChange("transfer_acceleration_enabled") {
+		enabled := d.Get("transfer_acceleration_enabled").(bool)
+		if err := setProjectTransferAccelerationEnabled(slsService, d.Id(), enabled); err != nil {
+			return err
+		}
+		d.SetPartial("transfer_acceleration_enabled")
 	}
 
 	d.Partial(false)

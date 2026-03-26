@@ -19,6 +19,7 @@ func resourceAliCloudAlikafkaTopic() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		CustomizeDiff: resourceAliCloudAlikafkaTopicCustomizeDiff,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -75,6 +76,28 @@ func resourceAliCloudAlikafkaTopic() *schema.Resource {
 			"tags": tagsSchema(),
 		},
 	}
+}
+
+func resourceAliCloudAlikafkaTopicCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
+	if !d.HasChange("partition_num") {
+		return nil
+	}
+
+	oldRaw, newRaw := d.GetChange("partition_num")
+	oldPartitionNum, ok := oldRaw.(int)
+	if !ok {
+		return nil
+	}
+	newPartitionNum, ok := newRaw.(int)
+	if !ok {
+		return nil
+	}
+
+	if newPartitionNum < oldPartitionNum {
+		return d.ForceNew("partition_num")
+	}
+
+	return nil
 }
 
 func resourceAliCloudAlikafkaTopicCreate(d *schema.ResourceData, meta interface{}) error {
