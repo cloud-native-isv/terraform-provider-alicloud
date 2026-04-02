@@ -108,7 +108,6 @@ func resourceAliCloudCrInstance() *schema.Resource {
 			"password": {
 				Type:      schema.TypeString,
 				Optional:  true,
-				Sensitive: true,
 			},
 			"payment_type": {
 				Type:         schema.TypeString,

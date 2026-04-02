@@ -55,25 +55,21 @@ func resourceAliCloudFCFunction() *schema.Resource {
 						"oss_bucket_name": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Sensitive:   true,
 							Description: "OSS bucket name where the function code is stored.",
 						},
 						"oss_object_name": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Sensitive:   true,
 							Description: "OSS object name where the function code is stored.",
 						},
 						"zip_file": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Sensitive:   true,
 							Description: "Base64 encoded ZIP file content of the function code.",
 						},
 						"checksum": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Sensitive:   true,
 							Description: "Checksum of the function code.",
 						},
 					},
@@ -96,7 +92,6 @@ func resourceAliCloudFCFunction() *schema.Resource {
 						"layers": {
 							Type:        schema.TypeList,
 							Optional:    true,
-							Sensitive:   true,
 							Elem:        &schema.Schema{Type: schema.TypeString},
 							Description: "List of layer ARNs to add to the function's execution environment.",
 						},

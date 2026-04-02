@@ -43,7 +43,6 @@ func resourceAliCloudMongodbShardingNetworkPrivateAddress() *schema.Resource {
 			"account_password": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Sensitive:    true,
 				ValidateFunc: StringMatch(regexp.MustCompile(`^[\w!@#$%^&*()_+=]{6,32}$`), "The account password must be 6 to 32 characters in length, and can contain letters, digits, and special characters（!@#$%^&*()_+-=)."),
 			},
 			"network_address": {

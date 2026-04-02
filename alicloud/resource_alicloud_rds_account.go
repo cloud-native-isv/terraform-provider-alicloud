@@ -60,14 +60,12 @@ func resourceAliCloudRdsAccount() *schema.Resource {
 			},
 			"account_password": {
 				Type:          schema.TypeString,
-				Sensitive:     true,
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"password"},
 			},
 			"password": {
 				Type:          schema.TypeString,
-				Sensitive:     true,
 				Optional:      true,
 				Computed:      true,
 				Deprecated:    "Field 'password' has been deprecated from provider version 1.120.0. New field 'account_password' instead.",

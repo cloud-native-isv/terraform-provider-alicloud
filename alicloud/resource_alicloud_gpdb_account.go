@@ -42,7 +42,6 @@ func resourceAliCloudGpdbAccount() *schema.Resource {
 			"account_password": {
 				Type:      schema.TypeString,
 				Required:  true,
-				Sensitive: true,
 			},
 			"account_type": {
 				Type:     schema.TypeString,

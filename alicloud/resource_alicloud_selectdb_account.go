@@ -38,7 +38,6 @@ func resourceAliCloudSelectDBAccount() *schema.Resource {
 			"password": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Sensitive:   true,
 				Description: "The admin password for the SelectDB instance account.",
 			},
 		},

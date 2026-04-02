@@ -80,12 +80,10 @@ func resourceAliCloudLogETL() *schema.Resource {
 			},
 			"access_key_id": {
 				Type:      schema.TypeString,
-				Sensitive: true,
 				Optional:  true,
 			},
 			"access_key_secret": {
 				Type:      schema.TypeString,
-				Sensitive: true,
 				Optional:  true,
 			},
 			"kms_encrypted_access_key_id": {
@@ -158,7 +156,6 @@ func resourceAliCloudLogETL() *schema.Resource {
 						"access_key_id": {
 							Type:      schema.TypeString,
 							Optional:  true,
-							Sensitive: true,
 						},
 						"kms_encrypted_access_key_id": {
 							Type:             schema.TypeString,
@@ -168,7 +165,6 @@ func resourceAliCloudLogETL() *schema.Resource {
 						"access_key_secret": {
 							Type:      schema.TypeString,
 							Optional:  true,
-							Sensitive: true,
 						},
 						"kms_encrypted_access_key_secret": {
 							Type:             schema.TypeString,

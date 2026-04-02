@@ -84,7 +84,6 @@ func resourceAliCloudEcsInstanceSet() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				ForceNew:  true,
-				Sensitive: true,
 			},
 			"password_inherit": {
 				Type:     schema.TypeBool,

@@ -443,7 +443,6 @@ func resourceAliCloudDBInstance() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				Sensitive: true,
 			},
 			"server_key": {
 				Type:     schema.TypeString,
@@ -457,7 +456,6 @@ func resourceAliCloudDBInstance() *schema.Resource {
 			"client_ca_cert": {
 				Type:      schema.TypeString,
 				Optional:  true,
-				Sensitive: true,
 			},
 			"client_crl_enabled": {
 				Type:     schema.TypeInt,

@@ -40,7 +40,6 @@ func resourceAliCloudAlikafkaSaslUser() *schema.Resource {
 			"password": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Sensitive:    true,
 				ValidateFunc: StringLenBetween(1, 64),
 			},
 			"kms_encrypted_password": {

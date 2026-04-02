@@ -29,7 +29,6 @@ func resourceAliCloudMongodbServerlessInstance() *schema.Resource {
 			"account_password": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Sensitive:    true,
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`[a-zA-Z!#$%^&*()_+-=]{8,32}`), "account_password must consist of uppercase letters, lowercase letters, numbers, and special characters"),
 			},
 			"auto_renew": {

@@ -116,7 +116,6 @@ func resourceAliCloudInstance() *schema.Resource {
 			"password": {
 				Type:      schema.TypeString,
 				Optional:  true,
-				Sensitive: true,
 			},
 			"kms_encrypted_password": {
 				Type:             schema.TypeString,
