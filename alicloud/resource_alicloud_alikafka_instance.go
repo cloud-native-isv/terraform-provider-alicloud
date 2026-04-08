@@ -327,6 +327,12 @@ func resourceAliCloudAlikafkaInstanceCreate(d *schema.ResourceData, meta interfa
 	}
 
 	d.SetId(instanceId)
+	if v, ok := d.GetOkExists("partition_num"); ok {
+		d.Set("partition_num", v.(int))
+	}
+	if v, ok := d.GetOkExists("eip_max"); ok {
+		d.Set("eip_max", v.(int))
+	}
 
 	err = kafkaService.WaitForAliKafkaInstanceCreating(d.Id(), d.Timeout(schema.TimeoutCreate))
 	if err != nil {
@@ -367,10 +373,8 @@ func resourceAliCloudAlikafkaInstanceRead(d *schema.ResourceData, meta interface
 	}
 	d.Set("io_max", tea.IntValue(object.IoMax))
 	d.Set("io_max_spec", tea.StringValue(object.IoMaxSpec))
-	d.Set("partition_num", tea.IntValue(object.PartitionNum))
-	if v := tea.IntValue(object.EipMax); v != 0 {
-		d.Set("eip_max", v)
-	}
+	setAliKafkaInstancePartitionNumState(d, object)
+	setAliKafkaInstanceEipMaxState(d, object)
 	d.Set("resource_group_id", object.ResourceGroupId)
 	d.Set("vpc_id", object.VpcId)
 	d.Set("vswitch_id", object.VSwitchId)
@@ -447,6 +451,12 @@ func resourceAliCloudAlikafkaInstanceUpdate(d *schema.ResourceData, meta interfa
 	upgradeRequest := buildAliKafkaInstanceUpgradeRequest(d, object, client.RegionId)
 	if err := kafkaService.UpgradeAlikafkaInstance(upgradeRequest); err != nil {
 		return WrapError(err)
+	}
+	if d.HasChange("partition_num") {
+		d.Set("partition_num", d.Get("partition_num").(int))
+	}
+	if d.HasChange("eip_max") {
+		d.Set("eip_max", d.Get("eip_max").(int))
 	}
 
 	if err := kafkaService.WaitForAliKafkaInstanceUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate)); err != nil {
@@ -563,4 +573,26 @@ func inferAliKafkaInstanceType(object *kafka.KafkaInstance) string {
 		return AliKafkaInstanceTypeServerless
 	}
 	return AliKafkaInstanceTypeReserved
+}
+
+func setAliKafkaInstancePartitionNumState(d *schema.ResourceData, object *kafka.KafkaInstance) {
+	if object != nil && object.PartitionNum != nil && tea.IntValue(object.PartitionNum) > 0 {
+		d.Set("partition_num", tea.IntValue(object.PartitionNum))
+		return
+	}
+
+	if v, ok := d.GetOkExists("partition_num"); ok {
+		d.Set("partition_num", v.(int))
+	}
+}
+
+func setAliKafkaInstanceEipMaxState(d *schema.ResourceData, object *kafka.KafkaInstance) {
+	if object != nil && object.EipMax != nil {
+		d.Set("eip_max", tea.IntValue(object.EipMax))
+		return
+	}
+
+	if v, ok := d.GetOkExists("eip_max"); ok {
+		d.Set("eip_max", v.(int))
+	}
 }

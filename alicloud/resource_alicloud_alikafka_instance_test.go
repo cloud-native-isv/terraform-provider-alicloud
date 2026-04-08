@@ -157,3 +157,51 @@ func TestBuildAliKafkaInstanceCreationConfigWithName(t *testing.T) {
 		t.Fatalf("expected creation config name to be preserved, got %q", config.Name)
 	}
 }
+
+func TestSetAliKafkaInstancePartitionNumState_UseRemoteValue(t *testing.T) {
+	resourceData := schema.TestResourceDataRaw(t, resourceAliCloudAlikafkaInstance().Schema, map[string]interface{}{
+		"partition_num": 2000,
+	})
+
+	setAliKafkaInstancePartitionNumState(resourceData, &kafka.KafkaInstance{PartitionNum: tea.Int(8000)})
+
+	if got := resourceData.Get("partition_num").(int); got != 8000 {
+		t.Fatalf("expected partition_num from remote, got %d", got)
+	}
+}
+
+func TestSetAliKafkaInstancePartitionNumState_FallbackToState(t *testing.T) {
+	resourceData := schema.TestResourceDataRaw(t, resourceAliCloudAlikafkaInstance().Schema, map[string]interface{}{
+		"partition_num": 8000,
+	})
+
+	setAliKafkaInstancePartitionNumState(resourceData, &kafka.KafkaInstance{})
+
+	if got := resourceData.Get("partition_num").(int); got != 8000 {
+		t.Fatalf("expected partition_num to fallback to state, got %d", got)
+	}
+}
+
+func TestSetAliKafkaInstanceEipMaxState_UseRemoteValue(t *testing.T) {
+	resourceData := schema.TestResourceDataRaw(t, resourceAliCloudAlikafkaInstance().Schema, map[string]interface{}{
+		"eip_max": 20,
+	})
+
+	setAliKafkaInstanceEipMaxState(resourceData, &kafka.KafkaInstance{EipMax: tea.Int(0)})
+
+	if got := resourceData.Get("eip_max").(int); got != 0 {
+		t.Fatalf("expected eip_max from remote, got %d", got)
+	}
+}
+
+func TestSetAliKafkaInstanceEipMaxState_FallbackToState(t *testing.T) {
+	resourceData := schema.TestResourceDataRaw(t, resourceAliCloudAlikafkaInstance().Schema, map[string]interface{}{
+		"eip_max": 15,
+	})
+
+	setAliKafkaInstanceEipMaxState(resourceData, &kafka.KafkaInstance{})
+
+	if got := resourceData.Get("eip_max").(int); got != 15 {
+		t.Fatalf("expected eip_max to fallback to state, got %d", got)
+	}
+}

@@ -69,13 +69,20 @@ func buildAliKafkaInstanceCreationConfig(instance *kafka.KafkaInstance, instance
 	return config
 }
 
-// WaitForAliKafkaInstanceCreating waits for the Kafka instance to reach pending after create.
+// WaitForAliKafkaInstanceCreating waits for the Kafka instance to reach running after create.
 func (s *KafkaService) WaitForAliKafkaInstanceCreating(id string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
 		[]string{
 			fmt.Sprint(kafka.KafkaViewInstanceStatusCreated),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusDeploying),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusStarting),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusChanging),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusAutoScaling),
 		}, // pending states during create
-		[]string{fmt.Sprint(kafka.KafkaViewInstanceStatusCreated)}, // target state: PendingDeploy
+		[]string{
+			fmt.Sprint(kafka.KafkaViewInstanceStatusRunning),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusCreated),
+		},
 		timeout,
 		5*time.Second,
 		s.AliKafkaInstancePropertyRefreshFunc(id, "view_instance_status_code"),
@@ -92,13 +99,18 @@ func (s *KafkaService) WaitForAliKafkaInstanceCreating(id string, timeout time.D
 func (s *KafkaService) WaitForAliKafkaInstanceUpdating(id string, timeout time.Duration) error {
 	stateConf := BuildStateConf(
 		[]string{
+			fmt.Sprint(kafka.KafkaViewInstanceStatusCreated),
 			fmt.Sprint(kafka.KafkaViewInstanceStatusDeploying),
 			fmt.Sprint(kafka.KafkaViewInstanceStatusStarting),
 			fmt.Sprint(kafka.KafkaViewInstanceStatusUpgrading),
 			fmt.Sprint(kafka.KafkaViewInstanceStatusMigrating),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusChanging),
 			fmt.Sprint(kafka.KafkaViewInstanceStatusAutoScaling),
 		}, // pending states during update
-		[]string{fmt.Sprint(kafka.KafkaViewInstanceStatusRunning)},
+		[]string{
+			fmt.Sprint(kafka.KafkaViewInstanceStatusRunning),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusCreated),
+		},
 		timeout,
 		5*time.Second,
 		s.AliKafkaInstancePropertyRefreshFunc(id, "view_instance_status_code"),
@@ -117,6 +129,7 @@ func (s *KafkaService) WaitForAliKafkaInstanceStopping(id string, timeout time.D
 		[]string{
 			fmt.Sprint(kafka.KafkaViewInstanceStatusRunning),
 			fmt.Sprint(kafka.KafkaViewInstanceStatusStopping),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusChanging),
 		}, // pending states during stop
 		[]string{
 			fmt.Sprint(kafka.KafkaViewInstanceStatusStopped),
@@ -140,6 +153,7 @@ func (s *KafkaService) WaitForAliKafkaInstanceStarting(id string, timeout time.D
 			fmt.Sprint(kafka.KafkaViewInstanceStatusCreated),
 			fmt.Sprint(kafka.KafkaViewInstanceStatusDeploying),
 			fmt.Sprint(kafka.KafkaViewInstanceStatusStarting),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusChanging),
 			fmt.Sprint(kafka.KafkaViewInstanceStatusAutoScaling),
 		}, // pending states during start
 		[]string{fmt.Sprint(kafka.KafkaViewInstanceStatusRunning)},
@@ -163,6 +177,7 @@ func (s *KafkaService) WaitForAliKafkaInstanceDeleting(id string, timeout time.D
 			fmt.Sprint(kafka.KafkaViewInstanceStatusStopping),
 			fmt.Sprint(kafka.KafkaViewInstanceStatusReleasing),
 			fmt.Sprint(kafka.KafkaViewInstanceStatusStopped),
+			fmt.Sprint(kafka.KafkaViewInstanceStatusChanging),
 		}, // pending states during delete
 		[]string{},
 		timeout,

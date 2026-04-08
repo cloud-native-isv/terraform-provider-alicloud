@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/alibabacloud-go/tea/tea"
@@ -81,5 +82,34 @@ func TestBuildAliKafkaInstanceCreationConfigServerless(t *testing.T) {
 	}
 	if config.SpecType != "normal" {
 		t.Fatalf("unexpected spec type: %v", config.SpecType)
+	}
+}
+
+func TestAliKafkaInstanceUpdateTargetStates(t *testing.T) {
+	states := aliKafkaInstanceUpdateTargetStates()
+
+	hasRunning := false
+	hasCreated := false
+	hasChanging := false
+	for _, state := range states {
+		if state == fmt.Sprint(kafka.KafkaViewInstanceStatusRunning) {
+			hasRunning = true
+		}
+		if state == fmt.Sprint(kafka.KafkaViewInstanceStatusCreated) {
+			hasCreated = true
+		}
+		if state == fmt.Sprint(kafka.KafkaViewInstanceStatusChanging) {
+			hasChanging = true
+		}
+	}
+
+	if !hasRunning {
+		t.Fatalf("expected update target states to include running")
+	}
+	if !hasCreated {
+		t.Fatalf("expected update target states to include created for compatibility")
+	}
+	if hasChanging {
+		t.Fatalf("expected update target states not to include changing")
 	}
 }
