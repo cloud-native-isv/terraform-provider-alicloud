@@ -2,7 +2,6 @@ package alicloud
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -131,7 +130,7 @@ func (s *SlsService) SlsETLStateRefreshFunc(projectName, etlName string, failSta
 		}
 
 		// Map ETL status to Terraform state
-		state := "Available"
+		state := "UNKNOWN"
 		if etl.Status != "" {
 			state = etl.Status
 		}
@@ -158,23 +157,23 @@ func (s *SlsService) WaitForSlsETL(id string, status Status, timeout time.Durati
 	case Deleted:
 		// For deletion, we expect the resource to not be found
 		targets = []string{}
-		pending = []string{"Available", "Running", "Stopped"}
+		pending = []string{"RUNNING", "STOPPED", "STARTING", "STOPPING", "UNKNOWN"}
 		failStates = []string{}
 	case Running:
-		targets = []string{"Running"}
-		pending = []string{"Available", "Stopped", "Starting"}
+		targets = []string{"RUNNING"}
+		pending = []string{"STOPPED", "STARTING", "STOPPING", "UNKNOWN"}
 		failStates = []string{"Failed"}
 	case Stopped:
-		targets = []string{"Stopped"}
-		pending = []string{"Available", "Running", "Stopping"}
+		targets = []string{"STOPPED"}
+		pending = []string{"RUNNING", "STOPPING", "STARTING", "UNKNOWN"}
 		failStates = []string{"Failed"}
 	case Available:
-		targets = []string{"Available"}
-		pending = []string{"Creating", "Starting", "Stopping"}
+		targets = []string{"RUNNING", "STOPPED"}
+		pending = []string{"STARTING", "STOPPING", "UNKNOWN"}
 		failStates = []string{"Failed"}
 	default:
 		targets = []string{string(status)}
-		pending = []string{"Available"}
+		pending = []string{"UNKNOWN"}
 		failStates = []string{"Failed"}
 	}
 
@@ -199,8 +198,8 @@ func ConvertToSlsETLConfiguration(terraformConfig map[string]interface{}) *aliyu
 		config.Script = script
 	}
 
-	if version, ok := terraformConfig["version"].(int); ok {
-		config.Version = fmt.Sprintf("%d", version)
+	if version, ok := terraformConfig["version"].(string); ok {
+		config.Version = version
 	}
 
 	if logstore, ok := terraformConfig["logstore"].(string); ok {
@@ -233,6 +232,37 @@ func ConvertToSlsETLConfiguration(terraformConfig map[string]interface{}) *aliyu
 		config.RoleArn = roleArn
 	}
 
+	if sinks, ok := terraformConfig["sinks"].([]interface{}); ok {
+		result := make([]aliyunSlsAPI.ETLSink, 0, len(sinks))
+		for _, sinkRaw := range sinks {
+			sinkMap, sinkOK := sinkRaw.(map[string]interface{})
+			if !sinkOK {
+				continue
+			}
+			sink := aliyunSlsAPI.ETLSink{}
+			if name, ok := sinkMap["name"].(string); ok {
+				sink.Name = name
+			}
+			if sinkType, ok := sinkMap["type"].(string); ok {
+				sink.Type = sinkType
+			}
+			if project, ok := sinkMap["project"].(string); ok {
+				sink.Project = project
+			}
+			if logstore, ok := sinkMap["logstore"].(string); ok {
+				sink.Logstore = logstore
+			}
+			if roleArn, ok := sinkMap["role_arn"].(string); ok {
+				sink.RoleArn = roleArn
+			}
+			if description, ok := sinkMap["description"].(string); ok {
+				sink.Description = description
+			}
+			result = append(result, sink)
+		}
+		config.Sinks = result
+	}
+
 	return config
 }
 
@@ -245,9 +275,7 @@ func ConvertFromSlsETLConfiguration(config *aliyunSlsAPI.ETLConfiguration) map[s
 	}
 
 	if config.Version != "" {
-		if version, err := strconv.Atoi(config.Version); err == nil {
-			result["version"] = version
-		}
+		result["version"] = config.Version
 	}
 
 	if config.Logstore != "" {
@@ -255,7 +283,7 @@ func ConvertFromSlsETLConfiguration(config *aliyunSlsAPI.ETLConfiguration) map[s
 	}
 
 	if config.Parameters != nil && len(config.Parameters) > 0 {
-		result["parameters"] = config.Parameters
+		result["parameters"] = convertETLParametersSliceToTerraformMap(config.Parameters)
 	}
 
 	if config.FromTime > 0 {
@@ -268,6 +296,21 @@ func ConvertFromSlsETLConfiguration(config *aliyunSlsAPI.ETLConfiguration) map[s
 
 	if config.RoleArn != "" {
 		result["role_arn"] = config.RoleArn
+	}
+
+	if len(config.Sinks) > 0 {
+		sinks := make([]map[string]interface{}, 0, len(config.Sinks))
+		for _, sink := range config.Sinks {
+			sinks = append(sinks, map[string]interface{}{
+				"name":        sink.Name,
+				"type":        sink.Type,
+				"project":     sink.Project,
+				"logstore":    sink.Logstore,
+				"role_arn":    sink.RoleArn,
+				"description": sink.Description,
+			})
+		}
+		result["sinks"] = sinks
 	}
 
 	return result
@@ -291,6 +334,23 @@ func ConvertToSlsETL(d map[string]interface{}) *aliyunSlsAPI.ETL {
 
 	if status, ok := d["status"].(string); ok {
 		etl.Status = status
+	}
+
+	if createTime, ok := d["create_time"].(int); ok {
+		etl.CreateTime = int64(createTime)
+	}
+
+	if scheduleData, ok := d["schedule"].([]interface{}); ok && len(scheduleData) > 0 {
+		if scheduleMap, ok := scheduleData[0].(map[string]interface{}); ok {
+			schedule := &aliyunSlsAPI.ETLSchedule{}
+			if scheduleType, ok := scheduleMap["type"].(string); ok {
+				schedule.Type = scheduleType
+			}
+			if interval, ok := scheduleMap["interval"].(string); ok {
+				schedule.Interval = interval
+			}
+			etl.Schedule = schedule
+		}
 	}
 
 	// Convert configuration
@@ -324,7 +384,14 @@ func ConvertFromSlsETL(etl *aliyunSlsAPI.ETL) map[string]interface{} {
 	}
 
 	if etl.CreateTime != 0 {
-		result["create_time"] = etl.CreateTime
+		result["create_time"] = int(etl.CreateTime)
+	}
+
+	if etl.Schedule != nil {
+		result["schedule"] = []interface{}{map[string]interface{}{
+			"type":     etl.Schedule.Type,
+			"interval": etl.Schedule.Interval,
+		}}
 	}
 
 	// Convert configuration

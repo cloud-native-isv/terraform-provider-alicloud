@@ -11,26 +11,12 @@ func dataSourceAliCloudLogETLs() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAliCloudLogETLRead,
 		Schema: map[string]*schema.Schema{
-			"ids": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Computed: true,
-			},
-			"offset": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"project": {
+			"project_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"logstore": {
+			"logstore_name": {
 				Type:     schema.TypeString,
-				Required: true,
-			},
-			"size": {
-				Type:     schema.TypeInt,
 				Optional: true,
 			},
 			"etls": {
@@ -66,7 +52,7 @@ func dataSourceAliCloudLogETLs() *schema.Resource {
 													Computed: true,
 													Elem:     &schema.Schema{Type: schema.TypeString},
 												},
-												"project": {
+												"project_name": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
@@ -74,7 +60,7 @@ func dataSourceAliCloudLogETLs() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
-												"logstore": {
+												"logstore_name": {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
@@ -89,7 +75,7 @@ func dataSourceAliCloudLogETLs() *schema.Resource {
 											},
 										},
 									},
-									"logstore": {
+									"logstore_name": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -143,10 +129,6 @@ func dataSourceAliCloudLogETLs() *schema.Resource {
 					},
 				},
 			},
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 		},
 	}
 }
@@ -158,57 +140,22 @@ func dataSourceAliCloudLogETLRead(d *schema.ResourceData, meta interface{}) erro
 		return WrapError(err)
 	}
 
-	project := d.Get("project").(string)
-	logstore := d.Get("logstore").(string)
+	project := d.Get("project_name").(string)
+	logstore := d.Get("logstore_name").(string)
 	etls, err := slsService.ListSlsETLs(project, "", logstore)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	idsMap := make(map[string]string)
-	if v, ok := d.GetOk("ids"); ok {
-		for _, vv := range v.([]interface{}) {
-			if vv == nil {
-				continue
-			}
-			idsMap[vv.(string)] = vv.(string)
-		}
-	}
-
-	start := 0
-	if v, ok := d.GetOkExists("offset"); ok {
-		if vv := v.(int); vv > 0 {
-			start = vv
-		}
-	}
-	if start > len(etls) {
-		start = len(etls)
-	}
-
-	end := len(etls)
-	if v, ok := d.GetOkExists("size"); ok {
-		if vv := v.(int); vv > 0 && start+vv < end {
-			end = start + vv
-		}
-	}
-
-	filteredETLs := etls[start:end]
-
 	ids := make([]string, 0)
 	s := make([]map[string]interface{}, 0)
-	for _, etl := range filteredETLs {
+	for _, etl := range etls {
 		if etl == nil {
 			continue
 		}
 
 		mapping := map[string]interface{}{}
 		mapping["id"] = fmt.Sprintf("%s:%s", project, etl.Name)
-
-		if len(idsMap) > 0 {
-			if _, ok := idsMap[mapping["id"].(string)]; !ok {
-				continue
-			}
-		}
 
 		mapping["create_time"] = int(etl.CreateTime)
 		mapping["description"] = etl.Description
@@ -227,7 +174,7 @@ func dataSourceAliCloudLogETLRead(d *schema.ResourceData, meta interface{}) erro
 			configurationMap := make(map[string]interface{})
 			configurationMap["from_time"] = int(etl.Configuration.FromTime)
 			configurationMap["lang"] = ""
-			configurationMap["logstore"] = etl.Configuration.Logstore
+			configurationMap["logstore_name"] = etl.Configuration.Logstore
 			configurationMap["parameters"] = convertETLParametersToMap(etl.Configuration.Parameters)
 			configurationMap["role_arn"] = etl.Configuration.RoleArn
 			configurationMap["script"] = etl.Configuration.Script
@@ -237,9 +184,9 @@ func dataSourceAliCloudLogETLRead(d *schema.ResourceData, meta interface{}) erro
 			for _, sink := range etl.Configuration.Sinks {
 				sinkMap := make(map[string]interface{})
 				sinkMap["endpoint"] = ""
-				sinkMap["logstore"] = sink.Logstore
+				sinkMap["logstore_name"] = sink.Logstore
 				sinkMap["name"] = sink.Name
-				sinkMap["project"] = sink.Project
+				sinkMap["project_name"] = sink.Project
 				sinkMap["role_arn"] = sink.RoleArn
 				sinkMap["datasets"] = []interface{}{}
 				sinkMaps = append(sinkMaps, sinkMap)
@@ -254,16 +201,8 @@ func dataSourceAliCloudLogETLRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(dataResourceIdHash(ids))
-	if err := d.Set("ids", ids); err != nil {
-		return WrapError(err)
-	}
-
 	if err := d.Set("etls", s); err != nil {
 		return WrapError(err)
-	}
-
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), s)
 	}
 	return nil
 }
