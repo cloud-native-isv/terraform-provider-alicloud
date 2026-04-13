@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "$ARGUMENTS"
 
+## Related Feature *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Keep the default values as "Need clarification" in the initial draft.
+  /speckit.clarify must resolve this section to the final Feature binding before planning.
+-->
+
+**Feature ID**: Need clarification  
+**Feature Name**: Need clarification
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--

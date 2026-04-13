@@ -634,6 +634,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_lindorm_instances":                                dataSourceAliCloudLindormInstances(),
 			"alicloud_log_alert_resource":                               dataSourceAliCloudLogAlertResource(),
 			"alicloud_log_alerts":                                       dataSourceAliCloudLogAlerts(),
+			"alicloud_log_etls":                                         dataSourceAliCloudLogETLs(),
 			"alicloud_log_logtail_configs":                              dataSourceAliCloudLogLogtailConfigs(),
 			"alicloud_log_machine_groups":                               dataSourceAliCloudLogMachineGroups(),
 			"alicloud_log_projects":                                     dataSourceAliCloudLogProjects(),

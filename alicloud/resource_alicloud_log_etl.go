@@ -3,6 +3,9 @@ package alicloud
 import (
 	"fmt"
 	"log"
+	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -79,12 +82,12 @@ func resourceAliCloudLogETL() *schema.Resource {
 				Computed: true,
 			},
 			"access_key_id": {
-				Type:      schema.TypeString,
-				Optional:  true,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"access_key_secret": {
-				Type:      schema.TypeString,
-				Optional:  true,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"kms_encrypted_access_key_id": {
 				Type:             schema.TypeString,
@@ -129,7 +132,7 @@ func resourceAliCloudLogETL() *schema.Resource {
 				Required: true,
 			},
 			"version": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  aliyunSlsAPI.ETLVersion,
 			},
@@ -154,8 +157,8 @@ func resourceAliCloudLogETL() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"access_key_id": {
-							Type:      schema.TypeString,
-							Optional:  true,
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"kms_encrypted_access_key_id": {
 							Type:             schema.TypeString,
@@ -163,8 +166,8 @@ func resourceAliCloudLogETL() *schema.Resource {
 							DiffSuppressFunc: kmsDiffSuppressFunc,
 						},
 						"access_key_secret": {
-							Type:      schema.TypeString,
-							Optional:  true,
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"kms_encrypted_access_key_secret": {
 							Type:             schema.TypeString,
@@ -242,7 +245,7 @@ func resourceAliCloudLogETLCreate(d *schema.ResourceData, meta interface{}) erro
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_log_etl", "CreateETL", AliyunLogGoSdkERROR)
 	}
 	d.SetId(fmt.Sprintf("%s%s%s", project, COLON_SEPARATED, d.Get("etl_name").(string)))
-	stateConf := BuildStateConf([]string{}, []string{"RUNNING"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, logService.SlsETLStateRefreshFunc(d.Id(), "status", []string{}))
+	stateConf := BuildStateConf([]string{}, []string{"RUNNING"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, logService.SlsETLStateRefreshFunc(project, d.Get("etl_name").(string), []string{}))
 	if _, err := stateConf.WaitForState(); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
@@ -276,48 +279,46 @@ func resourceAliCloudLogETLRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("description", etl.Description)
 	d.Set("status", etl.Status)
 
-	// Convert CreateTime to string format for compatibility
 	if etl.CreateTime > 0 {
 		d.Set("create_time", int(etl.CreateTime))
 	}
 
-	// Use CreateTime for last_modified_time as the CWS library doesn't have LastModifyTime
 	if etl.CreateTime > 0 {
 		d.Set("last_modified_time", int(etl.CreateTime))
 	}
 
-	// Handle configuration
 	if etl.Configuration != nil {
 		d.Set("from_time", int(etl.Configuration.FromTime))
 		d.Set("to_time", int(etl.Configuration.ToTime))
 		d.Set("script", etl.Configuration.Script)
-
-		// Version is string in the new library, convert appropriately
 		if etl.Configuration.Version != "" {
 			d.Set("version", etl.Configuration.Version)
 		} else {
-			d.Set("version", "2.0") // Default version
+			d.Set("version", aliyunSlsAPI.ETLVersion)
 		}
 
 		d.Set("logstore", etl.Configuration.Logstore)
-
-		// Convert parameters slice to map for terraform compatibility
-		if len(etl.Configuration.Parameters) > 0 {
-			params := make(map[string]string)
-			for i, param := range etl.Configuration.Parameters {
-				params[fmt.Sprintf("param_%d", i)] = param
-			}
-			d.Set("parameters", params)
-		}
+		d.Set("parameters", convertETLParametersSliceToTerraformMap(etl.Configuration.Parameters))
 
 		d.Set("role_arn", etl.Configuration.RoleArn)
-
-		// Handle ETL sinks
 		if etl.Configuration.Sinks != nil {
 			var etl_sinks []map[string]interface{}
 			for _, sink := range etl.Configuration.Sinks {
+				endpoint := ""
+				if currentSinks, ok := d.GetOk("etl_sinks"); ok {
+					for _, currentSinkRaw := range currentSinks.(*schema.Set).List() {
+						currentSink := currentSinkRaw.(map[string]interface{})
+						if currentSink["name"].(string) == sink.Name {
+							if endpointValue, endpointOk := currentSink["endpoint"].(string); endpointOk {
+								endpoint = endpointValue
+							}
+							break
+						}
+					}
+				}
 				temp := map[string]interface{}{
 					"name":     sink.Name,
+					"endpoint": endpoint,
 					"project":  sink.Project,
 					"logstore": sink.Logstore,
 					"role_arn": sink.RoleArn,
@@ -329,13 +330,11 @@ func resourceAliCloudLogETLRead(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	// Handle schedule
 	if etl.Schedule != nil {
 		d.Set("schedule", etl.Schedule.Type)
 	}
 
-	// Set etl_type from configuration or use default
-	d.Set("etl_type", "ETL")
+	d.Set("etl_type", aliyunSlsAPI.ETLType)
 
 	return nil
 }
@@ -372,7 +371,7 @@ func resourceAliCloudLogETLUpdate(d *schema.ResourceData, meta interface{}) erro
 			}); err != nil {
 				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "StartLogETL", AliyunLogGoSdkERROR)
 			}
-			stateConf := BuildStateConf([]string{}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, logService.SlsETLStateRefreshFunc(d.Id(), "status", []string{}))
+			stateConf := BuildStateConf([]string{}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, logService.SlsETLStateRefreshFunc(parts[0], parts[1], []string{}))
 			if _, err := stateConf.WaitForState(); err != nil {
 				return WrapErrorf(err, IdMsg, d.Id())
 			}
@@ -390,7 +389,7 @@ func resourceAliCloudLogETLUpdate(d *schema.ResourceData, meta interface{}) erro
 			}); err != nil {
 				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "StopLogETL", AliyunLogGoSdkERROR)
 			}
-			stateConf := BuildStateConf([]string{}, []string{"STOPPED"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, logService.SlsETLStateRefreshFunc(d.Id(), "status", []string{}))
+			stateConf := BuildStateConf([]string{}, []string{"STOPPED"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, logService.SlsETLStateRefreshFunc(parts[0], parts[1], []string{}))
 			if _, err := stateConf.WaitForState(); err != nil {
 				return WrapErrorf(err, IdMsg, d.Id())
 			}
@@ -406,21 +405,19 @@ func resourceAliCloudLogETLUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 		status := d.Get("status").(string)
 		if status == "STOPPING" || status == "STOPPED" {
-			err = slsService.GetAPI().UpdateETL(parts[0], parts[1], &etl)
+			err = slsService.UpdateSlsETL(parts[0], parts[1], &etl)
 		} else {
-			// For running ETL, we need to stop, update, then start again
-			err = slsService.GetAPI().StopETL(parts[0], parts[1])
+			err = slsService.StopSlsETL(parts[0], parts[1])
 			if err == nil {
-				err = slsService.GetAPI().UpdateETL(parts[0], parts[1], &etl)
+				err = slsService.UpdateSlsETL(parts[0], parts[1], &etl)
 				if err == nil {
-					err = slsService.GetAPI().StartETL(parts[0], parts[1])
+					err = slsService.StartSlsETL(parts[0], parts[1])
 					if err == nil {
-						// Use the correct state refresh function
 						logService, err := NewSlsService(client)
 						if err != nil {
 							return resource.NonRetryableError(WrapError(err))
 						}
-						stateConf := BuildStateConf([]string{}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, logService.SlsETLStateRefreshFunc(d.Id(), "status", []string{}))
+						stateConf := BuildStateConf([]string{}, []string{"RUNNING"}, d.Timeout(schema.TimeoutUpdate), 5*time.Second, logService.SlsETLStateRefreshFunc(parts[0], parts[1], []string{}))
 						if _, err := stateConf.WaitForState(); err != nil {
 							return resource.NonRetryableError(WrapErrorf(err, IdMsg, d.Id()))
 						}
@@ -459,7 +456,7 @@ func resourceAliCloudLogETLDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 	wait := incrementalWait(3*time.Second, 3*time.Second)
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		err := slsService.GetAPI().DeleteETL(parts[0], parts[1])
+		err := slsService.DeleteSlsETL(parts[0], parts[1])
 		if err != nil {
 			if IsExpectedErrors(err, []string{LogClientTimeout}) {
 				wait()
@@ -495,10 +492,19 @@ func getETLJob(d *schema.ResourceData, meta interface{}) (aliyunSlsAPI.ETL, erro
 			parms[k] = v.(string)
 		}
 	}
+	parameterKeys := make([]string, 0, len(parms))
+	for key := range parms {
+		parameterKeys = append(parameterKeys, key)
+	}
+	sort.Strings(parameterKeys)
+	parameterValues := make([]string, 0, len(parameterKeys))
+	for _, key := range parameterKeys {
+		parameterValues = append(parameterValues, fmt.Sprintf("%s=%s", key, parms[key]))
+	}
 	config = aliyunSlsAPI.ETLConfiguration{
 		FromTime:   int64(d.Get("from_time").(int)),
 		Logstore:   d.Get("logstore").(string),
-		Parameters: []string{}, // Initialize as empty slice, will be populated if needed
+		Parameters: parameterValues,
 		Script:     d.Get("script").(string),
 		ToTime:     int64(d.Get("to_time").(int)),
 		Version:    d.Get("version").(string),
@@ -607,4 +613,20 @@ func permissionParameterCheck(v map[string]interface{}, client *connectivity.Ali
 		}
 		return nil, Error("(access_key_id, access_key_secret),(kms_encrypted_access_key_id, kms_encrypted_access_key_secret, kms_encryption_access_key_id_context, kms_encryption_access_key_secret_context),(role_arn) must fill in one of them into configuration")
 	}
+}
+
+func convertETLParametersSliceToTerraformMap(parameters []string) map[string]string {
+	result := make(map[string]string)
+	for idx, parameter := range parameters {
+		if parameter == "" {
+			continue
+		}
+		parts := strings.SplitN(parameter, "=", 2)
+		if len(parts) == 2 {
+			result[parts[0]] = parts[1]
+			continue
+		}
+		result["param_"+strconv.Itoa(idx)] = parameter
+	}
+	return result
 }

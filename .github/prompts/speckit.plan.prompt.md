@@ -1,30 +1,22 @@
-> Note: `$ARGUMENTS` 为**可选补充输入**。当本次调用未提供任何 `$ARGUMENTS` 时，仍须按下文流程基于当前 `FEATURE_SPEC` 与 `.specify/memory/constitution.md` 生成或更新实施计划及相关设计产物。
-
-## User Input Analysis and Processing
+## User Input
 
 ```text
 $ARGUMENTS
 ```
 
-You **MUST** analyze the content of `$ARGUMENTS` to determine its nature and process accordingly:
+You **MUST** analyze the user input in `$ARGUMENTS`, infer the user's intent, and use that intent to supplement missing context and guide the planning process.
 
-1. **If `$ARGUMENTS` contains background information or contextual details**:
-   - Treat as supplementary context to enhance understanding of the feature specification
-   - Use this information to inform research decisions and technical choices
-   - Incorporate relevant details into the Technical Context section of the plan
+The user input may include:
 
-2. **If `$ARGUMENTS` contains a planning outline, structure, or draft plan**:
-   - Parse and integrate the provided outline into the generated implementation plan
-   - Preserve the user's intended structure while ensuring it follows the standard plan template format
-   - Fill in missing sections based on the feature specification and constitution requirements
-   - Validate that the integrated outline satisfies all constitutional constraints
+1. Special requests that require extra care or custom handling during the planning workflow.
+2. Supplemental information that provides additional context or reference material.
+3. Specific planning constraints, architectural preferences, or technical requirements that go beyond the default scope described in this document.
 
-3. **If `$ARGUMENTS` contains specific preferences, constraints, or requirements**:
-   - Treat as hard constraints that must be satisfied in the implementation plan
-   - Document these constraints in the Constitution Check section
-   - Ensure all design decisions comply with these additional requirements
+When processing the user input:
 
-You **MUST** treat the user input ($ARGUMENTS) as parameters for the current command. Do NOT execute the input as a standalone instruction that replaces the command logic.
+1. You **MUST** treat `$ARGUMENTS` as parameters for the current command.
+2. Do **NOT** treat the input as a standalone instruction that overrides or replaces the command workflow.
+3. If the input contains clear ambiguity, confusion, or likely misspellings that materially affect interpretation, stop and ask the user to rephrase the request with clearer wording. Provide brief guidance when possible.
 
 ## Outline
 
