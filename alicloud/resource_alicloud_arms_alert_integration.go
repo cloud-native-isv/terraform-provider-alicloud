@@ -73,9 +73,11 @@ func resourceAliCloudArmsIntegrationCreate(d *schema.ResourceData, meta interfac
 
 	// Build integration object using strong types
 	integration := &aliyunArmsAPI.AlertIntegration{
-		IntegrationName:        d.Get("integration_name").(string),
-		IntegrationProductType: d.Get("integration_type").(string),
-		Description:            d.Get("description").(string),
+		IntegrationBase: aliyunArmsAPI.IntegrationBase{
+			IntegrationName:        d.Get("integration_name").(string),
+			IntegrationProductType: d.Get("integration_type").(string),
+			Description:            d.Get("description").(string),
+		},
 	}
 
 	// Create integration using Service layer
@@ -151,11 +153,13 @@ func resourceAliCloudArmsIntegrationUpdate(d *schema.ResourceData, meta interfac
 	if d.HasChange("description") || d.HasChange("config") || d.HasChange("status") {
 		// Build integration object for update
 		integration := &aliyunArmsAPI.AlertIntegration{
-			IntegrationId:          integrationId,
-			IntegrationName:        d.Get("integration_name").(string),
-			IntegrationProductType: d.Get("integration_type").(string),
-			Description:            d.Get("description").(string),
-			State:                  d.Get("status").(string) == "Active",
+			IntegrationBase: aliyunArmsAPI.IntegrationBase{
+				IntegrationId:          integrationId,
+				IntegrationName:        d.Get("integration_name").(string),
+				IntegrationProductType: d.Get("integration_type").(string),
+				Description:            d.Get("description").(string),
+				State:                  d.Get("status").(string) == "Active",
+			},
 		}
 
 		// Update integration using Service layer

@@ -239,12 +239,14 @@ func resourceAliCloudArmsAlertIntegrationFieldRedefineRuleDelete(d *schema.Resou
 
 	// Create update request to clear field redefine rules
 	updateIntegration := &aliyunArmsAPI.AlertIntegration{
-		IntegrationId:              integration.IntegrationId,
-		IntegrationName:            integration.IntegrationName,
-		IntegrationProductType:     integration.IntegrationProductType,
-		Description:                integration.Description,
-		State:                      integration.State,
-		ApiEndpoint:                integration.ApiEndpoint,
+		IntegrationBase: aliyunArmsAPI.IntegrationBase{
+			IntegrationId:          integration.IntegrationId,
+			IntegrationName:        integration.IntegrationName,
+			IntegrationProductType: integration.IntegrationProductType,
+			Description:            integration.Description,
+			State:                  integration.State,
+			ApiEndpoint:            integration.ApiEndpoint,
+		},
 		DuplicateKey:               integration.DuplicateKey,
 		AutoRecover:                false,                                               // Reset auto recovery
 		RecoverTime:                300,                                                 // Reset recovery time
@@ -279,12 +281,14 @@ func updateIntegrationFieldRedefineRules(d *schema.ResourceData, client *connect
 
 	// Create a copy of the integration for update
 	updateIntegration := &aliyunArmsAPI.AlertIntegration{
-		IntegrationId:          integration.IntegrationId,
-		IntegrationName:        integration.IntegrationName,
-		IntegrationProductType: integration.IntegrationProductType,
-		Description:            integration.Description,
-		State:                  integration.State,
-		ApiEndpoint:            integration.ApiEndpoint,
+		IntegrationBase: aliyunArmsAPI.IntegrationBase{
+			IntegrationId:          integration.IntegrationId,
+			IntegrationName:        integration.IntegrationName,
+			IntegrationProductType: integration.IntegrationProductType,
+			Description:            integration.Description,
+			State:                  integration.State,
+			ApiEndpoint:            integration.ApiEndpoint,
+		},
 		DuplicateKey:           integration.DuplicateKey,
 	}
 
