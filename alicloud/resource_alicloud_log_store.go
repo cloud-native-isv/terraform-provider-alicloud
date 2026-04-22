@@ -16,10 +16,10 @@ import (
 
 func resourceAliCloudLogStore() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudLogLogStoreCreate,
-		Read:   resourceAliCloudLogLogStoreRead,
-		Update: resourceAliCloudLogLogStoreUpdate,
-		Delete: resourceAliCloudLogLogStoreDelete,
+		Create: resourceAliCloudLogStoreCreate,
+		Read:   resourceAliCloudLogStoreRead,
+		Update: resourceAliCloudLogStoreUpdate,
+		Delete: resourceAliCloudLogStoreDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -200,7 +200,7 @@ func resourceAliCloudLogStore() *schema.Resource {
 	}
 }
 
-func resourceAliCloudLogLogStoreCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogStoreCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -252,10 +252,39 @@ func resourceAliCloudLogLogStoreCreate(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
 
-	return resourceAliCloudLogLogStoreUpdate(d, meta)
+	// Ensure logstore shards are ready before returning from create.
+	// Some dependent resources may fail when logstore exists but shards are not yet in readwrite status.
+	targetShardCount := d.Get("shard_count").(int)
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		shards, getErr := slsService.GetLogStoreShards(projectName, logstore.LogstoreName)
+		if getErr != nil {
+			if NotFoundError(getErr) || NeedRetry(getErr) {
+				return resource.RetryableError(getErr)
+			}
+			return resource.NonRetryableError(WrapErrorf(getErr, DefaultErrorMsg, "alicloud_log_store", "GetLogStoreShards", AliyunLogGoSdkERROR))
+		}
+
+		activeCount := 0
+		for _, shard := range shards {
+			if strings.ToLower(shard.Status) == "readwrite" {
+				activeCount++
+			}
+		}
+
+		if activeCount < targetShardCount {
+			return resource.RetryableError(fmt.Errorf("waiting for logstore shards to become ready, target: %d, current active: %d", targetShardCount, activeCount))
+		}
+
+		return nil
+	})
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "WaitForLogStoreShardsReady", AlibabaCloudSdkGoERROR)
+	}
+
+	return resourceAliCloudLogStoreUpdate(d, meta)
 }
 
-func resourceAliCloudLogLogStoreRead(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogStoreRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -378,7 +407,7 @@ func resourceAliCloudLogLogStoreRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceAliCloudLogLogStoreUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogStoreUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	slsService, err := NewSlsService(client)
 	if err != nil {
@@ -486,10 +515,10 @@ func resourceAliCloudLogLogStoreUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.Partial(false)
-	return resourceAliCloudLogLogStoreRead(d, meta)
+	return resourceAliCloudLogStoreRead(d, meta)
 }
 
-func resourceAliCloudLogLogStoreDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceAliCloudLogStoreDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	parts := strings.Split(d.Id(), ":")
 	logstore := parts[1]
