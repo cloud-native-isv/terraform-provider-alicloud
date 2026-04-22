@@ -105,7 +105,7 @@ func resourceAliCloudLogETL() *schema.Resource {
 									"parameters": {
 										Type:     schema.TypeMap,
 										Optional: true,
-										Elem: &schema.Schema{Type: schema.TypeString},
+										Elem:     &schema.Schema{Type: schema.TypeString},
 									},
 									"from_time": {
 										Type:     schema.TypeInt,
@@ -236,11 +236,44 @@ func resourceAliCloudLogETLRead(d *schema.ResourceData, meta interface{}) error 
 		}
 		return WrapError(err)
 	}
+	etl = mergeETLScriptFromState(d, etl)
 	d.Set("project_name", parts[0])
 	if err := d.Set("etl_config", []interface{}{flattenETLToTerraformMap(etl)}); err != nil {
 		return WrapError(err)
 	}
 	return nil
+}
+
+func mergeETLScriptFromState(d *schema.ResourceData, etl *aliyunSlsAPI.ETL) *aliyunSlsAPI.ETL {
+	if etl == nil || etl.Configuration == nil || etl.Configuration.Script != "" {
+		return etl
+	}
+
+	etlConfigRaw, ok := d.Get("etl_config").([]interface{})
+	if !ok || len(etlConfigRaw) == 0 || etlConfigRaw[0] == nil {
+		return etl
+	}
+
+	etlConfigMap, ok := etlConfigRaw[0].(map[string]interface{})
+	if !ok {
+		return etl
+	}
+
+	configurationRaw, ok := etlConfigMap["configuration"].([]interface{})
+	if !ok || len(configurationRaw) == 0 || configurationRaw[0] == nil {
+		return etl
+	}
+
+	configurationMap, ok := configurationRaw[0].(map[string]interface{})
+	if !ok {
+		return etl
+	}
+
+	if script, ok := configurationMap["script"].(string); ok {
+		etl.Configuration.Script = script
+	}
+
+	return etl
 }
 
 func resourceAliCloudLogETLUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -418,11 +451,11 @@ func createETLJob(d *schema.ResourceData, meta interface{}) (aliyunSlsAPI.ETL, e
 
 func flattenETLToTerraformMap(etl *aliyunSlsAPI.ETL) map[string]interface{} {
 	result := map[string]interface{}{
-		"name":        etl.Name,
+		"name":         etl.Name,
 		"display_name": etl.DisplayName,
-		"description": etl.Description,
-		"status":      etl.Status,
-		"create_time": int(etl.CreateTime),
+		"description":  etl.Description,
+		"status":       etl.Status,
+		"create_time":  int(etl.CreateTime),
 	}
 
 	schedule := map[string]interface{}{"type": "Resident", "interval": ""}

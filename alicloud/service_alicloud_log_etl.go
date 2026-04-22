@@ -270,9 +270,7 @@ func ConvertToSlsETLConfiguration(terraformConfig map[string]interface{}) *aliyu
 func ConvertFromSlsETLConfiguration(config *aliyunSlsAPI.ETLConfiguration) map[string]interface{} {
 	result := make(map[string]interface{})
 
-	if config.Script != "" {
-		result["script"] = config.Script
-	}
+	result["script"] = config.Script
 
 	if config.Version != "" {
 		result["version"] = config.Version

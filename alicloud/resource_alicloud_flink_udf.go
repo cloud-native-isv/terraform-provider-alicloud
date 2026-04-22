@@ -106,11 +106,23 @@ func resourceAliCloudFlinkUdfCreate(d *schema.ResourceData, meta interface{}) er
 		DependencyJarUris: expandStringList(d.Get("dependency_jar_uris").([]interface{})),
 	}
 
-	log.Printf("[DEBUG] Calling CreateUdfArtifact with workspaceId: %s, namespaceName: %s, artifact: %+v", workspaceId, namespaceName, artifact)
-	if _, err := flinkService.CreateUdfArtifact(workspaceId, namespaceName, artifact); err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_udf", "CreateUdfArtifact", AlibabaCloudSdkGoERROR)
+	log.Printf("[DEBUG] Calling GetUdfArtifact before create with workspaceId: %s, namespaceName: %s, udfArtifactName: %s", workspaceId, namespaceName, udfArtifactName)
+	if _, err := flinkService.GetUdfArtifact(workspaceId, namespaceName, udfArtifactName); err != nil {
+		if NotFoundError(err) {
+			log.Printf("[DEBUG] Calling CreateUdfArtifact with workspaceId: %s, namespaceName: %s, artifact: %+v", workspaceId, namespaceName, artifact)
+			if _, err := flinkService.CreateUdfArtifact(workspaceId, namespaceName, artifact); err != nil {
+				if !IsAlreadyExistError(err) {
+					return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_udf", "CreateUdfArtifact", AlibabaCloudSdkGoERROR)
+				}
+				log.Printf("[DEBUG] CreateUdfArtifact got already exists and will continue, workspaceId: %s, namespaceName: %s, udfArtifactName: %s", workspaceId, namespaceName, udfArtifactName)
+			}
+		} else {
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_udf", "GetUdfArtifact", AlibabaCloudSdkGoERROR)
+		}
+	} else {
+		log.Printf("[DEBUG] UdfArtifact already exists and will continue, workspaceId: %s, namespaceName: %s, udfArtifactName: %s", workspaceId, namespaceName, udfArtifactName)
 	}
-	log.Printf("[DEBUG] CreateUdfArtifact returned success")
+	log.Printf("[DEBUG] EnsureUdfArtifact returned success")
 
 	d.SetId(workspaceId + ":" + namespaceName + ":" + udfArtifactName)
 
@@ -134,7 +146,10 @@ func resourceAliCloudFlinkUdfCreate(d *schema.ResourceData, meta interface{}) er
 						UdfArtifactName: udfArtifactName,
 					}
 					if _, err := flinkService.RegisterUdfFunction(workspaceId, namespaceName, function); err != nil {
-						return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_udf", "RegisterUdfFunction", AlibabaCloudSdkGoERROR)
+						if !IsAlreadyExistError(err) {
+							return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_udf", "RegisterUdfFunction", AlibabaCloudSdkGoERROR)
+						}
+						log.Printf("[DEBUG] RegisterUdfFunction got already exists and will continue, workspaceId: %s, namespaceName: %s, udfArtifactName: %s, className: %s, functionName: %s", workspaceId, namespaceName, udfArtifactName, className, functionName)
 					}
 				}
 			}
@@ -256,7 +271,10 @@ func resourceAliCloudFlinkUdfUpdate(d *schema.ResourceData, meta interface{}) er
 						UdfArtifactName: udfArtifactName,
 					}
 					if _, err := flinkService.RegisterUdfFunction(workspaceId, namespaceName, function); err != nil {
-						return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_udf", "RegisterUdfFunction", AlibabaCloudSdkGoERROR)
+						if !IsAlreadyExistError(err) {
+							return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_udf", "RegisterUdfFunction", AlibabaCloudSdkGoERROR)
+						}
+						log.Printf("[DEBUG] RegisterUdfFunction got already exists and will continue, workspaceId: %s, namespaceName: %s, udfArtifactName: %s, className: %s, functionName: %s", workspaceId, namespaceName, udfArtifactName, className, funcName)
 					}
 				}
 			}
