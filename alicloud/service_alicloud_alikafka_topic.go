@@ -46,7 +46,9 @@ func (s *KafkaService) ModifyAlikafkaTopicRemark(instanceId, topicName, remark s
 
 // ModifyAlikafkaTopicPartitions updates topic partition count using CWS-Lib-Go
 func (s *KafkaService) ModifyAlikafkaTopicPartitions(instanceId, topicName string, addPartitionNum int32) error {
-	if err := s.kafkaApi.ModifyPartitionNum(instanceId, topicName, s.client.RegionId, addPartitionNum); err != nil {
+	if err := s.retryWithCommonErrors(10*time.Minute, func() error {
+		return s.kafkaApi.ModifyPartitionNum(instanceId, topicName, s.client.RegionId, addPartitionNum)
+	}); err != nil {
 		return WrapError(err)
 	}
 	return nil

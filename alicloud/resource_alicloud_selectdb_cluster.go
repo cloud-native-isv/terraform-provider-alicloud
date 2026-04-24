@@ -83,7 +83,7 @@ func resourceAliCloudSelectDBCluster() *schema.Resource {
 			"engine_version": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "4.0",
+				Default:     "4.1",
 				Description: "The database engine version of the SelectDB cluster.",
 			},
 			"charge_type": {
