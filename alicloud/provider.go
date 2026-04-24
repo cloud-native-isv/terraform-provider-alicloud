@@ -23,7 +23,6 @@ import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/mutexkv"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/mitchellh/go-homedir"
@@ -2344,7 +2343,7 @@ func providerConfigure(d *schema.ResourceData, p *schema.Provider) (interface{},
 }
 
 // This is a global MutexKV for use within this plugin.
-var alicloudMutexKV = mutexkv.NewMutexKV()
+var alicloudMutexKV = NewMutexKV()
 
 var descriptions map[string]string
 

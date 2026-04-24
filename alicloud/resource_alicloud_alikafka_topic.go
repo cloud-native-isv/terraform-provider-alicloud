@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -162,6 +163,10 @@ func resourceAliCloudAlikafkaTopicUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	instanceId := d.Get("instance_id").(string)
+	lockKey := fmt.Sprintf("alikafka-topic-update-%s", instanceId)
+	alicloudMutexKV.Lock(lockKey)
+	defer alicloudMutexKV.Unlock(lockKey)
+
 	if d.HasChange("remark") {
 		remark := d.Get("remark").(string)
 		topic := d.Get("topic").(string)
