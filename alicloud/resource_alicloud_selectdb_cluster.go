@@ -89,8 +89,8 @@ func resourceAliCloudSelectDBCluster() *schema.Resource {
 			"charge_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "PostPaid",
-				ValidateFunc: validation.StringInSlice([]string{"PostPaid", "PrePaid"}, false),
+				Default:      "Postpaid",
+				ValidateFunc: validation.StringInSlice([]string{"Postpaid", "Prepaid"}, false),
 				Description:  "The billing method of the SelectDB cluster.",
 			},
 
