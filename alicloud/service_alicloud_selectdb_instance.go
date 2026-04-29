@@ -144,6 +144,7 @@ func (s *SelectDBService) WaitForSelectDBInstanceActive(instanceId string, timeo
 		Pending: []string{
 			selectdb.InstanceStatusCreating,
 			selectdb.InstanceStatusNetCreating,
+			selectdb.InstanceStatusNetDeleting,
 			selectdb.InstanceStatusOrderPreparing,
 			selectdb.InstanceStatusResourcePreparing,
 			selectdb.InstanceStatusResourceChanging,
@@ -175,6 +176,7 @@ func (s *SelectDBService) WaitForSelectDBInstanceUpdated(instanceId string, time
 			selectdb.InstanceStatusOrderPreparing,
 			selectdb.InstanceStatusClassChanging,
 			selectdb.InstanceStatusNetCreating,
+			selectdb.InstanceStatusNetDeleting,
 		},
 		Target: []string{selectdb.InstanceStatusActivation},
 		Refresh: s.SelectDBInstanceStateRefreshFunc(instanceId, []string{
@@ -198,6 +200,7 @@ func (s *SelectDBService) WaitForSelectDBInstanceDeleted(instanceId string, time
 		Pending: []string{
 			selectdb.InstanceStatusActivation,
 			selectdb.InstanceStatusDeleting,
+			selectdb.InstanceStatusNetDeleting,
 			selectdb.InstanceStatusResourceChanging,
 		},
 		Target: []string{},
