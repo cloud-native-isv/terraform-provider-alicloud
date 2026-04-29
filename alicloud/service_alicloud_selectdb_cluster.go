@@ -209,7 +209,9 @@ func (s *SelectDBService) SelectDBClusterStateRefreshFunc(instanceId, clusterId 
 		cluster, err := s.DescribeSelectDBCluster(instanceId, clusterId)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, "", nil
+				// Cluster not yet visible in the instance's DBClusterList (still being created/initialized).
+				// Return a pending status so the state machine keeps retrying within the timeout.
+				return nil, selectdb.ClusterStatusCreating, nil
 			}
 			return nil, "", WrapError(err)
 		}
