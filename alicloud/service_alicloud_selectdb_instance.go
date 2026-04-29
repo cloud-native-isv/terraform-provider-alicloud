@@ -118,7 +118,7 @@ func (s *SelectDBService) WaitForSelectDBInstanceCreated(instanceId string, time
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{
 			selectdb.InstanceStatusCreating,
-		  selectdb.InstanceStatusNetCreating,
+			selectdb.InstanceStatusNetCreating,
 			selectdb.InstanceStatusOrderPreparing,
 			selectdb.InstanceStatusResourcePreparing,
 		},
@@ -127,6 +127,34 @@ func (s *SelectDBService) WaitForSelectDBInstanceCreated(instanceId string, time
 			"FAILED", "ERROR", "EXCEPTION",
 		}),
 		Timeout:    effectiveTimeout,
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	_, err := stateConf.WaitForState()
+	if err != nil {
+		return WrapErrorf(err, IdMsg, instanceId)
+	}
+	return nil
+}
+
+// WaitForSelectDBInstanceActive waits for SelectDB instance to reach activation state before dependent operations
+func (s *SelectDBService) WaitForSelectDBInstanceActive(instanceId string, timeout time.Duration) error {
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			selectdb.InstanceStatusCreating,
+			selectdb.InstanceStatusNetCreating,
+			selectdb.InstanceStatusOrderPreparing,
+			selectdb.InstanceStatusResourcePreparing,
+			selectdb.InstanceStatusResourceChanging,
+			selectdb.InstanceStatusReadonlyResourceChanging,
+			selectdb.InstanceStatusClassChanging,
+		},
+		Target: []string{selectdb.InstanceStatusActivation},
+		Refresh: s.SelectDBInstanceStateRefreshFunc(instanceId, []string{
+			"FAILED", "ERROR", "EXCEPTION",
+		}),
+		Timeout:    timeout,
 		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}

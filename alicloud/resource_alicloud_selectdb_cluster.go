@@ -222,6 +222,9 @@ func resourceAliCloudSelectDBClusterCreate(d *schema.ResourceData, meta interfac
 	zoneId := d.Get("zone_id").(string)
 	vpcId := d.Get("vpc_id").(string)
 	vswitchId := d.Get("vswitch_id").(string)
+	if err := service.WaitForSelectDBInstanceActive(instanceId, d.Timeout(schema.TimeoutCreate)); err != nil {
+		return WrapErrorf(err, IdMsg, instanceId)
+	}
 
 	// Create cluster object with all required fields
 	cacheSizeGB := d.Get("cache_size").(int)
@@ -393,6 +396,10 @@ func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interfac
 			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DescribeSelectDBCluster", AlibabaCloudSdkGoERROR)
 		}
 
+		if err := service.WaitForSelectDBInstanceActive(instanceId, d.Timeout(schema.TimeoutUpdate)); err != nil {
+			return WrapErrorf(err, IdMsg, instanceId)
+		}
+
 		// Create updated cluster object with modified fields
 		updatedCluster := &selectdb.Cluster{
 			InstanceId: instanceId,
@@ -448,6 +455,10 @@ func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interfac
 	if d.HasChange("description") {
 		newDescription := d.Get("description").(string)
 		if newDescription != "" {
+			if err := service.WaitForSelectDBInstanceActive(instanceId, d.Timeout(schema.TimeoutUpdate)); err != nil {
+				return WrapErrorf(err, IdMsg, instanceId)
+			}
+
 			// Use ModifySelectDBBEClusterAttribute to update description
 			// The attributeType should be "DBInstanceDescription" for updating cluster description
 			err := service.ModifySelectDBBEClusterAttribute(clusterId, instanceId, "DBInstanceDescription", newDescription)
@@ -505,6 +516,10 @@ func resourceAliCloudSelectDBClusterUpdate(d *schema.ResourceData, meta interfac
 
 		// Update parameters if there are any changes
 		if len(paramsToUpdate) > 0 {
+			if err := service.WaitForSelectDBInstanceActive(instanceId, d.Timeout(schema.TimeoutUpdate)); err != nil {
+				return WrapErrorf(err, IdMsg, instanceId)
+			}
+
 			err := service.UpdateSelectDBClusterConfig(clusterId, instanceId, paramsToUpdate)
 			if err != nil {
 				return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UpdateSelectDBClusterConfig", AlibabaCloudSdkGoERROR)
@@ -534,6 +549,9 @@ func resourceAliCloudSelectDBClusterDelete(d *schema.ResourceData, meta interfac
 	instanceId, clusterId, err := service.DecodeSelectDBClusterId(d.Id())
 	if err != nil {
 		return WrapError(err)
+	}
+	if err := service.WaitForSelectDBInstanceActive(instanceId, d.Timeout(schema.TimeoutDelete)); err != nil {
+		return WrapErrorf(err, IdMsg, instanceId)
 	}
 
 	err = resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
