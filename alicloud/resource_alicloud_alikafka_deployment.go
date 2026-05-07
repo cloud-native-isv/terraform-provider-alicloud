@@ -418,17 +418,20 @@ func resourceAliCloudAlikafkaDeploymentRead(d *schema.ResourceData, meta interfa
 		d.Set("zone_id", object.ZoneId)
 	}
 
-	if stateVal, ok := d.GetOkExists("selected_zones"); ok {
-		d.Set("selected_zones", stateVal)
-	} else {
-		d.Set("selected_zones", inferSelectedZonesState(object.ZoneId))
+	// Reconstruct selected_zones from API data (primary + backup zones)
+	// Format: [[primary_zones...], [secondary_zones...]]
+	primaryZones := []string{}
+	if object.ZoneId != "" {
+		primaryZones = append(primaryZones, object.ZoneId)
 	}
+	secondaryZones := []string{}
+	if object.BackupZoneId != "" {
+		secondaryZones = append(secondaryZones, object.BackupZoneId)
+	}
+	d.Set("selected_zones", [][]string{primaryZones, secondaryZones})
 
-	if stateVal, ok := d.GetOkExists("cross_zone"); ok {
-		d.Set("cross_zone", stateVal)
-	} else {
-		d.Set("cross_zone", true)
-	}
+	// cross_zone is true when a backup zone is configured
+	d.Set("cross_zone", object.BackupZoneId != "")
 
 	d.Set("security_group", object.SecurityGroup)
 	stateConfig := d.Get("config").(string)
@@ -451,7 +454,12 @@ func resourceAliCloudAlikafkaDeploymentRead(d *schema.ResourceData, meta interfa
 	}
 
 	d.Set("kms_key_id", object.KmsKeyId)
-	d.Set("vswitch_ids", []string{object.VSwitchId})
+	// Use multi-vswitch from API when available (cross-zone), fallback to single vswitch
+	if len(object.VSwitchIds) > 0 {
+		d.Set("vswitch_ids", object.VSwitchIds)
+	} else {
+		d.Set("vswitch_ids", []string{object.VSwitchId})
+	}
 	d.Set("paid_type", FormatAliKafkaPaidType(object.PaidType))
 
 	return nil
@@ -466,8 +474,6 @@ func resourceAliCloudAlikafkaDeploymentUpdate(d *schema.ResourceData, meta inter
 
 	d.Partial(true)
 	defer d.Partial(false)
-
-	needWait := false
 
 	if !d.IsNewResource() && d.HasChange("config") {
 		configStr := d.Get("config").(string)
@@ -492,7 +498,6 @@ func resourceAliCloudAlikafkaDeploymentUpdate(d *schema.ResourceData, meta inter
 
 		addDebug("UpdateInstanceConfig", "Success", apiConfig)
 		d.SetPartial("config")
-		needWait = true
 	}
 
 	if !d.IsNewResource() && d.HasChange("enable_auto_group") {
@@ -515,13 +520,6 @@ func resourceAliCloudAlikafkaDeploymentUpdate(d *schema.ResourceData, meta inter
 
 		addDebug("EnableAutoTopicCreation", "Success", enable)
 		d.SetPartial("enable_auto_topic")
-	}
-
-	if needWait {
-		err = kafkaService.WaitForAliKafkaInstanceUpdating(d.Id(), d.Timeout(schema.TimeoutUpdate))
-		if err != nil {
-			return WrapErrorf(err, IdMsg, d.Id())
-		}
 	}
 
 	return resourceAliCloudAlikafkaDeploymentRead(d, meta)
