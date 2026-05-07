@@ -11,7 +11,9 @@ import (
 
 // CreateAlikafkaTopic creates a Kafka topic using CWS-Lib-Go
 func (s *KafkaService) CreateAlikafkaTopic(topic *kafka.KafkaTopic) error {
-	if err := s.kafkaApi.CreateTopic(topic); err != nil {
+	if err := s.retryWithCommonErrors(10*time.Minute, func() error {
+		return s.kafkaApi.CreateTopic(topic)
+	}); err != nil {
 		return WrapError(err)
 	}
 	return nil

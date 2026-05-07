@@ -31,7 +31,7 @@ type KafkaService struct {
 	kafkaApi *kafka.KafkaAPI
 }
 
-var alikafkaRetryableErrors = []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL"}
+var alikafkaRetryableErrors = []string{ThrottlingUser, "ONS_SYSTEM_FLOW_CONTROL", "ONS_INVOKE_ERROR"}
 
 func (s *KafkaService) retryWithCommonErrors(timeout time.Duration, fn func() error) error {
 	wait := incrementalWait(2*time.Second, 1*time.Second)

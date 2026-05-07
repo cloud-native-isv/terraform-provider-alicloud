@@ -206,7 +206,12 @@ func (s *KafkaService) CreatePrePayOrder(order *kafka.KafkaOrder) (string, error
 
 // StartAlikafkaInstance 启动Kafka实例
 func (s *KafkaService) StartAlikafkaInstance(config kafka.StartInstanceConfig) error {
-	return s.kafkaApi.StartInstance(config)
+	if err := s.retryWithCommonErrors(10*time.Minute, func() error {
+		return s.kafkaApi.StartInstance(config)
+	}); err != nil {
+		return WrapError(err)
+	}
+	return nil
 }
 
 // StopAlikafkaInstance stops a Kafka instance

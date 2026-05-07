@@ -427,7 +427,7 @@ func resourceAliCloudAlikafkaDeploymentRead(d *schema.ResourceData, meta interfa
 	if stateVal, ok := d.GetOkExists("cross_zone"); ok {
 		d.Set("cross_zone", stateVal)
 	} else {
-		d.Set("cross_zone", false)
+		d.Set("cross_zone", true)
 	}
 
 	d.Set("security_group", object.SecurityGroup)
