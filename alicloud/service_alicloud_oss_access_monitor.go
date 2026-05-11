@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -47,7 +48,17 @@ func (s *OssService) DescribeOssBucketAccessMonitor(id string) (object map[strin
 		return object, WrapErrorf(err, FailedGetAttributeMsg, id, "$.AccessMonitorConfiguration", response)
 	}
 
-	return v.(map[string]interface{}), nil
+	// Convert typed struct to map[string]interface{} for compatibility
+	jsonBytes, err := json.Marshal(v)
+	if err != nil {
+		return object, WrapErrorf(err, "MarshalError", id, "$.AccessMonitorConfiguration", response)
+	}
+	result := make(map[string]interface{})
+	if err := json.Unmarshal(jsonBytes, &result); err != nil {
+		return object, WrapErrorf(err, "UnmarshalError", id, "$.AccessMonitorConfiguration", response)
+	}
+
+	return result, nil
 }
 
 func (s *OssService) OssBucketAccessMonitorStateRefreshFunc(id string, field string, failStates []string) resource.StateRefreshFunc {
