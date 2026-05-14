@@ -64,3 +64,4 @@ func dataSourceAliCloudCmsServiceRead(d *schema.ResourceData, meta interface{}) 
 
 	return nil
 }
+package alicloud
