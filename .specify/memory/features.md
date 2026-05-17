@@ -10,7 +10,7 @@ This index tracks all functional and non-functional features managed within the 
 | 002 | OSS Bucket Management | OSS 存储桶生命周期与清理策略管理 | Implemented | [Details](features/002.md) | - | 2026-02-06 |
 | 003 | Go Development Environment | 统一 Go 1.20+ 与工具链标准 | Implemented | [Details](features/003.md) | - | 2026-02-06 |
 | 004 | Layered Architecture | Resource -> Service -> API -> SDK 严格分层架构 | Implemented | [Details](features/004.md) | - | 2026-02-06 |
-| 005 | CWS-Lib-Go Integration | 统一 API 调用封装与强类型接口 (cws-lib-go) | Implemented | [Details](features/005.md) | .specify/specs/007-refactor-cms-api/requirements.md | 2026-05-14 |
+| 005 | CWS-Lib-Go Integration | 统一 API 调用封装与强类型接口 (cws-lib-go) | Implemented | [Details](features/005.md) | .specify/specs/007-refactor-cms-api/requirements.md | 2026-05-15 |
 | 006 | Local SDK Management | 使用 sdk/ 目录固定关键 SDK 版本 | Implemented | [Details](features/006.md) | - | 2026-02-06 |
 | 007 | Automated Testing Suite | 单元测试与验收测试覆盖关键流程 | Implemented | [Details](features/007.md) | - | 2026-02-06 |
 | 008 | Strong Typing Constraints | 禁止新增弱类型 map 作为请求/响应载体 | Implemented | [Details](features/008.md) | - | 2026-02-06 |

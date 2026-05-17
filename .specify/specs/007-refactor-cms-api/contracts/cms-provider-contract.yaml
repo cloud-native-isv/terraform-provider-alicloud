@@ -1,0 +1,331 @@
+openapi: 3.0.3
+info:
+  title: CMS Provider Refactor Internal Contract
+  version: 0.1.0
+  description: |
+    Provider-internal planning contract for migrating CMS Terraform resource/data source code
+    to the local CWS-Lib-Go CMS API wrapper. This is not a public network API.
+servers:
+  - url: provider-internal://terraform-provider-alicloud/alicloud
+paths:
+  /cms/scope-audit:
+    post:
+      operationId: auditCmsProviderScope
+      summary: Audit the 51 CMS Provider files enumerated by the requirement script
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScopeAuditRequest'
+      responses:
+        '200':
+          description: Scope audit result with one decision per file and object group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopeAuditResult'
+  /cms/service-capabilities:
+    post:
+      operationId: upsertCmsServiceCapability
+      summary: Register or update a Provider service-layer capability backed by CWS-Lib-Go CMS API
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCapability'
+      responses:
+        '200':
+          description: Capability accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceCapability'
+        '409':
+          description: Capability violates layering or strong typing constraints
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractViolation'
+  /cms/terraform-operations/{terraformName}/{operation}:
+    put:
+      operationId: defineTerraformOperationContract
+      summary: Define the Terraform resource/data source operation contract against the service layer
+      parameters:
+        - name: terraformName
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^alicloud_cms_[a-z0-9_]+$'
+        - name: operation
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/TerraformOperation'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerraformOperationContract'
+      responses:
+        '200':
+          description: Operation contract accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerraformOperationContract'
+        '409':
+          description: Operation contract bypasses service layer or lacks compatibility evidence
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractViolation'
+  /cms/migration-evidence/{objectGroup}:
+    put:
+      operationId: recordCmsMigrationEvidence
+      summary: Record migration evidence for one CMS object group
+      parameters:
+        - name: objectGroup
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/CmsObjectGroupName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MigrationEvidence'
+      responses:
+        '200':
+          description: Evidence accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigrationEvidence'
+        '422':
+          description: Evidence incomplete for selected decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractViolation'
+components:
+  schemas:
+    CmsObjectGroupName:
+      type: string
+      enum:
+        - addon
+        - agg_task
+        - alert
+        - cloud_resource
+        - context
+        - context_store
+        - dataset
+        - delivery_task
+        - entity_store
+        - integration_policy
+        - memory
+        - memory_store
+        - pipeline
+        - prometheus
+        - service
+        - umodel
+        - workspace
+    ProviderFileKind:
+      type: string
+      enum: [service, resource, data_source]
+    ProviderFileState:
+      type: string
+      enum: [placeholder, implemented_direct_call, implemented_service_layer, registered, unregistered]
+    ScopeDecision:
+      type: string
+      enum: [migrate_now, no_change_placeholder, enable_later, needs_api_gap_resolution]
+    TerraformOperation:
+      type: string
+      enum: [create, read, update, delete, import, list, query, enable, disable]
+    ServiceOperation:
+      type: string
+      enum: [create, read, update, delete, list, query, wait, state_refresh, enable, disable, status_update]
+    ProviderFile:
+      type: object
+      required: [path, fileKind, objectGroup, currentState, scopeDecision]
+      properties:
+        path:
+          type: string
+          pattern: '^alicloud/(service|resource|data_source)_alicloud_cms_[a-z_]+\.go$'
+        fileKind:
+          $ref: '#/components/schemas/ProviderFileKind'
+        objectGroup:
+          $ref: '#/components/schemas/CmsObjectGroupName'
+        currentState:
+          $ref: '#/components/schemas/ProviderFileState'
+        scopeDecision:
+          $ref: '#/components/schemas/ScopeDecision'
+        registrationName:
+          type: string
+          nullable: true
+        notes:
+          type: string
+    ScopeAuditRequest:
+      type: object
+      required: [files]
+      properties:
+        files:
+          type: array
+          minItems: 51
+          maxItems: 51
+          items:
+            type: string
+    ScopeAuditResult:
+      type: object
+      required: [files, objectGroups, directCallFindings]
+      properties:
+        files:
+          type: array
+          minItems: 51
+          maxItems: 51
+          items:
+            $ref: '#/components/schemas/ProviderFile'
+        objectGroups:
+          type: array
+          minItems: 17
+          maxItems: 17
+          items:
+            $ref: '#/components/schemas/CmsObjectGroup'
+        directCallFindings:
+          type: array
+          items:
+            type: string
+    CmsObjectGroup:
+      type: object
+      required: [name, apiPackageArea, lifecycleSupport, enabledStatus, compatibilityPolicy]
+      properties:
+        name:
+          $ref: '#/components/schemas/CmsObjectGroupName'
+        apiPackageArea:
+          type: string
+        terraformResourceName:
+          type: string
+          nullable: true
+        terraformDataSourceName:
+          type: string
+          nullable: true
+        lifecycleSupport:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceOperation'
+          uniqueItems: true
+        enabledStatus:
+          type: string
+          enum: [enabled, placeholder_only, planned_enablement, blocked_by_gap]
+        compatibilityPolicy:
+          type: string
+          enum: [preserve_existing, new_capability_requires_spec, internal_only]
+    ServiceCapability:
+      type: object
+      required:
+        - methodName
+        - objectGroup
+        - operation
+        - inputType
+        - outputType
+        - apiWrapperMethod
+        - handlesPagination
+        - handlesNotFound
+        - handlesRetry
+      properties:
+        methodName:
+          type: string
+        objectGroup:
+          $ref: '#/components/schemas/CmsObjectGroupName'
+        operation:
+          $ref: '#/components/schemas/ServiceOperation'
+        inputType:
+          type: string
+          description: Strong Go type name or documented dynamic exception
+        outputType:
+          type: string
+          description: Strong Go type name or documented dynamic exception
+        apiWrapperMethod:
+          type: string
+        handlesPagination:
+          type: boolean
+        handlesNotFound:
+          type: boolean
+        handlesRetry:
+          type: boolean
+        testReference:
+          type: string
+    TerraformOperationContract:
+      type: object
+      required: [terraformName, operation, schemaFields, serviceMethod, stateEffect, compatibilityRequirement]
+      properties:
+        terraformName:
+          type: string
+          pattern: '^alicloud_cms_[a-z0-9_]+$'
+        operation:
+          $ref: '#/components/schemas/TerraformOperation'
+        schemaFields:
+          type: array
+          items:
+            type: string
+        serviceMethod:
+          type: string
+        stateEffect:
+          type: string
+        compatibilityRequirement:
+          type: string
+        acceptanceEvidence:
+          type: string
+    MigrationDecision:
+      type: string
+      enum: [migrated, placeholder_no_user_visible_change, blocked, deferred]
+    MigrationEvidence:
+      type: object
+      required: [objectGroup, providerFiles, decision, reason]
+      properties:
+        objectGroup:
+          $ref: '#/components/schemas/CmsObjectGroupName'
+        providerFiles:
+          type: array
+          minItems: 3
+          items:
+            type: string
+        decision:
+          $ref: '#/components/schemas/MigrationDecision'
+        reason:
+          type: string
+        serviceMethods:
+          type: array
+          items:
+            type: string
+        apiMethods:
+          type: array
+          items:
+            type: string
+        tests:
+          type: array
+          items:
+            type: string
+        reviewNotes:
+          type: string
+    ContractViolation:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          enum:
+            - DIRECT_SDK_OR_RPC_CALL
+            - MISSING_SERVICE_LAYER
+            - MISSING_COMPATIBILITY_EVIDENCE
+            - UNTYPED_PROVIDER_BOUNDARY
+            - INCOMPLETE_SCOPE_AUDIT
+            - API_WRAPPER_GAP
+        message:
+          type: string
+        remediation:
+          type: string

@@ -12,8 +12,8 @@
   /speckit.clarify must resolve this section to the final Feature binding before planning.
 -->
 
-**Feature ID**: Need clarification  
-**Feature Name**: Need clarification
+**Feature ID**: 005  
+**Feature Name**: CWS-Lib-Go Integration
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -89,7 +89,7 @@
 - 本次改造不新增用户可见的 Terraform 资源或数据源能力，除非该能力已在现有范围内明确需要启用。
 - 现有 CMS 资源和数据源的 Schema、导入标识、状态语义和文档承诺默认保持兼容。
 - 本地封装能力已覆盖主要 CMS 对象；如个别对象缺口存在，应在计划阶段作为补齐任务处理。
-- 功能归属初步匹配到 CWS-Lib-Go Integration，但 `Related Feature` 字段按流程保留待澄清。
+- 本规格归属于 CWS-Lib-Go Integration，用于扩展 CMS 服务范围内的封装能力接入。
 
 ## Requirements *(mandatory)*
 
@@ -132,6 +132,10 @@
 - **SC-005 Source**: 通过 issue、工单和发布反馈中 CMS 标签统计新增问题数量与定位结果；发布后按反馈周期汇总。
 
 ## Clarifications
+
+### Session 2026-05-14
+
+- Q: 本规格应绑定到哪个长期 Feature？ → A: 005 / CWS-Lib-Go Integration（Resolved via Feature Index and Feature 005 detail）
 
 <!-- 
 This section will be populated by /speckit.clarify command with questions and answers.
