@@ -1,0 +1,157 @@
+{
+  "timestamp": "2026-05-12T11:45:59.955865",
+  "sources": [
+    "system"
+  ],
+  "tools": [
+    {
+      "name": "git",
+      "path": "/usr/local/bin/git",
+      "description": "System binary at /usr/local/bin/git",
+      "sourceType": "system",
+      "sourceName": "git",
+      "canonicalName": "system:git"
+    },
+    {
+      "name": "kubectl",
+      "path": "/usr/local/bin/kubectl",
+      "description": "System binary at /usr/local/bin/kubectl",
+      "sourceType": "system",
+      "sourceName": "kubectl",
+      "canonicalName": "system:kubectl"
+    },
+    {
+      "name": "python3",
+      "path": "/usr/local/bin/python3",
+      "description": "System binary at /usr/local/bin/python3",
+      "sourceType": "system",
+      "sourceName": "python3",
+      "canonicalName": "system:python3"
+    },
+    {
+      "name": "python",
+      "path": "/usr/local/bin/python",
+      "description": "System binary at /usr/local/bin/python",
+      "sourceType": "system",
+      "sourceName": "python",
+      "canonicalName": "system:python"
+    },
+    {
+      "name": "pip",
+      "path": "/usr/local/bin/pip",
+      "description": "System binary at /usr/local/bin/pip",
+      "sourceType": "system",
+      "sourceName": "pip",
+      "canonicalName": "system:pip"
+    },
+    {
+      "name": "pip3",
+      "path": "/usr/bin/pip3",
+      "description": "System binary at /usr/bin/pip3",
+      "sourceType": "system",
+      "sourceName": "pip3",
+      "canonicalName": "system:pip3"
+    },
+    {
+      "name": "node",
+      "path": "/usr/local/bin/node",
+      "description": "System binary at /usr/local/bin/node",
+      "sourceType": "system",
+      "sourceName": "node",
+      "canonicalName": "system:node"
+    },
+    {
+      "name": "npm",
+      "path": "/usr/local/bin/npm",
+      "description": "System binary at /usr/local/bin/npm",
+      "sourceType": "system",
+      "sourceName": "npm",
+      "canonicalName": "system:npm"
+    },
+    {
+      "name": "jq",
+      "path": "/usr/local/bin/jq",
+      "description": "System binary at /usr/local/bin/jq",
+      "sourceType": "system",
+      "sourceName": "jq",
+      "canonicalName": "system:jq"
+    },
+    {
+      "name": "curl",
+      "path": "/usr/bin/curl",
+      "description": "System binary at /usr/bin/curl",
+      "sourceType": "system",
+      "sourceName": "curl",
+      "canonicalName": "system:curl"
+    },
+    {
+      "name": "wget",
+      "path": "/usr/local/bin/wget",
+      "description": "System binary at /usr/local/bin/wget",
+      "sourceType": "system",
+      "sourceName": "wget",
+      "canonicalName": "system:wget"
+    },
+    {
+      "name": "make",
+      "path": "/usr/bin/make",
+      "description": "System binary at /usr/bin/make",
+      "sourceType": "system",
+      "sourceName": "make",
+      "canonicalName": "system:make"
+    }
+  ],
+  "mcp_servers": [],
+  "system_binaries": [
+    {
+      "name": "git",
+      "path": "/usr/local/bin/git"
+    },
+    {
+      "name": "kubectl",
+      "path": "/usr/local/bin/kubectl"
+    },
+    {
+      "name": "python3",
+      "path": "/usr/local/bin/python3"
+    },
+    {
+      "name": "python",
+      "path": "/usr/local/bin/python"
+    },
+    {
+      "name": "pip",
+      "path": "/usr/local/bin/pip"
+    },
+    {
+      "name": "pip3",
+      "path": "/usr/bin/pip3"
+    },
+    {
+      "name": "node",
+      "path": "/usr/local/bin/node"
+    },
+    {
+      "name": "npm",
+      "path": "/usr/local/bin/npm"
+    },
+    {
+      "name": "jq",
+      "path": "/usr/local/bin/jq"
+    },
+    {
+      "name": "curl",
+      "path": "/usr/bin/curl"
+    },
+    {
+      "name": "wget",
+      "path": "/usr/local/bin/wget"
+    },
+    {
+      "name": "make",
+      "path": "/usr/bin/make"
+    }
+  ],
+  "shell_functions": [],
+  "project_scripts": []
+}

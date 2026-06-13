@@ -2,6 +2,7 @@ package alicloud
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -111,11 +112,14 @@ func dataSourceAliCloudFlinkDeploymentFoldersRead(d *schema.ResourceData, meta i
 	workspaceId := d.Get("workspace_id").(string)
 	namespace := d.Get("namespace_name").(string)
 
+	log.Printf("[DEBUG] Reading Flink deployment folders: workspace_id=%s, namespace_name=%s", workspaceId, namespace)
+
 	var folders []*aliyunFlinkAPI.DeploymentFolder
 
 	// Parse input parameters
 	parentId, hasParentId := d.GetOk("parent_id")
 	idsInterface, hasIds := d.GetOk("ids")
+	log.Printf("[DEBUG] Flink deployment folders input: hasParentId=%v, parentId=%v, hasIds=%v", hasParentId, parentId, hasIds)
 
 	var requestedIds []string
 	if hasIds {

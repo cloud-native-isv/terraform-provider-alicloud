@@ -1,0 +1,223 @@
+{
+  "timestamp": "2026-05-12T11:46:11.662903",
+  "sources": [
+    "project"
+  ],
+  "tools": [
+    {
+      "name": "check-prerequisites.sh",
+      "path": ".specify/scripts/bash/check-prerequisites.sh",
+      "type": "bash",
+      "description": "Consolidated prerequisite checking script",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/check-prerequisites.sh",
+      "canonicalName": "project:.specify/scripts/bash/check-prerequisites.sh"
+    },
+    {
+      "name": "common.sh",
+      "path": ".specify/scripts/bash/common.sh",
+      "type": "bash",
+      "description": "Common functions and variables for all scripts",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/common.sh",
+      "canonicalName": "project:.specify/scripts/bash/common.sh"
+    },
+    {
+      "name": "create-new-plan.sh",
+      "path": ".specify/scripts/bash/create-new-plan.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/create-new-plan.sh",
+      "canonicalName": "project:.specify/scripts/bash/create-new-plan.sh"
+    },
+    {
+      "name": "create-new-requirements.sh",
+      "path": ".specify/scripts/bash/create-new-requirements.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/create-new-requirements.sh",
+      "canonicalName": "project:.specify/scripts/bash/create-new-requirements.sh"
+    },
+    {
+      "name": "create-new-skill.sh",
+      "path": ".specify/scripts/bash/create-new-skill.sh",
+      "type": "bash",
+      "description": "shellcheck source=/dev/null",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/create-new-skill.sh",
+      "canonicalName": "project:.specify/scripts/bash/create-new-skill.sh"
+    },
+    {
+      "name": "create-new-tools.sh",
+      "path": ".specify/scripts/bash/create-new-tools.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/create-new-tools.sh",
+      "canonicalName": "project:.specify/scripts/bash/create-new-tools.sh"
+    },
+    {
+      "name": "detect-feature-context.sh",
+      "path": ".specify/scripts/bash/detect-feature-context.sh",
+      "type": "bash",
+      "description": "Feature context detection utility",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/detect-feature-context.sh",
+      "canonicalName": "project:.specify/scripts/bash/detect-feature-context.sh"
+    },
+    {
+      "name": "generate-instructions.sh",
+      "path": ".specify/scripts/bash/generate-instructions.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/generate-instructions.sh",
+      "canonicalName": "project:.specify/scripts/bash/generate-instructions.sh"
+    },
+    {
+      "name": "implement-plan.sh",
+      "path": ".specify/scripts/bash/implement-plan.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/implement-plan.sh",
+      "canonicalName": "project:.specify/scripts/bash/implement-plan.sh"
+    },
+    {
+      "name": "refresh-tools.sh",
+      "path": ".specify/scripts/bash/refresh-tools.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/refresh-tools.sh",
+      "canonicalName": "project:.specify/scripts/bash/refresh-tools.sh"
+    },
+    {
+      "name": "research-project.sh",
+      "path": ".specify/scripts/bash/research-project.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/research-project.sh",
+      "canonicalName": "project:.specify/scripts/bash/research-project.sh"
+    },
+    {
+      "name": "update-feature-index.sh",
+      "path": ".specify/scripts/bash/update-feature-index.sh",
+      "type": "bash",
+      "description": "Load common helpers",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/bash/update-feature-index.sh",
+      "canonicalName": "project:.specify/scripts/bash/update-feature-index.sh"
+    },
+    {
+      "name": "skills-utils.py",
+      "path": ".specify/scripts/python/skills-utils.py",
+      "type": "python",
+      "description": "No description available",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/python/skills-utils.py",
+      "canonicalName": "project:.specify/scripts/python/skills-utils.py"
+    },
+    {
+      "name": "tools-utils.py",
+      "path": ".specify/scripts/python/tools-utils.py",
+      "type": "python",
+      "description": "No description available",
+      "sourceType": "project",
+      "sourceName": ".specify/scripts/python/tools-utils.py",
+      "canonicalName": "project:.specify/scripts/python/tools-utils.py"
+    }
+  ],
+  "mcp_servers": [],
+  "system_binaries": [],
+  "shell_functions": [],
+  "project_scripts": [
+    {
+      "name": "check-prerequisites.sh",
+      "path": ".specify/scripts/bash/check-prerequisites.sh",
+      "type": "bash",
+      "description": "Consolidated prerequisite checking script"
+    },
+    {
+      "name": "common.sh",
+      "path": ".specify/scripts/bash/common.sh",
+      "type": "bash",
+      "description": "Common functions and variables for all scripts"
+    },
+    {
+      "name": "create-new-plan.sh",
+      "path": ".specify/scripts/bash/create-new-plan.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions"
+    },
+    {
+      "name": "create-new-requirements.sh",
+      "path": ".specify/scripts/bash/create-new-requirements.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions"
+    },
+    {
+      "name": "create-new-skill.sh",
+      "path": ".specify/scripts/bash/create-new-skill.sh",
+      "type": "bash",
+      "description": "shellcheck source=/dev/null"
+    },
+    {
+      "name": "create-new-tools.sh",
+      "path": ".specify/scripts/bash/create-new-tools.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions"
+    },
+    {
+      "name": "detect-feature-context.sh",
+      "path": ".specify/scripts/bash/detect-feature-context.sh",
+      "type": "bash",
+      "description": "Feature context detection utility"
+    },
+    {
+      "name": "generate-instructions.sh",
+      "path": ".specify/scripts/bash/generate-instructions.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions"
+    },
+    {
+      "name": "implement-plan.sh",
+      "path": ".specify/scripts/bash/implement-plan.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions"
+    },
+    {
+      "name": "refresh-tools.sh",
+      "path": ".specify/scripts/bash/refresh-tools.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions"
+    },
+    {
+      "name": "research-project.sh",
+      "path": ".specify/scripts/bash/research-project.sh",
+      "type": "bash",
+      "description": "Load common helpers for Unicode support and shared functions"
+    },
+    {
+      "name": "update-feature-index.sh",
+      "path": ".specify/scripts/bash/update-feature-index.sh",
+      "type": "bash",
+      "description": "Load common helpers"
+    },
+    {
+      "name": "skills-utils.py",
+      "path": ".specify/scripts/python/skills-utils.py",
+      "type": "python",
+      "description": "No description available"
+    },
+    {
+      "name": "tools-utils.py",
+      "path": ".specify/scripts/python/tools-utils.py",
+      "type": "python",
+      "description": "No description available"
+    }
+  ]
+}

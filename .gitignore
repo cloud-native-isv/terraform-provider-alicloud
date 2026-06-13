@@ -51,3 +51,4 @@ venv/
 
 local_tmp/
 .local_tmp/
+.specify/tools/*.json

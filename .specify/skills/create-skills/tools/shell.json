@@ -1,0 +1,6893 @@
+{
+  "timestamp": "2026-05-11T01:07:55.011893",
+  "sources": [
+    "shell"
+  ],
+  "tools": [
+    {
+      "name": "add_line_if_not_exit",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "add_line_if_not_exit",
+      "canonicalName": "shell:add_line_if_not_exit"
+    },
+    {
+      "name": "ali_claude_code_intall",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ali_claude_code_intall",
+      "canonicalName": "shell:ali_claude_code_intall"
+    },
+    {
+      "name": "ali_claude_code_setup",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ali_claude_code_setup",
+      "canonicalName": "shell:ali_claude_code_setup"
+    },
+    {
+      "name": "ali_claude_code_uninstall",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ali_claude_code_uninstall",
+      "canonicalName": "shell:ali_claude_code_uninstall"
+    },
+    {
+      "name": "ali_claude_code_update",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ali_claude_code_update",
+      "canonicalName": "shell:ali_claude_code_update"
+    },
+    {
+      "name": "aliyun_account",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_account",
+      "canonicalName": "shell:aliyun_account"
+    },
+    {
+      "name": "aliyun_account_discover",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_account_discover",
+      "canonicalName": "shell:aliyun_account_discover"
+    },
+    {
+      "name": "aliyun_account_is_primary",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_account_is_primary",
+      "canonicalName": "shell:aliyun_account_is_primary"
+    },
+    {
+      "name": "aliyun_account_is_secondary",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_account_is_secondary",
+      "canonicalName": "shell:aliyun_account_is_secondary"
+    },
+    {
+      "name": "aliyun_account_setenv",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_account_setenv",
+      "canonicalName": "shell:aliyun_account_setenv"
+    },
+    {
+      "name": "aliyun_ak",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_ak",
+      "canonicalName": "shell:aliyun_ak"
+    },
+    {
+      "name": "aliyun_config_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_config_all",
+      "canonicalName": "shell:aliyun_config_all"
+    },
+    {
+      "name": "aliyun_endpoint",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_endpoint",
+      "canonicalName": "shell:aliyun_endpoint"
+    },
+    {
+      "name": "aliyun_region_discover",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_region_discover",
+      "canonicalName": "shell:aliyun_region_discover"
+    },
+    {
+      "name": "aliyun_region_list",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_region_list",
+      "canonicalName": "shell:aliyun_region_list"
+    },
+    {
+      "name": "aliyun_regions",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_regions",
+      "canonicalName": "shell:aliyun_regions"
+    },
+    {
+      "name": "aliyun_resource_audit",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_resource_audit",
+      "canonicalName": "shell:aliyun_resource_audit"
+    },
+    {
+      "name": "aliyun_sk",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_sk",
+      "canonicalName": "shell:aliyun_sk"
+    },
+    {
+      "name": "aliyun_split_api_docs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_split_api_docs",
+      "canonicalName": "shell:aliyun_split_api_docs"
+    },
+    {
+      "name": "aliyun_sts_service",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_sts_service",
+      "canonicalName": "shell:aliyun_sts_service"
+    },
+    {
+      "name": "aliyun_uid",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aliyun_uid",
+      "canonicalName": "shell:aliyun_uid"
+    },
+    {
+      "name": "ansible_check",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ansible_check",
+      "canonicalName": "shell:ansible_check"
+    },
+    {
+      "name": "ansible_check_vault",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ansible_check_vault",
+      "canonicalName": "shell:ansible_check_vault"
+    },
+    {
+      "name": "ansible_dump_config",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ansible_dump_config",
+      "canonicalName": "shell:ansible_dump_config"
+    },
+    {
+      "name": "ansible_ping_hosts",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ansible_ping_hosts",
+      "canonicalName": "shell:ansible_ping_hosts"
+    },
+    {
+      "name": "ansible_run_playbook",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ansible_run_playbook",
+      "canonicalName": "shell:ansible_run_playbook"
+    },
+    {
+      "name": "ansible_run_task",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ansible_run_task",
+      "canonicalName": "shell:ansible_run_task"
+    },
+    {
+      "name": "aone_login",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aone_login",
+      "canonicalName": "shell:aone_login"
+    },
+    {
+      "name": "aone_mcp_key",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "aone_mcp_key",
+      "canonicalName": "shell:aone_mcp_key"
+    },
+    {
+      "name": "apt_prune",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "apt_prune",
+      "canonicalName": "shell:apt_prune"
+    },
+    {
+      "name": "archive_current",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "archive_current",
+      "canonicalName": "shell:archive_current"
+    },
+    {
+      "name": "bash_prompt",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "bash_prompt",
+      "canonicalName": "shell:bash_prompt"
+    },
+    {
+      "name": "cgroup2_enabled",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cgroup2_enabled",
+      "canonicalName": "shell:cgroup2_enabled"
+    },
+    {
+      "name": "cgroup2_supported",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cgroup2_supported",
+      "canonicalName": "shell:cgroup2_supported"
+    },
+    {
+      "name": "cgroup_path_of_pid",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cgroup_path_of_pid",
+      "canonicalName": "shell:cgroup_path_of_pid"
+    },
+    {
+      "name": "cgroup_remove_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cgroup_remove_all",
+      "canonicalName": "shell:cgroup_remove_all"
+    },
+    {
+      "name": "claude_code_intall",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "claude_code_intall",
+      "canonicalName": "shell:claude_code_intall"
+    },
+    {
+      "name": "claude_code_setup",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "claude_code_setup",
+      "canonicalName": "shell:claude_code_setup"
+    },
+    {
+      "name": "claude_code_uninstall",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "claude_code_uninstall",
+      "canonicalName": "shell:claude_code_uninstall"
+    },
+    {
+      "name": "claude_code_update",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "claude_code_update",
+      "canonicalName": "shell:claude_code_update"
+    },
+    {
+      "name": "codex_install",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "codex_install",
+      "canonicalName": "shell:codex_install"
+    },
+    {
+      "name": "codex_setup",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "codex_setup",
+      "canonicalName": "shell:codex_setup"
+    },
+    {
+      "name": "codex_uninstall",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "codex_uninstall",
+      "canonicalName": "shell:codex_uninstall"
+    },
+    {
+      "name": "codex_update",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "codex_update",
+      "canonicalName": "shell:codex_update"
+    },
+    {
+      "name": "compare",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "compare",
+      "canonicalName": "shell:compare"
+    },
+    {
+      "name": "copilot_generate_instructions",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "copilot_generate_instructions",
+      "canonicalName": "shell:copilot_generate_instructions"
+    },
+    {
+      "name": "count_line",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "count_line",
+      "canonicalName": "shell:count_line"
+    },
+    {
+      "name": "cp_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cp_file",
+      "canonicalName": "shell:cp_file"
+    },
+    {
+      "name": "crictl_container_exec",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "crictl_container_exec",
+      "canonicalName": "shell:crictl_container_exec"
+    },
+    {
+      "name": "crictl_container_id",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "crictl_container_id",
+      "canonicalName": "shell:crictl_container_id"
+    },
+    {
+      "name": "crictl_container_ids",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "crictl_container_ids",
+      "canonicalName": "shell:crictl_container_ids"
+    },
+    {
+      "name": "crictl_container_id_to_cid",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "crictl_container_id_to_cid",
+      "canonicalName": "shell:crictl_container_id_to_cid"
+    },
+    {
+      "name": "crictl_container_name_to_cid",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "crictl_container_name_to_cid",
+      "canonicalName": "shell:crictl_container_name_to_cid"
+    },
+    {
+      "name": "crictl_copy_file_to_container",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "crictl_copy_file_to_container",
+      "canonicalName": "shell:crictl_copy_file_to_container"
+    },
+    {
+      "name": "crictl_pod_cgroup",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "crictl_pod_cgroup",
+      "canonicalName": "shell:crictl_pod_cgroup"
+    },
+    {
+      "name": "crictl_pod_id_to_sid",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "crictl_pod_id_to_sid",
+      "canonicalName": "shell:crictl_pod_id_to_sid"
+    },
+    {
+      "name": "crictl_pod_name_to_sid",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "crictl_pod_name_to_sid",
+      "canonicalName": "shell:crictl_pod_name_to_sid"
+    },
+    {
+      "name": "crictl_sandbox_id",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "crictl_sandbox_id",
+      "canonicalName": "shell:crictl_sandbox_id"
+    },
+    {
+      "name": "crictl_sandbox_rootfs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "crictl_sandbox_rootfs",
+      "canonicalName": "shell:crictl_sandbox_rootfs"
+    },
+    {
+      "name": "cri_image_prune",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cri_image_prune",
+      "canonicalName": "shell:cri_image_prune"
+    },
+    {
+      "name": "cri_images",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cri_images",
+      "canonicalName": "shell:cri_images"
+    },
+    {
+      "name": "cri_pod_info",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cri_pod_info",
+      "canonicalName": "shell:cri_pod_info"
+    },
+    {
+      "name": "cri_pods",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cri_pods",
+      "canonicalName": "shell:cri_pods"
+    },
+    {
+      "name": "ctr_export",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ctr_export",
+      "canonicalName": "shell:ctr_export"
+    },
+    {
+      "name": "ctr_load_k8s_image_from_docker",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ctr_load_k8s_image_from_docker",
+      "canonicalName": "shell:ctr_load_k8s_image_from_docker"
+    },
+    {
+      "name": "ctr_load_k8s_image_from_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ctr_load_k8s_image_from_file",
+      "canonicalName": "shell:ctr_load_k8s_image_from_file"
+    },
+    {
+      "name": "curl_available",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "curl_available",
+      "canonicalName": "shell:curl_available"
+    },
+    {
+      "name": "curl_detect",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "curl_detect",
+      "canonicalName": "shell:curl_detect"
+    },
+    {
+      "name": "curl_download",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "curl_download",
+      "canonicalName": "shell:curl_download"
+    },
+    {
+      "name": "curl_download_to_dir",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "curl_download_to_dir",
+      "canonicalName": "shell:curl_download_to_dir"
+    },
+    {
+      "name": "curl_download_to_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "curl_download_to_file",
+      "canonicalName": "shell:curl_download_to_file"
+    },
+    {
+      "name": "curl_fetch",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "curl_fetch",
+      "canonicalName": "shell:curl_fetch"
+    },
+    {
+      "name": "curl_mirror_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "curl_mirror_file",
+      "canonicalName": "shell:curl_mirror_file"
+    },
+    {
+      "name": "curl_run_shell",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "curl_run_shell",
+      "canonicalName": "shell:curl_run_shell"
+    },
+    {
+      "name": "curl_test_server",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "curl_test_server",
+      "canonicalName": "shell:curl_test_server"
+    },
+    {
+      "name": "cws_build_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_build_all",
+      "canonicalName": "shell:cws_build_all"
+    },
+    {
+      "name": "cws_build_context",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_build_context",
+      "canonicalName": "shell:cws_build_context"
+    },
+    {
+      "name": "cws_build_k8s_images",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_build_k8s_images",
+      "canonicalName": "shell:cws_build_k8s_images"
+    },
+    {
+      "name": "cws_check_docker",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_check_docker",
+      "canonicalName": "shell:cws_check_docker"
+    },
+    {
+      "name": "cws_check_generated_files",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_check_generated_files",
+      "canonicalName": "shell:cws_check_generated_files"
+    },
+    {
+      "name": "cws_check_os",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_check_os",
+      "canonicalName": "shell:cws_check_os"
+    },
+    {
+      "name": "cws_clean",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_clean",
+      "canonicalName": "shell:cws_clean"
+    },
+    {
+      "name": "cws_copy_fetcher",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_copy_fetcher",
+      "canonicalName": "shell:cws_copy_fetcher"
+    },
+    {
+      "name": "cws_create_builder",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_create_builder",
+      "canonicalName": "shell:cws_create_builder"
+    },
+    {
+      "name": "cws_create_fetcher",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_create_fetcher",
+      "canonicalName": "shell:cws_create_fetcher"
+    },
+    {
+      "name": "cws_create_sig_fetcher",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_create_sig_fetcher",
+      "canonicalName": "shell:cws_create_sig_fetcher"
+    },
+    {
+      "name": "cws_debug_enabled",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_debug_enabled",
+      "canonicalName": "shell:cws_debug_enabled"
+    },
+    {
+      "name": "cws_failed_build",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_failed_build",
+      "canonicalName": "shell:cws_failed_build"
+    },
+    {
+      "name": "cws_file_downloader",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_file_downloader",
+      "canonicalName": "shell:cws_file_downloader"
+    },
+    {
+      "name": "cws_find_orphan",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_find_orphan",
+      "canonicalName": "shell:cws_find_orphan"
+    },
+    {
+      "name": "cws_generate",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_generate",
+      "canonicalName": "shell:cws_generate"
+    },
+    {
+      "name": "cws_generate_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_generate_all",
+      "canonicalName": "shell:cws_generate_all"
+    },
+    {
+      "name": "cws_home",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_home",
+      "canonicalName": "shell:cws_home"
+    },
+    {
+      "name": "cws_images_build_status",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_images_build_status",
+      "canonicalName": "shell:cws_images_build_status"
+    },
+    {
+      "name": "cws_install_docker_plugin_juicefs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_install_docker_plugin_juicefs",
+      "canonicalName": "shell:cws_install_docker_plugin_juicefs"
+    },
+    {
+      "name": "cws_map_local_port_to_mirror",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_map_local_port_to_mirror",
+      "canonicalName": "shell:cws_map_local_port_to_mirror"
+    },
+    {
+      "name": "cws_mirror_fetcher",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_mirror_fetcher",
+      "canonicalName": "shell:cws_mirror_fetcher"
+    },
+    {
+      "name": "cws_mirror_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_mirror_file",
+      "canonicalName": "shell:cws_mirror_file"
+    },
+    {
+      "name": "cws_mirror_rust",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_mirror_rust",
+      "canonicalName": "shell:cws_mirror_rust"
+    },
+    {
+      "name": "cws_mount_mirror_oss",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_mount_mirror_oss",
+      "canonicalName": "shell:cws_mount_mirror_oss"
+    },
+    {
+      "name": "cws_nohup_build",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_nohup_build",
+      "canonicalName": "shell:cws_nohup_build"
+    },
+    {
+      "name": "cws_nohup_force_build",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_nohup_force_build",
+      "canonicalName": "shell:cws_nohup_force_build"
+    },
+    {
+      "name": "cws_nohup_rebuild",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_nohup_rebuild",
+      "canonicalName": "shell:cws_nohup_rebuild"
+    },
+    {
+      "name": "cws_os_list",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_os_list",
+      "canonicalName": "shell:cws_os_list"
+    },
+    {
+      "name": "cws_os_pattern",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_os_pattern",
+      "canonicalName": "shell:cws_os_pattern"
+    },
+    {
+      "name": "cws_prepare",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_prepare",
+      "canonicalName": "shell:cws_prepare"
+    },
+    {
+      "name": "cws_pull_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_pull_all",
+      "canonicalName": "shell:cws_pull_all"
+    },
+    {
+      "name": "cws_push_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_push_all",
+      "canonicalName": "shell:cws_push_all"
+    },
+    {
+      "name": "cws_push_k8s_images",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_push_k8s_images",
+      "canonicalName": "shell:cws_push_k8s_images"
+    },
+    {
+      "name": "cws_py_install",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_py_install",
+      "canonicalName": "shell:cws_py_install"
+    },
+    {
+      "name": "cws_py_is_installed",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_py_is_installed",
+      "canonicalName": "shell:cws_py_is_installed"
+    },
+    {
+      "name": "cws_py_uninstall",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_py_uninstall",
+      "canonicalName": "shell:cws_py_uninstall"
+    },
+    {
+      "name": "cws_rebuild",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_rebuild",
+      "canonicalName": "shell:cws_rebuild"
+    },
+    {
+      "name": "cws_service_builder",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_service_builder",
+      "canonicalName": "shell:cws_service_builder"
+    },
+    {
+      "name": "cws_service_docker_prune",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_service_docker_prune",
+      "canonicalName": "shell:cws_service_docker_prune"
+    },
+    {
+      "name": "cws_service_docker_ps",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_service_docker_ps",
+      "canonicalName": "shell:cws_service_docker_ps"
+    },
+    {
+      "name": "cws_service_mirror",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_service_mirror",
+      "canonicalName": "shell:cws_service_mirror"
+    },
+    {
+      "name": "cws_service_mirror_devel",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_service_mirror_devel",
+      "canonicalName": "shell:cws_service_mirror_devel"
+    },
+    {
+      "name": "cws_service_mirror_prod",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_service_mirror_prod",
+      "canonicalName": "shell:cws_service_mirror_prod"
+    },
+    {
+      "name": "cws_success_build",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_success_build",
+      "canonicalName": "shell:cws_success_build"
+    },
+    {
+      "name": "cws_tab_k8s_images",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_tab_k8s_images",
+      "canonicalName": "shell:cws_tab_k8s_images"
+    },
+    {
+      "name": "cws_tag",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_tag",
+      "canonicalName": "shell:cws_tag"
+    },
+    {
+      "name": "cws_terraform_env",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_terraform_env",
+      "canonicalName": "shell:cws_terraform_env"
+    },
+    {
+      "name": "cws_update_bash_lib",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_update_bash_lib",
+      "canonicalName": "shell:cws_update_bash_lib"
+    },
+    {
+      "name": "cws_update_extra",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_update_extra",
+      "canonicalName": "shell:cws_update_extra"
+    },
+    {
+      "name": "cws_update_python_lib",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_update_python_lib",
+      "canonicalName": "shell:cws_update_python_lib"
+    },
+    {
+      "name": "cws_upload_ssl",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "cws_upload_ssl",
+      "canonicalName": "shell:cws_upload_ssl"
+    },
+    {
+      "name": "date_adjust_seconds",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "date_adjust_seconds",
+      "canonicalName": "shell:date_adjust_seconds"
+    },
+    {
+      "name": "date_from_timestamp",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "date_from_timestamp",
+      "canonicalName": "shell:date_from_timestamp"
+    },
+    {
+      "name": "date_id",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "date_id",
+      "canonicalName": "shell:date_id"
+    },
+    {
+      "name": "date_now",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "date_now",
+      "canonicalName": "shell:date_now"
+    },
+    {
+      "name": "date_tag",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "date_tag",
+      "canonicalName": "shell:date_tag"
+    },
+    {
+      "name": "date_tag_with_seconds",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "date_tag_with_seconds",
+      "canonicalName": "shell:date_tag_with_seconds"
+    },
+    {
+      "name": "date_time_id",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "date_time_id",
+      "canonicalName": "shell:date_time_id"
+    },
+    {
+      "name": "date_utc_to_cst",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "date_utc_to_cst",
+      "canonicalName": "shell:date_utc_to_cst"
+    },
+    {
+      "name": "debug_off",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "debug_off",
+      "canonicalName": "shell:debug_off"
+    },
+    {
+      "name": "debug_on",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "debug_on",
+      "canonicalName": "shell:debug_on"
+    },
+    {
+      "name": "die",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "die",
+      "canonicalName": "shell:die"
+    },
+    {
+      "name": "dir_diff",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "dir_diff",
+      "canonicalName": "shell:dir_diff"
+    },
+    {
+      "name": "docker_clean_exited",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_clean_exited",
+      "canonicalName": "shell:docker_clean_exited"
+    },
+    {
+      "name": "docker_create_network",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_create_network",
+      "canonicalName": "shell:docker_create_network"
+    },
+    {
+      "name": "docker_desktop_enter",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_desktop_enter",
+      "canonicalName": "shell:docker_desktop_enter"
+    },
+    {
+      "name": "docker_desktop_host",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_desktop_host",
+      "canonicalName": "shell:docker_desktop_host"
+    },
+    {
+      "name": "docker_exec",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_exec",
+      "canonicalName": "shell:docker_exec"
+    },
+    {
+      "name": "docker_extract",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_extract",
+      "canonicalName": "shell:docker_extract"
+    },
+    {
+      "name": "docker_generate_dockerfile",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_generate_dockerfile",
+      "canonicalName": "shell:docker_generate_dockerfile"
+    },
+    {
+      "name": "docker_get_cpu_limit_cores",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_get_cpu_limit_cores",
+      "canonicalName": "shell:docker_get_cpu_limit_cores"
+    },
+    {
+      "name": "docker_get_host_mem_bytes",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_get_host_mem_bytes",
+      "canonicalName": "shell:docker_get_host_mem_bytes"
+    },
+    {
+      "name": "docker_get_java_opts",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_get_java_opts",
+      "canonicalName": "shell:docker_get_java_opts"
+    },
+    {
+      "name": "docker_get_mem_limit_bytes",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_get_mem_limit_bytes",
+      "canonicalName": "shell:docker_get_mem_limit_bytes"
+    },
+    {
+      "name": "docker_images",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_images",
+      "canonicalName": "shell:docker_images"
+    },
+    {
+      "name": "docker_is_valid_mem_limit",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_is_valid_mem_limit",
+      "canonicalName": "shell:docker_is_valid_mem_limit"
+    },
+    {
+      "name": "docker_login",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_login",
+      "canonicalName": "shell:docker_login"
+    },
+    {
+      "name": "docker_logs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_logs",
+      "canonicalName": "shell:docker_logs"
+    },
+    {
+      "name": "docker_names",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_names",
+      "canonicalName": "shell:docker_names"
+    },
+    {
+      "name": "docker_otlp_logs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_otlp_logs",
+      "canonicalName": "shell:docker_otlp_logs"
+    },
+    {
+      "name": "docker_parse_otlp_logs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_parse_otlp_logs",
+      "canonicalName": "shell:docker_parse_otlp_logs"
+    },
+    {
+      "name": "docker_prune",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_prune",
+      "canonicalName": "shell:docker_prune"
+    },
+    {
+      "name": "docker_prune_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_prune_all",
+      "canonicalName": "shell:docker_prune_all"
+    },
+    {
+      "name": "docker_ps",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_ps",
+      "canonicalName": "shell:docker_ps"
+    },
+    {
+      "name": "docker_reload",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_reload",
+      "canonicalName": "shell:docker_reload"
+    },
+    {
+      "name": "docker_run",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "docker_run",
+      "canonicalName": "shell:docker_run"
+    },
+    {
+      "name": "dp",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "dp",
+      "canonicalName": "shell:dp"
+    },
+    {
+      "name": "dp_recreate",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "dp_recreate",
+      "canonicalName": "shell:dp_recreate"
+    },
+    {
+      "name": "dp_svc",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "dp_svc",
+      "canonicalName": "shell:dp_svc"
+    },
+    {
+      "name": "dp_up",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "dp_up",
+      "canonicalName": "shell:dp_up"
+    },
+    {
+      "name": "dump_stack",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "dump_stack",
+      "canonicalName": "shell:dump_stack"
+    },
+    {
+      "name": "du_top",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "du_top",
+      "canonicalName": "shell:du_top"
+    },
+    {
+      "name": "ecs_cloud_init_log",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_cloud_init_log",
+      "canonicalName": "shell:ecs_cloud_init_log"
+    },
+    {
+      "name": "ecs_cloud_init_output",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_cloud_init_output",
+      "canonicalName": "shell:ecs_cloud_init_output"
+    },
+    {
+      "name": "ecs_cloud_init_path",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_cloud_init_path",
+      "canonicalName": "shell:ecs_cloud_init_path"
+    },
+    {
+      "name": "ecs_cloud_init_user_data",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_cloud_init_user_data",
+      "canonicalName": "shell:ecs_cloud_init_user_data"
+    },
+    {
+      "name": "ecs_detect_endpoints",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_detect_endpoints",
+      "canonicalName": "shell:ecs_detect_endpoints"
+    },
+    {
+      "name": "ecs_in_aliyun",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_in_aliyun",
+      "canonicalName": "shell:ecs_in_aliyun"
+    },
+    {
+      "name": "ecs_info",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_info",
+      "canonicalName": "shell:ecs_info"
+    },
+    {
+      "name": "ecs_instance_type",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_instance_type",
+      "canonicalName": "shell:ecs_instance_type"
+    },
+    {
+      "name": "ecs_interfaces",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_interfaces",
+      "canonicalName": "shell:ecs_interfaces"
+    },
+    {
+      "name": "ecs_private_ip",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_private_ip",
+      "canonicalName": "shell:ecs_private_ip"
+    },
+    {
+      "name": "ecs_public_ip",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_public_ip",
+      "canonicalName": "shell:ecs_public_ip"
+    },
+    {
+      "name": "ecs_region",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_region",
+      "canonicalName": "shell:ecs_region"
+    },
+    {
+      "name": "ecs_uid",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_uid",
+      "canonicalName": "shell:ecs_uid"
+    },
+    {
+      "name": "ecs_vpc_id",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_vpc_id",
+      "canonicalName": "shell:ecs_vpc_id"
+    },
+    {
+      "name": "ecs_vswitch_id",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_vswitch_id",
+      "canonicalName": "shell:ecs_vswitch_id"
+    },
+    {
+      "name": "ecs_zone_id",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ecs_zone_id",
+      "canonicalName": "shell:ecs_zone_id"
+    },
+    {
+      "name": "encode_files",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "encode_files",
+      "canonicalName": "shell:encode_files"
+    },
+    {
+      "name": "encode_function",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "encode_function",
+      "canonicalName": "shell:encode_function"
+    },
+    {
+      "name": "encode_packed",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "encode_packed",
+      "canonicalName": "shell:encode_packed"
+    },
+    {
+      "name": "encode_script",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "encode_script",
+      "canonicalName": "shell:encode_script"
+    },
+    {
+      "name": "encode_stdin",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "encode_stdin",
+      "canonicalName": "shell:encode_stdin"
+    },
+    {
+      "name": "encode_tar_stream",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "encode_tar_stream",
+      "canonicalName": "shell:encode_tar_stream"
+    },
+    {
+      "name": "ensure_dir",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ensure_dir",
+      "canonicalName": "shell:ensure_dir"
+    },
+    {
+      "name": "ensure_utf8_locale",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ensure_utf8_locale",
+      "canonicalName": "shell:ensure_utf8_locale"
+    },
+    {
+      "name": "enter_chroot",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "enter_chroot",
+      "canonicalName": "shell:enter_chroot"
+    },
+    {
+      "name": "env_append",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "env_append",
+      "canonicalName": "shell:env_append"
+    },
+    {
+      "name": "env_prune",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "env_prune",
+      "canonicalName": "shell:env_prune"
+    },
+    {
+      "name": "escape",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "escape",
+      "canonicalName": "shell:escape"
+    },
+    {
+      "name": "escape_sed",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "escape_sed",
+      "canonicalName": "shell:escape_sed"
+    },
+    {
+      "name": "escape_slashes",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "escape_slashes",
+      "canonicalName": "shell:escape_slashes"
+    },
+    {
+      "name": "expect_check_available",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "expect_check_available",
+      "canonicalName": "shell:expect_check_available"
+    },
+    {
+      "name": "expect_execute_cmd",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "expect_execute_cmd",
+      "canonicalName": "shell:expect_execute_cmd"
+    },
+    {
+      "name": "expect_generate_cmd_script",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "expect_generate_cmd_script",
+      "canonicalName": "shell:expect_generate_cmd_script"
+    },
+    {
+      "name": "expect_generate_login_script",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "expect_generate_login_script",
+      "canonicalName": "shell:expect_generate_login_script"
+    },
+    {
+      "name": "expect_login",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "expect_login",
+      "canonicalName": "shell:expect_login"
+    },
+    {
+      "name": "expect_static_cmd",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "expect_static_cmd",
+      "canonicalName": "shell:expect_static_cmd"
+    },
+    {
+      "name": "expect_static_login",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "expect_static_login",
+      "canonicalName": "shell:expect_static_login"
+    },
+    {
+      "name": "extract_source",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "extract_source",
+      "canonicalName": "shell:extract_source"
+    },
+    {
+      "name": "failed",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "failed",
+      "canonicalName": "shell:failed"
+    },
+    {
+      "name": "file_changed",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "file_changed",
+      "canonicalName": "shell:file_changed"
+    },
+    {
+      "name": "file_create",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "file_create",
+      "canonicalName": "shell:file_create"
+    },
+    {
+      "name": "file_extract",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "file_extract",
+      "canonicalName": "shell:file_extract"
+    },
+    {
+      "name": "file_extract_to",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "file_extract_to",
+      "canonicalName": "shell:file_extract_to"
+    },
+    {
+      "name": "file_fast_delete",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "file_fast_delete",
+      "canonicalName": "shell:file_fast_delete"
+    },
+    {
+      "name": "file_mv",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "file_mv",
+      "canonicalName": "shell:file_mv"
+    },
+    {
+      "name": "file_pack_binary",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "file_pack_binary",
+      "canonicalName": "shell:file_pack_binary"
+    },
+    {
+      "name": "file_pack_system",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "file_pack_system",
+      "canonicalName": "shell:file_pack_system"
+    },
+    {
+      "name": "file_real_size",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "file_real_size",
+      "canonicalName": "shell:file_real_size"
+    },
+    {
+      "name": "file_same",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "file_same",
+      "canonicalName": "shell:file_same"
+    },
+    {
+      "name": "file_size",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "file_size",
+      "canonicalName": "shell:file_size"
+    },
+    {
+      "name": "files_on_change",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "files_on_change",
+      "canonicalName": "shell:files_on_change"
+    },
+    {
+      "name": "find_files",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "find_files",
+      "canonicalName": "shell:find_files"
+    },
+    {
+      "name": "find_files_by_size",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "find_files_by_size",
+      "canonicalName": "shell:find_files_by_size"
+    },
+    {
+      "name": "fix_files_name",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "fix_files_name",
+      "canonicalName": "shell:fix_files_name"
+    },
+    {
+      "name": "fix_permissions",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "fix_permissions",
+      "canonicalName": "shell:fix_permissions"
+    },
+    {
+      "name": "gawklibpath_append",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "gawklibpath_append",
+      "canonicalName": "shell:gawklibpath_append"
+    },
+    {
+      "name": "gawklibpath_default",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "gawklibpath_default",
+      "canonicalName": "shell:gawklibpath_default"
+    },
+    {
+      "name": "gawklibpath_prepend",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "gawklibpath_prepend",
+      "canonicalName": "shell:gawklibpath_prepend"
+    },
+    {
+      "name": "gawkpath_append",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "gawkpath_append",
+      "canonicalName": "shell:gawkpath_append"
+    },
+    {
+      "name": "gawkpath_default",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "gawkpath_default",
+      "canonicalName": "shell:gawkpath_default"
+    },
+    {
+      "name": "gawkpath_prepend",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "gawkpath_prepend",
+      "canonicalName": "shell:gawkpath_prepend"
+    },
+    {
+      "name": "gcc_std",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "gcc_std",
+      "canonicalName": "shell:gcc_std"
+    },
+    {
+      "name": "gdb_disassemble",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "gdb_disassemble",
+      "canonicalName": "shell:gdb_disassemble"
+    },
+    {
+      "name": "get_commit_list",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "get_commit_list",
+      "canonicalName": "shell:get_commit_list"
+    },
+    {
+      "name": "get_core_count",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "get_core_count",
+      "canonicalName": "shell:get_core_count"
+    },
+    {
+      "name": "get_sensitive_string",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "get_sensitive_string",
+      "canonicalName": "shell:get_sensitive_string"
+    },
+    {
+      "name": "git_active_branch",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_active_branch",
+      "canonicalName": "shell:git_active_branch"
+    },
+    {
+      "name": "git_add",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_add",
+      "canonicalName": "shell:git_add"
+    },
+    {
+      "name": "git_archive",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_archive",
+      "canonicalName": "shell:git_archive"
+    },
+    {
+      "name": "git_backup",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_backup",
+      "canonicalName": "shell:git_backup"
+    },
+    {
+      "name": "git_backup_repository",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_backup_repository",
+      "canonicalName": "shell:git_backup_repository"
+    },
+    {
+      "name": "git_checkout_by_date",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_checkout_by_date",
+      "canonicalName": "shell:git_checkout_by_date"
+    },
+    {
+      "name": "git_clean",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_clean",
+      "canonicalName": "shell:git_clean"
+    },
+    {
+      "name": "git_clean_history",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_clean_history",
+      "canonicalName": "shell:git_clean_history"
+    },
+    {
+      "name": "git_cleanup_submodules_for_switch",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_cleanup_submodules_for_switch",
+      "canonicalName": "shell:git_cleanup_submodules_for_switch"
+    },
+    {
+      "name": "git_clone",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_clone",
+      "canonicalName": "shell:git_clone"
+    },
+    {
+      "name": "git_clone_branches",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_clone_branches",
+      "canonicalName": "shell:git_clone_branches"
+    },
+    {
+      "name": "git_clone_into",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_clone_into",
+      "canonicalName": "shell:git_clone_into"
+    },
+    {
+      "name": "git_clone_local",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_clone_local",
+      "canonicalName": "shell:git_clone_local"
+    },
+    {
+      "name": "git_clone_multi_project",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_clone_multi_project",
+      "canonicalName": "shell:git_clone_multi_project"
+    },
+    {
+      "name": "git_commit_id",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_commit_id",
+      "canonicalName": "shell:git_commit_id"
+    },
+    {
+      "name": "git_commit_to_patch",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_commit_to_patch",
+      "canonicalName": "shell:git_commit_to_patch"
+    },
+    {
+      "name": "git_config_author",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_config_author",
+      "canonicalName": "shell:git_config_author"
+    },
+    {
+      "name": "git_config_global_author",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_config_global_author",
+      "canonicalName": "shell:git_config_global_author"
+    },
+    {
+      "name": "git_config_signed_off_hook",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_config_signed_off_hook",
+      "canonicalName": "shell:git_config_signed_off_hook"
+    },
+    {
+      "name": "git_confirm_dangerous_operation",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_confirm_dangerous_operation",
+      "canonicalName": "shell:git_confirm_dangerous_operation"
+    },
+    {
+      "name": "git_convert_to_https_url",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_convert_to_https_url",
+      "canonicalName": "shell:git_convert_to_https_url"
+    },
+    {
+      "name": "git_copy_commit",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_copy_commit",
+      "canonicalName": "shell:git_copy_commit"
+    },
+    {
+      "name": "git_create_tag",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_create_tag",
+      "canonicalName": "shell:git_create_tag"
+    },
+    {
+      "name": "git_current_branch",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_current_branch",
+      "canonicalName": "shell:git_current_branch"
+    },
+    {
+      "name": "git_dead_branch",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_dead_branch",
+      "canonicalName": "shell:git_dead_branch"
+    },
+    {
+      "name": "git_delete_tag",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_delete_tag",
+      "canonicalName": "shell:git_delete_tag"
+    },
+    {
+      "name": "git_describe",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_describe",
+      "canonicalName": "shell:git_describe"
+    },
+    {
+      "name": "git_encode_commit",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_encode_commit",
+      "canonicalName": "shell:git_encode_commit"
+    },
+    {
+      "name": "git_from_folder",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_from_folder",
+      "canonicalName": "shell:git_from_folder"
+    },
+    {
+      "name": "git_graph",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_graph",
+      "canonicalName": "shell:git_graph"
+    },
+    {
+      "name": "gitignore_add_pattern",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "gitignore_add_pattern",
+      "canonicalName": "shell:gitignore_add_pattern"
+    },
+    {
+      "name": "git_ignored",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_ignored",
+      "canonicalName": "shell:git_ignored"
+    },
+    {
+      "name": "gitignore_ensure_exists",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "gitignore_ensure_exists",
+      "canonicalName": "shell:gitignore_ensure_exists"
+    },
+    {
+      "name": "gitignore_has_pattern",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "gitignore_has_pattern",
+      "canonicalName": "shell:gitignore_has_pattern"
+    },
+    {
+      "name": "git_info",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_info",
+      "canonicalName": "shell:git_info"
+    },
+    {
+      "name": "git_init_submodule",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_init_submodule",
+      "canonicalName": "shell:git_init_submodule"
+    },
+    {
+      "name": "git_latest_added_files",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_latest_added_files",
+      "canonicalName": "shell:git_latest_added_files"
+    },
+    {
+      "name": "git_latest_updated_files",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_latest_updated_files",
+      "canonicalName": "shell:git_latest_updated_files"
+    },
+    {
+      "name": "git_list_repos",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_list_repos",
+      "canonicalName": "shell:git_list_repos"
+    },
+    {
+      "name": "git_list_unstaged_repo",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_list_unstaged_repo",
+      "canonicalName": "shell:git_list_unstaged_repo"
+    },
+    {
+      "name": "git_list_url",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_list_url",
+      "canonicalName": "shell:git_list_url"
+    },
+    {
+      "name": "git_locate",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_locate",
+      "canonicalName": "shell:git_locate"
+    },
+    {
+      "name": "git_logs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_logs",
+      "canonicalName": "shell:git_logs"
+    },
+    {
+      "name": "git_mirror",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_mirror",
+      "canonicalName": "shell:git_mirror"
+    },
+    {
+      "name": "git_mirror_repo",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_mirror_repo",
+      "canonicalName": "shell:git_mirror_repo"
+    },
+    {
+      "name": "git_mirror_repo_using_proxy",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_mirror_repo_using_proxy",
+      "canonicalName": "shell:git_mirror_repo_using_proxy"
+    },
+    {
+      "name": "git_parse_url",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_parse_url",
+      "canonicalName": "shell:git_parse_url"
+    },
+    {
+      "name": "git_pull",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_pull",
+      "canonicalName": "shell:git_pull"
+    },
+    {
+      "name": "git_pull_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_pull_all",
+      "canonicalName": "shell:git_pull_all"
+    },
+    {
+      "name": "git_pull_repos",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_pull_repos",
+      "canonicalName": "shell:git_pull_repos"
+    },
+    {
+      "name": "git_push",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_push",
+      "canonicalName": "shell:git_push"
+    },
+    {
+      "name": "git_push_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_push_all",
+      "canonicalName": "shell:git_push_all"
+    },
+    {
+      "name": "git_recover",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_recover",
+      "canonicalName": "shell:git_recover"
+    },
+    {
+      "name": "git_recreate_tag",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_recreate_tag",
+      "canonicalName": "shell:git_recreate_tag"
+    },
+    {
+      "name": "git_remote_heads",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_remote_heads",
+      "canonicalName": "shell:git_remote_heads"
+    },
+    {
+      "name": "git_repo_root",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_repo_root",
+      "canonicalName": "shell:git_repo_root"
+    },
+    {
+      "name": "git_repository_info",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_repository_info",
+      "canonicalName": "shell:git_repository_info"
+    },
+    {
+      "name": "git_reset_history",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_reset_history",
+      "canonicalName": "shell:git_reset_history"
+    },
+    {
+      "name": "git_revert_patch",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_revert_patch",
+      "canonicalName": "shell:git_revert_patch"
+    },
+    {
+      "name": "git_search",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_search",
+      "canonicalName": "shell:git_search"
+    },
+    {
+      "name": "git_setup_ssh_repo",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_setup_ssh_repo",
+      "canonicalName": "shell:git_setup_ssh_repo"
+    },
+    {
+      "name": "git_show_cleanup_results",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_show_cleanup_results",
+      "canonicalName": "shell:git_show_cleanup_results"
+    },
+    {
+      "name": "git_site_map",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_site_map",
+      "canonicalName": "shell:git_site_map"
+    },
+    {
+      "name": "git_status_repos",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_status_repos",
+      "canonicalName": "shell:git_status_repos"
+    },
+    {
+      "name": "git_submodule_paths",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_submodule_paths",
+      "canonicalName": "shell:git_submodule_paths"
+    },
+    {
+      "name": "git_switch",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_switch",
+      "canonicalName": "shell:git_switch"
+    },
+    {
+      "name": "git_switch_checkout_ref",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_switch_checkout_ref",
+      "canonicalName": "shell:git_switch_checkout_ref"
+    },
+    {
+      "name": "git_sync_ignore",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_sync_ignore",
+      "canonicalName": "shell:git_sync_ignore"
+    },
+    {
+      "name": "git_tags",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_tags",
+      "canonicalName": "shell:git_tags"
+    },
+    {
+      "name": "git_tag_to_commit",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_tag_to_commit",
+      "canonicalName": "shell:git_tag_to_commit"
+    },
+    {
+      "name": "git_to_folder",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_to_folder",
+      "canonicalName": "shell:git_to_folder"
+    },
+    {
+      "name": "git_track_lfs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_track_lfs",
+      "canonicalName": "shell:git_track_lfs"
+    },
+    {
+      "name": "git_update_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_update_all",
+      "canonicalName": "shell:git_update_all"
+    },
+    {
+      "name": "git_update_bare",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_update_bare",
+      "canonicalName": "shell:git_update_bare"
+    },
+    {
+      "name": "git_update_credentials",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_update_credentials",
+      "canonicalName": "shell:git_update_credentials"
+    },
+    {
+      "name": "git_update_submodule",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_update_submodule",
+      "canonicalName": "shell:git_update_submodule"
+    },
+    {
+      "name": "git_who_delete_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "git_who_delete_file",
+      "canonicalName": "shell:git_who_delete_file"
+    },
+    {
+      "name": "go_work_init",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "go_work_init",
+      "canonicalName": "shell:go_work_init"
+    },
+    {
+      "name": "grubby_disable_audit",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "grubby_disable_audit",
+      "canonicalName": "shell:grubby_disable_audit"
+    },
+    {
+      "name": "grubby_set_eth_names",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "grubby_set_eth_names",
+      "canonicalName": "shell:grubby_set_eth_names"
+    },
+    {
+      "name": "has_git",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "has_git",
+      "canonicalName": "shell:has_git"
+    },
+    {
+      "name": "have",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "have",
+      "canonicalName": "shell:have"
+    },
+    {
+      "name": "helm_export_values",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "helm_export_values",
+      "canonicalName": "shell:helm_export_values"
+    },
+    {
+      "name": "helm_untar",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "helm_untar",
+      "canonicalName": "shell:helm_untar"
+    },
+    {
+      "name": "highlight_difference_files",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "highlight_difference_files",
+      "canonicalName": "shell:highlight_difference_files"
+    },
+    {
+      "name": "highlight_in_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "highlight_in_file",
+      "canonicalName": "shell:highlight_in_file"
+    },
+    {
+      "name": "huge_page",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "huge_page",
+      "canonicalName": "shell:huge_page"
+    },
+    {
+      "name": "iflow_cli_install",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "iflow_cli_install",
+      "canonicalName": "shell:iflow_cli_install"
+    },
+    {
+      "name": "iflow_cli_setup",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "iflow_cli_setup",
+      "canonicalName": "shell:iflow_cli_setup"
+    },
+    {
+      "name": "iflow_cli_update",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "iflow_cli_update",
+      "canonicalName": "shell:iflow_cli_update"
+    },
+    {
+      "name": "in_chroot",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "in_chroot",
+      "canonicalName": "shell:in_chroot"
+    },
+    {
+      "name": "install_executable_binary",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "install_executable_binary",
+      "canonicalName": "shell:install_executable_binary"
+    },
+    {
+      "name": "install_executable_files",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "install_executable_files",
+      "canonicalName": "shell:install_executable_files"
+    },
+    {
+      "name": "iptables_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "iptables_all",
+      "canonicalName": "shell:iptables_all"
+    },
+    {
+      "name": "is_ash",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "is_ash",
+      "canonicalName": "shell:is_ash"
+    },
+    {
+      "name": "is_bash",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "is_bash",
+      "canonicalName": "shell:is_bash"
+    },
+    {
+      "name": "is_dash",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "is_dash",
+      "canonicalName": "shell:is_dash"
+    },
+    {
+      "name": "is_interactive",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "is_interactive",
+      "canonicalName": "shell:is_interactive"
+    },
+    {
+      "name": "is_linux",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "is_linux",
+      "canonicalName": "shell:is_linux"
+    },
+    {
+      "name": "is_macos",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "is_macos",
+      "canonicalName": "shell:is_macos"
+    },
+    {
+      "name": "is_sourced",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "is_sourced",
+      "canonicalName": "shell:is_sourced"
+    },
+    {
+      "name": "is_zsh",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "is_zsh",
+      "canonicalName": "shell:is_zsh"
+    },
+    {
+      "name": "jar_extract",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "jar_extract",
+      "canonicalName": "shell:jar_extract"
+    },
+    {
+      "name": "java_dump",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "java_dump",
+      "canonicalName": "shell:java_dump"
+    },
+    {
+      "name": "java_flags",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "java_flags",
+      "canonicalName": "shell:java_flags"
+    },
+    {
+      "name": "jenkins_update_plugins",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "jenkins_update_plugins",
+      "canonicalName": "shell:jenkins_update_plugins"
+    },
+    {
+      "name": "journalctl_clean_by_size",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "journalctl_clean_by_size",
+      "canonicalName": "shell:journalctl_clean_by_size"
+    },
+    {
+      "name": "journalctl_clean_by_time",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "journalctl_clean_by_time",
+      "canonicalName": "shell:journalctl_clean_by_time"
+    },
+    {
+      "name": "jq_array_add",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "jq_array_add",
+      "canonicalName": "shell:jq_array_add"
+    },
+    {
+      "name": "jq_dict_add",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "jq_dict_add",
+      "canonicalName": "shell:jq_dict_add"
+    },
+    {
+      "name": "jq_format",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "jq_format",
+      "canonicalName": "shell:jq_format"
+    },
+    {
+      "name": "jq_json_to_csv",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "jq_json_to_csv",
+      "canonicalName": "shell:jq_json_to_csv"
+    },
+    {
+      "name": "jq_otel_logs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "jq_otel_logs",
+      "canonicalName": "shell:jq_otel_logs"
+    },
+    {
+      "name": "jq_smash_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "jq_smash_file",
+      "canonicalName": "shell:jq_smash_file"
+    },
+    {
+      "name": "jq_sort_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "jq_sort_file",
+      "canonicalName": "shell:jq_sort_file"
+    },
+    {
+      "name": "json_escape",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "json_escape",
+      "canonicalName": "shell:json_escape"
+    },
+    {
+      "name": "jupyter_data_path",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "jupyter_data_path",
+      "canonicalName": "shell:jupyter_data_path"
+    },
+    {
+      "name": "k8s_annotate_nodes",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_annotate_nodes",
+      "canonicalName": "shell:k8s_annotate_nodes"
+    },
+    {
+      "name": "k8s_apis",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_apis",
+      "canonicalName": "shell:k8s_apis"
+    },
+    {
+      "name": "k8s_apply",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_apply",
+      "canonicalName": "shell:k8s_apply"
+    },
+    {
+      "name": "k8s_cluster_list",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_cluster_list",
+      "canonicalName": "shell:k8s_cluster_list"
+    },
+    {
+      "name": "k8s_config_from_env",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_config_from_env",
+      "canonicalName": "shell:k8s_config_from_env"
+    },
+    {
+      "name": "k8s_configmap",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_configmap",
+      "canonicalName": "shell:k8s_configmap"
+    },
+    {
+      "name": "k8s_contexts",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_contexts",
+      "canonicalName": "shell:k8s_contexts"
+    },
+    {
+      "name": "k8s_create_configmap_from",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_create_configmap_from",
+      "canonicalName": "shell:k8s_create_configmap_from"
+    },
+    {
+      "name": "k8s_current_cluster",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_current_cluster",
+      "canonicalName": "shell:k8s_current_cluster"
+    },
+    {
+      "name": "k8s_current_context",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_current_context",
+      "canonicalName": "shell:k8s_current_context"
+    },
+    {
+      "name": "k8s_daemonset",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_daemonset",
+      "canonicalName": "shell:k8s_daemonset"
+    },
+    {
+      "name": "k8s_daemonset_images",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_daemonset_images",
+      "canonicalName": "shell:k8s_daemonset_images"
+    },
+    {
+      "name": "k8s_delete",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_delete",
+      "canonicalName": "shell:k8s_delete"
+    },
+    {
+      "name": "k8s_delete_pod",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_delete_pod",
+      "canonicalName": "shell:k8s_delete_pod"
+    },
+    {
+      "name": "k8s_deployment",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_deployment",
+      "canonicalName": "shell:k8s_deployment"
+    },
+    {
+      "name": "k8s_deployment_images",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_deployment_images",
+      "canonicalName": "shell:k8s_deployment_images"
+    },
+    {
+      "name": "k8s_desc_node",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_desc_node",
+      "canonicalName": "shell:k8s_desc_node"
+    },
+    {
+      "name": "k8s_desc_pod",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_desc_pod",
+      "canonicalName": "shell:k8s_desc_pod"
+    },
+    {
+      "name": "k8s_dump_node",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_dump_node",
+      "canonicalName": "shell:k8s_dump_node"
+    },
+    {
+      "name": "k8s_dump_pod",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_dump_pod",
+      "canonicalName": "shell:k8s_dump_pod"
+    },
+    {
+      "name": "k8s_ep",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_ep",
+      "canonicalName": "shell:k8s_ep"
+    },
+    {
+      "name": "k8s_event",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_event",
+      "canonicalName": "shell:k8s_event"
+    },
+    {
+      "name": "k8s_exec_pod",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_exec_pod",
+      "canonicalName": "shell:k8s_exec_pod"
+    },
+    {
+      "name": "k8s_failed_pod",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_failed_pod",
+      "canonicalName": "shell:k8s_failed_pod"
+    },
+    {
+      "name": "k8s_foreach_container_exec",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_foreach_container_exec",
+      "canonicalName": "shell:k8s_foreach_container_exec"
+    },
+    {
+      "name": "k8s_foreach_pod_exec",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_foreach_pod_exec",
+      "canonicalName": "shell:k8s_foreach_pod_exec"
+    },
+    {
+      "name": "k8s_generate_namespace",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_generate_namespace",
+      "canonicalName": "shell:k8s_generate_namespace"
+    },
+    {
+      "name": "k8s_generate_pod",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_generate_pod",
+      "canonicalName": "shell:k8s_generate_pod"
+    },
+    {
+      "name": "k8s_get_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_get_all",
+      "canonicalName": "shell:k8s_get_all"
+    },
+    {
+      "name": "k8s_images_used",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_images_used",
+      "canonicalName": "shell:k8s_images_used"
+    },
+    {
+      "name": "k8s_info",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_info",
+      "canonicalName": "shell:k8s_info"
+    },
+    {
+      "name": "k8s_kubeadm_dump_config",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_kubeadm_dump_config",
+      "canonicalName": "shell:k8s_kubeadm_dump_config"
+    },
+    {
+      "name": "k8s_kubeadm_update_certs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_kubeadm_update_certs",
+      "canonicalName": "shell:k8s_kubeadm_update_certs"
+    },
+    {
+      "name": "k8s_kubeconfig",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_kubeconfig",
+      "canonicalName": "shell:k8s_kubeconfig"
+    },
+    {
+      "name": "k8s_label_nodes",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_label_nodes",
+      "canonicalName": "shell:k8s_label_nodes"
+    },
+    {
+      "name": "k8s_login_container",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_login_container",
+      "canonicalName": "shell:k8s_login_container"
+    },
+    {
+      "name": "k8s_login_pod",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_login_pod",
+      "canonicalName": "shell:k8s_login_pod"
+    },
+    {
+      "name": "k8s_logs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_logs",
+      "canonicalName": "shell:k8s_logs"
+    },
+    {
+      "name": "k8s_node_annotations",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_node_annotations",
+      "canonicalName": "shell:k8s_node_annotations"
+    },
+    {
+      "name": "k8s_node_images",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_node_images",
+      "canonicalName": "shell:k8s_node_images"
+    },
+    {
+      "name": "k8s_node_labels",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_node_labels",
+      "canonicalName": "shell:k8s_node_labels"
+    },
+    {
+      "name": "k8s_nodes",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_nodes",
+      "canonicalName": "shell:k8s_nodes"
+    },
+    {
+      "name": "k8s_node_status",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_node_status",
+      "canonicalName": "shell:k8s_node_status"
+    },
+    {
+      "name": "k8s_node_taints",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_node_taints",
+      "canonicalName": "shell:k8s_node_taints"
+    },
+    {
+      "name": "k8s_ns",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_ns",
+      "canonicalName": "shell:k8s_ns"
+    },
+    {
+      "name": "k8s_ns_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_ns_all",
+      "canonicalName": "shell:k8s_ns_all"
+    },
+    {
+      "name": "k8s_ns_export",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_ns_export",
+      "canonicalName": "shell:k8s_ns_export"
+    },
+    {
+      "name": "k8s_ns_names",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_ns_names",
+      "canonicalName": "shell:k8s_ns_names"
+    },
+    {
+      "name": "k8s_ns_prune",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_ns_prune",
+      "canonicalName": "shell:k8s_ns_prune"
+    },
+    {
+      "name": "k8s_pod_container",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pod_container",
+      "canonicalName": "shell:k8s_pod_container"
+    },
+    {
+      "name": "k8s_pod_export",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pod_export",
+      "canonicalName": "shell:k8s_pod_export"
+    },
+    {
+      "name": "k8s_pod_forwarding",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pod_forwarding",
+      "canonicalName": "shell:k8s_pod_forwarding"
+    },
+    {
+      "name": "k8s_pod_hostpath",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pod_hostpath",
+      "canonicalName": "shell:k8s_pod_hostpath"
+    },
+    {
+      "name": "k8s_pod_images",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pod_images",
+      "canonicalName": "shell:k8s_pod_images"
+    },
+    {
+      "name": "k8s_pod_life",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pod_life",
+      "canonicalName": "shell:k8s_pod_life"
+    },
+    {
+      "name": "k8s_pod_pvc",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pod_pvc",
+      "canonicalName": "shell:k8s_pod_pvc"
+    },
+    {
+      "name": "k8s_pods",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pods",
+      "canonicalName": "shell:k8s_pods"
+    },
+    {
+      "name": "k8s_pods_by_node",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pods_by_node",
+      "canonicalName": "shell:k8s_pods_by_node"
+    },
+    {
+      "name": "k8s_pods_by_node_and_runtime",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pods_by_node_and_runtime",
+      "canonicalName": "shell:k8s_pods_by_node_and_runtime"
+    },
+    {
+      "name": "k8s_pods_by_runtime",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pods_by_runtime",
+      "canonicalName": "shell:k8s_pods_by_runtime"
+    },
+    {
+      "name": "k8s_pv",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pv",
+      "canonicalName": "shell:k8s_pv"
+    },
+    {
+      "name": "k8s_pvc",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pvc",
+      "canonicalName": "shell:k8s_pvc"
+    },
+    {
+      "name": "k8s_pv_pvc",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_pv_pvc",
+      "canonicalName": "shell:k8s_pv_pvc"
+    },
+    {
+      "name": "k8s_runtime_class",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_runtime_class",
+      "canonicalName": "shell:k8s_runtime_class"
+    },
+    {
+      "name": "k8s_sc",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_sc",
+      "canonicalName": "shell:k8s_sc"
+    },
+    {
+      "name": "k8s_secret",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_secret",
+      "canonicalName": "shell:k8s_secret"
+    },
+    {
+      "name": "k8s_service_forwarding",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_service_forwarding",
+      "canonicalName": "shell:k8s_service_forwarding"
+    },
+    {
+      "name": "k8s_svc",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_svc",
+      "canonicalName": "shell:k8s_svc"
+    },
+    {
+      "name": "k8s_svc_avail_external_ip",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_svc_avail_external_ip",
+      "canonicalName": "shell:k8s_svc_avail_external_ip"
+    },
+    {
+      "name": "k8s_svc_avail_external_ip_port",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_svc_avail_external_ip_port",
+      "canonicalName": "shell:k8s_svc_avail_external_ip_port"
+    },
+    {
+      "name": "k8s_svc_ports",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_svc_ports",
+      "canonicalName": "shell:k8s_svc_ports"
+    },
+    {
+      "name": "k8s_sys_deployment",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_sys_deployment",
+      "canonicalName": "shell:k8s_sys_deployment"
+    },
+    {
+      "name": "k8s_sys_desc",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_sys_desc",
+      "canonicalName": "shell:k8s_sys_desc"
+    },
+    {
+      "name": "k8s_sys_ep",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_sys_ep",
+      "canonicalName": "shell:k8s_sys_ep"
+    },
+    {
+      "name": "k8s_sys_logs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_sys_logs",
+      "canonicalName": "shell:k8s_sys_logs"
+    },
+    {
+      "name": "k8s_sys_pod",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_sys_pod",
+      "canonicalName": "shell:k8s_sys_pod"
+    },
+    {
+      "name": "k8s_sys_svc",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_sys_svc",
+      "canonicalName": "shell:k8s_sys_svc"
+    },
+    {
+      "name": "k8s_taint_nodes",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_taint_nodes",
+      "canonicalName": "shell:k8s_taint_nodes"
+    },
+    {
+      "name": "k8s_use_context",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_use_context",
+      "canonicalName": "shell:k8s_use_context"
+    },
+    {
+      "name": "k8s_use_namespace",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_use_namespace",
+      "canonicalName": "shell:k8s_use_namespace"
+    },
+    {
+      "name": "k8s_valid_name",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "k8s_valid_name",
+      "canonicalName": "shell:k8s_valid_name"
+    },
+    {
+      "name": "kind_create_cluster",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "kind_create_cluster",
+      "canonicalName": "shell:kind_create_cluster"
+    },
+    {
+      "name": "kind_create_cluster_in_container",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "kind_create_cluster_in_container",
+      "canonicalName": "shell:kind_create_cluster_in_container"
+    },
+    {
+      "name": "ldd_lib",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ldd_lib",
+      "canonicalName": "shell:ldd_lib"
+    },
+    {
+      "name": "lesser",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "lesser",
+      "canonicalName": "shell:lesser"
+    },
+    {
+      "name": "load_map",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "load_map",
+      "canonicalName": "shell:load_map"
+    },
+    {
+      "name": "log",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "log",
+      "canonicalName": "shell:log"
+    },
+    {
+      "name": "log_with_context",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "log_with_context",
+      "canonicalName": "shell:log_with_context"
+    },
+    {
+      "name": "lower",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "lower",
+      "canonicalName": "shell:lower"
+    },
+    {
+      "name": "ls_top",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ls_top",
+      "canonicalName": "shell:ls_top"
+    },
+    {
+      "name": "lvm_create",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "lvm_create",
+      "canonicalName": "shell:lvm_create"
+    },
+    {
+      "name": "lvm_remove",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "lvm_remove",
+      "canonicalName": "shell:lvm_remove"
+    },
+    {
+      "name": "lvm_test_mkfs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "lvm_test_mkfs",
+      "canonicalName": "shell:lvm_test_mkfs"
+    },
+    {
+      "name": "mac_add_vault_pass",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_add_vault_pass",
+      "canonicalName": "shell:mac_add_vault_pass"
+    },
+    {
+      "name": "mac_check_awdl",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_check_awdl",
+      "canonicalName": "shell:mac_check_awdl"
+    },
+    {
+      "name": "mac_convert_image",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_convert_image",
+      "canonicalName": "shell:mac_convert_image"
+    },
+    {
+      "name": "mac_disable_awdl",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_disable_awdl",
+      "canonicalName": "shell:mac_disable_awdl"
+    },
+    {
+      "name": "mac_disable_proxy",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_disable_proxy",
+      "canonicalName": "shell:mac_disable_proxy"
+    },
+    {
+      "name": "mac_enable_proxy",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_enable_proxy",
+      "canonicalName": "shell:mac_enable_proxy"
+    },
+    {
+      "name": "mac_iterm2_dynamic_profiles",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_iterm2_dynamic_profiles",
+      "canonicalName": "shell:mac_iterm2_dynamic_profiles"
+    },
+    {
+      "name": "mac_list_vault_service",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_list_vault_service",
+      "canonicalName": "shell:mac_list_vault_service"
+    },
+    {
+      "name": "mac_mouse_scaling",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_mouse_scaling",
+      "canonicalName": "shell:mac_mouse_scaling"
+    },
+    {
+      "name": "mac_print_vault_pass",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_print_vault_pass",
+      "canonicalName": "shell:mac_print_vault_pass"
+    },
+    {
+      "name": "mac_proxy_bypass",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_proxy_bypass",
+      "canonicalName": "shell:mac_proxy_bypass"
+    },
+    {
+      "name": "mac_set_scroll",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_set_scroll",
+      "canonicalName": "shell:mac_set_scroll"
+    },
+    {
+      "name": "mac_uuid",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mac_uuid",
+      "canonicalName": "shell:mac_uuid"
+    },
+    {
+      "name": "matches",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "matches",
+      "canonicalName": "shell:matches"
+    },
+    {
+      "name": "mock_it",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mock_it",
+      "canonicalName": "shell:mock_it"
+    },
+    {
+      "name": "motd",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "motd",
+      "canonicalName": "shell:motd"
+    },
+    {
+      "name": "motd_generate",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "motd_generate",
+      "canonicalName": "shell:motd_generate"
+    },
+    {
+      "name": "mount_bootable",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mount_bootable",
+      "canonicalName": "shell:mount_bootable"
+    },
+    {
+      "name": "mount_chroot",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mount_chroot",
+      "canonicalName": "shell:mount_chroot"
+    },
+    {
+      "name": "mov2gif",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mov2gif",
+      "canonicalName": "shell:mov2gif"
+    },
+    {
+      "name": "mov_to_gif",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mov_to_gif",
+      "canonicalName": "shell:mov_to_gif"
+    },
+    {
+      "name": "mp4_to_git",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mp4_to_git",
+      "canonicalName": "shell:mp4_to_git"
+    },
+    {
+      "name": "mv_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "mv_file",
+      "canonicalName": "shell:mv_file"
+    },
+    {
+      "name": "my_add_ip_to_ga",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "my_add_ip_to_ga",
+      "canonicalName": "shell:my_add_ip_to_ga"
+    },
+    {
+      "name": "my_add_ip_to_sg",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "my_add_ip_to_sg",
+      "canonicalName": "shell:my_add_ip_to_sg"
+    },
+    {
+      "name": "my_get_ga_acl",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "my_get_ga_acl",
+      "canonicalName": "shell:my_get_ga_acl"
+    },
+    {
+      "name": "my_get_sg",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "my_get_sg",
+      "canonicalName": "shell:my_get_sg"
+    },
+    {
+      "name": "my_pass",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "my_pass",
+      "canonicalName": "shell:my_pass"
+    },
+    {
+      "name": "my_update_ga",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "my_update_ga",
+      "canonicalName": "shell:my_update_ga"
+    },
+    {
+      "name": "my_update_sg",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "my_update_sg",
+      "canonicalName": "shell:my_update_sg"
+    },
+    {
+      "name": "my_user",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "my_user",
+      "canonicalName": "shell:my_user"
+    },
+    {
+      "name": "net_add_delay_in_ms",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_add_delay_in_ms",
+      "canonicalName": "shell:net_add_delay_in_ms"
+    },
+    {
+      "name": "net_default_ip",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_default_ip",
+      "canonicalName": "shell:net_default_ip"
+    },
+    {
+      "name": "net_del_delay_in_ms",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_del_delay_in_ms",
+      "canonicalName": "shell:net_del_delay_in_ms"
+    },
+    {
+      "name": "net_income_conn",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_income_conn",
+      "canonicalName": "shell:net_income_conn"
+    },
+    {
+      "name": "net_info",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_info",
+      "canonicalName": "shell:net_info"
+    },
+    {
+      "name": "net_is_ip",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_is_ip",
+      "canonicalName": "shell:net_is_ip"
+    },
+    {
+      "name": "net_my_ip",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_my_ip",
+      "canonicalName": "shell:net_my_ip"
+    },
+    {
+      "name": "net_my_login_ip",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_my_login_ip",
+      "canonicalName": "shell:net_my_login_ip"
+    },
+    {
+      "name": "net_namespaces",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_namespaces",
+      "canonicalName": "shell:net_namespaces"
+    },
+    {
+      "name": "net_outcome_conn",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_outcome_conn",
+      "canonicalName": "shell:net_outcome_conn"
+    },
+    {
+      "name": "net_ping",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_ping",
+      "canonicalName": "shell:net_ping"
+    },
+    {
+      "name": "net_route_add",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_route_add",
+      "canonicalName": "shell:net_route_add"
+    },
+    {
+      "name": "net_route_get",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_route_get",
+      "canonicalName": "shell:net_route_get"
+    },
+    {
+      "name": "net_trace_route",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_trace_route",
+      "canonicalName": "shell:net_trace_route"
+    },
+    {
+      "name": "net_valid_ipv4",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_valid_ipv4",
+      "canonicalName": "shell:net_valid_ipv4"
+    },
+    {
+      "name": "net_wait_tcp_port",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "net_wait_tcp_port",
+      "canonicalName": "shell:net_wait_tcp_port"
+    },
+    {
+      "name": "nm_libc_version",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "nm_libc_version",
+      "canonicalName": "shell:nm_libc_version"
+    },
+    {
+      "name": "ns_get_id_from_name",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ns_get_id_from_name",
+      "canonicalName": "shell:ns_get_id_from_name"
+    },
+    {
+      "name": "ns_get_name_from_id",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ns_get_name_from_id",
+      "canonicalName": "shell:ns_get_name_from_id"
+    },
+    {
+      "name": "ns_info",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ns_info",
+      "canonicalName": "shell:ns_info"
+    },
+    {
+      "name": "ns_list",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ns_list",
+      "canonicalName": "shell:ns_list"
+    },
+    {
+      "name": "openai_setenv",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "openai_setenv",
+      "canonicalName": "shell:openai_setenv"
+    },
+    {
+      "name": "openssl_create_ca",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "openssl_create_ca",
+      "canonicalName": "shell:openssl_create_ca"
+    },
+    {
+      "name": "openssl_create_ca_signed_cert",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "openssl_create_ca_signed_cert",
+      "canonicalName": "shell:openssl_create_ca_signed_cert"
+    },
+    {
+      "name": "openssl_generate_private_key",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "openssl_generate_private_key",
+      "canonicalName": "shell:openssl_generate_private_key"
+    },
+    {
+      "name": "openssl_view_crt",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "openssl_view_crt",
+      "canonicalName": "shell:openssl_view_crt"
+    },
+    {
+      "name": "optimize_gif",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "optimize_gif",
+      "canonicalName": "shell:optimize_gif"
+    },
+    {
+      "name": "pci_ali_gpu",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "pci_ali_gpu",
+      "canonicalName": "shell:pci_ali_gpu"
+    },
+    {
+      "name": "pci_ali_nvme",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "pci_ali_nvme",
+      "canonicalName": "shell:pci_ali_nvme"
+    },
+    {
+      "name": "pci_info",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "pci_info",
+      "canonicalName": "shell:pci_info"
+    },
+    {
+      "name": "pci_iommu_list",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "pci_iommu_list",
+      "canonicalName": "shell:pci_iommu_list"
+    },
+    {
+      "name": "perf_cgroup_path_of_pid",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_cgroup_path_of_pid",
+      "canonicalName": "shell:perf_cgroup_path_of_pid"
+    },
+    {
+      "name": "perf_profiling",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_profiling",
+      "canonicalName": "shell:perf_profiling"
+    },
+    {
+      "name": "perf_profiling_cgroup",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_profiling_cgroup",
+      "canonicalName": "shell:perf_profiling_cgroup"
+    },
+    {
+      "name": "perf_profiling_pid",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_profiling_pid",
+      "canonicalName": "shell:perf_profiling_pid"
+    },
+    {
+      "name": "perf_record_by_cgroup",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_record_by_cgroup",
+      "canonicalName": "shell:perf_record_by_cgroup"
+    },
+    {
+      "name": "perf_record_by_cgroup_of_pid",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_record_by_cgroup_of_pid",
+      "canonicalName": "shell:perf_record_by_cgroup_of_pid"
+    },
+    {
+      "name": "perf_record_pod",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_record_pod",
+      "canonicalName": "shell:perf_record_pod"
+    },
+    {
+      "name": "perf_record_syscall",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_record_syscall",
+      "canonicalName": "shell:perf_record_syscall"
+    },
+    {
+      "name": "perf_report",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_report",
+      "canonicalName": "shell:perf_report"
+    },
+    {
+      "name": "perf_trace_net",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_trace_net",
+      "canonicalName": "shell:perf_trace_net"
+    },
+    {
+      "name": "perf_trace_report",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_trace_report",
+      "canonicalName": "shell:perf_trace_report"
+    },
+    {
+      "name": "perf_trace_syscall",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "perf_trace_syscall",
+      "canonicalName": "shell:perf_trace_syscall"
+    },
+    {
+      "name": "pgbeanch_test",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "pgbeanch_test",
+      "canonicalName": "shell:pgbeanch_test"
+    },
+    {
+      "name": "pip_show",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "pip_show",
+      "canonicalName": "shell:pip_show"
+    },
+    {
+      "name": "plantuml_deflate",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "plantuml_deflate",
+      "canonicalName": "shell:plantuml_deflate"
+    },
+    {
+      "name": "plantuml_mindmap2dir",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "plantuml_mindmap2dir",
+      "canonicalName": "shell:plantuml_mindmap2dir"
+    },
+    {
+      "name": "plantuml_render",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "plantuml_render",
+      "canonicalName": "shell:plantuml_render"
+    },
+    {
+      "name": "precmd",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "precmd",
+      "canonicalName": "shell:precmd"
+    },
+    {
+      "name": "proxy_get",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "proxy_get",
+      "canonicalName": "shell:proxy_get"
+    },
+    {
+      "name": "proxy_off",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "proxy_off",
+      "canonicalName": "shell:proxy_off"
+    },
+    {
+      "name": "proxy_on",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "proxy_on",
+      "canonicalName": "shell:proxy_on"
+    },
+    {
+      "name": "proxy_unset",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "proxy_unset",
+      "canonicalName": "shell:proxy_unset"
+    },
+    {
+      "name": "ps_inotify",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ps_inotify",
+      "canonicalName": "shell:ps_inotify"
+    },
+    {
+      "name": "ps_ns",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ps_ns",
+      "canonicalName": "shell:ps_ns"
+    },
+    {
+      "name": "ps_top_mem",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ps_top_mem",
+      "canonicalName": "shell:ps_top_mem"
+    },
+    {
+      "name": "ps_tree",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ps_tree",
+      "canonicalName": "shell:ps_tree"
+    },
+    {
+      "name": "ps_tree_ns",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ps_tree_ns",
+      "canonicalName": "shell:ps_tree_ns"
+    },
+    {
+      "name": "ps_user",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ps_user",
+      "canonicalName": "shell:ps_user"
+    },
+    {
+      "name": "python_build_wheel",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "python_build_wheel",
+      "canonicalName": "shell:python_build_wheel"
+    },
+    {
+      "name": "qemu_amd64_start",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "qemu_amd64_start",
+      "canonicalName": "shell:qemu_amd64_start"
+    },
+    {
+      "name": "qemu_arm64_start",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "qemu_arm64_start",
+      "canonicalName": "shell:qemu_arm64_start"
+    },
+    {
+      "name": "qemu_get_bin",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "qemu_get_bin",
+      "canonicalName": "shell:qemu_get_bin"
+    },
+    {
+      "name": "qwen_code_install",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "qwen_code_install",
+      "canonicalName": "shell:qwen_code_install"
+    },
+    {
+      "name": "qwen_code_setup",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "qwen_code_setup",
+      "canonicalName": "shell:qwen_code_setup"
+    },
+    {
+      "name": "qwen_code_update",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "qwen_code_update",
+      "canonicalName": "shell:qwen_code_update"
+    },
+    {
+      "name": "random_string",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "random_string",
+      "canonicalName": "shell:random_string"
+    },
+    {
+      "name": "remote_add_pub_key",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "remote_add_pub_key",
+      "canonicalName": "shell:remote_add_pub_key"
+    },
+    {
+      "name": "remote_cmd",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "remote_cmd",
+      "canonicalName": "shell:remote_cmd"
+    },
+    {
+      "name": "remote_cmd_expect",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "remote_cmd_expect",
+      "canonicalName": "shell:remote_cmd_expect"
+    },
+    {
+      "name": "remote_deploy_certs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "remote_deploy_certs",
+      "canonicalName": "shell:remote_deploy_certs"
+    },
+    {
+      "name": "remote_deploy_credentials",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "remote_deploy_credentials",
+      "canonicalName": "shell:remote_deploy_credentials"
+    },
+    {
+      "name": "remote_deploy_scripts",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "remote_deploy_scripts",
+      "canonicalName": "shell:remote_deploy_scripts"
+    },
+    {
+      "name": "remote_download",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "remote_download",
+      "canonicalName": "shell:remote_download"
+    },
+    {
+      "name": "remote_get_hosts",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "remote_get_hosts",
+      "canonicalName": "shell:remote_get_hosts"
+    },
+    {
+      "name": "remote_sync_hostname",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "remote_sync_hostname",
+      "canonicalName": "shell:remote_sync_hostname"
+    },
+    {
+      "name": "remote_upload",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "remote_upload",
+      "canonicalName": "shell:remote_upload"
+    },
+    {
+      "name": "repeat",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "repeat",
+      "canonicalName": "shell:repeat"
+    },
+    {
+      "name": "reset_network",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "reset_network",
+      "canonicalName": "shell:reset_network"
+    },
+    {
+      "name": "resize",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "resize",
+      "canonicalName": "shell:resize"
+    },
+    {
+      "name": "rpm_extract_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "rpm_extract_file",
+      "canonicalName": "shell:rpm_extract_file"
+    },
+    {
+      "name": "rpm_get_source",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "rpm_get_source",
+      "canonicalName": "shell:rpm_get_source"
+    },
+    {
+      "name": "rsync_current_to_remote",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "rsync_current_to_remote",
+      "canonicalName": "shell:rsync_current_to_remote"
+    },
+    {
+      "name": "rust_install",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "rust_install",
+      "canonicalName": "shell:rust_install"
+    },
+    {
+      "name": "rust_mirror",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "rust_mirror",
+      "canonicalName": "shell:rust_mirror"
+    },
+    {
+      "name": "safe_popd",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "safe_popd",
+      "canonicalName": "shell:safe_popd"
+    },
+    {
+      "name": "safe_pushd",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "safe_pushd",
+      "canonicalName": "shell:safe_pushd"
+    },
+    {
+      "name": "scan_sensitive_string",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "scan_sensitive_string",
+      "canonicalName": "shell:scan_sensitive_string"
+    },
+    {
+      "name": "script_entry",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "script_entry",
+      "canonicalName": "shell:script_entry"
+    },
+    {
+      "name": "search_bin_path",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "search_bin_path",
+      "canonicalName": "shell:search_bin_path"
+    },
+    {
+      "name": "set_default",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "set_default",
+      "canonicalName": "shell:set_default"
+    },
+    {
+      "name": "shfmt_check_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "shfmt_check_file",
+      "canonicalName": "shell:shfmt_check_file"
+    },
+    {
+      "name": "shfmt_diff_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "shfmt_diff_file",
+      "canonicalName": "shell:shfmt_diff_file"
+    },
+    {
+      "name": "shfmt_directory",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "shfmt_directory",
+      "canonicalName": "shell:shfmt_directory"
+    },
+    {
+      "name": "shfmt_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "shfmt_file",
+      "canonicalName": "shell:shfmt_file"
+    },
+    {
+      "name": "slugify_unicode",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "slugify_unicode",
+      "canonicalName": "shell:slugify_unicode"
+    },
+    {
+      "name": "socat_stdin_to_unix",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "socat_stdin_to_unix",
+      "canonicalName": "shell:socat_stdin_to_unix"
+    },
+    {
+      "name": "socat_tcp_to_tcp",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "socat_tcp_to_tcp",
+      "canonicalName": "shell:socat_tcp_to_tcp"
+    },
+    {
+      "name": "socat_tcp_to_unix",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "socat_tcp_to_unix",
+      "canonicalName": "shell:socat_tcp_to_unix"
+    },
+    {
+      "name": "socat_unix_to_tcp",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "socat_unix_to_tcp",
+      "canonicalName": "shell:socat_unix_to_tcp"
+    },
+    {
+      "name": "source_scripts",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "source_scripts",
+      "canonicalName": "shell:source_scripts"
+    },
+    {
+      "name": "specify_check",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_check",
+      "canonicalName": "shell:specify_check"
+    },
+    {
+      "name": "specify_deinit_copilot_project",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_deinit_copilot_project",
+      "canonicalName": "shell:specify_deinit_copilot_project"
+    },
+    {
+      "name": "specify_deinit_opencode_project",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_deinit_opencode_project",
+      "canonicalName": "shell:specify_deinit_opencode_project"
+    },
+    {
+      "name": "specify_deinit_qoder_project",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_deinit_qoder_project",
+      "canonicalName": "shell:specify_deinit_qoder_project"
+    },
+    {
+      "name": "specify_deinit_qwen_project",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_deinit_qwen_project",
+      "canonicalName": "shell:specify_deinit_qwen_project"
+    },
+    {
+      "name": "specify_ensure",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_ensure",
+      "canonicalName": "shell:specify_ensure"
+    },
+    {
+      "name": "specify_init",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_init",
+      "canonicalName": "shell:specify_init"
+    },
+    {
+      "name": "specify_init_copilot_project",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_init_copilot_project",
+      "canonicalName": "shell:specify_init_copilot_project"
+    },
+    {
+      "name": "specify_init_opencode_project",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_init_opencode_project",
+      "canonicalName": "shell:specify_init_opencode_project"
+    },
+    {
+      "name": "specify_init_qoder_project",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_init_qoder_project",
+      "canonicalName": "shell:specify_init_qoder_project"
+    },
+    {
+      "name": "specify_init_qwen_code_project",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_init_qwen_code_project",
+      "canonicalName": "shell:specify_init_qwen_code_project"
+    },
+    {
+      "name": "specify_install",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_install",
+      "canonicalName": "shell:specify_install"
+    },
+    {
+      "name": "specify_uninstall",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "specify_uninstall",
+      "canonicalName": "shell:specify_uninstall"
+    },
+    {
+      "name": "spin",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "spin",
+      "canonicalName": "shell:spin"
+    },
+    {
+      "name": "ss_established",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ss_established",
+      "canonicalName": "shell:ss_established"
+    },
+    {
+      "name": "ss_find_socket_by_path",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ss_find_socket_by_path",
+      "canonicalName": "shell:ss_find_socket_by_path"
+    },
+    {
+      "name": "ssh_add_host_config",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_add_host_config",
+      "canonicalName": "shell:ssh_add_host_config"
+    },
+    {
+      "name": "ssh_expect_add_auth_key",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_expect_add_auth_key",
+      "canonicalName": "shell:ssh_expect_add_auth_key"
+    },
+    {
+      "name": "ssh_expect_login",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_expect_login",
+      "canonicalName": "shell:ssh_expect_login"
+    },
+    {
+      "name": "ssh_fix_permission",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_fix_permission",
+      "canonicalName": "shell:ssh_fix_permission"
+    },
+    {
+      "name": "ssh_generate_key",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_generate_key",
+      "canonicalName": "shell:ssh_generate_key"
+    },
+    {
+      "name": "ssh_kill_by_port",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_kill_by_port",
+      "canonicalName": "shell:ssh_kill_by_port"
+    },
+    {
+      "name": "ssh_local_to_remote",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_local_to_remote",
+      "canonicalName": "shell:ssh_local_to_remote"
+    },
+    {
+      "name": "ssh_ping",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_ping",
+      "canonicalName": "shell:ssh_ping"
+    },
+    {
+      "name": "ssh_proxy",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_proxy",
+      "canonicalName": "shell:ssh_proxy"
+    },
+    {
+      "name": "ssh_remote_to_local",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_remote_to_local",
+      "canonicalName": "shell:ssh_remote_to_local"
+    },
+    {
+      "name": "ssh_sync_config",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_sync_config",
+      "canonicalName": "shell:ssh_sync_config"
+    },
+    {
+      "name": "ssh_wait_node_ready",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ssh_wait_node_ready",
+      "canonicalName": "shell:ssh_wait_node_ready"
+    },
+    {
+      "name": "ss_listening",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ss_listening",
+      "canonicalName": "shell:ss_listening"
+    },
+    {
+      "name": "ss_port",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ss_port",
+      "canonicalName": "shell:ss_port"
+    },
+    {
+      "name": "ss_process",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ss_process",
+      "canonicalName": "shell:ss_process"
+    },
+    {
+      "name": "ss_summary",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ss_summary",
+      "canonicalName": "shell:ss_summary"
+    },
+    {
+      "name": "ss_tcp",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ss_tcp",
+      "canonicalName": "shell:ss_tcp"
+    },
+    {
+      "name": "ss_udp",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ss_udp",
+      "canonicalName": "shell:ss_udp"
+    },
+    {
+      "name": "ss_unix_abs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ss_unix_abs",
+      "canonicalName": "shell:ss_unix_abs"
+    },
+    {
+      "name": "ss_unix_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "ss_unix_all",
+      "canonicalName": "shell:ss_unix_all"
+    },
+    {
+      "name": "staragent_login",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "staragent_login",
+      "canonicalName": "shell:staragent_login"
+    },
+    {
+      "name": "success",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "success",
+      "canonicalName": "shell:success"
+    },
+    {
+      "name": "systemd_available",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "systemd_available",
+      "canonicalName": "shell:systemd_available"
+    },
+    {
+      "name": "systemd_list_all_unit_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "systemd_list_all_unit_file",
+      "canonicalName": "shell:systemd_list_all_unit_file"
+    },
+    {
+      "name": "systemd_list_system_unit_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "systemd_list_system_unit_file",
+      "canonicalName": "shell:systemd_list_system_unit_file"
+    },
+    {
+      "name": "systemd_list_unit_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "systemd_list_unit_file",
+      "canonicalName": "shell:systemd_list_unit_file"
+    },
+    {
+      "name": "systemd_list_user_unit_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "systemd_list_user_unit_file",
+      "canonicalName": "shell:systemd_list_user_unit_file"
+    },
+    {
+      "name": "tcpdump_cap",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tcpdump_cap",
+      "canonicalName": "shell:tcpdump_cap"
+    },
+    {
+      "name": "tf_apply",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_apply",
+      "canonicalName": "shell:tf_apply"
+    },
+    {
+      "name": "tf_bin",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_bin",
+      "canonicalName": "shell:tf_bin"
+    },
+    {
+      "name": "tf_clean_plan_files",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_clean_plan_files",
+      "canonicalName": "shell:tf_clean_plan_files"
+    },
+    {
+      "name": "tf_clean_unused_tf_files",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_clean_unused_tf_files",
+      "canonicalName": "shell:tf_clean_unused_tf_files"
+    },
+    {
+      "name": "tf_cut_tf_file",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_cut_tf_file",
+      "canonicalName": "shell:tf_cut_tf_file"
+    },
+    {
+      "name": "tf_destroy",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_destroy",
+      "canonicalName": "shell:tf_destroy"
+    },
+    {
+      "name": "tf_extract_example",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_extract_example",
+      "canonicalName": "shell:tf_extract_example"
+    },
+    {
+      "name": "tf_failed_apply",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_failed_apply",
+      "canonicalName": "shell:tf_failed_apply"
+    },
+    {
+      "name": "tf_failed_destroy",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_failed_destroy",
+      "canonicalName": "shell:tf_failed_destroy"
+    },
+    {
+      "name": "tf_failed_plan",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_failed_plan",
+      "canonicalName": "shell:tf_failed_plan"
+    },
+    {
+      "name": "tf_find_module",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_find_module",
+      "canonicalName": "shell:tf_find_module"
+    },
+    {
+      "name": "tf_format",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_format",
+      "canonicalName": "shell:tf_format"
+    },
+    {
+      "name": "tf_plan",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_plan",
+      "canonicalName": "shell:tf_plan"
+    },
+    {
+      "name": "tf_plan_and_apply",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_plan_and_apply",
+      "canonicalName": "shell:tf_plan_and_apply"
+    },
+    {
+      "name": "tf_plan_and_destroy",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_plan_and_destroy",
+      "canonicalName": "shell:tf_plan_and_destroy"
+    },
+    {
+      "name": "tf_read_json",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_read_json",
+      "canonicalName": "shell:tf_read_json"
+    },
+    {
+      "name": "tf_read_yaml",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_read_yaml",
+      "canonicalName": "shell:tf_read_yaml"
+    },
+    {
+      "name": "tf_replace",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_replace",
+      "canonicalName": "shell:tf_replace"
+    },
+    {
+      "name": "tf_validate_module",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "tf_validate_module",
+      "canonicalName": "shell:tf_validate_module"
+    },
+    {
+      "name": "time_duration",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "time_duration",
+      "canonicalName": "shell:time_duration"
+    },
+    {
+      "name": "trim",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "trim",
+      "canonicalName": "shell:trim"
+    },
+    {
+      "name": "truncate",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "truncate",
+      "canonicalName": "shell:truncate"
+    },
+    {
+      "name": "umount_chroot",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "umount_chroot",
+      "canonicalName": "shell:umount_chroot"
+    },
+    {
+      "name": "upper",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "upper",
+      "canonicalName": "shell:upper"
+    },
+    {
+      "name": "uptime",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "uptime",
+      "canonicalName": "shell:uptime"
+    },
+    {
+      "name": "url_decode",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "url_decode",
+      "canonicalName": "shell:url_decode"
+    },
+    {
+      "name": "urlencode",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "urlencode",
+      "canonicalName": "shell:urlencode"
+    },
+    {
+      "name": "virsh_dhcp",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "virsh_dhcp",
+      "canonicalName": "shell:virsh_dhcp"
+    },
+    {
+      "name": "virsh_net_update",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "virsh_net_update",
+      "canonicalName": "shell:virsh_net_update"
+    },
+    {
+      "name": "vscode_add_git_remote",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_add_git_remote",
+      "canonicalName": "shell:vscode_add_git_remote"
+    },
+    {
+      "name": "vscode_add_remote",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_add_remote",
+      "canonicalName": "shell:vscode_add_remote"
+    },
+    {
+      "name": "vscode_archive_specstory_history",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_archive_specstory_history",
+      "canonicalName": "shell:vscode_archive_specstory_history"
+    },
+    {
+      "name": "vscode_bin",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_bin",
+      "canonicalName": "shell:vscode_bin"
+    },
+    {
+      "name": "vscode_collect_specstory_history",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_collect_specstory_history",
+      "canonicalName": "shell:vscode_collect_specstory_history"
+    },
+    {
+      "name": "vscode_ext_download_all",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_ext_download_all",
+      "canonicalName": "shell:vscode_ext_download_all"
+    },
+    {
+      "name": "vscode_ext_download_scripts",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_ext_download_scripts",
+      "canonicalName": "shell:vscode_ext_download_scripts"
+    },
+    {
+      "name": "vscode_ext_install",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_ext_install",
+      "canonicalName": "shell:vscode_ext_install"
+    },
+    {
+      "name": "vscode_ext_list",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_ext_list",
+      "canonicalName": "shell:vscode_ext_list"
+    },
+    {
+      "name": "vscode_ext_update",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_ext_update",
+      "canonicalName": "shell:vscode_ext_update"
+    },
+    {
+      "name": "vscode_ext_url",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_ext_url",
+      "canonicalName": "shell:vscode_ext_url"
+    },
+    {
+      "name": "vscode_insiders_ext_install",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_insiders_ext_install",
+      "canonicalName": "shell:vscode_insiders_ext_install"
+    },
+    {
+      "name": "vscode_insiders_ext_list",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_insiders_ext_list",
+      "canonicalName": "shell:vscode_insiders_ext_list"
+    },
+    {
+      "name": "vscode_insiders_ext_update",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_insiders_ext_update",
+      "canonicalName": "shell:vscode_insiders_ext_update"
+    },
+    {
+      "name": "vscode_insiders_get_bin",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_insiders_get_bin",
+      "canonicalName": "shell:vscode_insiders_get_bin"
+    },
+    {
+      "name": "vscode_insiders_open",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_insiders_open",
+      "canonicalName": "shell:vscode_insiders_open"
+    },
+    {
+      "name": "vscode_open",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_open",
+      "canonicalName": "shell:vscode_open"
+    },
+    {
+      "name": "vscode_scp",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_scp",
+      "canonicalName": "shell:vscode_scp"
+    },
+    {
+      "name": "vscode_setup_mcp",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_setup_mcp",
+      "canonicalName": "shell:vscode_setup_mcp"
+    },
+    {
+      "name": "vscode_show_scp",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_show_scp",
+      "canonicalName": "shell:vscode_show_scp"
+    },
+    {
+      "name": "vscode_show_ssh",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_show_ssh",
+      "canonicalName": "shell:vscode_show_ssh"
+    },
+    {
+      "name": "vscode_ssh",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_ssh",
+      "canonicalName": "shell:vscode_ssh"
+    },
+    {
+      "name": "vscode_ssh_generate_remote",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_ssh_generate_remote",
+      "canonicalName": "shell:vscode_ssh_generate_remote"
+    },
+    {
+      "name": "vscode_ssh_ls",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_ssh_ls",
+      "canonicalName": "shell:vscode_ssh_ls"
+    },
+    {
+      "name": "vscode_ssh_ping",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_ssh_ping",
+      "canonicalName": "shell:vscode_ssh_ping"
+    },
+    {
+      "name": "vscode_ssh_ping_servers",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_ssh_ping_servers",
+      "canonicalName": "shell:vscode_ssh_ping_servers"
+    },
+    {
+      "name": "vscode_workspace_add_c_search_paths",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_workspace_add_c_search_paths",
+      "canonicalName": "shell:vscode_workspace_add_c_search_paths"
+    },
+    {
+      "name": "vscode_workspace_add_folder",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_workspace_add_folder",
+      "canonicalName": "shell:vscode_workspace_add_folder"
+    },
+    {
+      "name": "vscode_workspace_add_golang_search_paths",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_workspace_add_golang_search_paths",
+      "canonicalName": "shell:vscode_workspace_add_golang_search_paths"
+    },
+    {
+      "name": "vscode_workspace_add_python_search_paths",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_workspace_add_python_search_paths",
+      "canonicalName": "shell:vscode_workspace_add_python_search_paths"
+    },
+    {
+      "name": "vscode_workspace_add_rust_search_paths",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_workspace_add_rust_search_paths",
+      "canonicalName": "shell:vscode_workspace_add_rust_search_paths"
+    },
+    {
+      "name": "vscode_workspace_setup",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "vscode_workspace_setup",
+      "canonicalName": "shell:vscode_workspace_setup"
+    },
+    {
+      "name": "wget_download",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "wget_download",
+      "canonicalName": "shell:wget_download"
+    },
+    {
+      "name": "which",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "which",
+      "canonicalName": "shell:which"
+    },
+    {
+      "name": "yum_download",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "yum_download",
+      "canonicalName": "shell:yum_download"
+    },
+    {
+      "name": "yum_install_with_retry",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "yum_install_with_retry",
+      "canonicalName": "shell:yum_install_with_retry"
+    },
+    {
+      "name": "yum_list",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "yum_list",
+      "canonicalName": "shell:yum_list"
+    },
+    {
+      "name": "yum_mk_rootfs",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "yum_mk_rootfs",
+      "canonicalName": "shell:yum_mk_rootfs"
+    },
+    {
+      "name": "yum_prune",
+      "description": "Shell function",
+      "sourceType": "shell",
+      "sourceName": "yum_prune",
+      "canonicalName": "shell:yum_prune"
+    }
+  ],
+  "mcp_servers": [],
+  "system_binaries": [],
+  "shell_functions": [
+    {
+      "name": "add_line_if_not_exit"
+    },
+    {
+      "name": "ali_claude_code_intall"
+    },
+    {
+      "name": "ali_claude_code_setup"
+    },
+    {
+      "name": "ali_claude_code_uninstall"
+    },
+    {
+      "name": "ali_claude_code_update"
+    },
+    {
+      "name": "aliyun_account"
+    },
+    {
+      "name": "aliyun_account_discover"
+    },
+    {
+      "name": "aliyun_account_is_primary"
+    },
+    {
+      "name": "aliyun_account_is_secondary"
+    },
+    {
+      "name": "aliyun_account_setenv"
+    },
+    {
+      "name": "aliyun_ak"
+    },
+    {
+      "name": "aliyun_config_all"
+    },
+    {
+      "name": "aliyun_endpoint"
+    },
+    {
+      "name": "aliyun_region_discover"
+    },
+    {
+      "name": "aliyun_region_list"
+    },
+    {
+      "name": "aliyun_regions"
+    },
+    {
+      "name": "aliyun_resource_audit"
+    },
+    {
+      "name": "aliyun_sk"
+    },
+    {
+      "name": "aliyun_split_api_docs"
+    },
+    {
+      "name": "aliyun_sts_service"
+    },
+    {
+      "name": "aliyun_uid"
+    },
+    {
+      "name": "ansible_check"
+    },
+    {
+      "name": "ansible_check_vault"
+    },
+    {
+      "name": "ansible_dump_config"
+    },
+    {
+      "name": "ansible_ping_hosts"
+    },
+    {
+      "name": "ansible_run_playbook"
+    },
+    {
+      "name": "ansible_run_task"
+    },
+    {
+      "name": "aone_login"
+    },
+    {
+      "name": "aone_mcp_key"
+    },
+    {
+      "name": "apt_prune"
+    },
+    {
+      "name": "archive_current"
+    },
+    {
+      "name": "bash_prompt"
+    },
+    {
+      "name": "cgroup2_enabled"
+    },
+    {
+      "name": "cgroup2_supported"
+    },
+    {
+      "name": "cgroup_path_of_pid"
+    },
+    {
+      "name": "cgroup_remove_all"
+    },
+    {
+      "name": "claude_code_intall"
+    },
+    {
+      "name": "claude_code_setup"
+    },
+    {
+      "name": "claude_code_uninstall"
+    },
+    {
+      "name": "claude_code_update"
+    },
+    {
+      "name": "codex_install"
+    },
+    {
+      "name": "codex_setup"
+    },
+    {
+      "name": "codex_uninstall"
+    },
+    {
+      "name": "codex_update"
+    },
+    {
+      "name": "compare"
+    },
+    {
+      "name": "copilot_generate_instructions"
+    },
+    {
+      "name": "count_line"
+    },
+    {
+      "name": "cp_file"
+    },
+    {
+      "name": "crictl_container_exec"
+    },
+    {
+      "name": "crictl_container_id"
+    },
+    {
+      "name": "crictl_container_ids"
+    },
+    {
+      "name": "crictl_container_id_to_cid"
+    },
+    {
+      "name": "crictl_container_name_to_cid"
+    },
+    {
+      "name": "crictl_copy_file_to_container"
+    },
+    {
+      "name": "crictl_pod_cgroup"
+    },
+    {
+      "name": "crictl_pod_id_to_sid"
+    },
+    {
+      "name": "crictl_pod_name_to_sid"
+    },
+    {
+      "name": "crictl_sandbox_id"
+    },
+    {
+      "name": "crictl_sandbox_rootfs"
+    },
+    {
+      "name": "cri_image_prune"
+    },
+    {
+      "name": "cri_images"
+    },
+    {
+      "name": "cri_pod_info"
+    },
+    {
+      "name": "cri_pods"
+    },
+    {
+      "name": "ctr_export"
+    },
+    {
+      "name": "ctr_load_k8s_image_from_docker"
+    },
+    {
+      "name": "ctr_load_k8s_image_from_file"
+    },
+    {
+      "name": "curl_available"
+    },
+    {
+      "name": "curl_detect"
+    },
+    {
+      "name": "curl_download"
+    },
+    {
+      "name": "curl_download_to_dir"
+    },
+    {
+      "name": "curl_download_to_file"
+    },
+    {
+      "name": "curl_fetch"
+    },
+    {
+      "name": "curl_mirror_file"
+    },
+    {
+      "name": "curl_run_shell"
+    },
+    {
+      "name": "curl_test_server"
+    },
+    {
+      "name": "cws_build_all"
+    },
+    {
+      "name": "cws_build_context"
+    },
+    {
+      "name": "cws_build_k8s_images"
+    },
+    {
+      "name": "cws_check_docker"
+    },
+    {
+      "name": "cws_check_generated_files"
+    },
+    {
+      "name": "cws_check_os"
+    },
+    {
+      "name": "cws_clean"
+    },
+    {
+      "name": "cws_copy_fetcher"
+    },
+    {
+      "name": "cws_create_builder"
+    },
+    {
+      "name": "cws_create_fetcher"
+    },
+    {
+      "name": "cws_create_sig_fetcher"
+    },
+    {
+      "name": "cws_debug_enabled"
+    },
+    {
+      "name": "cws_failed_build"
+    },
+    {
+      "name": "cws_file_downloader"
+    },
+    {
+      "name": "cws_find_orphan"
+    },
+    {
+      "name": "cws_generate"
+    },
+    {
+      "name": "cws_generate_all"
+    },
+    {
+      "name": "cws_home"
+    },
+    {
+      "name": "cws_images_build_status"
+    },
+    {
+      "name": "cws_install_docker_plugin_juicefs"
+    },
+    {
+      "name": "cws_map_local_port_to_mirror"
+    },
+    {
+      "name": "cws_mirror_fetcher"
+    },
+    {
+      "name": "cws_mirror_file"
+    },
+    {
+      "name": "cws_mirror_rust"
+    },
+    {
+      "name": "cws_mount_mirror_oss"
+    },
+    {
+      "name": "cws_nohup_build"
+    },
+    {
+      "name": "cws_nohup_force_build"
+    },
+    {
+      "name": "cws_nohup_rebuild"
+    },
+    {
+      "name": "cws_os_list"
+    },
+    {
+      "name": "cws_os_pattern"
+    },
+    {
+      "name": "cws_prepare"
+    },
+    {
+      "name": "cws_pull_all"
+    },
+    {
+      "name": "cws_push_all"
+    },
+    {
+      "name": "cws_push_k8s_images"
+    },
+    {
+      "name": "cws_py_install"
+    },
+    {
+      "name": "cws_py_is_installed"
+    },
+    {
+      "name": "cws_py_uninstall"
+    },
+    {
+      "name": "cws_rebuild"
+    },
+    {
+      "name": "cws_service_builder"
+    },
+    {
+      "name": "cws_service_docker_prune"
+    },
+    {
+      "name": "cws_service_docker_ps"
+    },
+    {
+      "name": "cws_service_mirror"
+    },
+    {
+      "name": "cws_service_mirror_devel"
+    },
+    {
+      "name": "cws_service_mirror_prod"
+    },
+    {
+      "name": "cws_success_build"
+    },
+    {
+      "name": "cws_tab_k8s_images"
+    },
+    {
+      "name": "cws_tag"
+    },
+    {
+      "name": "cws_terraform_env"
+    },
+    {
+      "name": "cws_update_bash_lib"
+    },
+    {
+      "name": "cws_update_extra"
+    },
+    {
+      "name": "cws_update_python_lib"
+    },
+    {
+      "name": "cws_upload_ssl"
+    },
+    {
+      "name": "date_adjust_seconds"
+    },
+    {
+      "name": "date_from_timestamp"
+    },
+    {
+      "name": "date_id"
+    },
+    {
+      "name": "date_now"
+    },
+    {
+      "name": "date_tag"
+    },
+    {
+      "name": "date_tag_with_seconds"
+    },
+    {
+      "name": "date_time_id"
+    },
+    {
+      "name": "date_utc_to_cst"
+    },
+    {
+      "name": "debug_off"
+    },
+    {
+      "name": "debug_on"
+    },
+    {
+      "name": "die"
+    },
+    {
+      "name": "dir_diff"
+    },
+    {
+      "name": "docker_clean_exited"
+    },
+    {
+      "name": "docker_create_network"
+    },
+    {
+      "name": "docker_desktop_enter"
+    },
+    {
+      "name": "docker_desktop_host"
+    },
+    {
+      "name": "docker_exec"
+    },
+    {
+      "name": "docker_extract"
+    },
+    {
+      "name": "docker_generate_dockerfile"
+    },
+    {
+      "name": "docker_get_cpu_limit_cores"
+    },
+    {
+      "name": "docker_get_host_mem_bytes"
+    },
+    {
+      "name": "docker_get_java_opts"
+    },
+    {
+      "name": "docker_get_mem_limit_bytes"
+    },
+    {
+      "name": "docker_images"
+    },
+    {
+      "name": "docker_is_valid_mem_limit"
+    },
+    {
+      "name": "docker_login"
+    },
+    {
+      "name": "docker_logs"
+    },
+    {
+      "name": "docker_names"
+    },
+    {
+      "name": "docker_otlp_logs"
+    },
+    {
+      "name": "docker_parse_otlp_logs"
+    },
+    {
+      "name": "docker_prune"
+    },
+    {
+      "name": "docker_prune_all"
+    },
+    {
+      "name": "docker_ps"
+    },
+    {
+      "name": "docker_reload"
+    },
+    {
+      "name": "docker_run"
+    },
+    {
+      "name": "dp"
+    },
+    {
+      "name": "dp_recreate"
+    },
+    {
+      "name": "dp_svc"
+    },
+    {
+      "name": "dp_up"
+    },
+    {
+      "name": "dump_stack"
+    },
+    {
+      "name": "du_top"
+    },
+    {
+      "name": "ecs_cloud_init_log"
+    },
+    {
+      "name": "ecs_cloud_init_output"
+    },
+    {
+      "name": "ecs_cloud_init_path"
+    },
+    {
+      "name": "ecs_cloud_init_user_data"
+    },
+    {
+      "name": "ecs_detect_endpoints"
+    },
+    {
+      "name": "ecs_in_aliyun"
+    },
+    {
+      "name": "ecs_info"
+    },
+    {
+      "name": "ecs_instance_type"
+    },
+    {
+      "name": "ecs_interfaces"
+    },
+    {
+      "name": "ecs_private_ip"
+    },
+    {
+      "name": "ecs_public_ip"
+    },
+    {
+      "name": "ecs_region"
+    },
+    {
+      "name": "ecs_uid"
+    },
+    {
+      "name": "ecs_vpc_id"
+    },
+    {
+      "name": "ecs_vswitch_id"
+    },
+    {
+      "name": "ecs_zone_id"
+    },
+    {
+      "name": "encode_files"
+    },
+    {
+      "name": "encode_function"
+    },
+    {
+      "name": "encode_packed"
+    },
+    {
+      "name": "encode_script"
+    },
+    {
+      "name": "encode_stdin"
+    },
+    {
+      "name": "encode_tar_stream"
+    },
+    {
+      "name": "ensure_dir"
+    },
+    {
+      "name": "ensure_utf8_locale"
+    },
+    {
+      "name": "enter_chroot"
+    },
+    {
+      "name": "env_append"
+    },
+    {
+      "name": "env_prune"
+    },
+    {
+      "name": "escape"
+    },
+    {
+      "name": "escape_sed"
+    },
+    {
+      "name": "escape_slashes"
+    },
+    {
+      "name": "expect_check_available"
+    },
+    {
+      "name": "expect_execute_cmd"
+    },
+    {
+      "name": "expect_generate_cmd_script"
+    },
+    {
+      "name": "expect_generate_login_script"
+    },
+    {
+      "name": "expect_login"
+    },
+    {
+      "name": "expect_static_cmd"
+    },
+    {
+      "name": "expect_static_login"
+    },
+    {
+      "name": "extract_source"
+    },
+    {
+      "name": "failed"
+    },
+    {
+      "name": "file_changed"
+    },
+    {
+      "name": "file_create"
+    },
+    {
+      "name": "file_extract"
+    },
+    {
+      "name": "file_extract_to"
+    },
+    {
+      "name": "file_fast_delete"
+    },
+    {
+      "name": "file_mv"
+    },
+    {
+      "name": "file_pack_binary"
+    },
+    {
+      "name": "file_pack_system"
+    },
+    {
+      "name": "file_real_size"
+    },
+    {
+      "name": "file_same"
+    },
+    {
+      "name": "file_size"
+    },
+    {
+      "name": "files_on_change"
+    },
+    {
+      "name": "find_files"
+    },
+    {
+      "name": "find_files_by_size"
+    },
+    {
+      "name": "fix_files_name"
+    },
+    {
+      "name": "fix_permissions"
+    },
+    {
+      "name": "gawklibpath_append"
+    },
+    {
+      "name": "gawklibpath_default"
+    },
+    {
+      "name": "gawklibpath_prepend"
+    },
+    {
+      "name": "gawkpath_append"
+    },
+    {
+      "name": "gawkpath_default"
+    },
+    {
+      "name": "gawkpath_prepend"
+    },
+    {
+      "name": "gcc_std"
+    },
+    {
+      "name": "gdb_disassemble"
+    },
+    {
+      "name": "get_commit_list"
+    },
+    {
+      "name": "get_core_count"
+    },
+    {
+      "name": "get_sensitive_string"
+    },
+    {
+      "name": "git_active_branch"
+    },
+    {
+      "name": "git_add"
+    },
+    {
+      "name": "git_archive"
+    },
+    {
+      "name": "git_backup"
+    },
+    {
+      "name": "git_backup_repository"
+    },
+    {
+      "name": "git_checkout_by_date"
+    },
+    {
+      "name": "git_clean"
+    },
+    {
+      "name": "git_clean_history"
+    },
+    {
+      "name": "git_cleanup_submodules_for_switch"
+    },
+    {
+      "name": "git_clone"
+    },
+    {
+      "name": "git_clone_branches"
+    },
+    {
+      "name": "git_clone_into"
+    },
+    {
+      "name": "git_clone_local"
+    },
+    {
+      "name": "git_clone_multi_project"
+    },
+    {
+      "name": "git_commit_id"
+    },
+    {
+      "name": "git_commit_to_patch"
+    },
+    {
+      "name": "git_config_author"
+    },
+    {
+      "name": "git_config_global_author"
+    },
+    {
+      "name": "git_config_signed_off_hook"
+    },
+    {
+      "name": "git_confirm_dangerous_operation"
+    },
+    {
+      "name": "git_convert_to_https_url"
+    },
+    {
+      "name": "git_copy_commit"
+    },
+    {
+      "name": "git_create_tag"
+    },
+    {
+      "name": "git_current_branch"
+    },
+    {
+      "name": "git_dead_branch"
+    },
+    {
+      "name": "git_delete_tag"
+    },
+    {
+      "name": "git_describe"
+    },
+    {
+      "name": "git_encode_commit"
+    },
+    {
+      "name": "git_from_folder"
+    },
+    {
+      "name": "git_graph"
+    },
+    {
+      "name": "gitignore_add_pattern"
+    },
+    {
+      "name": "git_ignored"
+    },
+    {
+      "name": "gitignore_ensure_exists"
+    },
+    {
+      "name": "gitignore_has_pattern"
+    },
+    {
+      "name": "git_info"
+    },
+    {
+      "name": "git_init_submodule"
+    },
+    {
+      "name": "git_latest_added_files"
+    },
+    {
+      "name": "git_latest_updated_files"
+    },
+    {
+      "name": "git_list_repos"
+    },
+    {
+      "name": "git_list_unstaged_repo"
+    },
+    {
+      "name": "git_list_url"
+    },
+    {
+      "name": "git_locate"
+    },
+    {
+      "name": "git_logs"
+    },
+    {
+      "name": "git_mirror"
+    },
+    {
+      "name": "git_mirror_repo"
+    },
+    {
+      "name": "git_mirror_repo_using_proxy"
+    },
+    {
+      "name": "git_parse_url"
+    },
+    {
+      "name": "git_pull"
+    },
+    {
+      "name": "git_pull_all"
+    },
+    {
+      "name": "git_pull_repos"
+    },
+    {
+      "name": "git_push"
+    },
+    {
+      "name": "git_push_all"
+    },
+    {
+      "name": "git_recover"
+    },
+    {
+      "name": "git_recreate_tag"
+    },
+    {
+      "name": "git_remote_heads"
+    },
+    {
+      "name": "git_repo_root"
+    },
+    {
+      "name": "git_repository_info"
+    },
+    {
+      "name": "git_reset_history"
+    },
+    {
+      "name": "git_revert_patch"
+    },
+    {
+      "name": "git_search"
+    },
+    {
+      "name": "git_setup_ssh_repo"
+    },
+    {
+      "name": "git_show_cleanup_results"
+    },
+    {
+      "name": "git_site_map"
+    },
+    {
+      "name": "git_status_repos"
+    },
+    {
+      "name": "git_submodule_paths"
+    },
+    {
+      "name": "git_switch"
+    },
+    {
+      "name": "git_switch_checkout_ref"
+    },
+    {
+      "name": "git_sync_ignore"
+    },
+    {
+      "name": "git_tags"
+    },
+    {
+      "name": "git_tag_to_commit"
+    },
+    {
+      "name": "git_to_folder"
+    },
+    {
+      "name": "git_track_lfs"
+    },
+    {
+      "name": "git_update_all"
+    },
+    {
+      "name": "git_update_bare"
+    },
+    {
+      "name": "git_update_credentials"
+    },
+    {
+      "name": "git_update_submodule"
+    },
+    {
+      "name": "git_who_delete_file"
+    },
+    {
+      "name": "go_work_init"
+    },
+    {
+      "name": "grubby_disable_audit"
+    },
+    {
+      "name": "grubby_set_eth_names"
+    },
+    {
+      "name": "has_git"
+    },
+    {
+      "name": "have"
+    },
+    {
+      "name": "helm_export_values"
+    },
+    {
+      "name": "helm_untar"
+    },
+    {
+      "name": "highlight_difference_files"
+    },
+    {
+      "name": "highlight_in_file"
+    },
+    {
+      "name": "huge_page"
+    },
+    {
+      "name": "iflow_cli_install"
+    },
+    {
+      "name": "iflow_cli_setup"
+    },
+    {
+      "name": "iflow_cli_update"
+    },
+    {
+      "name": "in_chroot"
+    },
+    {
+      "name": "install_executable_binary"
+    },
+    {
+      "name": "install_executable_files"
+    },
+    {
+      "name": "iptables_all"
+    },
+    {
+      "name": "is_ash"
+    },
+    {
+      "name": "is_bash"
+    },
+    {
+      "name": "is_dash"
+    },
+    {
+      "name": "is_interactive"
+    },
+    {
+      "name": "is_linux"
+    },
+    {
+      "name": "is_macos"
+    },
+    {
+      "name": "is_sourced"
+    },
+    {
+      "name": "is_zsh"
+    },
+    {
+      "name": "jar_extract"
+    },
+    {
+      "name": "java_dump"
+    },
+    {
+      "name": "java_flags"
+    },
+    {
+      "name": "jenkins_update_plugins"
+    },
+    {
+      "name": "journalctl_clean_by_size"
+    },
+    {
+      "name": "journalctl_clean_by_time"
+    },
+    {
+      "name": "jq_array_add"
+    },
+    {
+      "name": "jq_dict_add"
+    },
+    {
+      "name": "jq_format"
+    },
+    {
+      "name": "jq_json_to_csv"
+    },
+    {
+      "name": "jq_otel_logs"
+    },
+    {
+      "name": "jq_smash_file"
+    },
+    {
+      "name": "jq_sort_file"
+    },
+    {
+      "name": "json_escape"
+    },
+    {
+      "name": "jupyter_data_path"
+    },
+    {
+      "name": "k8s_annotate_nodes"
+    },
+    {
+      "name": "k8s_apis"
+    },
+    {
+      "name": "k8s_apply"
+    },
+    {
+      "name": "k8s_cluster_list"
+    },
+    {
+      "name": "k8s_config_from_env"
+    },
+    {
+      "name": "k8s_configmap"
+    },
+    {
+      "name": "k8s_contexts"
+    },
+    {
+      "name": "k8s_create_configmap_from"
+    },
+    {
+      "name": "k8s_current_cluster"
+    },
+    {
+      "name": "k8s_current_context"
+    },
+    {
+      "name": "k8s_daemonset"
+    },
+    {
+      "name": "k8s_daemonset_images"
+    },
+    {
+      "name": "k8s_delete"
+    },
+    {
+      "name": "k8s_delete_pod"
+    },
+    {
+      "name": "k8s_deployment"
+    },
+    {
+      "name": "k8s_deployment_images"
+    },
+    {
+      "name": "k8s_desc_node"
+    },
+    {
+      "name": "k8s_desc_pod"
+    },
+    {
+      "name": "k8s_dump_node"
+    },
+    {
+      "name": "k8s_dump_pod"
+    },
+    {
+      "name": "k8s_ep"
+    },
+    {
+      "name": "k8s_event"
+    },
+    {
+      "name": "k8s_exec_pod"
+    },
+    {
+      "name": "k8s_failed_pod"
+    },
+    {
+      "name": "k8s_foreach_container_exec"
+    },
+    {
+      "name": "k8s_foreach_pod_exec"
+    },
+    {
+      "name": "k8s_generate_namespace"
+    },
+    {
+      "name": "k8s_generate_pod"
+    },
+    {
+      "name": "k8s_get_all"
+    },
+    {
+      "name": "k8s_images_used"
+    },
+    {
+      "name": "k8s_info"
+    },
+    {
+      "name": "k8s_kubeadm_dump_config"
+    },
+    {
+      "name": "k8s_kubeadm_update_certs"
+    },
+    {
+      "name": "k8s_kubeconfig"
+    },
+    {
+      "name": "k8s_label_nodes"
+    },
+    {
+      "name": "k8s_login_container"
+    },
+    {
+      "name": "k8s_login_pod"
+    },
+    {
+      "name": "k8s_logs"
+    },
+    {
+      "name": "k8s_node_annotations"
+    },
+    {
+      "name": "k8s_node_images"
+    },
+    {
+      "name": "k8s_node_labels"
+    },
+    {
+      "name": "k8s_nodes"
+    },
+    {
+      "name": "k8s_node_status"
+    },
+    {
+      "name": "k8s_node_taints"
+    },
+    {
+      "name": "k8s_ns"
+    },
+    {
+      "name": "k8s_ns_all"
+    },
+    {
+      "name": "k8s_ns_export"
+    },
+    {
+      "name": "k8s_ns_names"
+    },
+    {
+      "name": "k8s_ns_prune"
+    },
+    {
+      "name": "k8s_pod_container"
+    },
+    {
+      "name": "k8s_pod_export"
+    },
+    {
+      "name": "k8s_pod_forwarding"
+    },
+    {
+      "name": "k8s_pod_hostpath"
+    },
+    {
+      "name": "k8s_pod_images"
+    },
+    {
+      "name": "k8s_pod_life"
+    },
+    {
+      "name": "k8s_pod_pvc"
+    },
+    {
+      "name": "k8s_pods"
+    },
+    {
+      "name": "k8s_pods_by_node"
+    },
+    {
+      "name": "k8s_pods_by_node_and_runtime"
+    },
+    {
+      "name": "k8s_pods_by_runtime"
+    },
+    {
+      "name": "k8s_pv"
+    },
+    {
+      "name": "k8s_pvc"
+    },
+    {
+      "name": "k8s_pv_pvc"
+    },
+    {
+      "name": "k8s_runtime_class"
+    },
+    {
+      "name": "k8s_sc"
+    },
+    {
+      "name": "k8s_secret"
+    },
+    {
+      "name": "k8s_service_forwarding"
+    },
+    {
+      "name": "k8s_svc"
+    },
+    {
+      "name": "k8s_svc_avail_external_ip"
+    },
+    {
+      "name": "k8s_svc_avail_external_ip_port"
+    },
+    {
+      "name": "k8s_svc_ports"
+    },
+    {
+      "name": "k8s_sys_deployment"
+    },
+    {
+      "name": "k8s_sys_desc"
+    },
+    {
+      "name": "k8s_sys_ep"
+    },
+    {
+      "name": "k8s_sys_logs"
+    },
+    {
+      "name": "k8s_sys_pod"
+    },
+    {
+      "name": "k8s_sys_svc"
+    },
+    {
+      "name": "k8s_taint_nodes"
+    },
+    {
+      "name": "k8s_use_context"
+    },
+    {
+      "name": "k8s_use_namespace"
+    },
+    {
+      "name": "k8s_valid_name"
+    },
+    {
+      "name": "kind_create_cluster"
+    },
+    {
+      "name": "kind_create_cluster_in_container"
+    },
+    {
+      "name": "ldd_lib"
+    },
+    {
+      "name": "lesser"
+    },
+    {
+      "name": "load_map"
+    },
+    {
+      "name": "log"
+    },
+    {
+      "name": "log_with_context"
+    },
+    {
+      "name": "lower"
+    },
+    {
+      "name": "ls_top"
+    },
+    {
+      "name": "lvm_create"
+    },
+    {
+      "name": "lvm_remove"
+    },
+    {
+      "name": "lvm_test_mkfs"
+    },
+    {
+      "name": "mac_add_vault_pass"
+    },
+    {
+      "name": "mac_check_awdl"
+    },
+    {
+      "name": "mac_convert_image"
+    },
+    {
+      "name": "mac_disable_awdl"
+    },
+    {
+      "name": "mac_disable_proxy"
+    },
+    {
+      "name": "mac_enable_proxy"
+    },
+    {
+      "name": "mac_iterm2_dynamic_profiles"
+    },
+    {
+      "name": "mac_list_vault_service"
+    },
+    {
+      "name": "mac_mouse_scaling"
+    },
+    {
+      "name": "mac_print_vault_pass"
+    },
+    {
+      "name": "mac_proxy_bypass"
+    },
+    {
+      "name": "mac_set_scroll"
+    },
+    {
+      "name": "mac_uuid"
+    },
+    {
+      "name": "matches"
+    },
+    {
+      "name": "mock_it"
+    },
+    {
+      "name": "motd"
+    },
+    {
+      "name": "motd_generate"
+    },
+    {
+      "name": "mount_bootable"
+    },
+    {
+      "name": "mount_chroot"
+    },
+    {
+      "name": "mov2gif"
+    },
+    {
+      "name": "mov_to_gif"
+    },
+    {
+      "name": "mp4_to_git"
+    },
+    {
+      "name": "mv_file"
+    },
+    {
+      "name": "my_add_ip_to_ga"
+    },
+    {
+      "name": "my_add_ip_to_sg"
+    },
+    {
+      "name": "my_get_ga_acl"
+    },
+    {
+      "name": "my_get_sg"
+    },
+    {
+      "name": "my_pass"
+    },
+    {
+      "name": "my_update_ga"
+    },
+    {
+      "name": "my_update_sg"
+    },
+    {
+      "name": "my_user"
+    },
+    {
+      "name": "net_add_delay_in_ms"
+    },
+    {
+      "name": "net_default_ip"
+    },
+    {
+      "name": "net_del_delay_in_ms"
+    },
+    {
+      "name": "net_income_conn"
+    },
+    {
+      "name": "net_info"
+    },
+    {
+      "name": "net_is_ip"
+    },
+    {
+      "name": "net_my_ip"
+    },
+    {
+      "name": "net_my_login_ip"
+    },
+    {
+      "name": "net_namespaces"
+    },
+    {
+      "name": "net_outcome_conn"
+    },
+    {
+      "name": "net_ping"
+    },
+    {
+      "name": "net_route_add"
+    },
+    {
+      "name": "net_route_get"
+    },
+    {
+      "name": "net_trace_route"
+    },
+    {
+      "name": "net_valid_ipv4"
+    },
+    {
+      "name": "net_wait_tcp_port"
+    },
+    {
+      "name": "nm_libc_version"
+    },
+    {
+      "name": "ns_get_id_from_name"
+    },
+    {
+      "name": "ns_get_name_from_id"
+    },
+    {
+      "name": "ns_info"
+    },
+    {
+      "name": "ns_list"
+    },
+    {
+      "name": "openai_setenv"
+    },
+    {
+      "name": "openssl_create_ca"
+    },
+    {
+      "name": "openssl_create_ca_signed_cert"
+    },
+    {
+      "name": "openssl_generate_private_key"
+    },
+    {
+      "name": "openssl_view_crt"
+    },
+    {
+      "name": "optimize_gif"
+    },
+    {
+      "name": "pci_ali_gpu"
+    },
+    {
+      "name": "pci_ali_nvme"
+    },
+    {
+      "name": "pci_info"
+    },
+    {
+      "name": "pci_iommu_list"
+    },
+    {
+      "name": "perf_cgroup_path_of_pid"
+    },
+    {
+      "name": "perf_profiling"
+    },
+    {
+      "name": "perf_profiling_cgroup"
+    },
+    {
+      "name": "perf_profiling_pid"
+    },
+    {
+      "name": "perf_record_by_cgroup"
+    },
+    {
+      "name": "perf_record_by_cgroup_of_pid"
+    },
+    {
+      "name": "perf_record_pod"
+    },
+    {
+      "name": "perf_record_syscall"
+    },
+    {
+      "name": "perf_report"
+    },
+    {
+      "name": "perf_trace_net"
+    },
+    {
+      "name": "perf_trace_report"
+    },
+    {
+      "name": "perf_trace_syscall"
+    },
+    {
+      "name": "pgbeanch_test"
+    },
+    {
+      "name": "pip_show"
+    },
+    {
+      "name": "plantuml_deflate"
+    },
+    {
+      "name": "plantuml_mindmap2dir"
+    },
+    {
+      "name": "plantuml_render"
+    },
+    {
+      "name": "precmd"
+    },
+    {
+      "name": "proxy_get"
+    },
+    {
+      "name": "proxy_off"
+    },
+    {
+      "name": "proxy_on"
+    },
+    {
+      "name": "proxy_unset"
+    },
+    {
+      "name": "ps_inotify"
+    },
+    {
+      "name": "ps_ns"
+    },
+    {
+      "name": "ps_top_mem"
+    },
+    {
+      "name": "ps_tree"
+    },
+    {
+      "name": "ps_tree_ns"
+    },
+    {
+      "name": "ps_user"
+    },
+    {
+      "name": "python_build_wheel"
+    },
+    {
+      "name": "qemu_amd64_start"
+    },
+    {
+      "name": "qemu_arm64_start"
+    },
+    {
+      "name": "qemu_get_bin"
+    },
+    {
+      "name": "qwen_code_install"
+    },
+    {
+      "name": "qwen_code_setup"
+    },
+    {
+      "name": "qwen_code_update"
+    },
+    {
+      "name": "random_string"
+    },
+    {
+      "name": "remote_add_pub_key"
+    },
+    {
+      "name": "remote_cmd"
+    },
+    {
+      "name": "remote_cmd_expect"
+    },
+    {
+      "name": "remote_deploy_certs"
+    },
+    {
+      "name": "remote_deploy_credentials"
+    },
+    {
+      "name": "remote_deploy_scripts"
+    },
+    {
+      "name": "remote_download"
+    },
+    {
+      "name": "remote_get_hosts"
+    },
+    {
+      "name": "remote_sync_hostname"
+    },
+    {
+      "name": "remote_upload"
+    },
+    {
+      "name": "repeat"
+    },
+    {
+      "name": "reset_network"
+    },
+    {
+      "name": "resize"
+    },
+    {
+      "name": "rpm_extract_file"
+    },
+    {
+      "name": "rpm_get_source"
+    },
+    {
+      "name": "rsync_current_to_remote"
+    },
+    {
+      "name": "rust_install"
+    },
+    {
+      "name": "rust_mirror"
+    },
+    {
+      "name": "safe_popd"
+    },
+    {
+      "name": "safe_pushd"
+    },
+    {
+      "name": "scan_sensitive_string"
+    },
+    {
+      "name": "script_entry"
+    },
+    {
+      "name": "search_bin_path"
+    },
+    {
+      "name": "set_default"
+    },
+    {
+      "name": "shfmt_check_file"
+    },
+    {
+      "name": "shfmt_diff_file"
+    },
+    {
+      "name": "shfmt_directory"
+    },
+    {
+      "name": "shfmt_file"
+    },
+    {
+      "name": "slugify_unicode"
+    },
+    {
+      "name": "socat_stdin_to_unix"
+    },
+    {
+      "name": "socat_tcp_to_tcp"
+    },
+    {
+      "name": "socat_tcp_to_unix"
+    },
+    {
+      "name": "socat_unix_to_tcp"
+    },
+    {
+      "name": "source_scripts"
+    },
+    {
+      "name": "specify_check"
+    },
+    {
+      "name": "specify_deinit_copilot_project"
+    },
+    {
+      "name": "specify_deinit_opencode_project"
+    },
+    {
+      "name": "specify_deinit_qoder_project"
+    },
+    {
+      "name": "specify_deinit_qwen_project"
+    },
+    {
+      "name": "specify_ensure"
+    },
+    {
+      "name": "specify_init"
+    },
+    {
+      "name": "specify_init_copilot_project"
+    },
+    {
+      "name": "specify_init_opencode_project"
+    },
+    {
+      "name": "specify_init_qoder_project"
+    },
+    {
+      "name": "specify_init_qwen_code_project"
+    },
+    {
+      "name": "specify_install"
+    },
+    {
+      "name": "specify_uninstall"
+    },
+    {
+      "name": "spin"
+    },
+    {
+      "name": "ss_established"
+    },
+    {
+      "name": "ss_find_socket_by_path"
+    },
+    {
+      "name": "ssh_add_host_config"
+    },
+    {
+      "name": "ssh_expect_add_auth_key"
+    },
+    {
+      "name": "ssh_expect_login"
+    },
+    {
+      "name": "ssh_fix_permission"
+    },
+    {
+      "name": "ssh_generate_key"
+    },
+    {
+      "name": "ssh_kill_by_port"
+    },
+    {
+      "name": "ssh_local_to_remote"
+    },
+    {
+      "name": "ssh_ping"
+    },
+    {
+      "name": "ssh_proxy"
+    },
+    {
+      "name": "ssh_remote_to_local"
+    },
+    {
+      "name": "ssh_sync_config"
+    },
+    {
+      "name": "ssh_wait_node_ready"
+    },
+    {
+      "name": "ss_listening"
+    },
+    {
+      "name": "ss_port"
+    },
+    {
+      "name": "ss_process"
+    },
+    {
+      "name": "ss_summary"
+    },
+    {
+      "name": "ss_tcp"
+    },
+    {
+      "name": "ss_udp"
+    },
+    {
+      "name": "ss_unix_abs"
+    },
+    {
+      "name": "ss_unix_all"
+    },
+    {
+      "name": "staragent_login"
+    },
+    {
+      "name": "success"
+    },
+    {
+      "name": "systemd_available"
+    },
+    {
+      "name": "systemd_list_all_unit_file"
+    },
+    {
+      "name": "systemd_list_system_unit_file"
+    },
+    {
+      "name": "systemd_list_unit_file"
+    },
+    {
+      "name": "systemd_list_user_unit_file"
+    },
+    {
+      "name": "tcpdump_cap"
+    },
+    {
+      "name": "tf_apply"
+    },
+    {
+      "name": "tf_bin"
+    },
+    {
+      "name": "tf_clean_plan_files"
+    },
+    {
+      "name": "tf_clean_unused_tf_files"
+    },
+    {
+      "name": "tf_cut_tf_file"
+    },
+    {
+      "name": "tf_destroy"
+    },
+    {
+      "name": "tf_extract_example"
+    },
+    {
+      "name": "tf_failed_apply"
+    },
+    {
+      "name": "tf_failed_destroy"
+    },
+    {
+      "name": "tf_failed_plan"
+    },
+    {
+      "name": "tf_find_module"
+    },
+    {
+      "name": "tf_format"
+    },
+    {
+      "name": "tf_plan"
+    },
+    {
+      "name": "tf_plan_and_apply"
+    },
+    {
+      "name": "tf_plan_and_destroy"
+    },
+    {
+      "name": "tf_read_json"
+    },
+    {
+      "name": "tf_read_yaml"
+    },
+    {
+      "name": "tf_replace"
+    },
+    {
+      "name": "tf_validate_module"
+    },
+    {
+      "name": "time_duration"
+    },
+    {
+      "name": "trim"
+    },
+    {
+      "name": "truncate"
+    },
+    {
+      "name": "umount_chroot"
+    },
+    {
+      "name": "upper"
+    },
+    {
+      "name": "uptime"
+    },
+    {
+      "name": "url_decode"
+    },
+    {
+      "name": "urlencode"
+    },
+    {
+      "name": "virsh_dhcp"
+    },
+    {
+      "name": "virsh_net_update"
+    },
+    {
+      "name": "vscode_add_git_remote"
+    },
+    {
+      "name": "vscode_add_remote"
+    },
+    {
+      "name": "vscode_archive_specstory_history"
+    },
+    {
+      "name": "vscode_bin"
+    },
+    {
+      "name": "vscode_collect_specstory_history"
+    },
+    {
+      "name": "vscode_ext_download_all"
+    },
+    {
+      "name": "vscode_ext_download_scripts"
+    },
+    {
+      "name": "vscode_ext_install"
+    },
+    {
+      "name": "vscode_ext_list"
+    },
+    {
+      "name": "vscode_ext_update"
+    },
+    {
+      "name": "vscode_ext_url"
+    },
+    {
+      "name": "vscode_insiders_ext_install"
+    },
+    {
+      "name": "vscode_insiders_ext_list"
+    },
+    {
+      "name": "vscode_insiders_ext_update"
+    },
+    {
+      "name": "vscode_insiders_get_bin"
+    },
+    {
+      "name": "vscode_insiders_open"
+    },
+    {
+      "name": "vscode_open"
+    },
+    {
+      "name": "vscode_scp"
+    },
+    {
+      "name": "vscode_setup_mcp"
+    },
+    {
+      "name": "vscode_show_scp"
+    },
+    {
+      "name": "vscode_show_ssh"
+    },
+    {
+      "name": "vscode_ssh"
+    },
+    {
+      "name": "vscode_ssh_generate_remote"
+    },
+    {
+      "name": "vscode_ssh_ls"
+    },
+    {
+      "name": "vscode_ssh_ping"
+    },
+    {
+      "name": "vscode_ssh_ping_servers"
+    },
+    {
+      "name": "vscode_workspace_add_c_search_paths"
+    },
+    {
+      "name": "vscode_workspace_add_folder"
+    },
+    {
+      "name": "vscode_workspace_add_golang_search_paths"
+    },
+    {
+      "name": "vscode_workspace_add_python_search_paths"
+    },
+    {
+      "name": "vscode_workspace_add_rust_search_paths"
+    },
+    {
+      "name": "vscode_workspace_setup"
+    },
+    {
+      "name": "wget_download"
+    },
+    {
+      "name": "which"
+    },
+    {
+      "name": "yum_download"
+    },
+    {
+      "name": "yum_install_with_retry"
+    },
+    {
+      "name": "yum_list"
+    },
+    {
+      "name": "yum_mk_rootfs"
+    },
+    {
+      "name": "yum_prune"
+    }
+  ],
+  "project_scripts": []
+}

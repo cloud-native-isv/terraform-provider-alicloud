@@ -1,0 +1,145 @@
+{
+  "timestamp": "2026-05-30T16:52:58.732805",
+  "sources": [
+    "system"
+  ],
+  "tools": [
+    {
+      "name": "git",
+      "path": "/usr/bin/git",
+      "description": "System binary at /usr/bin/git",
+      "sourceType": "system",
+      "sourceName": "git",
+      "canonicalName": "system:git"
+    },
+    {
+      "name": "docker",
+      "path": "/usr/bin/docker",
+      "description": "System binary at /usr/bin/docker",
+      "sourceType": "system",
+      "sourceName": "docker",
+      "canonicalName": "system:docker"
+    },
+    {
+      "name": "python3",
+      "path": "/usr/local/bin/python3",
+      "description": "System binary at /usr/local/bin/python3",
+      "sourceType": "system",
+      "sourceName": "python3",
+      "canonicalName": "system:python3"
+    },
+    {
+      "name": "python",
+      "path": "/usr/bin/python",
+      "description": "System binary at /usr/bin/python",
+      "sourceType": "system",
+      "sourceName": "python",
+      "canonicalName": "system:python"
+    },
+    {
+      "name": "pip3",
+      "path": "/usr/bin/pip3",
+      "description": "System binary at /usr/bin/pip3",
+      "sourceType": "system",
+      "sourceName": "pip3",
+      "canonicalName": "system:pip3"
+    },
+    {
+      "name": "node",
+      "path": "/usr/bin/node",
+      "description": "System binary at /usr/bin/node",
+      "sourceType": "system",
+      "sourceName": "node",
+      "canonicalName": "system:node"
+    },
+    {
+      "name": "npm",
+      "path": "/usr/bin/npm",
+      "description": "System binary at /usr/bin/npm",
+      "sourceType": "system",
+      "sourceName": "npm",
+      "canonicalName": "system:npm"
+    },
+    {
+      "name": "jq",
+      "path": "/usr/bin/jq",
+      "description": "System binary at /usr/bin/jq",
+      "sourceType": "system",
+      "sourceName": "jq",
+      "canonicalName": "system:jq"
+    },
+    {
+      "name": "curl",
+      "path": "/usr/bin/curl",
+      "description": "System binary at /usr/bin/curl",
+      "sourceType": "system",
+      "sourceName": "curl",
+      "canonicalName": "system:curl"
+    },
+    {
+      "name": "wget",
+      "path": "/usr/bin/wget",
+      "description": "System binary at /usr/bin/wget",
+      "sourceType": "system",
+      "sourceName": "wget",
+      "canonicalName": "system:wget"
+    },
+    {
+      "name": "make",
+      "path": "/usr/bin/make",
+      "description": "System binary at /usr/bin/make",
+      "sourceType": "system",
+      "sourceName": "make",
+      "canonicalName": "system:make"
+    }
+  ],
+  "mcp_servers": [],
+  "system_binaries": [
+    {
+      "name": "git",
+      "path": "/usr/bin/git"
+    },
+    {
+      "name": "docker",
+      "path": "/usr/bin/docker"
+    },
+    {
+      "name": "python3",
+      "path": "/usr/local/bin/python3"
+    },
+    {
+      "name": "python",
+      "path": "/usr/bin/python"
+    },
+    {
+      "name": "pip3",
+      "path": "/usr/bin/pip3"
+    },
+    {
+      "name": "node",
+      "path": "/usr/bin/node"
+    },
+    {
+      "name": "npm",
+      "path": "/usr/bin/npm"
+    },
+    {
+      "name": "jq",
+      "path": "/usr/bin/jq"
+    },
+    {
+      "name": "curl",
+      "path": "/usr/bin/curl"
+    },
+    {
+      "name": "wget",
+      "path": "/usr/bin/wget"
+    },
+    {
+      "name": "make",
+      "path": "/usr/bin/make"
+    }
+  ],
+  "shell_functions": [],
+  "project_scripts": []
+}
