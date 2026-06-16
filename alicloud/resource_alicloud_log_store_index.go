@@ -73,7 +73,7 @@ func resourceAliCloudLogStoreIndex() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "text",
-							ValidateFunc: validation.StringInSlice([]string{"text", "long", "double"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"text", "long", "double", "json"}, false),
 						},
 						"alias": {
 							Type:     schema.TypeString,

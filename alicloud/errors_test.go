@@ -36,3 +36,17 @@ func TestIsAlreadyExistError(t *testing.T) {
 		})
 	}
 }
+
+func TestIsProjectTransferAccelerationNotSupportedError(t *testing.T) {
+	err := WrapErrorf(
+		fmt.Errorf("PutProjectTransferAcceleration SDK error in DisableProjectTransferAcceleration: failed to disable transfer acceleration for project test-project: SDKError:\n   StatusCode: 400\n   Code: NotSupported\n   Message: The operation is not supported in this region."),
+		DefaultErrorMsg,
+		"test-project",
+		"DisableProjectTransferAcceleration",
+		AlibabaCloudSdkGoERROR,
+	)
+
+	if !isProjectTransferAccelerationNotSupportedError(err) {
+		t.Fatalf("expected transfer acceleration NotSupported error to be recognized: %v", err)
+	}
+}

@@ -40,33 +40,3 @@ func (service *SlsService) GetAPI() *aliyunSlsAPI.SlsAPI {
 	// add some customize logic for this API object
 	return service.slsAPI
 }
-
-// Only set dataRedundancyType for regions that support it
-var SupportsDataRedundancyRegions = []string{
-	"ap-northeast-1",
-	"ap-northeast-2",
-	"ap-southeast-1",
-	// "ap-southeast-3",
-	"ap-southeast-5",
-	"ap-southeast-6",
-	"ap-southeast-7",
-	"cn-beijing",
-	"cn-chengdu",
-	// "cn-fuzhou",
-	"cn-guangzhou",
-	"cn-hangzhou",
-	// "cn-heyuan",
-	// "cn-hongkong",
-	"cn-huhehaote",
-	// "cn-qingdao",
-	// "cn-shanghai-finance-1",
-	"cn-shanghai",
-	"cn-shenzhen",
-	// "cn-wulanchabu-acdr-1",
-	"cn-wulanchabu",
-	"cn-zhangjiakou",
-	// "eu-central-1",
-	// "eu-west-1",
-	// "us-east-1",
-	// "us-west-1",
-}

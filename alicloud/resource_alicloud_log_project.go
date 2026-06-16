@@ -10,48 +10,19 @@ import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-// validateDataRedundancyType validates data redundancy type based on region support
-func validateDataRedundancyType(val interface{}, key string) (warns []string, errs []error) {
-	// First validate that the value is one of the allowed types
-	validTypes := []string{string(aliyunSlsAPI.DataRedundancyTypeLRS), string(aliyunSlsAPI.DataRedundancyTypeZRS)}
-	typeWarns, typeErrs := validation.StringInSlice(validTypes, false)(val, key)
-	warns = append(warns, typeWarns...)
-	errs = append(errs, typeErrs...)
-
-	// Note: Region-specific validation will be performed during resource creation
-	// since validation functions don't have access to the provider context
-	// This ensures the value type is correct before creation
-
-	return warns, errs
+func isProjectTransferAccelerationNotSupportedError(err error) bool {
+	return IsExpectedErrors(err, []string{"NotSupported", "The operation is not supported in this region."})
 }
 
-// validateDataRedundancyTypeForRegion performs region-specific validation during resource operations
-func validateDataRedundancyTypeForRegion(dataRedundancyType string, region string) error {
-	if dataRedundancyType == "" {
-		return nil // Optional field, no validation needed
+func setProjectTransferAccelerationEnabled(slsService *SlsService, projectName string, currentEnabled bool, targetEnabled bool) error {
+	if currentEnabled == targetEnabled {
+		log.Printf("[DEBUG] Project %s transfer acceleration is already %t, skip setting it", projectName, targetEnabled)
+		return nil
 	}
 
-	// Check if the region supports data redundancy
-	regionSupportsDataRedundancy := false
-	for _, supportedRegion := range SupportsDataRedundancyRegions {
-		if supportedRegion == region {
-			regionSupportsDataRedundancy = true
-			break
-		}
-	}
-
-	if dataRedundancyType == string(aliyunSlsAPI.DataRedundancyTypeZRS) && !regionSupportsDataRedundancy {
-		return fmt.Errorf("[data_redundancy_type = %s] is not supported in region %s. Supported regions: %v", dataRedundancyType, region, SupportsDataRedundancyRegions)
-	}
-
-	return nil
-}
-
-func setProjectTransferAccelerationEnabled(slsService *SlsService, projectName string, enabled bool) error {
-	if enabled {
+	if targetEnabled {
 		if err := slsService.EnableProjectTransferAcceleration(projectName); err != nil {
 			return err
 		}
@@ -59,6 +30,10 @@ func setProjectTransferAccelerationEnabled(slsService *SlsService, projectName s
 	}
 
 	if err := slsService.DisableProjectTransferAcceleration(projectName); err != nil {
+		if isProjectTransferAccelerationNotSupportedError(err) {
+			log.Printf("[WARN] Project %s DisableProjectTransferAcceleration returned NotSupported. Treating transfer_acceleration_enabled=false as applied: %s", projectName, err)
+			return nil
+		}
 		return err
 	}
 
@@ -129,10 +104,9 @@ func resourceAliCloudLogProject() *schema.Resource {
 				Computed: true,
 			},
 			"data_redundancy_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateDataRedundancyType,
-				Default:      string(aliyunSlsAPI.DataRedundancyTypeZRS),
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(aliyunSlsAPI.DataRedundancyTypeZRS),
 			},
 			"recycle_bin_enabled": {
 				Type:     schema.TypeBool,
@@ -190,13 +164,9 @@ func resourceAliCloudLogProjectCreate(d *schema.ResourceData, meta interface{}) 
 		logProject.ResourceGroupId = v.(string)
 	}
 
-	// Check region support for data redundancy and set the field accordingly
+	// Set data redundancy type if provided. Validation is handled by the Terraform module layer.
 	if v, ok := d.GetOk("data_redundancy_type"); ok {
 		dataRedundancyType := v.(string)
-		validErr := validateDataRedundancyTypeForRegion(dataRedundancyType, client.RegionId)
-		if validErr != nil {
-			return WrapErrorf(validErr, DefaultErrorMsg, "alicloud_log_project", "CreateProject", AlibabaCloudSdkGoERROR)
-		}
 		logProject.DataRedundancyType = aliyunSlsAPI.DataRedundancyType(dataRedundancyType)
 	}
 
@@ -227,7 +197,7 @@ func resourceAliCloudLogProjectCreate(d *schema.ResourceData, meta interface{}) 
 	// Set the resource ID
 	d.SetId(projectName)
 
-	if err := setProjectTransferAccelerationEnabled(slsService, projectName, d.Get("transfer_acceleration_enabled").(bool)); err != nil {
+	if err := setProjectTransferAccelerationEnabled(slsService, projectName, false, d.Get("transfer_acceleration_enabled").(bool)); err != nil {
 		return err
 	}
 
@@ -340,8 +310,8 @@ func resourceAliCloudLogProjectUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("transfer_acceleration_enabled") {
-		enabled := d.Get("transfer_acceleration_enabled").(bool)
-		if err := setProjectTransferAccelerationEnabled(slsService, d.Id(), enabled); err != nil {
+		oldValue, newValue := d.GetChange("transfer_acceleration_enabled")
+		if err := setProjectTransferAccelerationEnabled(slsService, d.Id(), oldValue.(bool), newValue.(bool)); err != nil {
 			return err
 		}
 		d.SetPartial("transfer_acceleration_enabled")
