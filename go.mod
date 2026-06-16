@@ -37,11 +37,11 @@ require (
 
 require (
 	github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.18
-	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.3.0
+	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.4.0
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.14
 	github.com/alibabacloud-go/fc-20230330/v4 v4.0.0-00010101000000-000000000000
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
-	github.com/alibabacloud-go/tea-utils/v2 v2.0.7
+	github.com/alibabacloud-go/tea-utils/v2 v2.0.8
 	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v0.0.0-00010101000000-000000000000
 	github.com/blues/jsonata-go v1.5.4
 	github.com/hashicorp/go-hclog v1.6.2
@@ -64,7 +64,7 @@ require (
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-oss-util v0.0.7 // indirect
-	github.com/alibabacloud-go/alibabacloud-gateway-sls-util v0.3.0 // indirect
+	github.com/alibabacloud-go/alibabacloud-gateway-sls-util v0.4.0 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.5 // indirect
 	github.com/alibabacloud-go/alikafka-20190916/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/arms-20190808/v9 v9.0.0-00010101000000-000000000000 // indirect
@@ -77,7 +77,7 @@ require (
 	github.com/alibabacloud-go/endpoint-util v1.1.1 // indirect
 	github.com/alibabacloud-go/foasconsole-20211028 v0.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/nas-20170626/v3 v3.0.0-00010101000000-000000000000 // indirect
-	github.com/alibabacloud-go/openapi-util v0.1.1 // indirect
+	github.com/alibabacloud-go/openapi-util v0.1.2 // indirect
 	github.com/alibabacloud-go/oss-20190517/v2 v2.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/rds-20140815/v5 v5.0.5 // indirect
 	github.com/alibabacloud-go/selectdb-20230522/v4 v4.0.0-00010101000000-000000000000 // indirect
@@ -233,7 +233,7 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-go 1.24
+go 1.26
 
 replace github.com/cloud-native-tools/cws-lib-go => ./pkg/cws-lib-go
 
