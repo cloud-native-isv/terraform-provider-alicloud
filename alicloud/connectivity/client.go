@@ -20,7 +20,6 @@ import (
 	utilV2 "github.com/alibabacloud-go/tea-utils/v2/service"
 
 	ossclient "github.com/alibabacloud-go/alibabacloud-gateway-oss/client"
-	gatewayclient "github.com/alibabacloud-go/alibabacloud-gateway-sls/client"
 	roaCS "github.com/alibabacloud-go/cs-20151215/v5/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	roa "github.com/alibabacloud-go/tea-roa/client"
@@ -2112,13 +2111,6 @@ func (client *AliyunClient) Do(apiProductCode string, apiParams *openapi.Params,
 		if ossV, ok := client.config.SignVersion.Load("oss"); ok {
 			openapiClient.SignatureVersion = tea.String(ossV.(string))
 		}
-	}
-	if apiProductCode == "sls" {
-		openapiClient.Spi, err = gatewayclient.NewClient()
-		if err != nil {
-			return nil, fmt.Errorf("unable to initialize the %s api client: %#v", apiProductCode, err)
-		}
-		openapiClient.Protocol = tea.String(client.config.Protocol)
 	}
 	var response map[string]interface{}
 	runtime := &utilV2.RuntimeOptions{}
