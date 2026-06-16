@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	slsPop "github.com/aliyun/alibaba-cloud-sdk-go/services/sls"
-	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunCommonAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/common"
+	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
@@ -70,9 +70,11 @@ func resourcelicloudLogAlertResourceCreate(d *schema.ResourceData, meta interfac
 				request.Language = lang
 				return slsPopClient.InitUserAlertResource(request)
 			case "project":
-				_, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-					return slsClient.GetLogStore(project, "internal-alert-history")
-				})
+				slsService, err := NewSlsService(client)
+				if err != nil {
+					return nil, err
+				}
+				_, err = slsService.DescribeLogStore(project, "internal-alert-history")
 				if err != nil {
 					if IsExpectedErrors(err, []string{"LogStoreNotExist"}) {
 						request := slsPop.CreateAnalyzeProductLogRequest()
@@ -120,38 +122,46 @@ func resourcelicloudLogAlertResourceRead(d *schema.ResourceData, meta interface{
 		_, err := client.WithLogPopClient(func(slsPopClient *slsPop.Client) (interface{}, error) {
 			switch resourceType {
 			case "user":
-				_, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-					record, err := slsClient.GetResourceRecord("sls.alert.global_config", "default_config")
-					if err != nil {
-						return nil, err
-					}
-					var alertGlobalConfig AlertGlobalConfig
-					err = json.Unmarshal([]byte(record.Value), &alertGlobalConfig)
-					if err != nil {
-						return nil, err
-					}
-					region := alertGlobalConfig.ConfigDetail.AlertCenterLog.Region
-					accountId, err := client.AccountId()
-					if err != nil {
-						return nil, err
-					}
-					projectName := fmt.Sprintf("sls-alert-%s-%s", accountId, region)
-					endpoint := slsClient.Endpoint
-					slsClient.Endpoint = strings.Replace(endpoint, client.RegionId, region, 1)
-					_, err = slsClient.GetProject(projectName)
-					if err != nil {
-						slsClient.Endpoint = endpoint
-						return nil, err
-					}
-					_, err = slsClient.GetLogStore(projectName, "internal-alert-center-log")
-					slsClient.Endpoint = endpoint
-					if err != nil {
-						return nil, err
-					}
-					return nil, nil
+				slsService, err := NewSlsService(client)
+				if err != nil {
+					return nil, err
+				}
+				record, err := slsService.GetAPI().GetResourceRecord("sls.alert.global_config", "default_config")
+				if err != nil {
+					return nil, err
+				}
+				var alertGlobalConfig AlertGlobalConfig
+				err = json.Unmarshal([]byte(record.Value), &alertGlobalConfig)
+				if err != nil {
+					return nil, err
+				}
+				region := alertGlobalConfig.ConfigDetail.AlertCenterLog.Region
+				accountId, err := client.AccountId()
+				if err != nil {
+					return nil, err
+				}
+				projectName := fmt.Sprintf("sls-alert-%s-%s", accountId, region)
+
+				regionSlsAPI, err := aliyunSlsAPI.NewSlsAPI(&aliyunCommonAPI.Credentials{
+					AccessKey:     client.AccessKey,
+					SecretKey:     client.SecretKey,
+					RegionId:      region,
+					SecurityToken: client.SecurityToken,
 				})
 				if err != nil {
-					if IsExpectedErrors(err, []string{"ProjectNotExist"}) || IsExpectedErrors(err, []string{"LogStoreNotExist"}) {
+					return nil, err
+				}
+				_, err = regionSlsAPI.GetLogProject(projectName)
+				if err != nil {
+					if IsExpectedErrors(err, []string{"ProjectNotExist"}) {
+						d.SetId("")
+						return nil, nil
+					}
+					return nil, err
+				}
+				_, err = regionSlsAPI.GetLogStore(projectName, "internal-alert-center-log")
+				if err != nil {
+					if IsExpectedErrors(err, []string{"LogStoreNotExist"}) {
 						d.SetId("")
 						return nil, nil
 					}
@@ -164,9 +174,11 @@ func resourcelicloudLogAlertResourceRead(d *schema.ResourceData, meta interface{
 				return nil, nil
 			case "project":
 				project := parts[2]
-				_, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-					return slsClient.GetLogStore(project, "internal-alert-history")
-				})
+				slsService, err := NewSlsService(client)
+				if err != nil {
+					return nil, err
+				}
+				_, err = slsService.DescribeLogStore(project, "internal-alert-history")
 				if err != nil {
 					if IsExpectedErrors(err, []string{"LogStoreNotExist"}) {
 						d.SetId("")

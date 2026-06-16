@@ -62,7 +62,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/yundun_dbaudit"
 	"github.com/aliyun/aliyun-datahub-sdk-go/datahub"
-	sls "github.com/aliyun/aliyun-log-go-sdk"
+
 	ali_mns "github.com/aliyun/aliyun-mns-go-sdk"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
@@ -111,7 +111,7 @@ type AliyunClient struct {
 	cdnconn                      *cdn.CdnClient
 	otsconn                      *ots.Client
 	cmsconn                      *cms.Client
-	logconn                      *sls.Client
+
 	fcconn                       *fc.Client
 	cenconn                      *cbn.Client
 	logpopconn                   *slsPop.Client
@@ -805,33 +805,6 @@ func (client *AliyunClient) WithLogPopClient(do func(*slsPop.Client) (interface{
 	return do(client.logpopconn)
 }
 
-func (client *AliyunClient) WithLogClient(do func(*sls.Client) (interface{}, error)) (interface{}, error) {
-	goSdkMutex.Lock()
-	defer goSdkMutex.Unlock()
-
-	if client.logconn != nil && !client.config.needRefreshCredential() {
-		return do(client.logconn)
-	}
-	product := "sls"
-	endpoint, err := client.loadApiEndpoint(product)
-	if err != nil {
-		return nil, err
-	}
-
-	if !strings.HasPrefix(endpoint, "http") {
-		endpoint = fmt.Sprintf("https://%s", strings.TrimPrefix(endpoint, "://"))
-	}
-	accessKey, secretKey, securityToken := client.config.GetRefreshCredential()
-	client.logconn = &sls.Client{
-		AccessKeyID:     accessKey,
-		AccessKeySecret: secretKey,
-		Endpoint:        endpoint,
-		SecurityToken:   securityToken,
-		UserAgent:       client.getUserAgent(),
-	}
-
-	return do(client.logconn)
-}
 
 func (client *AliyunClient) WithDrdsClient(do func(*drds.Client) (interface{}, error)) (interface{}, error) {
 	if client.drdsconn != nil && !client.config.needRefreshCredential() {

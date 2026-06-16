@@ -6,7 +6,6 @@ import (
 	"time"
 
 	slsPop "github.com/aliyun/alibaba-cloud-sdk-go/services/sls"
-	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -50,9 +49,11 @@ func dataSourceAliCloudLogAlertResourceRead(d *schema.ResourceData, meta interfa
 				request.Language = lang
 				return slsPopClient.InitUserAlertResource(request)
 			case "project":
-				_, err := client.WithLogClient(func(slsClient *sls.Client) (interface{}, error) {
-					return slsClient.GetLogStore(project, "internal-alert-history")
-				})
+				slsService, err := NewSlsService(client)
+				if err != nil {
+					return nil, err
+				}
+				_, err = slsService.DescribeLogStore(project, "internal-alert-history")
 				if err != nil {
 					if IsExpectedErrors(err, []string{"LogStoreNotExist"}) {
 						request := slsPop.CreateAnalyzeProductLogRequest()
