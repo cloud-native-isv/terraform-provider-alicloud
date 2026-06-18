@@ -83,6 +83,10 @@ func dataSourceAliCloudLogStoreIndexes() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+						"chn": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -185,6 +189,7 @@ func dataSourceAliCloudLogStoreIndexesRead(d *schema.ResourceData, meta interfac
 		lineConfig := make(map[string]interface{})
 		lineConfig["token"] = index.Line.Token
 		lineConfig["case_sensitive"] = index.Line.CaseSensitive
+		lineConfig["chn"] = index.Line.Chn
 		if index.Line.IncludeKeys != nil {
 			lineConfig["include_keys"] = index.Line.IncludeKeys
 		}
