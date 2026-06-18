@@ -40,8 +40,8 @@ func resourceAliCloudGpdbAccount() *schema.Resource {
 				ValidateFunc: StringMatch(regexp.MustCompile("^[\u4E00-\u9FA5A-Za-z0-9_]+$"), "The account name."),
 			},
 			"account_password": {
-				Type:      schema.TypeString,
-				Required:  true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"account_type": {
 				Type:     schema.TypeString,

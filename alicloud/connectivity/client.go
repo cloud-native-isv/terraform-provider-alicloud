@@ -83,34 +83,34 @@ type AliyunClient struct {
 	SecureTransport      string
 	skipRegionValidation bool
 	//In order to build ots table client, add accesskey and secretkey in aliyunclient temporarily.
-	AccessKey                    string
-	SecretKey                    string
-	SecurityToken                string
-	OtsInstanceName              string
-	accountIdMutex               sync.RWMutex
-	config                       *Config
-	teaSdkConfig                 rpc.Config
-	teaRoaSdkConfig              roa.Config
-	teaRpcOpenapiConfig          openapi.Config
-	teaRoaOpenapiConfig          openapi.Config
-	accountId                    string
-	ecsconn                      *ecs.Client
-	essconn                      *ess.Client
-	vpcconn                      *vpc.Client
-	slbconn                      *slb.Client
-	alikafkaconn                 *alikafka.Client
-	ossconn                      *oss.Client
-	dnsconn                      *alidns.Client
-	ramconn                      *ram.Client
-	csconn                       *cs.Client
-	officalCSConn                *officalCS.Client
-	roaCSConn                    *roaCS.Client
-	cdnconn_new                  *cdn_new.Client
-	crconn                       *cr.Client
-	creeconn                     *cr_ee.Client
-	cdnconn                      *cdn.CdnClient
-	otsconn                      *ots.Client
-	cmsconn                      *cms.Client
+	AccessKey           string
+	SecretKey           string
+	SecurityToken       string
+	OtsInstanceName     string
+	accountIdMutex      sync.RWMutex
+	config              *Config
+	teaSdkConfig        rpc.Config
+	teaRoaSdkConfig     roa.Config
+	teaRpcOpenapiConfig openapi.Config
+	teaRoaOpenapiConfig openapi.Config
+	accountId           string
+	ecsconn             *ecs.Client
+	essconn             *ess.Client
+	vpcconn             *vpc.Client
+	slbconn             *slb.Client
+	alikafkaconn        *alikafka.Client
+	ossconn             *oss.Client
+	dnsconn             *alidns.Client
+	ramconn             *ram.Client
+	csconn              *cs.Client
+	officalCSConn       *officalCS.Client
+	roaCSConn           *roaCS.Client
+	cdnconn_new         *cdn_new.Client
+	crconn              *cr.Client
+	creeconn            *cr_ee.Client
+	cdnconn             *cdn.CdnClient
+	otsconn             *ots.Client
+	cmsconn             *cms.Client
 
 	fcconn                       *fc.Client
 	cenconn                      *cbn.Client
@@ -804,7 +804,6 @@ func (client *AliyunClient) WithLogPopClient(do func(*slsPop.Client) (interface{
 
 	return do(client.logpopconn)
 }
-
 
 func (client *AliyunClient) WithDrdsClient(do func(*drds.Client) (interface{}, error)) (interface{}, error) {
 	if client.drdsconn != nil && !client.config.needRefreshCredential() {

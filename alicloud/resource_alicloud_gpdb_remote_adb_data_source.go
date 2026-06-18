@@ -48,8 +48,8 @@ func resourceAliCloudGpdbRemoteADBDataSource() *schema.Resource {
 				ForceNew: true,
 			},
 			"manager_user_password": {
-				Type:      schema.TypeString,
-				Required:  true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"remote_adb_data_source_id": {
 				Type:     schema.TypeInt,
@@ -74,8 +74,8 @@ func resourceAliCloudGpdbRemoteADBDataSource() *schema.Resource {
 				Required: true,
 			},
 			"user_password": {
-				Type:      schema.TypeString,
-				Required:  true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 		},
 	}

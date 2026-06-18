@@ -154,7 +154,6 @@ func DecodeAllowedIpId(id string) (string, string, string, string, error) {
 	return parts[1], parts[2], parts[3], parts[4], nil
 }
 
-
 // ModifyInstanceNameRequest represents the request to modify a Kafka instance name
 type ModifyInstanceNameRequest struct {
 	InstanceId   string

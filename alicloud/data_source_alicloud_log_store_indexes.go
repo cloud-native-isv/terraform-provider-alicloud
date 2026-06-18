@@ -103,6 +103,10 @@ func dataSourceAliCloudLogStoreIndexes() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"chn": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 						"token": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -112,6 +116,22 @@ func dataSourceAliCloudLogStoreIndexes() *schema.Resource {
 						},
 						"doc_value": {
 							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"embedding": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"index_all": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"max_depth": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"vector_index": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -182,7 +202,12 @@ func dataSourceAliCloudLogStoreIndexesRead(d *schema.ResourceData, meta interfac
 			keyMap["type"] = keyConfig.Type
 			keyMap["alias"] = keyConfig.Alias
 			keyMap["case_sensitive"] = keyConfig.CaseSensitive
+			keyMap["chn"] = keyConfig.Chn
 			keyMap["doc_value"] = keyConfig.DocValue
+			keyMap["embedding"] = keyConfig.Embedding
+			keyMap["index_all"] = keyConfig.IndexAll
+			keyMap["max_depth"] = int(keyConfig.MaxDepth)
+			keyMap["vector_index"] = keyConfig.VectorIndex
 			if keyConfig.Token != nil {
 				keyMap["token"] = keyConfig.Token
 			}

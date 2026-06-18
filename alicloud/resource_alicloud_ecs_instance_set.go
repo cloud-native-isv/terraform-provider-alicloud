@@ -81,9 +81,9 @@ func resourceAliCloudEcsInstanceSet() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(2, 128),
 			},
 			"password": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				ForceNew:  true,
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 			"password_inherit": {
 				Type:     schema.TypeBool,

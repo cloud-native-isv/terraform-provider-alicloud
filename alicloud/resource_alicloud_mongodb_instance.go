@@ -123,8 +123,8 @@ func resourceAliCloudMongoDBInstance() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 			"account_password": {
-				Type:      schema.TypeString,
-				Optional:  true,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"kms_encrypted_password": {
 				Type:             schema.TypeString,

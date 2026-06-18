@@ -37,8 +37,8 @@ func resourceAliCloudMongodbAccount() *schema.Resource {
 				ForceNew: true,
 			},
 			"account_password": {
-				Type:      schema.TypeString,
-				Required:  true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"character_type": {
 				Type:     schema.TypeString,

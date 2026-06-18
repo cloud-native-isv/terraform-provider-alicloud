@@ -64,8 +64,8 @@ func resourceAliCloudFCCustomDomain() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"private_key": {
-							Type:      schema.TypeString,
-							Optional:  true,
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"cert_name": {
 							Type:     schema.TypeString,

@@ -98,6 +98,64 @@ func resourceAliCloudLogStoreIndex() *schema.Resource {
 							Optional: true,
 							Default:  true,
 						},
+						"embedding": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"index_all": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"max_depth": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"vector_index": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"json_keys": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"type": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "text",
+										ValidateFunc: validation.StringInSlice([]string{"text", "long", "double"}, false),
+									},
+									"alias": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"case_sensitive": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+									"include_chinese": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+									"token": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"enable_analytics": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+								},
+							},
+						},
 					},
 				},
 				MinItems: 1,
@@ -287,7 +345,7 @@ func resourceAliCloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 	if index.Line != nil {
 		mapping := map[string]interface{}{
 			"case_sensitive":  index.Line.CaseSensitive,
-			"include_chinese": false, // The new API doesn't have Chn field, setting default
+			"include_chinese": index.Line.Chn,
 		}
 		if index.Line.Token != nil && len(index.Line.Token) > 0 {
 			tokenStr := ""
@@ -310,17 +368,43 @@ func resourceAliCloudLogStoreIndexRead(d *schema.ResourceData, meta interface{})
 				"type":             indexKey.Type,
 				"alias":            indexKey.Alias,
 				"case_sensitive":   indexKey.CaseSensitive,
-				"include_chinese":  false, // The new API doesn't have Chn field, setting default
+				"include_chinese":  indexKey.Chn,
 				"enable_analytics": indexKey.DocValue,
+				"embedding":        indexKey.Embedding,
+				"index_all":        indexKey.IndexAll,
+				"max_depth":        int(indexKey.MaxDepth),
+				"vector_index":     indexKey.VectorIndex,
 			}
 
-			// Handle token field
 			if indexKey.Token != nil && len(indexKey.Token) > 0 {
 				tokenStr := ""
 				for _, token := range indexKey.Token {
 					tokenStr += token
 				}
 				mapping["token"] = tokenStr
+			}
+
+			if indexKey.JsonKeys != nil && len(indexKey.JsonKeys) > 0 {
+				var jsonKeySet []map[string]interface{}
+				for jsonKeyName, jsonKeyValue := range indexKey.JsonKeys {
+					jsonKeyMapping := map[string]interface{}{
+						"name":             jsonKeyName,
+						"type":             jsonKeyValue.Type,
+						"alias":            jsonKeyValue.Alias,
+						"case_sensitive":   jsonKeyValue.CaseSensitive,
+						"include_chinese":  jsonKeyValue.Chn,
+						"enable_analytics": jsonKeyValue.DocValue,
+					}
+					if jsonKeyValue.Token != nil && len(jsonKeyValue.Token) > 0 {
+						tokenStr := ""
+						for _, token := range jsonKeyValue.Token {
+							tokenStr += token
+						}
+						jsonKeyMapping["token"] = tokenStr
+					}
+					jsonKeySet = append(jsonKeySet, jsonKeyMapping)
+				}
+				mapping["json_keys"] = jsonKeySet
 			}
 
 			keySet = append(keySet, mapping)
@@ -514,6 +598,7 @@ func buildIndexLine(d *schema.ResourceData) *aliyunSlsAPI.IndexLine {
 		value := fullText.(*schema.Set).List()[0].(map[string]interface{})
 		return &aliyunSlsAPI.IndexLine{
 			CaseSensitive: value["case_sensitive"].(bool),
+			Chn:           value["include_chinese"].(bool),
 			Token:         strings.Split(value["token"].(string), ""),
 		}
 	}
@@ -531,9 +616,43 @@ func buildIndexKeys(d *schema.ResourceData) map[string]*aliyunSlsAPI.IndexKey {
 				DocValue:      v["enable_analytics"].(bool),
 				Token:         strings.Split(v["token"].(string), ""),
 				CaseSensitive: v["case_sensitive"].(bool),
+				Chn:           v["include_chinese"].(bool),
+				IndexAll:      v["index_all"].(bool),
+			}
+			if v, ok := v["embedding"].(string); ok && v != "" {
+				indexKey.Embedding = v
+			}
+			if v, ok := v["max_depth"].(int); ok && v > 0 {
+				indexKey.MaxDepth = int64(v)
+			}
+			if v, ok := v["vector_index"].(string); ok && v != "" {
+				indexKey.VectorIndex = v
+			}
+			if jsonKeys, ok := v["json_keys"]; ok {
+				indexKey.JsonKeys = buildJsonKeys(jsonKeys.(*schema.Set))
 			}
 			keys[v["name"].(string)] = indexKey
 		}
 	}
 	return keys
+}
+
+func buildJsonKeys(jsonKeysSet *schema.Set) map[string]*aliyunSlsAPI.IndexKey {
+	if jsonKeysSet == nil || jsonKeysSet.Len() == 0 {
+		return nil
+	}
+	jsonKeys := make(map[string]*aliyunSlsAPI.IndexKey)
+	for _, item := range jsonKeysSet.List() {
+		v := item.(map[string]interface{})
+		jsonKey := &aliyunSlsAPI.IndexKey{
+			Type:          v["type"].(string),
+			Alias:         v["alias"].(string),
+			DocValue:      v["enable_analytics"].(bool),
+			CaseSensitive: v["case_sensitive"].(bool),
+			Chn:           v["include_chinese"].(bool),
+			Token:         strings.Split(v["token"].(string), ""),
+		}
+		jsonKeys[v["name"].(string)] = jsonKey
+	}
+	return jsonKeys
 }

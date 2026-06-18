@@ -318,7 +318,7 @@ var productCodeToLocationCode = map[string]string{
 // Value: product endpoint
 // The priority of this configuration is higher than location service, lower than user environment variable configuration
 var irregularProductEndpoint = map[string]string{
-	"tablestore": "tablestore.%s.aliyuncs.com",
+	"tablestore":       "tablestore.%s.aliyuncs.com",
 	"ots":              "tablestore.%s.aliyuncs.com",
 	"ram":              "ram.aliyuncs.com",
 	"brain_industrial": "brain-industrial.cn-hangzhou.aliyuncs.com",

@@ -206,8 +206,8 @@ func resourceAliCloudKvstoreInstance() *schema.Resource {
 				Default:      "UPGRADE",
 			},
 			"password": {
-				Type:      schema.TypeString,
-				Optional:  true,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"payment_type": {
 				Type:          schema.TypeString,

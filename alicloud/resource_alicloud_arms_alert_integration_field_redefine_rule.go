@@ -289,7 +289,7 @@ func updateIntegrationFieldRedefineRules(d *schema.ResourceData, client *connect
 			State:                  integration.State,
 			ApiEndpoint:            integration.ApiEndpoint,
 		},
-		DuplicateKey:           integration.DuplicateKey,
+		DuplicateKey: integration.DuplicateKey,
 	}
 
 	// Update auto recovery settings
