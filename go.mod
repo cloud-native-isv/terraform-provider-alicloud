@@ -75,6 +75,7 @@ require (
 	github.com/alibabacloud-go/debug v1.0.1 // indirect
 	github.com/alibabacloud-go/endpoint-util v1.1.1 // indirect
 	github.com/alibabacloud-go/foasconsole-20211028 v0.0.0-00010101000000-000000000000 // indirect
+	github.com/alibabacloud-go/gpdb-20160503/v5 v5.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/nas-20170626/v3 v3.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/openapi-util v0.1.2 // indirect
 	github.com/alibabacloud-go/oss-20190517/v2 v2.0.0-00010101000000-000000000000 // indirect
@@ -248,6 +249,7 @@ replace (
 	github.com/alibabacloud-go/dds-20151201/v10 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/dds-20151201
 	github.com/alibabacloud-go/fc-20230330/v4 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/fc-20230330
 	github.com/alibabacloud-go/foasconsole-20211028 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/foasconsole-20211028
+	github.com/alibabacloud-go/gpdb-20160503/v5 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/gpdb-20160503
 	github.com/alibabacloud-go/nas-20170626/v3 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/nas-20170626
 	github.com/alibabacloud-go/ons-20190214/v3 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/ons-20190214
 	github.com/alibabacloud-go/oss-20190517/v2 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/oss-20190517

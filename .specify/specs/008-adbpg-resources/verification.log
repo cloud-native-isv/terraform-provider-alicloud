@@ -1,0 +1,44 @@
+# Verification Log: 008-adbpg-resources
+# Generated: 2026-06-23
+
+## Baseline
+baseline_commit=bf32e3c8d13e725d9e1e53d7a81e0407c1bd21aa
+baseline_branch=008-adbpg-resources
+
+## Success Criteria Results
+
+SC-001_status=partial
+SC-001_value=7/7 resources implemented with schema unit tests; acceptance tests require TF_ACC=1 environment
+SC-001_note=All 7 resources (instance, account, database, connection, security_ip_array, backup_policy, ssl) implemented with CRUD functions. Unit tests verify schema, importer, timeouts, and CRUD function presence. Full acceptance tests require live API credentials.
+
+SC-002_status=partial
+SC-002_value=3/3 data sources implemented with schema unit tests; acceptance tests require TF_ACC=1 environment
+SC-002_note=All 3 data sources (instances, accounts, zones) implemented with read functions. Unit tests verify schema structure.
+
+SC-003_status=pass
+SC-003_value=0 direct SDK calls in resource/data source files
+SC-003_note=Verified via grep — all API calls go through AdbpgService. Two RPC fallback methods in service layer use client.RpcPost (ModifyBackupPolicy, ModifyAccountDescription) due to submodule read-only constraint.
+
+SC-004_status=pass
+SC-004_value=7/7 resources have Importer with ImportStatePassthrough
+SC-004_note=Verified via unit tests (TestAdbpg*ImporterExists). All resources include Importer: &schema.ResourceImporter{State: schema.ImportStatePassthrough}.
+
+SC-005_status=pass
+SC-005_value=go build ./alicloud/ succeeds
+SC-005_note=Build succeeds with GOTMPDIR=/tmp. make build fails due to unrelated /app/go/tmp permission issue (pre-existing environment constraint).
+
+SC-006_status=pass
+SC-006_value=goimports and go vet pass for all adbpg files
+SC-006_note=All adbpg files pass goimports formatting check and go vet. Pre-existing vet errors in alikafka_instance_test.go and logtail test files are unrelated.
+
+## Deferred Tasks
+deferred_tasks=T045,T046
+deferred_reason_summary=T045 (ModifyBackupPolicy API wrapper) and T046 (ModifyAccountDescription API wrapper) deferred because pkg/cws-lib-go submodule files are read-only (owned by root, current user is agent). RPC-based fallback methods implemented in service_alicloud_adbpg.go as temporary solution.
+
+## Post-Change Summary
+files_created=17
+files_modified=2
+resources_implemented=7
+data_sources_implemented=3
+service_methods=31
+unit_tests=20
