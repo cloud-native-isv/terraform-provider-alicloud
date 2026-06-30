@@ -103,6 +103,11 @@ func convertTablestoreInstanceToSchema(d *schema.ResourceData, instance *tablest
 	d.Set("name", instance.InstanceName)
 	d.Set("instance_specification", instance.InstanceSpecification)
 	d.Set("alias_name", instance.AliasName)
+	// force 是 Optional+Default:true 的 state-only 标志, API 不返回. import/未声明时回填 default true 避免 +force diff;
+	// 用户显式声明 (含 false) 时保留, 不覆盖.
+	if _, exists := d.GetOkExists("force"); !exists {
+		d.Set("force", true)
+	}
 	d.Set("description", instance.InstanceDescription)
 	d.Set("status", instance.InstanceStatus)
 	d.Set("region_id", instance.RegionId)

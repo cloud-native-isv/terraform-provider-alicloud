@@ -372,6 +372,21 @@ func resourceAliyunOtsTableCreate(d *schema.ResourceData, meta interface{}) erro
 	return resourceAliyunOtsTableRead(d, meta)
 }
 
+// convertOtsPrimaryKeyTypeToString 把 SDK 的 PrimaryKeyType (int32 枚举) 转成 schema/HCL 用的字符串.
+// Read 回填 primary_key.type 必须用它, 否则裸 int32 进 TypeString 字段会让 d.Set 静默失败.
+func convertOtsPrimaryKeyTypeToString(t tablestore.PrimaryKeyType) string {
+	switch t {
+	case tablestore.PrimaryKeyType_INTEGER:
+		return string(IntegerType)
+	case tablestore.PrimaryKeyType_STRING:
+		return string(StringType)
+	case tablestore.PrimaryKeyType_BINARY:
+		return string(BinaryType)
+	default:
+		return ""
+	}
+}
+
 func resourceAliyunOtsTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	otsService, err := NewOtsService(client)
@@ -404,6 +419,12 @@ func resourceAliyunOtsTableRead(d *schema.ResourceData, meta interface{}) error 
 	// Set basic information
 	d.Set("instance_name", table.GetInstanceName())
 	d.Set("table_name", table.GetName())
+	// force 是 Optional+Default:true 的 state-only 删除标志 (force delete by deleting indexes first), API 不返回.
+	// import/未声明时回填 default true 以避免 +force diff; 用户显式声明 (含 false) 时保留, 不覆盖
+	// (与本资源 Delete 里 d.GetOkExists("force") 的判定一致).
+	if _, exists := d.GetOkExists("force"); !exists {
+		d.Set("force", true)
+	}
 	d.Set("time_to_live", table.GetTimeToAlive())
 	d.Set("max_version", table.GetMaxVersion())
 	d.Set("status", table.Status)
@@ -414,10 +435,12 @@ func resourceAliyunOtsTableRead(d *schema.ResourceData, meta interface{}) error 
 	// Set primary keys
 	var primaryKeys []map[string]interface{}
 	for _, pk := range table.GetPrimaryKeys() {
-		if pk != nil && pk.Name != nil {
+		if pk != nil && pk.Name != nil && pk.Type != nil {
 			primaryKeys = append(primaryKeys, map[string]interface{}{
 				"name": *pk.Name,
-				"type": *pk.Type,
+				// *pk.Type 是 tablestore.PrimaryKeyType (int32 枚举), 必须转成 schema 的字符串
+				// (Integer/String/Binary); 直接塞 int32 会让 d.Set 静默失败 -> primary_key 空 -> ForceNew replace.
+				"type": convertOtsPrimaryKeyTypeToString(*pk.Type),
 			})
 		}
 	}
@@ -453,6 +476,10 @@ func resourceAliyunOtsTableRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("sse_key_type", table.SSEDetails.KeyType.String())
 		d.Set("sse_key_id", table.SSEDetails.KeyId)
 		d.Set("sse_role_arn", table.SSEDetails.RoleArn)
+	} else {
+		// SSE 关闭时显式回填 false: 否则 import 后 enable_sse 为 null,
+		// 与 HCL 的 false 触发 ForceNew replace (enable_sse 是 ForceNew).
+		d.Set("enable_sse", false)
 	}
 
 	// Set local transaction if available
