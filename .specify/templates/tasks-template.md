@@ -65,7 +65,7 @@ Each task row starts with one of three checkbox states. They are first-class —
 
 - `- [ ]` — **Open**. Task has not been completed. A run is NOT complete while any `[ ]` remains.
 - `- [X]` — **Closed**. Task has been fully executed and verified.
-- `- [~]` — **Deferred**. Task is intentionally handed off to the user (or to a later phase). Reasons must be recorded in `verification.log` under `deferred_tasks=` and ideally a one-line `<!-- deferred: <reason> -->` inline comment on the task row itself. Typical deferral causes: Layer-2 docker smoke build requiring a real docker daemon, external system access not available in CI, multi-day backfill.
+- `- [~]` — **Deferred**. Task is intentionally handed off to the user (or to a later phase). Reasons must be recorded in `verification.md` under `deferred_tasks=` and ideally a one-line `<!-- deferred: <reason> -->` inline comment on the task row itself. Typical deferral causes: Layer-2 docker smoke build requiring a real docker daemon, external system access not available in CI, multi-day backfill.
 
 A `/speckit.implement` run is considered complete when **zero `[ ]` rows remain**. `[~]` rows are allowed at completion and surface in the run summary's "Deferred Tasks" block.
 

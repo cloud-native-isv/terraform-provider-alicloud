@@ -1,0 +1,273 @@
+---
+name: browser-utils
+description: |
+  Browser automation and web application testing with three-tier strategy selection.
+  Auto-detects agent type and selects the best automation approach:
+  Tier 1 — built-in browser (Wukong/Real agents), Tier 2 — MCP connector + Chrome
+  extension (QoderWork/Qoder agents), Tier 3 — Playwright headless automation
+  (Claude Code, Copilot, and other agents). Supports JavaScript and Python execution,
+  auto-detects dev servers, manages server lifecycle, writes test scripts, takes
+  screenshots, tests responsive design, validates UX, automates browser tasks.
+  Use when the user mentions "browser", "Playwright", "web test", "screenshot",
+  "automation", "responsive", "headless", "form fill", "login flow", "broken links",
+  "浏览器", "网页测试", "截图", "自动化", "响应式测试", "表单填写",
+  "UI测试", "端到端测试", "E2E测试", "browser-use", "MCP browser"
+skill_id: "<SKILL:.specify/skills/browser-utils/SKILL.md>"
+---
+
+# Browser Utilities
+
+## Overview
+
+General-purpose browser automation skill with a **three-tier strategy** that adapts
+to the executing agent's capabilities. The skill detects which tier applies and
+routes to the appropriate automation approach.
+
+- **Tier 1 — Built-in Browser**: Agents with embedded browser components (e.g., Wukong/Real) operate the browser directly through their native tools.
+- **Tier 2 — MCP Connector + Chrome Extension**: Agents with `browser-use` MCP access (e.g., QoderWork, Qoder) control the desktop Chrome browser through MCP tool calls.
+- **Tier 3 — Playwright Headless**: All other agents (Claude Code, Copilot, opencode, etc.) use Playwright to drive a headless or visible Chromium browser via scripts.
+
+## Strategy Selection
+
+**Execute this decision tree BEFORE any browser automation work.**
+
+```
+Step 1: Identify your agent type
+    |-- Agent has built-in browser tools (navigate, click, screenshot as native tools)
+    |   --> TIER 1: Use built-in browser tools directly
+    |
+    |-- Agent has browser-use MCP server available (navigate_page, take_snapshot, click, etc.)
+    |   --> TIER 2: Use MCP connector (see § Tier 2 below)
+    |
+    |-- All other agents (Claude Code, Copilot, opencode, Qwen, Codex, etc.)
+    |   --> TIER 3: Use Playwright headless automation (see § Tier 3 below)
+```
+
+### Agent Type Detection Signals
+
+| Tier | Detection Signal | Examples |
+|------|-----------------|----------|
+| **Tier 1** | System prompt mentions built-in browser capabilities; agent has native `navigate`/`click`/`screenshot` tools without requiring MCP or scripts | Wukong (悟空), Real |
+| **Tier 2** | `browser-use` MCP server is available; tools like `navigate_page`, `take_snapshot`, `click`, `fill` are present in the tool list | QoderWork, Qoder IDE |
+| **Tier 3** | No built-in browser, no `browser-use` MCP; agent has `Bash`/`Write`/`Read` tools only | Claude Code, Copilot, opencode, Qwen, Codex |
+
+> **If you cannot determine your agent type, default to Tier 3 (Playwright).**
+
+---
+
+## Tier 1: Built-in Browser
+
+When the executing agent has a built-in browser component, use its native browser
+tools directly. No MCP calls, no script files, no Playwright setup needed.
+
+**How to use**: Call the agent's native browser tools (e.g., `navigate`, `click`,
+`screenshot`, `get_text`) as you would any other agent tool. The browser session
+is managed by the agent runtime.
+
+**Key advantages**:
+- Zero setup — browser is already available
+- Full session persistence — cookies, localStorage, and auth state carry over
+- Real browser rendering — no headless emulation gaps
+
+**Constraints**:
+- Tool availability depends on the agent runtime; check which tools are actually exposed
+- Some agents may not expose `evaluate_script` or network inspection
+
+---
+
+## Tier 2: MCP Connector (browser-use)
+
+When the agent has access to the `browser-use` MCP server, control the desktop
+Chrome browser through MCP tool calls. No script files needed.
+
+**Core workflow**: Navigate → `take_snapshot` → act on elements by `uid` → verify.
+
+**Available tools** (16 total): `navigate_page`, `take_snapshot`, `take_screenshot`,
+`click`, `fill`, `press_key`, `hover`, `drag`, `upload_file`, `handle_dialog`,
+`wait_for`, `evaluate_script`, `list_pages`, `select_page`, `list_network_requests`,
+`list_console_messages`.
+
+For the complete tool reference, operation patterns, and best practices, see
+[references/mcp-browser-tools.md](./references/mcp-browser-tools.md).
+
+**Key advantages**:
+- Operates the user's real desktop Chrome — full extension and profile support
+- Interactive — no script files to write and manage
+- a11y tree snapshots provide structured element identification
+
+**Constraints**:
+- Requires Chrome with the browser-use extension to be running
+- Snapshot uids are ephemeral — always snapshot before acting
+- No persistent sessions across MCP server restarts
+
+---
+
+## Tier 3: Playwright Headless Automation
+
+When neither Tier 1 nor Tier 2 is available, use Playwright to drive a Chromium
+browser via JavaScript or Python scripts.
+
+**JavaScript path**: Write Playwright scripts to `/tmp`, execute via the universal
+runner `${SKILL_HOME}/scripts/js/run.js`.
+
+**Python path**: Use `sync_playwright` with `${SKILL_HOME}/scripts/python/with_server.py`
+for server lifecycle management.
+
+For code examples, patterns, and helper usage, see
+[references/playwright-patterns.md](./references/playwright-patterns.md).
+
+For the complete Playwright API reference, see
+[references/playwright-api.md](./references/playwright-api.md).
+
+### Setup
+
+**JavaScript** (one-time):
+```bash
+cd ${SKILL_HOME}/scripts/js && npm run setup
+```
+
+**Python** (one-time):
+```bash
+pip install playwright && playwright install chromium
+```
+
+### JavaScript Workflow
+
+1. **Auto-detect dev servers** (for localhost testing):
+   ```bash
+   cd ${SKILL_HOME}/scripts/js && node -e "require('./lib/helpers').detectDevServers().then(s => console.log(JSON.stringify(s)))"
+   ```
+   - 1 server → use it automatically
+   - Multiple → ask user which one
+   - None → ask for URL or help start dev server
+
+2. **Write script to `/tmp`** — never write to skill or project directory
+
+3. **Execute via runner**:
+   ```bash
+   cd ${SKILL_HOME}/scripts/js && node run.js /tmp/playwright-test-*.js
+   ```
+
+### Python Workflow
+
+1. **Check if server is running** — if not, use `with_server.py`:
+   ```bash
+   python ${SKILL_HOME}/scripts/python/with_server.py --help
+   ```
+
+2. **Write Playwright script** with only automation logic (server managed by helper)
+
+3. **Execute**:
+   ```bash
+   python ${SKILL_HOME}/scripts/python/with_server.py --server "npm run dev" --port 5173 -- python your_script.py
+   ```
+
+For decision tree (static vs dynamic), reconnaissance-then-action pattern, and
+Python examples, see [references/playwright-patterns.md](./references/playwright-patterns.md).
+
+---
+
+## Strict Requirements
+
+1. **Detect agent type FIRST** — always run the Strategy Selection decision tree before any browser work
+2. **Tier 3: Detect servers FIRST** — for localhost testing, always run `detectDevServers()` before writing test code
+3. **Write scripts to `/tmp`** — never write test files to the skill directory or user's project (`/tmp/playwright-test-*.js`)
+4. **Parameterize URLs** — put detected/provided URL in a `TARGET_URL` constant at the top of every script
+5. **Visible browser by default (Tier 3)** — use `headless: false` unless user explicitly requests headless mode
+6. **Tier 2: Always snapshot before acting** — uids from stale snapshots are invalid after page changes
+7. **Wait strategies over fixed timeouts** — use `waitForSelector`, `waitForURL`, `waitForLoadState` (Tier 3) or `wait_for` (Tier 2) instead of arbitrary sleeps
+8. **Error handling** — always use try-catch for robust automation; screenshot on error for debugging
+
+## Conventions
+
+- **Tier preference**: Tier 1 > Tier 2 > Tier 3 — always use the highest available tier
+- **Inline vs files (Tier 3)**: Inline for quick one-off tasks (screenshot, check element); files for complex tests
+- **slowMo (Tier 3)**: Use `slowMo: 100` to make actions visible and easier to follow
+- **Custom headers (Tier 3)**: Use `PW_HEADER_NAME`/`PW_HEADER_VALUE` env vars to identify automated traffic
+- **Console output**: Use `console.log()` (JS) or `print()` (Python) to track progress
+
+## Path Conventions
+
+This Skill follows the canonical path conventions:
+
+- Use `${SKILL_HOME}/<relative-path>` for every Skill-owned resource reference.
+- Use `${SKILL_WORKDIR}/<relative-path>` for every runtime/user-facing path.
+- Never embed agent-specific install paths.
+
+## Resources
+
+| Directory | Contents |
+|-----------|----------|
+| `${SKILL_HOME}/scripts/js/` | `run.js` universal executor, `package.json`, `lib/helpers.js` |
+| `${SKILL_HOME}/scripts/python/` | `with_server.py` server lifecycle manager |
+| `${SKILL_HOME}/references/` | `playwright-api.md`, `playwright-patterns.md`, `mcp-browser-tools.md`, `claude-code-guide.md`, `copilot-guide.md`, `qoder-guide.md` |
+| `${SKILL_HOME}/examples/` | Python example scripts (element discovery, static HTML, console logging) |
+
+## Dependencies
+
+- **Tier 1**: Agent's built-in browser (no external dependencies)
+- **Tier 2**: `browser-use` MCP server + Chrome with browser-use extension
+- **Tier 3 JavaScript**: Node.js (>=14.0.0), Playwright npm package (`^1.57.0`), Chromium browser
+- **Tier 3 Python**: Python (>=3.8), `playwright` Python package, Chromium browser
+
+## Agent-Specific Configuration
+
+### Step 1: Identify Executing Agent
+
+Before executing this skill's workflow, identify which AI agent you are:
+
+| Agent | Detection Signals |
+|-------|-------------------|
+| **Claude Code** | System prompt contains "Claude Code"; tools include `Agent`, `Edit`, `Bash`, `Read`; `.claude/` directory exists |
+| **GitHub Copilot** | Running in VS Code Copilot Chat context; `.github/copilot-instructions.md` loaded; tools include `workspace edit`, `@terminal` |
+| **Qoder CLI** | `.qoder/` directory exists; `AGENTS.md` instructions loaded |
+| **opencode** | `.opencode/` directory exists |
+| **Qwen Code** | `QWEN.md` instructions loaded; `.qwen/` directory exists |
+| **Codex CLI** | `.codex/` directory exists |
+| **Hermes Agent** | `.hermes/` directory exists |
+| **iFlow** | `.iflow/` directory exists |
+| **Wukong/Real** | System prompt mentions built-in browser; agent has native browser tools |
+
+If you cannot identify your agent, skip Step 2 and proceed with Tier 3 (Playwright).
+
+### Step 2: Load Agent-Specific Guidance
+
+If you identified your agent in Step 1, check if a guide exists at:
+
+```
+${SKILL_HOME}/references/<agent-slug>-guide.md
+```
+
+Where `<agent-slug>` is: `claude-code`, `copilot`, `qoder`, `opencode`, `qwen`, `codex`, `hermes`, or `iflow`.
+
+If the guide exists, read it and apply the agent-specific tool mappings, best practices, and pitfall avoidances during execution. If no guide exists for your agent, proceed with the standard workflow.
+
+### Step 3: Capture Execution Feedback
+
+If you encounter an agent-specific obstacle during execution (e.g., a tool call is unavailable, output format doesn't match expectations, a workaround was needed), generate a feedback document at:
+
+```
+.specify/memory/feedback/browser-utils-<agent-slug>-<YYYY-MM-DDTHH-MM-SS>.md
+```
+
+The feedback document MUST contain:
+
+```markdown
+# Agent Execution Feedback
+
+**Source**: browser-utils
+**Agent**: <agent-slug>
+**Timestamp**: <ISO-8601>
+**Outcome**: <success-with-workaround | partial-failure | full-failure>
+
+## Obstacle
+[Description of the agent-specific issue encountered]
+
+## Workaround Applied
+[What was done to work around the issue, if anything]
+
+## Suggested Improvement
+[Specific change to the skill or reference document that would prevent this issue]
+```
+
+Only generate feedback when a genuine agent-specific obstacle was encountered.

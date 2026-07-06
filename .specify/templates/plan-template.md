@@ -71,7 +71,7 @@
 ├── contracts/           # Phase 1 output (/speckit.plan command)
 ├── feature-ref.md       # Phase 1 output (/speckit.plan command)
 ├── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
-└── verification.log     # Implementation output (/speckit.implement command)
+└── verification.md     # Implementation output (/speckit.implement command)
 ```
 
 <!--
