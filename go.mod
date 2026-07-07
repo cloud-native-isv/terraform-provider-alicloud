@@ -3,7 +3,7 @@ module github.com/aliyun/terraform-provider-alicloud
 require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/alibabacloud-go/cs-20151215/v5 v5.8.12
-	github.com/alibabacloud-go/tea v1.3.13
+	github.com/alibabacloud-go/tea v1.5.0
 	github.com/alibabacloud-go/tea-roa v1.3.4
 	github.com/alibabacloud-go/tea-rpc v1.2.0
 	github.com/alibabacloud-go/tea-utils v1.4.5
@@ -37,7 +37,7 @@ require (
 require (
 	github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.18
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.4.0
-	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.14
+	github.com/alibabacloud-go/darabonba-openapi/v2 v2.2.1
 	github.com/alibabacloud-go/fc-20230330/v4 v4.0.0-00010101000000-000000000000
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.8
@@ -245,6 +245,7 @@ replace (
 	github.com/alibabacloud-go/alikafka-20190916/v3 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/alikafka-20190916
 	github.com/alibabacloud-go/arms-20190808/v9 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/arms-20190808
 	github.com/alibabacloud-go/clickhouse-20230522 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/clickhouse-20230522
+	github.com/alibabacloud-go/cms-20240330/v9 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/cms-20240330
 	github.com/alibabacloud-go/darabonba-openapi/v2 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/darabonba-openapi/golang
 	github.com/alibabacloud-go/dds-20151201/v10 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/dds-20151201
 	github.com/alibabacloud-go/fc-20230330/v4 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/fc-20230330
@@ -257,6 +258,9 @@ replace (
 	github.com/alibabacloud-go/selectdb-20230522/v4 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/selectdb-20230522
 	github.com/alibabacloud-go/sls-20201230/v6 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/sls-20201230
 	github.com/alibabacloud-go/tablestore-20201209 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/tablestore-20201209
+	// Pin tea to the cached version; the regenerated cms-20240330 SDK declares
+	// tea v1.5.0 which is unavailable in this environment's module cache.
+	github.com/alibabacloud-go/tea => github.com/alibabacloud-go/tea v1.3.13
 	github.com/alibabacloud-go/ververica-20220718 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/ververica-20220718
 
 	github.com/aliyun/alibaba-cloud-sdk-go => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/alibaba-cloud-sdk-go

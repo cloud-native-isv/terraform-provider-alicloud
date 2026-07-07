@@ -339,6 +339,123 @@ func (s *AdbpgService) ListAdbpgInstances(query *adbpg.AdbpgInstanceQuery) ([]ad
 	return instances, nil
 }
 
+// Vector collection methods
+
+func (s *AdbpgService) ListAdbpgVectorCollections(instanceId, namespace string) ([]adbpg.AdbpgVectorCollection, error) {
+	collections, err := s.adbpgAPI.ListCollections(instanceId, namespace)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return collections, nil
+}
+
+func (s *AdbpgService) DescribeAdbpgVectorCollection(id string) (*adbpg.AdbpgVectorCollection, error) {
+	parts, err := ParseResourceId(id, 3)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	instanceId := parts[0]
+	namespace := parts[1]
+	collection := parts[2]
+
+	collections, err := s.ListAdbpgVectorCollections(instanceId, namespace)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	for _, c := range collections {
+		if c.CollectionName == collection {
+			return &c, nil
+		}
+	}
+	return nil, WrapErrorf(Error(GetNotFoundMessage("AdbpgVectorCollection", id)), NotFoundMsg, ProviderERROR)
+}
+
+func (s *AdbpgService) DescribeAdbpgVectorCollectionDetail(instanceId, namespace, namespacePassword, collection string) (*adbpg.AdbpgCollectionDetail, error) {
+	detail, err := s.adbpgAPI.DescribeCollection(instanceId, namespace, namespacePassword, collection)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return detail, nil
+}
+
+func (s *AdbpgService) CreateAdbpgVectorCollection(instanceId, collection string, input *adbpg.AdbpgCollectionCreate) error {
+	_, err := s.adbpgAPI.CreateCollection(instanceId, collection, input)
+	if err != nil {
+		return WrapError(err)
+	}
+	return nil
+}
+
+func (s *AdbpgService) DeleteAdbpgVectorCollection(instanceId, namespace, namespacePassword, collection string) error {
+	_, err := s.adbpgAPI.DeleteCollection(instanceId, namespace, namespacePassword, collection)
+	if err != nil {
+		return WrapError(err)
+	}
+	return nil
+}
+
+// Vector namespace methods
+
+func (s *AdbpgService) ListAdbpgNamespaces(instanceId string) ([]adbpg.AdbpgNamespace, error) {
+	namespaces, err := s.adbpgAPI.ListNamespaces(instanceId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return namespaces, nil
+}
+
+// Data source discovery methods
+
+func (s *AdbpgService) ListAdbpgDataSources(instanceId string) ([]adbpg.AdbpgDataSource, error) {
+	dataSources, err := s.adbpgAPI.ListDataSources(instanceId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return dataSources, nil
+}
+
+func (s *AdbpgService) ListAdbpgStreamingJobs(instanceId string) ([]adbpg.AdbpgStreamingJob, error) {
+	jobs, err := s.adbpgAPI.ListStreamingJobs(instanceId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return jobs, nil
+}
+
+func (s *AdbpgService) ListAdbpgBackups(instanceId string) ([]adbpg.AdbpgBackup, error) {
+	backups, err := s.adbpgAPI.ListBackups(instanceId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return backups, nil
+}
+
+func (s *AdbpgService) ListAdbpgInstancePlans(instanceId string) ([]adbpg.AdbpgInstancePlan, error) {
+	plans, err := s.adbpgAPI.ListInstancePlans(instanceId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return plans, nil
+}
+
+// Governance methods
+
+func (s *AdbpgService) ListAdbpgResourceGroups(instanceId string) ([]adbpg.AdbpgResourceGroup, error) {
+	groups, err := s.adbpgAPI.ListResourceGroups(instanceId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return groups, nil
+}
+
+func (s *AdbpgService) ListAdbpgSupabaseProjects(instanceId string) ([]adbpg.AdbpgSupabaseProject, error) {
+	projects, err := s.adbpgAPI.ListSupabaseProjects(instanceId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	return projects, nil
+}
+
 // Tag methods (C-28, C-29)
 
 func (s *AdbpgService) TagAdbpgResources(resourceId string, tags []adbpg.Tag) error {
