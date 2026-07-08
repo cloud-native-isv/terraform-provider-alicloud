@@ -26,6 +26,7 @@ Use the Playwright script execution path for all browser automation tasks.
 ## Known Pitfalls
 
 - **Strategy selection**: Claude Code always falls to Tier 3. Do not attempt to use `browser-use` MCP tools unless the MCP server is explicitly configured
+- **Run mode first**: Decide Mode 1 (clean test browser) vs Mode 2 (real Chrome profile) before writing a script (SKILL.md § Run Mode Selection). For Mode 2, use `AskUserQuestion` to confirm the profile when login state is ambiguous, and preflight the profile with `Bash` (`ps aux | grep user-data-dir=...`) — a running Chrome on the profile makes the launch hand off and exit
 - **WebFetch vs Playwright**: `WebFetch` tool does NOT support `file://` URLs or JavaScript-rendered pages. Always use Playwright via `Bash` for local file testing
 - **Timeout on slow renders**: Playwright `waitForSelector` may exceed the default Bash 2-minute timeout. Set explicit `timeout` parameter on the Bash call
 - **Background server management**: When starting dev servers, use `run_in_background: true`. The server process must be stopped manually after testing

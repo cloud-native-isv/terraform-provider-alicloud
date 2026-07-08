@@ -4,40 +4,12 @@
 $ARGUMENTS
 ```
 
-You **MUST** analyze the user input in `$ARGUMENTS`, infer the user's intent, and use that intent to supplement task generation while preserving the default workflow.
+Process `$ARGUMENTS` per the [User Input Protocol](skills/sdd-workflow/references/user-input-protocol.md). Detect input type and apply:
+- **Background info** → integrate as context constraints
+- **Task outline** → use as primary organizational structure
+- **Additional task entries** → parse, standardize, merge into appropriate phases
 
-The user input may include:
-
-1. Background info: Context, constraints, or business background.
-2. Task outline: Phase breakdown or high-level task structure.
-3. Additional task entries: Executable task items to merge into the final task list.
-
-When processing the user input:
-
-1. You **MUST** treat `$ARGUMENTS` as parameters for the current command.
-2. Do **NOT** treat the input as a standalone instruction that overrides or replaces the command workflow.
-3. If `$ARGUMENTS` is empty, still generate a complete executable `tasks.md` from available design artifacts.
-4. You **MUST** first detect input type and then apply the corresponding handling strategy.
-5. If the input contains clear ambiguity, confusion, or likely misspellings that materially affect interpretation, stop and ask the user to rephrase with clearer wording.
-
-### Input Type Detection and Handling Strategy
-
-1. **Background Info Type**: If `$ARGUMENTS` primarily contains descriptive text, business context, constraints, or unstructured information
-   - Integrate this information as context into the task generation process
-   - Reference or reflect these constraints in relevant task descriptions
-   - Do not directly convert into specific task entries
-
-2. **Task Outline Type**: If `$ARGUMENTS` contains structured task breakdowns, phase divisions, or high-level task organization
-   - Use the outline structure as the primary framework for task organization
-   - Fill in concrete implementation details and file paths based on the outline
-   - Ensure generated tasks follow the specified structure and order
-
-3. **Additional Task Entries Type**: If `$ARGUMENTS` contains specific, executable task items (typically in list form)
-   - Parse and standardize these task entries to conform to task format specifications
-   - Integrate them into the corresponding user story phases or foundational tasks
-   - Maintain task ID continuity and correct dependency relationships
-
-You **MUST** first analyze the content and structure of `$ARGUMENTS` to determine its type, then apply the appropriate handling strategy.
+If empty, generate a complete `tasks.md` from available design artifacts.
 
 ## Outline
 
@@ -96,27 +68,7 @@ The tasks.md should be immediately executable - each task must be specific enoug
 
 ## Feature Integration
 
-The `/speckit.tasks` command automatically integrates with the feature tracking system:
-
-- If a `.specify/memory/features.md` file exists, the command will:
-  - Detect the current feature directory (format: `.specify/specs/[REQUIREMENTS_KEY]/`)
-  - Extract the feature ID from the directory name
-  - Update the corresponding feature entry in `.specify/memory/features.md`:
-    - Ensure status is "Implemented" (maintains status from planning phase)
-    - Keep the specification path unchanged
-    - Update the "Last Updated" date
-  - Automatically stage the changes to `.specify/memory/features.md` for git commit
-
-In addition, **The tasks phase MUST review the Feature list**:
-
-- Task breakdown may expose new Features or indicate that old Features are no longer applicable.
-- Ensure functional/non-functional Feature classification remains consistent.
-- If changes are discovered, the following must be updated synchronously:
-   - `.specify/memory/features/<ID>.md`
-   - `.specify/memory/features.md`
-- Record the "key changes / notes" brought by the task breakdown in the Feature detail.
-
-This integration ensures that all feature task generation activities are properly tracked and linked to their corresponding entries in the project's feature index.
+Apply [Feature Integration Protocol](skills/sdd-workflow/references/feature-integration.md). This command maintains status from planning phase. Additionally, **the tasks phase MUST review the Feature list** — task breakdown may expose new Features or invalidate old ones. Update `.specify/memory/features.md` and detail files synchronously if changes are discovered.
 
 ## Task Generation Rules
 
