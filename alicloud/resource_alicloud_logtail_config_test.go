@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
@@ -51,9 +52,9 @@ func TestResourceAlicloudLogtailConfig_NameValidation(t *testing.T) {
 
 func TestAccAliCloudLogtailConfig_basic(t *testing.T) {
 	var config string
-	projectName := "tf-test-project-" + RandString(8)
-	logstoreName := "tf-test-logstore-" + RandString(8)
-	configName := "tf-test-config-" + RandString(8)
+	projectName := "tf-test-project-" + acctest.RandString(8)
+	logstoreName := "tf-test-logstore-" + acctest.RandString(8)
+	configName := "tf-test-config-" + acctest.RandString(8)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {

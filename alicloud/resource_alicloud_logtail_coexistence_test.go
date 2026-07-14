@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
@@ -11,9 +12,9 @@ func TestAccAliCloudLogtailConfig_Coexistence_SameObject(t *testing.T) {
 	// P2: Verify that both resources can manage the same underlying object
 	// and "Last Successful Write Wins" strategy applies.
 
-	projectName := "tf-test-coexist-" + RandString(8)
-	logstoreName := "tf-test-logstore-" + RandString(8)
-	configName := "tf-test-config-" + RandString(8)
+	projectName := "tf-test-coexist-" + acctest.RandString(8)
+	logstoreName := "tf-test-logstore-" + acctest.RandString(8)
+	configName := "tf-test-config-" + acctest.RandString(8)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
