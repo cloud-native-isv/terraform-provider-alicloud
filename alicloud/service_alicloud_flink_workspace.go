@@ -3,6 +3,7 @@ package alicloud
 import (
 	"time"
 
+	"github.com/aliyun/terraform-provider-alicloud/internal/flinkworkspace"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -12,7 +13,25 @@ func (s *FlinkService) DescribeFlinkWorkspace(id string) (*aliyunFlinkAPI.Worksp
 	return s.GetAPI().GetWorkspace(id)
 }
 
-func (s *FlinkService) CreateInstance(workspace *aliyunFlinkAPI.Workspace) (*aliyunFlinkAPI.Workspace, error) {
+func (s *FlinkService) CreateInstance(workspace *aliyunFlinkAPI.Workspace, options flinkworkspace.CreateOptions) (*aliyunFlinkAPI.Workspace, error) {
+	if workspace.HighAvailability != nil && workspace.HighAvailability.Enabled {
+		request, err := flinkworkspace.BuildCreateInstanceBody(workspace, options)
+		if err != nil {
+			return nil, err
+		}
+		// CreateInstance has no idempotency token. Retrying a response-lost 5xx
+		// could purchase a second workspace, so disable transport-level retries.
+		response, err := s.client.RpcPost("foasconsole", "2021-10-28", "CreateInstance", nil, request, false)
+		if err != nil {
+			return nil, err
+		}
+		instanceID, err := flinkworkspace.InstanceIDFromCreateResponse(response)
+		if err != nil {
+			return nil, err
+		}
+		workspace.Id = instanceID
+		return workspace, nil
+	}
 	return s.GetAPI().CreateWorkspace(workspace)
 }
 

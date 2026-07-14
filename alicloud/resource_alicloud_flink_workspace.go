@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/aliyun/terraform-provider-alicloud/internal/flinkworkspace"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -311,8 +312,17 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 
 	// Create the workspace with retry mechanism
 	var workspace *aliyunFlinkAPI.Workspace
+	createOptions := flinkworkspace.CreateOptions{
+		AutoRenew:        d.Get("auto_renew").(bool),
+		Duration:         d.Get("duration").(int),
+		PricingCycle:     d.Get("pricing_cycle").(string),
+		Extra:            d.Get("extra").(string),
+		MonitorType:      d.Get("monitor_type").(string),
+		PromotionCode:    d.Get("promotion_code").(string),
+		UsePromotionCode: d.Get("use_promotion_code").(bool),
+	}
 	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		resp, err := flinkService.CreateInstance(workspaceRequest)
+		resp, err := flinkService.CreateInstance(workspaceRequest, createOptions)
 		if err != nil {
 			if NotFoundError(err) {
 				time.Sleep(5 * time.Second)
@@ -424,22 +434,12 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("storage", []interface{}{storageConfig})
 	}
 
-	// Set HA configuration
-	if workspace.HighAvailability != nil && workspace.HighAvailability.Enabled {
-		haConfig := map[string]interface{}{
-			"zone_id":     workspace.HighAvailability.ZoneId,
-			"vswitch_ids": workspace.HighAvailability.VSwitchIds,
+	// Set HA configuration. DescribeInstances returns the flat Ha* fields,
+	// while the create path uses HighAvailability.
+	if haConfig, ok := flinkworkspace.HAConfig(workspace); ok {
+		if haResource, ok := haConfig["resource"]; ok {
+			haConfig["resource"] = []interface{}{haResource}
 		}
-
-		// Add resource info if available
-		if workspace.HighAvailability.ResourceSpec != nil {
-			haResourceSpec := map[string]interface{}{
-				"cpu":    int(workspace.HighAvailability.ResourceSpec.Cpu),
-				"memory": int(workspace.HighAvailability.ResourceSpec.MemoryGB),
-			}
-			haConfig["resource"] = []interface{}{haResourceSpec}
-		}
-
 		d.Set("ha", []interface{}{haConfig})
 	} else {
 		// Set empty HA config if not enabled
