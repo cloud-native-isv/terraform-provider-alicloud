@@ -7,6 +7,7 @@ import (
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/kafka"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAliKafkaInstanceAcceptanceSkeleton(t *testing.T) {
@@ -59,24 +60,33 @@ func TestBuildAliKafkaInstanceUpgradeRequest(t *testing.T) {
 		"spec_type":     {Type: schema.TypeString, Optional: true},
 		"io_max_spec":   {Type: schema.TypeString, Optional: true},
 	}
-	resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]interface{}{
-		"disk_size":     500,
-		"partition_num": 2000,
-		"io_max_spec":   "alikafka.hw.80xlarge",
-		"spec_type":     "normal",
-		"eip_max":       5,
-	})
-	resourceData.SetId("alikafka_test_instance")
-
-	for field, value := range map[string]interface{}{
+	state := &terraform.InstanceState{
+		ID: "alikafka_test_instance",
+		Attributes: map[string]string{
+			"disk_size":     "500",
+			"partition_num": "2000",
+			"io_max_spec":   "alikafka.hw.80xlarge",
+			"spec_type":     "normal",
+			"eip_max":       "20",
+		},
+	}
+	config := terraform.NewResourceConfigRaw(map[string]interface{}{
 		"disk_size":     800,
 		"partition_num": 8000,
 		"io_max_spec":   "alikafka.hw.120xlarge",
-		"eip_max":       5,
-	} {
-		if err := resourceData.Set(field, value); err != nil {
-			t.Fatalf("failed to set %s: %v", field, err)
-		}
+		"spec_type":     "normal",
+		"eip_max":       0,
+	})
+	diff, err := schema.InternalMap(testSchema).Diff(state, config, nil, nil, true)
+	if err != nil {
+		t.Fatalf("build diff: %v", err)
+	}
+	resourceData, err := schema.InternalMap(testSchema).Data(state, diff)
+	if err != nil {
+		t.Fatalf("build resource data: %v", err)
+	}
+	if !resourceData.HasChange("eip_max") {
+		t.Fatalf("expected eip_max change from 20 to 0")
 	}
 	paidType := kafka.KafkaPaidTypePrePay
 	request := buildAliKafkaInstanceUpgradeRequest(resourceData, &kafka.KafkaInstance{
@@ -108,7 +118,7 @@ func TestBuildAliKafkaInstanceUpgradeRequest(t *testing.T) {
 	if got := tea.StringValue(request.IoMaxSpec); got != "alikafka.hw.120xlarge" {
 		t.Fatalf("unexpected io_max_spec: %s", got)
 	}
-	if got := tea.IntValue(request.EipMax); got != 5 {
+	if got := tea.IntValue(request.EipMax); got != 0 {
 		t.Fatalf("unexpected eip_max: %d", got)
 	}
 	if got := tea.StringValue(request.SpecType); got != "normal" {
