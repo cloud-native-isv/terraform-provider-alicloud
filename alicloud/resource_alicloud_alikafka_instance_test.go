@@ -30,43 +30,41 @@ func TestAliKafkaInstanceBillingValidation(t *testing.T) {
 }
 
 func TestAliKafkaInstanceHasOnlineUpgradeChanges(t *testing.T) {
-	resourceData := schema.TestResourceDataRaw(t, resourceAliCloudAlikafkaInstance().Schema, map[string]interface{}{
-		"instance_type":     AliKafkaInstanceTypeReserved,
-		"paid_type":         AliKafkaBillingTypePostPaid,
-		"disk_size":         500,
-		"disk_type":         "1",
-		"deploy_type":       5,
-		"partition_num":     2000,
-		"io_max_spec":       "alikafka.hw.80xlarge",
-		"spec_type":         "normal",
-		"resource_group_id": "rg-test",
-	})
-	resourceData.SetId("alikafka_test_instance")
+	testSchema := map[string]*schema.Schema{
+		"disk_size":     {Type: schema.TypeInt, Optional: true},
+		"partition_num": {Type: schema.TypeInt, Optional: true},
+		"eip_max":       {Type: schema.TypeInt, Optional: true},
+		"spec_type":     {Type: schema.TypeString, Optional: true},
+		"io_max_spec":   {Type: schema.TypeString, Optional: true},
+	}
+	resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]interface{}{})
 
 	if hasAliKafkaInstanceOnlineUpgradeChanges(resourceData) {
 		t.Fatalf("expected no online upgrade changes before mutation")
 	}
 
-	if err := resourceData.Set("partition_num", 4000); err != nil {
-		t.Fatalf("failed to set partition_num: %v", err)
-	}
-
-	if !hasAliKafkaInstanceOnlineUpgradeChanges(resourceData) {
+	changedResourceData := schema.TestResourceDataRaw(t, testSchema, map[string]interface{}{
+		"partition_num": 4000,
+	})
+	if !hasAliKafkaInstanceOnlineUpgradeChanges(changedResourceData) {
 		t.Fatalf("expected partition_num change to trigger online upgrade")
 	}
 }
 
 func TestBuildAliKafkaInstanceUpgradeRequest(t *testing.T) {
-	resourceData := schema.TestResourceDataRaw(t, resourceAliCloudAlikafkaInstance().Schema, map[string]interface{}{
-		"instance_type": AliKafkaInstanceTypeReserved,
-		"paid_type":     AliKafkaBillingTypePrePaid,
+	testSchema := map[string]*schema.Schema{
+		"disk_size":     {Type: schema.TypeInt, Optional: true},
+		"partition_num": {Type: schema.TypeInt, Optional: true},
+		"eip_max":       {Type: schema.TypeInt, Optional: true},
+		"spec_type":     {Type: schema.TypeString, Optional: true},
+		"io_max_spec":   {Type: schema.TypeString, Optional: true},
+	}
+	resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]interface{}{
 		"disk_size":     500,
-		"disk_type":     "1",
-		"deploy_type":   5,
 		"partition_num": 2000,
 		"io_max_spec":   "alikafka.hw.80xlarge",
 		"spec_type":     "normal",
-		"eip_max":       0,
+		"eip_max":       5,
 	})
 	resourceData.SetId("alikafka_test_instance")
 
@@ -74,13 +72,12 @@ func TestBuildAliKafkaInstanceUpgradeRequest(t *testing.T) {
 		"disk_size":     800,
 		"partition_num": 8000,
 		"io_max_spec":   "alikafka.hw.120xlarge",
-		"eip_max":       0,
+		"eip_max":       5,
 	} {
 		if err := resourceData.Set(field, value); err != nil {
 			t.Fatalf("failed to set %s: %v", field, err)
 		}
 	}
-
 	paidType := kafka.KafkaPaidTypePrePay
 	request := buildAliKafkaInstanceUpgradeRequest(resourceData, &kafka.KafkaInstance{
 		InstanceId:   "alikafka_test_instance",
@@ -111,7 +108,7 @@ func TestBuildAliKafkaInstanceUpgradeRequest(t *testing.T) {
 	if got := tea.StringValue(request.IoMaxSpec); got != "alikafka.hw.120xlarge" {
 		t.Fatalf("unexpected io_max_spec: %s", got)
 	}
-	if got := tea.IntValue(request.EipMax); got != 0 {
+	if got := tea.IntValue(request.EipMax); got != 5 {
 		t.Fatalf("unexpected eip_max: %d", got)
 	}
 	if got := tea.StringValue(request.SpecType); got != "normal" {

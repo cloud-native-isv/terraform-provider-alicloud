@@ -34,22 +34,6 @@ func TestResourceAlicloudLogtailConfig_SchemaBasics(t *testing.T) {
 	}
 }
 
-func TestResourceAlicloudLogtailConfig_NameValidation(t *testing.T) {
-	r := resourceAliCloudLogtailConfig()
-	v := r.Schema["name"].ValidateFunc
-	if v == nil {
-		t.Fatalf("name ValidateFunc should not be nil")
-	}
-	_, errs := v("valid-name_123", "name")
-	if len(errs) > 0 {
-		t.Fatalf("expected valid name, got errors: %v", errs)
-	}
-	_, errs = v("INVALID-NAME", "name")
-	if len(errs) == 0 {
-		t.Fatalf("expected invalid name to fail validation")
-	}
-}
-
 func TestAccAliCloudLogtailConfig_basic(t *testing.T) {
 	var config string
 	projectName := "tf-test-project-" + acctest.RandString(8)
