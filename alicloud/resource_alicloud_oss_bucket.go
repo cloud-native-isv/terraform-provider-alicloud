@@ -19,7 +19,12 @@ func resourceAliCloudOssBucket() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		// 完整 Timeouts 块 (Create/Update/Delete): 与 ots_table/ots_instance 同形.
+		// 实证: 完整块 import 后不残留 `- timeouts {}` (仅声明 Delete 的旧写法才残留);
+		// 同时保留 Delete=60min (force_destroy 大桶 PruneBucket 重试窗口) 与用户显式覆盖能力.
 		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
@@ -88,6 +93,55 @@ func resourceAliCloudOssBucket() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 				Optional: true,
+			},
+
+			"versioning": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"status": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: StringInSlice([]string{
+								"Enabled",
+								"Suspended",
+							}, false),
+						},
+					},
+				},
+			},
+
+			"server_side_encryption_rule": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"sse_algorithm": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: StringInSlice([]string{
+								ServerSideEncryptionAes256,
+								ServerSideEncryptionKMS,
+								ServerSideEncryptionSM4,
+							}, false),
+						},
+						"kms_master_key_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"kms_data_encryption": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: StringInSlice([]string{
+								ServerSideEncryptionSM4,
+								"",
+							}, false),
+						},
+					},
+				},
 			},
 		},
 	}
@@ -160,6 +214,19 @@ func resourceAliCloudOssBucketCreate(d *schema.ResourceData, meta interface{}) e
 	// Assign the bucket name as the resource ID
 	d.SetId(request["bucketName"])
 
+	// 新建后按声明 PUT versioning / SSE; 仅在声明了对应 block 时才动,
+	// 避免空 server_side_encryption_rule 触发 DeleteBucketEncryption.
+	if _, ok := d.GetOk("versioning"); ok {
+		if err := resourceAliCloudOssBucketInlineVersioningUpdate(client, d); err != nil {
+			return WrapError(err)
+		}
+	}
+	if _, ok := d.GetOk("server_side_encryption_rule"); ok {
+		if err := resourceAliCloudOssBucketInlineEncryptionUpdate(client, d); err != nil {
+			return WrapError(err)
+		}
+	}
+
 	return resourceAliCloudOssBucketRead(d, meta)
 }
 
@@ -176,6 +243,9 @@ func resourceAliCloudOssBucketRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	d.Set("bucket", d.Id())
+	// force_destroy 是 state-only 删除标志 (API 不返回); 回写 d.Get 保留配置值,
+	// import 时取 default false -> 匹配 HCL, 避免永久 +force_destroy diff.
+	d.Set("force_destroy", d.Get("force_destroy"))
 	d.Set("creation_date", object.BucketInfo.CreationDate.Format("2006-01-02"))
 	d.Set("extranet_endpoint", object.BucketInfo.ExtranetEndpoint)
 	d.Set("intranet_endpoint", object.BucketInfo.IntranetEndpoint)
@@ -222,6 +292,33 @@ func resourceAliCloudOssBucketRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("resource_group_id", resourceGroup.ResourceGroupId)
 	}
 
+	// versioning / server_side_encryption_rule 必须直连经典 ossClient 读真值:
+	// ossService.DescribeOssBucket 经 cws-lib-go convertBucketInfoToLegacy 丢弃 Versioning/SseRule,
+	// 用它会导致 import 后这两块恒空 -> 与 HCL 永久 diff.
+	raw, err = client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
+		requestInfo = ossClient
+		return ossClient.GetBucketInfo(d.Id())
+	})
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "GetBucketInfo", AliyunOssGoSdk)
+	}
+	addDebug("GetBucketInfo", raw, requestInfo, request)
+	if info, ok := raw.(oss.GetBucketInfoResult); ok {
+		if len(info.BucketInfo.SseRule.SSEAlgorithm) > 0 && info.BucketInfo.SseRule.SSEAlgorithm != "None" {
+			rule := map[string]interface{}{"sse_algorithm": info.BucketInfo.SseRule.SSEAlgorithm}
+			if info.BucketInfo.SseRule.KMSMasterKeyID != "" {
+				rule["kms_master_key_id"] = info.BucketInfo.SseRule.KMSMasterKeyID
+			}
+			if info.BucketInfo.SseRule.KMSDataEncryption != "" {
+				rule["kms_data_encryption"] = info.BucketInfo.SseRule.KMSDataEncryption
+			}
+			d.Set("server_side_encryption_rule", []map[string]interface{}{rule})
+		}
+		if info.BucketInfo.Versioning != "" {
+			d.Set("versioning", []map[string]interface{}{{"status": info.BucketInfo.Versioning}})
+		}
+	}
+
 	return nil
 }
 
@@ -254,8 +351,93 @@ func resourceAliCloudOssBucketUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("resource_group_id")
 	}
 
+	if d.HasChange("versioning") {
+		if err := resourceAliCloudOssBucketInlineVersioningUpdate(client, d); err != nil {
+			return WrapError(err)
+		}
+		d.SetPartial("versioning")
+	}
+
+	if d.HasChange("server_side_encryption_rule") {
+		if err := resourceAliCloudOssBucketInlineEncryptionUpdate(client, d); err != nil {
+			return WrapError(err)
+		}
+		d.SetPartial("server_side_encryption_rule")
+	}
+
 	d.Partial(false)
 	return resourceAliCloudOssBucketRead(d, meta)
+}
+
+// resourceAliCloudOssBucketInlineVersioningUpdate 按 versioning block 调经典 SetBucketVersioning (移植自 v1.283.0).
+func resourceAliCloudOssBucketInlineVersioningUpdate(client *connectivity.AliyunClient, d *schema.ResourceData) error {
+	versioning := d.Get("versioning").([]interface{})
+	if len(versioning) == 1 {
+		var status string
+		c := versioning[0].(map[string]interface{})
+		if v, ok := c["status"]; ok {
+			status = v.(string)
+		}
+		versioningCfg := oss.VersioningConfig{}
+		versioningCfg.Status = status
+		var requestInfo *oss.Client
+		raw, err := client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
+			requestInfo = ossClient
+			return nil, ossClient.SetBucketVersioning(d.Id(), versioningCfg)
+		})
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "SetBucketVersioning", AliyunOssGoSdk)
+		}
+		addDebug("SetBucketVersioning", raw, requestInfo, map[string]interface{}{
+			"bucketName":       d.Id(),
+			"versioningConfig": versioningCfg,
+		})
+	}
+	return nil
+}
+
+// resourceAliCloudOssBucketInlineEncryptionUpdate 按 server_side_encryption_rule block 调经典 SetBucketEncryption;
+// 空 block 时删除 SSE (移植自 v1.283.0). 注: 与独立子资源 alicloud_oss_bucket_server_side_encryption
+// MUST NOT 对同一桶并管 (空配置会 DeleteBucketEncryption 真删云端加密).
+func resourceAliCloudOssBucketInlineEncryptionUpdate(client *connectivity.AliyunClient, d *schema.ResourceData) error {
+	encryptionRule := d.Get("server_side_encryption_rule").([]interface{})
+	var requestInfo *oss.Client
+	if len(encryptionRule) == 0 {
+		raw, err := client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
+			requestInfo = ossClient
+			return nil, ossClient.DeleteBucketEncryption(d.Id())
+		})
+		if err != nil {
+			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteBucketEncryption", AliyunOssGoSdk)
+		}
+		addDebug("DeleteBucketEncryption", raw, requestInfo, map[string]string{"bucketName": d.Id()})
+		return nil
+	}
+
+	var sseRule oss.ServerEncryptionRule
+	c := encryptionRule[0].(map[string]interface{})
+	if v, ok := c["sse_algorithm"]; ok {
+		sseRule.SSEDefault.SSEAlgorithm = v.(string)
+	}
+	if v, ok := c["kms_master_key_id"]; ok {
+		sseRule.SSEDefault.KMSMasterKeyID = v.(string)
+	}
+	if v, ok := c["kms_data_encryption"]; ok {
+		sseRule.SSEDefault.KMSDataEncryption = v.(string)
+	}
+
+	raw, err := client.WithOssClient(func(ossClient *oss.Client) (interface{}, error) {
+		requestInfo = ossClient
+		return nil, ossClient.SetBucketEncryption(d.Id(), sseRule)
+	})
+	if err != nil {
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "SetBucketEncryption", AliyunOssGoSdk)
+	}
+	addDebug("SetBucketEncryption", raw, requestInfo, map[string]interface{}{
+		"bucketName":     d.Id(),
+		"encryptionRule": sseRule,
+	})
+	return nil
 }
 
 func resourceAliCloudOssBucketDelete(d *schema.ResourceData, meta interface{}) error {

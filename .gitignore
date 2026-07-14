@@ -51,4 +51,5 @@ venv/
 
 local_tmp/
 .local_tmp/
+.worktrees/
 .specify/tools/*.json
