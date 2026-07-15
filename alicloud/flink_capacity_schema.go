@@ -201,7 +201,14 @@ func flinkFirstBlock(value interface{}) (map[string]interface{}, bool) {
 }
 
 func suppressFlinkLegacyCapacityDiff(_ string, _ string, _ string, d *schema.ResourceData) bool {
-	return d.Get("capacity_management").(string) == CapacityManagedByCoordinator
+	if d.Get("capacity_management").(string) == CapacityManagedByCoordinator {
+		return true
+	}
+	if d.HasChange("capacity_management") {
+		oldMode, newMode := d.GetChange("capacity_management")
+		return oldMode == CapacityManagedByCoordinator && newMode == CapacityManagedByResource
+	}
+	return false
 }
 
 func expandFlinkBootstrapCapacity(value interface{}) (fixedCU, crossZoneFixedCU int) {

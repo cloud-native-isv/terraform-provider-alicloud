@@ -37,9 +37,10 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"elastic_resource_spec": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:             schema.TypeList,
+				Optional:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: suppressFlinkLegacyCapacityDiff,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cpu": {
@@ -54,9 +55,10 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 				},
 			},
 			"guaranteed_resource_spec": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:             schema.TypeList,
+				Optional:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: suppressFlinkLegacyCapacityDiff,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cpu": {

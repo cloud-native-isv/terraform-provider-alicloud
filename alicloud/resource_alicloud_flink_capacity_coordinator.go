@@ -127,6 +127,9 @@ func flinkCoordinatorCapacitySchema(includeHA bool) *schema.Schema {
 }
 
 func flinkCapacityCoordinatorCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+	if err := validateFlinkCoordinatorAliasPresence(d); err != nil {
+		return err
+	}
 	if _, err := expandFlinkCoordinatorDesired(d.Get("workspace")); err != nil {
 		return err
 	}
@@ -151,6 +154,51 @@ func flinkCapacityCoordinatorCustomizeDiff(d *schema.ResourceDiff, _ interface{}
 	}
 	if desired.Workspace.AsCapacity().Elastic() == 0 {
 		return fmt.Errorf("cannot reduce workspace elastic CU to zero through a supported public API; first reduce namespace and queue elastic quotas to zero, disable workspace elastic billing in the console, refresh state, and plan again")
+	}
+	return nil
+}
+
+func validateFlinkCoordinatorAliasPresence(d *schema.ResourceDiff) error {
+	check := func(path string) error {
+		_, hasElastic := d.GetOkExists(path + ".elastic_cu_limit")
+		_, hasMax := d.GetOkExists(path + ".max_cu_limit")
+		if hasElastic && hasMax {
+			return fmt.Errorf("%s.elastic_cu_limit and %s.max_cu_limit are mutually exclusive", path, path)
+		}
+		return nil
+	}
+
+	workspace, ok := flinkFirstBlock(d.Get("workspace"))
+	if !ok {
+		return nil
+	}
+	if flinkListBlockConfigured(workspace["capacity"]) {
+		if err := check("workspace.0.capacity.0"); err != nil {
+			return err
+		}
+	}
+	namespaces, _ := workspace["namespace"].([]interface{})
+	for namespaceIndex, rawNamespace := range namespaces {
+		namespace, ok := rawNamespace.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		namespacePath := fmt.Sprintf("workspace.0.namespace.%d", namespaceIndex)
+		if flinkListBlockConfigured(namespace["capacity"]) {
+			if err := check(namespacePath + ".capacity.0"); err != nil {
+				return err
+			}
+		}
+		queues, _ := namespace["queue"].([]interface{})
+		for queueIndex, rawQueue := range queues {
+			queue, ok := rawQueue.(map[string]interface{})
+			if !ok || !flinkListBlockConfigured(queue["capacity"]) {
+				continue
+			}
+			if err := check(fmt.Sprintf("%s.queue.%d.capacity.0", namespacePath, queueIndex)); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -324,6 +372,7 @@ func expandFlinkWorkspaceCapacity(block map[string]interface{}) (flinkcapacity.W
 		return flinkcapacity.WorkspaceCapacity{}, fmt.Errorf("fixed_cu: %w", err)
 	}
 	crossZone := flinkcapacity.CU(0)
+	_, hasHA := flinkFirstBlock(block["ha"])
 	if ha, ok := flinkFirstBlock(block["ha"]); ok {
 		value, _ := numberAsFloat(ha["cross_zone_fixed_cu"])
 		crossZone, err = parseFlinkCoordinatorCU(value, true)
@@ -336,7 +385,7 @@ func expandFlinkWorkspaceCapacity(block map[string]interface{}) (flinkcapacity.W
 	if err != nil {
 		return flinkcapacity.WorkspaceCapacity{}, err
 	}
-	return flinkcapacity.WorkspaceCapacity{FixedCU: fixed, CrossZoneFixedCU: crossZone, Limit: capacity.Limit}, nil
+	return flinkcapacity.WorkspaceCapacity{HA: hasHA, FixedCU: fixed, CrossZoneFixedCU: crossZone, Limit: capacity.Limit}, nil
 }
 
 func expandFlinkCapacity(value interface{}, integerOnly bool) (*flinkcapacity.Capacity, error) {
@@ -509,7 +558,7 @@ func mergeFlinkCoordinatorObserved(configured interface{}, actual flinkcapacity.
 func flattenFlinkCoordinatorWorkspaceCapacity(capacity flinkcapacity.WorkspaceCapacity) []interface{} {
 	result := firstMap(flattenFlinkCoordinatorCapacity(capacity.AsCapacity()))
 	result["fixed_cu"] = capacity.FixedCU.Float64()
-	if capacity.CrossZoneFixedCU > 0 {
+	if capacity.HA {
 		result["ha"] = []interface{}{map[string]interface{}{"cross_zone_fixed_cu": capacity.CrossZoneFixedCU.Float64()}}
 	}
 	return []interface{}{result}

@@ -250,3 +250,39 @@ func TestReconcilerFailsClosedForUndeclaredTopology(t *testing.T) {
 		t.Fatalf("reads = %d, want no retry", api.reads)
 	}
 }
+
+func TestReconcilerReplansWhenCapacityDriftsBetweenSteps(t *testing.T) {
+	actual := plannerTree(8, 8, 8, 8, 8, 8)
+	desired := plannerTree(16, 16, 16, 16, 16, 16)
+	api := &fakeCapacityAPI{tree: actual}
+	drifted := false
+	api.readFn = func(f *fakeCapacityAPI) (Tree, error) {
+		if len(f.writes) == 1 && f.reads >= 4 && !drifted {
+			f.tree.Workspace = actual.Workspace
+			drifted = true
+		}
+		return cloneTree(f.tree), nil
+	}
+	api.applyFn = func(f *fakeCapacityAPI, step Step) (Operation, error) {
+		next := cloneTree(f.tree)
+		applyCandidate(&next, candidate{step: step})
+		if _, err := Resolve(next); err != nil {
+			return Operation{}, errors.New("reconciler attempted an unsafe stale step: " + err.Error())
+		}
+		f.tree = next
+		return Operation{RequestID: "request"}, nil
+	}
+
+	if _, err := testReconciler(api).Reconcile(context.Background(), "f-test", desired); err != nil {
+		t.Fatal(err)
+	}
+	workspaceWrites := 0
+	for _, step := range api.writes {
+		if step.Action == ModifyWorkspaceFixed || step.Action == ModifyWorkspaceElastic {
+			workspaceWrites++
+		}
+	}
+	if workspaceWrites < 2 {
+		t.Fatalf("workspace writes = %d, want replanned parent write; steps=%#v", workspaceWrites, api.writes)
+	}
+}

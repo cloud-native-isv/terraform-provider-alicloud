@@ -25,12 +25,12 @@ func (s *FlinkDeploymentTargetService) DescribeFlinkDeploymentTarget(id string) 
 		return object, WrapError(err)
 	}
 
-	flinkService, err := NewFlinkService(s.client)
+	api, resourceID, err := s.apiAndWorkspaceResourceID(workspaceId)
 	if err != nil {
 		return object, WrapError(err)
 	}
 
-	target, err := flinkService.GetAPI().GetDeploymentTarget(workspaceId, namespaceName, targetName)
+	target, err := api.GetDeploymentTarget(resourceID, namespaceName, targetName)
 	if err != nil {
 		return object, WrapError(err)
 	}
@@ -43,12 +43,12 @@ func (s *FlinkDeploymentTargetService) DescribeFlinkDeploymentTarget(id string) 
 }
 
 func (s *FlinkDeploymentTargetService) DescribeFlinkDeploymentTargets(workspaceId, namespaceName string) (objects []flink.DeploymentTarget, err error) {
-	flinkService, err := NewFlinkService(s.client)
+	api, resourceID, err := s.apiAndWorkspaceResourceID(workspaceId)
 	if err != nil {
 		return objects, WrapError(err)
 	}
 
-	targets, err := flinkService.GetAPI().ListDeploymentTargets(workspaceId, namespaceName)
+	targets, err := api.ListDeploymentTargets(resourceID, namespaceName)
 	if err != nil {
 		return objects, WrapError(err)
 	}
@@ -57,12 +57,17 @@ func (s *FlinkDeploymentTargetService) DescribeFlinkDeploymentTargets(workspaceI
 }
 
 func (s *FlinkDeploymentTargetService) CreateFlinkDeploymentTarget(workspaceId, namespaceName string, target *flink.DeploymentTarget) (*flink.DeploymentTarget, error) {
-	flinkService, err := NewFlinkService(s.client)
+	api, resourceID, err := s.apiAndWorkspaceResourceID(workspaceId)
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	result, err := flinkService.GetAPI().CreateDeploymentTarget(workspaceId, namespaceName, target)
+	var result *flink.DeploymentTarget
+	if flinkDeploymentTargetUsesV2(target) {
+		result, err = api.CreateDeploymentTargetV2(resourceID, namespaceName, target)
+	} else {
+		result, err = api.CreateDeploymentTarget(resourceID, namespaceName, target)
+	}
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -71,12 +76,17 @@ func (s *FlinkDeploymentTargetService) CreateFlinkDeploymentTarget(workspaceId, 
 }
 
 func (s *FlinkDeploymentTargetService) UpdateFlinkDeploymentTarget(workspaceId, namespaceName string, target *flink.DeploymentTarget) (*flink.DeploymentTarget, error) {
-	flinkService, err := NewFlinkService(s.client)
+	api, resourceID, err := s.apiAndWorkspaceResourceID(workspaceId)
 	if err != nil {
 		return nil, WrapError(err)
 	}
 
-	result, err := flinkService.GetAPI().UpdateDeploymentTarget(workspaceId, namespaceName, target)
+	var result *flink.DeploymentTarget
+	if flinkDeploymentTargetUsesV2(target) {
+		result, err = api.UpdateDeploymentTargetV2(resourceID, namespaceName, target)
+	} else {
+		result, err = api.UpdateDeploymentTarget(resourceID, namespaceName, target)
+	}
 	if err != nil {
 		return nil, WrapError(err)
 	}
@@ -85,17 +95,36 @@ func (s *FlinkDeploymentTargetService) UpdateFlinkDeploymentTarget(workspaceId, 
 }
 
 func (s *FlinkDeploymentTargetService) DeleteFlinkDeploymentTarget(workspaceId, namespaceName, targetName string) error {
-	flinkService, err := NewFlinkService(s.client)
+	api, resourceID, err := s.apiAndWorkspaceResourceID(workspaceId)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	err = flinkService.GetAPI().DeleteDeploymentTarget(workspaceId, namespaceName, targetName)
+	err = api.DeleteDeploymentTarget(resourceID, namespaceName, targetName)
 	if err != nil {
 		return WrapError(err)
 	}
 
 	return nil
+}
+
+func (s *FlinkDeploymentTargetService) apiAndWorkspaceResourceID(instanceID string) (*flink.FlinkAPI, string, error) {
+	flinkService, err := NewFlinkService(s.client)
+	if err != nil {
+		return nil, "", err
+	}
+	workspace, err := flinkService.GetAPI().GetWorkspace(instanceID)
+	if err != nil {
+		return nil, "", err
+	}
+	if workspace == nil || workspace.ResourceId == "" {
+		return nil, "", fmt.Errorf("Flink workspace %q does not expose a ResourceId", instanceID)
+	}
+	return flinkService.GetAPI(), workspace.ResourceId, nil
+}
+
+func flinkDeploymentTargetUsesV2(target *flink.DeploymentTarget) bool {
+	return target != nil && target.Quota != nil && target.Quota.Request != nil
 }
 
 func (s *FlinkDeploymentTargetService) DeploymentTargetStateRefreshFunc(id string, failStates []string) resource.StateRefreshFunc {

@@ -14,6 +14,13 @@ func Resolve(input Tree) (Tree, error) {
 	if tree.Workspace.Used > workspaceCapacity.Limit {
 		return Tree{}, fmt.Errorf("workspace used CU exceeds its limit")
 	}
+	if tree.Workspace.HA {
+		if tree.Workspace.CrossZoneFixedCU <= 0 {
+			return Tree{}, fmt.Errorf("HA workspace cross-zone fixed CU must be greater than zero")
+		}
+	} else if tree.Workspace.CrossZoneFixedCU != 0 {
+		return Tree{}, fmt.Errorf("non-HA workspace cannot configure cross-zone fixed CU")
+	}
 
 	switch tree.ChargeType {
 	case "PRE":
@@ -21,6 +28,9 @@ func Resolve(input Tree) (Tree, error) {
 			return Tree{}, fmt.Errorf("PRE workspace fixed CU total must be greater than zero")
 		}
 	case "POST":
+		if tree.Workspace.HA {
+			return Tree{}, fmt.Errorf("POST workspace cannot use high availability")
+		}
 		if tree.Workspace.TotalFixed() != 0 {
 			return Tree{}, fmt.Errorf("POST workspace fixed CU must be zero")
 		}

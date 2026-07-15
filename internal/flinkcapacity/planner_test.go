@@ -9,8 +9,8 @@ func plannerTree(workspaceFixed, workspaceLimit, namespaceFixed, namespaceLimit,
 	return Tree{
 		ChargeType: "PRE",
 		Workspace: WorkspaceCapacity{
-			CrossZoneFixedCU: workspaceFixed,
-			Limit:            workspaceLimit,
+			FixedCU: workspaceFixed,
+			Limit:   workspaceLimit,
 		},
 		Namespaces: []Namespace{
 			{
@@ -99,10 +99,23 @@ func TestPlanRejectsUndeclaredCloudChildren(t *testing.T) {
 	}
 }
 
+func TestPlanRejectsHAConversion(t *testing.T) {
+	actual := plannerTree(8, 8, 8, 8, 8, 8)
+	desired := cloneTree(actual)
+	actual.Workspace.HA = true
+	actual.Workspace.FixedCU = 0
+	actual.Workspace.CrossZoneFixedCU = 8
+
+	_, err := Plan(actual, desired)
+	if err == nil || !strings.Contains(err.Error(), "high availability") {
+		t.Fatalf("Plan() error = %v", err)
+	}
+}
+
 func twoNamespaceTree(parentFixed, parentLimit, firstFixed, firstLimit, secondFixed, secondLimit CU) Tree {
 	return Tree{
 		ChargeType: "PRE",
-		Workspace:  WorkspaceCapacity{CrossZoneFixedCU: parentFixed, Limit: parentLimit},
+		Workspace:  WorkspaceCapacity{FixedCU: parentFixed, Limit: parentLimit},
 		Namespaces: []Namespace{
 			{Name: "receiver", Capacity: capacity(firstFixed, firstLimit), Queues: []Queue{{Name: "q", Capacity: capacity(firstFixed, firstLimit)}}},
 			{Name: "donor", Capacity: capacity(secondFixed, secondLimit), Queues: []Queue{{Name: "q", Capacity: capacity(secondFixed, secondLimit)}}},

@@ -13,6 +13,7 @@ func baseTree() Tree {
 	return Tree{
 		ChargeType: "PRE",
 		Workspace: WorkspaceCapacity{
+			HA:               true,
 			CrossZoneFixedCU: 32,
 			Limit:            64,
 		},
@@ -89,6 +90,21 @@ func TestResolveValidation(t *testing.T) {
 		mutate  func(*Tree)
 		wantErr string
 	}{
+		{
+			name: "HA requires cross-zone fixed CU",
+			mutate: func(tree *Tree) {
+				tree.Workspace.CrossZoneFixedCU = 0
+				tree.Workspace.FixedCU = 32
+			},
+			wantErr: "cross-zone",
+		},
+		{
+			name: "non-HA forbids cross-zone fixed CU",
+			mutate: func(tree *Tree) {
+				tree.Workspace.HA = false
+			},
+			wantErr: "non-HA",
+		},
 		{
 			name: "two namespace remainders",
 			mutate: func(tree *Tree) {

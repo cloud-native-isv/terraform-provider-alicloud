@@ -143,6 +143,54 @@ func TestFlinkCapacityCoordinatorCustomizeDiffRejectsAliases(t *testing.T) {
 	}
 }
 
+func TestFlinkCapacityCoordinatorCustomizeDiffRejectsExplicitZeroAlias(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func(map[string]interface{})
+	}{
+		{
+			name: "workspace",
+			mutate: func(workspace map[string]interface{}) {
+				capacity := firstTestBlock(workspace["capacity"])
+				capacity["elastic_cu_limit"] = 0.0
+			},
+		},
+		{
+			name: "namespace",
+			mutate: func(workspace map[string]interface{}) {
+				namespace := firstTestBlock(workspace["namespace"])
+				namespace["capacity"] = []interface{}{map[string]interface{}{
+					"fixed_cu": 0.0, "elastic_cu_limit": 0.0, "max_cu_limit": 8.0,
+				}}
+			},
+		},
+		{
+			name: "queue",
+			mutate: func(workspace map[string]interface{}) {
+				queue := firstTestBlock(firstTestBlock(workspace["namespace"])["queue"])
+				queue["capacity"] = []interface{}{map[string]interface{}{
+					"fixed_cu": 0.0, "elastic_cu_limit": 0.0, "max_cu_limit": 8.0,
+				}}
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			workspace := coordinatorWorkspaceConfig()
+			tc.mutate(firstTestBlock(workspace))
+			config := map[string]interface{}{
+				"workspace_instance_id": "f-test",
+				"workspace":             workspace,
+			}
+			_, err := resourceAliCloudFlinkCapacityCoordinator().Diff(nil, terraform.NewResourceConfigRaw(config), nil)
+			if err == nil || !strings.Contains(err.Error(), "mutually exclusive") {
+				t.Fatalf("Diff() error = %v", err)
+			}
+		})
+	}
+}
+
 func TestFlinkCapacityCoordinatorCustomizeDiffAcceptsValidConfig(t *testing.T) {
 	config := map[string]interface{}{
 		"workspace_instance_id": "f-test",
@@ -170,6 +218,9 @@ func TestExpandFlinkCoordinatorWorkspaceElasticIsInAdditionToAllFixedCU(t *testi
 	}
 	if got := tree.Workspace.AsCapacity().Elastic().Float64(); got != 4 {
 		t.Fatalf("workspace elastic CU = %v, want 4", got)
+	}
+	if !tree.Workspace.HA {
+		t.Fatal("workspace HA flag was not preserved")
 	}
 }
 

@@ -71,6 +71,7 @@ func NewCapacity(fixed CU, elastic, max *CU) (Capacity, error) {
 }
 
 type WorkspaceCapacity struct {
+	HA               bool
 	FixedCU          CU
 	CrossZoneFixedCU CU
 	Limit            CU

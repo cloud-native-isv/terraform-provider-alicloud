@@ -60,6 +60,9 @@ func Plan(actual, desired Tree) ([]Step, error) {
 	if actual.ChargeType != desired.ChargeType {
 		return nil, fmt.Errorf("workspace charge type cannot change from %q to %q", actual.ChargeType, desired.ChargeType)
 	}
+	if actual.Workspace.HA != desired.Workspace.HA {
+		return nil, fmt.Errorf("workspace high availability mode cannot change in place")
+	}
 	if err := validateSameTopology(actual, desired); err != nil {
 		return nil, err
 	}

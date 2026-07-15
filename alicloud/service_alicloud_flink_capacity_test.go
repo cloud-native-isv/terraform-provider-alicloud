@@ -87,6 +87,7 @@ func TestBuildFlinkCapacityTreeFromObjects(t *testing.T) {
 		Id:                  "f-test",
 		ResourceId:          "sc-test",
 		ChargeType:          "PRE",
+		Ha:                  true,
 		ResourceSpec:        &flink.ResourceSpec{Cpu: 2, MemoryGB: 8},
 		HaResourceSpec:      &flink.ResourceSpec{Cpu: 3, MemoryGB: 12},
 		ElasticResourceSpec: &flink.ResourceSpec{Cpu: 4, MemoryGB: 16},
@@ -115,7 +116,7 @@ func TestBuildFlinkCapacityTreeFromObjects(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Workspace != (flinkcapacity.WorkspaceCapacity{FixedCU: 4, CrossZoneFixedCU: 6, Limit: 18, Used: 3}) {
+	if got.Workspace != (flinkcapacity.WorkspaceCapacity{HA: true, FixedCU: 4, CrossZoneFixedCU: 6, Limit: 18, Used: 3}) {
 		t.Fatalf("workspace capacity = %#v", got.Workspace)
 	}
 	if got.Namespaces[0].Capacity == nil || *got.Namespaces[0].Capacity != (flinkcapacity.Capacity{Fixed: 8, Limit: 12}) || got.Namespaces[0].Used != 2 {
@@ -145,5 +146,27 @@ func TestFlinkResourceSpecForCU(t *testing.T) {
 	got := flinkResourceSpecForCU(3)
 	if got.Cpu != 1.5 || got.MemoryGB != 6 {
 		t.Fatalf("resource spec = %#v", got)
+	}
+}
+
+func TestCUFromResourceSpecRejectsInconsistentMemory(t *testing.T) {
+	_, err := cuFromResourceSpec(&flink.ResourceSpec{Cpu: 2, MemoryGB: 16})
+	if err == nil || !strings.Contains(err.Error(), "memory") {
+		t.Fatalf("error = %v", err)
+	}
+}
+
+func TestClassifyFlinkCapacityWriteError(t *testing.T) {
+	sdkErr := flink.NewFlinkSDKError("foasconsole", "ModifyPrepayInstanceSpec", "transport failed", errors.New("connection reset"))
+	classified := classifyFlinkCapacityWriteError(sdkErr)
+	var ambiguous interface{ Ambiguous() bool }
+	if !errors.As(classified, &ambiguous) || !ambiguous.Ambiguous() {
+		t.Fatalf("SDK write error was not marked ambiguous: %T %v", classified, classified)
+	}
+
+	serviceErr := flink.NewFlinkServiceErrorWithCode("request", "", "InvalidParameter", "invalid", "")
+	classified = classifyFlinkCapacityWriteError(serviceErr)
+	if errors.As(classified, &ambiguous) && ambiguous.Ambiguous() {
+		t.Fatalf("service rejection was marked ambiguous: %T %v", classified, classified)
 	}
 }

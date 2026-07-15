@@ -2,7 +2,9 @@ package alicloud
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -185,14 +187,38 @@ func (s *FlinkCapacityService) ApplyStep(ctx context.Context, instanceID string,
 	default:
 		err = fmt.Errorf("unsupported Flink capacity action %q", step.Action)
 	}
-	return flinkcapacity.Operation{RequestID: operation.RequestID, OrderID: operation.OrderID}, err
+	return flinkcapacity.Operation{RequestID: operation.RequestID, OrderID: operation.OrderID}, classifyFlinkCapacityWriteError(err)
+}
+
+type ambiguousFlinkCapacityWriteError struct {
+	cause error
+}
+
+func (e *ambiguousFlinkCapacityWriteError) Error() string   { return e.cause.Error() }
+func (e *ambiguousFlinkCapacityWriteError) Unwrap() error   { return e.cause }
+func (e *ambiguousFlinkCapacityWriteError) Ambiguous() bool { return true }
+
+func classifyFlinkCapacityWriteError(err error) error {
+	if err == nil {
+		return nil
+	}
+	var sdkErr *flink.FlinkSDKError
+	if errors.As(err, &sdkErr) {
+		return &ambiguousFlinkCapacityWriteError{cause: err}
+	}
+	return err
 }
 
 func buildFlinkCapacityTree(workspace *flink.Workspace, namespaces []flink.Namespace, targets map[string][]flink.DeploymentTarget) (flinkcapacity.Tree, error) {
 	if workspace == nil {
 		return flinkcapacity.Tree{}, fmt.Errorf("workspace must not be nil")
 	}
-	tree := flinkcapacity.Tree{ChargeType: workspace.ChargeType}
+	tree := flinkcapacity.Tree{
+		ChargeType: workspace.ChargeType,
+		Workspace: flinkcapacity.WorkspaceCapacity{
+			HA: workspace.Ha || (workspace.HighAvailability != nil && workspace.HighAvailability.Enabled),
+		},
+	}
 	if workspace.ChargeType == "POST" {
 		limit, err := cuFromResourceSpec(workspace.ResourceSpec)
 		if err != nil {
@@ -213,6 +239,7 @@ func buildFlinkCapacityTree(workspace *flink.Workspace, namespaces []flink.Names
 			return flinkcapacity.Tree{}, fmt.Errorf("workspace elastic capacity: %w", err)
 		}
 		tree.Workspace = flinkcapacity.WorkspaceCapacity{
+			HA:               tree.Workspace.HA,
 			FixedCU:          fixed,
 			CrossZoneFixedCU: crossZone,
 			Limit:            fixed + crossZone + elastic,
@@ -287,6 +314,9 @@ func flinkResourceSpecForOptionalCU(cu flinkcapacity.CU) *flink.ResourceSpec {
 func cuFromResourceSpec(spec *flink.ResourceSpec) (flinkcapacity.CU, error) {
 	if spec == nil {
 		return 0, fmt.Errorf("resource specification is missing")
+	}
+	if math.Abs(spec.MemoryGB-spec.Cpu*4) > 1e-9 {
+		return 0, fmt.Errorf("resource specification memory %v must equal CPU %v * 4", spec.MemoryGB, spec.Cpu)
 	}
 	return flinkcapacity.ParseCU(spec.Cpu)
 }

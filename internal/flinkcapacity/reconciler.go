@@ -60,41 +60,32 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 	if r.API == nil {
 		return Tree{}, fmt.Errorf("capacity API must not be nil")
 	}
-	var current Tree
-	var steps []Step
-	var err error
+	completed := 0
 	for {
-		current, err = r.readTree(ctx, instanceID)
+		current, steps, err := r.readPlan(ctx, instanceID, &desired)
 		if err != nil {
-			return r.fail(instanceID, current, 0, nil, Operation{}, fmt.Errorf("read capacity tree before reconciliation: %w", err))
-		}
-		if desired.ChargeType == "" {
-			desired.ChargeType = current.ChargeType
-		}
-		steps, err = Plan(current, desired)
-		if err == nil {
-			break
-		}
-		if !errorIsRetryable(err) {
+			if errorIsRetryable(err) || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return r.fail(instanceID, current, completed, nil, Operation{}, err)
+			}
 			return current, err
 		}
-		if err := r.sleep(ctx); err != nil {
-			return r.fail(instanceID, current, 0, nil, Operation{}, err)
+		if len(steps) == 0 {
+			return current, nil
 		}
-	}
 
-	completed := 0
-	for i := range steps {
-		step := steps[i]
-		current, err = r.readTree(ctx, instanceID)
+		// Re-read and re-plan immediately before every write. This prevents an
+		// external drift between steps from making a previously safe step stale.
+		current, steps, err = r.readPlan(ctx, instanceID, &desired)
 		if err != nil {
-			return r.fail(instanceID, current, completed, &step, Operation{}, fmt.Errorf("read before step: %w", err))
+			if errorIsRetryable(err) || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return r.fail(instanceID, current, completed, nil, Operation{}, err)
+			}
+			return current, err
 		}
-		if stepConverged(current, step) {
-			completed++
-			continue
+		if len(steps) == 0 {
+			return current, nil
 		}
-
+		step := steps[0]
 		operation, applyErr := r.API.ApplyStep(ctx, instanceID, step)
 		if applyErr != nil {
 			if errorIsAmbiguous(applyErr) {
@@ -124,7 +115,25 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 			}
 		}
 	}
-	return current, nil
+}
+
+func (r Reconciler) readPlan(ctx context.Context, instanceID string, desired *Tree) (Tree, []Step, error) {
+	for {
+		current, err := r.readTree(ctx, instanceID)
+		if err != nil {
+			return current, nil, fmt.Errorf("read capacity tree before reconciliation: %w", err)
+		}
+		if desired.ChargeType == "" {
+			desired.ChargeType = current.ChargeType
+		}
+		steps, err := Plan(current, *desired)
+		if err == nil || !errorIsRetryable(err) {
+			return current, steps, err
+		}
+		if err := r.sleep(ctx); err != nil {
+			return current, nil, err
+		}
+	}
 }
 
 func (r Reconciler) readTree(ctx context.Context, instanceID string) (Tree, error) {

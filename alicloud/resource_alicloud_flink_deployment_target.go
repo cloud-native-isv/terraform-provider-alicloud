@@ -46,11 +46,38 @@ func resourceAliCloudFlinkDeploymentTarget() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"quota": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:             schema.TypeList,
+				Optional:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: suppressFlinkLegacyCapacityDiff,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"request": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"cpu": {
+										Type:         schema.TypeFloat,
+										Optional:     true,
+										ValidateFunc: validation.FloatAtLeast(0.1),
+									},
+									"memory_gb": {
+										Type:         schema.TypeFloat,
+										Optional:     true,
+										ValidateFunc: validation.FloatAtLeast(0.1),
+									},
+									"disk": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntAtLeast(1),
+									},
+								},
+							},
+							Description: "Fixed resource request. When configured with limit, RESOURCE mode uses the V2 queue capacity API.",
+						},
 						"limit": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -228,6 +255,10 @@ func expandResourceQuota(configured []interface{}) *flink.ResourceQuota {
 	raw := configured[0].(map[string]interface{})
 	quota := &flink.ResourceQuota{}
 
+	if v, ok := raw["request"]; ok {
+		quota.Request = expandResourceSpec(v.([]interface{}))
+	}
+
 	if v, ok := raw["limit"]; ok {
 		quota.Limit = expandResourceSpec(v.([]interface{}))
 	}
@@ -268,6 +299,10 @@ func flattenResourceQuota(quota *flink.ResourceQuota) []interface{} {
 	}
 
 	result := map[string]interface{}{}
+
+	if quota.Request != nil {
+		result["request"] = flattenResourceSpec(quota.Request)
+	}
 
 	if quota.Limit != nil {
 		result["limit"] = flattenResourceSpec(quota.Limit)

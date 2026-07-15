@@ -29,6 +29,28 @@ func TestFlinkLifecycleResourceSchemasValidate(t *testing.T) {
 	}
 }
 
+func TestFlinkDeploymentTargetQuotaSupportsV2Request(t *testing.T) {
+	resource := resourceAliCloudFlinkDeploymentTarget()
+	quota := resource.Schema["quota"].Elem.(*schema.Resource)
+	request := quota.Schema["request"]
+	if request == nil || !request.Optional || !request.Computed {
+		t.Fatalf("quota.request schema = %#v", request)
+	}
+
+	configured := []interface{}{map[string]interface{}{
+		"request": []interface{}{map[string]interface{}{"cpu": 2.0, "memory_gb": 8.0}},
+		"limit":   []interface{}{map[string]interface{}{"cpu": 4.0, "memory_gb": 16.0}},
+	}}
+	got := expandResourceQuota(configured)
+	if got.Request == nil || got.Request.Cpu != 2 || got.Limit == nil || got.Limit.Cpu != 4 {
+		t.Fatalf("expanded quota = %#v", got)
+	}
+	flat := firstTestBlock(flattenResourceQuota(got))
+	if !flinkListBlockConfigured(flat["request"]) || !flinkListBlockConfigured(flat["limit"]) {
+		t.Fatalf("flattened quota = %#v", flat)
+	}
+}
+
 func TestFlinkWorkspaceCapacityManagementValidation(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -108,6 +130,17 @@ func TestFlinkWorkspaceLegacyCapacityChangeStillRequiresNew(t *testing.T) {
 func TestFlinkWorkspaceModeSwitchDoesNotRequireNew(t *testing.T) {
 	config := workspaceConfig("COORDINATOR", false, false)
 	diff, err := resourceAliCloudFlinkWorkspace().Diff(workspaceState("RESOURCE", "PRE", true), terraform.NewResourceConfigRaw(config), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if diffRequiresNew(diff) {
+		t.Fatalf("capacity ownership switch unexpectedly requires replacement: %#v", diff.Attributes)
+	}
+}
+
+func TestFlinkWorkspaceModeSwitchBackDoesNotRequireNew(t *testing.T) {
+	config := workspaceConfig("RESOURCE", true, false)
+	diff, err := resourceAliCloudFlinkWorkspace().Diff(workspaceState("COORDINATOR", "PRE", false), terraform.NewResourceConfigRaw(config), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,6 +230,53 @@ func TestFlinkChildCapacityManagementRequiresStagedCreation(t *testing.T) {
 	}
 }
 
+func TestFlinkChildModeSwitchBackSuppressesCapacityWriteDiff(t *testing.T) {
+	namespaceConfig := map[string]interface{}{
+		"workspace_id":        "f-test",
+		"namespace_name":      "default",
+		"capacity_management": "RESOURCE",
+		"guaranteed_resource_spec": []interface{}{map[string]interface{}{
+			"cpu": 2, "memory_gb": 8,
+		}},
+	}
+	namespaceState := &terraform.InstanceState{ID: "f-test:default", Attributes: map[string]string{
+		"workspace_id":               "f-test",
+		"namespace_name":             "default",
+		"capacity_management":        "COORDINATOR",
+		"guaranteed_resource_spec.#": "0",
+		"elastic_resource_spec.#":    "0",
+		"ha":                         "false",
+		"status":                     "Available",
+	}}
+	diff, err := resourceAliCloudFlinkNamespace().Diff(namespaceState, terraform.NewResourceConfigRaw(namespaceConfig), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertNoDiffPrefix(t, diff, "guaranteed_resource_spec")
+
+	targetConfig := map[string]interface{}{
+		"workspace_id":        "f-test",
+		"namespace_name":      "default",
+		"name":                "q",
+		"capacity_management": "RESOURCE",
+		"quota": []interface{}{map[string]interface{}{
+			"limit": []interface{}{map[string]interface{}{"cpu": 2.0, "memory_gb": 8.0}},
+		}},
+	}
+	targetState := &terraform.InstanceState{ID: "f-test:default:q", Attributes: map[string]string{
+		"workspace_id":        "f-test",
+		"namespace_name":      "default",
+		"name":                "q",
+		"capacity_management": "COORDINATOR",
+		"quota.#":             "0",
+	}}
+	diff, err = resourceAliCloudFlinkDeploymentTarget().Diff(targetState, terraform.NewResourceConfigRaw(targetConfig), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertNoDiffPrefix(t, diff, "quota")
+}
+
 func workspaceConfig(mode string, legacyResource, bootstrap bool) map[string]interface{} {
 	config := map[string]interface{}{
 		"name":                "workspace",
@@ -258,4 +338,13 @@ func diffRequiresNew(diff *terraform.InstanceDiff) bool {
 		}
 	}
 	return false
+}
+
+func assertNoDiffPrefix(t *testing.T, diff *terraform.InstanceDiff, prefix string) {
+	t.Helper()
+	for key := range diff.Attributes {
+		if strings.HasPrefix(key, prefix) {
+			t.Fatalf("unexpected %s diff: %#v", prefix, diff.Attributes)
+		}
+	}
 }
