@@ -21,6 +21,9 @@ func Resolve(input Tree) (Tree, error) {
 		if tree.Workspace.Limit <= 0 {
 			return Tree{}, fmt.Errorf("POST workspace CU limit must be greater than zero")
 		}
+		// POST has no prepaid fixed-CU component, but its pay-as-you-go limit
+		// is still the allocation budget for child guaranteed/request quotas.
+		workspaceCapacity.Fixed = workspaceCapacity.Limit
 	default:
 		return Tree{}, fmt.Errorf("unsupported charge type %q", tree.ChargeType)
 	}

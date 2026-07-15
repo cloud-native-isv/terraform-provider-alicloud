@@ -5,11 +5,12 @@ import "fmt"
 type Action string
 
 const (
-	ModifyWorkspaceFixed   Action = "modify_workspace_fixed"
-	EnableWorkspaceElastic Action = "enable_workspace_elastic"
-	ModifyWorkspaceElastic Action = "modify_workspace_elastic"
-	ModifyNamespace        Action = "modify_namespace"
-	ModifyQueue            Action = "modify_queue"
+	ModifyWorkspaceFixed    Action = "modify_workspace_fixed"
+	ModifyWorkspacePostpaid Action = "modify_workspace_postpaid"
+	EnableWorkspaceElastic  Action = "enable_workspace_elastic"
+	ModifyWorkspaceElastic  Action = "modify_workspace_elastic"
+	ModifyNamespace         Action = "modify_namespace"
+	ModifyQueue             Action = "modify_queue"
 )
 
 type Ref struct {
@@ -69,7 +70,7 @@ func Plan(actual, desired Tree) ([]Step, error) {
 
 	actualElastic := state.Workspace.AsCapacity().Elastic()
 	desiredElastic := target.Workspace.AsCapacity().Elastic()
-	if actualElastic > 0 && desiredElastic == 0 {
+	if state.ChargeType == "PRE" && actualElastic > 0 && desiredElastic == 0 {
 		return nil, fmt.Errorf("cannot reduce workspace elastic CU to zero through the supported public API; disable it manually before retrying")
 	}
 
@@ -159,21 +160,27 @@ func buildCandidates(state, target Tree) []candidate {
 	result := make([]candidate, 0, capacityNodeCount(target)+1)
 	currentWorkspace := workspaceAllocation(state.Workspace)
 	targetWorkspace := workspaceAllocation(target.Workspace)
-	if currentWorkspace.FixedCU != targetWorkspace.FixedCU || currentWorkspace.CrossZoneFixedCU != targetWorkspace.CrossZoneFixedCU {
-		to := targetWorkspace
-		to.Limit = to.TotalFixed() + currentWorkspace.AsCapacity().Elastic()
-		result = append(result, newCandidate(ModifyWorkspaceFixed, Ref{}, currentWorkspace, to, 0))
-	}
-	currentElastic := currentWorkspace.AsCapacity().Elastic()
-	targetElastic := targetWorkspace.AsCapacity().Elastic()
-	if currentElastic != targetElastic {
-		to := currentWorkspace
-		to.Limit = to.TotalFixed() + targetElastic
-		action := ModifyWorkspaceElastic
-		if currentElastic == 0 {
-			action = EnableWorkspaceElastic
+	if state.ChargeType == "POST" {
+		if currentWorkspace.Limit != targetWorkspace.Limit {
+			result = append(result, newCandidate(ModifyWorkspacePostpaid, Ref{}, currentWorkspace, targetWorkspace, 0))
 		}
-		result = append(result, newCandidate(action, Ref{}, currentWorkspace, to, 0))
+	} else {
+		if currentWorkspace.FixedCU != targetWorkspace.FixedCU || currentWorkspace.CrossZoneFixedCU != targetWorkspace.CrossZoneFixedCU {
+			to := targetWorkspace
+			to.Limit = to.TotalFixed() + currentWorkspace.AsCapacity().Elastic()
+			result = append(result, newCandidate(ModifyWorkspaceFixed, Ref{}, currentWorkspace, to, 0))
+		}
+		currentElastic := currentWorkspace.AsCapacity().Elastic()
+		targetElastic := targetWorkspace.AsCapacity().Elastic()
+		if currentElastic != targetElastic {
+			to := currentWorkspace
+			to.Limit = to.TotalFixed() + targetElastic
+			action := ModifyWorkspaceElastic
+			if currentElastic == 0 {
+				action = EnableWorkspaceElastic
+			}
+			result = append(result, newCandidate(action, Ref{}, currentWorkspace, to, 0))
+		}
 	}
 
 	for _, targetNamespace := range target.Namespaces {
@@ -241,7 +248,7 @@ func candidateIsSafe(state Tree, candidate candidate, maxWorkspaceLimit CU) bool
 func applyCandidate(state *Tree, candidate candidate) {
 	to := candidate.step.To
 	switch candidate.step.Action {
-	case ModifyWorkspaceFixed, EnableWorkspaceElastic, ModifyWorkspaceElastic:
+	case ModifyWorkspaceFixed, ModifyWorkspacePostpaid, EnableWorkspaceElastic, ModifyWorkspaceElastic:
 		state.Workspace.FixedCU = to.FixedCU
 		state.Workspace.CrossZoneFixedCU = to.CrossZoneFixedCU
 		state.Workspace.Limit = to.Limit

@@ -159,6 +159,8 @@ func stepConverged(tree Tree, step Step) bool {
 	switch step.Action {
 	case ModifyWorkspaceFixed:
 		return resolved.Workspace.FixedCU == step.To.FixedCU && resolved.Workspace.CrossZoneFixedCU == step.To.CrossZoneFixedCU
+	case ModifyWorkspacePostpaid:
+		return resolved.Workspace.Limit == step.To.Limit
 	case EnableWorkspaceElastic, ModifyWorkspaceElastic:
 		return resolved.Workspace.AsCapacity().Elastic() == step.To.AsCapacity().Elastic()
 	case ModifyNamespace:

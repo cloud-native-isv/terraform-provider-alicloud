@@ -172,3 +172,18 @@ func TestResolveDoesNotMutateInput(t *testing.T) {
 		t.Fatal("Resolve mutated input tree")
 	}
 }
+
+func TestResolvePostAllowsChildFixedWithinWorkspaceLimit(t *testing.T) {
+	tree := Tree{
+		ChargeType: "POST",
+		Workspace:  WorkspaceCapacity{Limit: 16},
+		Namespaces: []Namespace{{
+			Name:     "default",
+			Capacity: capacity(8, 16),
+			Queues:   []Queue{{Name: "default-queue", Capacity: capacity(8, 16)}},
+		}},
+	}
+	if _, err := Resolve(tree); err != nil {
+		t.Fatalf("Resolve() error = %v", err)
+	}
+}

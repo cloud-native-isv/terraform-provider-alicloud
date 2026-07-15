@@ -191,6 +191,28 @@ func TestPlanWorkspaceElasticActions(t *testing.T) {
 	})
 }
 
+func TestPlanPostpaidWorkspaceUsesInstanceSpecAction(t *testing.T) {
+	actual := Tree{
+		ChargeType: "POST",
+		Workspace:  WorkspaceCapacity{Limit: 8},
+		Namespaces: []Namespace{{
+			Name:     "default",
+			Capacity: capacity(0, 8),
+			Queues:   []Queue{{Name: "default-queue", Capacity: capacity(0, 8)}},
+		}},
+	}
+	desired := cloneTree(actual)
+	desired.Workspace.Limit = 16
+
+	steps, err := Plan(actual, desired)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(steps) != 1 || steps[0].Action != ModifyWorkspacePostpaid {
+		t.Fatalf("steps = %#v", steps)
+	}
+}
+
 func TestPlanWorkspaceCompositionChange(t *testing.T) {
 	t.Run("shrink elastic before expanding fixed when safe", func(t *testing.T) {
 		actual := plannerTree(8, 16, 6, 12, 6, 12)
