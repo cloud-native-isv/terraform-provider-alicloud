@@ -1,0 +1,175 @@
+package flinkcapacity
+
+import (
+	"context"
+	"errors"
+	"testing"
+	"time"
+)
+
+type fakeCapacityAPI struct {
+	tree      Tree
+	reads     int
+	writes    []Step
+	deadlines []time.Time
+	readFn    func(*fakeCapacityAPI) (Tree, error)
+	applyFn   func(*fakeCapacityAPI, Step) (Operation, error)
+}
+
+func (f *fakeCapacityAPI) ReadTree(ctx context.Context, _ string) (Tree, error) {
+	f.reads++
+	if deadline, ok := ctx.Deadline(); ok {
+		f.deadlines = append(f.deadlines, deadline)
+	}
+	if f.readFn != nil {
+		return f.readFn(f)
+	}
+	return cloneTree(f.tree), nil
+}
+
+func (f *fakeCapacityAPI) ApplyStep(ctx context.Context, _ string, step Step) (Operation, error) {
+	f.writes = append(f.writes, step)
+	if deadline, ok := ctx.Deadline(); ok {
+		f.deadlines = append(f.deadlines, deadline)
+	}
+	if f.applyFn != nil {
+		return f.applyFn(f, step)
+	}
+	applyCandidate(&f.tree, candidate{step: step})
+	return Operation{RequestID: "request", OrderID: "order"}, nil
+}
+
+type ambiguousTestError struct{}
+
+func (ambiguousTestError) Error() string   { return "connection reset after request" }
+func (ambiguousTestError) Ambiguous() bool { return true }
+
+func testReconciler(api API) Reconciler {
+	return Reconciler{
+		API:          api,
+		PollInterval: time.Millisecond,
+		Sleep: func(context.Context, time.Duration) error {
+			return nil
+		},
+	}
+}
+
+func TestReconcilerReadsAfterEveryWriteAndSharesDeadline(t *testing.T) {
+	actual := plannerTree(8, 8, 8, 8, 8, 8)
+	desired := plannerTree(16, 24, 16, 24, 16, 24)
+	api := &fakeCapacityAPI{tree: actual}
+	reconciler := testReconciler(api)
+	deadline := time.Now().Add(time.Hour).Round(0)
+	ctx, cancel := context.WithDeadline(context.Background(), deadline)
+	defer cancel()
+
+	got, err := reconciler.Reconcile(ctx, "f-test", desired)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !sameCapacityTree(got, desired) {
+		t.Fatalf("final tree = %#v", got)
+	}
+	if len(api.writes) == 0 || api.reads < len(api.writes)*2+1 {
+		t.Fatalf("reads=%d writes=%d, want a pre- and post-write read", api.reads, len(api.writes))
+	}
+	for _, gotDeadline := range api.deadlines {
+		if !gotDeadline.Equal(deadline) {
+			t.Fatalf("deadline changed: %v != %v", gotDeadline, deadline)
+		}
+	}
+}
+
+func TestReconcilerDoesNotReplayAmbiguousSuccess(t *testing.T) {
+	actual := plannerTree(8, 8, 8, 8, 8, 8)
+	desired := plannerTree(8, 16, 8, 8, 8, 8)
+	api := &fakeCapacityAPI{tree: actual}
+	api.applyFn = func(f *fakeCapacityAPI, step Step) (Operation, error) {
+		applyCandidate(&f.tree, candidate{step: step})
+		return Operation{RequestID: "ambiguous-request"}, ambiguousTestError{}
+	}
+
+	got, err := testReconciler(api).Reconcile(context.Background(), "f-test", desired)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(api.writes) != 1 {
+		t.Fatalf("writes = %d, want 1", len(api.writes))
+	}
+	if !sameCapacityTree(got, desired) {
+		t.Fatalf("final tree = %#v", got)
+	}
+}
+
+func TestReconcilerReturnsPartialTreeOnLaterFailure(t *testing.T) {
+	actual := plannerTree(8, 8, 8, 8, 8, 8)
+	desired := plannerTree(16, 24, 16, 24, 16, 24)
+	api := &fakeCapacityAPI{tree: actual}
+	api.applyFn = func(f *fakeCapacityAPI, step Step) (Operation, error) {
+		if len(f.writes) == 2 {
+			return Operation{RequestID: "failed-request", OrderID: "failed-order"}, errors.New("order failed")
+		}
+		applyCandidate(&f.tree, candidate{step: step})
+		return Operation{RequestID: "successful-request"}, nil
+	}
+
+	got, err := testReconciler(api).Reconcile(context.Background(), "f-test", desired)
+	if err == nil {
+		t.Fatal("expected reconcile failure")
+	}
+	var reconcileErr *ReconcileError
+	if !errors.As(err, &reconcileErr) {
+		t.Fatalf("error type = %T, want *ReconcileError", err)
+	}
+	if reconcileErr.CompletedSteps != 1 || reconcileErr.Operation.RequestID != "failed-request" || reconcileErr.Operation.OrderID != "failed-order" {
+		t.Fatalf("diagnostic = %#v", reconcileErr)
+	}
+	if !stepConverged(got, api.writes[0]) {
+		t.Fatalf("returned tree lost the first successful step: %#v", got)
+	}
+}
+
+func TestReconcilerFinalReadOnTimeout(t *testing.T) {
+	actual := plannerTree(8, 8, 8, 8, 8, 8)
+	desired := plannerTree(8, 16, 8, 8, 8, 8)
+	api := &fakeCapacityAPI{tree: actual}
+	api.applyFn = func(_ *fakeCapacityAPI, _ Step) (Operation, error) {
+		return Operation{RequestID: "slow-request"}, nil
+	}
+	reconciler := testReconciler(api)
+	reconciler.Sleep = func(context.Context, time.Duration) error {
+		return context.DeadlineExceeded
+	}
+
+	_, err := reconciler.Reconcile(context.Background(), "f-test", desired)
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("error = %v, want deadline exceeded", err)
+	}
+	if api.reads < 4 {
+		t.Fatalf("reads = %d, want initial, pre-write, post-write, and final reads", api.reads)
+	}
+}
+
+func TestReconcilerSkipsWriteWhenStepAlreadyConverged(t *testing.T) {
+	actual := plannerTree(8, 8, 8, 8, 8, 8)
+	desired := plannerTree(8, 16, 8, 8, 8, 8)
+	api := &fakeCapacityAPI{tree: actual}
+	api.readFn = func(f *fakeCapacityAPI) (Tree, error) {
+		if f.reads == 1 {
+			return cloneTree(actual), nil
+		}
+		f.tree = cloneTree(desired)
+		return cloneTree(desired), nil
+	}
+
+	got, err := testReconciler(api).Reconcile(context.Background(), "f-test", desired)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(api.writes) != 0 {
+		t.Fatalf("writes = %d, want 0", len(api.writes))
+	}
+	if !sameCapacityTree(got, desired) {
+		t.Fatalf("final tree = %#v", got)
+	}
+}
