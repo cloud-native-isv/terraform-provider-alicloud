@@ -209,6 +209,31 @@ func TestHAConfigUsesCreateFields(t *testing.T) {
 	}
 }
 
+func TestZoneReadFallsBackToVSwitchInfoThenState(t *testing.T) {
+	workspace := &aliyunFlinkAPI.Workspace{
+		Ha:            true,
+		VSwitchInfo:   []aliyunFlinkAPI.VSwitchInfo{{ZoneId: "cn-beijing-f"}},
+		HaVSwitchInfo: []aliyunFlinkAPI.VSwitchInfo{{ZoneId: "cn-beijing-g"}},
+	}
+	if got := PrimaryZoneID(workspace, "state-primary"); got != "cn-beijing-f" {
+		t.Fatalf("primary zone = %q", got)
+	}
+	config, ok := HAConfigWithFallback(workspace, "state-standby")
+	if !ok || config["zone_id"] != "cn-beijing-g" {
+		t.Fatalf("HA config = %#v, ok=%v", config, ok)
+	}
+
+	workspace.VSwitchInfo = nil
+	workspace.HaVSwitchInfo = nil
+	if got := PrimaryZoneID(workspace, "state-primary"); got != "state-primary" {
+		t.Fatalf("primary state fallback = %q", got)
+	}
+	config, _ = HAConfigWithFallback(workspace, "state-standby")
+	if config["zone_id"] != "state-standby" {
+		t.Fatalf("HA state fallback = %#v", config)
+	}
+}
+
 func TestHAConfigRejectsDisabledHA(t *testing.T) {
 	for _, workspace := range []*aliyunFlinkAPI.Workspace{
 		nil,

@@ -14,9 +14,11 @@ import (
 
 func resourceAliCloudFlinkWorkspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudFlinkWorkspaceCreate,
-		Read:   resourceAliCloudFlinkWorkspaceRead,
-		Delete: resourceAliCloudFlinkWorkspaceDelete,
+		Create:        resourceAliCloudFlinkWorkspaceCreate,
+		Read:          resourceAliCloudFlinkWorkspaceRead,
+		Update:        resourceAliCloudFlinkWorkspaceUpdate,
+		Delete:        resourceAliCloudFlinkWorkspaceDelete,
+		CustomizeDiff: flinkWorkspaceCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -35,8 +37,10 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 			},
 			"zone_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				ForceNew:    true,
+				Deprecated:  "zone_id is derived from vswitch_ids; keep it only for compatibility with existing configurations.",
 				Description: "The zone ID where the Flink instance is located.",
 			},
 			"vpc_id": {
@@ -76,7 +80,6 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 			"charge_type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				Default:      "POST",
 				ValidateFunc: validation.StringInSlice([]string{"POST", "PRE"}, false),
 				Description:  "The billing method of the instance.",
@@ -104,15 +107,15 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 			"ha": {
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"resource": {
-							Type:     schema.TypeList,
-							Required: true,
-							ForceNew: true,
-							MaxItems: 1,
+							Type:             schema.TypeList,
+							Optional:         true,
+							ForceNew:         true,
+							MaxItems:         1,
+							DiffSuppressFunc: suppressFlinkLegacyCapacityDiff,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"cpu": {
@@ -130,6 +133,7 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 								},
 							},
 							Description: "HA resource specifications.",
+							Deprecated:  "Use alicloud_flink_capacity_coordinator for new capacity configurations.",
 						},
 						"vswitch_ids": {
 							Type:        schema.TypeList,
@@ -140,8 +144,10 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 						},
 						"zone_id": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Optional:    true,
+							Computed:    true,
 							ForceNew:    true,
+							Deprecated:  "ha.zone_id is derived from ha.vswitch_ids; keep it only for compatibility.",
 							Description: "The zone ID for high availability.",
 						},
 					},
@@ -186,10 +192,11 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				Description: "Storage configuration of oss bucket for the Flink instance.",
 			},
 			"resource": {
-				Type:     schema.TypeList,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
+				Type:             schema.TypeList,
+				Optional:         true,
+				ForceNew:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: suppressFlinkLegacyCapacityDiff,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cpu": {
@@ -207,7 +214,11 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 					},
 				},
 				Description: "Resource specifications for the Flink instance.",
+				Deprecated:  "Use bootstrap_capacity plus alicloud_flink_capacity_coordinator for new configurations.",
 			},
+			"capacity_management": flinkCapacityManagementSchema(),
+			"bootstrap_capacity":  flinkBootstrapCapacitySchema(),
+			"observed_capacity":   flinkObservedCapacitySchema(true),
 			"resource_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -215,8 +226,9 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 	}
 }
@@ -232,7 +244,6 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	workspaceRequest := &aliyunFlinkAPI.Workspace{
 		Name:            d.Get("name").(string),
 		ResourceGroupId: d.Get("resource_group_id").(string),
-		ZoneId:          d.Get("zone_id").(string),
 		VpcId:           d.Get("vpc_id").(string),
 		Region:          client.RegionId,
 	}
@@ -244,6 +255,21 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 			workspaceRequest.VSwitchIds[i] = v.(string)
 		}
 	}
+	haMap, hasHA := flinkFirstBlock(d.Get("ha"))
+	var haVSwitchIDs []string
+	if hasHA {
+		haVSwitchIDs = flinkStringList(haMap["vswitch_ids"])
+	}
+	legacyPrimaryZoneID, _ := d.Get("zone_id").(string)
+	legacyStandbyZoneID := ""
+	if hasHA {
+		legacyStandbyZoneID, _ = haMap["zone_id"].(string)
+	}
+	topology, err := resolveFlinkWorkspaceTopology(client, workspaceRequest.VpcId, legacyPrimaryZoneID, legacyStandbyZoneID, workspaceRequest.VSwitchIds, haVSwitchIDs)
+	if err != nil {
+		return WrapError(err)
+	}
+	workspaceRequest.ZoneId = topology.PrimaryZoneID
 
 	// Handle security_group_id
 	if sgId, ok := d.GetOk("security_group_id"); ok {
@@ -263,13 +289,21 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		workspaceRequest.ChargeType = chargeType.(string)
 	}
 
-	// Handle resource configuration
-	if resourceList := d.Get("resource").([]interface{}); len(resourceList) > 0 {
-		resourceMap := resourceList[0].(map[string]interface{})
-		workspaceRequest.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{
-			Cpu:      float64(resourceMap["cpu"].(int)),
-			MemoryGB: float64(resourceMap["memory"].(int)),
+	// Handle the create-only capacity source selected by capacity_management.
+	if d.Get("capacity_management").(string) == CapacityManagedByCoordinator {
+		fixedCU, crossZoneFixedCU := expandFlinkBootstrapCapacity(d.Get("bootstrap_capacity"))
+		workspaceRequest.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{Cpu: float64(fixedCU), MemoryGB: float64(fixedCU * 4)}
+		if hasHA {
+			workspaceRequest.HighAvailability = &aliyunFlinkAPI.HighAvailability{
+				Enabled:      true,
+				ZoneId:       topology.StandbyZoneID,
+				VSwitchIds:   haVSwitchIDs,
+				ResourceSpec: &aliyunFlinkAPI.ResourceSpec{Cpu: float64(crossZoneFixedCU), MemoryGB: float64(crossZoneFixedCU * 4)},
+			}
 		}
+	} else if resourceList := d.Get("resource").([]interface{}); len(resourceList) > 0 {
+		resourceMap := resourceList[0].(map[string]interface{})
+		workspaceRequest.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{Cpu: float64(resourceMap["cpu"].(int)), MemoryGB: float64(resourceMap["memory"].(int))}
 	}
 
 	// Handle storage configuration
@@ -283,22 +317,15 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	// Handle HA configuration
-	if haList := d.Get("ha").([]interface{}); len(haList) > 0 {
-		haMap := haList[0].(map[string]interface{})
-
+	if hasHA && d.Get("capacity_management").(string) == CapacityManagedByResource {
 		// Set high availability flag
 		workspaceRequest.HighAvailability = &aliyunFlinkAPI.HighAvailability{
 			Enabled: true,
-			ZoneId:  haMap["zone_id"].(string),
+			ZoneId:  topology.StandbyZoneID,
 		}
 
 		// Handle HA vswitch IDs
-		if haVswitchIds := haMap["vswitch_ids"].([]interface{}); len(haVswitchIds) > 0 {
-			workspaceRequest.HighAvailability.VSwitchIds = make([]string, len(haVswitchIds))
-			for i, v := range haVswitchIds {
-				workspaceRequest.HighAvailability.VSwitchIds[i] = v.(string)
-			}
-		}
+		workspaceRequest.HighAvailability.VSwitchIds = haVSwitchIDs
 
 		// Handle HA resource specs
 		if resourceList := haMap["resource"].([]interface{}); len(resourceList) > 0 {
@@ -374,14 +401,9 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", workspace.Name)
 	d.Set("resource_group_id", workspace.ResourceGroupId)
 
-	// Ensure zone_id is always set to prevent forces replacement
-	if workspace.ZoneId != "" {
-		d.Set("zone_id", workspace.ZoneId)
-	} else {
-		// If API doesn't return zone_id, preserve the configured value
-		if configuredZoneId := d.Get("zone_id").(string); configuredZoneId != "" {
-			d.Set("zone_id", configuredZoneId)
-		}
+	configuredPrimaryZoneID, _ := d.Get("zone_id").(string)
+	if zoneID := flinkworkspace.PrimaryZoneID(workspace, configuredPrimaryZoneID); zoneID != "" {
+		d.Set("zone_id", zoneID)
 	}
 
 	d.Set("vpc_id", workspace.VpcId)
@@ -417,13 +439,18 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("resource_id", workspace.ResourceId)
 	}
 
-	// Set resource configuration
-	if workspace.ResourceSpec != nil {
+	capacityManagement := d.Get("capacity_management").(string)
+	d.Set("observed_capacity", flattenFlinkWorkspaceObservedCapacity(workspace))
+
+	// Set legacy capacity intent only while this resource owns capacity.
+	if capacityManagement == CapacityManagedByResource && workspace.ResourceSpec != nil {
 		resourceConfig := map[string]interface{}{
 			"cpu":    int(workspace.ResourceSpec.Cpu),
 			"memory": int(workspace.ResourceSpec.MemoryGB),
 		}
 		d.Set("resource", []interface{}{resourceConfig})
+	} else if capacityManagement == CapacityManagedByCoordinator {
+		d.Set("resource", nil)
 	}
 
 	// Set storage configuration
@@ -436,7 +463,14 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 
 	// Set HA configuration. DescribeInstances returns the flat Ha* fields,
 	// while the create path uses HighAvailability.
-	if haConfig, ok := flinkworkspace.HAConfig(workspace); ok {
+	configuredStandbyZoneID := ""
+	if configuredHA, ok := flinkFirstBlock(d.Get("ha")); ok {
+		configuredStandbyZoneID, _ = configuredHA["zone_id"].(string)
+	}
+	if haConfig, ok := flinkworkspace.HAConfigWithFallback(workspace, configuredStandbyZoneID); ok {
+		if capacityManagement == CapacityManagedByCoordinator {
+			delete(haConfig, "resource")
+		}
 		if haResource, ok := haConfig["resource"]; ok {
 			haConfig["resource"] = []interface{}{haResource}
 		}
@@ -474,6 +508,13 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
+func resourceAliCloudFlinkWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
+	// Capacity changes are either replacement-only legacy changes or are owned
+	// by alicloud_flink_capacity_coordinator. The workspace resource currently
+	// has no other in-place mutable fields.
+	return resourceAliCloudFlinkWorkspaceRead(d, meta)
+}
+
 func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
@@ -495,4 +536,44 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func resolveFlinkWorkspaceTopology(client *connectivity.AliyunClient, vpcID, legacyPrimaryZoneID, legacyStandbyZoneID string, primaryIDs, standbyIDs []string) (flinkworkspace.VSwitchTopology, error) {
+	vpcService := VpcService{client}
+	describe := func(ids []string) ([]flinkworkspace.VSwitch, error) {
+		result := make([]flinkworkspace.VSwitch, 0, len(ids))
+		for _, id := range ids {
+			vSwitch, err := vpcService.DescribeVSwitch(id)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, flinkworkspace.VSwitch{
+				ID:       vSwitch.VSwitchId,
+				RegionID: client.RegionId,
+				VPCID:    vSwitch.VpcId,
+				ZoneID:   vSwitch.ZoneId,
+			})
+		}
+		return result, nil
+	}
+	primary, err := describe(primaryIDs)
+	if err != nil {
+		return flinkworkspace.VSwitchTopology{}, err
+	}
+	standby, err := describe(standbyIDs)
+	if err != nil {
+		return flinkworkspace.VSwitchTopology{}, err
+	}
+	return flinkworkspace.ValidateVSwitchTopology(client.RegionId, vpcID, legacyPrimaryZoneID, legacyStandbyZoneID, primary, standby)
+}
+
+func flinkStringList(value interface{}) []string {
+	items, _ := value.([]interface{})
+	result := make([]string, 0, len(items))
+	for _, item := range items {
+		if text, ok := item.(string); ok && text != "" {
+			result = append(result, text)
+		}
+	}
+	return result
 }

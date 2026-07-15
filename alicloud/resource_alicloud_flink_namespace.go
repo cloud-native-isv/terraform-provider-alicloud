@@ -15,10 +15,11 @@ import (
 
 func resourceAliCloudFlinkNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudFlinkNamespaceCreate,
-		Read:   resourceAliCloudFlinkNamespaceRead,
-		Update: resourceAliCloudFlinkNamespaceUpdate,
-		Delete: resourceAliCloudFlinkNamespaceDelete,
+		Create:        resourceAliCloudFlinkNamespaceCreate,
+		Read:          resourceAliCloudFlinkNamespaceRead,
+		Update:        resourceAliCloudFlinkNamespaceUpdate,
+		Delete:        resourceAliCloudFlinkNamespaceDelete,
+		CustomizeDiff: flinkChildCapacityCustomizeDiff("elastic_resource_spec", "guaranteed_resource_spec"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -78,6 +79,8 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"capacity_management": flinkCapacityManagementSchema(),
+			"observed_capacity":   flinkObservedCapacitySchema(false),
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -167,23 +170,29 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 	d.Set("namespace_name", namespace.Name)
 	d.Set("status", namespace.Status)
 	d.Set("ha", namespace.Ha)
+	capacityManagement := d.Get("capacity_management").(string)
+	d.Set("observed_capacity", flattenFlinkNamespaceObservedCapacity(namespace))
 
 	// Set elastic resource specification
-	if namespace.ElasticResourceSpec != nil {
+	if capacityManagement == CapacityManagedByResource && namespace.ElasticResourceSpec != nil {
 		elasticSpec := map[string]interface{}{
 			"cpu":       int(namespace.ElasticResourceSpec.Cpu),
 			"memory_gb": int(namespace.ElasticResourceSpec.MemoryGB),
 		}
 		d.Set("elastic_resource_spec", []interface{}{elasticSpec})
+	} else if capacityManagement == CapacityManagedByCoordinator {
+		d.Set("elastic_resource_spec", nil)
 	}
 
 	// Set guaranteed resource specification
-	if namespace.GuaranteedResourceSpec != nil {
+	if capacityManagement == CapacityManagedByResource && namespace.GuaranteedResourceSpec != nil {
 		guaranteedSpec := map[string]interface{}{
 			"cpu":       int(namespace.GuaranteedResourceSpec.Cpu),
 			"memory_gb": int(namespace.GuaranteedResourceSpec.MemoryGB),
 		}
 		d.Set("guaranteed_resource_spec", []interface{}{guaranteedSpec})
+	} else if capacityManagement == CapacityManagedByCoordinator {
+		d.Set("guaranteed_resource_spec", nil)
 	}
 
 	return nil
@@ -201,8 +210,10 @@ func resourceAliCloudFlinkNamespaceUpdate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	// Check if any updatable field has changed
-	if d.HasChange("elastic_resource_spec") || d.HasChange("guaranteed_resource_spec") || d.HasChange("ha") {
+	capacityManagement := d.Get("capacity_management").(string)
+	capacityChanged := capacityManagement == CapacityManagedByResource && (d.HasChange("elastic_resource_spec") || d.HasChange("guaranteed_resource_spec"))
+	// In COORDINATOR mode only non-capacity fields remain owned here.
+	if capacityChanged || d.HasChange("ha") {
 		namespace := &aliyunFlinkAPI.Namespace{
 			Name: namespaceName,
 		}
@@ -213,20 +224,24 @@ func resourceAliCloudFlinkNamespaceUpdate(d *schema.ResourceData, meta interface
 		}
 
 		// Handle elastic resource specification
-		if elasticSpecList := d.Get("elastic_resource_spec").([]interface{}); len(elasticSpecList) > 0 {
-			elasticSpecMap := elasticSpecList[0].(map[string]interface{})
-			namespace.ElasticResourceSpec = &aliyunFlinkAPI.ResourceSpec{
-				Cpu:      float64(elasticSpecMap["cpu"].(int)),
-				MemoryGB: float64(elasticSpecMap["memory_gb"].(int)),
+		if capacityManagement == CapacityManagedByResource {
+			if elasticSpecList := d.Get("elastic_resource_spec").([]interface{}); len(elasticSpecList) > 0 {
+				elasticSpecMap := elasticSpecList[0].(map[string]interface{})
+				namespace.ElasticResourceSpec = &aliyunFlinkAPI.ResourceSpec{
+					Cpu:      float64(elasticSpecMap["cpu"].(int)),
+					MemoryGB: float64(elasticSpecMap["memory_gb"].(int)),
+				}
 			}
 		}
 
 		// Handle guaranteed resource specification
-		if guaranteedSpecList := d.Get("guaranteed_resource_spec").([]interface{}); len(guaranteedSpecList) > 0 {
-			guaranteedSpecMap := guaranteedSpecList[0].(map[string]interface{})
-			namespace.GuaranteedResourceSpec = &aliyunFlinkAPI.ResourceSpec{
-				Cpu:      float64(guaranteedSpecMap["cpu"].(int)),
-				MemoryGB: float64(guaranteedSpecMap["memory_gb"].(int)),
+		if capacityManagement == CapacityManagedByResource {
+			if guaranteedSpecList := d.Get("guaranteed_resource_spec").([]interface{}); len(guaranteedSpecList) > 0 {
+				guaranteedSpecMap := guaranteedSpecList[0].(map[string]interface{})
+				namespace.GuaranteedResourceSpec = &aliyunFlinkAPI.ResourceSpec{
+					Cpu:      float64(guaranteedSpecMap["cpu"].(int)),
+					MemoryGB: float64(guaranteedSpecMap["memory_gb"].(int)),
+				}
 			}
 		}
 

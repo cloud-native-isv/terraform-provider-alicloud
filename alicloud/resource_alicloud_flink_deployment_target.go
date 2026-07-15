@@ -11,10 +11,11 @@ import (
 
 func resourceAliCloudFlinkDeploymentTarget() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAliCloudFlinkDeploymentTargetCreate,
-		Read:   resourceAliCloudFlinkDeploymentTargetRead,
-		Update: resourceAliCloudFlinkDeploymentTargetUpdate,
-		Delete: resourceAliCloudFlinkDeploymentTargetDelete,
+		Create:        resourceAliCloudFlinkDeploymentTargetCreate,
+		Read:          resourceAliCloudFlinkDeploymentTargetRead,
+		Update:        resourceAliCloudFlinkDeploymentTargetUpdate,
+		Delete:        resourceAliCloudFlinkDeploymentTargetDelete,
+		CustomizeDiff: flinkChildCapacityCustomizeDiff("quota"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -98,6 +99,8 @@ func resourceAliCloudFlinkDeploymentTarget() *schema.Resource {
 					},
 				},
 			},
+			"capacity_management": flinkCapacityManagementSchema(),
+			"observed_capacity":   flinkObservedCapacitySchema(false),
 		},
 	}
 }
@@ -152,8 +155,11 @@ func resourceAliCloudFlinkDeploymentTargetRead(d *schema.ResourceData, meta inte
 	d.Set("namespace_name", namespaceName)
 	d.Set("name", targetName)
 
-	if object.Quota != nil {
+	d.Set("observed_capacity", flattenFlinkQueueObservedCapacity(object.Quota))
+	if d.Get("capacity_management").(string) == CapacityManagedByResource && object.Quota != nil {
 		d.Set("quota", flattenResourceQuota(object.Quota))
+	} else if d.Get("capacity_management").(string) == CapacityManagedByCoordinator {
+		d.Set("quota", nil)
 	}
 
 	return nil
@@ -175,7 +181,7 @@ func resourceAliCloudFlinkDeploymentTargetUpdate(d *schema.ResourceData, meta in
 
 	update := false
 
-	if d.HasChange("quota") {
+	if d.Get("capacity_management").(string) == CapacityManagedByResource && d.HasChange("quota") {
 		if v, ok := d.GetOk("quota"); ok {
 			updateRequest.Quota = expandResourceQuota(v.([]interface{}))
 		}

@@ -5,18 +5,31 @@ import aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun
 // HAConfig flattens the HA fields returned by DescribeInstances into the
 // shape used by the alicloud_flink_workspace schema.
 func HAConfig(workspace *aliyunFlinkAPI.Workspace) (map[string]interface{}, bool) {
+	return HAConfigWithFallback(workspace, "")
+}
+
+func HAConfigWithFallback(workspace *aliyunFlinkAPI.Workspace, fallbackZoneID string) (map[string]interface{}, bool) {
 	if workspace == nil {
 		return nil, false
 	}
 
 	if ha := workspace.HighAvailability; ha != nil && ha.Enabled {
-		return haConfig(ha.ZoneId, ha.VSwitchIds, ha.ResourceSpec), true
+		zoneID := firstNonEmpty(ha.ZoneId, zoneFromVSwitchInfo(workspace.HaVSwitchInfo), fallbackZoneID)
+		return haConfig(zoneID, ha.VSwitchIds, ha.ResourceSpec), true
 	}
 	if workspace.Ha {
-		return haConfig(workspace.HaZoneId, workspace.HaVSwitchIds, workspace.HaResourceSpec), true
+		zoneID := firstNonEmpty(workspace.HaZoneId, zoneFromVSwitchInfo(workspace.HaVSwitchInfo), fallbackZoneID)
+		return haConfig(zoneID, workspace.HaVSwitchIds, workspace.HaResourceSpec), true
 	}
 
 	return nil, false
+}
+
+func PrimaryZoneID(workspace *aliyunFlinkAPI.Workspace, fallbackZoneID string) string {
+	if workspace == nil {
+		return fallbackZoneID
+	}
+	return firstNonEmpty(workspace.ZoneId, zoneFromVSwitchInfo(workspace.VSwitchInfo), fallbackZoneID)
 }
 
 func haConfig(zoneID string, vSwitchIDs []string, spec *aliyunFlinkAPI.ResourceSpec) map[string]interface{} {
@@ -31,4 +44,22 @@ func haConfig(zoneID string, vSwitchIDs []string, spec *aliyunFlinkAPI.ResourceS
 		}
 	}
 	return config
+}
+
+func zoneFromVSwitchInfo(items []aliyunFlinkAPI.VSwitchInfo) string {
+	for _, item := range items {
+		if item.ZoneId != "" {
+			return item.ZoneId
+		}
+	}
+	return ""
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }
