@@ -1,6 +1,7 @@
 package alicloud
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -522,19 +523,48 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	err = flinkService.DeleteInstance(d.Id())
+	if err := deleteFlinkWorkspace(flinkService, d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
+		return WrapError(err)
+	}
+
+	return nil
+}
+
+type flinkWorkspaceDeleteService interface {
+	DescribeFlinkWorkspace(string) (*aliyunFlinkAPI.Workspace, error)
+	DeleteInstance(string) error
+	RefundInstance(string) error
+	WaitForWorkspaceDeleting(string, time.Duration) error
+}
+
+func deleteFlinkWorkspace(service flinkWorkspaceDeleteService, instanceID string, timeout time.Duration) error {
+	workspace, err := service.DescribeFlinkWorkspace(instanceID)
 	if err != nil {
-		if !NotFoundError(err) {
-			return WrapErrorf(err, DefaultErrorMsg, d.Id(), "DeleteInstance", AlibabaCloudSdkGoERROR)
+		if NotFoundError(err) {
+			return nil
 		}
-		// NotFoundError means deletion was successful or resource already gone
+		return fmt.Errorf("read Flink workspace %q before deletion: %w", instanceID, err)
 	}
-
-	// Wait for the workspace to be completely deleted using service layer function
-	if err := flinkService.WaitForWorkspaceDeleting(d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
-		return WrapErrorf(err, IdMsg, d.Id())
+	if workspace == nil {
+		return fmt.Errorf("read Flink workspace %q before deletion returned nil", instanceID)
 	}
-
+	switch workspace.ChargeType {
+	case "POST":
+		err = service.DeleteInstance(instanceID)
+	case "PRE":
+		err = service.RefundInstance(instanceID)
+	default:
+		return fmt.Errorf("cannot delete Flink workspace %q with unknown charge type %q", instanceID, workspace.ChargeType)
+	}
+	if err != nil {
+		if NotFoundError(err) {
+			return nil
+		}
+		return err
+	}
+	if err := service.WaitForWorkspaceDeleting(instanceID, timeout); err != nil {
+		return fmt.Errorf("wait for Flink workspace %q deletion: %w", instanceID, err)
+	}
 	return nil
 }
 

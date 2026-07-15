@@ -1,8 +1,10 @@
 package alicloud
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/aliyun/terraform-provider-alicloud/internal/flinkworkspace"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -39,6 +41,33 @@ func (s *FlinkService) DeleteInstance(id string) error {
 	return s.GetAPI().DeleteWorkspace(id)
 }
 
+type flinkRefundClient interface {
+	IsInternationalAccount() bool
+	RpcPostWithEndpoint(string, string, string, map[string]interface{}, map[string]interface{}, bool, string) (map[string]interface{}, error)
+}
+
+func (s *FlinkService) RefundInstance(id string) error {
+	return refundFlinkWorkspace(s.client, s.client.RegionId, id, buildClientToken("RefundInstance"))
+}
+
+func refundFlinkWorkspace(client flinkRefundClient, regionID, instanceID, clientToken string) error {
+	request := flinkworkspace.BuildRefundRequest(instanceID, client.IsInternationalAccount(), clientToken)
+	_, err := client.RpcPostWithEndpoint("BssOpenApi", "2017-12-14", "RefundInstance", nil, request, true, "")
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf(
+		"refund prepaid Flink workspace failed: Region=%s, WorkspaceID=%s, ProductCode=%s, ProductType=%s; the Terraform state is retained; if this product does not expose public RefundInstance, complete a non-full refund in the console and refresh state: %w",
+		regionID,
+		instanceID,
+		flinkworkspace.RefundProductCodeDomestic,
+		flinkworkspace.RefundProductType(client.IsInternationalAccount()),
+		err,
+	)
+}
+
+var _ flinkRefundClient = (*connectivity.AliyunClient)(nil)
+
 func (s *FlinkService) FlinkWorkspaceStateRefreshFunc(id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		workspace, err := s.GetAPI().GetWorkspace(id)
@@ -71,29 +100,19 @@ func (s *FlinkService) WaitForWorkspaceStarting(id string, timeout time.Duration
 
 // WaitForWorkspaceDeleting waits for a Flink workspace to be completely deleted
 func (s *FlinkService) WaitForWorkspaceDeleting(id string, timeout time.Duration) error {
-	stateConf := &resource.StateChangeConf{
-		Pending: aliyunFlinkAPI.FlinkWorkspaceStatusesToStrings([]aliyunFlinkAPI.FlinkWorkspaceStatus{aliyunFlinkAPI.FlinkWorkspaceStatusDeleting}),
-		Target:  []string{},
-		Refresh: func() (interface{}, string, error) {
-			// Check if the workspace still exists
-			workspace, err := s.DescribeFlinkWorkspace(id)
-			if err != nil {
-				if NotFoundError(err) {
-					// Resource is gone, which is what we want
-					return nil, "", nil
-				}
-				return nil, "", WrapError(err)
+	return resource.Retry(timeout, func() *resource.RetryError {
+		workspace, err := s.DescribeFlinkWorkspace(id)
+		if err != nil {
+			if NotFoundError(err) {
+				return nil
 			}
-			// If we can still get the workspace, it's still being deleted
-			return workspace, workspace.Status, nil
-		},
-		Timeout:    timeout,
-		Delay:      5 * time.Second,
-		MinTimeout: 3 * time.Second,
-	}
-
-	_, err := stateConf.WaitForState()
-	return err
+			if NeedRetry(err) {
+				return resource.RetryableError(WrapError(err))
+			}
+			return resource.NonRetryableError(WrapError(err))
+		}
+		return resource.RetryableError(fmt.Errorf("Flink workspace %q still exists with status %q", id, workspace.Status))
+	})
 }
 
 // Instance/Workspace methods (aliases for workspace methods)
