@@ -28,6 +28,7 @@ func resourceAliCloudFlinkCapacityCoordinator() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				Description:  "Identifies the workspace exclusively owned by this coordinator. Exactly one coordinator across Terraform states and provider processes may manage a workspace; provider locking serializes only within one process.",
 			},
 			"workspace_resource_id": {
 				Type:     schema.TypeString,
@@ -94,11 +95,13 @@ func flinkCoordinatorCapacitySchema(includeHA bool) *schema.Schema {
 		"elastic_cu_limit": {
 			Type:         schema.TypeFloat,
 			Optional:     true,
+			Computed:     true,
 			ValidateFunc: validation.FloatAtLeast(0),
 		},
 		"max_cu_limit": {
 			Type:         schema.TypeFloat,
 			Optional:     true,
+			Computed:     true,
 			ValidateFunc: validation.FloatAtLeast(0),
 		},
 	}
@@ -159,11 +162,26 @@ func flinkCapacityCoordinatorCustomizeDiff(d *schema.ResourceDiff, _ interface{}
 }
 
 func validateFlinkCoordinatorAliasPresence(d *schema.ResourceDiff) error {
-	check := func(path string) error {
+	check := func(path string, includeHA bool) error {
 		_, hasElastic := d.GetOkExists(path + ".elastic_cu_limit")
-		_, hasMax := d.GetOkExists(path + ".max_cu_limit")
+		maxValue, hasMax := d.GetOkExists(path + ".max_cu_limit")
 		if hasElastic && hasMax {
 			return fmt.Errorf("%s.elastic_cu_limit and %s.max_cu_limit are mutually exclusive", path, path)
+		}
+		if !hasMax {
+			return nil
+		}
+		max, ok := numberAsFloat(maxValue)
+		if !ok {
+			return nil
+		}
+		fixed, _ := numberAsFloat(d.Get(path + ".fixed_cu"))
+		if includeHA {
+			crossZone, _ := numberAsFloat(d.Get(path + ".ha.0.cross_zone_fixed_cu"))
+			fixed += crossZone
+		}
+		if max < fixed {
+			return fmt.Errorf("%s.max_cu_limit %v must be greater than or equal to fixed CU %v", path, max, fixed)
 		}
 		return nil
 	}
@@ -173,7 +191,7 @@ func validateFlinkCoordinatorAliasPresence(d *schema.ResourceDiff) error {
 		return nil
 	}
 	if flinkListBlockConfigured(workspace["capacity"]) {
-		if err := check("workspace.0.capacity.0"); err != nil {
+		if err := check("workspace.0.capacity.0", true); err != nil {
 			return err
 		}
 	}
@@ -185,7 +203,7 @@ func validateFlinkCoordinatorAliasPresence(d *schema.ResourceDiff) error {
 		}
 		namespacePath := fmt.Sprintf("workspace.0.namespace.%d", namespaceIndex)
 		if flinkListBlockConfigured(namespace["capacity"]) {
-			if err := check(namespacePath + ".capacity.0"); err != nil {
+			if err := check(namespacePath+".capacity.0", false); err != nil {
 				return err
 			}
 		}
@@ -195,7 +213,7 @@ func validateFlinkCoordinatorAliasPresence(d *schema.ResourceDiff) error {
 			if !ok || !flinkListBlockConfigured(queue["capacity"]) {
 				continue
 			}
-			if err := check(fmt.Sprintf("%s.queue.%d.capacity.0", namespacePath, queueIndex)); err != nil {
+			if err := check(fmt.Sprintf("%s.queue.%d.capacity.0", namespacePath, queueIndex), false); err != nil {
 				return err
 			}
 		}
@@ -213,6 +231,20 @@ func resourceAliCloudFlinkCapacityCoordinatorUpdate(d *schema.ResourceData, meta
 }
 
 func resourceAliCloudFlinkCapacityCoordinatorReconcile(d *schema.ResourceData, meta interface{}, timeoutKey string) error {
+	instanceID := d.Get("workspace_instance_id").(string)
+	return withFlinkCapacityCoordinatorLock(instanceID, func() error {
+		return resourceAliCloudFlinkCapacityCoordinatorReconcileUnlocked(d, meta, timeoutKey)
+	})
+}
+
+func withFlinkCapacityCoordinatorLock(instanceID string, reconcile func() error) error {
+	lockKey := fmt.Sprintf("flink-capacity-%s", instanceID)
+	alicloudMutexKV.Lock(lockKey)
+	defer alicloudMutexKV.Unlock(lockKey)
+	return reconcile()
+}
+
+func resourceAliCloudFlinkCapacityCoordinatorReconcileUnlocked(d *schema.ResourceData, meta interface{}, timeoutKey string) error {
 	client := meta.(*connectivity.AliyunClient)
 	service, err := NewFlinkCapacityService(client)
 	if err != nil {
@@ -226,18 +258,25 @@ func resourceAliCloudFlinkCapacityCoordinatorReconcile(d *schema.ResourceData, m
 	ctx, cancel := context.WithTimeout(context.Background(), d.Timeout(timeoutKey))
 	defer cancel()
 	actual, reconcileErr := (flinkcapacity.Reconciler{API: service}).Reconcile(ctx, d.Id(), desired)
-	if len(actual.Namespaces) > 0 {
-		if merged, mergeErr := mergeFlinkCoordinatorObserved(d.Get("workspace"), actual); mergeErr == nil {
-			_ = d.Set("workspace", merged)
-		}
-	}
-	if resourceID, identityErr := service.WorkspaceResourceID(ctx, d.Id()); identityErr == nil {
-		_ = d.Set("workspace_resource_id", resourceID)
-	}
 	if reconcileErr != nil {
+		_ = setFlinkCoordinatorReconcileState(d, actual)
 		return WrapError(reconcileErr)
 	}
-	return resourceAliCloudFlinkCapacityCoordinatorRead(d, meta)
+	return WrapError(setFlinkCoordinatorReconcileState(d, actual))
+}
+
+func setFlinkCoordinatorReconcileState(d *schema.ResourceData, actual flinkcapacity.Tree) error {
+	if actual.WorkspaceResourceID == "" {
+		return fmt.Errorf("workspace %q does not expose a ResourceId", d.Id())
+	}
+	merged, err := mergeFlinkCoordinatorObserved(d.Get("workspace"), actual)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("workspace", merged); err != nil {
+		return err
+	}
+	return d.Set("workspace_resource_id", actual.WorkspaceResourceID)
 }
 
 func resourceAliCloudFlinkCapacityCoordinatorRead(d *schema.ResourceData, meta interface{}) error {
@@ -255,12 +294,10 @@ func resourceAliCloudFlinkCapacityCoordinatorRead(d *schema.ResourceData, meta i
 		}
 		return WrapError(err)
 	}
-	resourceID, err := service.WorkspaceResourceID(ctx, d.Id())
-	if err != nil {
+	_ = d.Set("workspace_instance_id", d.Id())
+	if err := d.Set("workspace_resource_id", actual.WorkspaceResourceID); err != nil {
 		return WrapError(err)
 	}
-	_ = d.Set("workspace_instance_id", d.Id())
-	_ = d.Set("workspace_resource_id", resourceID)
 
 	if !flinkListBlockConfigured(d.Get("workspace")) {
 		if err := d.Set("workspace", flattenFlinkCoordinatorImport(actual)); err != nil {
@@ -451,9 +488,9 @@ func optionalNumber(block map[string]interface{}, key string) (float64, bool) {
 		return 0, false
 	}
 	number, ok := numberAsFloat(value)
-	// Plugin SDK v1 materializes omitted nested optional numbers as zero.
-	// Zero has exactly the same effective capacity semantics as omitting either
-	// alias, so treat it as absent to retain the configured non-zero alias.
+	// Plugin SDK v1 materializes omitted nested optional numbers as zero in the
+	// decoded block. CustomizeDiff preserves presence separately and validates
+	// conflicts; at apply time zero has the same capacity effect as omission.
 	return number, ok && number != 0
 }
 
@@ -572,19 +609,17 @@ func flattenFlinkCoordinatorCapacity(capacity flinkcapacity.Capacity) []interfac
 }
 
 func flattenFlinkCoordinatorWorkspaceObserved(capacity flinkcapacity.WorkspaceCapacity) []interface{} {
-	value := firstMap(flattenFlinkCoordinatorObserved(capacity.AsCapacity(), capacity.Used))
-	value["fixed_cu"] = capacity.FixedCU.Float64()
-	value["ha"] = []interface{}{map[string]interface{}{"cross_zone_fixed_cu": capacity.CrossZoneFixedCU.Float64()}}
-	return []interface{}{value}
+	return flattenFlinkObservedCapacity(
+		capacity.FixedCU.Float64(),
+		capacity.CrossZoneFixedCU.Float64(),
+		capacity.Limit.Float64(),
+		capacity.Used,
+		true,
+	)
 }
 
-func flattenFlinkCoordinatorObserved(capacity flinkcapacity.Capacity, used flinkcapacity.CU) []interface{} {
-	return []interface{}{map[string]interface{}{
-		"fixed_cu":         capacity.Fixed.Float64(),
-		"elastic_cu_limit": capacity.Elastic().Float64(),
-		"max_cu_limit":     capacity.Limit.Float64(),
-		"used_cu":          used.Float64(),
-	}}
+func flattenFlinkCoordinatorObserved(capacity flinkcapacity.Capacity, used float64) []interface{} {
+	return flattenFlinkObservedCapacity(capacity.Fixed.Float64(), 0, capacity.Limit.Float64(), used, false)
 }
 
 func firstMap(value []interface{}) map[string]interface{} {

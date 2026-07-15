@@ -84,6 +84,46 @@ func TestResolveAllExplicitMayLeaveHeadroom(t *testing.T) {
 	}
 }
 
+func TestResolveAllowsExplicitZeroCapacityChildren(t *testing.T) {
+	tree := baseTree()
+	tree.Namespaces = []Namespace{
+		{
+			Name:     "disabled",
+			Capacity: capacity(0, 0),
+			Queues:   []Queue{{Name: "disabled-queue", Capacity: capacity(0, 0)}},
+		},
+		{
+			Name:   "remainder",
+			Queues: []Queue{{Name: "remainder-queue"}},
+		},
+	}
+
+	resolved, err := Resolve(tree)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := *resolved.Namespaces[0].Capacity; got != (Capacity{}) {
+		t.Fatalf("explicit zero namespace capacity = %+v, want zero", got)
+	}
+	if got := *resolved.Namespaces[0].Queues[0].Capacity; got != (Capacity{}) {
+		t.Fatalf("explicit zero queue capacity = %+v, want zero", got)
+	}
+	if got := *resolved.Namespaces[1].Capacity; got != (Capacity{Fixed: 32, Limit: 64}) {
+		t.Fatalf("remainder namespace capacity = %+v", got)
+	}
+}
+
+func TestResolveAllowsArbitraryFiniteUsedCU(t *testing.T) {
+	tree := baseTree()
+	tree.Workspace.Used = 4.1
+	tree.Namespaces[0].Used = 4.1
+	tree.Namespaces[0].Queues[0].Used = 4.1
+
+	if _, err := Resolve(tree); err != nil {
+		t.Fatalf("Resolve() error = %v", err)
+	}
+}
+
 func TestResolveValidation(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -189,17 +229,35 @@ func TestResolveDoesNotMutateInput(t *testing.T) {
 	}
 }
 
-func TestResolvePostAllowsChildFixedWithinWorkspaceLimit(t *testing.T) {
-	tree := Tree{
-		ChargeType: "POST",
-		Workspace:  WorkspaceCapacity{Limit: 16},
-		Namespaces: []Namespace{{
-			Name:     "default",
-			Capacity: capacity(8, 16),
-			Queues:   []Queue{{Name: "default-queue", Capacity: capacity(8, 16)}},
-		}},
-	}
-	if _, err := Resolve(tree); err != nil {
-		t.Fatalf("Resolve() error = %v", err)
-	}
+func TestResolvePostChildrenArePureElastic(t *testing.T) {
+	t.Run("omitted children receive zero fixed and the full limit", func(t *testing.T) {
+		tree := Tree{
+			ChargeType: "POST",
+			Workspace:  WorkspaceCapacity{Limit: 16},
+			Namespaces: []Namespace{{Name: "default", Queues: []Queue{{Name: "default-queue"}}}},
+		}
+		resolved, err := Resolve(tree)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want := Capacity{Fixed: 0, Limit: 16}
+		if *resolved.Namespaces[0].Capacity != want || *resolved.Namespaces[0].Queues[0].Capacity != want {
+			t.Fatalf("resolved children = %#v", resolved.Namespaces[0])
+		}
+	})
+
+	t.Run("explicit fixed child capacity is rejected", func(t *testing.T) {
+		tree := Tree{
+			ChargeType: "POST",
+			Workspace:  WorkspaceCapacity{Limit: 16},
+			Namespaces: []Namespace{{
+				Name:     "default",
+				Capacity: capacity(8, 16),
+				Queues:   []Queue{{Name: "default-queue", Capacity: capacity(8, 16)}},
+			}},
+		}
+		if _, err := Resolve(tree); err == nil || !strings.Contains(err.Error(), "fixed CU") {
+			t.Fatalf("Resolve() error = %v, want fixed CU rejection", err)
+		}
+	})
 }

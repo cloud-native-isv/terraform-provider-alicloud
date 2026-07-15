@@ -10,8 +10,82 @@ import (
 
 func TestFlinkWorkspaceCapacityManagementDefaultsToResource(t *testing.T) {
 	data := schema.TestResourceDataRaw(t, resourceAliCloudFlinkWorkspace().Schema, workspaceConfig("RESOURCE", true, false))
-	if got := data.Get("capacity_management"); got != "RESOURCE" {
+	if got := data.Get("capacity_management"); got != CapacityManagedByResource {
+		t.Fatalf("raw capacity_management = %#v", got)
+	}
+	if got := flinkCapacityManagementValue(data.Get("capacity_management")); got != "RESOURCE" {
 		t.Fatalf("capacity_management = %#v", got)
+	}
+}
+
+func TestFlinkLegacyStateDoesNotDiffOnCapacityManagementDefault(t *testing.T) {
+	config := workspaceConfig("RESOURCE", true, false)
+	delete(config, "capacity_management")
+	state := workspaceState("RESOURCE", "PRE", true)
+	delete(state.Attributes, "capacity_management")
+
+	diff, err := resourceAliCloudFlinkWorkspace().Diff(state, terraform.NewResourceConfigRaw(config), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertNoDiffPrefix(t, diff, "capacity_management")
+}
+
+func TestFlinkChildLegacyStateDoesNotDiffOnCapacityManagementDefault(t *testing.T) {
+	for name, test := range map[string]struct {
+		resource *schema.Resource
+		config   map[string]interface{}
+		state    *terraform.InstanceState
+	}{
+		"namespace": {
+			resource: resourceAliCloudFlinkNamespace(),
+			config: map[string]interface{}{
+				"workspace_id":   "f-test",
+				"namespace_name": "default",
+				"guaranteed_resource_spec": []interface{}{map[string]interface{}{
+					"cpu": 2, "memory_gb": 8,
+				}},
+			},
+			state: &terraform.InstanceState{ID: "f-test:default", Attributes: map[string]string{
+				"workspace_id":                         "f-test",
+				"namespace_name":                       "default",
+				"guaranteed_resource_spec.#":           "1",
+				"guaranteed_resource_spec.0.cpu":       "2",
+				"guaranteed_resource_spec.0.memory_gb": "8",
+				"elastic_resource_spec.#":              "0",
+				"ha":                                   "false",
+				"status":                               "Available",
+			}},
+		},
+		"deployment target": {
+			resource: resourceAliCloudFlinkDeploymentTarget(),
+			config: map[string]interface{}{
+				"workspace_id":   "f-test",
+				"namespace_name": "default",
+				"name":           "q",
+				"quota": []interface{}{map[string]interface{}{
+					"limit": []interface{}{map[string]interface{}{"cpu": 2.0, "memory_gb": 8.0}},
+				}},
+			},
+			state: &terraform.InstanceState{ID: "f-test:default:q", Attributes: map[string]string{
+				"workspace_id":              "f-test",
+				"namespace_name":            "default",
+				"name":                      "q",
+				"quota.#":                   "1",
+				"quota.0.request.#":         "0",
+				"quota.0.limit.#":           "1",
+				"quota.0.limit.0.cpu":       "2",
+				"quota.0.limit.0.memory_gb": "8",
+			}},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			diff, err := test.resource.Diff(test.state, terraform.NewResourceConfigRaw(test.config), nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assertNoDiffPrefix(t, diff, "capacity_management")
+		})
 	}
 }
 
@@ -48,6 +122,25 @@ func TestFlinkDeploymentTargetQuotaSupportsV2Request(t *testing.T) {
 	flat := firstTestBlock(flattenResourceQuota(got))
 	if !flinkListBlockConfigured(flat["request"]) || !flinkListBlockConfigured(flat["limit"]) {
 		t.Fatalf("flattened quota = %#v", flat)
+	}
+}
+
+func TestFlinkDeploymentTargetQuotaAllowsZeroFixedRequest(t *testing.T) {
+	config := map[string]interface{}{
+		"workspace_id":   "f-test",
+		"namespace_name": "default",
+		"name":           "elastic-only",
+		"quota": []interface{}{map[string]interface{}{
+			"request": []interface{}{map[string]interface{}{"cpu": 0.0, "memory_gb": 0.0}},
+			"limit":   []interface{}{map[string]interface{}{"cpu": 2.0, "memory_gb": 8.0}},
+		}},
+	}
+	if _, err := resourceAliCloudFlinkDeploymentTarget().Diff(nil, terraform.NewResourceConfigRaw(config), nil); err != nil {
+		t.Fatal(err)
+	}
+	quota := expandResourceQuota(config["quota"].([]interface{}))
+	if quota.Request == nil || quota.Request.Cpu != 0 || quota.Request.MemoryGB != 0 {
+		t.Fatalf("expanded quota = %#v", quota)
 	}
 }
 

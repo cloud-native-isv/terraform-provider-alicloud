@@ -62,12 +62,12 @@ func resourceAliCloudFlinkDeploymentTarget() *schema.Resource {
 									"cpu": {
 										Type:         schema.TypeFloat,
 										Optional:     true,
-										ValidateFunc: validation.FloatAtLeast(0.1),
+										ValidateFunc: validation.FloatAtLeast(0),
 									},
 									"memory_gb": {
 										Type:         schema.TypeFloat,
 										Optional:     true,
-										ValidateFunc: validation.FloatAtLeast(0.1),
+										ValidateFunc: validation.FloatAtLeast(0),
 									},
 									"disk": {
 										Type:         schema.TypeInt,
@@ -183,9 +183,9 @@ func resourceAliCloudFlinkDeploymentTargetRead(d *schema.ResourceData, meta inte
 	d.Set("name", targetName)
 
 	d.Set("observed_capacity", flattenFlinkQueueObservedCapacity(object.Quota))
-	if d.Get("capacity_management").(string) == CapacityManagedByResource && object.Quota != nil {
+	if flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByResource && object.Quota != nil {
 		d.Set("quota", flattenResourceQuota(object.Quota))
-	} else if d.Get("capacity_management").(string) == CapacityManagedByCoordinator {
+	} else if flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByCoordinator {
 		d.Set("quota", nil)
 	}
 
@@ -208,7 +208,7 @@ func resourceAliCloudFlinkDeploymentTargetUpdate(d *schema.ResourceData, meta in
 
 	update := false
 
-	if d.Get("capacity_management").(string) == CapacityManagedByResource && d.HasChange("quota") {
+	if flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByResource && d.HasChange("quota") {
 		if v, ok := d.GetOk("quota"); ok {
 			updateRequest.Quota = expandResourceQuota(v.([]interface{}))
 		}

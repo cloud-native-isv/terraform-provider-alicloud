@@ -61,41 +61,25 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 		return Tree{}, fmt.Errorf("capacity API must not be nil")
 	}
 	completed := 0
-	for {
-		current, steps, err := r.readPlan(ctx, instanceID, &desired)
-		if err != nil {
-			if errorIsRetryable(err) || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-				return r.fail(instanceID, current, completed, nil, Operation{}, err)
-			}
-			return current, err
-		}
-		if len(steps) == 0 {
-			return current, nil
-		}
+	current, steps, err := r.readPlan(ctx, instanceID, &desired)
+	if err != nil {
+		return r.planError(instanceID, current, completed, err)
+	}
+	for len(steps) > 0 {
 
-		// Re-read and re-plan immediately before every write. This prevents an
-		// external drift between steps from making a previously safe step stale.
-		current, steps, err = r.readPlan(ctx, instanceID, &desired)
-		if err != nil {
-			if errorIsRetryable(err) || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-				return r.fail(instanceID, current, completed, nil, Operation{}, err)
-			}
-			return current, err
-		}
-		if len(steps) == 0 {
-			return current, nil
-		}
 		step := steps[0]
 		operation, applyErr := r.API.ApplyStep(ctx, instanceID, step)
 		if applyErr != nil {
 			if errorIsAmbiguous(applyErr) {
 				verified, readErr := r.readTree(ctx, instanceID)
-				if readErr == nil {
+				if readErr == nil && stepConverged(verified, step) {
 					current = verified
-					if stepConverged(current, step) {
-						completed++
-						continue
+					completed++
+					current, steps, err = r.planObserved(ctx, instanceID, current, &desired)
+					if err != nil {
+						return r.planError(instanceID, current, completed, err)
 					}
+					continue
 				}
 			}
 			return r.fail(instanceID, current, completed, &step, operation, applyErr)
@@ -108,6 +92,10 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 			}
 			if stepConverged(current, step) {
 				completed++
+				current, steps, err = r.planObserved(ctx, instanceID, current, &desired)
+				if err != nil {
+					return r.planError(instanceID, current, completed, err)
+				}
 				break
 			}
 			if err := r.sleep(ctx); err != nil {
@@ -115,14 +103,19 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 			}
 		}
 	}
+	return current, nil
 }
 
 func (r Reconciler) readPlan(ctx context.Context, instanceID string, desired *Tree) (Tree, []Step, error) {
+	current, err := r.readTree(ctx, instanceID)
+	if err != nil {
+		return current, nil, fmt.Errorf("read capacity tree before reconciliation: %w", err)
+	}
+	return r.planObserved(ctx, instanceID, current, desired)
+}
+
+func (r Reconciler) planObserved(ctx context.Context, instanceID string, current Tree, desired *Tree) (Tree, []Step, error) {
 	for {
-		current, err := r.readTree(ctx, instanceID)
-		if err != nil {
-			return current, nil, fmt.Errorf("read capacity tree before reconciliation: %w", err)
-		}
 		if desired.ChargeType == "" {
 			desired.ChargeType = current.ChargeType
 		}
@@ -133,7 +126,18 @@ func (r Reconciler) readPlan(ctx context.Context, instanceID string, desired *Tr
 		if err := r.sleep(ctx); err != nil {
 			return current, nil, err
 		}
+		current, err = r.readTree(ctx, instanceID)
+		if err != nil {
+			return current, nil, fmt.Errorf("read capacity tree while waiting to replan: %w", err)
+		}
 	}
+}
+
+func (r Reconciler) planError(instanceID string, current Tree, completed int, err error) (Tree, error) {
+	if errorIsRetryable(err) || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return r.fail(instanceID, current, completed, nil, Operation{}, err)
+	}
+	return current, err
 }
 
 func (r Reconciler) readTree(ctx context.Context, instanceID string) (Tree, error) {

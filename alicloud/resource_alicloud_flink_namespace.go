@@ -172,7 +172,7 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 	d.Set("namespace_name", namespace.Name)
 	d.Set("status", namespace.Status)
 	d.Set("ha", namespace.Ha)
-	capacityManagement := d.Get("capacity_management").(string)
+	capacityManagement := flinkCapacityManagementValue(d.Get("capacity_management"))
 	d.Set("observed_capacity", flattenFlinkNamespaceObservedCapacity(namespace))
 
 	// Set elastic resource specification
@@ -212,7 +212,7 @@ func resourceAliCloudFlinkNamespaceUpdate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	capacityManagement := d.Get("capacity_management").(string)
+	capacityManagement := flinkCapacityManagementValue(d.Get("capacity_management"))
 	capacityChanged := capacityManagement == CapacityManagedByResource && (d.HasChange("elastic_resource_spec") || d.HasChange("guaranteed_resource_spec"))
 	// In COORDINATOR mode only non-capacity fields remain owned here.
 	if capacityChanged || d.HasChange("ha") {

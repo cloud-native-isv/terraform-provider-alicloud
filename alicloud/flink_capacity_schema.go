@@ -19,7 +19,10 @@ func flinkCapacityManagementSchema() *schema.Schema {
 		Optional:     true,
 		Default:      CapacityManagedByResource,
 		ValidateFunc: validation.StringInSlice([]string{CapacityManagedByResource, CapacityManagedByCoordinator}, false),
-		Description:  "Selects whether this lifecycle resource or alicloud_flink_capacity_coordinator owns capacity updates.",
+		DiffSuppressFunc: func(_ string, old string, new string, d *schema.ResourceData) bool {
+			return d.Id() != "" && old == "" && new == CapacityManagedByResource
+		},
+		Description: "Selects whether this lifecycle resource or alicloud_flink_capacity_coordinator owns capacity updates.",
 	}
 }
 
@@ -92,7 +95,7 @@ func flinkObservedCapacitySchema(includeHA bool) *schema.Schema {
 }
 
 func flinkWorkspaceCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
-	mode := d.Get("capacity_management").(string)
+	mode := flinkCapacityManagementValue(d.Get("capacity_management"))
 	chargeType := d.Get("charge_type").(string)
 	hasResource := flinkListBlockConfigured(d.Get("resource"))
 	hasBootstrap := flinkListBlockConfigured(d.Get("bootstrap_capacity"))
@@ -119,7 +122,8 @@ func flinkWorkspaceCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
 			return fmt.Errorf("ha.resource is required when capacity_management is RESOURCE")
 		}
 	case CapacityManagedByCoordinator:
-		oldMode, _ := d.GetChange("capacity_management")
+		oldModeRaw, _ := d.GetChange("capacity_management")
+		oldMode := flinkCapacityManagementValue(oldModeRaw)
 		switchingFromResource := d.Id() != "" && d.HasChange("capacity_management") && oldMode == CapacityManagedByResource
 		if (hasResource || hasHAResource) && !switchingFromResource {
 			return fmt.Errorf("legacy resource and ha.resource blocks are forbidden when capacity_management is COORDINATOR")
@@ -147,7 +151,7 @@ func flinkWorkspaceCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
 
 func flinkChildCapacityCustomizeDiff(legacyFields ...string) schema.CustomizeDiffFunc {
 	return func(d *schema.ResourceDiff, _ interface{}) error {
-		if d.Get("capacity_management").(string) != CapacityManagedByCoordinator {
+		if flinkCapacityManagementValue(d.Get("capacity_management")) != CapacityManagedByCoordinator {
 			return nil
 		}
 		for _, field := range legacyFields {
@@ -160,6 +164,14 @@ func flinkChildCapacityCustomizeDiff(legacyFields ...string) schema.CustomizeDif
 		}
 		return nil
 	}
+}
+
+func flinkCapacityManagementValue(value interface{}) string {
+	mode, _ := value.(string)
+	if mode == "" {
+		return CapacityManagedByResource
+	}
+	return mode
 }
 
 func validateBootstrapCapacity(value interface{}, workspaceHA bool) error {
@@ -201,11 +213,13 @@ func flinkFirstBlock(value interface{}) (map[string]interface{}, bool) {
 }
 
 func suppressFlinkLegacyCapacityDiff(_ string, _ string, _ string, d *schema.ResourceData) bool {
-	if d.Get("capacity_management").(string) == CapacityManagedByCoordinator {
+	if flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByCoordinator {
 		return true
 	}
 	if d.HasChange("capacity_management") {
-		oldMode, newMode := d.GetChange("capacity_management")
+		oldRaw, newRaw := d.GetChange("capacity_management")
+		oldMode := flinkCapacityManagementValue(oldRaw)
+		newMode := flinkCapacityManagementValue(newRaw)
 		return oldMode == CapacityManagedByCoordinator && newMode == CapacityManagedByResource
 	}
 	return false

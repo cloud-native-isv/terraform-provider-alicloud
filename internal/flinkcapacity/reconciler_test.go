@@ -60,7 +60,7 @@ func testReconciler(api API) Reconciler {
 	}
 }
 
-func TestReconcilerReadsAfterEveryWriteAndSharesDeadline(t *testing.T) {
+func TestReconcilerReplansFromTheObservedPostWriteTreeAndSharesDeadline(t *testing.T) {
 	actual := plannerTree(8, 8, 8, 8, 8, 8)
 	desired := plannerTree(16, 24, 16, 24, 16, 24)
 	api := &fakeCapacityAPI{tree: actual}
@@ -76,8 +76,8 @@ func TestReconcilerReadsAfterEveryWriteAndSharesDeadline(t *testing.T) {
 	if !sameCapacityTree(got, desired) {
 		t.Fatalf("final tree = %#v", got)
 	}
-	if len(api.writes) == 0 || api.reads < len(api.writes)*2+1 {
-		t.Fatalf("reads=%d writes=%d, want a pre- and post-write read", api.reads, len(api.writes))
+	if len(api.writes) == 0 || api.reads != len(api.writes)+1 {
+		t.Fatalf("reads=%d writes=%d, want one initial read and one post-write read per step", api.reads, len(api.writes))
 	}
 	for _, gotDeadline := range api.deadlines {
 		if !gotDeadline.Equal(deadline) {
@@ -151,32 +151,8 @@ func TestReconcilerFinalReadOnTimeout(t *testing.T) {
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("error = %v, want deadline exceeded", err)
 	}
-	if api.reads < 4 {
-		t.Fatalf("reads = %d, want initial, pre-write, post-write, and final reads", api.reads)
-	}
-}
-
-func TestReconcilerSkipsWriteWhenStepAlreadyConverged(t *testing.T) {
-	actual := plannerTree(8, 8, 8, 8, 8, 8)
-	desired := plannerTree(8, 16, 8, 8, 8, 8)
-	api := &fakeCapacityAPI{tree: actual}
-	api.readFn = func(f *fakeCapacityAPI) (Tree, error) {
-		if f.reads == 1 {
-			return cloneTree(actual), nil
-		}
-		f.tree = cloneTree(desired)
-		return cloneTree(desired), nil
-	}
-
-	got, err := testReconciler(api).Reconcile(context.Background(), "f-test", desired)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(api.writes) != 0 {
-		t.Fatalf("writes = %d, want 0", len(api.writes))
-	}
-	if !sameCapacityTree(got, desired) {
-		t.Fatalf("final tree = %#v", got)
+	if api.reads < 3 {
+		t.Fatalf("reads = %d, want pre-write, post-write, and final reads", api.reads)
 	}
 }
 
@@ -251,21 +227,19 @@ func TestReconcilerFailsClosedForUndeclaredTopology(t *testing.T) {
 	}
 }
 
-func TestReconcilerReplansWhenCapacityDriftsBetweenSteps(t *testing.T) {
+func TestReconcilerReplansFromObservedPostWriteTree(t *testing.T) {
 	actual := plannerTree(8, 8, 8, 8, 8, 8)
 	desired := plannerTree(16, 16, 16, 16, 16, 16)
 	api := &fakeCapacityAPI{tree: actual}
-	drifted := false
-	api.readFn = func(f *fakeCapacityAPI) (Tree, error) {
-		if len(f.writes) == 1 && f.reads >= 4 && !drifted {
-			f.tree.Workspace = actual.Workspace
-			drifted = true
-		}
-		return cloneTree(f.tree), nil
-	}
 	api.applyFn = func(f *fakeCapacityAPI, step Step) (Operation, error) {
 		next := cloneTree(f.tree)
 		applyCandidate(&next, candidate{step: step})
+		if len(f.writes) == 1 {
+			// The authoritative post-write response may include a concurrent
+			// control-plane change to a child. The next step must be planned
+			// from that response rather than the pre-write plan.
+			next.Namespaces[0].Capacity = &Capacity{Fixed: 12, Limit: 12}
+		}
 		if _, err := Resolve(next); err != nil {
 			return Operation{}, errors.New("reconciler attempted an unsafe stale step: " + err.Error())
 		}
@@ -276,13 +250,13 @@ func TestReconcilerReplansWhenCapacityDriftsBetweenSteps(t *testing.T) {
 	if _, err := testReconciler(api).Reconcile(context.Background(), "f-test", desired); err != nil {
 		t.Fatal(err)
 	}
-	workspaceWrites := 0
+	foundReplannedNamespace := false
 	for _, step := range api.writes {
-		if step.Action == ModifyWorkspaceFixed || step.Action == ModifyWorkspaceElastic {
-			workspaceWrites++
+		if step.Action == ModifyNamespace && step.From.FixedCU == 12 {
+			foundReplannedNamespace = true
 		}
 	}
-	if workspaceWrites < 2 {
-		t.Fatalf("workspace writes = %d, want replanned parent write; steps=%#v", workspaceWrites, api.writes)
+	if !foundReplannedNamespace {
+		t.Fatalf("steps did not replan from the observed namespace capacity: %#v", api.writes)
 	}
 }

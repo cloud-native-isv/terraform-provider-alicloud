@@ -16,20 +16,6 @@ type FlinkCapacityService struct {
 	flinkService *FlinkService
 }
 
-func (s *FlinkCapacityService) WorkspaceResourceID(ctx context.Context, instanceID string) (string, error) {
-	if err := ctx.Err(); err != nil {
-		return "", err
-	}
-	workspace, err := s.flinkService.GetAPI().GetWorkspace(instanceID)
-	if err != nil {
-		return "", err
-	}
-	if workspace.ResourceId == "" {
-		return "", fmt.Errorf("workspace %q does not expose a ResourceId", instanceID)
-	}
-	return workspace.ResourceId, nil
-}
-
 func NewFlinkCapacityService(client *connectivity.AliyunClient) (*FlinkCapacityService, error) {
 	service, err := NewFlinkService(client)
 	if err != nil {
@@ -101,6 +87,15 @@ func validateFlinkCapacityWorkspaceReady(workspace *flink.Workspace) error {
 	if workspace.ResourceId == "" {
 		return &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("workspace %q does not expose a ResourceId yet", workspace.Id)}
 	}
+	if workspace.Elastic && workspace.ElasticOrderState == "" {
+		return &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("workspace %q elastic order state is not visible yet", workspace.Id)}
+	}
+	if workspace.ElasticOrderState != "" && workspace.ElasticOrderState != "NORMAL" {
+		if flinkTerminalState(workspace.ElasticOrderState) {
+			return fmt.Errorf("workspace %q elastic order is in terminal state %q", workspace.Id, workspace.ElasticOrderState)
+		}
+		return &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("workspace %q elastic order state is %q, waiting for NORMAL", workspace.Id, workspace.ElasticOrderState)}
+	}
 	elasticCPU := flinkSpecCPU(workspace.ElasticResourceSpec)
 	if !workspace.Elastic && elasticCPU > 0 {
 		return fmt.Errorf("workspace %q returned Elastic=false with positive elastic capacity %v CU", workspace.Id, elasticCPU)
@@ -135,12 +130,8 @@ func (s *FlinkCapacityService) ApplyStep(ctx context.Context, instanceID string,
 	if err := ctx.Err(); err != nil {
 		return flinkcapacity.Operation{}, err
 	}
-	workspace, err := s.flinkService.GetAPI().GetWorkspace(instanceID)
-	if err != nil {
-		return flinkcapacity.Operation{}, err
-	}
-
 	var operation flink.CapacityOperation
+	var err error
 	switch step.Action {
 	case flinkcapacity.ModifyWorkspaceFixed:
 		operation, err = s.flinkService.GetAPI().ModifyPrepayWorkspaceCapacity(
@@ -172,6 +163,11 @@ func (s *FlinkCapacityService) ApplyStep(ctx context.Context, instanceID string,
 			flinkResourceSpecForCU(step.To.Limit-step.To.FixedCU),
 		)
 	case flinkcapacity.ModifyQueue:
+		workspace, getErr := s.flinkService.GetAPI().GetWorkspace(instanceID)
+		if getErr != nil {
+			err = getErr
+			break
+		}
 		if workspace.ResourceId == "" {
 			err = fmt.Errorf("workspace %q does not expose a ResourceId", instanceID)
 			break
@@ -214,7 +210,8 @@ func buildFlinkCapacityTree(workspace *flink.Workspace, namespaces []flink.Names
 		return flinkcapacity.Tree{}, fmt.Errorf("workspace must not be nil")
 	}
 	tree := flinkcapacity.Tree{
-		ChargeType: workspace.ChargeType,
+		ChargeType:          workspace.ChargeType,
+		WorkspaceResourceID: workspace.ResourceId,
 		Workspace: flinkcapacity.WorkspaceCapacity{
 			HA: workspace.Ha || (workspace.HighAvailability != nil && workspace.HighAvailability.Enabled),
 		},
@@ -246,7 +243,7 @@ func buildFlinkCapacityTree(workspace *flink.Workspace, namespaces []flink.Names
 		}
 	}
 	if workspace.ClusterUsedResources != nil {
-		used, err := flinkcapacity.ParseCU(workspace.ClusterUsedResources.UsedResource)
+		used, err := usedCUFromFloat(workspace.ClusterUsedResources.UsedResource)
 		if err != nil {
 			return flinkcapacity.Tree{}, fmt.Errorf("workspace used capacity: %w", err)
 		}
@@ -287,7 +284,7 @@ func buildFlinkCapacityTree(workspace *flink.Workspace, namespaces []flink.Names
 			if err != nil {
 				return flinkcapacity.Tree{}, fmt.Errorf("queue %q/%q limit: %w", namespace.Name, target.Name, err)
 			}
-			queueUsed, err := cuFromOptionalResourceSpec(target.Quota.Used)
+			queueUsed, err := usedCUFromResourceSpec(target.Quota.Used)
 			if err != nil {
 				return flinkcapacity.Tree{}, fmt.Errorf("queue %q/%q used capacity: %w", namespace.Name, target.Name, err)
 			}
@@ -328,11 +325,25 @@ func cuFromOptionalResourceSpec(spec *flink.ResourceSpec) (flinkcapacity.CU, err
 	return cuFromResourceSpec(spec)
 }
 
-func cuFromResourceUsed(used *flink.ResourceUsed) (flinkcapacity.CU, error) {
+func cuFromResourceUsed(used *flink.ResourceUsed) (float64, error) {
 	if used == nil {
 		return 0, nil
 	}
-	return flinkcapacity.ParseCU(used.Cu)
+	return usedCUFromFloat(used.Cu)
+}
+
+func usedCUFromResourceSpec(spec *flink.ResourceSpec) (float64, error) {
+	if spec == nil {
+		return 0, nil
+	}
+	return usedCUFromFloat(spec.Cpu)
+}
+
+func usedCUFromFloat(value float64) (float64, error) {
+	if math.IsNaN(value) || math.IsInf(value, 0) || value < 0 {
+		return 0, fmt.Errorf("used CU must be a finite non-negative value, got %v", value)
+	}
+	return value, nil
 }
 
 var _ flinkcapacity.API = (*FlinkCapacityService)(nil)

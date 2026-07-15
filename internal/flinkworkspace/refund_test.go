@@ -1,6 +1,9 @@
 package flinkworkspace
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestRefundProductType(t *testing.T) {
 	if got := RefundProductType(false); got != "sc_flinkserverless_public_cn" {
@@ -23,5 +26,25 @@ func TestBuildRefundRequest(t *testing.T) {
 		if got := request[key]; got != want {
 			t.Fatalf("%s = %#v, want %#v", key, got, want)
 		}
+	}
+}
+
+func TestRefundClientTokenIsStableForAnInstance(t *testing.T) {
+	first := RefundClientToken("cn-beijing", "f-test")
+	second := RefundClientToken("cn-beijing", "f-test")
+	other := RefundClientToken("cn-beijing", "f-other")
+	otherRegion := RefundClientToken("ap-southeast-1", "f-test")
+
+	if first != second {
+		t.Fatalf("same instance produced different tokens: %q != %q", first, second)
+	}
+	if first == other {
+		t.Fatalf("different instances produced the same token %q", first)
+	}
+	if first == otherRegion {
+		t.Fatalf("different regions produced the same token %q", first)
+	}
+	if len(first) > 64 || !strings.HasPrefix(first, "TF-RefundInstance-") {
+		t.Fatalf("invalid refund token %q", first)
 	}
 }

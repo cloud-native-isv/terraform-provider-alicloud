@@ -152,18 +152,18 @@ func validateSameTopology(actual, desired Tree) error {
 }
 
 func validateUsedCapacity(actual, desired Tree) error {
-	if actual.Workspace.Used > desired.Workspace.Limit {
-		return fmt.Errorf("workspace desired limit %v is below used CU %v", desired.Workspace.Limit.Float64(), actual.Workspace.Used.Float64())
+	if actual.Workspace.Used > desired.Workspace.Limit.Float64() {
+		return fmt.Errorf("workspace desired limit %v is below used CU %v", desired.Workspace.Limit.Float64(), actual.Workspace.Used)
 	}
 	for _, desiredNamespace := range desired.Namespaces {
 		actualNamespace := namespaceByName(actual, desiredNamespace.Name)
-		if actualNamespace.Used > desiredNamespace.Capacity.Limit {
-			return fmt.Errorf("namespace %q desired limit %v is below used CU %v", desiredNamespace.Name, desiredNamespace.Capacity.Limit.Float64(), actualNamespace.Used.Float64())
+		if actualNamespace.Used > desiredNamespace.Capacity.Limit.Float64() {
+			return fmt.Errorf("namespace %q desired limit %v is below used CU %v", desiredNamespace.Name, desiredNamespace.Capacity.Limit.Float64(), actualNamespace.Used)
 		}
 		for _, desiredQueue := range desiredNamespace.Queues {
 			actualQueue := queueByName(*actualNamespace, desiredQueue.Name)
-			if actualQueue.Used > desiredQueue.Capacity.Limit {
-				return fmt.Errorf("queue %q/%q desired limit %v is below used CU %v", desiredNamespace.Name, desiredQueue.Name, desiredQueue.Capacity.Limit.Float64(), actualQueue.Used.Float64())
+			if actualQueue.Used > desiredQueue.Capacity.Limit.Float64() {
+				return fmt.Errorf("queue %q/%q desired limit %v is below used CU %v", desiredNamespace.Name, desiredQueue.Name, desiredQueue.Capacity.Limit.Float64(), actualQueue.Used)
 			}
 		}
 	}

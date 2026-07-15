@@ -1,6 +1,9 @@
 package flinkcapacity
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 func Resolve(input Tree) (Tree, error) {
 	tree := cloneTree(input)
@@ -8,11 +11,8 @@ func Resolve(input Tree) (Tree, error) {
 	if err := workspaceCapacity.Validate(); err != nil {
 		return Tree{}, fmt.Errorf("workspace capacity: %w", err)
 	}
-	if tree.Workspace.Used < 0 {
-		return Tree{}, fmt.Errorf("workspace used CU must be non-negative")
-	}
-	if tree.Workspace.Used > workspaceCapacity.Limit {
-		return Tree{}, fmt.Errorf("workspace used CU exceeds its limit")
+	if err := validateUsedCU("workspace", tree.Workspace.Used, workspaceCapacity.Limit); err != nil {
+		return Tree{}, err
 	}
 	if tree.Workspace.HA {
 		if tree.Workspace.CrossZoneFixedCU <= 0 {
@@ -37,9 +37,6 @@ func Resolve(input Tree) (Tree, error) {
 		if tree.Workspace.Limit <= 0 {
 			return Tree{}, fmt.Errorf("POST workspace CU limit must be greater than zero")
 		}
-		// POST has no prepaid fixed-CU component, but its pay-as-you-go limit
-		// is still the allocation budget for child guaranteed/request quotas.
-		workspaceCapacity.Fixed = workspaceCapacity.Limit
 	default:
 		return Tree{}, fmt.Errorf("unsupported charge type %q", tree.ChargeType)
 	}
@@ -64,11 +61,8 @@ func resolveNamespaces(parent Capacity, namespaces []Namespace) error {
 	}
 	for i := range namespaces {
 		namespaces[i].Capacity = children[i].capacity
-		if namespaces[i].Used < 0 {
-			return fmt.Errorf("namespace %q used CU must be non-negative", namespaces[i].Name)
-		}
-		if namespaces[i].Used > namespaces[i].Capacity.Limit {
-			return fmt.Errorf("namespace %q used CU exceeds its limit", namespaces[i].Name)
+		if err := validateUsedCU(fmt.Sprintf("namespace %q", namespaces[i].Name), namespaces[i].Used, namespaces[i].Capacity.Limit); err != nil {
+			return err
 		}
 		if err := resolveQueues(namespaces[i].Name, *namespaces[i].Capacity, namespaces[i].Queues); err != nil {
 			return err
@@ -91,11 +85,8 @@ func resolveQueues(namespaceName string, parent Capacity, queues []Queue) error 
 	}
 	for i := range queues {
 		queues[i].Capacity = children[i].capacity
-		if queues[i].Used < 0 {
-			return fmt.Errorf("queue %q/%q used CU must be non-negative", namespaceName, queues[i].Name)
-		}
-		if queues[i].Used > queues[i].Capacity.Limit {
-			return fmt.Errorf("queue %q/%q used CU exceeds its limit", namespaceName, queues[i].Name)
+		if err := validateUsedCU(fmt.Sprintf("queue %q/%q", namespaceName, queues[i].Name), queues[i].Used, queues[i].Capacity.Limit); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -131,9 +122,6 @@ func resolveChildren(parentName string, parent Capacity, children []namedCapacit
 		if err := child.capacity.Validate(); err != nil {
 			return fmt.Errorf("%s child %q: %w", parentName, child.name, err)
 		}
-		if child.capacity.Limit <= 0 {
-			return fmt.Errorf("%s child %q capacity limit must be greater than zero", parentName, child.name)
-		}
 		explicitFixed += child.capacity.Fixed
 		explicitLimit += child.capacity.Limit
 	}
@@ -154,6 +142,16 @@ func resolveChildren(parentName string, parent Capacity, children []namedCapacit
 			return fmt.Errorf("%s remainder child capacity limit must be greater than zero", parentName)
 		}
 		children[remainderIndex].capacity = &remainder
+	}
+	return nil
+}
+
+func validateUsedCU(name string, used float64, limit CU) error {
+	if math.IsNaN(used) || math.IsInf(used, 0) || used < 0 {
+		return fmt.Errorf("%s used CU must be a finite non-negative value", name)
+	}
+	if used > limit.Float64() {
+		return fmt.Errorf("%s used CU exceeds its limit", name)
 	}
 	return nil
 }

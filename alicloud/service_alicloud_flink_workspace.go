@@ -1,9 +1,11 @@
 package alicloud
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/aliyun/terraform-provider-alicloud/internal/flinkworkspace"
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
@@ -16,25 +18,42 @@ func (s *FlinkService) DescribeFlinkWorkspace(id string) (*aliyunFlinkAPI.Worksp
 }
 
 func (s *FlinkService) CreateInstance(workspace *aliyunFlinkAPI.Workspace, options flinkworkspace.CreateOptions) (*aliyunFlinkAPI.Workspace, error) {
-	if workspace.HighAvailability != nil && workspace.HighAvailability.Enabled {
-		request, err := flinkworkspace.BuildCreateInstanceBody(workspace, options)
-		if err != nil {
-			return nil, err
-		}
-		// CreateInstance has no idempotency token. Retrying a response-lost 5xx
-		// could purchase a second workspace, so disable transport-level retries.
-		response, err := s.client.RpcPost("foasconsole", "2021-10-28", "CreateInstance", nil, request, false)
-		if err != nil {
-			return nil, err
-		}
-		instanceID, err := flinkworkspace.InstanceIDFromCreateResponse(response)
-		if err != nil {
-			return nil, err
-		}
-		workspace.Id = instanceID
-		return workspace, nil
+	result, err := s.GetAPI().CreateWorkspaceWithOptions(workspace, options)
+	if err != nil {
+		return nil, classifyFlinkWorkspaceCreateError(err)
 	}
-	return s.GetAPI().CreateWorkspace(workspace)
+	return result, nil
+}
+
+type ambiguousFlinkWorkspaceCreateError struct {
+	cause error
+}
+
+func (e *ambiguousFlinkWorkspaceCreateError) Error() string   { return e.cause.Error() }
+func (e *ambiguousFlinkWorkspaceCreateError) Unwrap() error   { return e.cause }
+func (e *ambiguousFlinkWorkspaceCreateError) Ambiguous() bool { return true }
+
+func isAmbiguousFlinkWorkspaceCreateError(err error) bool {
+	var ambiguous interface{ Ambiguous() bool }
+	return errors.As(err, &ambiguous) && ambiguous.Ambiguous()
+}
+
+func classifyFlinkWorkspaceCreateError(err error) error {
+	if err == nil {
+		return nil
+	}
+	// A structured non-retryable service response proves that the purchase was
+	// rejected. Unstructured transport errors (including bare EOF) do not prove
+	// that, so treat them as response-loss candidates and recover by Tag.
+	var serviceErr *tea.SDKError
+	if errors.As(err, &serviceErr) && !NeedRetry(err) {
+		return err
+	}
+	var flinkServiceErr *aliyunFlinkAPI.FlinkServiceError
+	if errors.As(err, &flinkServiceErr) && !flinkServiceErr.IsRetryableError() {
+		return err
+	}
+	return &ambiguousFlinkWorkspaceCreateError{cause: err}
 }
 
 func (s *FlinkService) DeleteInstance(id string) error {
@@ -47,7 +66,11 @@ type flinkRefundClient interface {
 }
 
 func (s *FlinkService) RefundInstance(id string) error {
-	return refundFlinkWorkspace(s.client, s.client.RegionId, id, buildClientToken("RefundInstance"))
+	return refundFlinkWorkspaceForInstance(s.client, s.client.RegionId, id)
+}
+
+func refundFlinkWorkspaceForInstance(client flinkRefundClient, regionID, instanceID string) error {
+	return refundFlinkWorkspace(client, regionID, instanceID, flinkworkspace.RefundClientToken(regionID, instanceID))
 }
 
 func refundFlinkWorkspace(client flinkRefundClient, regionID, instanceID, clientToken string) error {

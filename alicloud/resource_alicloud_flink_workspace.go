@@ -1,8 +1,10 @@
 package alicloud
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -291,7 +293,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	// Handle the create-only capacity source selected by capacity_management.
-	if d.Get("capacity_management").(string) == CapacityManagedByCoordinator {
+	if flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByCoordinator {
 		fixedCU, crossZoneFixedCU := expandFlinkBootstrapCapacity(d.Get("bootstrap_capacity"))
 		workspaceRequest.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{Cpu: float64(fixedCU), MemoryGB: float64(fixedCU * 4)}
 		if hasHA {
@@ -318,7 +320,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	// Handle HA configuration
-	if hasHA && d.Get("capacity_management").(string) == CapacityManagedByResource {
+	if hasHA && flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByResource {
 		// Set high availability flag
 		workspaceRequest.HighAvailability = &aliyunFlinkAPI.HighAvailability{
 			Enabled: true,
@@ -338,31 +340,29 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	// Create the workspace with retry mechanism
-	var workspace *aliyunFlinkAPI.Workspace
+	// Create exactly once. Paid CreateInstance has no client token; recovery is
+	// performed using a stable provider-owned tag before and after the call.
+	autoRenew := d.Get("auto_renew").(bool)
+	duration := int32(d.Get("duration").(int))
+	usePromotionCode := d.Get("use_promotion_code").(bool)
 	createOptions := flinkworkspace.CreateOptions{
-		AutoRenew:        d.Get("auto_renew").(bool),
-		Duration:         d.Get("duration").(int),
+		AutoRenew:        &autoRenew,
+		Duration:         &duration,
 		PricingCycle:     d.Get("pricing_cycle").(string),
 		Extra:            d.Get("extra").(string),
 		MonitorType:      d.Get("monitor_type").(string),
 		PromotionCode:    d.Get("promotion_code").(string),
-		UsePromotionCode: d.Get("use_promotion_code").(bool),
+		UsePromotionCode: &usePromotionCode,
 	}
-	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		resp, err := flinkService.CreateInstance(workspaceRequest, createOptions)
-		if err != nil {
-			if NotFoundError(err) {
-				time.Sleep(5 * time.Second)
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		workspace = resp
-		return nil
-	})
-
+	workspace, err := createFlinkWorkspace(flinkService, workspaceRequest, createOptions, d.Timeout(schema.TimeoutCreate))
 	if err != nil {
+		var pending *pendingFlinkWorkspaceCreateError
+		if errors.As(err, &pending) {
+			// helper/schema persists the non-empty ID in the errored create state.
+			// Keeping a provider-owned marker prevents a later apply from sending a
+			// second paid purchase while the first outcome is still unknown.
+			d.SetId(pendingFlinkWorkspaceCreateID(pending.token))
+		}
 		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_workspace", "CreateInstance", AlibabaCloudSdkGoERROR)
 	}
 
@@ -381,11 +381,243 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	return resourceAliCloudFlinkWorkspaceRead(d, meta)
 }
 
+type flinkWorkspaceCreateService interface {
+	CreateInstance(*aliyunFlinkAPI.Workspace, flinkworkspace.CreateOptions) (*aliyunFlinkAPI.Workspace, error)
+	ListInstances() ([]aliyunFlinkAPI.Workspace, error)
+}
+
+const pendingFlinkWorkspaceCreateIDPrefix = "terraform-pending-create:"
+
+type pendingFlinkWorkspaceCreateError struct {
+	token string
+	cause error
+}
+
+func (e *pendingFlinkWorkspaceCreateError) Error() string {
+	return fmt.Sprintf("CreateInstance outcome is ambiguous and no uniquely tagged workspace became visible before the create timeout; Terraform retained a pending-create marker and will refuse another purchase until the account is checked and any matching workspace is imported: %v", e.cause)
+}
+
+func (e *pendingFlinkWorkspaceCreateError) Unwrap() error { return e.cause }
+
+type flinkWorkspaceCreateDiscoveryError struct{ cause error }
+
+func (e *flinkWorkspaceCreateDiscoveryError) Error() string { return e.cause.Error() }
+func (e *flinkWorkspaceCreateDiscoveryError) Unwrap() error { return e.cause }
+
+func pendingFlinkWorkspaceCreateID(token string) string {
+	if token == "" {
+		return ""
+	}
+	return pendingFlinkWorkspaceCreateIDPrefix + token
+}
+
+func flinkWorkspaceCreateTokenFromPendingID(id string) (string, bool) {
+	if !strings.HasPrefix(id, pendingFlinkWorkspaceCreateIDPrefix) {
+		return "", false
+	}
+	token := strings.TrimPrefix(id, pendingFlinkWorkspaceCreateIDPrefix)
+	return token, token != ""
+}
+
+func createFlinkWorkspace(service flinkWorkspaceCreateService, request *aliyunFlinkAPI.Workspace, options flinkworkspace.CreateOptions, timeout time.Duration) (*aliyunFlinkAPI.Workspace, error) {
+	if request == nil {
+		return nil, fmt.Errorf("Flink workspace create request is nil")
+	}
+	token := flinkworkspace.WorkspaceCreateToken(request)
+	if token == "" {
+		return nil, fmt.Errorf("cannot derive Flink workspace creation token")
+	}
+	request.Tags = appendFlinkWorkspaceCreateToken(request.Tags, token)
+
+	recovered, err := findFlinkWorkspaceByCreateToken(service, request, token)
+	if err != nil {
+		return nil, fmt.Errorf("check for a previously accepted Flink workspace purchase: %w", err)
+	}
+	if recovered != nil {
+		return recovered, nil
+	}
+
+	workspace, createErr := service.CreateInstance(request, options)
+	if createErr == nil && workspace != nil && workspace.Id != "" {
+		return workspace, nil
+	}
+	if createErr == nil {
+		createErr = &ambiguousFlinkWorkspaceCreateError{cause: fmt.Errorf("CreateInstance returned no workspace ID")}
+	}
+
+	if isAmbiguousFlinkWorkspaceCreateError(createErr) {
+		// Read-only discovery errors are retryable here: the paid request may
+		// already have succeeded, so a transient DescribeInstances failure must
+		// not turn into a second purchase on the next apply.
+		recovered, recoveryErr := waitForFlinkWorkspaceCreateRecovery(service, request, token, timeout)
+		if recoveryErr == nil {
+			return recovered, nil
+		}
+		return nil, &pendingFlinkWorkspaceCreateError{token: token, cause: fmt.Errorf("CreateInstance: %w; recovery: %v", createErr, recoveryErr)}
+	}
+
+	// A definitive service rejection should not normally have purchased
+	// anything, but perform one final authoritative lookup before returning it.
+	recovered, recoveryErr := findFlinkWorkspaceByCreateToken(service, request, token)
+	if recoveryErr != nil {
+		return nil, fmt.Errorf("CreateInstance failed: %w; recovery by provider creation tag also failed: %v", createErr, recoveryErr)
+	}
+	if recovered != nil {
+		return recovered, nil
+	}
+	return nil, createErr
+}
+
+func appendFlinkWorkspaceCreateToken(tags []aliyunFlinkAPI.Tag, token string) []aliyunFlinkAPI.Tag {
+	result := make([]aliyunFlinkAPI.Tag, 0, len(tags)+1)
+	for _, tag := range tags {
+		if tag.Key != flinkworkspace.CreateTokenTagKey {
+			result = append(result, tag)
+		}
+	}
+	return append(result, aliyunFlinkAPI.Tag{Key: flinkworkspace.CreateTokenTagKey, Value: token})
+}
+
+func waitForFlinkWorkspaceCreateRecovery(service flinkWorkspaceCreateService, request *aliyunFlinkAPI.Workspace, token string, timeout time.Duration) (*aliyunFlinkAPI.Workspace, error) {
+	var recovered *aliyunFlinkAPI.Workspace
+	err := resource.Retry(timeout, func() *resource.RetryError {
+		workspace, err := findFlinkWorkspaceByCreateToken(service, request, token)
+		if err != nil {
+			var discoveryErr *flinkWorkspaceCreateDiscoveryError
+			if errors.As(err, &discoveryErr) || NeedRetry(err) {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(err)
+		}
+		if workspace == nil {
+			return resource.RetryableError(fmt.Errorf("tagged Flink workspace is not visible yet"))
+		}
+		recovered = workspace
+		return nil
+	})
+	return recovered, err
+}
+
+func findFlinkWorkspaceByCreateToken(service flinkWorkspaceCreateService, request *aliyunFlinkAPI.Workspace, token string) (*aliyunFlinkAPI.Workspace, error) {
+	workspaces, err := service.ListInstances()
+	if err != nil {
+		return nil, &flinkWorkspaceCreateDiscoveryError{cause: err}
+	}
+	matches := make([]aliyunFlinkAPI.Workspace, 0, 1)
+	for _, workspace := range workspaces {
+		if !flinkWorkspaceHasTag(workspace.Tags, flinkworkspace.CreateTokenTagKey, token) {
+			continue
+		}
+		matches = append(matches, workspace)
+	}
+	if len(matches) == 0 {
+		return nil, nil
+	}
+	if len(matches) > 1 {
+		return nil, fmt.Errorf("multiple Flink workspaces carry the same provider creation token; refusing another purchase")
+	}
+	match := matches[0]
+	if match.Id == "" {
+		return nil, fmt.Errorf("the workspace carrying the provider creation token has no instance ID")
+	}
+	if match.Name != "" && match.Name != request.Name {
+		return nil, fmt.Errorf("the workspace carrying the provider creation token has name %q, expected %q", match.Name, request.Name)
+	}
+	if match.Region != "" && match.Region != request.Region {
+		return nil, fmt.Errorf("the workspace carrying the provider creation token has region %q, expected %q", match.Region, request.Region)
+	}
+	if err := validateRecoveredFlinkWorkspace(match, request); err != nil {
+		return nil, err
+	}
+	return &match, nil
+}
+
+func validateRecoveredFlinkWorkspace(match aliyunFlinkAPI.Workspace, request *aliyunFlinkAPI.Workspace) error {
+	for _, field := range []struct {
+		name     string
+		actual   string
+		expected string
+	}{
+		{name: "VPC", actual: match.VpcId, expected: request.VpcId},
+		{name: "charge type", actual: match.ChargeType, expected: request.ChargeType},
+		{name: "architecture type", actual: match.ArchitectureType, expected: request.ArchitectureType},
+		{name: "resource group", actual: match.ResourceGroupId, expected: request.ResourceGroupId},
+	} {
+		if field.actual != "" && field.expected != "" && field.actual != field.expected {
+			return fmt.Errorf("the workspace carrying the provider creation token has %s %q, expected %q", field.name, field.actual, field.expected)
+		}
+	}
+	if len(match.VSwitchIds) > 0 && !sameFlinkStringSet(match.VSwitchIds, request.VSwitchIds) {
+		return fmt.Errorf("the workspace carrying the provider creation token has different primary vSwitch IDs")
+	}
+	requestHA := request.HighAvailability != nil && request.HighAvailability.Enabled
+	if match.Ha && !requestHA {
+		return fmt.Errorf("the workspace carrying the provider creation token is HA but the request is non-HA")
+	}
+	if match.Status == "RUNNING" && requestHA && !match.Ha {
+		return fmt.Errorf("the workspace carrying the provider creation token is non-HA but the request is HA")
+	}
+	if len(match.HaVSwitchIds) > 0 {
+		if !requestHA || !sameFlinkStringSet(match.HaVSwitchIds, request.HighAvailability.VSwitchIds) {
+			return fmt.Errorf("the workspace carrying the provider creation token has different HA vSwitch IDs")
+		}
+	}
+	if match.Storage != nil && match.Storage.Oss != nil && request.Storage != nil && request.Storage.Oss != nil && match.Storage.Oss.Bucket != "" && match.Storage.Oss.Bucket != request.Storage.Oss.Bucket {
+		return fmt.Errorf("the workspace carrying the provider creation token has OSS bucket %q, expected %q", match.Storage.Oss.Bucket, request.Storage.Oss.Bucket)
+	}
+	return nil
+}
+
+func sameFlinkStringSet(actual, expected []string) bool {
+	if len(actual) != len(expected) {
+		return false
+	}
+	counts := make(map[string]int, len(actual))
+	for _, value := range actual {
+		counts[value]++
+	}
+	for _, value := range expected {
+		counts[value]--
+		if counts[value] < 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func flinkWorkspaceHasTag(tags []aliyunFlinkAPI.Tag, key, value string) bool {
+	for _, tag := range tags {
+		if tag.Key == key && tag.Value == value {
+			return true
+		}
+	}
+	return false
+}
+
+func checkPendingFlinkWorkspaceCreate(service flinkWorkspaceCreateService, pendingID, name, region string) error {
+	token, ok := flinkWorkspaceCreateTokenFromPendingID(pendingID)
+	if !ok {
+		return nil
+	}
+	request := &aliyunFlinkAPI.Workspace{Name: name, Region: region}
+	workspace, err := findFlinkWorkspaceByCreateToken(service, request, token)
+	if err != nil {
+		return fmt.Errorf("resolve pending Flink workspace purchase: %w", err)
+	}
+	if workspace == nil {
+		return fmt.Errorf("Flink workspace purchase outcome is still unresolved; the pending-create marker is retained and another purchase is blocked")
+	}
+	return fmt.Errorf("Flink workspace purchase became visible as instance %q; the pending-create marker is retained to prevent automatic replacement: remove the pending state and import that instance before applying again", workspace.Id)
+}
+
 func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	flinkService, err := NewFlinkService(client)
 	if err != nil {
 		return WrapError(err)
+	}
+	if _, pending := flinkWorkspaceCreateTokenFromPendingID(d.Id()); pending {
+		return WrapError(checkPendingFlinkWorkspaceCreate(flinkService, d.Id(), d.Get("name").(string), client.RegionId))
 	}
 
 	workspace, err := flinkService.DescribeFlinkWorkspace(d.Id())
@@ -440,7 +672,7 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("resource_id", workspace.ResourceId)
 	}
 
-	capacityManagement := d.Get("capacity_management").(string)
+	capacityManagement := flinkCapacityManagementValue(d.Get("capacity_management"))
 	d.Set("observed_capacity", flattenFlinkWorkspaceObservedCapacity(workspace))
 
 	// Set legacy capacity intent only while this resource owns capacity.
@@ -522,6 +754,9 @@ func resourceAliCloudFlinkWorkspaceDelete(d *schema.ResourceData, meta interface
 	if err != nil {
 		return WrapError(err)
 	}
+	if _, pending := flinkWorkspaceCreateTokenFromPendingID(d.Id()); pending {
+		return WrapError(checkPendingFlinkWorkspaceCreate(flinkService, d.Id(), d.Get("name").(string), client.RegionId))
+	}
 
 	if err := deleteFlinkWorkspace(flinkService, d.Id(), d.Timeout(schema.TimeoutDelete)); err != nil {
 		return WrapError(err)
@@ -557,8 +792,12 @@ func deleteFlinkWorkspace(service flinkWorkspaceDeleteService, instanceID string
 		return fmt.Errorf("cannot delete Flink workspace %q with unknown charge type %q", instanceID, workspace.ChargeType)
 	}
 	if err != nil {
-		if NotFoundError(err) {
+		_, verifyErr := service.DescribeFlinkWorkspace(instanceID)
+		if NotFoundError(verifyErr) {
 			return nil
+		}
+		if verifyErr != nil {
+			return fmt.Errorf("delete Flink workspace %q failed: %w; verifying whether the workspace still exists also failed: %v", instanceID, err, verifyErr)
 		}
 		return err
 	}

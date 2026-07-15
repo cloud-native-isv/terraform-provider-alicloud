@@ -2,12 +2,6 @@ package flinkworkspace
 
 import aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 
-// HAConfig flattens the HA fields returned by DescribeInstances into the
-// shape used by the alicloud_flink_workspace schema.
-func HAConfig(workspace *aliyunFlinkAPI.Workspace) (map[string]interface{}, bool) {
-	return HAConfigWithFallback(workspace, "")
-}
-
 func HAConfigWithFallback(workspace *aliyunFlinkAPI.Workspace, fallbackZoneID string) (map[string]interface{}, bool) {
 	if workspace == nil {
 		return nil, false

@@ -1,5 +1,10 @@
 package flinkworkspace
 
+import (
+	"crypto/sha256"
+	"encoding/hex"
+)
+
 const (
 	RefundProductCodeDomestic      = "sc"
 	RefundProductTypeDomestic      = "sc_flinkserverless_public_cn"
@@ -11,6 +16,11 @@ func RefundProductType(international bool) string {
 		return RefundProductTypeInternational
 	}
 	return RefundProductTypeDomestic
+}
+
+func RefundClientToken(regionID, instanceID string) string {
+	digest := sha256.Sum256([]byte(regionID + "\x00" + instanceID))
+	return "TF-RefundInstance-" + hex.EncodeToString(digest[:])[:32]
 }
 
 func BuildRefundRequest(instanceID string, international bool, clientToken string) map[string]interface{} {

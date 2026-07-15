@@ -169,6 +169,45 @@ func TestPlanUsedGate(t *testing.T) {
 	}
 }
 
+func TestPlanUsedGateRejectsFractionalUsageAtEveryLevel(t *testing.T) {
+	tests := []struct {
+		name string
+		set  func(*Tree)
+	}{
+		{
+			name: "workspace",
+			set: func(tree *Tree) {
+				tree.Workspace.Used = 4.1
+			},
+		},
+		{
+			name: "namespace",
+			set: func(tree *Tree) {
+				tree.Namespaces[0].Used = 4.1
+			},
+		},
+		{
+			name: "queue",
+			set: func(tree *Tree) {
+				tree.Namespaces[0].Queues[0].Used = 4.1
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			actual := plannerTree(8, 16, 8, 16, 8, 16)
+			desired := plannerTree(8, 8, 8, 8, 8, 8)
+			tc.set(&actual)
+
+			_, err := Plan(actual, desired)
+			if err == nil || !strings.Contains(err.Error(), "below used CU 4.1") {
+				t.Fatalf("Plan() error = %v, want exact fractional used capacity diagnostic", err)
+			}
+		})
+	}
+}
+
 func TestPlanWorkspaceElasticActions(t *testing.T) {
 	t.Run("zero to positive enables elastic", func(t *testing.T) {
 		actual := plannerTree(8, 8, 8, 8, 8, 8)
@@ -223,6 +262,34 @@ func TestPlanPostpaidWorkspaceUsesInstanceSpecAction(t *testing.T) {
 	}
 	if len(steps) != 1 || steps[0].Action != ModifyWorkspacePostpaid {
 		t.Fatalf("steps = %#v", steps)
+	}
+}
+
+func TestPlanPostpaidChildStepsRemainPureElastic(t *testing.T) {
+	actual := Tree{
+		ChargeType: "POST",
+		Workspace:  WorkspaceCapacity{Limit: 8},
+		Namespaces: []Namespace{{
+			Name:     "default",
+			Capacity: capacity(0, 4),
+			Queues:   []Queue{{Name: "default-queue", Capacity: capacity(0, 4)}},
+		}},
+	}
+	desired := cloneTree(actual)
+	desired.Namespaces[0].Capacity = capacity(0, 8)
+	desired.Namespaces[0].Queues[0].Capacity = capacity(0, 8)
+
+	steps, err := Plan(actual, desired)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(steps) != 2 {
+		t.Fatalf("steps = %#v", steps)
+	}
+	for _, step := range steps {
+		if step.To.FixedCU != 0 || step.To.Limit != 8 {
+			t.Fatalf("step = %#v, want pure elastic child allocation", step)
+		}
 	}
 }
 

@@ -19,6 +19,14 @@ func TestValidateFlinkCapacityWorkspaceReady(t *testing.T) {
 	if err := validateFlinkCapacityWorkspaceReady(ready); err != nil {
 		t.Fatal(err)
 	}
+	readyElastic := *ready
+	readyElastic.Elastic = true
+	readyElastic.ElasticInstanceId = "f-elastic"
+	readyElastic.ElasticOrderState = "NORMAL"
+	readyElastic.ElasticResourceSpec = &flink.ResourceSpec{Cpu: 2, MemoryGB: 8}
+	if err := validateFlinkCapacityWorkspaceReady(&readyElastic); err != nil {
+		t.Fatalf("ready elastic workspace: %v", err)
+	}
 
 	for name, mutate := range map[string]func(*flink.Workspace){
 		"creating":            func(workspace *flink.Workspace) { workspace.Status = "CREATING" },
@@ -32,6 +40,17 @@ func TestValidateFlinkCapacityWorkspaceReady(t *testing.T) {
 			workspace.Elastic = true
 			workspace.ElasticInstanceId = "f-elastic"
 		},
+		"elastic order pending": func(workspace *flink.Workspace) {
+			workspace.Elastic = true
+			workspace.ElasticInstanceId = "f-elastic"
+			workspace.ElasticResourceSpec = &flink.ResourceSpec{Cpu: 2, MemoryGB: 8}
+			workspace.ElasticOrderState = "PROCESSING"
+		},
+		"elastic order missing": func(workspace *flink.Workspace) {
+			workspace.Elastic = true
+			workspace.ElasticInstanceId = "f-elastic"
+			workspace.ElasticResourceSpec = &flink.ResourceSpec{Cpu: 2, MemoryGB: 8}
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			workspace := *ready
@@ -42,6 +61,27 @@ func TestValidateFlinkCapacityWorkspaceReady(t *testing.T) {
 				t.Fatalf("error = %v, want retryable", err)
 			}
 		})
+	}
+}
+
+func TestValidateFlinkCapacityWorkspaceRejectsTerminalElasticOrder(t *testing.T) {
+	workspace := &flink.Workspace{
+		Id:                  "f-test",
+		Status:              "RUNNING",
+		OrderState:          "NORMAL",
+		ResourceId:          "sc-test",
+		Elastic:             true,
+		ElasticInstanceId:   "f-elastic",
+		ElasticOrderState:   "FAILED",
+		ElasticResourceSpec: &flink.ResourceSpec{Cpu: 2, MemoryGB: 8},
+	}
+	err := validateFlinkCapacityWorkspaceReady(workspace)
+	if err == nil || !strings.Contains(err.Error(), "elastic order") {
+		t.Fatalf("error = %v", err)
+	}
+	var retryable interface{ Retryable() bool }
+	if errors.As(err, &retryable) && retryable.Retryable() {
+		t.Fatalf("terminal elastic order must not be retryable: %v", err)
 	}
 }
 
@@ -92,14 +132,14 @@ func TestBuildFlinkCapacityTreeFromObjects(t *testing.T) {
 		HaResourceSpec:      &flink.ResourceSpec{Cpu: 3, MemoryGB: 12},
 		ElasticResourceSpec: &flink.ResourceSpec{Cpu: 4, MemoryGB: 16},
 		ClusterUsedResources: &flink.WorkspaceUsedResources{
-			UsedResource: 1.5,
+			UsedResource: 1.25,
 		},
 	}
 	namespaces := []flink.Namespace{{
 		Name:                   "default",
 		GuaranteedResourceSpec: &flink.ResourceSpec{Cpu: 4, MemoryGB: 16},
 		ElasticResourceSpec:    &flink.ResourceSpec{Cpu: 2, MemoryGB: 8},
-		ResourceUsed:           &flink.ResourceUsed{Cu: 1},
+		ResourceUsed:           &flink.ResourceUsed{Cu: 0.1},
 	}}
 	targets := map[string][]flink.DeploymentTarget{
 		"default": {{
@@ -107,7 +147,7 @@ func TestBuildFlinkCapacityTreeFromObjects(t *testing.T) {
 			Quota: &flink.ResourceQuota{
 				Request: &flink.ResourceSpec{Cpu: 1.5, MemoryGB: 6},
 				Limit:   &flink.ResourceSpec{Cpu: 3, MemoryGB: 12},
-				Used:    &flink.ResourceSpec{Cpu: 0.5, MemoryGB: 2},
+				Used:    &flink.ResourceSpec{Cpu: 0.25, MemoryGB: 99},
 			},
 		}},
 	}
@@ -116,22 +156,25 @@ func TestBuildFlinkCapacityTreeFromObjects(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Workspace != (flinkcapacity.WorkspaceCapacity{HA: true, FixedCU: 4, CrossZoneFixedCU: 6, Limit: 18, Used: 3}) {
+	if got.Workspace != (flinkcapacity.WorkspaceCapacity{HA: true, FixedCU: 4, CrossZoneFixedCU: 6, Limit: 18, Used: 1.25}) {
 		t.Fatalf("workspace capacity = %#v", got.Workspace)
 	}
-	if got.Namespaces[0].Capacity == nil || *got.Namespaces[0].Capacity != (flinkcapacity.Capacity{Fixed: 8, Limit: 12}) || got.Namespaces[0].Used != 2 {
+	if got.WorkspaceResourceID != "sc-test" {
+		t.Fatalf("workspace ResourceId = %q", got.WorkspaceResourceID)
+	}
+	if got.Namespaces[0].Capacity == nil || *got.Namespaces[0].Capacity != (flinkcapacity.Capacity{Fixed: 8, Limit: 12}) || got.Namespaces[0].Used != 0.1 {
 		t.Fatalf("namespace = %#v", got.Namespaces[0])
 	}
 	queue := got.Namespaces[0].Queues[0]
-	if queue.Capacity == nil || *queue.Capacity != (flinkcapacity.Capacity{Fixed: 3, Limit: 6}) || queue.Used != 1 {
+	if queue.Capacity == nil || *queue.Capacity != (flinkcapacity.Capacity{Fixed: 3, Limit: 6}) || queue.Used != 0.25 {
 		t.Fatalf("queue = %#v", queue)
 	}
 }
 
 func TestBuildFlinkCapacityTreePostpaid(t *testing.T) {
 	workspace := &flink.Workspace{ChargeType: "POST", ResourceSpec: &flink.ResourceSpec{Cpu: 8, MemoryGB: 32}}
-	namespaces := []flink.Namespace{{Name: "default", GuaranteedResourceSpec: &flink.ResourceSpec{Cpu: 4, MemoryGB: 16}, ElasticResourceSpec: &flink.ResourceSpec{Cpu: 4, MemoryGB: 16}}}
-	targets := map[string][]flink.DeploymentTarget{"default": {{Name: "q", Quota: &flink.ResourceQuota{Request: &flink.ResourceSpec{Cpu: 4}, Limit: &flink.ResourceSpec{Cpu: 8}, Used: &flink.ResourceSpec{}}}}}
+	namespaces := []flink.Namespace{{Name: "default", GuaranteedResourceSpec: &flink.ResourceSpec{}, ElasticResourceSpec: &flink.ResourceSpec{Cpu: 8, MemoryGB: 32}}}
+	targets := map[string][]flink.DeploymentTarget{"default": {{Name: "q", Quota: &flink.ResourceQuota{Request: &flink.ResourceSpec{}, Limit: &flink.ResourceSpec{Cpu: 8, MemoryGB: 32}, Used: &flink.ResourceSpec{}}}}}
 
 	got, err := buildFlinkCapacityTree(workspace, namespaces, targets)
 	if err != nil {
@@ -139,6 +182,9 @@ func TestBuildFlinkCapacityTreePostpaid(t *testing.T) {
 	}
 	if got.Workspace.TotalFixed() != 0 || got.Workspace.Limit != 16 {
 		t.Fatalf("workspace capacity = %#v", got.Workspace)
+	}
+	if got.Namespaces[0].Capacity.Fixed != 0 || got.Namespaces[0].Queues[0].Capacity.Fixed != 0 {
+		t.Fatalf("POST child capacities must be pure elastic: %#v", got.Namespaces[0])
 	}
 }
 

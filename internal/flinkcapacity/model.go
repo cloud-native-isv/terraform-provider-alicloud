@@ -75,7 +75,9 @@ type WorkspaceCapacity struct {
 	FixedCU          CU
 	CrossZoneFixedCU CU
 	Limit            CU
-	Used             CU
+	// Used is the observed CU consumption reported by the control plane. Unlike
+	// capacity allocations, it is not limited to half-CU increments.
+	Used float64
 }
 
 type NotReadyError struct {
@@ -96,18 +98,19 @@ func (c WorkspaceCapacity) AsCapacity() Capacity {
 type Queue struct {
 	Name     string
 	Capacity *Capacity
-	Used     CU
+	Used     float64
 }
 
 type Namespace struct {
 	Name     string
 	Capacity *Capacity
-	Used     CU
+	Used     float64
 	Queues   []Queue
 }
 
 type Tree struct {
-	ChargeType string
-	Workspace  WorkspaceCapacity
-	Namespaces []Namespace
+	ChargeType          string
+	WorkspaceResourceID string
+	Workspace           WorkspaceCapacity
+	Namespaces          []Namespace
 }

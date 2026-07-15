@@ -18,6 +18,9 @@ func TestFlinkCapacityCoordinatorSchema(t *testing.T) {
 	if !resource.Schema["workspace_instance_id"].Required || !resource.Schema["workspace_instance_id"].ForceNew {
 		t.Fatal("workspace_instance_id must be required and ForceNew")
 	}
+	if !strings.Contains(resource.Schema["workspace_instance_id"].Description, "across Terraform states") {
+		t.Fatalf("workspace_instance_id ownership description = %q", resource.Schema["workspace_instance_id"].Description)
+	}
 	if !resource.Schema["workspace_resource_id"].Computed {
 		t.Fatal("workspace_resource_id must be computed")
 	}
@@ -33,6 +36,48 @@ func TestFlinkCapacityCoordinatorRegistered(t *testing.T) {
 	provider := Provider().(*schema.Provider)
 	if provider.ResourcesMap["alicloud_flink_capacity_coordinator"] == nil {
 		t.Fatal("alicloud_flink_capacity_coordinator is not registered")
+	}
+}
+
+func TestFlinkCapacityCoordinatorSerializesSameWorkspace(t *testing.T) {
+	firstEntered := make(chan struct{})
+	releaseFirst := make(chan struct{})
+	firstDone := make(chan error, 1)
+	go func() {
+		firstDone <- withFlinkCapacityCoordinatorLock("f-test", func() error {
+			close(firstEntered)
+			<-releaseFirst
+			return nil
+		})
+	}()
+	<-firstEntered
+
+	secondEntered := make(chan struct{})
+	secondDone := make(chan error, 1)
+	go func() {
+		secondDone <- withFlinkCapacityCoordinatorLock("f-test", func() error {
+			close(secondEntered)
+			return nil
+		})
+	}()
+
+	select {
+	case <-secondEntered:
+		close(releaseFirst)
+		t.Fatal("second reconcile entered before the first released the workspace lock")
+	case <-time.After(100 * time.Millisecond):
+	}
+	close(releaseFirst)
+	if err := <-firstDone; err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-secondEntered:
+	case <-time.After(time.Second):
+		t.Fatal("second reconcile did not enter after the workspace lock was released")
+	}
+	if err := <-secondDone; err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -143,7 +188,7 @@ func TestFlinkCapacityCoordinatorCustomizeDiffRejectsAliases(t *testing.T) {
 	}
 }
 
-func TestFlinkCapacityCoordinatorCustomizeDiffRejectsExplicitZeroAlias(t *testing.T) {
+func TestFlinkCapacityCoordinatorCustomizeDiffAcceptsExplicitZeroElasticAlias(t *testing.T) {
 	tests := []struct {
 		name   string
 		mutate func(map[string]interface{})
@@ -152,6 +197,7 @@ func TestFlinkCapacityCoordinatorCustomizeDiffRejectsExplicitZeroAlias(t *testin
 			name: "workspace",
 			mutate: func(workspace map[string]interface{}) {
 				capacity := firstTestBlock(workspace["capacity"])
+				delete(capacity, "max_cu_limit")
 				capacity["elastic_cu_limit"] = 0.0
 			},
 		},
@@ -160,7 +206,7 @@ func TestFlinkCapacityCoordinatorCustomizeDiffRejectsExplicitZeroAlias(t *testin
 			mutate: func(workspace map[string]interface{}) {
 				namespace := firstTestBlock(workspace["namespace"])
 				namespace["capacity"] = []interface{}{map[string]interface{}{
-					"fixed_cu": 0.0, "elastic_cu_limit": 0.0, "max_cu_limit": 8.0,
+					"fixed_cu": 0.0, "elastic_cu_limit": 0.0,
 				}}
 			},
 		},
@@ -169,7 +215,7 @@ func TestFlinkCapacityCoordinatorCustomizeDiffRejectsExplicitZeroAlias(t *testin
 			mutate: func(workspace map[string]interface{}) {
 				queue := firstTestBlock(firstTestBlock(workspace["namespace"])["queue"])
 				queue["capacity"] = []interface{}{map[string]interface{}{
-					"fixed_cu": 0.0, "elastic_cu_limit": 0.0, "max_cu_limit": 8.0,
+					"fixed_cu": 0.0, "elastic_cu_limit": 0.0,
 				}}
 			},
 		},
@@ -183,9 +229,48 @@ func TestFlinkCapacityCoordinatorCustomizeDiffRejectsExplicitZeroAlias(t *testin
 				"workspace_instance_id": "f-test",
 				"workspace":             workspace,
 			}
+			if _, err := resourceAliCloudFlinkCapacityCoordinator().Diff(nil, terraform.NewResourceConfigRaw(config), nil); err != nil {
+				t.Fatalf("explicit zero elastic alias should be valid: %v", err)
+			}
+		})
+	}
+}
+
+func TestFlinkCapacityCoordinatorCustomizeDiffValidatesExplicitZeroMaxAlias(t *testing.T) {
+	tests := []struct {
+		name    string
+		mutate  func(map[string]interface{})
+		wantErr string
+	}{
+		{
+			name: "max below fixed",
+			mutate: func(workspace map[string]interface{}) {
+				firstTestBlock(workspace["capacity"])["max_cu_limit"] = 0.0
+			},
+			wantErr: "greater than or equal",
+		},
+		{
+			name: "zero max still conflicts with elastic",
+			mutate: func(workspace map[string]interface{}) {
+				capacity := firstTestBlock(workspace["capacity"])
+				capacity["elastic_cu_limit"] = 4.0
+				capacity["max_cu_limit"] = 0.0
+			},
+			wantErr: "mutually exclusive",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			workspace := coordinatorWorkspaceConfig()
+			tc.mutate(firstTestBlock(workspace))
+			config := map[string]interface{}{
+				"workspace_instance_id": "f-test",
+				"workspace":             workspace,
+			}
 			_, err := resourceAliCloudFlinkCapacityCoordinator().Diff(nil, terraform.NewResourceConfigRaw(config), nil)
-			if err == nil || !strings.Contains(err.Error(), "mutually exclusive") {
-				t.Fatalf("Diff() error = %v", err)
+			if err == nil || !strings.Contains(err.Error(), tc.wantErr) {
+				t.Fatalf("Diff() error = %v, want %q", err, tc.wantErr)
 			}
 		})
 	}
@@ -269,6 +354,27 @@ func TestMergeFlinkCoordinatorObservedPreservesIntentShape(t *testing.T) {
 	}
 	if len(firstTestList(workspace["observed_capacity"])) != 1 || len(firstTestList(namespace["observed_capacity"])) != 1 || len(firstTestList(queue["observed_capacity"])) != 1 {
 		t.Fatalf("observed capacities were not populated: %#v", merged)
+	}
+}
+
+func TestSetFlinkCoordinatorReconcileStateRequiresAndPersistsResourceID(t *testing.T) {
+	resource := resourceAliCloudFlinkCapacityCoordinator()
+	data := schema.TestResourceDataRaw(t, resource.Schema, map[string]interface{}{
+		"workspace_instance_id": "f-test",
+		"workspace":             coordinatorWorkspaceConfig(),
+	})
+	data.SetId("f-test")
+	actual := coordinatorActualTree()
+	if err := setFlinkCoordinatorReconcileState(data, actual); err == nil || !strings.Contains(err.Error(), "ResourceId") {
+		t.Fatalf("missing ResourceId error = %v", err)
+	}
+
+	actual.WorkspaceResourceID = "sc-test"
+	if err := setFlinkCoordinatorReconcileState(data, actual); err != nil {
+		t.Fatal(err)
+	}
+	if got := data.Get("workspace_resource_id"); got != "sc-test" {
+		t.Fatalf("workspace_resource_id = %#v", got)
 	}
 }
 
