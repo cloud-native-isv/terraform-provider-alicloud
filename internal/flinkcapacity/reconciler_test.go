@@ -3,6 +3,7 @@ package flinkcapacity
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 )
@@ -43,6 +44,11 @@ type ambiguousTestError struct{}
 
 func (ambiguousTestError) Error() string   { return "connection reset after request" }
 func (ambiguousTestError) Ambiguous() bool { return true }
+
+type retryableTestError struct{}
+
+func (retryableTestError) Error() string   { return "not ready" }
+func (retryableTestError) Retryable() bool { return true }
 
 func testReconciler(api API) Reconciler {
 	return Reconciler{
@@ -171,5 +177,76 @@ func TestReconcilerSkipsWriteWhenStepAlreadyConverged(t *testing.T) {
 	}
 	if !sameCapacityTree(got, desired) {
 		t.Fatalf("final tree = %#v", got)
+	}
+}
+
+func TestReconcilerInheritsObservedChargeType(t *testing.T) {
+	actual := plannerTree(8, 8, 8, 8, 8, 8)
+	desired := cloneTree(actual)
+	desired.ChargeType = ""
+	api := &fakeCapacityAPI{tree: actual}
+
+	if _, err := testReconciler(api).Reconcile(context.Background(), "f-test", desired); err != nil {
+		t.Fatal(err)
+	}
+	if len(api.writes) != 0 {
+		t.Fatalf("writes = %d, want 0", len(api.writes))
+	}
+}
+
+func TestReconcilerWaitsForRetryableInitialRead(t *testing.T) {
+	actual := plannerTree(8, 8, 8, 8, 8, 8)
+	api := &fakeCapacityAPI{tree: actual}
+	api.readFn = func(f *fakeCapacityAPI) (Tree, error) {
+		if f.reads < 3 {
+			return Tree{}, retryableTestError{}
+		}
+		return cloneTree(f.tree), nil
+	}
+
+	if _, err := testReconciler(api).Reconcile(context.Background(), "f-test", actual); err != nil {
+		t.Fatal(err)
+	}
+	if api.reads != 3 {
+		t.Fatalf("reads = %d, want 3", api.reads)
+	}
+}
+
+func TestReconcilerWaitsForDeclaredTopology(t *testing.T) {
+	actual := plannerTree(8, 8, 8, 8, 8, 8)
+	missing := cloneTree(actual)
+	missing.Namespaces[0].Queues = nil
+	api := &fakeCapacityAPI{tree: missing}
+	api.readFn = func(f *fakeCapacityAPI) (Tree, error) {
+		if f.reads == 1 {
+			return cloneTree(missing), nil
+		}
+		f.tree = cloneTree(actual)
+		return cloneTree(actual), nil
+	}
+
+	if _, err := testReconciler(api).Reconcile(context.Background(), "f-test", actual); err != nil {
+		t.Fatal(err)
+	}
+	if api.reads != 2 {
+		t.Fatalf("reads = %d, want 2", api.reads)
+	}
+}
+
+func TestReconcilerFailsClosedForUndeclaredTopology(t *testing.T) {
+	actual := plannerTree(8, 8, 8, 8, 8, 8)
+	extra := cloneTree(actual)
+	extra.Namespaces[0].Queues = append(extra.Namespaces[0].Queues, Queue{
+		Name:     "unexpected",
+		Capacity: &Capacity{Fixed: 0, Limit: 0},
+	})
+	api := &fakeCapacityAPI{tree: extra}
+
+	_, err := testReconciler(api).Reconcile(context.Background(), "f-test", actual)
+	if err == nil || !strings.Contains(err.Error(), "undeclared") {
+		t.Fatalf("error = %v", err)
+	}
+	if api.reads != 1 {
+		t.Fatalf("reads = %d, want no retry", api.reads)
 	}
 }

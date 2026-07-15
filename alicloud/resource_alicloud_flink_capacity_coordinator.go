@@ -1,0 +1,567 @@
+package alicloud
+
+import (
+	"context"
+	"fmt"
+	"sort"
+	"time"
+
+	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	"github.com/aliyun/terraform-provider-alicloud/internal/flinkcapacity"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+)
+
+func resourceAliCloudFlinkCapacityCoordinator() *schema.Resource {
+	return &schema.Resource{
+		Create:        resourceAliCloudFlinkCapacityCoordinatorCreate,
+		Read:          resourceAliCloudFlinkCapacityCoordinatorRead,
+		Update:        resourceAliCloudFlinkCapacityCoordinatorUpdate,
+		Delete:        resourceAliCloudFlinkCapacityCoordinatorDelete,
+		CustomizeDiff: flinkCapacityCoordinatorCustomizeDiff,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+		Schema: map[string]*schema.Schema{
+			"workspace_instance_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"workspace_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"workspace": flinkCoordinatorWorkspaceSchema(),
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+		},
+	}
+}
+
+func flinkCoordinatorWorkspaceSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		MinItems: 1,
+		MaxItems: 1,
+		Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+			"capacity":          flinkCoordinatorCapacitySchema(true),
+			"observed_capacity": flinkObservedCapacitySchema(true),
+			"namespace": {
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
+				Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+					"name": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"capacity":          flinkCoordinatorCapacitySchema(false),
+					"observed_capacity": flinkObservedCapacitySchema(false),
+					"queue": {
+						Type:     schema.TypeList,
+						Required: true,
+						MinItems: 1,
+						Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+							"name": {
+								Type:         schema.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"capacity":          flinkCoordinatorCapacitySchema(false),
+							"observed_capacity": flinkObservedCapacitySchema(false),
+						}},
+					},
+				}},
+			},
+		}},
+	}
+}
+
+func flinkCoordinatorCapacitySchema(includeHA bool) *schema.Schema {
+	fields := map[string]*schema.Schema{
+		"fixed_cu": {
+			Type:         schema.TypeFloat,
+			Optional:     true,
+			Default:      0.0,
+			ValidateFunc: validation.FloatAtLeast(0),
+		},
+		"elastic_cu_limit": {
+			Type:         schema.TypeFloat,
+			Optional:     true,
+			ValidateFunc: validation.FloatAtLeast(0),
+		},
+		"max_cu_limit": {
+			Type:         schema.TypeFloat,
+			Optional:     true,
+			ValidateFunc: validation.FloatAtLeast(0),
+		},
+	}
+	if includeHA {
+		fields["ha"] = &schema.Schema{
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{Schema: map[string]*schema.Schema{
+				"cross_zone_fixed_cu": {
+					Type:         schema.TypeFloat,
+					Optional:     true,
+					Default:      0.0,
+					ValidateFunc: validation.FloatAtLeast(0),
+				},
+			}},
+		}
+	}
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: !includeHA,
+		Required: includeHA,
+		MaxItems: 1,
+		Elem:     &schema.Resource{Schema: fields},
+	}
+}
+
+func flinkCapacityCoordinatorCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+	if _, err := expandFlinkCoordinatorDesired(d.Get("workspace")); err != nil {
+		return err
+	}
+	if d.Id() == "" {
+		return nil
+	}
+	workspace, ok := flinkFirstBlock(d.Get("workspace"))
+	if !ok {
+		return nil
+	}
+	observed, observedOK := flinkFirstBlock(workspace["observed_capacity"])
+	if !observedOK {
+		return nil
+	}
+	observedElastic, _ := numberAsFloat(observed["elastic_cu_limit"])
+	if observedElastic <= 0 {
+		return nil
+	}
+	desired, err := expandFlinkCoordinatorDesired(d.Get("workspace"))
+	if err != nil {
+		return err
+	}
+	if desired.Workspace.AsCapacity().Elastic() == 0 {
+		return fmt.Errorf("cannot reduce workspace elastic CU to zero through a supported public API; first reduce namespace and queue elastic quotas to zero, disable workspace elastic billing in the console, refresh state, and plan again")
+	}
+	return nil
+}
+
+func resourceAliCloudFlinkCapacityCoordinatorCreate(d *schema.ResourceData, meta interface{}) error {
+	d.SetId(d.Get("workspace_instance_id").(string))
+	return resourceAliCloudFlinkCapacityCoordinatorReconcile(d, meta, schema.TimeoutCreate)
+}
+
+func resourceAliCloudFlinkCapacityCoordinatorUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceAliCloudFlinkCapacityCoordinatorReconcile(d, meta, schema.TimeoutUpdate)
+}
+
+func resourceAliCloudFlinkCapacityCoordinatorReconcile(d *schema.ResourceData, meta interface{}, timeoutKey string) error {
+	client := meta.(*connectivity.AliyunClient)
+	service, err := NewFlinkCapacityService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+	desired, err := expandFlinkCoordinatorDesired(d.Get("workspace"))
+	if err != nil {
+		return WrapError(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), d.Timeout(timeoutKey))
+	defer cancel()
+	actual, reconcileErr := (flinkcapacity.Reconciler{API: service}).Reconcile(ctx, d.Id(), desired)
+	if len(actual.Namespaces) > 0 {
+		if merged, mergeErr := mergeFlinkCoordinatorObserved(d.Get("workspace"), actual); mergeErr == nil {
+			_ = d.Set("workspace", merged)
+		}
+	}
+	if resourceID, identityErr := service.WorkspaceResourceID(ctx, d.Id()); identityErr == nil {
+		_ = d.Set("workspace_resource_id", resourceID)
+	}
+	if reconcileErr != nil {
+		return WrapError(reconcileErr)
+	}
+	return resourceAliCloudFlinkCapacityCoordinatorRead(d, meta)
+}
+
+func resourceAliCloudFlinkCapacityCoordinatorRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*connectivity.AliyunClient)
+	service, err := NewFlinkCapacityService(client)
+	if err != nil {
+		return WrapError(err)
+	}
+	ctx := context.Background()
+	actual, err := service.ReadTree(ctx, d.Id())
+	if err != nil {
+		if NotFoundError(err) {
+			d.SetId("")
+			return nil
+		}
+		return WrapError(err)
+	}
+	resourceID, err := service.WorkspaceResourceID(ctx, d.Id())
+	if err != nil {
+		return WrapError(err)
+	}
+	_ = d.Set("workspace_instance_id", d.Id())
+	_ = d.Set("workspace_resource_id", resourceID)
+
+	if !flinkListBlockConfigured(d.Get("workspace")) {
+		if err := d.Set("workspace", flattenFlinkCoordinatorImport(actual)); err != nil {
+			return WrapError(err)
+		}
+		return nil
+	}
+	merged, err := mergeFlinkCoordinatorObserved(d.Get("workspace"), actual)
+	if err != nil {
+		return WrapError(err)
+	}
+	if err := d.Set("workspace", merged); err != nil {
+		return WrapError(err)
+	}
+	return nil
+}
+
+func resourceAliCloudFlinkCapacityCoordinatorDelete(d *schema.ResourceData, _ interface{}) error {
+	d.SetId("")
+	return nil
+}
+
+func expandFlinkCoordinatorDesired(value interface{}) (flinkcapacity.Tree, error) {
+	workspace, ok := flinkFirstBlock(value)
+	if !ok {
+		return flinkcapacity.Tree{}, fmt.Errorf("workspace block is required")
+	}
+	capacity, ok := flinkFirstBlock(workspace["capacity"])
+	if !ok {
+		return flinkcapacity.Tree{}, fmt.Errorf("workspace.capacity block is required")
+	}
+	workspaceCapacity, err := expandFlinkWorkspaceCapacity(capacity)
+	if err != nil {
+		return flinkcapacity.Tree{}, fmt.Errorf("workspace capacity: %w", err)
+	}
+	tree := flinkcapacity.Tree{Workspace: workspaceCapacity}
+
+	namespaceItems, _ := workspace["namespace"].([]interface{})
+	if len(namespaceItems) == 0 {
+		return flinkcapacity.Tree{}, fmt.Errorf("workspace must declare at least one namespace")
+	}
+	seenNamespaces := make(map[string]struct{}, len(namespaceItems))
+	namespaceRemainders := 0
+	for _, rawNamespace := range namespaceItems {
+		namespaceMap, ok := rawNamespace.(map[string]interface{})
+		if !ok || namespaceMap == nil {
+			return flinkcapacity.Tree{}, fmt.Errorf("namespace block must not be empty")
+		}
+		name, _ := namespaceMap["name"].(string)
+		if name == "" {
+			return flinkcapacity.Tree{}, fmt.Errorf("namespace name must not be empty")
+		}
+		if _, exists := seenNamespaces[name]; exists {
+			return flinkcapacity.Tree{}, fmt.Errorf("duplicate namespace %q", name)
+		}
+		seenNamespaces[name] = struct{}{}
+
+		namespaceCapacity, err := expandFlinkCapacity(namespaceMap["capacity"], true)
+		if err != nil {
+			return flinkcapacity.Tree{}, fmt.Errorf("namespace %q capacity: %w", name, err)
+		}
+		if namespaceCapacity == nil {
+			namespaceRemainders++
+		}
+		queueItems, _ := namespaceMap["queue"].([]interface{})
+		if len(queueItems) == 0 {
+			return flinkcapacity.Tree{}, fmt.Errorf("namespace %q must declare at least one queue", name)
+		}
+		domainNamespace := flinkcapacity.Namespace{Name: name, Capacity: namespaceCapacity}
+		seenQueues := make(map[string]struct{}, len(queueItems))
+		queueRemainders := 0
+		for _, rawQueue := range queueItems {
+			queueMap, ok := rawQueue.(map[string]interface{})
+			if !ok || queueMap == nil {
+				return flinkcapacity.Tree{}, fmt.Errorf("namespace %q queue block must not be empty", name)
+			}
+			queueName, _ := queueMap["name"].(string)
+			if queueName == "" {
+				return flinkcapacity.Tree{}, fmt.Errorf("namespace %q queue name must not be empty", name)
+			}
+			if _, exists := seenQueues[queueName]; exists {
+				return flinkcapacity.Tree{}, fmt.Errorf("duplicate queue %q/%q", name, queueName)
+			}
+			seenQueues[queueName] = struct{}{}
+			queueCapacity, err := expandFlinkCapacity(queueMap["capacity"], false)
+			if err != nil {
+				return flinkcapacity.Tree{}, fmt.Errorf("queue %q/%q capacity: %w", name, queueName, err)
+			}
+			if queueCapacity == nil {
+				queueRemainders++
+			}
+			domainNamespace.Queues = append(domainNamespace.Queues, flinkcapacity.Queue{Name: queueName, Capacity: queueCapacity})
+		}
+		if queueRemainders > 1 {
+			return flinkcapacity.Tree{}, fmt.Errorf("namespace %q may have at most one queue without an explicit capacity", name)
+		}
+		tree.Namespaces = append(tree.Namespaces, domainNamespace)
+	}
+	if namespaceRemainders > 1 {
+		return flinkcapacity.Tree{}, fmt.Errorf("workspace may have at most one namespace without an explicit capacity")
+	}
+	return tree, nil
+}
+
+func expandFlinkWorkspaceCapacity(block map[string]interface{}) (flinkcapacity.WorkspaceCapacity, error) {
+	fixedValue, _ := numberAsFloat(block["fixed_cu"])
+	fixed, err := parseFlinkCoordinatorCU(fixedValue, true)
+	if err != nil {
+		return flinkcapacity.WorkspaceCapacity{}, fmt.Errorf("fixed_cu: %w", err)
+	}
+	crossZone := flinkcapacity.CU(0)
+	if ha, ok := flinkFirstBlock(block["ha"]); ok {
+		value, _ := numberAsFloat(ha["cross_zone_fixed_cu"])
+		crossZone, err = parseFlinkCoordinatorCU(value, true)
+		if err != nil {
+			return flinkcapacity.WorkspaceCapacity{}, fmt.Errorf("ha.cross_zone_fixed_cu: %w", err)
+		}
+	}
+	totalFixed := fixed + crossZone
+	capacity, err := newFlinkCoordinatorCapacity(totalFixed, block, true)
+	if err != nil {
+		return flinkcapacity.WorkspaceCapacity{}, err
+	}
+	return flinkcapacity.WorkspaceCapacity{FixedCU: fixed, CrossZoneFixedCU: crossZone, Limit: capacity.Limit}, nil
+}
+
+func expandFlinkCapacity(value interface{}, integerOnly bool) (*flinkcapacity.Capacity, error) {
+	block, ok := flinkFirstBlock(value)
+	if !ok {
+		return nil, nil
+	}
+	capacity, err := expandFlinkCapacityMap(block, integerOnly)
+	if err != nil {
+		return nil, err
+	}
+	return &capacity, nil
+}
+
+func expandFlinkCapacityMap(block map[string]interface{}, integerOnly bool) (flinkcapacity.Capacity, error) {
+	fixedValue, _ := numberAsFloat(block["fixed_cu"])
+	fixed, err := parseFlinkCoordinatorCU(fixedValue, integerOnly)
+	if err != nil {
+		return flinkcapacity.Capacity{}, fmt.Errorf("fixed_cu: %w", err)
+	}
+
+	return newFlinkCoordinatorCapacity(fixed, block, integerOnly)
+}
+
+func newFlinkCoordinatorCapacity(fixed flinkcapacity.CU, block map[string]interface{}, integerOnly bool) (flinkcapacity.Capacity, error) {
+	elasticValue, hasElastic := optionalNumber(block, "elastic_cu_limit")
+	maxValue, hasMax := optionalNumber(block, "max_cu_limit")
+	if hasElastic && hasMax {
+		return flinkcapacity.Capacity{}, fmt.Errorf("elastic_cu_limit and max_cu_limit are mutually exclusive")
+	}
+	var elastic, max *flinkcapacity.CU
+	if hasElastic {
+		parsed, parseErr := parseFlinkCoordinatorCU(elasticValue, integerOnly)
+		if parseErr != nil {
+			return flinkcapacity.Capacity{}, fmt.Errorf("elastic_cu_limit: %w", parseErr)
+		}
+		elastic = &parsed
+	}
+	if hasMax {
+		parsed, parseErr := parseFlinkCoordinatorCU(maxValue, integerOnly)
+		if parseErr != nil {
+			return flinkcapacity.Capacity{}, fmt.Errorf("max_cu_limit: %w", parseErr)
+		}
+		max = &parsed
+	}
+	return flinkcapacity.NewCapacity(fixed, elastic, max)
+}
+
+func parseFlinkCoordinatorCU(value float64, integerOnly bool) (flinkcapacity.CU, error) {
+	parsed, err := flinkcapacity.ParseCU(value)
+	if err != nil {
+		return 0, err
+	}
+	if integerOnly && parsed%2 != 0 {
+		return 0, fmt.Errorf("must use integer CU, got %v", value)
+	}
+	return parsed, nil
+}
+
+func optionalNumber(block map[string]interface{}, key string) (float64, bool) {
+	value, exists := block[key]
+	if !exists || value == nil {
+		return 0, false
+	}
+	number, ok := numberAsFloat(value)
+	// Plugin SDK v1 materializes omitted nested optional numbers as zero.
+	// Zero has exactly the same effective capacity semantics as omitting either
+	// alias, so treat it as absent to retain the configured non-zero alias.
+	return number, ok && number != 0
+}
+
+func numberAsFloat(value interface{}) (float64, bool) {
+	switch typed := value.(type) {
+	case float64:
+		return typed, true
+	case float32:
+		return float64(typed), true
+	case int:
+		return float64(typed), true
+	case int32:
+		return float64(typed), true
+	case int64:
+		return float64(typed), true
+	default:
+		return 0, false
+	}
+}
+
+func flattenFlinkCoordinatorImport(actual flinkcapacity.Tree) []interface{} {
+	namespaces := append([]flinkcapacity.Namespace(nil), actual.Namespaces...)
+	sort.Slice(namespaces, func(i, j int) bool { return namespaces[i].Name < namespaces[j].Name })
+	workspace := map[string]interface{}{
+		"capacity":          flattenFlinkCoordinatorWorkspaceCapacity(actual.Workspace),
+		"observed_capacity": flattenFlinkCoordinatorWorkspaceObserved(actual.Workspace),
+	}
+	for _, namespace := range namespaces {
+		queues := append([]flinkcapacity.Queue(nil), namespace.Queues...)
+		sort.Slice(queues, func(i, j int) bool { return queues[i].Name < queues[j].Name })
+		namespaceMap := map[string]interface{}{
+			"name":              namespace.Name,
+			"capacity":          flattenFlinkCoordinatorCapacity(*namespace.Capacity),
+			"observed_capacity": flattenFlinkCoordinatorObserved(*namespace.Capacity, namespace.Used),
+		}
+		for _, queue := range queues {
+			namespaceMap["queue"] = appendInterface(namespaceMap["queue"], map[string]interface{}{
+				"name":              queue.Name,
+				"capacity":          flattenFlinkCoordinatorCapacity(*queue.Capacity),
+				"observed_capacity": flattenFlinkCoordinatorObserved(*queue.Capacity, queue.Used),
+			})
+		}
+		workspace["namespace"] = appendInterface(workspace["namespace"], namespaceMap)
+	}
+	return []interface{}{workspace}
+}
+
+func mergeFlinkCoordinatorObserved(configured interface{}, actual flinkcapacity.Tree) ([]interface{}, error) {
+	workspace, ok := flinkFirstBlock(configured)
+	if !ok {
+		return nil, fmt.Errorf("workspace block is required")
+	}
+	merged := cloneFlinkValue(workspace).(map[string]interface{})
+	merged["observed_capacity"] = flattenFlinkCoordinatorWorkspaceObserved(actual.Workspace)
+
+	actualNamespaces := make(map[string]flinkcapacity.Namespace, len(actual.Namespaces))
+	for _, namespace := range actual.Namespaces {
+		actualNamespaces[namespace.Name] = namespace
+	}
+	namespaceItems, _ := merged["namespace"].([]interface{})
+	seenNamespaces := make(map[string]struct{}, len(namespaceItems))
+	for _, rawNamespace := range namespaceItems {
+		namespaceMap := rawNamespace.(map[string]interface{})
+		name, _ := namespaceMap["name"].(string)
+		actualNamespace, exists := actualNamespaces[name]
+		if !exists {
+			return nil, fmt.Errorf("declared namespace %q does not exist in the workspace", name)
+		}
+		seenNamespaces[name] = struct{}{}
+		namespaceMap["observed_capacity"] = flattenFlinkCoordinatorObserved(*actualNamespace.Capacity, actualNamespace.Used)
+
+		actualQueues := make(map[string]flinkcapacity.Queue, len(actualNamespace.Queues))
+		for _, queue := range actualNamespace.Queues {
+			actualQueues[queue.Name] = queue
+		}
+		queueItems, _ := namespaceMap["queue"].([]interface{})
+		seenQueues := make(map[string]struct{}, len(queueItems))
+		for _, rawQueue := range queueItems {
+			queueMap := rawQueue.(map[string]interface{})
+			queueName, _ := queueMap["name"].(string)
+			actualQueue, exists := actualQueues[queueName]
+			if !exists {
+				return nil, fmt.Errorf("declared queue %q/%q does not exist in the workspace", name, queueName)
+			}
+			seenQueues[queueName] = struct{}{}
+			queueMap["observed_capacity"] = flattenFlinkCoordinatorObserved(*actualQueue.Capacity, actualQueue.Used)
+		}
+		for queueName := range actualQueues {
+			if _, exists := seenQueues[queueName]; !exists {
+				return nil, fmt.Errorf("cloud queue %q/%q is undeclared", name, queueName)
+			}
+		}
+	}
+	for name := range actualNamespaces {
+		if _, exists := seenNamespaces[name]; !exists {
+			return nil, fmt.Errorf("cloud namespace %q is undeclared", name)
+		}
+	}
+	return []interface{}{merged}, nil
+}
+
+func flattenFlinkCoordinatorWorkspaceCapacity(capacity flinkcapacity.WorkspaceCapacity) []interface{} {
+	result := firstMap(flattenFlinkCoordinatorCapacity(capacity.AsCapacity()))
+	result["fixed_cu"] = capacity.FixedCU.Float64()
+	if capacity.CrossZoneFixedCU > 0 {
+		result["ha"] = []interface{}{map[string]interface{}{"cross_zone_fixed_cu": capacity.CrossZoneFixedCU.Float64()}}
+	}
+	return []interface{}{result}
+}
+
+func flattenFlinkCoordinatorCapacity(capacity flinkcapacity.Capacity) []interface{} {
+	return []interface{}{map[string]interface{}{
+		"fixed_cu":         capacity.Fixed.Float64(),
+		"elastic_cu_limit": capacity.Elastic().Float64(),
+	}}
+}
+
+func flattenFlinkCoordinatorWorkspaceObserved(capacity flinkcapacity.WorkspaceCapacity) []interface{} {
+	value := firstMap(flattenFlinkCoordinatorObserved(capacity.AsCapacity(), capacity.Used))
+	value["fixed_cu"] = capacity.FixedCU.Float64()
+	value["ha"] = []interface{}{map[string]interface{}{"cross_zone_fixed_cu": capacity.CrossZoneFixedCU.Float64()}}
+	return []interface{}{value}
+}
+
+func flattenFlinkCoordinatorObserved(capacity flinkcapacity.Capacity, used flinkcapacity.CU) []interface{} {
+	return []interface{}{map[string]interface{}{
+		"fixed_cu":         capacity.Fixed.Float64(),
+		"elastic_cu_limit": capacity.Elastic().Float64(),
+		"max_cu_limit":     capacity.Limit.Float64(),
+		"used_cu":          used.Float64(),
+	}}
+}
+
+func firstMap(value []interface{}) map[string]interface{} {
+	return value[0].(map[string]interface{})
+}
+
+func appendInterface(value interface{}, item interface{}) []interface{} {
+	items, _ := value.([]interface{})
+	return append(items, item)
+}
+
+func cloneFlinkValue(value interface{}) interface{} {
+	switch typed := value.(type) {
+	case map[string]interface{}:
+		result := make(map[string]interface{}, len(typed))
+		for key, item := range typed {
+			result[key] = cloneFlinkValue(item)
+		}
+		return result
+	case []interface{}:
+		result := make([]interface{}, len(typed))
+		for i, item := range typed {
+			result[i] = cloneFlinkValue(item)
+		}
+		return result
+	default:
+		return typed
+	}
+}

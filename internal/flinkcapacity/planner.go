@@ -2,6 +2,14 @@ package flinkcapacity
 
 import "fmt"
 
+type TopologyError struct {
+	message   string
+	retryable bool
+}
+
+func (e *TopologyError) Error() string   { return e.message }
+func (e *TopologyError) Retryable() bool { return e.retryable }
+
 type Action string
 
 const (
@@ -110,7 +118,7 @@ func validateSameTopology(actual, desired Tree) error {
 		actualNamespaces[namespace.Name] = namespace
 		desiredNamespace, ok := desiredNamespaces[namespace.Name]
 		if !ok {
-			return fmt.Errorf("cloud namespace %q is undeclared", namespace.Name)
+			return &TopologyError{message: fmt.Sprintf("cloud namespace %q is undeclared", namespace.Name)}
 		}
 		desiredQueues := make(map[string]struct{}, len(desiredNamespace.Queues))
 		for _, queue := range desiredNamespace.Queues {
@@ -118,14 +126,14 @@ func validateSameTopology(actual, desired Tree) error {
 		}
 		for _, queue := range namespace.Queues {
 			if _, ok := desiredQueues[queue.Name]; !ok {
-				return fmt.Errorf("cloud queue %q/%q is undeclared", namespace.Name, queue.Name)
+				return &TopologyError{message: fmt.Sprintf("cloud queue %q/%q is undeclared", namespace.Name, queue.Name)}
 			}
 		}
 	}
 	for _, namespace := range desired.Namespaces {
 		actualNamespace, ok := actualNamespaces[namespace.Name]
 		if !ok {
-			return fmt.Errorf("declared namespace %q does not exist in the workspace", namespace.Name)
+			return &TopologyError{message: fmt.Sprintf("declared namespace %q does not exist in the workspace", namespace.Name), retryable: true}
 		}
 		actualQueues := make(map[string]struct{}, len(actualNamespace.Queues))
 		for _, queue := range actualNamespace.Queues {
@@ -133,7 +141,7 @@ func validateSameTopology(actual, desired Tree) error {
 		}
 		for _, queue := range namespace.Queues {
 			if _, ok := actualQueues[queue.Name]; !ok {
-				return fmt.Errorf("declared queue %q/%q does not exist in the workspace", namespace.Name, queue.Name)
+				return &TopologyError{message: fmt.Sprintf("declared queue %q/%q does not exist in the workspace", namespace.Name, queue.Name), retryable: true}
 			}
 		}
 	}
@@ -141,6 +149,9 @@ func validateSameTopology(actual, desired Tree) error {
 }
 
 func validateUsedCapacity(actual, desired Tree) error {
+	if actual.Workspace.Used > desired.Workspace.Limit {
+		return fmt.Errorf("workspace desired limit %v is below used CU %v", desired.Workspace.Limit.Float64(), actual.Workspace.Used.Float64())
+	}
 	for _, desiredNamespace := range desired.Namespaces {
 		actualNamespace := namespaceByName(actual, desiredNamespace.Name)
 		if actualNamespace.Used > desiredNamespace.Capacity.Limit {
@@ -265,7 +276,7 @@ func applyCandidate(state *Tree, candidate candidate) {
 }
 
 func sameCapacityTree(actual, desired Tree) bool {
-	if actual.Workspace != desired.Workspace {
+	if workspaceAllocation(actual.Workspace) != workspaceAllocation(desired.Workspace) {
 		return false
 	}
 	for _, desiredNamespace := range desired.Namespaces {

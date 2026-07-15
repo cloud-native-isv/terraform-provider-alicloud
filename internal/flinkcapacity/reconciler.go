@@ -60,19 +60,33 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 	if r.API == nil {
 		return Tree{}, fmt.Errorf("capacity API must not be nil")
 	}
-	current, err := r.API.ReadTree(ctx, instanceID)
-	if err != nil {
-		return Tree{}, fmt.Errorf("read capacity tree before reconciliation: %w", err)
-	}
-	steps, err := Plan(current, desired)
-	if err != nil {
-		return current, err
+	var current Tree
+	var steps []Step
+	var err error
+	for {
+		current, err = r.readTree(ctx, instanceID)
+		if err != nil {
+			return r.fail(instanceID, current, 0, nil, Operation{}, fmt.Errorf("read capacity tree before reconciliation: %w", err))
+		}
+		if desired.ChargeType == "" {
+			desired.ChargeType = current.ChargeType
+		}
+		steps, err = Plan(current, desired)
+		if err == nil {
+			break
+		}
+		if !errorIsRetryable(err) {
+			return current, err
+		}
+		if err := r.sleep(ctx); err != nil {
+			return r.fail(instanceID, current, 0, nil, Operation{}, err)
+		}
 	}
 
 	completed := 0
 	for i := range steps {
 		step := steps[i]
-		current, err = r.API.ReadTree(ctx, instanceID)
+		current, err = r.readTree(ctx, instanceID)
 		if err != nil {
 			return r.fail(instanceID, current, completed, &step, Operation{}, fmt.Errorf("read before step: %w", err))
 		}
@@ -84,7 +98,7 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 		operation, applyErr := r.API.ApplyStep(ctx, instanceID, step)
 		if applyErr != nil {
 			if errorIsAmbiguous(applyErr) {
-				verified, readErr := r.API.ReadTree(ctx, instanceID)
+				verified, readErr := r.readTree(ctx, instanceID)
 				if readErr == nil {
 					current = verified
 					if stepConverged(current, step) {
@@ -97,7 +111,7 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 		}
 
 		for {
-			current, err = r.API.ReadTree(ctx, instanceID)
+			current, err = r.readTree(ctx, instanceID)
 			if err != nil {
 				return r.fail(instanceID, current, completed, &step, operation, fmt.Errorf("read after step: %w", err))
 			}
@@ -111,6 +125,18 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 		}
 	}
 	return current, nil
+}
+
+func (r Reconciler) readTree(ctx context.Context, instanceID string) (Tree, error) {
+	for {
+		tree, err := r.API.ReadTree(ctx, instanceID)
+		if err == nil || !errorIsRetryable(err) {
+			return tree, err
+		}
+		if err := r.sleep(ctx); err != nil {
+			return tree, err
+		}
+	}
 }
 
 func (r Reconciler) sleep(ctx context.Context) error {
@@ -181,6 +207,11 @@ func stepConverged(tree Tree, step Step) bool {
 func errorIsAmbiguous(err error) bool {
 	var ambiguous interface{ Ambiguous() bool }
 	return errors.As(err, &ambiguous) && ambiguous.Ambiguous()
+}
+
+func errorIsRetryable(err error) bool {
+	var retryable interface{ Retryable() bool }
+	return errors.As(err, &retryable) && retryable.Retryable()
 }
 
 func describeStep(step Step) string {

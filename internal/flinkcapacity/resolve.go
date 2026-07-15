@@ -8,6 +8,12 @@ func Resolve(input Tree) (Tree, error) {
 	if err := workspaceCapacity.Validate(); err != nil {
 		return Tree{}, fmt.Errorf("workspace capacity: %w", err)
 	}
+	if tree.Workspace.Used < 0 {
+		return Tree{}, fmt.Errorf("workspace used CU must be non-negative")
+	}
+	if tree.Workspace.Used > workspaceCapacity.Limit {
+		return Tree{}, fmt.Errorf("workspace used CU exceeds its limit")
+	}
 
 	switch tree.ChargeType {
 	case "PRE":

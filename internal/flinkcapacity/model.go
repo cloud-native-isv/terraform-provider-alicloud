@@ -74,7 +74,15 @@ type WorkspaceCapacity struct {
 	FixedCU          CU
 	CrossZoneFixedCU CU
 	Limit            CU
+	Used             CU
 }
+
+type NotReadyError struct {
+	Reason string
+}
+
+func (e *NotReadyError) Error() string   { return e.Reason }
+func (e *NotReadyError) Retryable() bool { return true }
 
 func (c WorkspaceCapacity) TotalFixed() CU {
 	return c.FixedCU + c.CrossZoneFixedCU

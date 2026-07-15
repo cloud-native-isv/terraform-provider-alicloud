@@ -3,6 +3,7 @@ package alicloud
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/aliyun/terraform-provider-alicloud/internal/flinkcapacity"
@@ -11,6 +12,20 @@ import (
 
 type FlinkCapacityService struct {
 	flinkService *FlinkService
+}
+
+func (s *FlinkCapacityService) WorkspaceResourceID(ctx context.Context, instanceID string) (string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+	workspace, err := s.flinkService.GetAPI().GetWorkspace(instanceID)
+	if err != nil {
+		return "", err
+	}
+	if workspace.ResourceId == "" {
+		return "", fmt.Errorf("workspace %q does not expose a ResourceId", instanceID)
+	}
+	return workspace.ResourceId, nil
 }
 
 func NewFlinkCapacityService(client *connectivity.AliyunClient) (*FlinkCapacityService, error) {
@@ -29,12 +44,15 @@ func (s *FlinkCapacityService) ReadTree(ctx context.Context, instanceID string) 
 	if err != nil {
 		return flinkcapacity.Tree{}, err
 	}
+	if err := validateFlinkCapacityWorkspaceReady(workspace); err != nil {
+		return flinkcapacity.Tree{}, err
+	}
 	namespaces, err := s.flinkService.GetAPI().ListNamespaces(instanceID)
 	if err != nil {
 		return flinkcapacity.Tree{}, err
 	}
-	if workspace.ResourceId == "" {
-		return flinkcapacity.Tree{}, fmt.Errorf("workspace %q does not expose a ResourceId", instanceID)
+	if len(namespaces) == 0 {
+		return flinkcapacity.Tree{}, &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("workspace %q namespaces are not visible yet", instanceID)}
 	}
 
 	targets := make(map[string][]flink.DeploymentTarget, len(namespaces))
@@ -42,13 +60,73 @@ func (s *FlinkCapacityService) ReadTree(ctx context.Context, instanceID string) 
 		if err := ctx.Err(); err != nil {
 			return flinkcapacity.Tree{}, err
 		}
+		if err := validateFlinkCapacityNamespaceReady(namespace); err != nil {
+			return flinkcapacity.Tree{}, err
+		}
 		queues, err := s.flinkService.GetAPI().ListDeploymentTargets(workspace.ResourceId, namespace.Name)
 		if err != nil {
 			return flinkcapacity.Tree{}, err
 		}
+		if len(queues) == 0 {
+			return flinkcapacity.Tree{}, &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("namespace %q queues are not visible yet", namespace.Name)}
+		}
+		for _, queue := range queues {
+			if queue.Quota == nil || queue.Quota.Request == nil || queue.Quota.Limit == nil {
+				return flinkcapacity.Tree{}, &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("queue %q/%q capacity quotas are not visible yet", namespace.Name, queue.Name)}
+			}
+		}
 		targets[namespace.Name] = queues
 	}
 	return buildFlinkCapacityTree(workspace, namespaces, targets)
+}
+
+func validateFlinkCapacityWorkspaceReady(workspace *flink.Workspace) error {
+	if workspace == nil {
+		return fmt.Errorf("workspace response is nil")
+	}
+	if workspace.Status != "RUNNING" {
+		if flinkTerminalState(workspace.Status) {
+			return fmt.Errorf("workspace %q is in terminal state %q", workspace.Id, workspace.Status)
+		}
+		return &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("workspace %q status is %q, waiting for RUNNING", workspace.Id, workspace.Status)}
+	}
+	if workspace.OrderState != "NORMAL" {
+		if flinkTerminalState(workspace.OrderState) {
+			return fmt.Errorf("workspace %q order is in terminal state %q", workspace.Id, workspace.OrderState)
+		}
+		return &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("workspace %q order state is %q, waiting for NORMAL", workspace.Id, workspace.OrderState)}
+	}
+	if workspace.ResourceId == "" {
+		return &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("workspace %q does not expose a ResourceId yet", workspace.Id)}
+	}
+	elasticCPU := flinkSpecCPU(workspace.ElasticResourceSpec)
+	if !workspace.Elastic && elasticCPU > 0 {
+		return fmt.Errorf("workspace %q returned Elastic=false with positive elastic capacity %v CU", workspace.Id, elasticCPU)
+	}
+	if workspace.Elastic {
+		if workspace.ElasticInstanceId == "" {
+			return &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("workspace %q elastic instance ID is not visible yet", workspace.Id)}
+		}
+		if elasticCPU <= 0 {
+			return &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("workspace %q elastic capacity is not visible yet", workspace.Id)}
+		}
+	}
+	return nil
+}
+
+func validateFlinkCapacityNamespaceReady(namespace flink.Namespace) error {
+	if namespace.Status == "SUCCESS" || namespace.Status == "Available" {
+		return nil
+	}
+	if flinkTerminalState(namespace.Status) {
+		return fmt.Errorf("namespace %q is in terminal state %q", namespace.Name, namespace.Status)
+	}
+	return &flinkcapacity.NotReadyError{Reason: fmt.Sprintf("namespace %q status is %q, waiting for SUCCESS or Available", namespace.Name, namespace.Status)}
+}
+
+func flinkTerminalState(state string) bool {
+	upper := strings.ToUpper(state)
+	return strings.Contains(upper, "FAIL") || upper == "DISABLE" || upper == "DELETED"
 }
 
 func (s *FlinkCapacityService) ApplyStep(ctx context.Context, instanceID string, step flinkcapacity.Step) (flinkcapacity.Operation, error) {
@@ -139,6 +217,13 @@ func buildFlinkCapacityTree(workspace *flink.Workspace, namespaces []flink.Names
 			CrossZoneFixedCU: crossZone,
 			Limit:            fixed + crossZone + elastic,
 		}
+	}
+	if workspace.ClusterUsedResources != nil {
+		used, err := flinkcapacity.ParseCU(workspace.ClusterUsedResources.UsedResource)
+		if err != nil {
+			return flinkcapacity.Tree{}, fmt.Errorf("workspace used capacity: %w", err)
+		}
+		tree.Workspace.Used = used
 	}
 
 	tree.Namespaces = make([]flinkcapacity.Namespace, 0, len(namespaces))
