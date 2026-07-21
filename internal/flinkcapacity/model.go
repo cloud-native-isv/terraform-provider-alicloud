@@ -102,10 +102,11 @@ type Queue struct {
 }
 
 type Namespace struct {
-	Name     string
-	Capacity *Capacity
-	Used     float64
-	Queues   []Queue
+	Name      string
+	CrossZone bool
+	Capacity  *Capacity
+	Used      float64
+	Queues    []Queue
 }
 
 type Tree struct {

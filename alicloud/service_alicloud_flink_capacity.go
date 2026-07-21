@@ -13,7 +13,24 @@ import (
 )
 
 type FlinkCapacityService struct {
-	flinkService *FlinkService
+	api flinkCapacityAPI
+}
+
+const flinkNamespaceInitialCU flinkcapacity.CU = 2 // One API CU in half-CU domain units.
+
+type flinkCapacityAPI interface {
+	GetWorkspace(string) (*flink.Workspace, error)
+	ListNamespaces(string) ([]flink.Namespace, error)
+	ListDeploymentTargets(string, string) ([]flink.DeploymentTarget, error)
+	CreateNamespace(string, *flink.Namespace) (*flink.Namespace, error)
+	DeleteNamespace(string, string) error
+	GetNamespace(string, string) (*flink.Namespace, error)
+	UpdateNamespaceCapacity(string, string, bool, *flink.ResourceSpec, *flink.ResourceSpec) (flink.CapacityOperation, error)
+	UpdateDeploymentTargetV2(string, string, *flink.DeploymentTarget) (*flink.DeploymentTarget, error)
+	ModifyPrepayWorkspaceCapacity(string, *flink.ResourceSpec, *flink.ResourceSpec) (flink.CapacityOperation, error)
+	ModifyPostpayWorkspaceCapacity(string, *flink.ResourceSpec, *flink.ResourceSpec) (flink.CapacityOperation, error)
+	EnableWorkspaceElastic(string, *flink.ResourceSpec) (flink.CapacityOperation, error)
+	ModifyWorkspaceElastic(string, *flink.ResourceSpec) (flink.CapacityOperation, error)
 }
 
 func NewFlinkCapacityService(client *connectivity.AliyunClient) (*FlinkCapacityService, error) {
@@ -21,21 +38,21 @@ func NewFlinkCapacityService(client *connectivity.AliyunClient) (*FlinkCapacityS
 	if err != nil {
 		return nil, err
 	}
-	return &FlinkCapacityService{flinkService: service}, nil
+	return &FlinkCapacityService{api: service.GetAPI()}, nil
 }
 
 func (s *FlinkCapacityService) ReadTree(ctx context.Context, instanceID string) (flinkcapacity.Tree, error) {
 	if err := ctx.Err(); err != nil {
 		return flinkcapacity.Tree{}, err
 	}
-	workspace, err := s.flinkService.GetAPI().GetWorkspace(instanceID)
+	workspace, err := s.api.GetWorkspace(instanceID)
 	if err != nil {
 		return flinkcapacity.Tree{}, err
 	}
 	if err := validateFlinkCapacityWorkspaceReady(workspace); err != nil {
 		return flinkcapacity.Tree{}, err
 	}
-	namespaces, err := s.flinkService.GetAPI().ListNamespaces(instanceID)
+	namespaces, err := s.api.ListNamespaces(instanceID)
 	if err != nil {
 		return flinkcapacity.Tree{}, err
 	}
@@ -51,7 +68,7 @@ func (s *FlinkCapacityService) ReadTree(ctx context.Context, instanceID string) 
 		if err := validateFlinkCapacityNamespaceReady(namespace); err != nil {
 			return flinkcapacity.Tree{}, err
 		}
-		queues, err := s.flinkService.GetAPI().ListDeploymentTargets(workspace.ResourceId, namespace.Name)
+		queues, err := s.api.ListDeploymentTargets(workspace.ResourceId, namespace.Name)
 		if err != nil {
 			return flinkcapacity.Tree{}, err
 		}
@@ -134,28 +151,43 @@ func (s *FlinkCapacityService) ApplyStep(ctx context.Context, instanceID string,
 	var err error
 	switch step.Action {
 	case flinkcapacity.ModifyWorkspaceFixed:
-		operation, err = s.flinkService.GetAPI().ModifyPrepayWorkspaceCapacity(
+		operation, err = s.api.ModifyPrepayWorkspaceCapacity(
 			instanceID,
 			flinkResourceSpecForCU(step.To.FixedCU),
 			flinkResourceSpecForOptionalCU(step.To.CrossZoneFixedCU),
 		)
 	case flinkcapacity.ModifyWorkspacePostpaid:
-		operation, err = s.flinkService.GetAPI().ModifyPostpayWorkspaceCapacity(
+		operation, err = s.api.ModifyPostpayWorkspaceCapacity(
 			instanceID,
 			flinkResourceSpecForCU(step.To.Limit),
 			nil,
 		)
 	case flinkcapacity.EnableWorkspaceElastic:
-		operation, err = s.flinkService.GetAPI().EnableWorkspaceElastic(instanceID, flinkResourceSpecForCU(step.To.AsCapacity().Elastic()))
+		operation, err = s.api.EnableWorkspaceElastic(instanceID, flinkResourceSpecForCU(step.To.AsCapacity().Elastic()))
 	case flinkcapacity.ModifyWorkspaceElastic:
-		operation, err = s.flinkService.GetAPI().ModifyWorkspaceElastic(instanceID, flinkResourceSpecForCU(step.To.AsCapacity().Elastic()))
+		operation, err = s.api.ModifyWorkspaceElastic(instanceID, flinkResourceSpecForCU(step.To.AsCapacity().Elastic()))
+	case flinkcapacity.CreateNamespace:
+		namespace := flink.Namespace{Name: step.Ref.Namespace, Ha: step.NamespaceCrossZone}
+		request := namespace
+		request.Id = instanceID
+		request.ResourceSpec = flinkResourceSpecForCU(flinkNamespaceInitialCU)
+		_, err = s.api.CreateNamespace(instanceID, &request)
+		var postCreateReadErr *flink.FlinkPostCreateReadError
+		if errors.As(err, &postCreateReadErr) {
+			err = &ambiguousFlinkCapacityWriteError{cause: err}
+		}
+	case flinkcapacity.DeleteNamespace:
+		err = s.api.DeleteNamespace(instanceID, step.Ref.Namespace)
+		if err != nil && flinkCapacityNotFoundError(err) {
+			err = &ambiguousFlinkCapacityWriteError{cause: err}
+		}
 	case flinkcapacity.ModifyNamespace:
-		namespace, getErr := s.flinkService.GetAPI().GetNamespace(instanceID, step.Ref.Namespace)
+		namespace, getErr := s.api.GetNamespace(instanceID, step.Ref.Namespace)
 		if getErr != nil {
 			err = getErr
 			break
 		}
-		operation, err = s.flinkService.GetAPI().UpdateNamespaceCapacity(
+		operation, err = s.api.UpdateNamespaceCapacity(
 			instanceID,
 			step.Ref.Namespace,
 			namespace.Ha,
@@ -163,7 +195,7 @@ func (s *FlinkCapacityService) ApplyStep(ctx context.Context, instanceID string,
 			flinkResourceSpecForCU(step.To.Limit-step.To.FixedCU),
 		)
 	case flinkcapacity.ModifyQueue:
-		workspace, getErr := s.flinkService.GetAPI().GetWorkspace(instanceID)
+		workspace, getErr := s.api.GetWorkspace(instanceID)
 		if getErr != nil {
 			err = getErr
 			break
@@ -172,7 +204,7 @@ func (s *FlinkCapacityService) ApplyStep(ctx context.Context, instanceID string,
 			err = fmt.Errorf("workspace %q does not expose a ResourceId", instanceID)
 			break
 		}
-		_, err = s.flinkService.GetAPI().UpdateDeploymentTargetV2(workspace.ResourceId, step.Ref.Namespace, &flink.DeploymentTarget{
+		_, err = s.api.UpdateDeploymentTargetV2(workspace.ResourceId, step.Ref.Namespace, &flink.DeploymentTarget{
 			Name:      step.Ref.Queue,
 			Namespace: step.Ref.Namespace,
 			Quota: &flink.ResourceQuota{
@@ -203,6 +235,14 @@ func classifyFlinkCapacityWriteError(err error) error {
 		return &ambiguousFlinkCapacityWriteError{cause: err}
 	}
 	return err
+}
+
+func flinkCapacityNotFoundError(err error) bool {
+	if NotFoundError(err) {
+		return true
+	}
+	var serviceErr *flink.FlinkServiceError
+	return errors.As(err, &serviceErr) && serviceErr.GetErrorCode() == "404"
 }
 
 func buildFlinkCapacityTree(workspace *flink.Workspace, namespaces []flink.Namespace, targets map[string][]flink.DeploymentTarget) (flinkcapacity.Tree, error) {
@@ -270,7 +310,7 @@ func buildFlinkCapacityTree(workspace *flink.Workspace, namespaces []flink.Names
 		if err != nil {
 			return flinkcapacity.Tree{}, fmt.Errorf("namespace %q used capacity: %w", namespace.Name, err)
 		}
-		domainNamespace := flinkcapacity.Namespace{Name: namespace.Name, Capacity: &capacity, Used: used}
+		domainNamespace := flinkcapacity.Namespace{Name: namespace.Name, CrossZone: namespace.Ha, Capacity: &capacity, Used: used}
 
 		for _, target := range targets[namespace.Name] {
 			if target.Quota == nil || target.Quota.Request == nil || target.Quota.Limit == nil {

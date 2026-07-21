@@ -114,11 +114,10 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"resource": {
-							Type:             schema.TypeList,
-							Optional:         true,
-							ForceNew:         true,
-							MaxItems:         1,
-							DiffSuppressFunc: suppressFlinkLegacyCapacityDiff,
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"cpu": {
@@ -136,7 +135,7 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 								},
 							},
 							Description: "HA resource specifications.",
-							Deprecated:  "Use alicloud_flink_capacity_coordinator for new capacity configurations.",
+							Deprecated:  "Use initial_capacity for new workspace capacity configurations.",
 						},
 						"vswitch_ids": {
 							Type:        schema.TypeList,
@@ -195,11 +194,10 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 				Description: "Storage configuration of oss bucket for the Flink instance.",
 			},
 			"resource": {
-				Type:             schema.TypeList,
-				Optional:         true,
-				ForceNew:         true,
-				MaxItems:         1,
-				DiffSuppressFunc: suppressFlinkLegacyCapacityDiff,
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cpu": {
@@ -217,11 +215,10 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 					},
 				},
 				Description: "Resource specifications for the Flink instance.",
-				Deprecated:  "Use bootstrap_capacity plus alicloud_flink_capacity_coordinator for new configurations.",
+				Deprecated:  "Use initial_capacity for new workspace capacity configurations.",
 			},
-			"capacity_management": flinkCapacityManagementSchema(),
-			"bootstrap_capacity":  flinkBootstrapCapacitySchema(),
-			"observed_capacity":   flinkObservedCapacitySchema(true),
+			"initial_capacity":  flinkInitialCapacitySchema(),
+			"observed_capacity": flinkObservedCapacitySchema(true),
 			"resource_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -259,6 +256,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		}
 	}
 	haMap, hasHA := flinkFirstBlock(d.Get("ha"))
+	usesInitialCapacity := flinkListBlockConfigured(d.Get("initial_capacity"))
 	var haVSwitchIDs []string
 	if hasHA {
 		haVSwitchIDs = flinkStringList(haMap["vswitch_ids"])
@@ -292,9 +290,9 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		workspaceRequest.ChargeType = chargeType.(string)
 	}
 
-	// Handle the create-only capacity source selected by capacity_management.
-	if flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByCoordinator {
-		fixedCU, crossZoneFixedCU := expandFlinkBootstrapCapacity(d.Get("bootstrap_capacity"))
+	// initial_capacity is serialized only for the initial PRE purchase.
+	if usesInitialCapacity {
+		fixedCU, crossZoneFixedCU := expandFlinkInitialCapacity(d.Get("initial_capacity"))
 		workspaceRequest.ResourceSpec = &aliyunFlinkAPI.ResourceSpec{Cpu: float64(fixedCU), MemoryGB: float64(fixedCU * 4)}
 		if hasHA {
 			workspaceRequest.HighAvailability = &aliyunFlinkAPI.HighAvailability{
@@ -320,7 +318,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	}
 
 	// Handle HA configuration
-	if hasHA && flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByResource {
+	if hasHA && !usesInitialCapacity {
 		// Set high availability flag
 		workspaceRequest.HighAvailability = &aliyunFlinkAPI.HighAvailability{
 			Enabled: true,
@@ -370,15 +368,40 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		return WrapError(Error("Failed to get instance ID from workspace"))
 	}
 
-	d.SetId(workspace.Id)
+	return completeFlinkWorkspaceCreate(
+		d,
+		meta,
+		flinkService,
+		workspace.Id,
+		usesInitialCapacity,
+		d.Timeout(schema.TimeoutCreate),
+		resourceAliCloudFlinkWorkspaceRead,
+	)
+}
 
-	// Wait for the instance to be in running state using service layer function
-	if err := flinkService.WaitForWorkspaceStarting(d.Id(), d.Timeout(schema.TimeoutCreate)); err != nil {
+type flinkWorkspacePostCreateService interface {
+	WaitForWorkspaceStarting(string, time.Duration) error
+}
+
+type flinkWorkspaceReadFunc func(*schema.ResourceData, interface{}) error
+
+func completeFlinkWorkspaceCreate(
+	d *schema.ResourceData,
+	meta interface{},
+	service flinkWorkspacePostCreateService,
+	workspaceID string,
+	usesInitialCapacity bool,
+	timeout time.Duration,
+	read flinkWorkspaceReadFunc,
+) error {
+	d.SetId(workspaceID)
+	if usesInitialCapacity {
+		return nil
+	}
+	if err := service.WaitForWorkspaceStarting(d.Id(), timeout); err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-
-	// 最后调用Read同步状态
-	return resourceAliCloudFlinkWorkspaceRead(d, meta)
+	return read(d, meta)
 }
 
 type flinkWorkspaceCreateService interface {
@@ -672,17 +695,18 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("resource_id", workspace.ResourceId)
 	}
 
-	capacityManagement := flinkCapacityManagementValue(d.Get("capacity_management"))
+	usesInitialCapacity := flinkListBlockConfigured(d.Get("initial_capacity"))
 	d.Set("observed_capacity", flattenFlinkWorkspaceObservedCapacity(workspace))
 
-	// Set legacy capacity intent only while this resource owns capacity.
-	if capacityManagement == CapacityManagedByResource && workspace.ResourceSpec != nil {
+	// initial_capacity is input-only. Never turn observed runtime capacity into
+	// legacy configuration during a refresh of the new parent mode.
+	if !usesInitialCapacity && workspace.ResourceSpec != nil {
 		resourceConfig := map[string]interface{}{
 			"cpu":    int(workspace.ResourceSpec.Cpu),
 			"memory": int(workspace.ResourceSpec.MemoryGB),
 		}
 		d.Set("resource", []interface{}{resourceConfig})
-	} else if capacityManagement == CapacityManagedByCoordinator {
+	} else if usesInitialCapacity {
 		d.Set("resource", nil)
 	}
 
@@ -701,7 +725,7 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		configuredStandbyZoneID, _ = configuredHA["zone_id"].(string)
 	}
 	if haConfig, ok := flinkworkspace.HAConfigWithFallback(workspace, configuredStandbyZoneID); ok {
-		if capacityManagement == CapacityManagedByCoordinator {
+		if usesInitialCapacity {
 			delete(haConfig, "resource")
 		}
 		if haResource, ok := haConfig["resource"]; ok {
@@ -743,7 +767,7 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 
 func resourceAliCloudFlinkWorkspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Capacity changes are either replacement-only legacy changes or are owned
-	// by alicloud_flink_capacity_coordinator. The workspace resource currently
+	// by alicloud_flink_workspace_capacity_allocation. The workspace resource currently
 	// has no other in-place mutable fields.
 	return resourceAliCloudFlinkWorkspaceRead(d, meta)
 }

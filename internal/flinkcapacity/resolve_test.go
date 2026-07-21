@@ -261,3 +261,19 @@ func TestResolvePostChildrenArePureElastic(t *testing.T) {
 		}
 	})
 }
+
+func TestValidateDesiredRequiresOnlyImplicitDefaultQueue(t *testing.T) {
+	tree := authoritativeTree(4, Namespace{
+		Name:     "keep",
+		Capacity: capacity(4, 4),
+		Queues: []Queue{
+			{Name: "default-queue", Capacity: capacity(4, 4)},
+			{Name: "custom", Capacity: capacity(0, 0)},
+		},
+	})
+
+	err := ValidateDesired(tree)
+	if err == nil || !strings.Contains(err.Error(), `namespace "keep" must declare only implicit queue "default-queue"`) {
+		t.Fatalf("ValidateDesired() error = %v", err)
+	}
+}

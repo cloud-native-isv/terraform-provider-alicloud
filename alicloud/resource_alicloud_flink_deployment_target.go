@@ -11,11 +11,10 @@ import (
 
 func resourceAliCloudFlinkDeploymentTarget() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceAliCloudFlinkDeploymentTargetCreate,
-		Read:          resourceAliCloudFlinkDeploymentTargetRead,
-		Update:        resourceAliCloudFlinkDeploymentTargetUpdate,
-		Delete:        resourceAliCloudFlinkDeploymentTargetDelete,
-		CustomizeDiff: flinkChildCapacityCustomizeDiff("quota"),
+		Create: resourceAliCloudFlinkDeploymentTargetCreate,
+		Read:   resourceAliCloudFlinkDeploymentTargetRead,
+		Update: resourceAliCloudFlinkDeploymentTargetUpdate,
+		Delete: resourceAliCloudFlinkDeploymentTargetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -46,10 +45,9 @@ func resourceAliCloudFlinkDeploymentTarget() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"quota": {
-				Type:             schema.TypeList,
-				Optional:         true,
-				MaxItems:         1,
-				DiffSuppressFunc: suppressFlinkLegacyCapacityDiff,
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"request": {
@@ -126,8 +124,7 @@ func resourceAliCloudFlinkDeploymentTarget() *schema.Resource {
 					},
 				},
 			},
-			"capacity_management": flinkCapacityManagementSchema(),
-			"observed_capacity":   flinkObservedCapacitySchema(false),
+			"observed_capacity": flinkObservedCapacitySchema(false),
 		},
 	}
 }
@@ -183,9 +180,9 @@ func resourceAliCloudFlinkDeploymentTargetRead(d *schema.ResourceData, meta inte
 	d.Set("name", targetName)
 
 	d.Set("observed_capacity", flattenFlinkQueueObservedCapacity(object.Quota))
-	if flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByResource && object.Quota != nil {
+	if object.Quota != nil {
 		d.Set("quota", flattenResourceQuota(object.Quota))
-	} else if flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByCoordinator {
+	} else {
 		d.Set("quota", nil)
 	}
 
@@ -208,7 +205,7 @@ func resourceAliCloudFlinkDeploymentTargetUpdate(d *schema.ResourceData, meta in
 
 	update := false
 
-	if flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByResource && d.HasChange("quota") {
+	if d.HasChange("quota") {
 		if v, ok := d.GetOk("quota"); ok {
 			updateRequest.Quota = expandResourceQuota(v.([]interface{}))
 		}

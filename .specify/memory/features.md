@@ -2,7 +2,7 @@
 
 This index tracks all functional and non-functional features managed within the project. It serves as the central directory for specifications, plans, and implementation status.
 
-**Total Features**: 12
+**Total Features**: 13
 
 | ID | Name | Description | Status | Feature Details | Spec Path | Last Updated |
 |---|---|---|---|---|---|---|
@@ -18,4 +18,4 @@ This index tracks all functional and non-functional features managed within the 
 | 010 | SLS Logtail Pipeline Config | Logtail 新旧资源并存与命名边界治理（旧版兼容 + 新版独立命名） | Implemented | [Details](features/010.md) | .specify/specs/005-restore-logtail-config/requirements.md | 2026-02-13 |
 | 011 | SLS Log Prefix Unification | 日志服务 resource/data source 命名统一到 alicloud_log_* 前缀并提供迁移治理 | Ready for Review | [Details](features/011.md) | .specify/specs/006-unify-log-prefix/requirements.md | 2026-03-19 |
 | 012 | ADBPG Resource Management | AnalyticDB PostgreSQL 资源与数据源的 Terraform 管理（adbpg 命名替代 gpdb） | Implemented | [Details](features/012.md) | .specify/specs/008-adbpg-resources/requirements.md | 2026-06-23 (deferred: T045, T046) |
-
+| 013 | Flink Workspace Capacity Allocation | Workspace purchase 与可重试的 PRE 容量、namespace、implicit queue 权威收敛分离 | Implemented; runtime/rollout verification in progress | [Details](features/013.md) | docs/superpowers/specs/2026-07-16-flink-workspace-capacity-allocation-design.md | 2026-07-16 |

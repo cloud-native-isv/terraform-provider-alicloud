@@ -15,11 +15,10 @@ import (
 
 func resourceAliCloudFlinkNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceAliCloudFlinkNamespaceCreate,
-		Read:          resourceAliCloudFlinkNamespaceRead,
-		Update:        resourceAliCloudFlinkNamespaceUpdate,
-		Delete:        resourceAliCloudFlinkNamespaceDelete,
-		CustomizeDiff: flinkChildCapacityCustomizeDiff("elastic_resource_spec", "guaranteed_resource_spec"),
+		Create: resourceAliCloudFlinkNamespaceCreate,
+		Read:   resourceAliCloudFlinkNamespaceRead,
+		Update: resourceAliCloudFlinkNamespaceUpdate,
+		Delete: resourceAliCloudFlinkNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -37,10 +36,9 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"elastic_resource_spec": {
-				Type:             schema.TypeList,
-				Optional:         true,
-				MaxItems:         1,
-				DiffSuppressFunc: suppressFlinkLegacyCapacityDiff,
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cpu": {
@@ -55,10 +53,9 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 				},
 			},
 			"guaranteed_resource_spec": {
-				Type:             schema.TypeList,
-				Optional:         true,
-				MaxItems:         1,
-				DiffSuppressFunc: suppressFlinkLegacyCapacityDiff,
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cpu": {
@@ -81,8 +78,7 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"capacity_management": flinkCapacityManagementSchema(),
-			"observed_capacity":   flinkObservedCapacitySchema(false),
+			"observed_capacity": flinkObservedCapacitySchema(false),
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
@@ -172,28 +168,27 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 	d.Set("namespace_name", namespace.Name)
 	d.Set("status", namespace.Status)
 	d.Set("ha", namespace.Ha)
-	capacityManagement := flinkCapacityManagementValue(d.Get("capacity_management"))
 	d.Set("observed_capacity", flattenFlinkNamespaceObservedCapacity(namespace))
 
 	// Set elastic resource specification
-	if capacityManagement == CapacityManagedByResource && namespace.ElasticResourceSpec != nil {
+	if namespace.ElasticResourceSpec != nil {
 		elasticSpec := map[string]interface{}{
 			"cpu":       int(namespace.ElasticResourceSpec.Cpu),
 			"memory_gb": int(namespace.ElasticResourceSpec.MemoryGB),
 		}
 		d.Set("elastic_resource_spec", []interface{}{elasticSpec})
-	} else if capacityManagement == CapacityManagedByCoordinator {
+	} else {
 		d.Set("elastic_resource_spec", nil)
 	}
 
 	// Set guaranteed resource specification
-	if capacityManagement == CapacityManagedByResource && namespace.GuaranteedResourceSpec != nil {
+	if namespace.GuaranteedResourceSpec != nil {
 		guaranteedSpec := map[string]interface{}{
 			"cpu":       int(namespace.GuaranteedResourceSpec.Cpu),
 			"memory_gb": int(namespace.GuaranteedResourceSpec.MemoryGB),
 		}
 		d.Set("guaranteed_resource_spec", []interface{}{guaranteedSpec})
-	} else if capacityManagement == CapacityManagedByCoordinator {
+	} else {
 		d.Set("guaranteed_resource_spec", nil)
 	}
 
@@ -212,9 +207,7 @@ func resourceAliCloudFlinkNamespaceUpdate(d *schema.ResourceData, meta interface
 		return WrapError(err)
 	}
 
-	capacityManagement := flinkCapacityManagementValue(d.Get("capacity_management"))
-	capacityChanged := capacityManagement == CapacityManagedByResource && (d.HasChange("elastic_resource_spec") || d.HasChange("guaranteed_resource_spec"))
-	// In COORDINATOR mode only non-capacity fields remain owned here.
+	capacityChanged := d.HasChange("elastic_resource_spec") || d.HasChange("guaranteed_resource_spec")
 	if capacityChanged || d.HasChange("ha") {
 		namespace := &aliyunFlinkAPI.Namespace{
 			Name: namespaceName,
@@ -226,24 +219,20 @@ func resourceAliCloudFlinkNamespaceUpdate(d *schema.ResourceData, meta interface
 		}
 
 		// Handle elastic resource specification
-		if capacityManagement == CapacityManagedByResource {
-			if elasticSpecList := d.Get("elastic_resource_spec").([]interface{}); len(elasticSpecList) > 0 {
-				elasticSpecMap := elasticSpecList[0].(map[string]interface{})
-				namespace.ElasticResourceSpec = &aliyunFlinkAPI.ResourceSpec{
-					Cpu:      float64(elasticSpecMap["cpu"].(int)),
-					MemoryGB: float64(elasticSpecMap["memory_gb"].(int)),
-				}
+		if elasticSpecList := d.Get("elastic_resource_spec").([]interface{}); len(elasticSpecList) > 0 {
+			elasticSpecMap := elasticSpecList[0].(map[string]interface{})
+			namespace.ElasticResourceSpec = &aliyunFlinkAPI.ResourceSpec{
+				Cpu:      float64(elasticSpecMap["cpu"].(int)),
+				MemoryGB: float64(elasticSpecMap["memory_gb"].(int)),
 			}
 		}
 
 		// Handle guaranteed resource specification
-		if capacityManagement == CapacityManagedByResource {
-			if guaranteedSpecList := d.Get("guaranteed_resource_spec").([]interface{}); len(guaranteedSpecList) > 0 {
-				guaranteedSpecMap := guaranteedSpecList[0].(map[string]interface{})
-				namespace.GuaranteedResourceSpec = &aliyunFlinkAPI.ResourceSpec{
-					Cpu:      float64(guaranteedSpecMap["cpu"].(int)),
-					MemoryGB: float64(guaranteedSpecMap["memory_gb"].(int)),
-				}
+		if guaranteedSpecList := d.Get("guaranteed_resource_spec").([]interface{}); len(guaranteedSpecList) > 0 {
+			guaranteedSpecMap := guaranteedSpecList[0].(map[string]interface{})
+			namespace.GuaranteedResourceSpec = &aliyunFlinkAPI.ResourceSpec{
+				Cpu:      float64(guaranteedSpecMap["cpu"].(int)),
+				MemoryGB: float64(guaranteedSpecMap["memory_gb"].(int)),
 			}
 		}
 

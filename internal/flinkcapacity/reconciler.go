@@ -57,11 +57,30 @@ func (e *ReconcileError) Unwrap() error {
 }
 
 func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tree) (Tree, error) {
+	return r.reconcile(ctx, instanceID, desired, false)
+}
+
+// ReconcileAuthoritative enables Workspace-owned namespace create/delete and
+// strict default-queue invariants. Reconcile remains the legacy coordinator
+// entrypoint for arbitrary queues and remainder allocations.
+func (r Reconciler) ReconcileAuthoritative(ctx context.Context, instanceID string, desired Tree) (Tree, error) {
+	return r.reconcile(ctx, instanceID, desired, true)
+}
+
+func (r Reconciler) reconcile(ctx context.Context, instanceID string, desired Tree, authoritative bool) (Tree, error) {
 	if r.API == nil {
 		return Tree{}, fmt.Errorf("capacity API must not be nil")
 	}
 	completed := 0
-	current, steps, err := r.readPlan(ctx, instanceID, &desired)
+	current, err := r.readTree(ctx, instanceID)
+	if err != nil {
+		return r.planError(instanceID, current, completed, fmt.Errorf("read capacity tree before reconciliation: %w", err))
+	}
+	var planning *plannerState
+	if authoritative {
+		planning = newPlannerState(current)
+	}
+	current, steps, err := r.planObserved(ctx, instanceID, current, &desired, planning, authoritative)
 	if err != nil {
 		return r.planError(instanceID, current, completed, err)
 	}
@@ -69,19 +88,7 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 
 		step := steps[0]
 		operation, applyErr := r.API.ApplyStep(ctx, instanceID, step)
-		if applyErr != nil {
-			if errorIsAmbiguous(applyErr) {
-				verified, readErr := r.readTree(ctx, instanceID)
-				if readErr == nil && stepConverged(verified, step) {
-					current = verified
-					completed++
-					current, steps, err = r.planObserved(ctx, instanceID, current, &desired)
-					if err != nil {
-						return r.planError(instanceID, current, completed, err)
-					}
-					continue
-				}
-			}
+		if applyErr != nil && !errorIsAmbiguous(applyErr) {
 			return r.fail(instanceID, current, completed, &step, operation, applyErr)
 		}
 
@@ -92,7 +99,10 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 			}
 			if stepConverged(current, step) {
 				completed++
-				current, steps, err = r.planObserved(ctx, instanceID, current, &desired)
+				if authoritative {
+					planning.noteCompleted(step)
+				}
+				current, steps, err = r.planObserved(ctx, instanceID, current, &desired, planning, authoritative)
 				if err != nil {
 					return r.planError(instanceID, current, completed, err)
 				}
@@ -106,20 +116,18 @@ func (r Reconciler) Reconcile(ctx context.Context, instanceID string, desired Tr
 	return current, nil
 }
 
-func (r Reconciler) readPlan(ctx context.Context, instanceID string, desired *Tree) (Tree, []Step, error) {
-	current, err := r.readTree(ctx, instanceID)
-	if err != nil {
-		return current, nil, fmt.Errorf("read capacity tree before reconciliation: %w", err)
-	}
-	return r.planObserved(ctx, instanceID, current, desired)
-}
-
-func (r Reconciler) planObserved(ctx context.Context, instanceID string, current Tree, desired *Tree) (Tree, []Step, error) {
+func (r Reconciler) planObserved(ctx context.Context, instanceID string, current Tree, desired *Tree, planning *plannerState, authoritative bool) (Tree, []Step, error) {
 	for {
 		if desired.ChargeType == "" {
 			desired.ChargeType = current.ChargeType
 		}
-		steps, err := Plan(current, *desired)
+		var steps []Step
+		var err error
+		if authoritative {
+			steps, err = planWithState(current, *desired, planning)
+		} else {
+			steps, err = Plan(current, *desired)
+		}
 		if err == nil || !errorIsRetryable(err) {
 			return current, steps, err
 		}
@@ -191,6 +199,13 @@ func (r Reconciler) fail(instanceID string, current Tree, completed int, step *S
 }
 
 func stepConverged(tree Tree, step Step) bool {
+	switch step.Action {
+	case CreateNamespace:
+		namespace := namespaceByName(tree, step.Ref.Namespace)
+		return namespace != nil && namespace.CrossZone == step.NamespaceCrossZone
+	case DeleteNamespace:
+		return namespaceByName(tree, step.Ref.Namespace) == nil
+	}
 	resolved, err := Resolve(tree)
 	if err != nil {
 		return false

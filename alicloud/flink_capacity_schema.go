@@ -8,25 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-const (
-	CapacityManagedByResource    = "RESOURCE"
-	CapacityManagedByCoordinator = "COORDINATOR"
-)
-
-func flinkCapacityManagementSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
-		Optional:     true,
-		Default:      CapacityManagedByResource,
-		ValidateFunc: validation.StringInSlice([]string{CapacityManagedByResource, CapacityManagedByCoordinator}, false),
-		DiffSuppressFunc: func(_ string, old string, new string, d *schema.ResourceData) bool {
-			return d.Id() != "" && old == "" && new == CapacityManagedByResource
-		},
-		Description: "Selects whether this lifecycle resource or alicloud_flink_capacity_coordinator owns capacity updates.",
-	}
-}
-
-func flinkBootstrapCapacitySchema() *schema.Schema {
+func flinkInitialCapacitySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -34,24 +16,16 @@ func flinkBootstrapCapacitySchema() *schema.Schema {
 		Elem: &schema.Resource{Schema: map[string]*schema.Schema{
 			"fixed_cu": {
 				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      0,
+				Required:     true,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
-			"ha": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{Schema: map[string]*schema.Schema{
-					"cross_zone_fixed_cu": {
-						Type:         schema.TypeInt,
-						Required:     true,
-						ValidateFunc: validation.IntAtLeast(1),
-					},
-				}},
+			"cross_zone_fixed_cu": {
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 		}},
-		Description: "Create-only fixed capacity used to purchase a PRE workspace before the coordinator takes ownership.",
+		Description: "Create-only fixed capacity used to purchase a PRE workspace.",
 	}
 }
 
@@ -90,15 +64,15 @@ func flinkObservedCapacitySchema(includeHA bool) *schema.Schema {
 		Type:        schema.TypeList,
 		Computed:    true,
 		Elem:        &schema.Resource{Schema: fields},
-		Description: "The capacity observed from Flink. It is informational when capacity_management is COORDINATOR.",
+		Description: "The capacity observed from Flink.",
 	}
 }
 
 func flinkWorkspaceCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
-	mode := flinkCapacityManagementValue(d.Get("capacity_management"))
 	chargeType := d.Get("charge_type").(string)
 	hasResource := flinkListBlockConfigured(d.Get("resource"))
-	hasBootstrap := flinkListBlockConfigured(d.Get("bootstrap_capacity"))
+	initialCapacity := d.Get("initial_capacity")
+	hasInitialCapacity := flinkListBlockConfigured(initialCapacity)
 	ha, hasHA := flinkFirstBlock(d.Get("ha"))
 	hasHAResource := hasHA && flinkListBlockConfigured(ha["resource"])
 
@@ -106,94 +80,54 @@ func flinkWorkspaceCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
 		oldValue, newValue := d.GetChange("charge_type")
 		return fmt.Errorf("charge_type cannot be changed in place from %q to %q; create a separate Flink workspace for billing migrations", oldValue, newValue)
 	}
+	if d.Id() != "" && d.HasChange("initial_capacity") {
+		return fmt.Errorf("initial_capacity cannot be changed after the Flink workspace is created")
+	}
 	if chargeType == "POST" && hasHA {
 		return fmt.Errorf("POST Flink workspaces do not support high availability; HA requires PRE billing")
 	}
 
-	switch mode {
-	case CapacityManagedByResource:
-		if !hasResource {
-			return fmt.Errorf("resource is required when capacity_management is RESOURCE")
+	if hasInitialCapacity {
+		if chargeType != "PRE" {
+			return fmt.Errorf("initial_capacity requires PRE billing")
 		}
-		if hasBootstrap {
-			return fmt.Errorf("bootstrap_capacity is only valid when capacity_management is COORDINATOR")
+		if hasResource {
+			return fmt.Errorf("resource is mutually exclusive with initial_capacity")
 		}
-		if hasHA && !hasHAResource {
-			return fmt.Errorf("ha.resource is required when capacity_management is RESOURCE")
+		if hasHAResource {
+			return fmt.Errorf("ha.resource is mutually exclusive with initial_capacity")
 		}
-	case CapacityManagedByCoordinator:
-		oldModeRaw, _ := d.GetChange("capacity_management")
-		oldMode := flinkCapacityManagementValue(oldModeRaw)
-		switchingFromResource := d.Id() != "" && d.HasChange("capacity_management") && oldMode == CapacityManagedByResource
-		if (hasResource || hasHAResource) && !switchingFromResource {
-			return fmt.Errorf("legacy resource and ha.resource blocks are forbidden when capacity_management is COORDINATOR")
+		if err := validateInitialCapacity(initialCapacity, hasHA); err != nil {
+			return err
 		}
-		if d.Id() == "" {
-			if chargeType != "PRE" {
-				return fmt.Errorf("new COORDINATOR workspaces require PRE billing and bootstrap_capacity")
-			}
-			if !hasBootstrap {
-				return fmt.Errorf("bootstrap_capacity is required for a new PRE workspace when capacity_management is COORDINATOR")
-			}
-			if err := validateBootstrapCapacity(d.Get("bootstrap_capacity"), hasHA); err != nil {
-				return err
-			}
-		} else if d.HasChange("bootstrap_capacity") {
-			// bootstrap_capacity is an input to CreateInstance only. Ignore edits
-			// after creation instead of replacing or updating the workspace.
-			if err := d.Clear("bootstrap_capacity"); err != nil {
-				return err
-			}
-		}
+		return nil
+	}
+
+	if !hasResource {
+		return fmt.Errorf("resource is required when initial_capacity is not configured")
+	}
+	if hasHA && !hasHAResource {
+		return fmt.Errorf("ha.resource is required when initial_capacity is not configured")
 	}
 	return nil
 }
 
-func flinkChildCapacityCustomizeDiff(legacyFields ...string) schema.CustomizeDiffFunc {
-	return func(d *schema.ResourceDiff, _ interface{}) error {
-		if flinkCapacityManagementValue(d.Get("capacity_management")) != CapacityManagedByCoordinator {
-			return nil
-		}
-		for _, field := range legacyFields {
-			if flinkListBlockConfigured(d.Get(field)) {
-				return fmt.Errorf("legacy capacity field %q is forbidden when capacity_management is COORDINATOR", field)
-			}
-		}
-		if d.Id() == "" {
-			return fmt.Errorf("new Flink child resources must be created with capacity_management RESOURCE, then switched to COORDINATOR in a later apply")
-		}
-		return nil
-	}
-}
-
-func flinkCapacityManagementValue(value interface{}) string {
-	mode, _ := value.(string)
-	if mode == "" {
-		return CapacityManagedByResource
-	}
-	return mode
-}
-
-func validateBootstrapCapacity(value interface{}, workspaceHA bool) error {
-	bootstrap, ok := flinkFirstBlock(value)
+func validateInitialCapacity(value interface{}, workspaceHA bool) error {
+	capacity, ok := flinkFirstBlock(value)
 	if !ok {
-		return fmt.Errorf("bootstrap_capacity is required")
+		return fmt.Errorf("initial_capacity is required")
 	}
-	fixed, _ := bootstrap["fixed_cu"].(int)
-	ha, hasBootstrapHA := flinkFirstBlock(bootstrap["ha"])
-	crossZone := 0
-	if hasBootstrapHA {
-		crossZone, _ = ha["cross_zone_fixed_cu"].(int)
-	}
+	fixed, _ := capacity["fixed_cu"].(int)
+	crossZone, _ := capacity["cross_zone_fixed_cu"].(int)
 	if workspaceHA {
-		if !hasBootstrapHA || crossZone <= 0 {
-			return fmt.Errorf("bootstrap_capacity.ha.cross_zone_fixed_cu must be greater than zero for an HA workspace")
+		if crossZone <= 0 {
+			return fmt.Errorf("initial_capacity.cross_zone_fixed_cu must be greater than zero for an HA workspace")
 		}
-	} else if hasBootstrapHA {
-		return fmt.Errorf("bootstrap_capacity.ha requires a workspace ha block")
+	} else if crossZone != 0 {
+		return fmt.Errorf("initial_capacity.cross_zone_fixed_cu must be zero for a non-HA workspace")
 	}
 	if fixed+crossZone <= 0 {
-		return fmt.Errorf("bootstrap_capacity fixed CU total must be greater than zero")
+		return fmt.Errorf("initial_capacity fixed CU total must be greater than zero")
 	}
 	return nil
 }
@@ -212,28 +146,13 @@ func flinkFirstBlock(value interface{}) (map[string]interface{}, bool) {
 	return block, ok
 }
 
-func suppressFlinkLegacyCapacityDiff(_ string, _ string, _ string, d *schema.ResourceData) bool {
-	if flinkCapacityManagementValue(d.Get("capacity_management")) == CapacityManagedByCoordinator {
-		return true
-	}
-	if d.HasChange("capacity_management") {
-		oldRaw, newRaw := d.GetChange("capacity_management")
-		oldMode := flinkCapacityManagementValue(oldRaw)
-		newMode := flinkCapacityManagementValue(newRaw)
-		return oldMode == CapacityManagedByCoordinator && newMode == CapacityManagedByResource
-	}
-	return false
-}
-
-func expandFlinkBootstrapCapacity(value interface{}) (fixedCU, crossZoneFixedCU int) {
-	bootstrap, ok := flinkFirstBlock(value)
+func expandFlinkInitialCapacity(value interface{}) (fixedCU, crossZoneFixedCU int) {
+	capacity, ok := flinkFirstBlock(value)
 	if !ok {
 		return 0, 0
 	}
-	fixedCU, _ = bootstrap["fixed_cu"].(int)
-	if ha, ok := flinkFirstBlock(bootstrap["ha"]); ok {
-		crossZoneFixedCU, _ = ha["cross_zone_fixed_cu"].(int)
-	}
+	fixedCU, _ = capacity["fixed_cu"].(int)
+	crossZoneFixedCU, _ = capacity["cross_zone_fixed_cu"].(int)
 	return fixedCU, crossZoneFixedCU
 }
 
