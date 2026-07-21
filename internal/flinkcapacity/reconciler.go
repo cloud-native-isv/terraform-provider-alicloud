@@ -76,11 +76,7 @@ func (r Reconciler) reconcile(ctx context.Context, instanceID string, desired Tr
 	if err != nil {
 		return r.planError(instanceID, current, completed, fmt.Errorf("read capacity tree before reconciliation: %w", err))
 	}
-	var planning *plannerState
-	if authoritative {
-		planning = newPlannerState(current)
-	}
-	current, steps, err := r.planObserved(ctx, instanceID, current, &desired, planning, authoritative)
+	current, steps, err := r.planObserved(ctx, instanceID, current, &desired, authoritative)
 	if err != nil {
 		return r.planError(instanceID, current, completed, err)
 	}
@@ -99,10 +95,7 @@ func (r Reconciler) reconcile(ctx context.Context, instanceID string, desired Tr
 			}
 			if stepConverged(current, step) {
 				completed++
-				if authoritative {
-					planning.noteCompleted(step)
-				}
-				current, steps, err = r.planObserved(ctx, instanceID, current, &desired, planning, authoritative)
+				current, steps, err = r.planObserved(ctx, instanceID, current, &desired, authoritative)
 				if err != nil {
 					return r.planError(instanceID, current, completed, err)
 				}
@@ -116,7 +109,7 @@ func (r Reconciler) reconcile(ctx context.Context, instanceID string, desired Tr
 	return current, nil
 }
 
-func (r Reconciler) planObserved(ctx context.Context, instanceID string, current Tree, desired *Tree, planning *plannerState, authoritative bool) (Tree, []Step, error) {
+func (r Reconciler) planObserved(ctx context.Context, instanceID string, current Tree, desired *Tree, authoritative bool) (Tree, []Step, error) {
 	for {
 		if desired.ChargeType == "" {
 			desired.ChargeType = current.ChargeType
@@ -124,7 +117,7 @@ func (r Reconciler) planObserved(ctx context.Context, instanceID string, current
 		var steps []Step
 		var err error
 		if authoritative {
-			steps, err = planWithState(current, *desired, planning)
+			steps, err = PlanAuthoritativeContext(ctx, current, *desired)
 		} else {
 			steps, err = Plan(current, *desired)
 		}

@@ -2,10 +2,114 @@ package flinkworkspace
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	aliyunFlinkAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 )
+
+func TestWorkspaceCreateIntentFingerprintCoversEveryPurchaseInput(t *testing.T) {
+	falseValue := false
+	trueValue := true
+	one := int32(1)
+	three := int32(3)
+	baseWorkspace := func() *aliyunFlinkAPI.Workspace {
+		return &aliyunFlinkAPI.Workspace{
+			ChargeType:       "PRE",
+			ResourceSpec:     &aliyunFlinkAPI.ResourceSpec{Cpu: 2, MemoryGB: 8},
+			HighAvailability: &aliyunFlinkAPI.HighAvailability{Enabled: false},
+		}
+	}
+	baseOptions := func() CreateOptions {
+		return CreateOptions{
+			AutoRenew:        &trueValue,
+			Duration:         &one,
+			PricingCycle:     "Month",
+			Extra:            "extra",
+			PromotionCode:    "promotion",
+			UsePromotionCode: &falseValue,
+		}
+	}
+	baseFingerprint := WorkspaceCreateIntentFingerprint(baseWorkspace(), baseOptions(), CapacityIntentLegacy)
+	if len(baseFingerprint) != 64 {
+		t.Fatalf("fingerprint = %q, want 64 hex characters", baseFingerprint)
+	}
+
+	tests := map[string]func(*aliyunFlinkAPI.Workspace, *CreateOptions) string{
+		"charge type": func(workspace *aliyunFlinkAPI.Workspace, _ *CreateOptions) string {
+			workspace.ChargeType = "POST"
+			return CapacityIntentLegacy
+		},
+		"ha enabled": func(workspace *aliyunFlinkAPI.Workspace, _ *CreateOptions) string {
+			workspace.HighAvailability = &aliyunFlinkAPI.HighAvailability{Enabled: true, ResourceSpec: &aliyunFlinkAPI.ResourceSpec{Cpu: 2, MemoryGB: 8}}
+			return CapacityIntentLegacy
+		},
+		"capacity mode": func(*aliyunFlinkAPI.Workspace, *CreateOptions) string { return CapacityIntentInitial },
+		"primary cpu": func(workspace *aliyunFlinkAPI.Workspace, _ *CreateOptions) string {
+			workspace.ResourceSpec.Cpu = 4
+			return CapacityIntentLegacy
+		},
+		"primary memory": func(workspace *aliyunFlinkAPI.Workspace, _ *CreateOptions) string {
+			workspace.ResourceSpec.MemoryGB = 16
+			return CapacityIntentLegacy
+		},
+		"auto renew": func(_ *aliyunFlinkAPI.Workspace, options *CreateOptions) string {
+			options.AutoRenew = &falseValue
+			return CapacityIntentLegacy
+		},
+		"duration": func(_ *aliyunFlinkAPI.Workspace, options *CreateOptions) string {
+			options.Duration = &three
+			return CapacityIntentLegacy
+		},
+		"pricing cycle": func(_ *aliyunFlinkAPI.Workspace, options *CreateOptions) string {
+			options.PricingCycle = "Year"
+			return CapacityIntentLegacy
+		},
+		"extra": func(_ *aliyunFlinkAPI.Workspace, options *CreateOptions) string {
+			options.Extra = "different"
+			return CapacityIntentLegacy
+		},
+		"promotion code": func(_ *aliyunFlinkAPI.Workspace, options *CreateOptions) string {
+			options.PromotionCode = "different"
+			return CapacityIntentLegacy
+		},
+		"use promotion code": func(_ *aliyunFlinkAPI.Workspace, options *CreateOptions) string {
+			options.UsePromotionCode = &trueValue
+			return CapacityIntentLegacy
+		},
+	}
+	for name, mutate := range tests {
+		t.Run(name, func(t *testing.T) {
+			workspace := baseWorkspace()
+			options := baseOptions()
+			mode := mutate(workspace, &options)
+			if got := WorkspaceCreateIntentFingerprint(workspace, options, mode); got == baseFingerprint {
+				t.Fatalf("mutating %s did not change fingerprint %q", name, got)
+			}
+		})
+	}
+}
+
+func TestWorkspaceCreateIntentFingerprintUsesUnambiguousEncodingAndHidesInputs(t *testing.T) {
+	trueValue := true
+	one := int32(1)
+	workspace := &aliyunFlinkAPI.Workspace{ChargeType: "PRE", ResourceSpec: &aliyunFlinkAPI.ResourceSpec{Cpu: 2, MemoryGB: 8}}
+	first := CreateOptions{AutoRenew: &trueValue, Duration: &one, PricingCycle: "Month", Extra: "a\x00b", PromotionCode: "c", UsePromotionCode: &trueValue}
+	second := CreateOptions{AutoRenew: &trueValue, Duration: &one, PricingCycle: "Month", Extra: "a", PromotionCode: "b\x00c", UsePromotionCode: &trueValue}
+	firstFingerprint := WorkspaceCreateIntentFingerprint(workspace, first, CapacityIntentLegacy)
+	secondFingerprint := WorkspaceCreateIntentFingerprint(workspace, second, CapacityIntentLegacy)
+	if firstFingerprint == secondFingerprint {
+		t.Fatalf("length-ambiguous inputs collided at %q", firstFingerprint)
+	}
+	for _, plaintext := range []string{"a\x00b", "promotion-secret"} {
+		options := first
+		options.PromotionCode = plaintext
+		fingerprint := WorkspaceCreateIntentFingerprint(workspace, options, CapacityIntentLegacy)
+		if strings.Contains(fingerprint, plaintext) {
+			t.Fatalf("fingerprint %q leaked plaintext %q", fingerprint, plaintext)
+		}
+	}
+}
 
 func TestWorkspaceCreateTokenIsStableForIdentity(t *testing.T) {
 	workspace := &aliyunFlinkAPI.Workspace{

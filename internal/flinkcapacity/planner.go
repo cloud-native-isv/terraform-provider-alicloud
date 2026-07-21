@@ -1,7 +1,9 @@
 package flinkcapacity
 
 import (
+	"context"
 	"fmt"
+	"math"
 	"sort"
 )
 
@@ -26,7 +28,14 @@ const (
 	ModifyQueue             Action = "modify_queue"
 )
 
-const minimumNamespaceCU CU = 2 // one CU, represented in half-CU units.
+const (
+	minimumNamespaceCU CU = 2 // one CU, represented in half-CU units.
+	// FOAS serializes CPU and MemoryGB through int32 fields. Authoritative
+	// capacity is integral CU, so floor(MaxInt32/4) external CU is the largest
+	// component whose MemoryGB=CU*4 remains representable. Keep the multiply
+	// after the division so the half-CU constant is overflow-safe.
+	maximumFlinkSerializableComponentCU CU = CU(((1 << 31) - 1) / 4 * 2)
+)
 
 type Ref struct {
 	Namespace string
@@ -66,6 +75,13 @@ type candidate struct {
 // must consume the workspace exactly, and each namespace owns only the
 // service-created default queue with the same allocation.
 func ValidateDesired(tree Tree) error {
+	return validateDesiredContext(context.Background(), tree)
+}
+
+func validateDesiredContext(ctx context.Context, tree Tree) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	if err := validateWorkspace(tree.ChargeType, tree.Workspace); err != nil {
 		return err
 	}
@@ -79,6 +95,9 @@ func ValidateDesired(tree Tree) error {
 	seen := make(map[string]struct{}, len(tree.Namespaces))
 	var fixed, crossZoneFixed, limit CU
 	for _, namespace := range tree.Namespaces {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		if namespace.Name == "" {
 			return fmt.Errorf("namespace name must not be empty")
 		}
@@ -108,6 +127,9 @@ func ValidateDesired(tree Tree) error {
 			return fmt.Errorf("namespace %q must declare only implicit queue \"default-queue\"", namespace.Name)
 		}
 		queue := namespace.Queues[0]
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		if queue.Capacity == nil {
 			return fmt.Errorf("queue %q/default-queue capacity is required", namespace.Name)
 		}
@@ -354,107 +376,380 @@ func legacySameCapacityTree(actual, desired Tree) bool {
 // Workspace-owned namespace topology. The caller must read and replan after
 // every step because the control plane is asynchronous.
 func PlanAuthoritative(actual, desired Tree) ([]Step, error) {
-	planning := newPlannerState(actual)
-	return planWithState(actual, desired, planning)
+	return PlanAuthoritativeContext(context.Background(), actual, desired)
 }
 
-type plannerState struct {
-	temporaryGranted  bool
-	createdNamespaces map[string]struct{}
+// PlanAuthoritativeContext is the production authoritative planner entrypoint.
+// It is deliberately stateless across calls: every successful cloud write is
+// followed by a complete Read and the next plan is derived from that observed
+// tree. A returned tail is only a feasibility witness; callers must apply the
+// first step and replan.
+func PlanAuthoritativeContext(ctx context.Context, actual, desired Tree) ([]Step, error) {
+	steps, _, err := planAuthoritativeWithLimits(ctx, actual, desired, plannerLimits{})
+	return steps, err
 }
 
-func newPlannerState(actual Tree) *plannerState {
-	fixedHeadroom, limitHeadroom := workspaceHeadroom(actual)
-	return &plannerState{
-		temporaryGranted:  fixedHeadroom >= minimumNamespaceCU && limitHeadroom >= minimumNamespaceCU,
-		createdNamespaces: make(map[string]struct{}),
+const (
+	defaultMaxPlanSteps        = 4096
+	defaultMaxPlannerWorkUnits = 1_000_000
+)
+
+type plannerLimits struct {
+	MaxSteps     int
+	MaxWorkUnits int
+}
+
+type plannerStats struct {
+	Steps     int
+	WorkUnits int
+}
+
+// PlannerBudgetError is distinct from dependency stall. Budget exhaustion is
+// fail-closed and must never authorize the one-CU fallback phase.
+type PlannerBudgetError struct {
+	Kind           string
+	Phase          string
+	Steps          int
+	WorkUnits      int
+	NodeCount      int
+	EstimatedBound int
+}
+
+func (e *PlannerBudgetError) Error() string {
+	return fmt.Sprintf("authoritative capacity planner %s budget exceeded in %s phase (steps=%d, work_units=%d, nodes=%d, estimated_step_bound=%d)", e.Kind, e.Phase, e.Steps, e.WorkUnits, e.NodeCount, e.EstimatedBound)
+}
+
+type plannerBudget struct {
+	ctx            context.Context
+	limits         plannerLimits
+	stats          plannerStats
+	nodeCount      int
+	preflightWork  int
+	estimatedBound int
+}
+
+func newPlannerBudget(ctx context.Context, actual, desired Tree, limits plannerLimits) (*plannerBudget, error) {
+	if ctx == nil {
+		ctx = context.Background()
 	}
+	if limits.MaxSteps <= 0 {
+		limits.MaxSteps = defaultMaxPlanSteps
+	}
+	if limits.MaxWorkUnits <= 0 {
+		limits.MaxWorkUnits = defaultMaxPlannerWorkUnits
+	}
+	actualNodes, err := contextNodeCount(ctx, actual)
+	if err != nil {
+		return nil, err
+	}
+	desiredNodes, err := contextNodeCount(ctx, desired)
+	if err != nil {
+		return nil, err
+	}
+	nodes := actualNodes
+	if desiredNodes > nodes {
+		nodes = desiredNodes
+	}
+	return &plannerBudget{
+		ctx:            ctx,
+		limits:         limits,
+		nodeCount:      nodes,
+		preflightWork:  saturatingAddInt(actualNodes, desiredNodes),
+		estimatedBound: estimateAuthoritativePlanSteps(actual, desired),
+	}, nil
 }
 
-func (s *plannerState) clone() *plannerState {
-	result := &plannerState{
-		temporaryGranted:  s.temporaryGranted,
-		createdNamespaces: make(map[string]struct{}, len(s.createdNamespaces)),
+func contextNodeCount(ctx context.Context, tree Tree) (int, error) {
+	count := 1
+	for i := range tree.Namespaces {
+		if err := ctx.Err(); err != nil {
+			return 0, err
+		}
+		count = saturatingAddInt(count, 1, len(tree.Namespaces[i].Queues))
 	}
-	for name := range s.createdNamespaces {
-		result.createdNamespaces[name] = struct{}{}
+	return count, ctx.Err()
+}
+
+func estimateAuthoritativePlanSteps(actual, desired Tree) int {
+	fixedSwapUnits := absoluteCUDifference(
+		activeWorkspaceFixed(actual.Workspace),
+		activeWorkspaceFixed(desired.Workspace),
+	) / uint64(minimumNamespaceCU)
+	return saturatingAddInt(
+		8,
+		saturatingMultiplyInt(2, saturatingUint64ToInt(fixedSwapUnits)),
+		saturatingMultiplyInt(9, len(desired.Namespaces)),
+		len(actual.Namespaces),
+	)
+}
+
+func absoluteCUDifference(first, second CU) uint64 {
+	// Unsigned subtraction is defined modulo 2^64, which preserves the exact
+	// distance even when the signed operands straddle MinInt64 and MaxInt64.
+	if first >= second {
+		return uint64(first) - uint64(second)
+	}
+	return uint64(second) - uint64(first)
+}
+
+func saturatingUint64ToInt(value uint64) int {
+	maximum := maximumInt()
+	if value > uint64(maximum) {
+		return maximum
+	}
+	return int(value)
+}
+
+func saturatingMultiplyInt(first, second int) int {
+	maximum := maximumInt()
+	if first < 0 || second < 0 {
+		return maximum
+	}
+	if first != 0 && second > maximum/first {
+		return maximum
+	}
+	return first * second
+}
+
+func saturatingAddInt(values ...int) int {
+	result := 0
+	for _, value := range values {
+		next, overflow := addNonNegativeInt(result, value)
+		if overflow {
+			return maximumInt()
+		}
+		result = next
 	}
 	return result
 }
 
-func (s *plannerState) noteCompleted(step Step) {
-	if step.Temporary {
-		s.temporaryGranted = true
+func addNonNegativeInt(current, increment int) (int, bool) {
+	maximum := maximumInt()
+	if current < 0 || increment < 0 || current > maximum-increment {
+		return maximum, true
 	}
-	if step.Action == CreateNamespace {
-		s.createdNamespaces[step.Ref.Namespace] = struct{}{}
+	return current + increment, false
+}
+
+func maximumInt() int {
+	return int(^uint(0) >> 1)
+}
+
+// minimumAuthoritativePlanSteps is deliberately conservative. It counts only
+// mutations that distinct API component boundaries make unavoidable. When a
+// Delete frontier is present it stops at that frontier rather than counting
+// unknown post-Read work. Exceeding MaxSteps here is therefore a proof that no
+// witness can fit, not a heuristic estimate.
+func minimumAuthoritativePlanSteps(ctx context.Context, actual, desired Tree) (int, error) {
+	actualByName, err := indexNamespacesContext(ctx, actual)
+	if err != nil {
+		return 0, err
+	}
+	desiredByName, err := indexNamespacesContext(ctx, desired)
+	if err != nil {
+		return 0, err
+	}
+
+	missing, undeclared := 0, 0
+	for name := range desiredByName {
+		if err := ctx.Err(); err != nil {
+			return 0, err
+		}
+		if actualByName[name] == nil {
+			missing = saturatingAddInt(missing, 1)
+		}
+	}
+	for name := range actualByName {
+		if err := ctx.Err(); err != nil {
+			return 0, err
+		}
+		if desiredByName[name] == nil {
+			undeclared = saturatingAddInt(undeclared, 1)
+		}
+	}
+	if undeclared > missing {
+		return 1, nil // A strict surplus reaches a Delete frontier immediately.
+	}
+	if missing > 0 {
+		minimum := 1 // at least one Create is unavoidable.
+		if undeclared > 0 {
+			minimum = saturatingAddInt(minimum, 1) // paired Delete frontier.
+		}
+		return minimum, nil
+	}
+	if undeclared > 0 {
+		return 1, nil
+	}
+
+	steps := 0
+	if activeWorkspaceFixed(actual.Workspace) != activeWorkspaceFixed(desired.Workspace) {
+		steps = saturatingAddInt(steps, 1)
+	}
+	if actual.Workspace.AsCapacity().Elastic() != desired.Workspace.AsCapacity().Elastic() {
+		steps = saturatingAddInt(steps, 1)
+	}
+	for _, wanted := range desired.Namespaces {
+		if err := ctx.Err(); err != nil {
+			return 0, err
+		}
+		observed := actualByName[wanted.Name]
+		if observed.Capacity.Fixed != wanted.Capacity.Fixed || observed.Capacity.Limit != wanted.Capacity.Limit {
+			steps = saturatingAddInt(steps, 1)
+		}
+		observedQueue := queueByName(*observed, "default-queue")
+		wantedQueue := queueByName(wanted, "default-queue")
+		if observedQueue.Capacity.Fixed != wantedQueue.Capacity.Fixed || observedQueue.Capacity.Limit != wantedQueue.Capacity.Limit {
+			steps = saturatingAddInt(steps, 1)
+		}
+	}
+	return steps, ctx.Err()
+}
+
+func (b *plannerBudget) checkContext() error {
+	return b.ctx.Err()
+}
+
+func (b *plannerBudget) addWork(phase string, units int) error {
+	if err := b.checkContext(); err != nil {
+		return err
+	}
+	next, overflow := addNonNegativeInt(b.stats.WorkUnits, units)
+	b.stats.WorkUnits = next
+	if overflow || b.stats.WorkUnits > b.limits.MaxWorkUnits {
+		return b.error("work", phase)
+	}
+	return nil
+}
+
+func (b *plannerBudget) addStep(phase string) error {
+	if err := b.checkContext(); err != nil {
+		return err
+	}
+	next, overflow := addNonNegativeInt(b.stats.Steps, 1)
+	b.stats.Steps = next
+	if overflow || b.stats.Steps > b.limits.MaxSteps {
+		return b.error("steps", phase)
+	}
+	return nil
+}
+
+func (b *plannerBudget) witnessCapacity() int {
+	if b.estimatedBound <= 0 {
+		return 0
+	}
+	if b.estimatedBound < b.limits.MaxSteps {
+		return b.estimatedBound
+	}
+	return b.limits.MaxSteps
+}
+
+func (b *plannerBudget) error(kind, phase string) error {
+	return &PlannerBudgetError{
+		Kind:           kind,
+		Phase:          phase,
+		Steps:          b.stats.Steps,
+		WorkUnits:      b.stats.WorkUnits,
+		NodeCount:      b.nodeCount,
+		EstimatedBound: b.estimatedBound,
 	}
 }
 
-func planWithState(actual, desired Tree, prior *plannerState) ([]Step, error) {
+func planAuthoritativeWithLimits(ctx context.Context, actual, desired Tree, limits plannerLimits) ([]Step, plannerStats, error) {
+	budget, err := newPlannerBudget(ctx, actual, desired, limits)
+	if err != nil {
+		return nil, plannerStats{}, err
+	}
+	if err := budget.checkContext(); err != nil {
+		return nil, budget.stats, err
+	}
+	if err := budget.addWork("preflight", budget.preflightWork); err != nil {
+		return nil, budget.stats, err
+	}
 	if err := validateAuthoritativeChargeTypes(actual, desired); err != nil {
-		return nil, err
+		return nil, budget.stats, err
 	}
 	if actual.ChargeType != desired.ChargeType {
-		return nil, fmt.Errorf("workspace charge type cannot change from %q to %q", actual.ChargeType, desired.ChargeType)
+		return nil, budget.stats, fmt.Errorf("workspace charge type cannot change from %q to %q", actual.ChargeType, desired.ChargeType)
 	}
 	if actual.Workspace.HA != desired.Workspace.HA {
-		return nil, fmt.Errorf("workspace high availability mode cannot change in place")
+		return nil, budget.stats, fmt.Errorf("workspace high availability mode cannot change in place")
 	}
-	if err := ValidateDesired(desired); err != nil {
-		return nil, fmt.Errorf("desired capacity tree: %w", err)
+	if err := validateDesiredContext(budget.ctx, desired); err != nil {
+		return nil, budget.stats, fmt.Errorf("desired capacity tree: %w", err)
 	}
-	if err := validateRetainedNamespaceTypes(actual, desired); err != nil {
-		return nil, err
+	if err := validateRetainedNamespaceTypes(budget.ctx, actual, desired); err != nil {
+		return nil, budget.stats, err
 	}
-	if err := validateObserved(actual); err != nil {
-		return nil, fmt.Errorf("actual capacity tree: %w", err)
+	if err := validateObservedContext(budget.ctx, actual); err != nil {
+		return nil, budget.stats, fmt.Errorf("actual capacity tree: %w", err)
 	}
-	if err := validateRetainedNamespaces(actual, desired); err != nil {
-		return nil, err
+	if err := validateRetainedNamespaces(budget.ctx, actual, desired); err != nil {
+		return nil, budget.stats, err
 	}
-	if err := validateUsedCapacity(actual, desired); err != nil {
-		return nil, err
+	if err := validateUsedCapacity(budget.ctx, actual, desired); err != nil {
+		return nil, budget.stats, err
 	}
 	actualElastic := actual.Workspace.AsCapacity().Elastic()
 	desiredElastic := desired.Workspace.AsCapacity().Elastic()
 	if actual.ChargeType == "PRE" && actualElastic > 0 && desiredElastic == 0 {
-		return nil, fmt.Errorf("cannot reduce workspace elastic CU to zero through the supported public API; disable it manually before retrying")
+		return nil, budget.stats, fmt.Errorf("cannot reduce workspace elastic CU to zero through the supported public API; disable it manually before retrying")
+	}
+	if err := validatePlanningStateContext(budget.ctx, actual); err != nil {
+		return nil, budget.stats, fmt.Errorf("actual capacity tree: %w", err)
+	}
+	if err := budget.checkContext(); err != nil {
+		return nil, budget.stats, err
+	}
+	minimumSteps, err := minimumAuthoritativePlanSteps(budget.ctx, actual, desired)
+	if err != nil {
+		return nil, budget.stats, err
+	}
+	if minimumSteps > budget.limits.MaxSteps {
+		return nil, budget.stats, budget.error("steps", "preflight")
 	}
 
-	state := cloneTree(actual)
-	target := cloneTree(desired)
-	planning := prior.clone()
-	maxEndpointLimit := actual.Workspace.Limit
-	if target.Workspace.Limit > maxEndpointLimit {
-		maxEndpointLimit = target.Workspace.Limit
+	endpoint := maxCU(actual.Workspace.Limit, desired.Workspace.Limit)
+	result, err := scheduleAuthoritativePhase(cloneTree(actual), desired, endpoint, endpoint, "endpoint", false, budget)
+	if err != nil {
+		return nil, budget.stats, err
 	}
-	var steps []Step
-	for attempts := 0; !sameCapacityTree(state, target); attempts++ {
-		if attempts > (len(state.Namespaces)+len(target.Namespaces)+1)*8+8 {
-			return nil, fmt.Errorf("capacity planner did not converge")
-		}
-
-		candidates := buildCandidates(state, target, planning)
-		selected := selectCandidate(state, candidates, maxEndpointLimit, true)
-		if selected == nil {
-			selected = selectCandidate(state, candidates, maxEndpointLimit, false)
-		}
-		if selected == nil && hasMissingNamespace(state, target) {
-			selected = temporaryWorkspaceCandidate(state, planning)
-		}
-		if selected == nil {
-			return nil, fmt.Errorf("no safe capacity transition exists without exceeding endpoint capacity or violating child allocations")
-		}
-
-		applyCandidate(&state, *selected)
-		steps = append(steps, selected.step)
-		planning.noteCompleted(selected.step)
-		if selected.step.Action == DeleteNamespace {
-			return steps, nil
-		}
+	if result.status != phaseDependencyStall {
+		return result.steps, budget.stats, nil
 	}
-	return steps, nil
+
+	fallbackView, err := buildCanonicalPhaseState(&actual, &desired, "fallback", budget)
+	if err != nil {
+		return nil, budget.stats, err
+	}
+	missing := fallbackView.missingNames
+	fallback := endpoint
+	if len(missing) > 0 {
+		// An observed limit above desired may be a buffer from this operation or
+		// unrelated/imported capacity. The current tree cannot distinguish those
+		// histories. Endpoint scheduling has already reused any visible headroom;
+		// if it still stalled, growing from this unknown peak would permit C0+2 on
+		// retry. Preserve rename sources and fail closed instead.
+		if actual.Workspace.Limit > desired.Workspace.Limit {
+			return nil, budget.stats, noSafeTransitionError()
+		}
+		if endpoint > CU(math.MaxInt64)-minimumNamespaceCU {
+			return nil, budget.stats, fmt.Errorf("workspace capacity cannot be temporarily expanded without overflow")
+		}
+		fallback = endpoint + minimumNamespaceCU
+	} else if desired.Workspace.Limit <= CU(math.MaxInt64)-minimumNamespaceCU {
+		fallback = maxCU(endpoint, desired.Workspace.Limit+minimumNamespaceCU)
+	}
+	if fallback == endpoint {
+		return nil, budget.stats, noSafeTransitionError()
+	}
+	result, err = scheduleAuthoritativePhase(cloneTree(actual), desired, fallback, endpoint, "fallback", len(missing) > 0, budget)
+	if err != nil {
+		return nil, budget.stats, err
+	}
+	if result.status == phaseDependencyStall {
+		return nil, budget.stats, noSafeTransitionError()
+	}
+	return result.steps, budget.stats, nil
 }
 
 func validateAuthoritativeChargeTypes(actual, desired Tree) error {
@@ -554,6 +849,13 @@ func validateIntegerCU(name string, value CU) error {
 }
 
 func validateObserved(tree Tree) error {
+	return validateObservedContext(context.Background(), tree)
+}
+
+func validateObservedContext(ctx context.Context, tree Tree) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	if err := validateWorkspace(tree.ChargeType, tree.Workspace); err != nil {
 		return err
 	}
@@ -562,6 +864,9 @@ func validateObserved(tree Tree) error {
 	}
 	seenNamespaces := make(map[string]struct{}, len(tree.Namespaces))
 	for _, namespace := range tree.Namespaces {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		if namespace.Name == "" {
 			return fmt.Errorf("namespace name must not be empty")
 		}
@@ -583,6 +888,9 @@ func validateObserved(tree Tree) error {
 		}
 		seenQueues := make(map[string]struct{}, len(namespace.Queues))
 		for _, queue := range namespace.Queues {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			if queue.Name == "" {
 				return fmt.Errorf("namespace %q has queue with empty name", namespace.Name)
 			}
@@ -601,9 +909,16 @@ func validateObserved(tree Tree) error {
 	return nil
 }
 
-func validateRetainedNamespaces(actual, desired Tree) error {
+func validateRetainedNamespaces(ctx context.Context, actual, desired Tree) error {
+	actualByName, err := indexNamespacesContext(ctx, actual)
+	if err != nil {
+		return err
+	}
 	for _, wanted := range desired.Namespaces {
-		observed := namespaceByName(actual, wanted.Name)
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		observed := actualByName[wanted.Name]
 		if observed == nil {
 			continue
 		}
@@ -611,6 +926,9 @@ func validateRetainedNamespaces(actual, desired Tree) error {
 			return &TopologyError{message: fmt.Sprintf("declared queue %q/default-queue does not exist in the workspace", wanted.Name), retryable: true}
 		}
 		for _, queue := range observed.Queues {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			if queue.Name != "default-queue" {
 				capacity := *queue.Capacity
 				return &TopologyError{message: fmt.Sprintf(
@@ -623,9 +941,16 @@ func validateRetainedNamespaces(actual, desired Tree) error {
 	return nil
 }
 
-func validateRetainedNamespaceTypes(actual, desired Tree) error {
+func validateRetainedNamespaceTypes(ctx context.Context, actual, desired Tree) error {
+	actualByName, err := indexNamespacesContext(ctx, actual)
+	if err != nil {
+		return err
+	}
 	for _, wanted := range desired.Namespaces {
-		observed := namespaceByName(actual, wanted.Name)
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		observed := actualByName[wanted.Name]
 		if observed != nil && observed.CrossZone != wanted.CrossZone {
 			return fmt.Errorf("retained namespace %q type mismatch: observed cross-zone=%t, desired cross-zone=%t", wanted.Name, observed.CrossZone, wanted.CrossZone)
 		}
@@ -633,12 +958,23 @@ func validateRetainedNamespaceTypes(actual, desired Tree) error {
 	return nil
 }
 
-func validateUsedCapacity(actual, desired Tree) error {
-	if !hasUndeclaredNamespace(actual, desired) && actual.Workspace.Used > desired.Workspace.Limit.Float64() {
+func validateUsedCapacity(ctx context.Context, actual, desired Tree) error {
+	hasUndeclared, err := hasUndeclaredNamespace(ctx, actual, desired)
+	if err != nil {
+		return err
+	}
+	if !hasUndeclared && actual.Workspace.Used > desired.Workspace.Limit.Float64() {
 		return fmt.Errorf("workspace desired limit %v is below used CU %v", desired.Workspace.Limit.Float64(), actual.Workspace.Used)
 	}
+	actualByName, err := indexNamespacesContext(ctx, actual)
+	if err != nil {
+		return err
+	}
 	for _, wanted := range desired.Namespaces {
-		observed := namespaceByName(actual, wanted.Name)
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		observed := actualByName[wanted.Name]
 		if observed == nil {
 			continue
 		}
@@ -653,157 +989,651 @@ func validateUsedCapacity(actual, desired Tree) error {
 	return nil
 }
 
-func hasUndeclaredNamespace(actual, desired Tree) bool {
+func hasUndeclaredNamespace(ctx context.Context, actual, desired Tree) (bool, error) {
+	desiredByName, err := indexNamespacesContext(ctx, desired)
+	if err != nil {
+		return false, err
+	}
 	for _, observed := range actual.Namespaces {
-		if namespaceByName(desired, observed.Name) == nil {
-			return true
+		if err := ctx.Err(); err != nil {
+			return false, err
+		}
+		if desiredByName[observed.Name] == nil {
+			return true, nil
 		}
 	}
-	return false
+	return false, ctx.Err()
 }
 
-func buildCandidates(state, target Tree, planning *plannerState) []candidate {
-	result := make([]candidate, 0, capacityNodeCount(state)+capacityNodeCount(target))
-	currentWorkspace := workspaceAllocation(state.Workspace)
-	targetWorkspace := workspaceAllocation(target.Workspace)
-	if state.ChargeType == "POST" {
-		if currentWorkspace.Limit != targetWorkspace.Limit {
-			result = append(result, newCandidate(ModifyWorkspacePostpaid, Ref{}, currentWorkspace, targetWorkspace, 0))
+func indexNamespacesContext(ctx context.Context, tree Tree) (map[string]*Namespace, error) {
+	result := make(map[string]*Namespace, len(tree.Namespaces))
+	for i := range tree.Namespaces {
+		if err := ctx.Err(); err != nil {
+			return nil, err
 		}
-	} else {
-		if currentWorkspace.FixedCU != targetWorkspace.FixedCU || currentWorkspace.CrossZoneFixedCU != targetWorkspace.CrossZoneFixedCU {
-			to := targetWorkspace
-			to.Limit = to.TotalFixed() + currentWorkspace.AsCapacity().Elastic()
-			result = append(result, newCandidate(ModifyWorkspaceFixed, Ref{}, currentWorkspace, to, 0))
+		result[tree.Namespaces[i].Name] = &tree.Namespaces[i]
+	}
+	return result, ctx.Err()
+}
+
+type phaseStatus uint8
+
+const (
+	phaseComplete phaseStatus = iota
+	phaseDeleteFrontier
+	phaseDependencyStall
+)
+
+type phaseResult struct {
+	steps  []Step
+	status phaseStatus
+}
+
+type canonicalPhaseState struct {
+	actualByName    map[string]*Namespace
+	desiredByName   map[string]*Namespace
+	desiredNames    []string
+	missingNames    []string
+	undeclaredNames []string
+	allocatedFixed  CU
+	allocatedLimit  CU
+	sameAsDesired   bool
+}
+
+// buildCanonicalPhaseState charges each node scan to the hard work budget and
+// builds name indexes once per scheduler iteration. All later selection in the
+// iteration is O(N), so independent namespace operations are never explored as
+// permutations.
+func buildCanonicalPhaseState(state, target *Tree, phase string, budget *plannerBudget) (canonicalPhaseState, error) {
+	view := canonicalPhaseState{
+		actualByName:  make(map[string]*Namespace, len(state.Namespaces)),
+		desiredByName: make(map[string]*Namespace, len(target.Namespaces)),
+	}
+	for i := range state.Namespaces {
+		if err := budget.addWork(phase, saturatingAddInt(1, len(state.Namespaces[i].Queues))); err != nil {
+			return canonicalPhaseState{}, err
 		}
-		currentElastic := currentWorkspace.AsCapacity().Elastic()
-		targetElastic := targetWorkspace.AsCapacity().Elastic()
-		if currentElastic != targetElastic {
-			to := currentWorkspace
-			to.Limit = to.TotalFixed() + targetElastic
-			action := ModifyWorkspaceElastic
-			if currentElastic == 0 {
-				action = EnableWorkspaceElastic
-			}
-			result = append(result, newCandidate(action, Ref{}, currentWorkspace, to, 0))
+		namespace := &state.Namespaces[i]
+		view.actualByName[namespace.Name] = namespace
+		if namespace.Capacity != nil && namespace.CrossZone == state.Workspace.HA {
+			view.allocatedFixed += namespace.Capacity.Fixed
+			view.allocatedLimit += namespace.Capacity.Limit
 		}
 	}
+	for i := range target.Namespaces {
+		if err := budget.addWork(phase, saturatingAddInt(1, len(target.Namespaces[i].Queues))); err != nil {
+			return canonicalPhaseState{}, err
+		}
+		namespace := &target.Namespaces[i]
+		view.desiredByName[namespace.Name] = namespace
+		view.desiredNames = append(view.desiredNames, namespace.Name)
+		if _, ok := view.actualByName[namespace.Name]; !ok {
+			view.missingNames = append(view.missingNames, namespace.Name)
+		}
+	}
+	for name := range view.actualByName {
+		if _, ok := view.desiredByName[name]; !ok {
+			view.undeclaredNames = append(view.undeclaredNames, name)
+		}
+	}
+	if err := budget.addWork(phase, len(view.actualByName)); err != nil {
+		return canonicalPhaseState{}, err
+	}
+	sort.Strings(view.desiredNames)
+	sort.Strings(view.missingNames)
+	sort.Strings(view.undeclaredNames)
+	if err := budget.checkContext(); err != nil {
+		return canonicalPhaseState{}, err
+	}
 
-	missingNamespace := false
-	for _, wanted := range sortedNamespaces(target.Namespaces) {
-		observed := namespaceByName(state, wanted.Name)
-		if observed == nil {
-			missingNamespace = true
-			if state.ChargeType == "POST" {
+	view.sameAsDesired = workspaceAllocation(state.Workspace) == workspaceAllocation(target.Workspace) && len(state.Namespaces) == len(target.Namespaces)
+	if view.sameAsDesired {
+		for _, name := range view.desiredNames {
+			if err := budget.addWork(phase, 1); err != nil {
+				return canonicalPhaseState{}, err
+			}
+			observed := view.actualByName[name]
+			wanted := view.desiredByName[name]
+			if observed == nil || observed.CrossZone != wanted.CrossZone || observed.Capacity == nil || *observed.Capacity != *wanted.Capacity || len(observed.Queues) != 1 {
+				view.sameAsDesired = false
+				break
+			}
+			queue := queueByName(*observed, "default-queue")
+			if queue == nil || queue.Capacity == nil || *queue.Capacity != *wanted.Capacity {
+				view.sameAsDesired = false
+				break
+			}
+		}
+	}
+	return view, nil
+}
+
+// scheduleAuthoritativePhase is intentionally a monotonic phase scheduler,
+// not a graph search. Independent namespace mutations are ordered by stable
+// name and never permuted. Target-directed child contractions run bottom-up;
+// expansions run top-down. The only non-target mutation is one pure active
+// fixed-pool topology buffer. Every Delete is an unconditional observation
+// frontier, because Workspace used CU can only be refreshed by a real Read.
+//
+// Termination follows the lexicographic measure
+// (missing+undeclared namespaces, create headroom deficit, target component
+// distance). Create/Delete reduces the first term, the one topology buffer
+// reduces the second, and every other step strictly reduces the third. Delete
+// ends the invocation, so no simulated state crosses an observation frontier.
+// Rebuilding canonical indexes costs O(N log N) per returned mutation and each
+// safety check is O(N); total work is polynomial O(S*N log N), bounded by both
+// max steps and charged work units. There is no recursion, visited graph, or
+// enumeration of commutative namespace operation orders.
+func scheduleAuthoritativePhase(state Tree, target Tree, ceiling, endpoint CU, phase string, topologyFallback bool, budget *plannerBudget) (phaseResult, error) {
+	if err := budget.checkContext(); err != nil {
+		return phaseResult{}, err
+	}
+	steps := make([]Step, 0, budget.witnessCapacity())
+	for {
+		if err := budget.checkContext(); err != nil {
+			return phaseResult{}, err
+		}
+		view, err := buildCanonicalPhaseState(&state, &target, phase, budget)
+		if err != nil {
+			return phaseResult{}, err
+		}
+		if view.sameAsDesired {
+			return phaseResult{steps: steps, status: phaseComplete}, nil
+		}
+
+		missing, undeclared := view.missingNames, view.undeclaredNames
+		if len(undeclared) > len(missing) {
+			step := deleteNamespaceStep(state, undeclared[0])
+			if len(state.Namespaces) <= 1 {
+				return phaseResult{status: phaseDependencyStall}, nil
+			}
+			if err := appendScheduledStep(&state, &steps, step, phase, budget); err != nil {
+				return phaseResult{}, err
+			}
+			return phaseResult{steps: steps, status: phaseDeleteFrontier}, nil
+		}
+
+		if len(missing) > 0 {
+			fixedHeadroom := activeWorkspaceFixed(state.Workspace) - view.allocatedFixed
+			limitHeadroom := state.Workspace.Limit - view.allocatedLimit
+			if fixedHeadroom >= minimumNamespaceCU && limitHeadroom >= minimumNamespaceCU {
+				wanted := view.desiredByName[missing[0]]
+				step := Step{
+					Action:             CreateNamespace,
+					Ref:                Ref{Namespace: missing[0]},
+					To:                 Allocation{FixedCU: minimumNamespaceCU, Limit: minimumNamespaceCU},
+					NamespaceCrossZone: wanted.CrossZone,
+				}
+				safe, err := authoritativeStepIsSafe(state, step, ceiling, phase, budget)
+				if err != nil {
+					return phaseResult{}, err
+				}
+				if !safe {
+					return phaseResult{status: phaseDependencyStall}, nil
+				}
+				if err := appendScheduledStep(&state, &steps, step, phase, budget); err != nil {
+					return phaseResult{}, err
+				}
 				continue
 			}
-			minimum := Allocation{FixedCU: minimumNamespaceCU, Limit: minimumNamespaceCU}
-			candidate := newCandidate(CreateNamespace, Ref{Namespace: wanted.Name}, Allocation{}, minimum, 1)
-			candidate.step.NamespaceCrossZone = wanted.CrossZone
-			result = append(result, candidate)
+
+			step, ok, err := nextTopologyPreparationStep(state, target, view, ceiling, endpoint, phase, topologyFallback, budget)
+			if err != nil {
+				return phaseResult{}, err
+			}
+			if ok {
+				if err := appendScheduledStep(&state, &steps, step, phase, budget); err != nil {
+					return phaseResult{}, err
+				}
+				continue
+			}
+
+			buffer, available := topologyBufferStep(state)
+			if !available {
+				return phaseResult{status: phaseDependencyStall}, nil
+			}
+			safe, err := authoritativeStepIsSafe(state, buffer, ceiling, phase, budget)
+			if err != nil {
+				return phaseResult{}, err
+			}
+			if !safe {
+				return phaseResult{status: phaseDependencyStall}, nil
+			}
+			if err := appendScheduledStep(&state, &steps, buffer, phase, budget); err != nil {
+				return phaseResult{}, err
+			}
 			continue
 		}
-		from := capacityAllocation(*observed.Capacity)
-		to := capacityAllocation(*wanted.Capacity)
-		result = appendCapacityDimensionCandidates(result, ModifyNamespace, Ref{Namespace: wanted.Name}, from, to, 2)
+
+		if len(undeclared) > 0 {
+			step := deleteNamespaceStep(state, undeclared[0])
+			if len(state.Namespaces) <= 1 {
+				return phaseResult{status: phaseDependencyStall}, nil
+			}
+			if err := appendScheduledStep(&state, &steps, step, phase, budget); err != nil {
+				return phaseResult{}, err
+			}
+			return phaseResult{steps: steps, status: phaseDeleteFrontier}, nil
+		}
+
+		step, ok, err := nextCapacityStep(state, target, view, ceiling, endpoint, phase, topologyFallback, budget)
+		if err != nil {
+			return phaseResult{}, err
+		}
+		if !ok {
+			return phaseResult{status: phaseDependencyStall}, nil
+		}
+		if err := appendScheduledStep(&state, &steps, step, phase, budget); err != nil {
+			return phaseResult{}, err
+		}
+	}
+}
+
+func nextTopologyPreparationStep(state, target Tree, view canonicalPhaseState, ceiling, endpoint CU, phase string, topologyFallback bool, budget *plannerBudget) (Step, bool, error) {
+	if step, ok, err := nextChildContraction(state, view, ceiling, phase, budget); ok || err != nil {
+		return step, ok, err
+	}
+	fixedHeadroom := activeWorkspaceFixed(state.Workspace) - view.allocatedFixed
+	if fixedHeadroom < minimumNamespaceCU {
+		if buffer, available := topologyBufferStep(state); available {
+			safe, err := authoritativeStepIsSafe(state, buffer, ceiling, phase, budget)
+			if err != nil || safe {
+				return buffer, safe, err
+			}
+		}
+	}
+	step, ok, err := nextWorkspaceStep(state, target, view, ceiling, endpoint, phase, budget)
+	if err != nil || !ok {
+		return step, ok, err
+	}
+	// A missing-namespace fallback owns exactly one kind of endpoint-exceeding
+	// mutation: topologyBufferStep. Target-directed Workspace steps may be
+	// replayed while they remain within the endpoint, but an elastic or other
+	// composition bridge must not consume the topology entitlement.
+	if !workspaceStepAllowedInTopologyFallback(step, endpoint, topologyFallback) {
+		return Step{}, false, nil
+	}
+	return step, true, nil
+}
+
+func nextCapacityStep(state, target Tree, view canonicalPhaseState, ceiling, endpoint CU, phase string, topologyFallback bool, budget *plannerBudget) (Step, bool, error) {
+	if step, ok, err := nextChildContraction(state, view, ceiling, phase, budget); ok || err != nil {
+		return step, ok, err
+	}
+	if step, ok, err := nextWorkspaceStep(state, target, view, ceiling, endpoint, phase, budget); err != nil {
+		return Step{}, false, err
+	} else if ok && workspaceStepAllowedInTopologyFallback(step, endpoint, topologyFallback) {
+		return step, true, nil
+	}
+	return nextChildExpansion(state, view, ceiling, phase, budget)
+}
+
+func workspaceStepAllowedInTopologyFallback(step Step, endpoint CU, topologyFallback bool) bool {
+	return !topologyFallback || step.To.Limit <= endpoint
+}
+
+func nextChildContraction(state Tree, view canonicalPhaseState, ceiling CU, phase string, budget *plannerBudget) (Step, bool, error) {
+	for _, name := range view.desiredNames {
+		if err := budget.addWork(phase, 1); err != nil {
+			return Step{}, false, err
+		}
+		observed := view.actualByName[name]
+		if observed == nil {
+			continue
+		}
+		wanted := view.desiredByName[name]
 		observedQueue := queueByName(*observed, "default-queue")
-		from = capacityAllocation(*observedQueue.Capacity)
-		to = capacityAllocation(*wanted.Queues[0].Capacity)
-		result = appendCapacityDimensionCandidates(result, ModifyQueue, Ref{Namespace: wanted.Name, Queue: "default-queue"}, from, to, 3)
+		wantedQueue := queueByName(*wanted, "default-queue")
+		if observedQueue == nil || wantedQueue == nil {
+			continue
+		}
+		if step, ok := contractionDimensionStep(ModifyQueue, Ref{Namespace: name, Queue: "default-queue"}, capacityAllocation(*observedQueue.Capacity), capacityAllocation(*wantedQueue.Capacity), observedQueue.Used); ok {
+			safe, err := authoritativeStepIsSafe(state, step, ceiling, phase, budget)
+			if err != nil || safe {
+				return step, safe, err
+			}
+		}
+	}
+	for _, name := range view.desiredNames {
+		if err := budget.addWork(phase, 1); err != nil {
+			return Step{}, false, err
+		}
+		observed := view.actualByName[name]
+		if observed == nil {
+			continue
+		}
+		wanted := view.desiredByName[name]
+		if step, ok := contractionDimensionStep(ModifyNamespace, Ref{Namespace: name}, capacityAllocation(*observed.Capacity), capacityAllocation(*wanted.Capacity), observed.Used); ok {
+			safe, err := authoritativeStepIsSafe(state, step, ceiling, phase, budget)
+			if err != nil || safe {
+				return step, safe, err
+			}
+		}
+	}
+	return Step{}, false, nil
+}
+
+func contractionDimensionStep(action Action, ref Ref, from, target Allocation, used float64) (Step, bool) {
+	to := from
+	if from.TotalFixed() > target.TotalFixed() {
+		to.FixedCU = target.FixedCU
+		to.CrossZoneFixedCU = target.CrossZoneFixedCU
+	}
+	if from.Limit > target.Limit {
+		minimum := maxCU(target.Limit, to.TotalFixed(), usedLimitCU(used))
+		if minimum < from.Limit {
+			to.Limit = minimum
+		}
+	}
+	if to != from {
+		return Step{Action: action, Ref: ref, From: from, To: to}, true
+	}
+	return Step{}, false
+}
+
+func nextWorkspaceStep(state, target Tree, view canonicalPhaseState, ceiling, endpoint CU, phase string, budget *plannerBudget) (Step, bool, error) {
+	from := workspaceAllocation(state.Workspace)
+	currentFixed := from.TotalFixed()
+	currentElastic := from.AsCapacity().Elastic()
+	targetAllocation := workspaceAllocation(target.Workspace)
+	targetFixed := targetAllocation.TotalFixed()
+	targetElastic := targetAllocation.AsCapacity().Elastic()
+	allocatedFixed, allocatedLimit := view.allocatedFixed, view.allocatedLimit
+	usedLimit := usedLimitCU(state.Workspace.Used)
+
+	candidates := make([]Step, 0, 2)
+	if currentFixed != targetFixed {
+		newFixed := currentFixed
+		if currentFixed < targetFixed {
+			newFixed = minCU(targetFixed, ceiling-currentElastic)
+		} else {
+			newFixed = maxCU(targetFixed, allocatedFixed, allocatedLimit-currentElastic, usedLimit-currentElastic)
+		}
+		newFixed = clampNonNegative(newFixed)
+		if movesToward(currentFixed, newFixed, targetFixed) {
+			to := from
+			setAllocationActiveFixed(&to, state.Workspace.HA, newFixed)
+			to.Limit = newFixed + currentElastic
+			candidates = append(candidates, Step{Action: ModifyWorkspaceFixed, From: from, To: to, Temporary: to.Limit > endpoint})
+		}
+	}
+	if currentElastic != targetElastic {
+		newElastic := currentElastic
+		if currentElastic < targetElastic {
+			newElastic = minCU(targetElastic, ceiling-currentFixed)
+		} else {
+			newElastic = maxCU(targetElastic, allocatedLimit-currentFixed, usedLimit-currentFixed, 0)
+		}
+		newElastic = clampNonNegative(newElastic)
+		if movesToward(currentElastic, newElastic, targetElastic) {
+			to := from
+			to.Limit = currentFixed + newElastic
+			action := ModifyWorkspaceElastic
+			if currentElastic == 0 && newElastic > 0 {
+				action = EnableWorkspaceElastic
+			}
+			candidates = append(candidates, Step{Action: action, From: from, To: to, Temporary: to.Limit > endpoint})
+		}
 	}
 
-	// Missing namespaces reserve available headroom before retained allocations
-	// expand. A true surplus (more actual than desired namespaces) may be deleted
-	// first to avoid temporary capacity; paired rename sources remain until a
-	// replacement has been created.
-	if !missingNamespace || len(planning.createdNamespaces) > 0 || len(state.Namespaces) > len(target.Namespaces) {
-		for _, observed := range sortedNamespaces(state.Namespaces) {
-			if namespaceByName(target, observed.Name) != nil || len(state.Namespaces) <= 1 {
-				continue
+	sort.SliceStable(candidates, func(i, j int) bool {
+		iDelta := candidates[i].To.Limit - candidates[i].From.Limit
+		jDelta := candidates[j].To.Limit - candidates[j].From.Limit
+		if (iDelta <= 0) != (jDelta <= 0) {
+			return iDelta <= 0
+		}
+		return candidates[i].Action < candidates[j].Action
+	})
+	for _, step := range candidates {
+		if err := budget.addWork(phase, 1); err != nil {
+			return Step{}, false, err
+		}
+		safe, err := authoritativeStepIsSafe(state, step, ceiling, phase, budget)
+		if err != nil {
+			return Step{}, false, err
+		}
+		if safe {
+			return step, true, nil
+		}
+	}
+	return Step{}, false, nil
+}
+
+func nextChildExpansion(state Tree, view canonicalPhaseState, ceiling CU, phase string, budget *plannerBudget) (Step, bool, error) {
+	for _, name := range view.desiredNames {
+		if err := budget.addWork(phase, 1); err != nil {
+			return Step{}, false, err
+		}
+		observed := view.actualByName[name]
+		if observed == nil {
+			continue
+		}
+		wanted := view.desiredByName[name]
+		from := capacityAllocation(*observed.Capacity)
+		targetAllocation := capacityAllocation(*wanted.Capacity)
+		if step, ok := namespaceExpansionStep(state, view, name, from, targetAllocation); ok {
+			safe, err := authoritativeStepIsSafe(state, step, ceiling, phase, budget)
+			if err != nil || safe {
+				return step, safe, err
 			}
-			result = append(result, newCandidate(DeleteNamespace, Ref{Namespace: observed.Name}, capacityAllocation(*observed.Capacity), Allocation{}, 4))
+		}
+	}
+	for _, name := range view.desiredNames {
+		if err := budget.addWork(phase, 1); err != nil {
+			return Step{}, false, err
+		}
+		observed := view.actualByName[name]
+		if observed == nil {
+			continue
+		}
+		wanted := view.desiredByName[name]
+		observedQueue := queueByName(*observed, "default-queue")
+		wantedQueue := queueByName(*wanted, "default-queue")
+		if observedQueue == nil || wantedQueue == nil {
+			continue
+		}
+		if step, ok := queueExpansionStep(*observed, name, capacityAllocation(*observedQueue.Capacity), capacityAllocation(*wantedQueue.Capacity)); ok {
+			safe, err := authoritativeStepIsSafe(state, step, ceiling, phase, budget)
+			if err != nil || safe {
+				return step, safe, err
+			}
+		}
+	}
+	return Step{}, false, nil
+}
+
+func namespaceExpansionStep(state Tree, view canonicalPhaseState, name string, from, target Allocation) (Step, bool) {
+	otherFixed, otherLimit := view.allocatedFixed, view.allocatedLimit
+	otherFixed -= from.TotalFixed()
+	otherLimit -= from.Limit
+	to := from
+	if from.Limit < target.Limit {
+		newLimit := minCU(target.Limit, state.Workspace.Limit-otherLimit)
+		if newLimit > from.Limit {
+			to.Limit = newLimit
+		}
+	}
+	if from.TotalFixed() < target.TotalFixed() {
+		newFixed := minCU(target.TotalFixed(), activeWorkspaceFixed(state.Workspace)-otherFixed, to.Limit)
+		if newFixed > from.TotalFixed() {
+			setAllocationActiveFixed(&to, false, newFixed)
+		}
+	}
+	if to != from {
+		return Step{Action: ModifyNamespace, Ref: Ref{Namespace: name}, From: from, To: to}, true
+	}
+	return Step{}, false
+}
+
+func queueExpansionStep(namespace Namespace, namespaceName string, from, target Allocation) (Step, bool) {
+	to := from
+	if from.Limit < target.Limit {
+		newLimit := minCU(target.Limit, namespace.Capacity.Limit)
+		if newLimit > from.Limit {
+			to.Limit = newLimit
+		}
+	}
+	if from.TotalFixed() < target.TotalFixed() {
+		newFixed := minCU(target.TotalFixed(), namespace.Capacity.Fixed, to.Limit)
+		if newFixed > from.TotalFixed() {
+			setAllocationActiveFixed(&to, false, newFixed)
+		}
+	}
+	if to != from {
+		return Step{Action: ModifyQueue, Ref: Ref{Namespace: namespaceName, Queue: "default-queue"}, From: from, To: to}, true
+	}
+	return Step{}, false
+}
+
+func topologyBufferStep(state Tree) (Step, bool) {
+	from := workspaceAllocation(state.Workspace)
+	currentFixed := activeWorkspaceFixed(state.Workspace)
+	if currentFixed < 0 || currentFixed > maximumFlinkSerializableComponentCU-minimumNamespaceCU {
+		return Step{}, false
+	}
+	if state.Workspace.Limit < 0 || state.Workspace.Limit > CU(math.MaxInt64)-minimumNamespaceCU {
+		return Step{}, false
+	}
+	to := from
+	setAllocationActiveFixed(&to, state.Workspace.HA, currentFixed+minimumNamespaceCU)
+	to.Limit += minimumNamespaceCU
+	return Step{Action: ModifyWorkspaceFixed, From: from, To: to, Temporary: true}, true
+}
+
+func deleteNamespaceStep(state Tree, name string) Step {
+	namespace := namespaceByName(state, name)
+	return Step{Action: DeleteNamespace, Ref: Ref{Namespace: name}, From: capacityAllocation(*namespace.Capacity)}
+}
+
+func appendScheduledStep(state *Tree, steps *[]Step, step Step, phase string, budget *plannerBudget) error {
+	if err := budget.addStep(phase); err != nil {
+		return err
+	}
+	applyCandidate(state, candidate{step: step})
+	*steps = append(*steps, step)
+	return nil
+}
+
+func authoritativeStepIsSafe(state Tree, step Step, ceiling CU, phase string, budget *plannerBudget) (bool, error) {
+	if isWorkspaceAction(step.Action) {
+		if !workspaceStepFitsFOASInt32(step) || step.To.Limit > ceiling {
+			return false, nil
+		}
+	}
+	if err := budget.addWork(phase, capacityNodeCount(state)); err != nil {
+		return false, err
+	}
+	next := cloneTree(state)
+	applyCandidate(&next, candidate{step: step})
+	return validatePlanningStateContext(budget.ctx, next) == nil, budget.checkContext()
+}
+
+func workspaceStepFitsFOASInt32(step Step) bool {
+	fits := func(value CU) bool {
+		return value >= 0 && value <= maximumFlinkSerializableComponentCU
+	}
+	switch step.Action {
+	case ModifyWorkspaceFixed:
+		return fits(step.To.FixedCU) && fits(step.To.CrossZoneFixedCU)
+	case ModifyWorkspacePostpaid:
+		return fits(step.To.Limit)
+	case EnableWorkspaceElastic, ModifyWorkspaceElastic:
+		elastic, ok := allocationElasticCU(step.To)
+		return ok && fits(elastic)
+	default:
+		return true
+	}
+}
+
+func allocationElasticCU(allocation Allocation) (CU, bool) {
+	if allocation.FixedCU < 0 || allocation.CrossZoneFixedCU < 0 || allocation.Limit < 0 {
+		return 0, false
+	}
+	if allocation.FixedCU > CU(math.MaxInt64)-allocation.CrossZoneFixedCU {
+		return 0, false
+	}
+	totalFixed := allocation.FixedCU + allocation.CrossZoneFixedCU
+	if allocation.Limit < totalFixed {
+		return 0, false
+	}
+	return allocation.Limit - totalFixed, true
+}
+
+func isWorkspaceAction(action Action) bool {
+	switch action {
+	case ModifyWorkspaceFixed, ModifyWorkspacePostpaid, EnableWorkspaceElastic, ModifyWorkspaceElastic:
+		return true
+	default:
+		return false
+	}
+}
+
+func activeWorkspaceFixed(workspace WorkspaceCapacity) CU {
+	if workspace.HA {
+		return workspace.CrossZoneFixedCU
+	}
+	return workspace.FixedCU
+}
+
+func setAllocationActiveFixed(allocation *Allocation, ha bool, fixed CU) {
+	if ha {
+		allocation.FixedCU = 0
+		allocation.CrossZoneFixedCU = fixed
+		return
+	}
+	allocation.FixedCU = fixed
+	allocation.CrossZoneFixedCU = 0
+}
+
+func movesToward(current, next, target CU) bool {
+	if current < target {
+		return next > current && next <= target
+	}
+	return next < current && next >= target
+}
+
+func usedLimitCU(used float64) CU {
+	if used <= 0 {
+		return 0
+	}
+	return CU(math.Ceil(used)) * 2
+}
+
+func clampNonNegative(value CU) CU {
+	if value < 0 {
+		return 0
+	}
+	return value
+}
+
+func minCU(first CU, rest ...CU) CU {
+	result := first
+	for _, value := range rest {
+		if value < result {
+			result = value
 		}
 	}
 	return result
 }
 
-func appendCapacityDimensionCandidates(result []candidate, action Action, ref Ref, from, target Allocation, level int) []candidate {
-	if from.FixedCU != target.FixedCU || from.CrossZoneFixedCU != target.CrossZoneFixedCU {
-		to := from
-		to.FixedCU = target.FixedCU
-		to.CrossZoneFixedCU = target.CrossZoneFixedCU
-		if err := to.AsCapacity().Validate(); err == nil {
-			result = append(result, newCandidate(action, ref, from, to, level))
-		}
-	}
-	if from.Limit != target.Limit {
-		to := from
-		to.Limit = target.Limit
-		if err := to.AsCapacity().Validate(); err == nil {
-			result = append(result, newCandidate(action, ref, from, to, level))
+func maxCU(first CU, rest ...CU) CU {
+	result := first
+	for _, value := range rest {
+		if value > result {
+			result = value
 		}
 	}
 	return result
+}
+
+func noSafeTransitionError() error {
+	return fmt.Errorf("no safe capacity transition exists without exceeding endpoint capacity or violating child allocations")
 }
 
 func sortedNamespaces(input []Namespace) []Namespace {
 	result := append([]Namespace(nil), input...)
 	sort.Slice(result, func(i, j int) bool { return result[i].Name < result[j].Name })
 	return result
-}
-
-func hasMissingNamespace(state, target Tree) bool {
-	for _, wanted := range target.Namespaces {
-		if namespaceByName(state, wanted.Name) == nil {
-			return true
-		}
-	}
-	return false
-}
-
-func temporaryWorkspaceCandidate(state Tree, planning *plannerState) *candidate {
-	if state.ChargeType != "PRE" {
-		return nil
-	}
-	if planning.temporaryGranted {
-		return nil
-	}
-	current := workspaceAllocation(state.Workspace)
-	fixedHeadroom, limitHeadroom := workspaceHeadroom(state)
-	if fixedHeadroom >= minimumNamespaceCU && limitHeadroom >= minimumNamespaceCU {
-		return nil
-	}
-	to := current
-	if state.Workspace.HA {
-		to.CrossZoneFixedCU += minimumNamespaceCU
-	} else {
-		to.FixedCU += minimumNamespaceCU
-	}
-	to.Limit += minimumNamespaceCU
-	return &candidate{
-		step:      Step{Action: ModifyWorkspaceFixed, From: current, To: to, Temporary: true},
-		level:     0,
-		expansion: true,
-	}
-}
-
-func workspaceHeadroom(tree Tree) (CU, CU) {
-	workspace := tree.Workspace
-	var allocatedFixed, allocatedLimit CU
-	for _, namespace := range tree.Namespaces {
-		if namespace.Capacity == nil {
-			continue
-		}
-		if namespace.CrossZone == workspace.HA {
-			allocatedFixed += namespace.Capacity.Fixed
-		}
-		allocatedLimit += namespace.Capacity.Limit
-	}
-	poolFixed := workspace.FixedCU
-	if workspace.HA {
-		poolFixed = workspace.CrossZoneFixedCU
-	}
-	return poolFixed - allocatedFixed, workspace.Limit - allocatedLimit
 }
 
 func newCandidate(action Action, ref Ref, from, to Allocation, level int) candidate {
@@ -814,24 +1644,6 @@ func newCandidate(action Action, ref Ref, from, to Allocation, level int) candid
 	}
 }
 
-func selectCandidate(state Tree, candidates []candidate, maxEndpointLimit CU, expansion bool) *candidate {
-	selectedIndex := -1
-	for i := range candidates {
-		candidate := candidates[i]
-		if candidate.expansion != expansion || !candidateIsSafe(state, candidate, maxEndpointLimit) {
-			continue
-		}
-		if selectedIndex < 0 || betterLevel(candidate.level, candidates[selectedIndex].level, expansion) {
-			selectedIndex = i
-		}
-	}
-	if selectedIndex < 0 {
-		return nil
-	}
-	selected := candidates[selectedIndex]
-	return &selected
-}
-
 func betterLevel(candidate, selected int, expansion bool) bool {
 	if expansion {
 		return candidate < selected
@@ -839,21 +1651,19 @@ func betterLevel(candidate, selected int, expansion bool) bool {
 	return candidate > selected
 }
 
-func candidateIsSafe(state Tree, candidate candidate, maxEndpointLimit CU) bool {
-	if candidate.level == 0 && candidate.step.To.Limit > maxEndpointLimit {
-		return false
-	}
-	next := cloneTree(state)
-	applyCandidate(&next, candidate)
-	return validatePlanningState(next) == nil
+func validatePlanningState(tree Tree) error {
+	return validatePlanningStateContext(context.Background(), tree)
 }
 
-func validatePlanningState(tree Tree) error {
-	if err := validateObserved(tree); err != nil {
+func validatePlanningStateContext(ctx context.Context, tree Tree) error {
+	if err := validateObservedContext(ctx, tree); err != nil {
 		return err
 	}
 	var fixed, crossZoneFixed, limit CU
 	for _, namespace := range tree.Namespaces {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		if namespace.CrossZone {
 			crossZoneFixed += namespace.Capacity.Fixed
 		} else {

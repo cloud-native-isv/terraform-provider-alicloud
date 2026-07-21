@@ -172,6 +172,19 @@ func TestCreateFlinkWorkspacePersistsPendingMarkerAfterRecoveryTimeout(t *testin
 	}
 }
 
+func TestPendingCreateDiscoveryUsesIdentityWithoutGuessingLostIntent(t *testing.T) {
+	token := strings.Repeat("7", 64)
+	workspace := createTokenWorkspace("f-visible", "workspace", "cn-beijing", token)
+	workspace.Ha = true
+	workspace.ResourceSpec = &flink.ResourceSpec{Cpu: 0, MemoryGB: 0}
+	workspace.HaResourceSpec = &flink.ResourceSpec{Cpu: 2, MemoryGB: 8}
+	service := &fakeFlinkWorkspaceCreateService{listResponses: [][]flink.Workspace{{workspace}}}
+	err := checkPendingFlinkWorkspaceCreate(service, pendingFlinkWorkspaceCreateID(token), "workspace", "cn-beijing")
+	if err == nil || !strings.Contains(err.Error(), "f-visible") || !strings.Contains(err.Error(), "import") {
+		t.Fatalf("pending discovery error = %v, want visible instance import guidance", err)
+	}
+}
+
 func TestSDKPersistsPendingCreateIDWhenCreateReturnsError(t *testing.T) {
 	wantID := pendingFlinkWorkspaceCreateID("token")
 	resource := &schema.Resource{
@@ -204,12 +217,16 @@ func (f *fakeFlinkWorkspaceCreateService) CreateInstance(request *flink.Workspac
 }
 
 func createTokenWorkspace(id, name, region, token string) flink.Workspace {
-	return flink.Workspace{
+	workspace := flink.Workspace{
 		Id:     id,
 		Name:   name,
 		Region: region,
-		Tags:   []flink.Tag{{Key: flinkworkspace.CreateTokenTagKey, Value: token}},
 	}
+	workspace.Tags = []flink.Tag{
+		{Key: flinkworkspace.CreateTokenTagKey, Value: token},
+		{Key: flinkworkspace.CreateIntentTagKey, Value: flinkworkspace.WorkspaceCreateIntentFingerprint(&workspace, flinkworkspace.CreateOptions{}, flinkworkspace.CapacityIntentLegacy)},
+	}
+	return workspace
 }
 
 func TestCreateFlinkWorkspaceRecoversBeforePurchasing(t *testing.T) {
@@ -262,6 +279,19 @@ func TestCreateFlinkWorkspaceRefusesAmbiguousRecovery(t *testing.T) {
 	}
 }
 
+func TestCreateFlinkWorkspaceRefusesDuplicateTokenKeyWithinOneWorkspace(t *testing.T) {
+	request := &flink.Workspace{Name: "workspace", Region: "cn-beijing"}
+	token := flinkworkspace.WorkspaceCreateToken(request)
+	workspace := createTokenWorkspace("f-existing", request.Name, request.Region, token)
+	workspace.Tags = append(workspace.Tags, flink.Tag{Key: flinkworkspace.CreateTokenTagKey, Value: token})
+	service := &fakeFlinkWorkspaceCreateService{listResponses: [][]flink.Workspace{{workspace}}}
+
+	_, err := createFlinkWorkspace(service, request, flinkworkspace.CreateOptions{}, time.Minute)
+	if err == nil || !strings.Contains(err.Error(), "duplicate") || service.createCalls != 0 {
+		t.Fatalf("duplicate token discovery error=%v createCalls=%d, want fail-closed before purchase", err, service.createCalls)
+	}
+}
+
 func TestCreateFlinkWorkspaceRefusesTaggedImmutableMismatch(t *testing.T) {
 	request := &flink.Workspace{Name: "workspace", Region: "cn-beijing", VpcId: "vpc-expected", ChargeType: "PRE"}
 	token := flinkworkspace.WorkspaceCreateToken(request)
@@ -294,6 +324,155 @@ func TestCreateFlinkWorkspaceAddsStableToken(t *testing.T) {
 	token := flinkworkspace.WorkspaceCreateToken(request)
 	if service.request == nil || !flinkWorkspaceHasTag(service.request.Tags, flinkworkspace.CreateTokenTagKey, token) {
 		t.Fatalf("request tags = %#v", service.request)
+	}
+}
+
+func TestCreateFlinkWorkspacePreservesEffectivePurchaseOptions(t *testing.T) {
+	for _, test := range []struct {
+		name         string
+		autoRenew    bool
+		duration     int32
+		pricingCycle string
+		extra        string
+		promotion    string
+		usePromotion bool
+		capacityMode string
+	}{
+		{name: "one month defaults legacy", autoRenew: true, duration: 1, pricingCycle: "Month", capacityMode: flinkworkspace.CapacityIntentLegacy},
+		{name: "three months auto false with extras", autoRenew: false, duration: 3, pricingCycle: "Month", extra: "extra", promotion: "promotion", usePromotion: true, capacityMode: flinkworkspace.CapacityIntentLegacy},
+		{name: "one year initial", autoRenew: true, duration: 1, pricingCycle: "Year", capacityMode: flinkworkspace.CapacityIntentInitial},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			request := &flink.Workspace{Name: "workspace", Region: "cn-beijing", ChargeType: "PRE", ResourceSpec: &flink.ResourceSpec{Cpu: 2, MemoryGB: 8}}
+			options := flinkworkspace.CreateOptions{
+				AutoRenew: &test.autoRenew, Duration: &test.duration, PricingCycle: test.pricingCycle,
+				Extra: test.extra, PromotionCode: test.promotion, UsePromotionCode: &test.usePromotion,
+			}
+			service := &fakeFlinkWorkspaceCreateService{listResponses: [][]flink.Workspace{nil}, createResponse: &flink.Workspace{Id: "f-created"}}
+			if _, err := createFlinkWorkspaceWithIntent(service, request, options, test.capacityMode, time.Minute); err != nil {
+				t.Fatal(err)
+			}
+			if service.options.AutoRenew == nil || *service.options.AutoRenew != test.autoRenew || service.options.Duration == nil || *service.options.Duration != test.duration || service.options.PricingCycle != test.pricingCycle || service.options.Extra != test.extra || service.options.PromotionCode != test.promotion || service.options.UsePromotionCode == nil || *service.options.UsePromotionCode != test.usePromotion {
+				t.Fatalf("CreateInstance options = %#v", service.options)
+			}
+		})
+	}
+}
+
+func TestCreateFlinkWorkspaceAddsAndRequiresExactIntentFingerprint(t *testing.T) {
+	request := &flink.Workspace{
+		Name: "workspace", Region: "cn-beijing", ChargeType: "PRE",
+		ResourceSpec: &flink.ResourceSpec{Cpu: 2, MemoryGB: 8},
+	}
+	autoRenew := false
+	duration := int32(3)
+	usePromotion := true
+	options := flinkworkspace.CreateOptions{
+		AutoRenew: &autoRenew, Duration: &duration, PricingCycle: "Month",
+		Extra: "extra", PromotionCode: "promotion", UsePromotionCode: &usePromotion,
+	}
+	wantToken := flinkworkspace.WorkspaceCreateToken(request)
+	wantFingerprint := flinkworkspace.WorkspaceCreateIntentFingerprint(request, options, flinkworkspace.CapacityIntentLegacy)
+
+	t.Run("new purchase carries both provider tags", func(t *testing.T) {
+		service := &fakeFlinkWorkspaceCreateService{
+			listResponses:  [][]flink.Workspace{nil},
+			createResponse: &flink.Workspace{Id: "f-created"},
+		}
+		if _, err := createFlinkWorkspaceWithIntent(service, request, options, flinkworkspace.CapacityIntentLegacy, time.Minute); err != nil {
+			t.Fatal(err)
+		}
+		if !flinkWorkspaceHasTag(service.request.Tags, flinkworkspace.CreateTokenTagKey, wantToken) {
+			t.Fatalf("create request is missing identity tag: %#v", service.request.Tags)
+		}
+		if !flinkWorkspaceHasTag(service.request.Tags, flinkworkspace.CreateIntentTagKey, wantFingerprint) {
+			t.Fatalf("create request is missing intent tag: %#v", service.request.Tags)
+		}
+	})
+
+	for _, test := range []struct {
+		name        string
+		fingerprint string
+		wantSuccess bool
+	}{
+		{name: "exact fingerprint", fingerprint: wantFingerprint, wantSuccess: true},
+		{name: "missing fingerprint"},
+		{name: "mismatched fingerprint", fingerprint: strings.Repeat("f", 64)},
+	} {
+		t.Run("recovery "+test.name, func(t *testing.T) {
+			recovered := createTokenWorkspace("f-recovered", request.Name, request.Region, wantToken)
+			recovered.ChargeType = request.ChargeType
+			recovered.ResourceSpec = &flink.ResourceSpec{Cpu: request.ResourceSpec.Cpu, MemoryGB: request.ResourceSpec.MemoryGB}
+			recovered.Tags = []flink.Tag{{Key: flinkworkspace.CreateTokenTagKey, Value: wantToken}}
+			if test.fingerprint != "" {
+				recovered.Tags = append(recovered.Tags, flink.Tag{Key: flinkworkspace.CreateIntentTagKey, Value: test.fingerprint})
+			}
+			service := &fakeFlinkWorkspaceCreateService{listResponses: [][]flink.Workspace{{recovered}}}
+			workspace, err := createFlinkWorkspaceWithIntent(service, request, options, flinkworkspace.CapacityIntentLegacy, time.Minute)
+			if test.wantSuccess {
+				if err != nil || workspace == nil || workspace.Id != "f-recovered" || service.createCalls != 0 {
+					t.Fatalf("recovery workspace=%#v error=%v createCalls=%d", workspace, err, service.createCalls)
+				}
+				return
+			}
+			if err == nil || service.createCalls != 0 {
+				t.Fatalf("unsafe recovery workspace=%#v error=%v createCalls=%d", workspace, err, service.createCalls)
+			}
+		})
+	}
+}
+
+func TestCreateFlinkWorkspaceRecoveryRequiresExactObservableCapacity(t *testing.T) {
+	request := &flink.Workspace{
+		Name: "workspace", Region: "cn-beijing", ChargeType: "PRE",
+		ResourceSpec: &flink.ResourceSpec{Cpu: 2, MemoryGB: 8},
+		HighAvailability: &flink.HighAvailability{
+			Enabled: true, ResourceSpec: &flink.ResourceSpec{Cpu: 3, MemoryGB: 12},
+		},
+	}
+	options := flinkworkspace.CreateOptions{}
+	token := flinkworkspace.WorkspaceCreateToken(request)
+	fingerprint := flinkworkspace.WorkspaceCreateIntentFingerprint(request, options, flinkworkspace.CapacityIntentLegacy)
+	base := func() flink.Workspace {
+		return flink.Workspace{
+			Id: "f-recovered", Name: request.Name, Region: request.Region, ChargeType: "PRE", Ha: true,
+			ResourceSpec:   &flink.ResourceSpec{Cpu: 2, MemoryGB: 8},
+			HaResourceSpec: &flink.ResourceSpec{Cpu: 3, MemoryGB: 12},
+			Tags: []flink.Tag{
+				{Key: flinkworkspace.CreateTokenTagKey, Value: token},
+				{Key: flinkworkspace.CreateIntentTagKey, Value: fingerprint},
+			},
+		}
+	}
+	for _, test := range []struct {
+		name        string
+		mutate      func(*flink.Workspace)
+		wantSuccess bool
+	}{
+		{name: "exact", wantSuccess: true},
+		{name: "primary CPU", mutate: func(workspace *flink.Workspace) { workspace.ResourceSpec.Cpu = 4 }},
+		{name: "primary memory", mutate: func(workspace *flink.Workspace) { workspace.ResourceSpec.MemoryGB = 16 }},
+		{name: "missing HA", mutate: func(workspace *flink.Workspace) { workspace.Ha = false; workspace.HaResourceSpec = nil }},
+		{name: "HA CPU", mutate: func(workspace *flink.Workspace) { workspace.HaResourceSpec.Cpu = 4 }},
+		{name: "HA memory", mutate: func(workspace *flink.Workspace) { workspace.HaResourceSpec.MemoryGB = 16 }},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			recovered := base()
+			if test.mutate != nil {
+				test.mutate(&recovered)
+			}
+			service := &fakeFlinkWorkspaceCreateService{listResponses: [][]flink.Workspace{{recovered}}}
+			workspace, err := createFlinkWorkspaceWithIntent(service, request, options, flinkworkspace.CapacityIntentLegacy, time.Minute)
+			if test.wantSuccess {
+				if err != nil || workspace == nil || workspace.Id != "f-recovered" || service.createCalls != 0 {
+					t.Fatalf("workspace=%#v error=%v createCalls=%d", workspace, err, service.createCalls)
+				}
+				return
+			}
+			if err == nil || service.createCalls != 0 {
+				t.Fatalf("mismatch workspace=%#v error=%v createCalls=%d", workspace, err, service.createCalls)
+			}
+		})
 	}
 }
 

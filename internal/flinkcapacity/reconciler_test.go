@@ -3,6 +3,7 @@ package flinkcapacity
 import (
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -426,33 +427,93 @@ func TestReconcilerReusesOneCUTemporaryBufferAcrossMultipleRenames(t *testing.T)
 	}
 }
 
-func TestReconcilerRenameAndShrinkBuffersFromMigrationOriginWithoutStacking(t *testing.T) {
-	actual := authoritativeTree(6, authoritativeNamespace("old", 6, 6, 0))
-	desired := authoritativeTree(4, authoritativeNamespace("new", 4, 4, 0))
-	api := &fakeCapacityAPI{tree: actual}
+func TestReconcilerNetGrowthRenameStaysWithinEntryPlusOneAcrossCreateRestart(t *testing.T) {
+	for _, sources := range []int{1, 2} {
+		for _, ha := range []bool{false, true} {
+			t.Run("sources="+strconv.Itoa(sources)+"/ha="+strconv.FormatBool(ha), func(t *testing.T) {
+				actual, desired := authoritativeNetGrowthRenameFixture(sources, ha)
+				ceiling := maxCU(actual.Workspace.Limit, desired.Workspace.Limit) + minimumNamespaceCU
+				api := &fakeCapacityAPI{tree: cloneTree(actual)}
+				interrupted := false
+				api.applyFn = func(f *fakeCapacityAPI, step Step) (Operation, error) {
+					applyCandidate(&f.tree, candidate{step: step})
+					if !interrupted && step.Action == CreateNamespace {
+						interrupted = true
+						return Operation{RequestID: "create-written"}, errors.New("injected process restart after Create")
+					}
+					return Operation{RequestID: "request"}, nil
+				}
 
-	got, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
-	if err != nil {
-		t.Fatal(err)
-	}
-	bufferExpansions := 0
-	peak := CU(0)
-	for _, step := range api.writes {
-		if step.Action != ModifyWorkspaceFixed {
-			continue
+				_, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
+				if err == nil || !interrupted || len(api.writes) != 1 || api.writes[0].Action != CreateNamespace || api.writes[0].Ref.Namespace != "new-00" {
+					t.Fatalf("first reconcile error=%v interrupted=%t writes=%#v, want one applied replacement Create", err, interrupted, api.writes)
+				}
+
+				writesBeforeRestart := len(api.writes)
+				api.applyFn = nil
+				got, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
+				if err != nil {
+					t.Fatal(err)
+				}
+				resumed := api.writes[writesBeforeRestart:]
+				if len(resumed) == 0 || resumed[0].Action == DeleteNamespace {
+					t.Fatalf("first post-restart write=%#v, want source preserved while replacement provenance remains ambiguous; all writes=%#v", resumed, api.writes)
+				}
+				usedBuffer := false
+				for _, step := range api.writes {
+					if isWorkspaceStep(step) && step.To.Limit > ceiling {
+						t.Fatalf("net-growth rename exceeded operation-entry C0+1 %v after restart: %#v", ceiling.Float64(), api.writes)
+					}
+					if isWorkspaceStep(step) && step.To.Limit > maxCU(actual.Workspace.Limit, desired.Workspace.Limit) {
+						usedBuffer = true
+					}
+				}
+				if !usedBuffer {
+					t.Fatalf("writes=%#v, want approved conservative C0+1 buffer after provenance-ambiguous restart", api.writes)
+				}
+				if !sameCapacityTree(got, desired) {
+					t.Fatalf("final tree=%#v, want desired; writes=%#v", got, api.writes)
+				}
+			})
 		}
-		if step.To.TotalFixed() > peak {
-			peak = step.To.TotalFixed()
-		}
-		if step.To.TotalFixed() > 6 {
-			bufferExpansions++
-		}
 	}
-	if bufferExpansions != 1 || peak != 8 {
-		t.Fatalf("buffer expansions=%d peak=%v, want one origin-relative expansion to 8 half-CU; writes=%#v", bufferExpansions, peak, api.writes)
-	}
-	if !sameCapacityTree(got, desired) {
-		t.Fatalf("final tree = %#v", got)
+}
+
+func TestReconcilerUnknownImportedPeakReusesHeadroomOrFailsClosed(t *testing.T) {
+	for _, ha := range []bool{false, true} {
+		t.Run("no-headroom/ha="+strconv.FormatBool(ha), func(t *testing.T) {
+			actual, desired := authoritativeUnknownPeakFixture(ha, false)
+			api := &fakeCapacityAPI{tree: actual}
+
+			got, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
+			if err == nil || !strings.Contains(err.Error(), "no safe capacity transition") {
+				t.Fatalf("tree=%#v error=%v, want fail-closed at unknown imported peak", got, err)
+			}
+			if len(api.writes) != 0 {
+				t.Fatalf("writes=%#v, want no Delete guess and no second temporary CU", api.writes)
+			}
+		})
+
+		t.Run("visible-headroom/ha="+strconv.FormatBool(ha), func(t *testing.T) {
+			actual, desired := authoritativeUnknownPeakFixture(ha, true)
+			api := &fakeCapacityAPI{tree: actual}
+
+			got, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(api.writes) == 0 || api.writes[0].Action != CreateNamespace {
+				t.Fatalf("writes=%#v, want visible imported headroom reused for Create", api.writes)
+			}
+			for _, step := range api.writes {
+				if isWorkspaceStep(step) && step.To.Limit > actual.Workspace.Limit {
+					t.Fatalf("visible imported peak was stacked: actual=%v writes=%#v", actual.Workspace.Limit.Float64(), api.writes)
+				}
+			}
+			if !sameCapacityTree(got, desired) {
+				t.Fatalf("final tree=%#v, want desired; writes=%#v", got, api.writes)
+			}
+		})
 	}
 }
 
@@ -596,6 +657,284 @@ func TestReconcilerAuthoritativeRejectsNamespaceBelowMinimumBeforeWrites(t *test
 	}
 	if len(api.writes) != 0 {
 		t.Fatalf("ReconcileAuthoritative() wrote %#v before rejecting namespace minimum", api.writes)
+	}
+}
+
+func TestReconcilerAuthoritativePlannerFailuresWriteNothing(t *testing.T) {
+	t.Run("context cancellation", func(t *testing.T) {
+		actual := authoritativeCompositionTree(false, 8, 12, 8)
+		desired := authoritativeCompositionTree(false, 4, 12, 4)
+		api := &fakeCapacityAPI{tree: actual}
+		ctx := &cancelAfterChecksContext{Context: context.Background(), remaining: 4}
+
+		_, err := testReconciler(api).ReconcileAuthoritative(ctx, "f-test", desired)
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("error = %v, want context cancellation", err)
+		}
+		if len(api.writes) != 0 {
+			t.Fatalf("writes = %#v, want no writes after planning cancellation", api.writes)
+		}
+	})
+
+	t.Run("hard planner budget", func(t *testing.T) {
+		actual := authoritativeCompositionTree(false, schemaMaximumCUHalfUnits, schemaMaximumCUHalfUnits, schemaMaximumCUHalfUnits)
+		desired := authoritativeCompositionTree(false, minimumNamespaceCU, schemaMaximumCUHalfUnits, minimumNamespaceCU)
+		api := &fakeCapacityAPI{tree: actual}
+
+		_, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
+		var budgetErr *PlannerBudgetError
+		if !errors.As(err, &budgetErr) {
+			t.Fatalf("error = %T %v, want PlannerBudgetError", err, err)
+		}
+		if len(api.writes) != 0 {
+			t.Fatalf("writes = %#v, want no writes after planner budget exhaustion", api.writes)
+		}
+	})
+
+	t.Run("schema maximum rename has no serializable buffer", func(t *testing.T) {
+		for _, ha := range []bool{false, true} {
+			t.Run("ha="+strconv.FormatBool(ha), func(t *testing.T) {
+				actual := authoritativeCompositionTree(ha, schemaMaximumCUHalfUnits, schemaMaximumCUHalfUnits, schemaMaximumCUHalfUnits)
+				actual.Namespaces[0].Name = "old"
+				desired := cloneTree(actual)
+				desired.Namespaces[0].Name = "new"
+				api := &fakeCapacityAPI{tree: actual}
+
+				_, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
+				if err == nil || !strings.Contains(err.Error(), "no safe capacity transition") {
+					t.Fatalf("error=%v, want terminal no-safe error", err)
+				}
+				if len(api.writes) != 0 {
+					t.Fatalf("writes=%#v, want zero writes for an unserializable topology buffer", api.writes)
+				}
+			})
+		}
+	})
+}
+
+func TestReconcilerAuthoritativeRestartDoesNotStackTemporaryCapacity(t *testing.T) {
+	tests := []struct {
+		name      string
+		actual    Tree
+		desired   Tree
+		interrupt func(Step) bool
+	}{
+		{
+			name:    "after topology buffer",
+			actual:  authoritativeTree(4, authoritativeNamespace("old", 4, 4, 0)),
+			desired: authoritativeTree(4, authoritativeNamespace("new", 4, 4, 0)),
+			interrupt: func(step Step) bool {
+				return step.Action == ModifyWorkspaceFixed && step.Temporary
+			},
+		},
+		{
+			name:    "after create",
+			actual:  authoritativeTree(4, authoritativeNamespace("old", 4, 4, 0)),
+			desired: authoritativeTree(4, authoritativeNamespace("new", 4, 4, 0)),
+			interrupt: func(step Step) bool {
+				return step.Action == CreateNamespace
+			},
+		},
+		{
+			name:    "after delete",
+			actual:  authoritativeTree(4, authoritativeNamespace("old", 4, 4, 0)),
+			desired: authoritativeTree(4, authoritativeNamespace("new", 4, 4, 0)),
+			interrupt: func(step Step) bool {
+				return step.Action == DeleteNamespace
+			},
+		},
+		{
+			name:    "after composition bridge",
+			actual:  authoritativeCompositionTree(false, 8, 12, 8),
+			desired: authoritativeCompositionTree(false, 4, 12, 4),
+			interrupt: func(step Step) bool {
+				return isWorkspaceStep(step) && step.Temporary
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			entryCeiling := maxCU(tc.actual.Workspace.Limit, tc.desired.Workspace.Limit) + minimumNamespaceCU
+			api := &fakeCapacityAPI{tree: cloneTree(tc.actual)}
+			interrupted := false
+			api.applyFn = func(f *fakeCapacityAPI, step Step) (Operation, error) {
+				applyCandidate(&f.tree, candidate{step: step})
+				if !interrupted && tc.interrupt(step) {
+					interrupted = true
+					return Operation{RequestID: "interrupted-after-write"}, errors.New("injected interruption")
+				}
+				return Operation{RequestID: "request"}, nil
+			}
+
+			_, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", tc.desired)
+			if err == nil || !interrupted {
+				t.Fatalf("first reconcile error=%v interrupted=%t writes=%#v", err, interrupted, api.writes)
+			}
+			peak := tc.actual.Workspace.Limit
+			for _, step := range api.writes {
+				if isWorkspaceStep(step) && step.To.Limit > peak {
+					peak = step.To.Limit
+				}
+			}
+			writesBeforeResume := len(api.writes)
+			api.applyFn = nil
+
+			got, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", tc.desired)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, step := range api.writes[writesBeforeResume:] {
+				if isWorkspaceStep(step) && step.To.Limit > peak {
+					t.Fatalf("resume stacked temporary capacity above %v: %#v", peak.Float64(), api.writes)
+				}
+			}
+			for _, step := range api.writes {
+				if isWorkspaceStep(step) && step.To.Limit > entryCeiling {
+					t.Fatalf("failure/restart path exceeded operation-entry C0+1 %v: %#v", entryCeiling.Float64(), api.writes)
+				}
+			}
+			if !sameCapacityTree(got, tc.desired) {
+				t.Fatalf("resumed tree = %#v, want desired; writes=%#v", got, api.writes)
+			}
+		})
+	}
+}
+
+func TestReconcilerTopologyBufferErrorsDoNotStackCapacity(t *testing.T) {
+	for _, failure := range []struct {
+		name      string
+		applyStep bool
+		ambiguous bool
+		err       error
+	}{
+		{name: "ordinary before write", err: errors.New("injected terminal write rejection")},
+		{name: "ordinary after write", applyStep: true, err: errors.New("injected process loss after write")},
+		{name: "ambiguous after write", applyStep: true, ambiguous: true, err: ambiguousTestError{}},
+	} {
+		t.Run(failure.name, func(t *testing.T) {
+			actual := authoritativeTree(4, authoritativeNamespace("old", 4, 4, 0))
+			desired := authoritativeTree(4, authoritativeNamespace("new", 4, 4, 0))
+			ceiling := actual.Workspace.Limit + minimumNamespaceCU
+			api := &fakeCapacityAPI{tree: cloneTree(actual)}
+			injected := false
+			api.applyFn = func(f *fakeCapacityAPI, step Step) (Operation, error) {
+				if !injected && step.Action == ModifyWorkspaceFixed && step.Temporary {
+					injected = true
+					if failure.applyStep {
+						applyCandidate(&f.tree, candidate{step: step})
+					}
+					return Operation{RequestID: "buffer-request"}, failure.err
+				}
+				applyCandidate(&f.tree, candidate{step: step})
+				return Operation{RequestID: "request"}, nil
+			}
+
+			got, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
+			if !injected {
+				t.Fatalf("buffer fault was not injected; writes=%#v", api.writes)
+			}
+			if failure.ambiguous {
+				if err != nil {
+					t.Fatalf("ambiguous applied buffer did not recover from Read/replan: %v", err)
+				}
+			} else {
+				if err == nil {
+					t.Fatalf("ordinary buffer failure returned success; writes=%#v", api.writes)
+				}
+				api.applyFn = nil
+				got, err = testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
+				if err != nil {
+					t.Fatalf("restart after ordinary buffer failure did not recover: %v", err)
+				}
+			}
+			for _, step := range api.writes {
+				if isWorkspaceStep(step) && step.To.Limit > ceiling {
+					t.Fatalf("buffer error path stacked above C0+1 %v: %#v", ceiling.Float64(), api.writes)
+				}
+			}
+			if !sameCapacityTree(got, desired) {
+				t.Fatalf("final tree=%#v, want desired; writes=%#v", got, api.writes)
+			}
+		})
+	}
+}
+
+func TestReconcilerPartialHeadroomTopologyBufferRecoversWithoutElasticOrStacking(t *testing.T) {
+	for _, ha := range []bool{false, true} {
+		t.Run("resume/ha="+strconv.FormatBool(ha), func(t *testing.T) {
+			actual, desired := authoritativePartialHeadroomRenameFixture(ha)
+			api := &fakeCapacityAPI{tree: cloneTree(actual)}
+			interrupted := false
+			api.applyFn = func(f *fakeCapacityAPI, step Step) (Operation, error) {
+				applyCandidate(&f.tree, candidate{step: step})
+				if !interrupted && isWorkspaceStep(step) && step.To.Limit > actual.Workspace.Limit {
+					interrupted = true
+					return Operation{RequestID: "buffer-written"}, errors.New("injected interruption after topology buffer")
+				}
+				return Operation{RequestID: "request"}, nil
+			}
+
+			_, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
+			if err == nil || !interrupted {
+				t.Fatalf("first reconcile error=%v interrupted=%t writes=%#v", err, interrupted, api.writes)
+			}
+			first := api.writes[0]
+			if first.Action != ModifyWorkspaceFixed || first.To.AsCapacity().Elastic() != first.From.AsCapacity().Elastic() {
+				t.Fatalf("interrupted first write = %#v, want pure fixed topology buffer", first)
+			}
+			peak := first.To.Limit
+			writesBeforeResume := len(api.writes)
+			api.applyFn = nil
+
+			got, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, step := range api.writes[writesBeforeResume:] {
+				if isWorkspaceStep(step) && step.To.Limit > peak {
+					t.Fatalf("restart stacked topology capacity above %v: %#v", peak.Float64(), api.writes)
+				}
+			}
+			if !sameCapacityTree(got, desired) {
+				t.Fatalf("resumed tree = %#v, want desired; writes=%#v", got, api.writes)
+			}
+		})
+
+		t.Run("rollback-to-zero-elastic/ha="+strconv.FormatBool(ha), func(t *testing.T) {
+			actual, desired := authoritativePartialHeadroomRenameFixture(ha)
+			rollback := authoritativeCompositionTree(ha, 10, 10, 10)
+			rollback.Namespaces[0].Name = "old"
+			api := &fakeCapacityAPI{tree: cloneTree(actual)}
+			api.applyFn = func(f *fakeCapacityAPI, step Step) (Operation, error) {
+				applyCandidate(&f.tree, candidate{step: step})
+				return Operation{RequestID: "buffer-written"}, errors.New("injected interruption after first write")
+			}
+
+			_, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", desired)
+			if err == nil || len(api.writes) != 1 {
+				t.Fatalf("first reconcile error=%v writes=%#v, want one applied buffer then failure", err, api.writes)
+			}
+			buffer := api.writes[0]
+			if buffer.Action != ModifyWorkspaceFixed || buffer.To.AsCapacity().Elastic() != 0 {
+				t.Fatalf("first write = %#v, want rollback-safe fixed buffer with E=0", buffer)
+			}
+
+			api.applyFn = nil
+			writesBeforeRollback := len(api.writes)
+			got, err := testReconciler(api).ReconcileAuthoritative(context.Background(), "f-test", rollback)
+			if err != nil {
+				t.Fatalf("rollback to E=0 failed: %v; writes=%#v", err, api.writes)
+			}
+			for _, step := range api.writes[writesBeforeRollback:] {
+				if step.Action == EnableWorkspaceElastic || step.Action == ModifyWorkspaceElastic {
+					t.Fatalf("rollback used elastic write: %#v", api.writes)
+				}
+			}
+			if !sameCapacityTree(got, rollback) {
+				t.Fatalf("rollback tree = %#v, want original E=0 tree; writes=%#v", got, api.writes)
+			}
+		})
 	}
 }
 

@@ -23,6 +23,129 @@ func TestFlinkWorkspaceInitialCapacitySchemaIsIntegerCreateOnly(t *testing.T) {
 	}
 }
 
+func TestFlinkWorkspaceInitialCapacityRejectsCUThatOverflowsInt32Memory(t *testing.T) {
+	const maxSafeCU = flinkMaxCUBeforeInt32MemoryOverflow
+	resource := resourceAliCloudFlinkWorkspace()
+
+	for _, tc := range flinkInitialCapacityCUFieldBoundaryCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, test := range []struct {
+				name    string
+				config  map[string]interface{}
+				wantErr bool
+			}{
+				{name: "maximum safe CU in a valid configuration", config: tc.config(maxSafeCU)},
+				{name: "only target CU above maximum", config: tc.config(maxSafeCU + 1), wantErr: true},
+			} {
+				t.Run(test.name, func(t *testing.T) {
+					if test.wantErr {
+						assertFlinkInitialCapacityCURejectionIsolated(t, test.config, tc)
+					}
+					_, err := resource.Diff(nil, terraform.NewResourceConfigRaw(test.config), nil)
+					if test.wantErr {
+						assertFlinkErrorContains(t, err, "initial_capacity", tc.field, "int32")
+						return
+					}
+					if err != nil {
+						t.Fatalf("maximum safe %s initial_capacity Diff() error = %v", tc.name, err)
+					}
+				})
+			}
+		})
+	}
+}
+
+type flinkInitialCapacityCUFieldBoundaryCase struct {
+	name            string
+	field           string
+	schemaFieldPath string
+	config          func(int) map[string]interface{}
+}
+
+func flinkInitialCapacityCUFieldBoundaryCases() []flinkInitialCapacityCUFieldBoundaryCase {
+	return []flinkInitialCapacityCUFieldBoundaryCase{
+		{
+			name:            "fixed_cu",
+			field:           "fixed_cu",
+			schemaFieldPath: "initial_capacity.fixed_cu",
+			config: func(cu int) map[string]interface{} {
+				config := workspaceConfig("PRE", true)
+				config["initial_capacity"] = []interface{}{map[string]interface{}{
+					"fixed_cu": cu, "cross_zone_fixed_cu": 0,
+				}}
+				return config
+			},
+		},
+		{
+			name:            "cross_zone_fixed_cu",
+			field:           "cross_zone_fixed_cu",
+			schemaFieldPath: "initial_capacity.cross_zone_fixed_cu",
+			config: func(cu int) map[string]interface{} {
+				config := workspaceConfig("PRE", true)
+				config["ha"] = []interface{}{map[string]interface{}{"vswitch_ids": []interface{}{"vsw-b"}}}
+				config["initial_capacity"] = []interface{}{map[string]interface{}{
+					"fixed_cu": 0, "cross_zone_fixed_cu": cu,
+				}}
+				return config
+			},
+		},
+	}
+}
+
+func TestFlinkWorkspaceInitialCapacitySchemaValidatesCUInt32MemoryBounds(t *testing.T) {
+	const maxSafeCU = flinkMaxCUBeforeInt32MemoryOverflow
+	fields := resourceAliCloudFlinkWorkspace().Schema["initial_capacity"].Elem.(*schema.Resource).Schema
+
+	for _, tc := range flinkInitialCapacityCUFieldBoundaryCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			field := fields[tc.field]
+			if field == nil || field.ValidateFunc == nil {
+				t.Fatalf("initial_capacity.%s schema must validate CU bounds: %#v", tc.field, field)
+			}
+			for _, test := range []struct {
+				name    string
+				value   int
+				wantErr bool
+			}{
+				{name: "maximum safe CU", value: maxSafeCU},
+				{name: "one CU above maximum", value: maxSafeCU + 1, wantErr: true},
+			} {
+				t.Run(test.name, func(t *testing.T) {
+					_, errs := field.ValidateFunc(test.value, tc.schemaFieldPath)
+					if (len(errs) > 0) != test.wantErr {
+						t.Fatalf("initial_capacity.%s ValidateFunc(%d) errors = %v, wantErr %t", tc.field, test.value, errs, test.wantErr)
+					}
+					if test.wantErr && (!strings.Contains(errs[0].Error(), tc.schemaFieldPath) || !strings.Contains(errs[0].Error(), "int32")) {
+						t.Fatalf("initial_capacity.%s ValidateFunc(%d) error = %v, want exact field path %q and int32 cause", tc.field, test.value, errs[0], tc.schemaFieldPath)
+					}
+				})
+			}
+		})
+	}
+}
+
+func assertFlinkInitialCapacityCURejectionIsolated(t *testing.T, config map[string]interface{}, tc flinkInitialCapacityCUFieldBoundaryCase) {
+	t.Helper()
+	const maxSafeCU = flinkMaxCUBeforeInt32MemoryOverflow
+	overBoundCU := maxSafeCU + 1
+	capacity := firstTestBlock(config["initial_capacity"])
+	if capacity == nil {
+		t.Fatal("rejection config must contain initial_capacity")
+	}
+	for _, field := range []string{"fixed_cu", "cross_zone_fixed_cu"} {
+		value, ok := capacity[field].(int)
+		if !ok {
+			t.Fatalf("initial_capacity.%s rejection config value = %#v, want int", field, capacity[field])
+		}
+		if field == tc.field && value != overBoundCU {
+			t.Fatalf("target initial_capacity.%s rejection config value = %d, want %d", field, value, overBoundCU)
+		}
+		if field != tc.field && value > maxSafeCU {
+			t.Fatalf("non-target initial_capacity.%s rejection config value = %d, exceeds max safe %d", field, value, maxSafeCU)
+		}
+	}
+}
+
 func TestFlinkWorkspaceInitialCapacityRejectsFreshPostBeforeCreate(t *testing.T) {
 	config := workspaceConfig("POST", true)
 	if _, err := resourceAliCloudFlinkWorkspace().Diff(nil, terraform.NewResourceConfigRaw(config), nil); err == nil || !strings.Contains(err.Error(), "PRE") {
@@ -104,6 +227,57 @@ func TestFlinkWorkspaceInitialCapacityAllowsPreTopology(t *testing.T) {
 	}
 }
 
+func TestFlinkWorkspaceInitialCapacityEnforcesTopologyPoolsAtPlanTime(t *testing.T) {
+	tests := []struct {
+		name    string
+		config  map[string]interface{}
+		wantErr string
+	}{
+		{
+			name: "ha pure cross zone pool",
+			config: func() map[string]interface{} {
+				config := workspaceConfig("PRE", true)
+				config["ha"] = []interface{}{map[string]interface{}{"vswitch_ids": []interface{}{"vsw-b"}}}
+				config["initial_capacity"] = []interface{}{map[string]interface{}{"fixed_cu": 0, "cross_zone_fixed_cu": 2}}
+				return config
+			}(),
+		},
+		{
+			name: "non ha fixed pool",
+			config: func() map[string]interface{} {
+				config := workspaceConfig("PRE", true)
+				config["initial_capacity"] = []interface{}{map[string]interface{}{"fixed_cu": 2, "cross_zone_fixed_cu": 0}}
+				return config
+			}(),
+		},
+		{
+			name: "ha mixed fixed and cross zone pools",
+			config: func() map[string]interface{} {
+				config := workspaceConfig("PRE", true)
+				config["ha"] = []interface{}{map[string]interface{}{"vswitch_ids": []interface{}{"vsw-b"}}}
+				config["initial_capacity"] = []interface{}{map[string]interface{}{"fixed_cu": 2, "cross_zone_fixed_cu": 2}}
+				return config
+			}(),
+			wantErr: "fixed_cu must be zero",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := resourceAliCloudFlinkWorkspace().Diff(nil, terraform.NewResourceConfigRaw(tc.config), nil)
+			if tc.wantErr == "" {
+				if err != nil {
+					t.Fatalf("fresh workspace Diff() error = %v", err)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), tc.wantErr) {
+				t.Fatalf("fresh workspace Diff() error = %v, want %q", err, tc.wantErr)
+			}
+		})
+	}
+}
+
 func TestFlinkWorkspaceInitialCapacityAndChargeTypeEditsRejectExistingWorkspace(t *testing.T) {
 	for name, test := range map[string]struct {
 		state  *terraform.InstanceState
@@ -132,6 +306,11 @@ func TestFlinkWorkspaceInitialCapacityAndChargeTypeEditsRejectExistingWorkspace(
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
+			capacityMode := flinkWorkspaceCapacityLegacy
+			if test.state.Attributes["initial_capacity.#"] == "1" {
+				capacityMode = flinkWorkspaceCapacityInitial
+			}
+			setFlinkWorkspaceStableLegacyIdentityState(test.state, flinkWorkspacePurchaseManaged, capacityMode)
 			diff, err := resourceAliCloudFlinkWorkspace().Diff(test.state, terraform.NewResourceConfigRaw(test.config), nil)
 			if err == nil {
 				t.Fatal("expected existing workspace change to be rejected")
@@ -170,6 +349,7 @@ func TestFlinkWorkspaceInitialCapacityRemovalRejectsLegacyReplacement(t *testing
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
+			setFlinkWorkspaceStableLegacyIdentityState(test.state, flinkWorkspacePurchaseManaged, flinkWorkspaceCapacityInitial)
 			diff, err := resourceAliCloudFlinkWorkspace().Diff(test.state, terraform.NewResourceConfigRaw(test.config), nil)
 			if err == nil || !strings.Contains(err.Error(), "initial_capacity") {
 				t.Fatalf("Diff() error = %v, want initial_capacity removal rejection", err)
@@ -185,13 +365,24 @@ func TestFlinkWorkspaceLegacyCapacityStillRequiresNew(t *testing.T) {
 	config := workspaceConfig("PRE", false)
 	delete(config, "initial_capacity")
 	config["resource"] = []interface{}{map[string]interface{}{"cpu": 4, "memory": 16}}
-	diff, err := resourceAliCloudFlinkWorkspace().Diff(legacyWorkspaceState(), terraform.NewResourceConfigRaw(config), nil)
+	state := legacyWorkspaceState()
+	setFlinkWorkspaceStableLegacyIdentityState(state, flinkWorkspacePurchaseManaged, flinkWorkspaceCapacityLegacy)
+	diff, err := resourceAliCloudFlinkWorkspace().Diff(state, terraform.NewResourceConfigRaw(config), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !diffRequiresNew(diff) {
 		t.Fatalf("legacy capacity diff does not require replacement: %#v", diff.Attributes)
 	}
+}
+
+func setFlinkWorkspaceStableLegacyIdentityState(state *terraform.InstanceState, purchaseState, capacityMode string) {
+	state.Attributes["purchase_options_state"] = purchaseState
+	state.Attributes["capacity_intent_mode"] = capacityMode
+	state.Attributes["identity_visibility_state"] = flinkWorkspaceIdentityStable
+	state.Attributes["terraform_create_token"] = flinkWorkspaceProtocolUnavailable
+	state.Attributes["create_intent_fingerprint"] = flinkWorkspaceProtocolUnavailable
+	state.Meta = map[string]interface{}{"schema_version": "1"}
 }
 
 func TestFlinkWorkspaceAndChildrenRemoveUnpublishedCapacityHandshakes(t *testing.T) {

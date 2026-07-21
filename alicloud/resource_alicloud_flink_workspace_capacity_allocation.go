@@ -24,10 +24,10 @@ func resourceAliCloudFlinkWorkspaceCapacityAllocation() *schema.Resource {
 			Type: schema.TypeString, Required: true, ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"fixed_cu": {
-			Type: schema.TypeInt, Required: true, ValidateFunc: validation.IntAtLeast(0),
+			Type: schema.TypeInt, Required: true, ValidateFunc: validateFlinkCUFitsInt32Memory,
 		},
 		"max_cu_limit": {
-			Type: schema.TypeInt, Required: true, ValidateFunc: validation.IntAtLeast(0),
+			Type: schema.TypeInt, Required: true, ValidateFunc: validateFlinkCUFitsInt32Memory,
 		},
 	}}
 	return &schema.Resource{
@@ -55,13 +55,13 @@ func resourceAliCloudFlinkWorkspaceCapacityAllocation() *schema.Resource {
 				Description: "Identifies the Workspace exclusively managed by this allocation. Provider locking serializes callbacks only inside one provider process; configurations must ensure one allocation owner across states.",
 			},
 			"fixed_cu": {
-				Type: schema.TypeInt, Required: true, ValidateFunc: validation.IntAtLeast(0),
+				Type: schema.TypeInt, Required: true, ValidateFunc: validateFlinkCUFitsInt32Memory,
 			},
 			"cross_zone_fixed_cu": {
-				Type: schema.TypeInt, Required: true, ValidateFunc: validation.IntAtLeast(0),
+				Type: schema.TypeInt, Required: true, ValidateFunc: validateFlinkCUFitsInt32Memory,
 			},
 			"max_cu_limit": {
-				Type: schema.TypeInt, Required: true, ValidateFunc: validation.IntAtLeast(0),
+				Type: schema.TypeInt, Required: true, ValidateFunc: validateFlinkCUFitsInt32Memory,
 			},
 			"namespace": {
 				Type: schema.TypeSet, Required: true, MinItems: 1, Elem: namespace, Set: schema.HashResource(namespace),
@@ -186,12 +186,12 @@ func resourceAliCloudFlinkWorkspaceCapacityAllocationRead(d *schema.ResourceData
 	if err != nil {
 		return WrapError(err)
 	}
-	actual, err := service.ReadTree(context.Background(), d.Id())
+	actual, workspaceAuthoritativelyAbsent, err := readFlinkWorkspaceCapacityAllocationTree(service, d.Id())
+	if workspaceAuthoritativelyAbsent {
+		d.SetId("")
+		return nil
+	}
 	if err != nil {
-		if NotFoundError(err) {
-			d.SetId("")
-			return nil
-		}
 		return WrapError(err)
 	}
 	if err := validateFlinkWorkspaceCapacityAllocationActual(actual); err != nil {
@@ -201,6 +201,15 @@ func resourceAliCloudFlinkWorkspaceCapacityAllocationRead(d *schema.ResourceData
 		return WrapError(err)
 	}
 	return WrapError(setFlinkWorkspaceCapacityAllocationState(d, actual))
+}
+
+func readFlinkWorkspaceCapacityAllocationTree(service flinkcapacity.API, instanceID string) (flinkcapacity.Tree, bool, error) {
+	if resultAPI, ok := service.(flinkCapacityReadResultAPI); ok {
+		result, err := resultAPI.readTreeResult(context.Background(), instanceID)
+		return result.tree, result.workspaceAuthoritativelyAbsent, err
+	}
+	tree, err := service.ReadTree(context.Background(), instanceID)
+	return tree, false, err
 }
 
 func resourceAliCloudFlinkWorkspaceCapacityAllocationDelete(d *schema.ResourceData, _ interface{}) error {
@@ -304,6 +313,9 @@ func flinkWorkspaceCapacityAllocationIntegerCU(value interface{}, name string) (
 	number, ok := numberAsFloat(value)
 	if !ok {
 		return 0, fmt.Errorf("%s must be an integer CU", name)
+	}
+	if number > float64(flinkMaxCUBeforeInt32MemoryOverflow) {
+		return 0, fmt.Errorf("%s must not exceed %d so MemoryGB=CU*4 fits int32", name, flinkMaxCUBeforeInt32MemoryOverflow)
 	}
 	parsed, err := flinkcapacity.ParseCU(number)
 	if err != nil {

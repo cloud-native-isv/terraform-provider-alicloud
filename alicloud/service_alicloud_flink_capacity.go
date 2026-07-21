@@ -16,10 +16,26 @@ type FlinkCapacityService struct {
 	api flinkCapacityAPI
 }
 
+type flinkCapacityReadResult struct {
+	tree                           flinkcapacity.Tree
+	workspaceAuthoritativelyAbsent bool
+}
+
+type flinkCapacityReadResultAPI interface {
+	readTreeResult(context.Context, string) (flinkCapacityReadResult, error)
+}
+
 const flinkNamespaceInitialCU flinkcapacity.CU = 2 // One API CU in half-CU domain units.
+
+// FOAS SDK request builders cast CPU and MemoryGB to int32. The public schema
+// accepts integral CU, so this is floor(MaxInt32/4) external CU represented in
+// the domain's half-CU units. Divide before multiplying to keep the constant
+// overflow-safe.
+const flinkMaxSerializableComponentCU flinkcapacity.CU = flinkcapacity.CU(flinkMaxCUBeforeInt32MemoryOverflow) * 2
 
 type flinkCapacityAPI interface {
 	GetWorkspace(string) (*flink.Workspace, error)
+	ListWorkspaces() ([]flink.Workspace, error)
 	ListNamespaces(string) ([]flink.Namespace, error)
 	ListDeploymentTargets(string, string) ([]flink.DeploymentTarget, error)
 	CreateNamespace(string, *flink.Namespace) (*flink.Namespace, error)
@@ -42,12 +58,43 @@ func NewFlinkCapacityService(client *connectivity.AliyunClient) (*FlinkCapacityS
 }
 
 func (s *FlinkCapacityService) ReadTree(ctx context.Context, instanceID string) (flinkcapacity.Tree, error) {
+	return s.readTree(ctx, instanceID, nil)
+}
+
+func (s *FlinkCapacityService) readTreeResult(ctx context.Context, instanceID string) (flinkCapacityReadResult, error) {
+	result := flinkCapacityReadResult{}
+	var err error
+	result.tree, err = s.readTree(ctx, instanceID, &result)
+	return result, err
+}
+
+func (s *FlinkCapacityService) readTree(ctx context.Context, instanceID string, result *flinkCapacityReadResult) (flinkcapacity.Tree, error) {
 	if err := ctx.Err(); err != nil {
 		return flinkcapacity.Tree{}, err
 	}
 	workspace, err := s.api.GetWorkspace(instanceID)
 	if err != nil {
-		return flinkcapacity.Tree{}, err
+		var serviceErr *flink.FlinkServiceError
+		if !errors.As(err, &serviceErr) || serviceErr.GetErrorCode() != "404" {
+			return flinkcapacity.Tree{}, err
+		}
+		workspaces, listErr := s.api.ListWorkspaces()
+		if listErr != nil {
+			return flinkcapacity.Tree{}, listErr
+		}
+		workspace = nil
+		for i := range workspaces {
+			if workspaces[i].Id == instanceID {
+				workspace = &workspaces[i]
+				break
+			}
+		}
+		if workspace == nil {
+			if result != nil {
+				result.workspaceAuthoritativelyAbsent = true
+			}
+			return flinkcapacity.Tree{}, err
+		}
 	}
 	if err := validateFlinkCapacityWorkspaceReady(workspace); err != nil {
 		return flinkcapacity.Tree{}, err
@@ -147,6 +194,9 @@ func (s *FlinkCapacityService) ApplyStep(ctx context.Context, instanceID string,
 	if err := ctx.Err(); err != nil {
 		return flinkcapacity.Operation{}, err
 	}
+	if err := validateFlinkCapacityStepSerializable(step); err != nil {
+		return flinkcapacity.Operation{}, err
+	}
 	var operation flink.CapacityOperation
 	var err error
 	switch step.Action {
@@ -216,6 +266,94 @@ func (s *FlinkCapacityService) ApplyStep(ctx context.Context, instanceID string,
 		err = fmt.Errorf("unsupported Flink capacity action %q", step.Action)
 	}
 	return flinkcapacity.Operation{RequestID: operation.RequestID, OrderID: operation.OrderID}, classifyFlinkCapacityWriteError(err)
+}
+
+func validateFlinkCapacityStepSerializable(step flinkcapacity.Step) error {
+	type component struct {
+		name  string
+		value flinkcapacity.CU
+	}
+	validate := func(component string, value flinkcapacity.CU) error {
+		if value < 0 || value > flinkMaxSerializableComponentCU {
+			return fmt.Errorf(
+				"%s %s CU %v is outside the FOAS int32 CPU/MemoryGB serialization range 0..%d",
+				step.Action, component, value.Float64(), flinkMaxCUBeforeInt32MemoryOverflow,
+			)
+		}
+		return nil
+	}
+	validateAll := func(components ...component) error {
+		for _, component := range components {
+			if err := validate(component.name, component.value); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	validateFOAS := func(component string, value flinkcapacity.CU) error {
+		if value%2 != 0 {
+			return fmt.Errorf(
+				"%s %s CU %v must be an integer CU for FOAS Workspace/Namespace serialization",
+				step.Action, component, value.Float64(),
+			)
+		}
+		return validate(component, value)
+	}
+	validateAllFOAS := func(components ...component) error {
+		for _, component := range components {
+			if err := validateFOAS(component.name, component.value); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	switch step.Action {
+	case flinkcapacity.ModifyWorkspaceFixed:
+		return validateAllFOAS(
+			component{"fixed", step.To.FixedCU},
+			component{"cross-zone fixed", step.To.CrossZoneFixedCU},
+		)
+	case flinkcapacity.ModifyWorkspacePostpaid:
+		return validateFOAS("limit", step.To.Limit)
+	case flinkcapacity.EnableWorkspaceElastic, flinkcapacity.ModifyWorkspaceElastic:
+		elastic, err := flinkCapacityAllocationElasticCU(step.To)
+		if err != nil {
+			return fmt.Errorf("%s allocation: %w", step.Action, err)
+		}
+		return validateFOAS("elastic", elastic)
+	case flinkcapacity.CreateNamespace:
+		return validateFOAS("initial fixed", flinkNamespaceInitialCU)
+	case flinkcapacity.ModifyNamespace:
+		if step.To.FixedCU < 0 || step.To.Limit < step.To.FixedCU {
+			return fmt.Errorf("%s allocation has invalid fixed/max components", step.Action)
+		}
+		return validateAllFOAS(
+			component{"fixed", step.To.FixedCU},
+			component{"elastic", step.To.Limit - step.To.FixedCU},
+		)
+	case flinkcapacity.ModifyQueue:
+		return validateAll(
+			component{"request", step.To.FixedCU},
+			component{"limit", step.To.Limit},
+		)
+	default:
+		return nil
+	}
+}
+
+func flinkCapacityAllocationElasticCU(allocation flinkcapacity.Allocation) (flinkcapacity.CU, error) {
+	if allocation.FixedCU < 0 || allocation.CrossZoneFixedCU < 0 || allocation.Limit < 0 {
+		return 0, fmt.Errorf("fixed, cross-zone fixed, and limit CU must be non-negative")
+	}
+	if allocation.FixedCU > flinkcapacity.CU(math.MaxInt64)-allocation.CrossZoneFixedCU {
+		return 0, fmt.Errorf("fixed CU total overflows")
+	}
+	totalFixed := allocation.FixedCU + allocation.CrossZoneFixedCU
+	if allocation.Limit < totalFixed {
+		return 0, fmt.Errorf("limit CU %v is below fixed CU %v", allocation.Limit.Float64(), totalFixed.Float64())
+	}
+	return allocation.Limit - totalFixed, nil
 }
 
 type ambiguousFlinkCapacityWriteError struct {
