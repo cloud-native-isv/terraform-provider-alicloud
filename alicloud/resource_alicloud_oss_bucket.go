@@ -214,6 +214,12 @@ func resourceAliCloudOssBucketCreate(d *schema.ResourceData, meta interface{}) e
 	// Assign the bucket name as the resource ID
 	d.SetId(request["bucketName"])
 
+	if _, ok := d.GetOk("tags"); ok {
+		if err := resourceAliCloudOssBucketTaggingUpdate(client, d); err != nil {
+			return WrapError(err)
+		}
+	}
+
 	// 新建后按声明 PUT versioning / SSE; 仅在声明了对应 block 时才动,
 	// 避免空 server_side_encryption_rule 触发 DeleteBucketEncryption.
 	if _, ok := d.GetOk("versioning"); ok {
