@@ -459,7 +459,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 		return err
 	}
 	client := meta.(*connectivity.AliyunClient)
-	flinkService, err := NewFlinkService(client)
+	flinkService, err := newFlinkWorkspaceCreateCallbackService(client)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -490,7 +490,7 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	if hasHA {
 		legacyStandbyZoneID, _ = haMap["zone_id"].(string)
 	}
-	topology, err := resolveFlinkWorkspaceTopology(client, workspaceRequest.VpcId, legacyPrimaryZoneID, legacyStandbyZoneID, workspaceRequest.VSwitchIds, haVSwitchIDs)
+	topology, err := resolveFlinkWorkspaceCreateTopology(client, workspaceRequest.VpcId, legacyPrimaryZoneID, legacyStandbyZoneID, workspaceRequest.VSwitchIds, haVSwitchIDs)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -649,6 +649,15 @@ func waitForFlinkWorkspaceReadinessBeforeFirstRead(d *schema.ResourceData, servi
 type flinkWorkspaceCreateService interface {
 	CreateInstance(*aliyunFlinkAPI.Workspace, flinkworkspace.CreateOptions) (*aliyunFlinkAPI.Workspace, error)
 	flinkWorkspaceListService
+}
+
+type flinkWorkspaceCreateCallbackService interface {
+	flinkWorkspaceCreateService
+	flinkWorkspacePostCreateService
+}
+
+var newFlinkWorkspaceCreateCallbackService = func(client *connectivity.AliyunClient) (flinkWorkspaceCreateCallbackService, error) {
+	return NewFlinkService(client)
 }
 
 type flinkWorkspaceListService interface {
@@ -1580,6 +1589,8 @@ func resolveFlinkWorkspaceTopology(client *connectivity.AliyunClient, vpcID, leg
 	}
 	return flinkworkspace.ValidateVSwitchTopology(client.RegionId, vpcID, legacyPrimaryZoneID, legacyStandbyZoneID, primary, standby)
 }
+
+var resolveFlinkWorkspaceCreateTopology = resolveFlinkWorkspaceTopology
 
 func flinkStringList(value interface{}) []string {
 	items, _ := value.([]interface{})

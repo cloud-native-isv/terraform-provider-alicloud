@@ -96,6 +96,9 @@ func (s *FlinkCapacityService) readTree(ctx context.Context, instanceID string, 
 			return flinkcapacity.Tree{}, err
 		}
 	}
+	if err := validateFlinkCapacityWorkspaceIdentity(instanceID, workspace); err != nil {
+		return flinkcapacity.Tree{}, err
+	}
 	if err := validateFlinkCapacityWorkspaceReady(workspace); err != nil {
 		return flinkcapacity.Tree{}, err
 	}
@@ -130,6 +133,16 @@ func (s *FlinkCapacityService) readTree(ctx context.Context, instanceID string, 
 		targets[namespace.Name] = queues
 	}
 	return buildFlinkCapacityTree(workspace, namespaces, targets)
+}
+
+func validateFlinkCapacityWorkspaceIdentity(instanceID string, workspace *flink.Workspace) error {
+	if workspace == nil {
+		return fmt.Errorf("workspace identity mismatch: requested InstanceId %q, observed Workspace <nil>", instanceID)
+	}
+	if workspace.Id == "" || workspace.Id != instanceID {
+		return fmt.Errorf("workspace identity mismatch: requested InstanceId %q, observed Workspace Id %q", instanceID, workspace.Id)
+	}
+	return nil
 }
 
 func validateFlinkCapacityWorkspaceReady(workspace *flink.Workspace) error {
@@ -248,6 +261,10 @@ func (s *FlinkCapacityService) ApplyStep(ctx context.Context, instanceID string,
 		workspace, getErr := s.api.GetWorkspace(instanceID)
 		if getErr != nil {
 			err = getErr
+			break
+		}
+		if identityErr := validateFlinkCapacityWorkspaceIdentity(instanceID, workspace); identityErr != nil {
+			err = identityErr
 			break
 		}
 		if workspace.ResourceId == "" {

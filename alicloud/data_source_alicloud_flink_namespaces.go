@@ -1,7 +1,9 @@
 package alicloud
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -80,19 +82,45 @@ func dataSourceAliCloudFlinkNamespaces() *schema.Resource {
 
 func dataSourceAliCloudFlinkNamespacesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	flinkService, err := NewFlinkService(client)
+	flinkService, err := newFlinkNamespacesReadinessService(client)
 	if err != nil {
 		return WrapError(err)
 	}
+	return readFlinkNamespacesWithService(
+		context.Background(),
+		d,
+		flinkService,
+		flinkLegacyNamespaceReadinessTimeout(d, schema.TimeoutRead),
+		flinkLegacyNamespaceReadinessPollInterval,
+	)
+}
 
+var newFlinkNamespacesReadinessService = func(client *connectivity.AliyunClient) (flinkLegacyNamespaceReadinessService, error) {
+	return NewFlinkService(client)
+}
+
+func readFlinkNamespacesWithService(
+	ctx context.Context,
+	d *schema.ResourceData,
+	flinkService flinkLegacyNamespaceReadinessService,
+	timeout time.Duration,
+	pollInterval time.Duration,
+) error {
 	workspace := d.Get("workspace_id").(string)
 	idsMap := make(map[string]string)
+	requiredNames := make(map[string]struct{})
 	if v, ok := d.GetOk("ids"); ok {
 		for _, vv := range v.([]interface{}) {
 			if vv == nil {
 				continue
 			}
-			idsMap[vv.(string)] = vv.(string)
+			id := vv.(string)
+			prefix := workspace + "/"
+			if !strings.HasPrefix(id, prefix) || strings.TrimPrefix(id, prefix) == "" {
+				return fmt.Errorf("Flink namespace ID %q must use workspace/name for workspace %q", id, workspace)
+			}
+			idsMap[id] = id
+			requiredNames[strings.TrimPrefix(id, prefix)] = struct{}{}
 		}
 	}
 
@@ -102,7 +130,9 @@ func dataSourceAliCloudFlinkNamespacesRead(d *schema.ResourceData, meta interfac
 			if vv == nil {
 				continue
 			}
-			namesMap[vv.(string)] = vv.(string)
+			name := vv.(string)
+			namesMap[name] = name
+			requiredNames[name] = struct{}{}
 		}
 	}
 
@@ -112,13 +142,19 @@ func dataSourceAliCloudFlinkNamespacesRead(d *schema.ResourceData, meta interfac
 		"namesFilter": namesMap,
 	})
 
-	// Get all namespaces directly without pagination
-	namespaces, err := flinkService.ListNamespaces(workspace)
+	// A paid Workspace Create intentionally returns as soon as its real ID is
+	// known. Dependent reads therefore own their readiness failures and wait for
+	// the namespace/default-queue control plane without tainting the parent.
+	selection := flinkLegacyUnfilteredNamespaceSelection()
+	if len(requiredNames) > 0 {
+		selection = flinkLegacyExactNamespaceSelection(requiredNames)
+	}
+	namespaces, err := waitForFlinkLegacyNamespaceReadiness(ctx, flinkService, workspace, selection, timeout, pollInterval)
 	if err != nil {
-		addDebug("dataSourceAliCloudFlinkNamespacesRead", "ListNamespacesError", err)
+		addDebug("dataSourceAliCloudFlinkNamespacesRead", "NamespaceReadinessError", err)
 		return WrapError(err)
 	}
-	addDebug("dataSourceAliCloudFlinkNamespacesRead", "ListNamespacesResponse", len(namespaces))
+	addDebug("dataSourceAliCloudFlinkNamespacesRead", "NamespaceReadinessResponse", len(namespaces))
 
 	// Filter and map results
 	var namespaceMaps []map[string]interface{}

@@ -1,6 +1,8 @@
 package alicloud
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -90,11 +92,42 @@ func resourceAliCloudFlinkNamespace() *schema.Resource {
 
 func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	flinkService, err := NewFlinkService(client)
+	flinkService, err := newFlinkNamespaceCreateService(client)
 	if err != nil {
 		return WrapError(err)
 	}
+	return createFlinkNamespaceWithService(
+		context.Background(),
+		d,
+		flinkService,
+		flinkLegacyNamespaceReadinessTimeout(d, schema.TimeoutCreate),
+		flinkLegacyNamespaceReadinessPollInterval,
+	)
+}
 
+type flinkNamespaceCreateService interface {
+	flinkLegacyNamespaceReadinessService
+	CreateNamespace(string, *aliyunFlinkAPI.Namespace) (*aliyunFlinkAPI.Namespace, error)
+}
+
+var newFlinkNamespaceCreateService = func(client *connectivity.AliyunClient) (flinkNamespaceCreateService, error) {
+	return NewFlinkService(client)
+}
+
+var flinkLegacyNamespaceReadinessPollInterval = 2 * time.Second
+
+var flinkLegacyNamespaceReadinessTimeout = func(d *schema.ResourceData, timeoutKey string) time.Duration {
+	return d.Timeout(timeoutKey)
+}
+
+func createFlinkNamespaceWithService(
+	ctx context.Context,
+	d *schema.ResourceData,
+	flinkService flinkNamespaceCreateService,
+	timeout time.Duration,
+	pollInterval time.Duration,
+) error {
+	deadline := time.Now().Add(timeout)
 	workspaceId := d.Get("workspace_id").(string)
 	namespaceName := d.Get("namespace_name").(string)
 
@@ -125,21 +158,46 @@ func resourceAliCloudFlinkNamespaceCreate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	// Create namespace
-	_, err = flinkService.CreateNamespace(workspaceId, namespace)
+	// The parent Create returns immediately after recording its paid identity.
+	// Wait on this dependent node until namespace operations are usable, so a
+	// delayed control plane cannot turn into a failed child write or parent taint.
+	if _, err := waitForFlinkLegacyNamespaceReadiness(
+		ctx,
+		flinkService,
+		workspaceId,
+		flinkLegacyBootstrapNamespaceSelection(),
+		time.Until(deadline),
+		pollInterval,
+	); err != nil {
+		return WrapErrorf(err, IdMsg, workspaceId+":"+namespaceName)
+	}
+
+	_, err := flinkService.CreateNamespace(workspaceId, namespace)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_namespace", "CreateNamespace", AlibabaCloudSdkGoERROR)
+		var postCreateReadErr *aliyunFlinkAPI.FlinkPostCreateReadError
+		if !errors.As(err, &postCreateReadErr) || postCreateReadErr.WorkspaceId != workspaceId || postCreateReadErr.Namespace != namespaceName {
+			return WrapErrorf(err, DefaultErrorMsg, "alicloud_flink_namespace", "CreateNamespace", AlibabaCloudSdkGoERROR)
+		}
 	}
 
 	d.SetId(workspaceId + ":" + namespaceName)
 
-	// Wait for namespace to be available
-	stateConf := BuildStateConf([]string{"CREATING"}, []string{"Available"}, d.Timeout(schema.TimeoutCreate), 5*time.Second, flinkService.FlinkNamespaceStateRefreshFunc(workspaceId, namespaceName, []string{"FAILED"}))
-	if _, err := stateConf.WaitForState(); err != nil {
+	remaining := time.Until(deadline)
+	if remaining <= 0 {
+		return WrapErrorf(fmt.Errorf("timed out waiting for Flink namespace %q readiness after CreateNamespace", namespaceName), IdMsg, d.Id())
+	}
+	ready, err := waitForFlinkLegacyNamespaceReadiness(
+		ctx,
+		flinkService,
+		workspaceId,
+		flinkLegacyExactNamespaceSelection(map[string]struct{}{namespaceName: {}}),
+		remaining,
+		pollInterval,
+	)
+	if err != nil {
 		return WrapErrorf(err, IdMsg, d.Id())
 	}
-
-	return resourceAliCloudFlinkNamespaceRead(d, meta)
+	return applyFlinkNamespaceReadState(d, workspaceId, ready[0])
 }
 
 func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}) error {
@@ -164,11 +222,21 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 		return WrapError(err)
 	}
 
-	d.Set("workspace_id", workspaceId)
-	d.Set("namespace_name", namespace.Name)
-	d.Set("status", namespace.Status)
-	d.Set("ha", namespace.Ha)
-	d.Set("observed_capacity", flattenFlinkNamespaceObservedCapacity(namespace))
+	return applyFlinkNamespaceReadState(d, workspaceId, *namespace)
+}
+
+func applyFlinkNamespaceReadState(d *schema.ResourceData, workspaceId string, namespace aliyunFlinkAPI.Namespace) error {
+	for key, value := range map[string]interface{}{
+		"workspace_id":      workspaceId,
+		"namespace_name":    namespace.Name,
+		"status":            namespace.Status,
+		"ha":                namespace.Ha,
+		"observed_capacity": flattenFlinkNamespaceObservedCapacity(&namespace),
+	} {
+		if err := d.Set(key, value); err != nil {
+			return WrapError(err)
+		}
+	}
 
 	// Set elastic resource specification
 	if namespace.ElasticResourceSpec != nil {
@@ -176,9 +244,13 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 			"cpu":       int(namespace.ElasticResourceSpec.Cpu),
 			"memory_gb": int(namespace.ElasticResourceSpec.MemoryGB),
 		}
-		d.Set("elastic_resource_spec", []interface{}{elasticSpec})
+		if err := d.Set("elastic_resource_spec", []interface{}{elasticSpec}); err != nil {
+			return WrapError(err)
+		}
 	} else {
-		d.Set("elastic_resource_spec", nil)
+		if err := d.Set("elastic_resource_spec", nil); err != nil {
+			return WrapError(err)
+		}
 	}
 
 	// Set guaranteed resource specification
@@ -187,9 +259,13 @@ func resourceAliCloudFlinkNamespaceRead(d *schema.ResourceData, meta interface{}
 			"cpu":       int(namespace.GuaranteedResourceSpec.Cpu),
 			"memory_gb": int(namespace.GuaranteedResourceSpec.MemoryGB),
 		}
-		d.Set("guaranteed_resource_spec", []interface{}{guaranteedSpec})
+		if err := d.Set("guaranteed_resource_spec", []interface{}{guaranteedSpec}); err != nil {
+			return WrapError(err)
+		}
 	} else {
-		d.Set("guaranteed_resource_spec", nil)
+		if err := d.Set("guaranteed_resource_spec", nil); err != nil {
+			return WrapError(err)
+		}
 	}
 
 	return nil

@@ -435,6 +435,156 @@ func TestFlinkCapacityServiceReadTreeExactGetDoesNotListWorkspaces(t *testing.T)
 	}
 }
 
+func TestFlinkCapacityServiceReadTreeRejectsSuccessfulGetWithoutExactWorkspaceIdentity(t *testing.T) {
+	requestedID := "f-workspace"
+	emptyID := testFlinkCapacityWorkspace(2)
+	emptyID.Id = ""
+	wrongID := testFlinkCapacityWorkspace(2)
+	wrongID.Id = "f-workspace-copy"
+	wrongID.Name = requestedID
+	wrongID.ResourceId = requestedID
+
+	for _, tc := range []struct {
+		name             string
+		workspace        *flink.Workspace
+		wantObservedText string
+	}{
+		{name: "nil Workspace", workspace: nil, wantObservedText: "<nil>"},
+		{name: "empty Workspace ID", workspace: emptyID, wantObservedText: `observed Workspace Id ""`},
+		{name: "different Workspace ID despite similar name and matching ResourceId", workspace: wrongID, wantObservedText: `observed Workspace Id "f-workspace-copy"`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			api := testFlinkCapacityReadableAPI(tc.workspace)
+
+			_, err := (&FlinkCapacityService{api: api}).ReadTree(context.Background(), requestedID)
+			if err == nil || !strings.Contains(err.Error(), `requested InstanceId "f-workspace"`) || !strings.Contains(err.Error(), tc.wantObservedText) {
+				t.Fatalf("ReadTree() error = %T %v, want deterministic requested/observed identity error", err, err)
+			}
+			var retryable interface{ Retryable() bool }
+			if errors.As(err, &retryable) && retryable.Retryable() {
+				t.Fatalf("ReadTree() identity error must fail closed without readiness retry: %T %v", err, err)
+			}
+			if flinkCapacityNotFoundError(err) {
+				t.Fatalf("ReadTree() identity error must not be classified as not found: %T %v", err, err)
+			}
+			if api.workspaceReads != 1 || api.listWorkspacesCalls != 0 || api.listNamespacesCalls != 0 || testFlinkCapacityTargetReadCalls(api) != 0 {
+				t.Fatalf("ReadTree() calls: get=%d list=%d namespaces=%d targets=%d, want 1/0/0/0", api.workspaceReads, api.listWorkspacesCalls, api.listNamespacesCalls, testFlinkCapacityTargetReadCalls(api))
+			}
+			if writes := testFlinkCapacityWriteCalls(api); writes != 0 {
+				t.Fatalf("ReadTree() made %d capacity writes without exact Workspace identity", writes)
+			}
+		})
+	}
+}
+
+func TestFlinkCapacityServiceModifyQueueRejectsSuccessfulGetWithoutExactWorkspaceIdentity(t *testing.T) {
+	requestedID := "f-workspace"
+	emptyID := testFlinkCapacityWorkspace(2)
+	emptyID.Id = ""
+	wrongID := testFlinkCapacityWorkspace(2)
+	wrongID.Id = "f-workspace-copy"
+	wrongID.Name = requestedID
+	wrongID.ResourceId = requestedID
+	step := flinkcapacity.Step{
+		Action: flinkcapacity.ModifyQueue,
+		Ref:    flinkcapacity.Ref{Namespace: "default", Queue: "default-queue"},
+		To:     flinkcapacity.Allocation{FixedCU: 2, Limit: 2},
+	}
+
+	for _, tc := range []struct {
+		name             string
+		workspace        *flink.Workspace
+		wantObservedText string
+	}{
+		{name: "nil Workspace", workspace: nil, wantObservedText: "<nil>"},
+		{name: "empty Workspace ID", workspace: emptyID, wantObservedText: `observed Workspace Id ""`},
+		{name: "different Workspace ID despite similar name and matching ResourceId", workspace: wrongID, wantObservedText: `observed Workspace Id "f-workspace-copy"`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			api := testFlinkCapacityReadableAPI(tc.workspace)
+			var err error
+			var panicValue interface{}
+			func() {
+				defer func() { panicValue = recover() }()
+				_, err = (&FlinkCapacityService{api: api}).ApplyStep(context.Background(), requestedID, step)
+			}()
+			if panicValue != nil {
+				t.Errorf("ApplyStep(ModifyQueue) panicked instead of failing closed: %v", panicValue)
+			}
+			if err == nil || !strings.Contains(err.Error(), `requested InstanceId "f-workspace"`) || !strings.Contains(err.Error(), tc.wantObservedText) {
+				t.Errorf("ApplyStep(ModifyQueue) error = %T %v, want deterministic requested/observed identity error", err, err)
+			}
+			var retryable interface{ Retryable() bool }
+			if errors.As(err, &retryable) && retryable.Retryable() {
+				t.Errorf("ApplyStep(ModifyQueue) identity error must fail closed without readiness retry: %T %v", err, err)
+			}
+			if api.workspaceReads != 1 || api.listWorkspacesCalls != 0 || api.listNamespacesCalls != 0 || testFlinkCapacityTargetReadCalls(api) != 0 || api.namespaceReads != 0 {
+				t.Errorf("ApplyStep(ModifyQueue) reads: get=%d list=%d namespaces=%d targets=%d namespace_get=%d, want 1/0/0/0/0", api.workspaceReads, api.listWorkspacesCalls, api.listNamespacesCalls, testFlinkCapacityTargetReadCalls(api), api.namespaceReads)
+			}
+			if writes := testFlinkCapacityWriteCalls(api); writes != 0 {
+				t.Errorf("ApplyStep(ModifyQueue) made %d capacity writes without exact Workspace identity", writes)
+			}
+		})
+	}
+}
+
+func TestFlinkCapacityServiceReconcilePostWriteReadRejectsSuccessfulGetWithoutExactWorkspaceIdentity(t *testing.T) {
+	requestedID := "f-workspace"
+	desired := flinkcapacity.Tree{
+		ChargeType: "PRE",
+		Workspace:  flinkcapacity.WorkspaceCapacity{FixedCU: 6, Limit: 6},
+		Namespaces: []flinkcapacity.Namespace{{
+			Name:     "default",
+			Capacity: &flinkcapacity.Capacity{Fixed: 6, Limit: 6},
+			Queues:   []flinkcapacity.Queue{{Name: "default-queue", Capacity: &flinkcapacity.Capacity{Fixed: 6, Limit: 6}}},
+		}},
+	}
+
+	for _, tc := range []struct {
+		name             string
+		invalidWorkspace func() *flink.Workspace
+		wantObservedText string
+	}{
+		{name: "nil Workspace", invalidWorkspace: func() *flink.Workspace { return nil }, wantObservedText: "<nil>"},
+		{name: "empty Workspace ID", invalidWorkspace: func() *flink.Workspace {
+			workspace := testFlinkCapacityWorkspace(3)
+			workspace.Id = ""
+			return workspace
+		}, wantObservedText: `observed Workspace Id ""`},
+		{name: "different Workspace ID", invalidWorkspace: func() *flink.Workspace {
+			workspace := testFlinkCapacityWorkspace(3)
+			workspace.Id = "f-workspace-copy"
+			workspace.Name = requestedID
+			workspace.ResourceId = requestedID
+			return workspace
+		}, wantObservedText: `observed Workspace Id "f-workspace-copy"`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			initialWorkspace := testFlinkCapacityWorkspace(2)
+			invalidPostWrite := tc.invalidWorkspace()
+			invalidFinalRead := tc.invalidWorkspace()
+			api := testFlinkCapacityReadableAPI(initialWorkspace)
+			api.getWorkspaceResponses = []testFlinkCapacityWorkspaceResponse{
+				{workspace: initialWorkspace},
+				{workspace: invalidPostWrite},
+				{workspace: invalidFinalRead},
+			}
+			service := &FlinkCapacityService{api: api}
+
+			_, err := (flinkcapacity.Reconciler{API: service}).ReconcileAuthoritative(context.Background(), requestedID, desired)
+			if err == nil || !strings.Contains(err.Error(), `requested InstanceId "f-workspace"`) || !strings.Contains(err.Error(), tc.wantObservedText) {
+				t.Fatalf("ReconcileAuthoritative() error = %T %v, want post-write requested/observed identity error", err, err)
+			}
+			if len(api.workspaceFixedWrites) != 1 || testFlinkCapacityWriteCalls(api) != 1 {
+				t.Fatalf("ReconcileAuthoritative() writes = %d (workspace fixed=%d), want exactly one non-replayed write", testFlinkCapacityWriteCalls(api), len(api.workspaceFixedWrites))
+			}
+			if api.workspaceReads != 3 || api.listWorkspacesCalls != 0 || api.listNamespacesCalls != 1 || testFlinkCapacityTargetReadCalls(api) != 1 {
+				t.Fatalf("ReconcileAuthoritative() reads: get=%d list=%d namespaces=%d targets=%d, want initial/post-write/final get with only initial tree reads", api.workspaceReads, api.listWorkspacesCalls, api.listNamespacesCalls, testFlinkCapacityTargetReadCalls(api))
+			}
+		})
+	}
+}
+
 func TestFlinkCapacityServiceWorkspaceStepsUseAbsoluteComponentArguments(t *testing.T) {
 	initialFixed := &flink.ResourceSpec{Cpu: 4, MemoryGB: 16}
 	initialElastic := &flink.ResourceSpec{Cpu: 3, MemoryGB: 12}
@@ -618,7 +768,7 @@ func TestFlinkCapacityServiceIntegralGatePreservesMaximumFOASAndFractionalQueueV
 
 func testFlinkCapacitySerializationBoundaryAPI() *fakeFlinkCapacityAPI {
 	return &fakeFlinkCapacityAPI{
-		workspace: &flink.Workspace{ResourceId: "resource-workspace"},
+		workspace: &flink.Workspace{Id: "f-workspace", ResourceId: "resource-workspace"},
 		namespaces: []flink.Namespace{{
 			Name: "default",
 		}},
@@ -1025,6 +1175,14 @@ func testFlinkCapacityReadableAPI(workspace *flink.Workspace) *fakeFlinkCapacity
 func testFlinkCapacityWriteCalls(api *fakeFlinkCapacityAPI) int {
 	return len(api.created) + len(api.deleted) + api.namespaceWrites + api.queueWrites +
 		len(api.workspaceFixedWrites) + api.workspacePostpaidWrites + len(api.workspaceElasticWrites)
+}
+
+func testFlinkCapacityTargetReadCalls(api *fakeFlinkCapacityAPI) int {
+	total := 0
+	for _, calls := range api.listTargetCalls {
+		total += calls
+	}
+	return total
 }
 
 func testFlinkCapacityWorkspace(cpu float64) *flink.Workspace {
