@@ -1461,6 +1461,8 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_flink_deployment_folder":                               resourceAliCloudFlinkDeploymentFolder(),
 			"alicloud_flink_deployment_target":                               resourceAliCloudFlinkDeploymentTarget(),
 			"alicloud_flink_workspace_capacity_allocation":                   resourceAliCloudFlinkWorkspaceCapacityAllocation(),
+			"alicloud_flink_workspace_capacity_allocation_v2":                resourceAliCloudFlinkWorkspaceCapacityAllocationV2(),
+			"alicloud_flink_workspace_capacity_bootstrap":                    resourceAliCloudFlinkWorkspaceCapacityBootstrap(),
 			"alicloud_flink_job":                                             resourceAliCloudFlinkJob(),
 			"alicloud_flink_member":                                          resourceAliCloudFlinkMember(),
 			"alicloud_flink_namespace":                                       resourceAliCloudFlinkNamespace(),

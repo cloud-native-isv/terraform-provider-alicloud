@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
@@ -72,6 +73,52 @@ func resourceAliCloudFlinkWorkspaceCapacityAllocation() *schema.Resource {
 			"observed_capacity_tree": flinkWorkspaceCapacityAllocationObservedTreeSchema(),
 		},
 	}
+}
+
+// resourceAliCloudFlinkWorkspaceCapacityAllocationV2 is the provenance-pinned
+// writer used by the bootstrap graph. The original resource remains unchanged
+// for existing HCL; new graphs must carry the barrier's durable ResourceId and
+// handshake through Required fields so every cloud write can revalidate them.
+func resourceAliCloudFlinkWorkspaceCapacityAllocationV2() *schema.Resource {
+	resource := resourceAliCloudFlinkWorkspaceCapacityAllocation()
+	resource.Create = resourceAliCloudFlinkWorkspaceCapacityAllocationV2Create
+	resource.Read = resourceAliCloudFlinkWorkspaceCapacityAllocationV2Read
+	resource.Update = resourceAliCloudFlinkWorkspaceCapacityAllocationV2Update
+	resource.Importer = &schema.ResourceImporter{State: importAliCloudFlinkWorkspaceCapacityAllocationV2}
+	resource.Schema["workspace_resource_id"] = &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		ForceNew:     true,
+		ValidateFunc: validation.StringIsNotEmpty,
+		Description:  "ResourceId pinned by alicloud_flink_workspace_capacity_bootstrap and revalidated before every capacity write.",
+	}
+	resource.Schema["workspace_bootstrap_context"] = &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		Sensitive:    true,
+		ForceNew:     true,
+		ValidateFunc: validation.StringIsNotEmpty,
+		Description:  "Immutable handshake from alicloud_flink_workspace_capacity_bootstrap. Managed context revalidates provider-owned provenance tags; STRICT_EXISTING grants no 404 grace.",
+	}
+	return resource
+}
+
+func importAliCloudFlinkWorkspaceCapacityAllocationV2(d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "|")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return nil, fmt.Errorf("pinned capacity allocation import ID must be <workspace_instance_id>|<workspace_resource_id>")
+	}
+	d.SetId(parts[0])
+	for key, value := range map[string]string{
+		"workspace_instance_id":       parts[0],
+		"workspace_resource_id":       parts[1],
+		"workspace_bootstrap_context": flinkWorkspaceCapacityBootstrapContextStrictExisting,
+	} {
+		if err := d.Set(key, value); err != nil {
+			return nil, err
+		}
+	}
+	return []*schema.ResourceData{d}, nil
 }
 
 func flinkWorkspaceCapacityAllocationObservedTreeSchema() *schema.Schema {
@@ -142,14 +189,30 @@ func resourceAliCloudFlinkWorkspaceCapacityAllocationCreate(d *schema.ResourceDa
 	return resourceAliCloudFlinkWorkspaceCapacityAllocationReconcile(d, meta, schema.TimeoutCreate)
 }
 
+func resourceAliCloudFlinkWorkspaceCapacityAllocationV2Create(d *schema.ResourceData, meta interface{}) error {
+	d.SetId(d.Get("workspace_instance_id").(string))
+	return resourceAliCloudFlinkWorkspaceCapacityAllocationV2Reconcile(d, meta, schema.TimeoutCreate)
+}
+
 func resourceAliCloudFlinkWorkspaceCapacityAllocationUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceAliCloudFlinkWorkspaceCapacityAllocationReconcile(d, meta, schema.TimeoutUpdate)
+}
+
+func resourceAliCloudFlinkWorkspaceCapacityAllocationV2Update(d *schema.ResourceData, meta interface{}) error {
+	return resourceAliCloudFlinkWorkspaceCapacityAllocationV2Reconcile(d, meta, schema.TimeoutUpdate)
 }
 
 func resourceAliCloudFlinkWorkspaceCapacityAllocationReconcile(d *schema.ResourceData, meta interface{}, timeoutKey string) error {
 	instanceID := d.Get("workspace_instance_id").(string)
 	return withFlinkWorkspaceCapacityAllocationLock(instanceID, func() error {
-		return resourceAliCloudFlinkWorkspaceCapacityAllocationReconcileUnlocked(d, meta, timeoutKey)
+		return resourceAliCloudFlinkWorkspaceCapacityAllocationReconcileUnlocked(d, meta, timeoutKey, false)
+	})
+}
+
+func resourceAliCloudFlinkWorkspaceCapacityAllocationV2Reconcile(d *schema.ResourceData, meta interface{}, timeoutKey string) error {
+	instanceID := d.Get("workspace_instance_id").(string)
+	return withFlinkWorkspaceCapacityAllocationLock(instanceID, func() error {
+		return resourceAliCloudFlinkWorkspaceCapacityAllocationReconcileUnlocked(d, meta, timeoutKey, true)
 	})
 }
 
@@ -160,10 +223,16 @@ func withFlinkWorkspaceCapacityAllocationLock(instanceID string, reconcile func(
 	return reconcile()
 }
 
-func resourceAliCloudFlinkWorkspaceCapacityAllocationReconcileUnlocked(d *schema.ResourceData, meta interface{}, timeoutKey string) error {
+func resourceAliCloudFlinkWorkspaceCapacityAllocationReconcileUnlocked(d *schema.ResourceData, meta interface{}, timeoutKey string, pinned bool) error {
 	service, err := newFlinkWorkspaceCapacityAllocationService(meta)
 	if err != nil {
 		return WrapError(err)
+	}
+	if pinned {
+		service, err = configureFlinkWorkspaceCapacityAllocationV2Service(service, d, time.Now)
+		if err != nil {
+			return WrapError(err)
+		}
 	}
 	desired, err := expandFlinkWorkspaceCapacityAllocationDesiredValues(d.Get("namespace"), d.Get("fixed_cu"), d.Get("cross_zone_fixed_cu"), d.Get("max_cu_limit"))
 	if err != nil {
@@ -182,9 +251,23 @@ func resourceAliCloudFlinkWorkspaceCapacityAllocationReconcileUnlocked(d *schema
 }
 
 func resourceAliCloudFlinkWorkspaceCapacityAllocationRead(d *schema.ResourceData, meta interface{}) error {
+	return resourceAliCloudFlinkWorkspaceCapacityAllocationReadWithPin(d, meta, false)
+}
+
+func resourceAliCloudFlinkWorkspaceCapacityAllocationV2Read(d *schema.ResourceData, meta interface{}) error {
+	return resourceAliCloudFlinkWorkspaceCapacityAllocationReadWithPin(d, meta, true)
+}
+
+func resourceAliCloudFlinkWorkspaceCapacityAllocationReadWithPin(d *schema.ResourceData, meta interface{}, pinned bool) error {
 	service, err := newFlinkWorkspaceCapacityAllocationService(meta)
 	if err != nil {
 		return WrapError(err)
+	}
+	if pinned {
+		service, err = configureFlinkWorkspaceCapacityAllocationV2Service(service, d, time.Now)
+		if err != nil {
+			return WrapError(err)
+		}
 	}
 	actual, workspaceAuthoritativelyAbsent, err := readFlinkWorkspaceCapacityAllocationTree(service, d.Id())
 	if workspaceAuthoritativelyAbsent {
@@ -201,6 +284,27 @@ func resourceAliCloudFlinkWorkspaceCapacityAllocationRead(d *schema.ResourceData
 		return WrapError(err)
 	}
 	return WrapError(setFlinkWorkspaceCapacityAllocationState(d, actual))
+}
+
+func configureFlinkWorkspaceCapacityAllocationV2Service(service flinkcapacity.API, d *schema.ResourceData, now func() time.Time) (flinkcapacity.API, error) {
+	instanceID, _ := d.Get("workspace_instance_id").(string)
+	resourceID, _ := d.Get("workspace_resource_id").(string)
+	rawContext, _ := d.Get("workspace_bootstrap_context").(string)
+	if instanceID == "" || resourceID == "" || rawContext == "" {
+		return nil, fmt.Errorf("pinned capacity allocation requires non-empty workspace_instance_id, workspace_resource_id, and workspace_bootstrap_context")
+	}
+	if d.Id() != "" && d.Id() != instanceID {
+		return nil, fmt.Errorf("pinned capacity allocation state identity mismatch: state ID %q, workspace_instance_id %q", d.Id(), instanceID)
+	}
+	capacityService, ok := service.(*FlinkCapacityService)
+	if !ok || capacityService == nil {
+		return nil, fmt.Errorf("pinned capacity allocation requires the production Flink capacity service, got %T", service)
+	}
+	service = capacityService.withExpectedResourceID(resourceID)
+	if rawContext == flinkWorkspaceCapacityBootstrapContextStrictExisting {
+		return service, nil
+	}
+	return configureFlinkWorkspaceCapacityBootstrapService(service, instanceID, rawContext, resourceID, false, now)
 }
 
 func readFlinkWorkspaceCapacityAllocationTree(service flinkcapacity.API, instanceID string) (flinkcapacity.Tree, bool, error) {

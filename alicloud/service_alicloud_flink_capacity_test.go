@@ -14,10 +14,12 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/internal/flinkcapacity"
+	"github.com/aliyun/terraform-provider-alicloud/internal/flinkworkspace"
 	flink "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 )
 
 type fakeFlinkCapacityAPI struct {
+	calls                    []string
 	workspace                *flink.Workspace
 	getWorkspaceErr          error
 	getWorkspaceResponses    []testFlinkCapacityWorkspaceResponse
@@ -47,6 +49,8 @@ type fakeFlinkCapacityAPI struct {
 	workspaceReads           int
 	listWorkspacesCalls      int
 	namespaceReads           int
+	getWorkspaceHook         func()
+	getNamespaceHook         func()
 }
 
 type testFlinkCapacityFixedWrite struct {
@@ -65,7 +69,11 @@ type testFlinkCapacityWorkspaceResponse struct {
 }
 
 func (a *fakeFlinkCapacityAPI) GetWorkspace(string) (*flink.Workspace, error) {
+	a.calls = append(a.calls, "get-workspace")
 	a.workspaceReads++
+	if a.getWorkspaceHook != nil {
+		a.getWorkspaceHook()
+	}
 	if len(a.getWorkspaceResponses) > 0 {
 		response := a.getWorkspaceResponses[0]
 		a.getWorkspaceResponses = a.getWorkspaceResponses[1:]
@@ -118,6 +126,7 @@ func (a *fakeFlinkCapacityAPI) CreateNamespace(_ string, namespace *flink.Namesp
 		return nil, a.createPreWriteErr
 	}
 	request := *namespace
+	a.calls = append(a.calls, "create-namespace")
 	a.created = append(a.created, request)
 	created := a.createdNamespaceTemplate
 	created.Name = request.Name
@@ -127,6 +136,7 @@ func (a *fakeFlinkCapacityAPI) CreateNamespace(_ string, namespace *flink.Namesp
 }
 
 func (a *fakeFlinkCapacityAPI) DeleteNamespace(_ string, namespace string) error {
+	a.calls = append(a.calls, "delete-namespace")
 	a.deleted = append(a.deleted, namespace)
 	if a.deleteErr != nil {
 		a.pendingDelete = namespace
@@ -148,6 +158,9 @@ func (a *fakeFlinkCapacityAPI) removeNamespace(namespace string) {
 
 func (a *fakeFlinkCapacityAPI) GetNamespace(_ string, namespace string) (*flink.Namespace, error) {
 	a.namespaceReads++
+	if a.getNamespaceHook != nil {
+		a.getNamespaceHook()
+	}
 	for i := range a.namespaces {
 		if a.namespaces[i].Name == namespace {
 			result := a.namespaces[i]
@@ -158,6 +171,7 @@ func (a *fakeFlinkCapacityAPI) GetNamespace(_ string, namespace string) (*flink.
 }
 
 func (a *fakeFlinkCapacityAPI) UpdateNamespaceCapacity(_ string, namespace string, ha bool, fixed, elastic *flink.ResourceSpec) (flink.CapacityOperation, error) {
+	a.calls = append(a.calls, "modify-namespace")
 	a.namespaceWrites++
 	for i := range a.namespaces {
 		if a.namespaces[i].Name == namespace {
@@ -171,6 +185,7 @@ func (a *fakeFlinkCapacityAPI) UpdateNamespaceCapacity(_ string, namespace strin
 }
 
 func (a *fakeFlinkCapacityAPI) UpdateDeploymentTargetV2(_ string, namespace string, target *flink.DeploymentTarget) (*flink.DeploymentTarget, error) {
+	a.calls = append(a.calls, "modify-queue")
 	a.queueWrites++
 	for i := range a.targets[namespace] {
 		if a.targets[namespace][i].Name == target.Name {
@@ -182,6 +197,7 @@ func (a *fakeFlinkCapacityAPI) UpdateDeploymentTargetV2(_ string, namespace stri
 }
 
 func (a *fakeFlinkCapacityAPI) ModifyPrepayWorkspaceCapacity(_ string, fixed, crossZone *flink.ResourceSpec) (flink.CapacityOperation, error) {
+	a.calls = append(a.calls, "modify-workspace-fixed")
 	a.workspaceFixedWrites = append(a.workspaceFixedWrites, testFlinkCapacityFixedWrite{fixed: fixed, crossZone: crossZone})
 	a.workspace.ResourceSpec = fixed
 	a.workspace.HaResourceSpec = crossZone
@@ -189,17 +205,20 @@ func (a *fakeFlinkCapacityAPI) ModifyPrepayWorkspaceCapacity(_ string, fixed, cr
 }
 
 func (a *fakeFlinkCapacityAPI) ModifyPostpayWorkspaceCapacity(string, *flink.ResourceSpec, *flink.ResourceSpec) (flink.CapacityOperation, error) {
+	a.calls = append(a.calls, "modify-workspace-postpaid")
 	a.workspacePostpaidWrites++
 	return flink.CapacityOperation{}, fmt.Errorf("unexpected workspace write")
 }
 
 func (a *fakeFlinkCapacityAPI) EnableWorkspaceElastic(_ string, elastic *flink.ResourceSpec) (flink.CapacityOperation, error) {
+	a.calls = append(a.calls, "enable-workspace-elastic")
 	a.workspaceElasticWrites = append(a.workspaceElasticWrites, testFlinkCapacityElasticWrite{action: flinkcapacity.EnableWorkspaceElastic, elastic: elastic})
 	a.workspace.ElasticResourceSpec = elastic
 	return flink.CapacityOperation{RequestID: "workspace-elastic-write"}, nil
 }
 
 func (a *fakeFlinkCapacityAPI) ModifyWorkspaceElastic(_ string, elastic *flink.ResourceSpec) (flink.CapacityOperation, error) {
+	a.calls = append(a.calls, "modify-workspace-elastic")
 	a.workspaceElasticWrites = append(a.workspaceElasticWrites, testFlinkCapacityElasticWrite{action: flinkcapacity.ModifyWorkspaceElastic, elastic: elastic})
 	a.workspace.ElasticResourceSpec = elastic
 	return flink.CapacityOperation{RequestID: "workspace-elastic-write"}, nil
@@ -360,6 +379,151 @@ func TestFlinkCapacityServiceReadTreeTyped404RequiresExactListedWorkspaceID(t *t
 	}
 }
 
+func TestFlinkCapacityServiceBootstrapIdentityAbsenceRetryIsExactAndBounded(t *testing.T) {
+	getErr := flink.NewFlinkServiceErrorWithCode("get-request", "", "404", "workspace not found", "")
+	api := testFlinkCapacityReadableAPI(nil)
+	api.getWorkspaceErr = getErr
+	contextValue := testFlinkCapacityBootstrapContext("f-workspace", "resource-workspace", 1_700_000_900)
+	now := time.Unix(1_700_000_000, 0)
+	service := (&FlinkCapacityService{api: api}).withCapacityBootstrapContext(contextValue, true, func() time.Time { return now })
+
+	_, err := service.ReadTree(context.Background(), "f-workspace")
+	var notReady *flinkcapacity.NotReadyError
+	if !errors.As(err, &notReady) {
+		t.Fatalf("pre-deadline typed 404 + exact-list absence error = %T %v, want NotReadyError", err, err)
+	}
+	if api.workspaceReads != 1 || api.listWorkspacesCalls != 1 || api.listNamespacesCalls != 0 || testFlinkCapacityWriteCalls(api) != 0 {
+		t.Fatalf("pre-deadline absence calls get/list/namespaces/writes = %d/%d/%d/%d, want 1/1/0/0", api.workspaceReads, api.listWorkspacesCalls, api.listNamespacesCalls, testFlinkCapacityWriteCalls(api))
+	}
+
+	now = time.Unix(contextValue.IdentityAbsenceRetryNotAfterUnix, 0)
+	_, err = service.ReadTree(context.Background(), "f-workspace")
+	if err != getErr {
+		t.Fatalf("deadline typed 404 + exact-list absence error = %T %v, want original authoritative %T %v", err, err, getErr, getErr)
+	}
+	if testFlinkCapacityWriteCalls(api) != 0 {
+		t.Fatalf("deadline absence made %d writes", testFlinkCapacityWriteCalls(api))
+	}
+
+	strictAPI := testFlinkCapacityReadableAPI(nil)
+	strictAPI.getWorkspaceErr = getErr
+	strict := (&FlinkCapacityService{api: strictAPI}).withCapacityBootstrapContext(contextValue, false, func() time.Time { return time.Unix(1_700_000_000, 0) })
+	_, err = strict.ReadTree(context.Background(), "f-workspace")
+	if err != getErr {
+		t.Fatalf("strict callback error = %T %v, want original %T %v", err, err, getErr, getErr)
+	}
+}
+
+func TestFlinkCapacityServiceBootstrapIdentitySeenCannotReturnToAbsenceRetry(t *testing.T) {
+	getErr := flink.NewFlinkServiceErrorWithCode("get-request", "", "404", "workspace not found", "")
+	visible := *testFlinkCapacityWorkspace(2)
+	visible.Tags = nil
+	api := testFlinkCapacityReadableAPI(nil)
+	api.getWorkspaceErr = getErr
+	api.listedWorkspaces = []flink.Workspace{visible}
+	contextValue := testFlinkCapacityBootstrapContext(visible.Id, visible.ResourceId, 1_700_000_900)
+	service := (&FlinkCapacityService{api: api}).withCapacityBootstrapContext(contextValue, true, func() time.Time { return time.Unix(1_700_000_000, 0) })
+
+	_, err := service.ReadTree(context.Background(), visible.Id)
+	var notReady *flinkcapacity.NotReadyError
+	if !errors.As(err, &notReady) || !strings.Contains(err.Error(), flinkworkspace.CreateTokenTagKey) {
+		t.Fatalf("first exact identity with unpropagated tags error = %T %v, want tag NotReadyError", err, err)
+	}
+	if !service.capacityBootstrap.identitySeen {
+		t.Fatal("exact listed identity did not consume callback-local absence permission")
+	}
+
+	api.listedWorkspaces = nil
+	_, err = service.ReadTree(context.Background(), visible.Id)
+	if err != getErr {
+		t.Fatalf("post-identity absence error = %T %v, want original authoritative %T %v", err, err, getErr, getErr)
+	}
+	if testFlinkCapacityWriteCalls(api) != 0 {
+		t.Fatalf("identity propagation sequence made %d writes", testFlinkCapacityWriteCalls(api))
+	}
+}
+
+func TestFlinkCapacityServiceBootstrapPinsFirstObservedResourceIDWithinCallback(t *testing.T) {
+	first := *testFlinkCapacityWorkspace(2)
+	first.Tags = nil
+	second := first
+	second.ResourceId = "resource-replacement"
+	contextValue := testFlinkCapacityBootstrapContext(first.Id, "", 1_700_000_900)
+	second.Tags = []flink.Tag{
+		{Key: flinkworkspace.CreateTokenTagKey, Value: contextValue.TerraformCreateToken},
+		{Key: flinkworkspace.CreateIntentTagKey, Value: contextValue.CreateIntentFingerprint},
+	}
+	api := testFlinkCapacityReadableAPI(nil)
+	api.getWorkspaceResponses = []testFlinkCapacityWorkspaceResponse{{workspace: &first}, {workspace: &second}}
+	service := (&FlinkCapacityService{api: api}).withCapacityBootstrapContext(contextValue, true, func() time.Time { return time.Unix(1_700_000_000, 0) })
+
+	_, err := service.ReadTree(context.Background(), first.Id)
+	var notReady *flinkcapacity.NotReadyError
+	if !errors.As(err, &notReady) || service.capacityBootstrap.pinnedResourceID != first.ResourceId {
+		t.Fatalf("first observation error/pin = %T %v/%q, want NotReady/%q", err, err, service.capacityBootstrap.pinnedResourceID, first.ResourceId)
+	}
+	_, err = service.ReadTree(context.Background(), first.Id)
+	if err == nil || !strings.Contains(err.Error(), "ResourceId changed during capacity bootstrap") {
+		t.Fatalf("second observation error = %T %v, want fatal ResourceId change", err, err)
+	}
+	if testFlinkCapacityWriteCalls(api) != 0 {
+		t.Fatalf("ResourceId change made %d capacity writes", testFlinkCapacityWriteCalls(api))
+	}
+}
+
+func TestFlinkCapacityServiceBootstrapProvenanceMustMatchBeforeTreeReads(t *testing.T) {
+	base := testFlinkCapacityWorkspace(2)
+	contextValue := testFlinkCapacityBootstrapContext(base.Id, base.ResourceId, 1_700_000_900)
+	ready := *base
+	ready.Tags = []flink.Tag{
+		{Key: flinkworkspace.CreateTokenTagKey, Value: contextValue.TerraformCreateToken},
+		{Key: flinkworkspace.CreateIntentTagKey, Value: contextValue.CreateIntentFingerprint},
+	}
+
+	for _, test := range []struct {
+		name         string
+		mutate       func(*flink.Workspace)
+		wantNotReady bool
+		wantText     string
+	}{
+		{name: "resource ID not propagated", mutate: func(value *flink.Workspace) { value.ResourceId = "" }, wantNotReady: true, wantText: "ResourceId"},
+		{name: "create token not propagated", mutate: func(value *flink.Workspace) { value.Tags = value.Tags[1:] }, wantNotReady: true, wantText: flinkworkspace.CreateTokenTagKey},
+		{name: "intent fingerprint not propagated", mutate: func(value *flink.Workspace) { value.Tags = value.Tags[:1] }, wantNotReady: true, wantText: flinkworkspace.CreateIntentTagKey},
+		{name: "resource ID mismatch", mutate: func(value *flink.Workspace) { value.ResourceId = "resource-other" }, wantText: "ResourceId mismatch"},
+		{name: "create token mismatch", mutate: func(value *flink.Workspace) { value.Tags[0].Value = strings.Repeat("c", 64) }, wantText: "create token mismatch"},
+		{name: "intent fingerprint mismatch", mutate: func(value *flink.Workspace) { value.Tags[1].Value = strings.Repeat("c", 64) }, wantText: "intent fingerprint mismatch"},
+		{name: "duplicate token", mutate: func(value *flink.Workspace) { value.Tags = append(value.Tags, value.Tags[0]) }, wantText: "duplicate"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			workspace := ready
+			workspace.Tags = append([]flink.Tag(nil), ready.Tags...)
+			test.mutate(&workspace)
+			api := testFlinkCapacityReadableAPI(&workspace)
+			service := (&FlinkCapacityService{api: api}).withCapacityBootstrapContext(contextValue, true, func() time.Time { return time.Unix(1_700_000_000, 0) })
+			_, err := service.ReadTree(context.Background(), ready.Id)
+			if err == nil || !strings.Contains(err.Error(), test.wantText) {
+				t.Fatalf("ReadTree() error = %T %v, want text %q", err, err, test.wantText)
+			}
+			var gotNotReady *flinkcapacity.NotReadyError
+			if errors.As(err, &gotNotReady) != test.wantNotReady {
+				t.Fatalf("ReadTree() error retryability = %T %v, want NotReady=%t", err, err, test.wantNotReady)
+			}
+			if api.listNamespacesCalls != 0 || testFlinkCapacityWriteCalls(api) != 0 {
+				t.Fatalf("provenance failure made namespace reads/writes = %d/%d, want 0/0", api.listNamespacesCalls, testFlinkCapacityWriteCalls(api))
+			}
+		})
+	}
+
+	api := testFlinkCapacityReadableAPI(&ready)
+	service := (&FlinkCapacityService{api: api}).withCapacityBootstrapContext(contextValue, true, func() time.Time { return time.Unix(1_700_000_000, 0) })
+	if _, err := service.ReadTree(context.Background(), ready.Id); err != nil {
+		t.Fatalf("matching bootstrap provenance ReadTree() error = %v", err)
+	}
+	if api.listNamespacesCalls != 1 || api.listTargetCalls["default"] != 1 {
+		t.Fatalf("matching provenance tree reads namespaces/targets = %d/%d, want 1/1", api.listNamespacesCalls, api.listTargetCalls["default"])
+	}
+}
+
 func TestFlinkCapacityServiceReadTreeDoesNotListForNonTyped404(t *testing.T) {
 	for _, tc := range []struct {
 		name string
@@ -381,8 +545,10 @@ func TestFlinkCapacityServiceReadTreeDoesNotListForNonTyped404(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			api := testFlinkCapacityReadableAPI(nil)
 			api.getWorkspaceErr = tc.err
+			bootstrap := testFlinkCapacityBootstrapContext("f-workspace", "resource-workspace", 1_700_000_900)
+			service := (&FlinkCapacityService{api: api}).withCapacityBootstrapContext(bootstrap, true, func() time.Time { return time.Unix(1_700_000_000, 0) })
 
-			_, err := (&FlinkCapacityService{api: api}).ReadTree(context.Background(), "f-workspace")
+			_, err := service.ReadTree(context.Background(), "f-workspace")
 			if err != tc.err {
 				t.Fatalf("ReadTree() error = %T %v, want original %T %v", err, err, tc.err, tc.err)
 			}
@@ -528,7 +694,7 @@ func TestFlinkCapacityServiceModifyQueueRejectsSuccessfulGetWithoutExactWorkspac
 	}
 }
 
-func TestFlinkCapacityServiceReconcilePostWriteReadRejectsSuccessfulGetWithoutExactWorkspaceIdentity(t *testing.T) {
+func TestFlinkCapacityServiceReconcilePreWriteReadRejectsSuccessfulGetWithoutExactWorkspaceIdentity(t *testing.T) {
 	requestedID := "f-workspace"
 	desired := flinkcapacity.Tree{
 		ChargeType: "PRE",
@@ -562,24 +728,22 @@ func TestFlinkCapacityServiceReconcilePostWriteReadRejectsSuccessfulGetWithoutEx
 		t.Run(tc.name, func(t *testing.T) {
 			initialWorkspace := testFlinkCapacityWorkspace(2)
 			invalidPostWrite := tc.invalidWorkspace()
-			invalidFinalRead := tc.invalidWorkspace()
 			api := testFlinkCapacityReadableAPI(initialWorkspace)
 			api.getWorkspaceResponses = []testFlinkCapacityWorkspaceResponse{
 				{workspace: initialWorkspace},
 				{workspace: invalidPostWrite},
-				{workspace: invalidFinalRead},
 			}
 			service := &FlinkCapacityService{api: api}
 
 			_, err := (flinkcapacity.Reconciler{API: service}).ReconcileAuthoritative(context.Background(), requestedID, desired)
 			if err == nil || !strings.Contains(err.Error(), `requested InstanceId "f-workspace"`) || !strings.Contains(err.Error(), tc.wantObservedText) {
-				t.Fatalf("ReconcileAuthoritative() error = %T %v, want post-write requested/observed identity error", err, err)
+				t.Fatalf("ReconcileAuthoritative() error = %T %v, want pre-write requested/observed identity error", err, err)
 			}
-			if len(api.workspaceFixedWrites) != 1 || testFlinkCapacityWriteCalls(api) != 1 {
-				t.Fatalf("ReconcileAuthoritative() writes = %d (workspace fixed=%d), want exactly one non-replayed write", testFlinkCapacityWriteCalls(api), len(api.workspaceFixedWrites))
+			if len(api.workspaceFixedWrites) != 0 || testFlinkCapacityWriteCalls(api) != 0 {
+				t.Fatalf("ReconcileAuthoritative() writes = %d (workspace fixed=%d), want zero after pre-write identity failure", testFlinkCapacityWriteCalls(api), len(api.workspaceFixedWrites))
 			}
-			if api.workspaceReads != 3 || api.listWorkspacesCalls != 0 || api.listNamespacesCalls != 1 || testFlinkCapacityTargetReadCalls(api) != 1 {
-				t.Fatalf("ReconcileAuthoritative() reads: get=%d list=%d namespaces=%d targets=%d, want initial/post-write/final get with only initial tree reads", api.workspaceReads, api.listWorkspacesCalls, api.listNamespacesCalls, testFlinkCapacityTargetReadCalls(api))
+			if api.workspaceReads != 3 || api.listWorkspacesCalls != 0 || api.listNamespacesCalls != 2 || testFlinkCapacityTargetReadCalls(api) != 2 {
+				t.Fatalf("ReconcileAuthoritative() reads: get=%d list=%d namespaces=%d targets=%d, want initial tree, strict pre-write get, and final evidence read", api.workspaceReads, api.listWorkspacesCalls, api.listNamespacesCalls, testFlinkCapacityTargetReadCalls(api))
 			}
 		})
 	}
@@ -588,7 +752,13 @@ func TestFlinkCapacityServiceReconcilePostWriteReadRejectsSuccessfulGetWithoutEx
 func TestFlinkCapacityServiceWorkspaceStepsUseAbsoluteComponentArguments(t *testing.T) {
 	initialFixed := &flink.ResourceSpec{Cpu: 4, MemoryGB: 16}
 	initialElastic := &flink.ResourceSpec{Cpu: 3, MemoryGB: 12}
-	api := &fakeFlinkCapacityAPI{workspace: &flink.Workspace{ResourceSpec: initialFixed, ElasticResourceSpec: initialElastic}}
+	workspace := testFlinkCapacityWorkspace(4)
+	workspace.ResourceSpec = initialFixed
+	workspace.ElasticResourceSpec = initialElastic
+	workspace.Elastic = true
+	workspace.ElasticInstanceId = "f-elastic"
+	workspace.ElasticOrderState = "NORMAL"
+	api := &fakeFlinkCapacityAPI{workspace: workspace}
 	service := &FlinkCapacityService{api: api}
 
 	_, err := service.ApplyStep(context.Background(), "f-workspace", flinkcapacity.Step{
@@ -645,6 +815,139 @@ func TestFlinkCapacityServiceWorkspaceStepsUseAbsoluteComponentArguments(t *test
 		if api.workspace.ResourceSpec != fixedBefore || api.workspace.HaResourceSpec != crossBefore {
 			t.Fatalf("%s write replaced an unmodified fixed component", tc.action)
 		}
+	}
+}
+
+func TestFlinkCapacityServiceApplyStepStrictlyRevalidatesWorkspaceBeforeEveryWrite(t *testing.T) {
+	steps := []flinkcapacity.Step{
+		{Action: flinkcapacity.ModifyWorkspaceFixed, To: flinkcapacity.Allocation{FixedCU: 4, Limit: 4}},
+		{Action: flinkcapacity.EnableWorkspaceElastic, To: flinkcapacity.Allocation{FixedCU: 2, Limit: 4}},
+		{Action: flinkcapacity.ModifyWorkspaceElastic, To: flinkcapacity.Allocation{FixedCU: 2, Limit: 4}},
+		{Action: flinkcapacity.CreateNamespace, Ref: flinkcapacity.Ref{Namespace: "new"}},
+		{Action: flinkcapacity.DeleteNamespace, Ref: flinkcapacity.Ref{Namespace: "default"}},
+		{Action: flinkcapacity.ModifyNamespace, Ref: flinkcapacity.Ref{Namespace: "default"}, To: flinkcapacity.Allocation{FixedCU: 2, Limit: 2}},
+		{Action: flinkcapacity.ModifyQueue, Ref: flinkcapacity.Ref{Namespace: "default", Queue: "default-queue"}, To: flinkcapacity.Allocation{FixedCU: 2, Limit: 2}},
+	}
+	for _, step := range steps {
+		t.Run(string(step.Action), func(t *testing.T) {
+			api := testFlinkCapacityReadableAPI(testFlinkCapacityWorkspace(2))
+			service := &FlinkCapacityService{api: api}
+			_, err := service.ApplyStep(context.Background(), "f-workspace", step)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(api.calls) < 2 || api.calls[0] != "get-workspace" {
+				t.Fatalf("ApplyStep call order = %v, want strict GetWorkspace before any write", api.calls)
+			}
+			if api.listWorkspacesCalls != 0 || testFlinkCapacityWriteCalls(api) != 1 {
+				t.Fatalf("ApplyStep list fallback/writes = %d/%d, want 0/1", api.listWorkspacesCalls, testFlinkCapacityWriteCalls(api))
+			}
+		})
+	}
+}
+
+func TestFlinkCapacityServiceApplyStepCancellationAfterPreflightReadIsZeroWrite(t *testing.T) {
+	t.Run("workspace read", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		api := testFlinkCapacityReadableAPI(testFlinkCapacityWorkspace(2))
+		api.getWorkspaceHook = cancel
+		_, err := (&FlinkCapacityService{api: api}).ApplyStep(ctx, "f-workspace", flinkcapacity.Step{
+			Action: flinkcapacity.ModifyWorkspaceFixed,
+			To:     flinkcapacity.Allocation{FixedCU: 4, Limit: 4},
+		})
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("ApplyStep error = %T %v, want context cancellation after Workspace preflight", err, err)
+		}
+		if writes := testFlinkCapacityWriteCalls(api); writes != 0 {
+			t.Fatalf("ApplyStep made %d write(s) after context cancellation during Workspace preflight", writes)
+		}
+	})
+
+	t.Run("namespace read", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		api := testFlinkCapacityReadableAPI(testFlinkCapacityWorkspace(2))
+		api.getNamespaceHook = cancel
+		_, err := (&FlinkCapacityService{api: api}).ApplyStep(ctx, "f-workspace", flinkcapacity.Step{
+			Action: flinkcapacity.ModifyNamespace,
+			Ref:    flinkcapacity.Ref{Namespace: "default"},
+			To:     flinkcapacity.Allocation{FixedCU: 4, Limit: 4},
+		})
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("ApplyStep error = %T %v, want context cancellation after Namespace preflight", err, err)
+		}
+		if api.namespaceReads != 1 || testFlinkCapacityWriteCalls(api) != 0 {
+			t.Fatalf("ApplyStep namespace reads/writes = %d/%d, want 1/0 after cancellation", api.namespaceReads, testFlinkCapacityWriteCalls(api))
+		}
+	})
+}
+
+func TestFlinkCapacityServiceTerminalStateWinsOverMissingBootstrapProvenance(t *testing.T) {
+	workspace := testFlinkCapacityWorkspace(2)
+	workspace.Status = "DELETING"
+	workspace.ResourceId = ""
+	workspace.Tags = nil
+	api := testFlinkCapacityReadableAPI(workspace)
+	contextValue := testFlinkCapacityBootstrapContext("f-workspace", "resource-workspace", 1_700_000_900)
+	service := (&FlinkCapacityService{api: api}).withCapacityBootstrapContext(contextValue, true, func() time.Time {
+		return time.Unix(1_700_000_000, 0)
+	})
+
+	_, err := service.ReadTree(context.Background(), "f-workspace")
+	if err == nil || !strings.Contains(err.Error(), "terminal state") {
+		t.Fatalf("ReadTree error = %T %v, want terminal failure before missing provenance readiness", err, err)
+	}
+	var notReady *flinkcapacity.NotReadyError
+	if errors.As(err, &notReady) {
+		t.Fatalf("terminal Workspace was misclassified as retryable: %v", err)
+	}
+	if api.listNamespacesCalls != 0 || testFlinkCapacityWriteCalls(api) != 0 {
+		t.Fatalf("terminal Workspace downstream reads/writes = %d/%d, want 0/0", api.listNamespacesCalls, testFlinkCapacityWriteCalls(api))
+	}
+}
+
+func TestFlinkCapacityServiceApplyStepIdentityFailureIsZeroWriteAndNeverLists(t *testing.T) {
+	get404 := flink.NewFlinkServiceErrorWithCode("get-request", "", "404", "workspace not found", "")
+	for _, test := range []struct {
+		name      string
+		workspace *flink.Workspace
+		getErr    error
+		context   *flinkWorkspaceCapacityBootstrapContext
+		want      string
+	}{
+		{name: "typed 404", getErr: get404, want: "workspace not found"},
+		{name: "wrong exact ID", workspace: &flink.Workspace{Id: "f-other", ResourceId: "resource-workspace", Status: "RUNNING", OrderState: "NORMAL"}, want: "identity mismatch"},
+		{name: "terminal", workspace: &flink.Workspace{Id: "f-workspace", ResourceId: "resource-workspace", Status: "DELETING", OrderState: "NORMAL"}, want: "terminal state"},
+		{name: "missing ResourceId", workspace: &flink.Workspace{Id: "f-workspace", Status: "RUNNING", OrderState: "NORMAL"}, want: "ResourceId"},
+		{name: "bootstrap tag mismatch", workspace: func() *flink.Workspace {
+			value := testFlinkCapacityWorkspace(2)
+			value.Tags = []flink.Tag{
+				{Key: flinkworkspace.CreateTokenTagKey, Value: strings.Repeat("c", 64)},
+				{Key: flinkworkspace.CreateIntentTagKey, Value: strings.Repeat("b", 64)},
+			}
+			return value
+		}(), context: func() *flinkWorkspaceCapacityBootstrapContext {
+			value := testFlinkCapacityBootstrapContext("f-workspace", "resource-workspace", 1_700_000_900)
+			return &value
+		}(), want: "create token mismatch"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			api := testFlinkCapacityReadableAPI(test.workspace)
+			api.getWorkspaceErr = test.getErr
+			service := &FlinkCapacityService{api: api}
+			if test.context != nil {
+				service = service.withCapacityBootstrapContext(*test.context, true, func() time.Time { return time.Unix(1_700_000_000, 0) })
+			}
+			_, err := service.ApplyStep(context.Background(), "f-workspace", flinkcapacity.Step{
+				Action: flinkcapacity.CreateNamespace,
+				Ref:    flinkcapacity.Ref{Namespace: "new"},
+			})
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("ApplyStep error = %T %v, want text %q", err, err, test.want)
+			}
+			if api.workspaceReads != 1 || api.listWorkspacesCalls != 0 || testFlinkCapacityWriteCalls(api) != 0 {
+				t.Fatalf("identity failure calls get/list/writes = %d/%d/%d, want 1/0/0", api.workspaceReads, api.listWorkspacesCalls, testFlinkCapacityWriteCalls(api))
+			}
+		})
 	}
 }
 
@@ -768,7 +1071,7 @@ func TestFlinkCapacityServiceIntegralGatePreservesMaximumFOASAndFractionalQueueV
 
 func testFlinkCapacitySerializationBoundaryAPI() *fakeFlinkCapacityAPI {
 	return &fakeFlinkCapacityAPI{
-		workspace: &flink.Workspace{Id: "f-workspace", ResourceId: "resource-workspace"},
+		workspace: &flink.Workspace{Id: "f-workspace", ResourceId: "resource-workspace", Status: "RUNNING", OrderState: "NORMAL"},
 		namespaces: []flink.Namespace{{
 			Name: "default",
 		}},
@@ -783,7 +1086,7 @@ func testFlinkCapacityWriteCount(api *fakeFlinkCapacityAPI) int {
 }
 
 func TestFlinkCapacityServiceApplyNamespaceTopologySteps(t *testing.T) {
-	api := &fakeFlinkCapacityAPI{}
+	api := &fakeFlinkCapacityAPI{workspace: testFlinkCapacityWorkspace(2)}
 	service := &FlinkCapacityService{api: api}
 
 	step := flinkcapacity.Step{
@@ -829,7 +1132,7 @@ func TestFlinkCapacityServiceTypedPostCreateReadFailuresAreAmbiguous(t *testing.
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			postReadErr := flink.NewFlinkPostCreateReadError("f-workspace", "new", tc.cause)
-			api := &fakeFlinkCapacityAPI{createPostReadErr: postReadErr}
+			api := &fakeFlinkCapacityAPI{workspace: testFlinkCapacityWorkspace(2), createPostReadErr: postReadErr}
 			service := &FlinkCapacityService{api: api}
 
 			_, err := service.ApplyStep(context.Background(), "f-workspace", flinkcapacity.Step{
@@ -885,7 +1188,7 @@ func TestFlinkCapacityServiceCreateNamespaceRPCFailuresAreNotAmbiguous(t *testin
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			api := &fakeFlinkCapacityAPI{createPreWriteErr: tc.err}
+			api := &fakeFlinkCapacityAPI{workspace: testFlinkCapacityWorkspace(2), createPreWriteErr: tc.err}
 			service := &FlinkCapacityService{api: api}
 
 			_, err := service.ApplyStep(context.Background(), "f-workspace", flinkcapacity.Step{
@@ -946,7 +1249,7 @@ func TestFlinkCapacityServiceDeleteNamespaceNotFoundUsesAuthoritativeReadConfirm
 
 func TestFlinkCapacityServiceDeleteNamespaceOrdinaryFailureIsNotAmbiguous(t *testing.T) {
 	wantErr := flink.NewFlinkServiceErrorWithCode("delete-request", "", "InvalidParameter", "invalid", "")
-	api := &fakeFlinkCapacityAPI{deleteErr: wantErr}
+	api := &fakeFlinkCapacityAPI{workspace: testFlinkCapacityWorkspace(2), deleteErr: wantErr}
 	service := &FlinkCapacityService{api: api}
 
 	_, err := service.ApplyStep(context.Background(), "f-workspace", flinkcapacity.Step{
@@ -1196,6 +1499,18 @@ func testFlinkCapacityWorkspace(cpu float64) *flink.Workspace {
 	}
 }
 
+func testFlinkCapacityBootstrapContext(instanceID, resourceID string, deadline int64) flinkWorkspaceCapacityBootstrapContext {
+	return flinkWorkspaceCapacityBootstrapContext{
+		Version:                          flinkWorkspaceCapacityBootstrapContextVersion,
+		Origin:                           flinkWorkspaceCapacityBootstrapContextManagedInitialCreate,
+		ExpectedInstanceID:               instanceID,
+		ExpectedResourceID:               resourceID,
+		TerraformCreateToken:             strings.Repeat("a", 64),
+		CreateIntentFingerprint:          strings.Repeat("b", 64),
+		IdentityAbsenceRetryNotAfterUnix: deadline,
+	}
+}
+
 func testFlinkCapacityNamespace(name string, ha bool, cpu float64) flink.Namespace {
 	return flink.Namespace{
 		Name:                   name,
@@ -1301,6 +1616,41 @@ func TestValidateFlinkCapacityWorkspaceRejectsTerminalElasticOrder(t *testing.T)
 	var retryable interface{ Retryable() bool }
 	if errors.As(err, &retryable) && retryable.Retryable() {
 		t.Fatalf("terminal elastic order must not be retryable: %v", err)
+	}
+}
+
+func TestValidateFlinkCapacityWorkspaceRejectsKnownTerminalStates(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func(*flink.Workspace)
+	}{
+		{name: "workspace DISABLE", mutate: func(value *flink.Workspace) { value.Status = "DISABLE" }},
+		{name: "workspace DELETING", mutate: func(value *flink.Workspace) { value.Status = "DELETING" }},
+		{name: "workspace DELETED", mutate: func(value *flink.Workspace) { value.Status = "DELETED" }},
+		{name: "order CEASE", mutate: func(value *flink.Workspace) { value.OrderState = "CEASE" }},
+		{name: "order CEASED", mutate: func(value *flink.Workspace) { value.OrderState = "CEASED" }},
+		{name: "order RELEASE", mutate: func(value *flink.Workspace) { value.OrderState = "RELEASE" }},
+		{name: "order RELEASED", mutate: func(value *flink.Workspace) { value.OrderState = "RELEASED" }},
+		{name: "order RELEASING", mutate: func(value *flink.Workspace) { value.OrderState = "RELEASING" }},
+		{name: "elastic order RELEASED", mutate: func(value *flink.Workspace) {
+			value.Elastic = true
+			value.ElasticInstanceId = "f-elastic"
+			value.ElasticResourceSpec = &flink.ResourceSpec{Cpu: 2, MemoryGB: 8}
+			value.ElasticOrderState = "RELEASED"
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			workspace := &flink.Workspace{Id: "f-test", Status: "RUNNING", OrderState: "NORMAL", ResourceId: "resource-test"}
+			test.mutate(workspace)
+			err := validateFlinkCapacityWorkspaceReady(workspace)
+			if err == nil || !strings.Contains(err.Error(), "terminal state") {
+				t.Fatalf("terminal workspace error = %T %v", err, err)
+			}
+			var retryable interface{ Retryable() bool }
+			if errors.As(err, &retryable) && retryable.Retryable() {
+				t.Fatalf("terminal workspace state became retryable: %v", err)
+			}
+		})
 	}
 }
 

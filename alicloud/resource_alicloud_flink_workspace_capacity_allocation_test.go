@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/aliyun/terraform-provider-alicloud/internal/flinkcapacity"
+	"github.com/aliyun/terraform-provider-alicloud/internal/flinkworkspace"
 	flink "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/flink"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -21,6 +22,12 @@ func TestFlinkWorkspaceCapacityAllocationSchema(t *testing.T) {
 	}
 	if field := resource.Schema["workspace_instance_id"]; !field.Required || !field.ForceNew || field.Type != schema.TypeString {
 		t.Fatalf("workspace_instance_id schema = %#v", field)
+	}
+	if _, exists := resource.Schema["workspace_bootstrap_context"]; exists {
+		t.Fatal("allocation must stay strict and must not own bootstrap authority")
+	}
+	if resource.SchemaVersion != 0 || len(resource.StateUpgraders) != 0 {
+		t.Fatalf("allocation schema version/upgraders = %d/%#v, want unchanged v0 with no upgrader", resource.SchemaVersion, resource.StateUpgraders)
 	}
 	for _, name := range []string{"fixed_cu", "cross_zone_fixed_cu", "max_cu_limit"} {
 		field := resource.Schema[name]
@@ -43,6 +50,120 @@ func TestFlinkWorkspaceCapacityAllocationSchema(t *testing.T) {
 	}
 	if got := *resource.Timeouts.Create; got != 60*time.Minute {
 		t.Fatalf("create timeout = %s", got)
+	}
+}
+
+func TestFlinkWorkspaceCapacityAllocationV2SchemaRequiresDurableIdentityPin(t *testing.T) {
+	resource := resourceAliCloudFlinkWorkspaceCapacityAllocationV2()
+	if err := resource.InternalValidate(nil, true); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"workspace_instance_id", "workspace_resource_id", "workspace_bootstrap_context"} {
+		field := resource.Schema[name]
+		if field == nil || !field.Required || !field.ForceNew || field.Optional || field.Computed {
+			t.Fatalf("%s schema = %#v, want Required+ForceNew", name, field)
+		}
+	}
+	if !resource.Schema["workspace_bootstrap_context"].Sensitive {
+		t.Fatal("workspace_bootstrap_context must remain Sensitive")
+	}
+	if resource.SchemaVersion != 0 || len(resource.StateUpgraders) != 0 {
+		t.Fatalf("v2 allocation schema version/upgraders = %d/%#v, want independent v0 resource", resource.SchemaVersion, resource.StateUpgraders)
+	}
+	old := resourceAliCloudFlinkWorkspaceCapacityAllocation()
+	if _, exists := old.Schema["workspace_resource_id"]; exists {
+		t.Fatal("legacy allocation schema was mutated by v2 construction")
+	}
+}
+
+func TestFlinkWorkspaceCapacityAllocationV2ImportPinsExistingIdentityWithoutGrace(t *testing.T) {
+	resource := resourceAliCloudFlinkWorkspaceCapacityAllocationV2()
+	data := schema.TestResourceDataRaw(t, resource.Schema, nil)
+	data.SetId("f-import|resource-import")
+	states, err := resource.Importer.State(data, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(states) != 1 || states[0].Id() != "f-import" || states[0].Get("workspace_instance_id") != "f-import" || states[0].Get("workspace_resource_id") != "resource-import" || states[0].Get("workspace_bootstrap_context") != flinkWorkspaceCapacityBootstrapContextStrictExisting {
+		t.Fatalf("v2 import state = %#v, want pinned strict existing identity", states)
+	}
+
+	invalid := schema.TestResourceDataRaw(t, resource.Schema, nil)
+	invalid.SetId("f-import")
+	if _, err := resource.Importer.State(invalid, nil); err == nil {
+		t.Fatal("v2 import without ResourceId succeeded")
+	}
+}
+
+func TestConfigureFlinkWorkspaceCapacityAllocationV2Service(t *testing.T) {
+	resource := resourceAliCloudFlinkWorkspaceCapacityAllocationV2()
+	contextValue := testFlinkCapacityBootstrapContext("f-workspace", "", time.Now().Add(time.Minute).Unix())
+	raw, err := encodeFlinkWorkspaceCapacityBootstrapContext(contextValue)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := schema.TestResourceDataRaw(t, resource.Schema, map[string]interface{}{
+		"workspace_instance_id":       "f-workspace",
+		"workspace_resource_id":       "resource-workspace",
+		"workspace_bootstrap_context": raw,
+	})
+	data.SetId("f-workspace")
+	base := &FlinkCapacityService{api: testFlinkCapacityReadableAPI(testFlinkCapacityWorkspace(2))}
+
+	configuredAPI, err := configureFlinkWorkspaceCapacityAllocationV2Service(base, data, time.Now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	configured := configuredAPI.(*FlinkCapacityService)
+	if configured == base || configured.expectedResourceID != "resource-workspace" || configured.capacityBootstrap == nil || configured.capacityBootstrap.allowInitialIdentityAbsence || configured.capacityBootstrap.context.ExpectedResourceID != "resource-workspace" {
+		t.Fatalf("configured pinned service = %#v", configured)
+	}
+
+	if err := data.Set("workspace_bootstrap_context", flinkWorkspaceCapacityBootstrapContextStrictExisting); err != nil {
+		t.Fatal(err)
+	}
+	strictAPI, err := configureFlinkWorkspaceCapacityAllocationV2Service(base, data, time.Now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	strict := strictAPI.(*FlinkCapacityService)
+	if strict.expectedResourceID != "resource-workspace" || strict.capacityBootstrap != nil {
+		t.Fatalf("strict pinned service = %#v", strict)
+	}
+}
+
+func TestFlinkWorkspaceCapacityAllocationV2FailsResourceIDMismatchBeforeWrite(t *testing.T) {
+	workspace := testFlinkCapacityWorkspace(2)
+	workspace.ResourceId = "resource-replacement"
+	contextValue := testFlinkCapacityBootstrapContext(workspace.Id, "", time.Now().Add(time.Minute).Unix())
+	workspace.Tags = []flink.Tag{
+		{Key: flinkworkspace.CreateTokenTagKey, Value: contextValue.TerraformCreateToken},
+		{Key: flinkworkspace.CreateIntentTagKey, Value: contextValue.CreateIntentFingerprint},
+	}
+	raw, err := encodeFlinkWorkspaceCapacityBootstrapContext(contextValue)
+	if err != nil {
+		t.Fatal(err)
+	}
+	api := testFlinkCapacityReadableAPI(workspace)
+	withFlinkAllocationFakeService(t, &FlinkCapacityService{api: api})
+	data := schema.TestResourceDataRaw(t, resourceAliCloudFlinkWorkspaceCapacityAllocationV2().Schema, map[string]interface{}{
+		"workspace_instance_id":       workspace.Id,
+		"workspace_resource_id":       "resource-original",
+		"workspace_bootstrap_context": raw,
+		"fixed_cu":                    2,
+		"cross_zone_fixed_cu":         0,
+		"max_cu_limit":                2,
+		"namespace": []interface{}{map[string]interface{}{
+			"name": "default", "fixed_cu": 2, "max_cu_limit": 2,
+		}},
+	})
+
+	err = resourceAliCloudFlinkWorkspaceCapacityAllocationV2Create(data, struct{}{})
+	if err == nil || !strings.Contains(err.Error(), "ResourceId mismatch") {
+		t.Fatalf("v2 Create error = %T %v, want ResourceId mismatch", err, err)
+	}
+	if data.Id() != workspace.Id || testFlinkCapacityWriteCalls(api) != 0 {
+		t.Fatalf("v2 mismatch ID/writes = %q/%d, want preserved/0", data.Id(), testFlinkCapacityWriteCalls(api))
 	}
 }
 

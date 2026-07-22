@@ -1,9 +1,138 @@
 package alicloud
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
+	"time"
 )
+
+const (
+	flinkWorkspaceCapacityBootstrapContextVersion              = 1
+	flinkWorkspaceCapacityBootstrapContextManagedInitialCreate = "MANAGED_INITIAL_CREATE"
+	flinkWorkspaceCapacityBootstrapContextStrictExisting       = "STRICT_EXISTING"
+	flinkWorkspaceCapacityBootstrapIdentityAbsenceRetryWindow  = 15 * time.Minute
+)
+
+type flinkWorkspaceCapacityBootstrapContext struct {
+	Version                          int    `json:"version"`
+	Origin                           string `json:"origin"`
+	ExpectedInstanceID               string `json:"expected_instance_id"`
+	ExpectedResourceID               string `json:"expected_resource_id"`
+	TerraformCreateToken             string `json:"terraform_create_token"`
+	CreateIntentFingerprint          string `json:"create_intent_fingerprint"`
+	IdentityAbsenceRetryNotAfterUnix int64  `json:"identity_absence_retry_not_after_unix"`
+}
+
+func encodeFlinkWorkspaceCapacityBootstrapContext(value flinkWorkspaceCapacityBootstrapContext) (string, error) {
+	if err := validateFlinkWorkspaceCapacityBootstrapContext(value); err != nil {
+		return "", err
+	}
+	body, err := json.Marshal(value)
+	if err != nil {
+		return "", fmt.Errorf("encode Flink workspace capacity bootstrap context: %w", err)
+	}
+	return string(body), nil
+}
+
+func parseFlinkWorkspaceCapacityBootstrapContext(raw string) (flinkWorkspaceCapacityBootstrapContext, error) {
+	if raw == "" {
+		return flinkWorkspaceCapacityBootstrapContext{}, fmt.Errorf("Flink workspace capacity bootstrap context must not be empty")
+	}
+	if err := rejectDuplicateFlinkWorkspaceCapacityBootstrapContextFields(raw); err != nil {
+		return flinkWorkspaceCapacityBootstrapContext{}, err
+	}
+
+	decoder := json.NewDecoder(strings.NewReader(raw))
+	decoder.DisallowUnknownFields()
+	var value flinkWorkspaceCapacityBootstrapContext
+	if err := decoder.Decode(&value); err != nil {
+		return flinkWorkspaceCapacityBootstrapContext{}, fmt.Errorf("decode Flink workspace capacity bootstrap context: %w", err)
+	}
+	if err := requireFlinkWorkspaceCapacityBootstrapContextEOF(decoder); err != nil {
+		return flinkWorkspaceCapacityBootstrapContext{}, err
+	}
+	if err := validateFlinkWorkspaceCapacityBootstrapContext(value); err != nil {
+		return flinkWorkspaceCapacityBootstrapContext{}, err
+	}
+	canonical, err := encodeFlinkWorkspaceCapacityBootstrapContext(value)
+	if err != nil {
+		return flinkWorkspaceCapacityBootstrapContext{}, err
+	}
+	if raw != canonical {
+		return flinkWorkspaceCapacityBootstrapContext{}, fmt.Errorf("Flink workspace capacity bootstrap context is not canonical")
+	}
+	return value, nil
+}
+
+func rejectDuplicateFlinkWorkspaceCapacityBootstrapContextFields(raw string) error {
+	decoder := json.NewDecoder(strings.NewReader(raw))
+	token, err := decoder.Token()
+	if err != nil {
+		return fmt.Errorf("decode Flink workspace capacity bootstrap context: %w", err)
+	}
+	delimiter, ok := token.(json.Delim)
+	if !ok || delimiter != '{' {
+		return fmt.Errorf("Flink workspace capacity bootstrap context must be a JSON object")
+	}
+	seen := make(map[string]struct{})
+	for decoder.More() {
+		token, err := decoder.Token()
+		if err != nil {
+			return fmt.Errorf("decode Flink workspace capacity bootstrap context field: %w", err)
+		}
+		name, ok := token.(string)
+		if !ok {
+			return fmt.Errorf("Flink workspace capacity bootstrap context field name is not a string")
+		}
+		if _, exists := seen[name]; exists {
+			return fmt.Errorf("Flink workspace capacity bootstrap context contains duplicate field %q", name)
+		}
+		seen[name] = struct{}{}
+		var value json.RawMessage
+		if err := decoder.Decode(&value); err != nil {
+			return fmt.Errorf("decode Flink workspace capacity bootstrap context field %q: %w", name, err)
+		}
+	}
+	if _, err := decoder.Token(); err != nil {
+		return fmt.Errorf("decode Flink workspace capacity bootstrap context object end: %w", err)
+	}
+	return requireFlinkWorkspaceCapacityBootstrapContextEOF(decoder)
+}
+
+func requireFlinkWorkspaceCapacityBootstrapContextEOF(decoder *json.Decoder) error {
+	var trailing interface{}
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		if err == nil {
+			return fmt.Errorf("Flink workspace capacity bootstrap context contains trailing JSON")
+		}
+		return fmt.Errorf("decode trailing Flink workspace capacity bootstrap context: %w", err)
+	}
+	return nil
+}
+
+func validateFlinkWorkspaceCapacityBootstrapContext(value flinkWorkspaceCapacityBootstrapContext) error {
+	if value.Version != flinkWorkspaceCapacityBootstrapContextVersion {
+		return fmt.Errorf("Flink workspace capacity bootstrap context version %d is unsupported", value.Version)
+	}
+	if value.Origin != flinkWorkspaceCapacityBootstrapContextManagedInitialCreate {
+		return fmt.Errorf("Flink workspace capacity bootstrap context origin %q is unsupported", value.Origin)
+	}
+	if value.ExpectedInstanceID == "" {
+		return fmt.Errorf("Flink workspace capacity bootstrap context expected InstanceId must not be empty")
+	}
+	if !flinkWorkspaceRecoveryTokenPattern.MatchString(value.TerraformCreateToken) {
+		return fmt.Errorf("Flink workspace capacity bootstrap context terraform create token must be 64 lowercase hexadecimal characters")
+	}
+	if !flinkWorkspaceRecoveryTokenPattern.MatchString(value.CreateIntentFingerprint) {
+		return fmt.Errorf("Flink workspace capacity bootstrap context create intent fingerprint must be 64 lowercase hexadecimal characters")
+	}
+	if value.IdentityAbsenceRetryNotAfterUnix <= 0 {
+		return fmt.Errorf("Flink workspace capacity bootstrap context identity absence retry deadline must be a positive Unix timestamp")
+	}
+	return nil
+}
 
 type flinkWorkspaceProtocolContext int
 

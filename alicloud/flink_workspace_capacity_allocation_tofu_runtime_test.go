@@ -43,7 +43,11 @@ type flinkTofuRuntimePlan struct {
 		Address      string `json:"address"`
 		ActionReason string `json:"action_reason"`
 		Change       struct {
-			Actions []string `json:"actions"`
+			Actions      []string               `json:"actions"`
+			Before       map[string]interface{} `json:"before"`
+			After        map[string]interface{} `json:"after"`
+			AfterUnknown map[string]interface{} `json:"after_unknown"`
+			ReplacePaths []interface{}          `json:"replace_paths"`
 		} `json:"change"`
 	} `json:"resource_changes"`
 }
@@ -54,6 +58,8 @@ type flinkTofuRuntimeGate struct {
 	dir    string
 	env    []string
 	ledger string
+	binary string
+	tfData string
 }
 
 type flinkTofuRuntimeCommandResult struct {
@@ -342,16 +348,32 @@ func TestFlinkWorkspaceCapacityAllocationOpenTofu110RuntimeRecovery(t *testing.T
 
 func flinkTofuRuntimeRequireVersion(t *testing.T, ctx context.Context, env []string) {
 	t.Helper()
-	cmd := exec.CommandContext(ctx, "tofu", "version")
+	binary := flinkTofuRuntimeBinary()
+	cmd := exec.CommandContext(ctx, binary, "version")
 	cmd.Env = env
 	output, err := cmd.Output()
 	if err != nil {
 		t.Fatalf("tofu version: %v", err)
 	}
 	firstLine := strings.SplitN(strings.ReplaceAll(string(output), "\r\n", "\n"), "\n", 2)[0]
-	if firstLine != "OpenTofu v1.10.10" {
-		t.Fatalf("tofu version first line = %q, want %q", firstLine, "OpenTofu v1.10.10")
+	expected := flinkTofuRuntimeExpectedVersion()
+	if firstLine != expected {
+		t.Fatalf("tofu version first line = %q, want %q (binary %q)", firstLine, expected, binary)
 	}
+}
+
+func flinkTofuRuntimeBinary() string {
+	if value := os.Getenv("FLINK_TOFU_RUNTIME_BIN"); value != "" {
+		return value
+	}
+	return "tofu"
+}
+
+func flinkTofuRuntimeExpectedVersion() string {
+	if value := os.Getenv("FLINK_TOFU_RUNTIME_EXPECT_VERSION"); value != "" {
+		return value
+	}
+	return "OpenTofu v1.10.10"
 }
 
 func assertFlinkTofuRuntimeProductionContract(t *testing.T) {
@@ -544,7 +566,11 @@ func (g *flinkTofuRuntimeGate) tofu(args ...string) (string, error) {
 
 func (g *flinkTofuRuntimeGate) tofuWithContext(ctx context.Context, args ...string) (string, error) {
 	g.t.Helper()
-	cmd := exec.CommandContext(ctx, "tofu", args...)
+	binary := g.binary
+	if binary == "" {
+		binary = flinkTofuRuntimeBinary()
+	}
+	cmd := exec.CommandContext(ctx, binary, args...)
 	cmd.Dir = g.dir
 	cmd.Env = g.env
 	output, err := cmd.CombinedOutput()
@@ -585,7 +611,31 @@ func assertFlinkTofuRuntimePlan(t *testing.T, plan flinkTofuRuntimePlan, want ma
 		got[change.Address] = change.Change.Actions
 	}
 	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("saved plan actions = %#v, want exactly %#v", got, want)
+		changed := make(map[string][]string)
+		shape := make(map[string]string)
+		for _, change := range plan.ResourceChanges {
+			for key := range change.Change.Before {
+				if _, exists := change.Change.After[key]; !exists {
+					changed[change.Address] = append(changed[change.Address], key+"(removed)")
+				}
+			}
+			for key, after := range change.Change.After {
+				before, exists := change.Change.Before[key]
+				if !exists || !reflect.DeepEqual(before, after) {
+					changed[change.Address] = append(changed[change.Address], key)
+				}
+			}
+			for key, unknown := range change.Change.AfterUnknown {
+				if value, ok := unknown.(bool); ok && value {
+					changed[change.Address] = append(changed[change.Address], key+"(unknown)")
+				}
+			}
+			beforeContext, beforePresent := change.Change.Before["workspace_bootstrap_context"]
+			afterContext, afterPresent := change.Change.After["workspace_bootstrap_context"]
+			unknownContext, unknownPresent := change.Change.AfterUnknown["workspace_bootstrap_context"]
+			shape[change.Address] = fmt.Sprintf("context before[present=%t nil=%t type=%T] after[present=%t nil=%t type=%T] unknown[present=%t type=%T] replace_paths=%d", beforePresent, beforeContext == nil, beforeContext, afterPresent, afterContext == nil, afterContext, unknownPresent, unknownContext, len(change.Change.ReplacePaths))
+		}
+		t.Fatalf("saved plan actions = %#v, want exactly %#v; changed top-level fields = %#v; safe plan shape = %#v", got, want, changed, shape)
 	}
 }
 

@@ -46,6 +46,12 @@ func resourceAliCloudFlinkWorkspace() *schema.Resource {
 		CustomizeDiff: flinkWorkspaceCustomizeDiff,
 		Importer:      &schema.ResourceImporter{State: importAliCloudFlinkWorkspace},
 		Schema: map[string]*schema.Schema{
+			"capacity_bootstrap_context": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Sensitive:   true,
+				Description: "Internal immutable handshake for the read-only capacity bootstrap barrier. Fresh managed initial-capacity Create carries bounded provenance; existing or unverified paths carry STRICT_EXISTING and receive no 404 grace.",
+			},
 			"identity_visibility_state": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -303,11 +309,12 @@ func importAliCloudFlinkWorkspace(d *schema.ResourceData, _ interface{}) ([]*sch
 		createToken = flinkWorkspaceProtocolUnavailable
 	}
 	for key, value := range map[string]string{
-		"identity_visibility_state": flinkWorkspaceIdentityStable,
-		"purchase_options_state":    spec.purchaseState,
-		"capacity_intent_mode":      spec.capacityMode,
-		"terraform_create_token":    createToken,
-		"create_intent_fingerprint": flinkWorkspaceProtocolUnavailable,
+		"capacity_bootstrap_context": flinkWorkspaceCapacityBootstrapContextStrictExisting,
+		"identity_visibility_state":  flinkWorkspaceIdentityStable,
+		"purchase_options_state":     spec.purchaseState,
+		"capacity_intent_mode":       spec.capacityMode,
+		"terraform_create_token":     createToken,
+		"create_intent_fingerprint":  flinkWorkspaceProtocolUnavailable,
 	} {
 		if key == "identity_visibility_state" && spec.purchaseState == flinkWorkspacePurchaseRecoveryPending {
 			value = flinkWorkspaceIdentityAwaitingFirstRead
@@ -370,10 +377,10 @@ func parseFlinkWorkspaceImportID(importID string) (flinkWorkspaceImportSpec, err
 }
 
 func flinkWorkspaceV0StateType(current map[string]*schema.Schema) cty.Type {
-	legacy := make(map[string]*schema.Schema, len(current)-5)
+	legacy := make(map[string]*schema.Schema, len(current)-6)
 	for name, field := range current {
 		switch name {
-		case "identity_visibility_state", "purchase_options_state", "capacity_intent_mode", "terraform_create_token", "create_intent_fingerprint":
+		case "capacity_bootstrap_context", "identity_visibility_state", "purchase_options_state", "capacity_intent_mode", "terraform_create_token", "create_intent_fingerprint":
 			continue
 		default:
 			legacy[name] = field
@@ -410,6 +417,7 @@ func upgradeFlinkWorkspaceStateV0(raw map[string]interface{}, meta interface{}) 
 	}
 	raw["terraform_create_token"] = flinkWorkspaceProtocolUnavailable
 	raw["create_intent_fingerprint"] = flinkWorkspaceProtocolUnavailable
+	raw["capacity_bootstrap_context"] = flinkWorkspaceCapacityBootstrapContextStrictExisting
 	if pending {
 		token := strings.TrimPrefix(id, pendingFlinkWorkspaceCreateIDPrefix)
 		if !flinkWorkspaceRecoveryTokenPattern.MatchString(token) {
@@ -598,16 +606,14 @@ func resourceAliCloudFlinkWorkspaceCreate(d *schema.ResourceData, meta interface
 	if workspace == nil || workspace.Id == "" {
 		return WrapError(Error("Failed to get instance ID from workspace"))
 	}
-
-	return completeFlinkWorkspaceCreate(
-		d,
-		meta,
-		flinkService,
-		workspace.Id,
-		usesInitialCapacity,
-		d.Timeout(schema.TimeoutCreate),
-		resourceAliCloudFlinkWorkspaceRead,
-	)
+	// Do not wait for post-ID propagation inside the paid Create callback. Core
+	// cannot durably persist d.SetId until this RPC returns; a long waiter here
+	// would reopen duplicate-purchase risk if the provider process died. The
+	// read-only bootstrap barrier discovers ResourceId and tree readiness after
+	// Core has received this successful Create response.
+	workspaceRequest.Id = workspace.Id
+	workspaceRequest.ResourceId = workspace.ResourceId
+	return completeFlinkWorkspaceCreateWithCapacityBootstrapContext(d, workspaceRequest, usesInitialCapacity, time.Now())
 }
 
 type flinkWorkspacePostCreateService interface {
@@ -630,6 +636,41 @@ func completeFlinkWorkspaceCreate(
 	// readiness or observer error from this Create action would make SDK v1
 	// Core taint that identity and replace it on the next apply. Readiness and
 	// authoritative state synchronization therefore belong to later refreshes.
+	return nil
+}
+
+func completeFlinkWorkspaceCreateWithCapacityBootstrapContext(d *schema.ResourceData, workspace *aliyunFlinkAPI.Workspace, usesInitialCapacity bool, createdAt time.Time) error {
+	if workspace == nil || workspace.Id == "" {
+		return fmt.Errorf("cannot complete Flink workspace Create without a paid InstanceId")
+	}
+	d.SetId(workspace.Id)
+	if err := d.Set("capacity_bootstrap_context", flinkWorkspaceCapacityBootstrapContextStrictExisting); err != nil {
+		log.Printf("[WARN] Flink workspace %q strict capacity bootstrap context was not persisted: %v", workspace.Id, err)
+	}
+	if !usesInitialCapacity {
+		return nil
+	}
+
+	tuple := flinkWorkspaceProtocolTupleFromGetter(d)
+	context, err := encodeFlinkWorkspaceCapacityBootstrapContext(flinkWorkspaceCapacityBootstrapContext{
+		Version:                          flinkWorkspaceCapacityBootstrapContextVersion,
+		Origin:                           flinkWorkspaceCapacityBootstrapContextManagedInitialCreate,
+		ExpectedInstanceID:               workspace.Id,
+		ExpectedResourceID:               workspace.ResourceId,
+		TerraformCreateToken:             tuple.token,
+		CreateIntentFingerprint:          tuple.fingerprint,
+		IdentityAbsenceRetryNotAfterUnix: createdAt.Add(flinkWorkspaceCapacityBootstrapIdentityAbsenceRetryWindow).Unix(),
+	})
+	if err != nil {
+		// Never turn an internal state-only context failure into a post-ID Create
+		// error: SDK v1 Core would taint the paid Workspace. The allocation then
+		// receives no authority and fails closed under its strict path.
+		log.Printf("[WARN] Flink workspace %q capacity bootstrap context was not generated: %v", workspace.Id, err)
+		return nil
+	}
+	if err := d.Set("capacity_bootstrap_context", context); err != nil {
+		log.Printf("[WARN] Flink workspace %q capacity bootstrap context was not persisted: %v", workspace.Id, err)
+	}
 	return nil
 }
 
@@ -816,7 +857,7 @@ func waitForFlinkWorkspaceCreateRecovery(service flinkWorkspaceCreateService, re
 	return recovered, err
 }
 
-func findFlinkWorkspaceByCreateIntent(service flinkWorkspaceCreateService, request *aliyunFlinkAPI.Workspace, token, fingerprint string) (*aliyunFlinkAPI.Workspace, error) {
+func findFlinkWorkspaceByCreateIntent(service flinkWorkspaceListService, request *aliyunFlinkAPI.Workspace, token, fingerprint string) (*aliyunFlinkAPI.Workspace, error) {
 	workspace, err := findFlinkWorkspaceByCreateToken(service, request, token)
 	if err != nil || workspace == nil {
 		return workspace, err
@@ -983,7 +1024,7 @@ func resourceAliCloudFlinkWorkspaceRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 	client := meta.(*connectivity.AliyunClient)
-	flinkService, err := NewFlinkService(client)
+	flinkService, err := newFlinkWorkspaceReadCallbackService(client)
 	if err != nil {
 		return WrapError(err)
 	}
@@ -1003,6 +1044,15 @@ type flinkWorkspaceDescribeService interface {
 type flinkWorkspaceReadService interface {
 	flinkWorkspaceDescribeService
 	flinkWorkspaceListService
+}
+
+type flinkWorkspaceReadCallbackService interface {
+	flinkWorkspaceReadService
+	flinkWorkspaceCreateCallbackService
+}
+
+var newFlinkWorkspaceReadCallbackService = func(client *connectivity.AliyunClient) (flinkWorkspaceReadCallbackService, error) {
+	return NewFlinkService(client)
 }
 
 func readFlinkWorkspaceWithService(d *schema.ResourceData, service flinkWorkspaceReadService) error {
@@ -1066,6 +1116,11 @@ func retainFlinkWorkspaceIdentityAfterNotFound(d *schema.ResourceData, service f
 func applyFlinkWorkspaceReadState(d *schema.ResourceData, workspace *aliyunFlinkAPI.Workspace) error {
 	if workspace == nil {
 		return fmt.Errorf("cannot refresh Flink workspace state from nil workspace")
+	}
+	if context, _ := d.Get("capacity_bootstrap_context").(string); context == "" {
+		if err := d.Set("capacity_bootstrap_context", flinkWorkspaceCapacityBootstrapContextStrictExisting); err != nil {
+			return fmt.Errorf("set strict Flink workspace capacity bootstrap context: %w", err)
+		}
 	}
 	visibility, _ := d.Get("identity_visibility_state").(string)
 	if visibility != flinkWorkspaceIdentityAwaitingFirstRead && visibility != flinkWorkspaceIdentityMigratedFirstRead && visibility != flinkWorkspaceIdentityStable {

@@ -13,6 +13,12 @@ func TestFlinkCapacityAllocationProviderRegistry(t *testing.T) {
 	if resource := provider.ResourcesMap["alicloud_flink_workspace_capacity_allocation"]; resource == nil {
 		t.Fatal("alicloud_flink_workspace_capacity_allocation is not registered")
 	}
+	if resource := provider.ResourcesMap["alicloud_flink_workspace_capacity_allocation_v2"]; resource == nil {
+		t.Fatal("alicloud_flink_workspace_capacity_allocation_v2 is not registered")
+	}
+	if resource := provider.ResourcesMap["alicloud_flink_workspace_capacity_bootstrap"]; resource == nil {
+		t.Fatal("alicloud_flink_workspace_capacity_bootstrap is not registered")
+	}
 	if _, exists := provider.ResourcesMap["alicloud_flink_capacity_coordinator"]; exists {
 		t.Fatal("alicloud_flink_capacity_coordinator must not remain registered")
 	}
@@ -37,19 +43,21 @@ func TestFlinkCapacityAllocationProviderRegistry(t *testing.T) {
 func TestFlinkProviderResourceNamesRemainAuthoritative(t *testing.T) {
 	provider := Provider().(*schema.Provider)
 	want := map[string]struct{}{
-		"alicloud_flink_connector":                     {},
-		"alicloud_flink_deployment":                    {},
-		"alicloud_flink_deployment_draft":              {},
-		"alicloud_flink_deployment_folder":             {},
-		"alicloud_flink_deployment_target":             {},
-		"alicloud_flink_job":                           {},
-		"alicloud_flink_member":                        {},
-		"alicloud_flink_namespace":                     {},
-		"alicloud_flink_session_cluster":               {},
-		"alicloud_flink_udf":                           {},
-		"alicloud_flink_variable":                      {},
-		"alicloud_flink_workspace":                     {},
-		"alicloud_flink_workspace_capacity_allocation": {},
+		"alicloud_flink_connector":                        {},
+		"alicloud_flink_deployment":                       {},
+		"alicloud_flink_deployment_draft":                 {},
+		"alicloud_flink_deployment_folder":                {},
+		"alicloud_flink_deployment_target":                {},
+		"alicloud_flink_job":                              {},
+		"alicloud_flink_member":                           {},
+		"alicloud_flink_namespace":                        {},
+		"alicloud_flink_session_cluster":                  {},
+		"alicloud_flink_udf":                              {},
+		"alicloud_flink_variable":                         {},
+		"alicloud_flink_workspace":                        {},
+		"alicloud_flink_workspace_capacity_allocation":    {},
+		"alicloud_flink_workspace_capacity_allocation_v2": {},
+		"alicloud_flink_workspace_capacity_bootstrap":     {},
 	}
 	got := make(map[string]struct{}, len(want))
 	for name := range provider.ResourcesMap {
