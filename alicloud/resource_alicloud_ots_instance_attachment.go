@@ -1,8 +1,8 @@
 package alicloud
 
 import (
-	"github.com/aliyun/alibaba-cloud-sdk-go/services/ots"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
+	aliyunTablestoreAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/tablestore"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -41,12 +41,16 @@ func resourceAliCloudOtsInstanceAttachment() *schema.Resource {
 func resourceAliyunOtsInstanceAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
 	vpcService := VpcService{client}
+	otsService, err := NewOtsService(client)
+	if err != nil {
+		return WrapError(err)
+	}
 
-	request := ots.CreateBindInstance2VpcRequest()
-	request.RegionId = client.RegionId
-	request.InstanceName = d.Get("instance_name").(string)
-	request.InstanceVpcName = d.Get("vpc_name").(string)
-	request.VirtualSwitchId = d.Get("vswitch_id").(string)
+	request := &aliyunTablestoreAPI.BindInstanceRequest{
+		InstanceName:    d.Get("instance_name").(string),
+		InstanceVpcName: d.Get("vpc_name").(string),
+		VirtualSwitchId: d.Get("vswitch_id").(string),
+	}
 
 	if vsw, err := vpcService.DescribeVSwitch(d.Get("vswitch_id").(string)); err != nil {
 		return WrapError(err)
@@ -54,13 +58,14 @@ func resourceAliyunOtsInstanceAttachmentCreate(d *schema.ResourceData, meta inte
 		request.VpcId = vsw.VpcId
 	}
 
-	raw, err := client.WithOtsClient(func(otsClient *ots.Client) (interface{}, error) {
-		return otsClient.BindInstance2Vpc(request)
-	})
+	// The legacy BindInstance2Vpc RPC API rejects newer regions (e.g.
+	// ap-southeast-3) with InvalidVersion, so bind through the modern
+	// console OpenAPI (tablestore-20201209) instead.
+	attachment, err := otsService.GetAPI().BindInstanceToVpcV2(request)
 	if err != nil {
-		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_instance_attachment", request.GetActionName(), AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, "alicloud_ots_instance_attachment", "BindInstance2Vpc", AlibabaCloudSdkGoERROR)
 	}
-	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
+	addDebug("BindInstance2Vpc", attachment, request)
 
 	d.SetId(request.InstanceName)
 	return resourceAliyunOtsInstanceAttachmentRead(d, meta)
@@ -100,20 +105,20 @@ func resourceAliyunOtsInstanceAttachmentDelete(d *schema.ResourceData, meta inte
 		}
 		return WrapError(err)
 	}
-	request := ots.CreateUnbindInstance2VpcRequest()
-	request.RegionId = client.RegionId
-	request.InstanceName = d.Id()
-	request.InstanceVpcName = object.InstanceVpcName
 
-	raw, err := client.WithOtsClient(func(otsClient *ots.Client) (interface{}, error) {
-		return otsClient.UnbindInstance2Vpc(request)
-	})
-	if err != nil {
+	// The legacy UnbindInstance2Vpc RPC API rejects newer regions (e.g.
+	// ap-southeast-3) with InvalidVersion, so unbind through the modern
+	// console OpenAPI (tablestore-20201209) instead.
+	request := &aliyunTablestoreAPI.UnbindInstanceRequest{
+		InstanceName:    d.Id(),
+		InstanceVpcName: object.InstanceVpcName,
+	}
+	if err := otsService.GetAPI().UnbindInstanceFromVpcV2(request); err != nil {
 		if NotFoundError(err) {
 			return nil
 		}
-		return WrapErrorf(err, DefaultErrorMsg, d.Id(), request.GetActionName(), AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DefaultErrorMsg, d.Id(), "UnbindInstance2Vpc", AlibabaCloudSdkGoERROR)
 	}
-	addDebug(request.GetActionName(), raw, request.RpcRequest, request)
+	addDebug("UnbindInstance2Vpc", "Success", request)
 	return WrapError(otsService.WaitForOtsInstanceVpc(d.Id(), Deleted, DefaultTimeout))
 }
