@@ -3,6 +3,7 @@
 # Go Build & Dependencies
 bin/
 terraform-provider-alicloud
+terraform-provider-alicloud.bak
 
 # Terraform
 .terraform*

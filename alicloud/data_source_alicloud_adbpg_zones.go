@@ -1,6 +1,9 @@
 package alicloud
 
 import (
+	"sort"
+	"strings"
+
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -51,32 +54,47 @@ func dataSourceAliCloudAdbpgZonesRead(d *schema.ResourceData, meta interface{}) 
 		return WrapError(err)
 	}
 
-	resources, err := adbpgService.ListAdbpgAvailableResources(client.RegionId)
+	availableZones, err := adbpgService.ListAdbpgZones(client.RegionId)
 	if err != nil {
 		return WrapError(err)
 	}
 
 	multi := d.Get("multi").(bool)
-
-	var ids []string
-	var zones []map[string]interface{}
-
-	for _, res := range resources {
-		if multi && len(res.ZoneId) <= 1 {
+	var zoneIds []string
+	for _, zoneId := range availableZones {
+		if multi && strings.Contains(zoneId, MULTI_IZ_SYMBOL) {
+			zoneIds = append(zoneIds, zoneId)
 			continue
 		}
-
-		zone := map[string]interface{}{
-			"id":             res.ZoneId,
-			"multi_zone_ids": []string{res.ZoneId},
+		if !multi && !strings.Contains(zoneId, MULTI_IZ_SYMBOL) {
+			zoneIds = append(zoneIds, zoneId)
 		}
-		ids = append(ids, res.ZoneId)
-		zones = append(zones, zone)
+	}
+	if len(zoneIds) > 0 {
+		sort.Strings(zoneIds)
 	}
 
-	d.SetId(dataResourceIdHash(ids))
-	d.Set("ids", ids)
-	d.Set("zones", zones)
+	var zones []map[string]interface{}
+	if !multi {
+		for _, zoneId := range zoneIds {
+			zones = append(zones, map[string]interface{}{"id": zoneId})
+		}
+	} else {
+		for _, zoneId := range zoneIds {
+			zones = append(zones, map[string]interface{}{
+				"id":             zoneId,
+				"multi_zone_ids": splitMultiZoneId(zoneId),
+			})
+		}
+	}
+
+	d.SetId(dataResourceIdHash(zoneIds))
+	if err := d.Set("ids", zoneIds); err != nil {
+		return WrapError(err)
+	}
+	if err := d.Set("zones", zones); err != nil {
+		return WrapError(err)
+	}
 
 	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
 		writeToFile(output.(string), zones)

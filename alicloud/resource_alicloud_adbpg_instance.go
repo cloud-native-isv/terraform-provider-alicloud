@@ -31,7 +31,9 @@ func resourceAliCloudAdbpgInstance() *schema.Resource {
 			},
 			"db_instance_class": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
 			},
 			"db_instance_mode": {
 				Type:     schema.TypeString,
@@ -76,6 +78,30 @@ func resourceAliCloudAdbpgInstance() *schema.Resource {
 				Computed: true,
 			},
 			"storage_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+			"instance_spec": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+			"seg_storage_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+			"db_instance_category": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+			"seg_disk_performance_level": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -190,6 +216,18 @@ func resourceAliCloudAdbpgInstanceCreate(d *schema.ResourceData, meta interface{
 	if v, ok := d.GetOk("storage_type"); ok {
 		input.StorageType = v.(string)
 	}
+	if v, ok := d.GetOk("instance_spec"); ok {
+		input.InstanceSpec = v.(string)
+	}
+	if v, ok := d.GetOk("seg_storage_type"); ok {
+		input.SegStorageType = v.(string)
+	}
+	if v, ok := d.GetOk("db_instance_category"); ok {
+		input.DBInstanceCategory = v.(string)
+	}
+	if v, ok := d.GetOk("seg_disk_performance_level"); ok {
+		input.SegDiskPerfLevel = v.(string)
+	}
 	if v, ok := d.GetOk("master_node_num"); ok {
 		input.MasterNodeNum = int32(v.(int))
 	}
@@ -293,6 +331,12 @@ func resourceAliCloudAdbpgInstanceUpdate(d *schema.ResourceData, meta interface{
 
 	if d.HasChange("description") {
 		if err := adbpgService.ModifyAdbpgInstanceDescription(d.Id(), d.Get("description").(string)); err != nil {
+			return WrapError(err)
+		}
+	}
+
+	if d.HasChange("security_ip_list") {
+		if err := adbpgService.ModifyAdbpgSecurityIps(d.Id(), d.Get("security_ip_list").(string), "default"); err != nil {
 			return WrapError(err)
 		}
 	}

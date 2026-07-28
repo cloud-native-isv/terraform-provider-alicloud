@@ -323,6 +323,23 @@ func (s *AdbpgService) ModifyAdbpgSSL(instanceId string, sslEnabled bool) error 
 
 // Discovery methods (C-26, C-27)
 
+// ListAdbpgZones returns zone IDs available for ADB-PG in the region.
+// Zone enumeration must use DescribeRegions (DescribeAvailableResources
+// requires a concrete ZoneId and cannot list zones).
+func (s *AdbpgService) ListAdbpgZones(regionId string) ([]string, error) {
+	zones, err := s.adbpgAPI.ListZones(regionId)
+	if err != nil {
+		return nil, WrapError(err)
+	}
+	zoneIds := make([]string, 0, len(zones))
+	for _, zone := range zones {
+		if zone.ZoneId != "" {
+			zoneIds = append(zoneIds, zone.ZoneId)
+		}
+	}
+	return zoneIds, nil
+}
+
 func (s *AdbpgService) ListAdbpgAvailableResources(regionId string) ([]adbpg.AdbpgAvailableResource, error) {
 	resources, err := s.adbpgAPI.ListAvailableResources(regionId)
 	if err != nil {
