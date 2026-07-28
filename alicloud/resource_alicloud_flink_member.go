@@ -65,6 +65,14 @@ func resourceAliCloudFlinkMemberCreate(d *schema.ResourceData, meta interface{})
 		Role: role,
 	}
 
+	// The account that created the workspace is implicitly granted owner, and
+	// re-adding it makes the service roll the transaction back. Adopt any
+	// member that already exists instead of creating it again.
+	if existing, err := flinkService.GetMember(workspaceId, namespaceName, name); err == nil && existing != nil {
+		d.SetId(workspaceId + "/" + namespaceName + "/" + name)
+		return resourceAliCloudFlinkMemberRead(d, meta)
+	}
+
 	// Pass workspaceId, namespaceName and Member struct to the service method
 	_, err = flinkService.CreateMember(workspaceId, namespaceName, member)
 	if err != nil {
