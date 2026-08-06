@@ -37,6 +37,7 @@ require (
 require (
 	github.com/alibabacloud-go/alibabacloud-gateway-oss v0.0.18
 	github.com/alibabacloud-go/alibabacloud-gateway-sls v0.4.0
+	github.com/alibabacloud-go/cms-20240330/v9 v9.0.0-00010101000000-000000000000 // indirect
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.2.1
 	github.com/alibabacloud-go/fc-20230330/v4 v4.0.0-00010101000000-000000000000
 	github.com/alibabacloud-go/sts-20150401/v2 v2.0.2
