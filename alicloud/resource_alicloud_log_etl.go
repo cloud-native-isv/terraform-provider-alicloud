@@ -137,6 +137,10 @@ func resourceAliCloudLogETL() *schema.Resource {
 													Optional: true,
 													Default:  aliyunSlsAPI.ETLSinksType,
 												},
+												"endpoint": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
 												"project": {
 													Type:     schema.TypeString,
 													Required: true,
@@ -404,6 +408,7 @@ func createETLJob(d *schema.ResourceData, meta interface{}) (aliyunSlsAPI.ETL, e
 		sink := aliyunSlsAPI.ETLSink{
 			Name:        sinkMap["name"].(string),
 			Type:        sinkMap["type"].(string),
+			Endpoint:    sinkMap["endpoint"].(string),
 			Project:     sinkMap["project"].(string),
 			Logstore:    sinkMap["logstore"].(string),
 			RoleArn:     sinkMap["role_arn"].(string),
@@ -482,6 +487,7 @@ func flattenETLToTerraformMap(etl *aliyunSlsAPI.ETL) map[string]interface{} {
 			sinks = append(sinks, map[string]interface{}{
 				"name":        sink.Name,
 				"type":        sink.Type,
+				"endpoint":    sink.Endpoint,
 				"project":     sink.Project,
 				"logstore":    sink.Logstore,
 				"role_arn":    sink.RoleArn,
