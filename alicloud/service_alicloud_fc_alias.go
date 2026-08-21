@@ -229,7 +229,10 @@ func (s *FCService) WaitForAliasCreating(functionName, aliasName string, timeout
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, aliasName))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, aliasName))
+	}
+	return nil
 }
 
 // WaitForAliasDeleting waits for alias deletion to complete
@@ -243,7 +246,10 @@ func (s *FCService) WaitForAliasDeleting(functionName, aliasName string, timeout
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, aliasName))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, aliasName))
+	}
+	return nil
 }
 
 // WaitForAliasUpdating waits for alias update to complete
@@ -257,5 +263,8 @@ func (s *FCService) WaitForAliasUpdating(functionName, aliasName string, timeout
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, aliasName))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, aliasName))
+	}
+	return nil
 }

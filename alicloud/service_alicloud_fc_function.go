@@ -1117,7 +1117,10 @@ func (s *FCService) WaitForFCFunctionCreating(functionName string, timeout time.
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, functionName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, functionName)
+	}
+	return nil
 }
 
 // WaitForFCFunctionUpdating waits for function update to complete
@@ -1131,7 +1134,10 @@ func (s *FCService) WaitForFCFunctionUpdating(functionName string, timeout time.
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, functionName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, functionName)
+	}
+	return nil
 }
 
 // WaitForFCFunctionDeleting waits for function deletion to complete
@@ -1155,7 +1161,10 @@ func (s *FCService) WaitForFCFunctionDeleting(functionName string, timeout time.
 	}
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, functionName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, functionName)
+	}
+	return nil
 }
 
 // EncodeFunctionVersionId encodes function name and version into a resource ID string
@@ -1220,7 +1229,10 @@ func (s *FCService) WaitForFunctionCreating(functionName string, timeout time.Du
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, functionName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, functionName)
+	}
+	return nil
 }
 
 // WaitForFunctionDeleting waits for function deletion to complete
@@ -1234,7 +1246,10 @@ func (s *FCService) WaitForFunctionDeleting(functionName string, timeout time.Du
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, functionName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, functionName)
+	}
+	return nil
 }
 
 // WaitForFunctionUpdating waits for function update to complete
@@ -1248,5 +1263,8 @@ func (s *FCService) WaitForFunctionUpdating(functionName string, timeout time.Du
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, functionName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, functionName)
+	}
+	return nil
 }

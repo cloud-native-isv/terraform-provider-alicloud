@@ -156,7 +156,10 @@ func (s *FCService) WaitForFCLayerVersionCreating(layerName, version string, tim
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, EncodeLayerVersionId(layerName, version))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, EncodeLayerVersionId(layerName, version))
+	}
+	return nil
 }
 
 // WaitForFCLayerVersionDeleting waits for layer version deletion to complete
@@ -180,5 +183,8 @@ func (s *FCService) WaitForFCLayerVersionDeleting(layerName, version string, tim
 	}
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, EncodeLayerVersionId(layerName, version))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, EncodeLayerVersionId(layerName, version))
+	}
+	return nil
 }

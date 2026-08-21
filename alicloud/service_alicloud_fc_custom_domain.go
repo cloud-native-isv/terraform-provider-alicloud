@@ -737,7 +737,10 @@ func (s *FCService) WaitForCustomDomainCreating(domainName string, timeout time.
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, domainName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, domainName)
+	}
+	return nil
 }
 
 // WaitForCustomDomainDeleting waits for custom domain deletion to complete
@@ -751,7 +754,10 @@ func (s *FCService) WaitForCustomDomainDeleting(domainName string, timeout time.
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, domainName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, domainName)
+	}
+	return nil
 }
 
 // WaitForCustomDomainUpdating waits for custom domain update to complete
@@ -765,5 +771,8 @@ func (s *FCService) WaitForCustomDomainUpdating(domainName string, timeout time.
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, domainName)
+	if err != nil {
+		return WrapErrorf(err, IdMsg, domainName)
+	}
+	return nil
 }

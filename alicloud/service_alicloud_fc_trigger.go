@@ -133,7 +133,10 @@ func (s *FCService) WaitForTriggerCreating(functionName, triggerName string, tim
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, triggerName))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, triggerName))
+	}
+	return nil
 }
 
 // WaitForTriggerDeleting waits for trigger deletion to complete
@@ -147,7 +150,10 @@ func (s *FCService) WaitForTriggerDeleting(functionName, triggerName string, tim
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, triggerName))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, triggerName))
+	}
+	return nil
 }
 
 // WaitForTriggerUpdating waits for trigger update to complete
@@ -161,7 +167,10 @@ func (s *FCService) WaitForTriggerUpdating(functionName, triggerName string, tim
 	)
 
 	_, err := stateConf.WaitForState()
-	return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, triggerName))
+	if err != nil {
+		return WrapErrorf(err, IdMsg, fmt.Sprintf("%s:%s", functionName, triggerName))
+	}
+	return nil
 }
 
 // BuildCreateTriggerInputFromSchema builds Trigger from Terraform schema data
