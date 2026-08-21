@@ -110,7 +110,7 @@ func resourceAliCloudFCFunction() *schema.Resource {
 						"runtime": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"python3.10", "python3.9", "python3", "nodejs20", "nodejs18", "nodejs16", "nodejs14", "java11", "java8", "php7.2", "dotnetcore3.1", "go1", "custom.debian10", "custom", "custom-container"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"python3.12", "python3.11", "python3.10", "python3.9", "python3.8", "python3", "nodejs20", "nodejs18", "nodejs16", "nodejs14", "java17", "java11", "java8", "dotnet6", "dotnetcore3.1", "php8.2", "php7.2", "go1.x", "go1", "custom", "custom.debian10", "custom-container"}, false),
 							Description:  "The runtime of the function.",
 						},
 						"timeout": {
