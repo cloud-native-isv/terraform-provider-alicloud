@@ -546,10 +546,10 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_express_connect_vbr_pconn_associations":           dataSourceAliCloudExpressConnectVbrPconnAssociations(),
 			"alicloud_express_connect_virtual_border_routers":           dataSourceAliCloudExpressConnectVirtualBorderRouters(),
 			"alicloud_express_connect_virtual_physical_connections":     dataSourceAliCloudExpressConnectVirtualPhysicalConnections(),
-			"alicloud_fc_custom_domains":                                dataSourceAliCloudFCCustomDomains(),
-			"alicloud_fc_functions":                                     dataSourceAliCloudFCFunctions(),
-			"alicloud_fc_zones":                                         dataSourceAliCloudFCZones(),
-			"alicloud_fc_triggers":                                      dataSourceAliCloudFCTriggers(),
+			"alicloud_fc_custom_domains":                                dataSourceAliCloudFCCustomDomains(), // Deprecated: FC 2.0-era data source kept for existing configs; no alicloud_fcv3_* data source in this generation.
+			"alicloud_fc_functions":                                     dataSourceAliCloudFCFunctions(),     // Deprecated: FC 2.0-era data source kept for existing configs; no alicloud_fcv3_* data source in this generation.
+			"alicloud_fc_zones":                                         dataSourceAliCloudFCZones(),         // Deprecated: FC 2.0-era data source kept for existing configs; no alicloud_fcv3_* data source in this generation.
+			"alicloud_fc_triggers":                                      dataSourceAliCloudFCTriggers(),      // Deprecated: FC 2.0-era data source kept for existing configs; no alicloud_fcv3_* data source in this generation.
 			"alicloud_file_crc64_checksum":                              dataSourceAliCloudFileCRC64Checksum(),
 			"alicloud_flink_deployment_folders":                         dataSourceAliCloudFlinkDeploymentFolders(),
 			"alicloud_flink_deployment_targets":                         dataSourceAliCloudFlinkDeploymentTargets(),
@@ -1453,16 +1453,16 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_express_connect_vbr_pconn_association":                 resourceAliCloudExpressConnectVbrPconnAssociation(),
 			"alicloud_express_connect_virtual_border_router":                 resourceAliCloudExpressConnectVirtualBorderRouter(),
 			"alicloud_express_connect_virtual_physical_connection":           resourceAliCloudExpressConnectVirtualPhysicalConnection(),
-			"alicloud_fc_alias":                                              resourceAliCloudFCAlias(),
-			"alicloud_fc_async_invoke_config":                                resourceAliCloudFCAsyncInvokeConfig(),
-			"alicloud_fc_concurrency_config":                                 resourceAliCloudFCConcurrencyConfig(),
-			"alicloud_fc_custom_domain":                                      resourceAliCloudFCCustomDomain(),
-			"alicloud_fc_function":                                           resourceAliCloudFCFunction(),
-			"alicloud_fc_function_version":                                   resourceAliCloudFCFunctionVersion(),
-			"alicloud_fc_layer_version":                                      resourceAliCloudFCLayerVersion(),
-			"alicloud_fc_provision_config":                                   resourceAliCloudFCProvisionConfig(),
-			"alicloud_fc_trigger":                                            resourceAliCloudFCTrigger(),
-			"alicloud_fc_vpc_binding":                                        resourceAliCloudFCVpcBinding(),
+			"alicloud_fc_alias":                                              resourceAliCloudFCAlias(),             // Deprecated: superseded by alicloud_fcv3_alias; kept for existing state.
+			"alicloud_fc_async_invoke_config":                                resourceAliCloudFCAsyncInvokeConfig(), // Deprecated: superseded by alicloud_fcv3_async_invoke_config; kept for existing state.
+			"alicloud_fc_concurrency_config":                                 resourceAliCloudFCConcurrencyConfig(), // Deprecated: superseded by alicloud_fcv3_concurrency_config; kept for existing state.
+			"alicloud_fc_custom_domain":                                      resourceAliCloudFCCustomDomain(),      // Deprecated: superseded by alicloud_fcv3_custom_domain; kept for existing state.
+			"alicloud_fc_function":                                           resourceAliCloudFCFunction(),          // Deprecated: superseded by alicloud_fcv3_function; kept for existing state.
+			"alicloud_fc_function_version":                                   resourceAliCloudFCFunctionVersion(),   // Deprecated: superseded by alicloud_fcv3_function_version; kept for existing state.
+			"alicloud_fc_layer_version":                                      resourceAliCloudFCLayerVersion(),      // Deprecated: superseded by alicloud_fcv3_layer_version; kept for existing state.
+			"alicloud_fc_provision_config":                                   resourceAliCloudFCProvisionConfig(),   // Deprecated: superseded by alicloud_fcv3_provision_config; kept for existing state.
+			"alicloud_fc_trigger":                                            resourceAliCloudFCTrigger(),           // Deprecated: superseded by alicloud_fcv3_trigger; kept for existing state.
+			"alicloud_fc_vpc_binding":                                        resourceAliCloudFCVpcBinding(),        // Deprecated: superseded by alicloud_fcv3_vpc_binding; kept for existing state.
 			"alicloud_fcv3_alias":                                            resourceAliCloudFCAlias(),
 			"alicloud_fcv3_async_invoke_config":                              resourceAliCloudFCAsyncInvokeConfig(),
 			"alicloud_fcv3_concurrency_config":                               resourceAliCloudFCConcurrencyConfig(),
