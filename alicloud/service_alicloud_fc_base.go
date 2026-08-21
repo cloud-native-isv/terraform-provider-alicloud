@@ -15,12 +15,22 @@ type FCService struct {
 
 // NewFCService creates a new FCService using cws-lib-go implementation
 func NewFCService(client *connectivity.AliyunClient) (*FCService, error) {
+	// FC 3.0 builds an account-scoped endpoint
+	// ({account_id}.{region}.fc.aliyuncs.com), so the account id is required.
+	// client.AccountId() returns the configured account_id or auto-discovers it
+	// via GetCallerIdentity.
+	accountId, err := client.AccountId()
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve account id for FC v3 endpoint: %w", err)
+	}
+
 	// Convert AliyunClient credentials to Credentials
 	credentials := &aliyunCommonAPI.Credentials{
 		AccessKey:     client.AccessKey,
 		SecretKey:     client.SecretKey,
 		RegionId:      client.RegionId,
 		SecurityToken: client.SecurityToken,
+		AccountId:     accountId,
 	}
 
 	// Create the cws-lib-go FCAPI
