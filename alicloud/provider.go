@@ -1463,6 +1463,19 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_fc_provision_config":                                   resourceAliCloudFCProvisionConfig(),
 			"alicloud_fc_trigger":                                            resourceAliCloudFCTrigger(),
 			"alicloud_fc_vpc_binding":                                        resourceAliCloudFCVpcBinding(),
+			// alicloud_fcv3_* family: FC 3.0 resource names exposed on the same
+			// FC 3.0 constructors as the legacy alicloud_fc_* registrations above.
+			// New configurations should use the alicloud_fcv3_* names.
+			"alicloud_fcv3_alias":               resourceAliCloudFCAlias(),
+			"alicloud_fcv3_async_invoke_config": resourceAliCloudFCAsyncInvokeConfig(),
+			"alicloud_fcv3_concurrency_config":  resourceAliCloudFCConcurrencyConfig(),
+			"alicloud_fcv3_custom_domain":       resourceAliCloudFCCustomDomain(),
+			"alicloud_fcv3_function":            resourceAliCloudFCFunction(),
+			"alicloud_fcv3_function_version":    resourceAliCloudFCFunctionVersion(),
+			"alicloud_fcv3_layer_version":       resourceAliCloudFCLayerVersion(),
+			"alicloud_fcv3_provision_config":    resourceAliCloudFCProvisionConfig(),
+			"alicloud_fcv3_trigger":             resourceAliCloudFCTrigger(),
+			"alicloud_fcv3_vpc_binding":         resourceAliCloudFCVpcBinding(),
 			"alicloud_flink_deployment":                                      resourceAliCloudFlinkDeployment(),
 			"alicloud_flink_deployment_draft":                                resourceAliCloudFlinkDeploymentDraft(),
 			"alicloud_flink_deployment_folder":                               resourceAliCloudFlinkDeploymentFolder(),
