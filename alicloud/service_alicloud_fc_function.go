@@ -1144,7 +1144,11 @@ func (s *FCService) WaitForFCFunctionUpdating(functionName string, timeout time.
 func (s *FCService) WaitForFCFunctionDeleting(functionName string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Deleting"},
-		Target:  []string{""},
+		// SDK v1 semantics for waiting on resource absence: Target must be an
+		// empty slice; a (nil, "", nil) refresh result then completes the
+		// wait. A non-empty target like []string{""} instead counts NotFound
+		// ticks and fails with "couldn't find resource (N retries)".
+		Target: []string{},
 		Refresh: func() (interface{}, string, error) {
 			obj, err := s.DescribeFCFunction(functionName)
 			if err != nil {
@@ -1237,9 +1241,11 @@ func (s *FCService) WaitForFunctionCreating(functionName string, timeout time.Du
 
 // WaitForFunctionDeleting waits for function deletion to complete
 func (s *FCService) WaitForFunctionDeleting(functionName string, timeout time.Duration) error {
+	// Empty target slice: SDK v1 absence-wait semantics, see
+	// WaitForFCFunctionDeleting for details.
 	stateConf := BuildStateConf(
 		[]string{"Deleting", "Active"},
-		[]string{""},
+		[]string{},
 		timeout,
 		5*time.Second,
 		s.FunctionStateRefreshFunc(functionName, []string{"Failed", "Error"}),

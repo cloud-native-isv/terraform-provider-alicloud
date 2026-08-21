@@ -745,9 +745,11 @@ func (s *FCService) WaitForCustomDomainCreating(domainName string, timeout time.
 
 // WaitForCustomDomainDeleting waits for custom domain deletion to complete
 func (s *FCService) WaitForCustomDomainDeleting(domainName string, timeout time.Duration) error {
+	// Empty target slice: SDK v1 absence-wait semantics, see
+	// WaitForFCFunctionDeleting (service_alicloud_fc_function.go) for details.
 	stateConf := BuildStateConf(
 		[]string{"Deleting", "Active"},
-		[]string{""},
+		[]string{},
 		timeout,
 		5*time.Second,
 		s.CustomDomainStateRefreshFunc(domainName, []string{"Failed", "Error"}),

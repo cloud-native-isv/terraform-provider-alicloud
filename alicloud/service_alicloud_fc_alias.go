@@ -237,9 +237,11 @@ func (s *FCService) WaitForAliasCreating(functionName, aliasName string, timeout
 
 // WaitForAliasDeleting waits for alias deletion to complete
 func (s *FCService) WaitForAliasDeleting(functionName, aliasName string, timeout time.Duration) error {
+	// Empty target slice: SDK v1 absence-wait semantics, see
+	// WaitForFCFunctionDeleting (service_alicloud_fc_function.go) for details.
 	stateConf := BuildStateConf(
 		[]string{"Deleting", "Active"},
-		[]string{""},
+		[]string{},
 		timeout,
 		5*time.Second,
 		s.AliasStateRefreshFunc(functionName, aliasName, []string{"Failed", "Error"}),

@@ -141,9 +141,11 @@ func (s *FCService) WaitForTriggerCreating(functionName, triggerName string, tim
 
 // WaitForTriggerDeleting waits for trigger deletion to complete
 func (s *FCService) WaitForTriggerDeleting(functionName, triggerName string, timeout time.Duration) error {
+	// Empty target slice: SDK v1 absence-wait semantics, see
+	// WaitForFCFunctionDeleting (service_alicloud_fc_function.go) for details.
 	stateConf := BuildStateConf(
 		[]string{"Deleting", "Active"},
-		[]string{""},
+		[]string{},
 		timeout,
 		5*time.Second,
 		s.TriggerStateRefreshFunc(functionName, triggerName, []string{"Failed", "Error"}),

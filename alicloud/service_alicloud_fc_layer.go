@@ -166,7 +166,9 @@ func (s *FCService) WaitForFCLayerVersionCreating(layerName, version string, tim
 func (s *FCService) WaitForFCLayerVersionDeleting(layerName, version string, timeout time.Duration) error {
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Deleting"},
-		Target:  []string{""},
+		// Empty target slice: SDK v1 absence-wait semantics, see
+		// WaitForFCFunctionDeleting (service_alicloud_fc_function.go).
+		Target: []string{},
 		Refresh: func() (interface{}, string, error) {
 			obj, err := s.DescribeFCLayerVersionByNameAndVersion(layerName, version)
 			if err != nil {
