@@ -33,6 +33,12 @@ func resourceAliCloudCmsWorkspace() *schema.Resource {
 				ForceNew:    true,
 				Description: "The description of the CMS workspace.",
 			},
+			"sls_project": {
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The SLS project bound to the CMS workspace. Required by the CMS 2.0 API when creating a workspace.",
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -62,6 +68,7 @@ func resourceAliCloudCmsWorkspaceCreate(d *schema.ResourceData, meta interface{}
 	workspace := &cmsapi.CmsWorkspace{
 		Workspace:   d.Get("workspace").(string),
 		Description: d.Get("description").(string),
+		SlsProject:  d.Get("sls_project").(string),
 	}
 	result, err := service.PutCmsWorkspace(workspace)
 	if err != nil {
@@ -95,6 +102,7 @@ func resourceAliCloudCmsWorkspaceRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("workspace", workspace.Workspace)
 	d.Set("name", workspace.Name)
 	d.Set("description", workspace.Description)
+	d.Set("sls_project", workspace.SlsProject)
 	d.Set("region_id", workspace.RegionId)
 	d.Set("status", workspace.Status)
 	return nil
