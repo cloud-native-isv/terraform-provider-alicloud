@@ -391,6 +391,7 @@ func Provider() terraform.ResourceProvider {
 			"alicloud_cs_edge_kubernetes_clusters":                      dataSourceAliCloudCSEdgeKubernetesClusters(),
 			"alicloud_cs_kubernetes_addon_metadata":                     dataSourceAliCloudCSKubernetesAddonMetadata(),
 			"alicloud_cs_kubernetes_addons":                             dataSourceAliCloudCSKubernetesAddons(),
+			"alicloud_cs_kubernetes_cluster":                            dataSourceAliCloudCSKubernetesCluster(),
 			"alicloud_cs_kubernetes_clusters":                           dataSourceAliCloudCSKubernetesClusters(),
 			"alicloud_cs_kubernetes_node_pools":                         dataSourceAliCloudAckNodepools(),
 			"alicloud_cs_kubernetes_permissions":                        dataSourceAliCloudCSKubernetesPermissions(),

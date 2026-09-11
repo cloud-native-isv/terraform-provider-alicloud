@@ -247,6 +247,10 @@ replace (
 	github.com/alibabacloud-go/arms-20190808/v9 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/arms-20190808
 	github.com/alibabacloud-go/clickhouse-20230522 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/clickhouse-20230522
 	github.com/alibabacloud-go/cms-20240330/v9 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/cms-20240330
+	// The cws-lib-go ack package references inspect-report types that only
+	// exist in the vendored cs-20151215 SDK (identical to v5.9.5); the module
+	// cache only offers v5.8.12 for direct resolution.
+	github.com/alibabacloud-go/cs-20151215/v5 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/cs-20151215
 	github.com/alibabacloud-go/darabonba-openapi/v2 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/darabonba-openapi/golang
 	github.com/alibabacloud-go/dds-20151201/v10 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/dds-20151201
 	github.com/alibabacloud-go/fc-20230330/v4 => ./pkg/cws-lib-go/lib/cloud/aliyun/sdk/fc-20230330

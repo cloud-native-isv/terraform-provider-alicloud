@@ -2,10 +2,12 @@
 
 - **New Resource:** `alicloud_message_service_service` [GH-8766]
 - **New Resource:** `alicloud_sls_consumer_group` ([#XXXX](https://github.com/aliyun/terraform-provider-alicloud/issues/XXXX))
+- **New Data Source:** `alicloud_cs_kubernetes_cluster`
 
 RESOURCE BREAKING CHANGES:
 
 - resource/alicloud_logtail_config: Redesigned schema to support Logtail Pipeline Config, incompatible with previous versions.
+- resource/`alicloud_cs_kubernetes`, resource/`alicloud_cs_kubernetes_node_pool`, resource/`alicloud_cs_kubernetes_addon`, data-source/`alicloud_cs_kubernetes_clusters`, data-source/`alicloud_cs_cluster_credential`: Rewritten on the cws-lib-go ACK API layer (`lib/cloud/aliyun/api/ack`); managed/proprietary clusters are now expressed via `profile` + `cluster_spec` instead of separate managed/serverless resource types.
 
 ENHANCEMENTS:
 

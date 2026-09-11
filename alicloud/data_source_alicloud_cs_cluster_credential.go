@@ -1,15 +1,12 @@
 package alicloud
 
 import (
-	"time"
-
-	roaCS "github.com/alibabacloud-go/cs-20151215/v5/client"
-
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	aliyunAckAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/ack"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
+
+const dataSourceAliCloudCSClusterCredentialName = "alicloud_cs_cluster_credential"
 
 func dataSourceAliCloudCSClusterCredential() *schema.Resource {
 	return &schema.Resource{
@@ -17,120 +14,62 @@ func dataSourceAliCloudCSClusterCredential() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"cluster_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The ID of the cluster.",
 			},
 			"temporary_duration_minutes": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "The validity period (minutes) of the temporary kubeconfig credential.",
 			},
-			"output_file": {
-				Type:     schema.TypeString,
-				Optional: true,
+			"private_ip_address": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether to use the private API server endpoint in the kubeconfig.",
 			},
 
-			// Computed fields
-			"cluster_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"kube_config": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-			"certificate_authority": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"cluster_cert": {
-							Type:      schema.TypeString,
-							Sensitive: true,
-							Computed:  true,
-						},
-						"client_cert": {
-							Type:      schema.TypeString,
-							Sensitive: true,
-							Computed:  true,
-						},
-						"client_key": {
-							Type:      schema.TypeString,
-							Sensitive: true,
-							Computed:  true,
-						},
-					},
-				},
+			// Computed values
+			"config": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Sensitive:   true,
+				Description: "The kubeconfig YAML of the cluster. Sensitive: it is a cluster access credential.",
 			},
 			"expiration": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The expiration time of the kubeconfig credential.",
 			},
 		},
 	}
 }
 
-func dataSourceAliCloudCSClusterCredentialRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*connectivity.AliyunClient)
-	roaClient, err := client.NewRoaCsClient()
-	if err != nil {
-		return WrapError(err)
+// buildAckKubeConfigOptions maps the data source schema onto the kubeconfig
+// retrieval options. Exposed for offline table-driven tests.
+func buildAckKubeConfigOptions(d *schema.ResourceData) *aliyunAckAPI.AckKubeConfigOptions {
+	return &aliyunAckAPI.AckKubeConfigOptions{
+		PrivateIpAddress:         d.Get("private_ip_address").(bool),
+		TemporaryDurationMinutes: int64(d.Get("temporary_duration_minutes").(int)),
 	}
-
-	csClient := CsClient{roaClient}
-
-	clusterId := d.Get("cluster_id").(string)
-	cluster, err := csClient.client.DescribeClusterDetail(tea.String(clusterId))
-	if err != nil {
-		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_cs_cluster_credential", "DescribeClusterDetail", AlibabaCloudSdkGoERROR)
-	}
-
-	return csClusterAuthDescriptionAttributes(d, meta, cluster.Body)
 }
 
-func csClusterAuthDescriptionAttributes(d *schema.ResourceData, meta interface{}, cluster *roaCS.DescribeClusterDetailResponseBody) error {
+func dataSourceAliCloudCSClusterCredentialRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*connectivity.AliyunClient)
-	roaClient, err := client.NewRoaCsClient()
+	ackService, err := NewAckService(client)
 	if err != nil {
 		return WrapError(err)
 	}
 
-	csClient := CsClient{roaClient}
-
-	var expiration int64 = 0
-	if v, ok := d.GetOk("temporary_duration_minutes"); ok {
-		expiration = int64(v.(int))
-	}
-
-	clusterId := tea.StringValue(cluster.ClusterId)
-	var credential *roaCS.DescribeClusterUserKubeconfigResponseBody
-	wait := incrementalWait(3*time.Second, 3*time.Second)
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		credential, err = csClient.DescribeClusterKubeConfigWithExpiration(clusterId, expiration)
-		if err != nil {
-			if NeedRetry(err) {
-				wait()
-				return resource.RetryableError(err)
-			}
-			return resource.NonRetryableError(err)
-		}
-		return nil
-	})
-
+	clusterId := d.Get("cluster_id").(string)
+	kubeConfig, err := ackService.GetAPI().DescribeClusterUserKubeconfig(clusterId, buildAckKubeConfigOptions(d))
 	if err != nil {
-		return WrapErrorf(err, DataDefaultErrorMsg, "alicloud_cs_cluster_credential", "DescribeClusterKubeConfigWithExpiration", AlibabaCloudSdkGoERROR)
+		return WrapErrorf(err, DataDefaultErrorMsg, dataSourceAliCloudCSClusterCredentialName, "DescribeClusterUserKubeconfig", err)
 	}
 
+	d.SetId(clusterId)
 	d.Set("cluster_id", clusterId)
-	d.Set("cluster_name", tea.StringValue(cluster.Name))
-	d.Set("kube_config", tea.StringValue(credential.Config))
-	d.Set("expiration", tea.StringValue(credential.Expiration))
-	d.Set("certificate_authority", flattenAliCloudCSCertificate(credential))
-	d.SetId(dataResourceIdHash([]string{clusterId}))
-
-	if output, ok := d.GetOk("output_file"); ok && output.(string) != "" {
-		writeToFile(output.(string), tea.StringValue(credential.Config))
-	}
-
+	d.Set("config", kubeConfig.Config)
+	d.Set("expiration", kubeConfig.Expiration)
 	return nil
 }
