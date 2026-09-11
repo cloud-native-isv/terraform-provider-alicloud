@@ -8,6 +8,8 @@ RESOURCE BREAKING CHANGES:
 
 - resource/alicloud_logtail_config: Redesigned schema to support Logtail Pipeline Config, incompatible with previous versions.
 - resource/`alicloud_cs_kubernetes`, resource/`alicloud_cs_kubernetes_node_pool`, resource/`alicloud_cs_kubernetes_addon`, data-source/`alicloud_cs_kubernetes_clusters`, data-source/`alicloud_cs_cluster_credential`: Rewritten on the cws-lib-go ACK API layer (`lib/cloud/aliyun/api/ack`); managed/proprietary clusters are now expressed via `profile` + `cluster_spec` instead of separate managed/serverless resource types.
+- Removed legacy CS resources: `alicloud_cs_application`, `alicloud_cs_autoscaling_config`, `alicloud_cs_edge_kubernetes`, `alicloud_cs_kubernetes_autoscaler`, `alicloud_cs_kubernetes_permissions`, `alicloud_cs_managed_kubernetes`, `alicloud_cs_serverless_kubernetes`, `alicloud_cs_swarm` (and the deprecated `alicloud_container_cluster` alias), together with the legacy CS service layer.
+- Removed legacy CS data sources: `alicloud_cs_edge_kubernetes_clusters`, `alicloud_cs_kubernetes_addon_metadata`, `alicloud_cs_kubernetes_addons`, `alicloud_cs_kubernetes_node_pools`, `alicloud_cs_kubernetes_permissions`, `alicloud_cs_kubernetes_version`, `alicloud_cs_managed_kubernetes_clusters`, `alicloud_cs_serverless_kubernetes_clusters`.
 
 ENHANCEMENTS:
 
