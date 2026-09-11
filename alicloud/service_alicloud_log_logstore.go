@@ -209,7 +209,9 @@ func (s *SlsService) GetLogStoreShard(project, logstoreName string, shardId int3
 
 // SplitLogStoreShard encapsulates the call to aliyunSlsAPI.SplitLogStoreShard
 func (s *SlsService) SplitLogStoreShard(project, logstoreName string, shardId int32, splitKey string) ([]*aliyunSlsAPI.LogStoreShard, error) {
-	return s.GetAPI().SplitLogStoreShard(project, logstoreName, shardId, splitKey)
+	// newShardCount 0 keeps the historical splitKey-only behavior of the
+	// cws-lib-go SLS API (SplitShard request.Key set, ShardCount unset).
+	return s.GetAPI().SplitLogStoreShard(project, logstoreName, shardId, splitKey, 0)
 }
 
 // MergeLogStoreShards encapsulates the call to aliyunSlsAPI.MergeLogStoreShards
