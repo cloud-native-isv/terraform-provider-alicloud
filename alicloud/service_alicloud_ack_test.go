@@ -155,9 +155,6 @@ func TestAckServiceClusterWaitStateSets(t *testing.T) {
 	if !reflect.DeepEqual(ackClusterCreateFailStates, []string{"failed"}) {
 		t.Fatalf("ackClusterCreateFailStates = %v", ackClusterCreateFailStates)
 	}
-	if ackClusterStateDeleted != "deleted" {
-		t.Fatalf("ackClusterStateDeleted = %q, want deleted", ackClusterStateDeleted)
-	}
 	if ackNodePoolStateActive != "active" {
 		t.Fatalf("ackNodePoolStateActive = %q, want active", ackNodePoolStateActive)
 	}

@@ -43,10 +43,6 @@ func (s *AckService) GetAPI() *aliyunAckAPI.AckAPI {
 	return s.ackAPI
 }
 
-// ackClusterStateDeleted is the synthetic state reported once a cluster no
-// longer exists; it is the target state of the delete waiters.
-const ackClusterStateDeleted = "deleted"
-
 // ackClusterCreatePendingStates are the cluster states observed while a
 // cluster is still being provisioned.
 var ackClusterCreatePendingStates = []string{"initial", "provisioning", ""}
@@ -76,13 +72,15 @@ func (s *AckService) AckClusterStateRefreshFunc(clusterId string, failStates []s
 }
 
 // AckClusterDeleteStateRefreshFunc polls DescribeClusterDetail until the
-// cluster disappears (NotFound is mapped to the deleted target state).
+// cluster disappears. A NotFound error maps to a nil result with an empty
+// state so the empty-target delete waiter (SDK v1 absence-wait semantics)
+// treats the vanished cluster as success.
 func (s *AckService) AckClusterDeleteStateRefreshFunc(clusterId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		cluster, err := s.GetAPI().DescribeClusterDetail(clusterId)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, ackClusterStateDeleted, nil
+				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
 		}
@@ -122,7 +120,9 @@ func (s *AckService) AckNodePoolStateRefreshFunc(id string, failStates []string)
 }
 
 // AckNodePoolDeleteStateRefreshFunc polls DescribeClusterNodePoolDetail until
-// the node pool disappears (NotFound maps to the deleted target state).
+// the node pool disappears. A NotFound error maps to a nil result with an
+// empty state so the empty-target delete waiter (SDK v1 absence-wait
+// semantics) treats the vanished pool as success.
 func (s *AckService) AckNodePoolDeleteStateRefreshFunc(id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		clusterId, nodepoolId, err := ackParseTwoPartId(id)
@@ -132,7 +132,7 @@ func (s *AckService) AckNodePoolDeleteStateRefreshFunc(id string) resource.State
 		pool, err := s.GetAPI().DescribeClusterNodePoolDetail(clusterId, nodepoolId)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, ackClusterStateDeleted, nil
+				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
 		}
@@ -164,7 +164,9 @@ func (s *AckService) AckAddonInstanceStateRefreshFunc(id string) resource.StateR
 }
 
 // AckAddonInstanceDeleteStateRefreshFunc polls DescribeClusterAddonInstance
-// until the addon disappears (NotFound maps to the deleted target state).
+// until the addon disappears. A NotFound error maps to a nil result with an
+// empty state so the empty-target delete waiter (SDK v1 absence-wait
+// semantics) treats the vanished addon as success.
 func (s *AckService) AckAddonInstanceDeleteStateRefreshFunc(id string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		clusterId, name, err := ackParseTwoPartId(id)
@@ -174,7 +176,7 @@ func (s *AckService) AckAddonInstanceDeleteStateRefreshFunc(id string) resource.
 		instance, err := s.GetAPI().DescribeClusterAddonInstance(clusterId, name)
 		if err != nil {
 			if NotFoundError(err) {
-				return nil, ackClusterStateDeleted, nil
+				return nil, "", nil
 			}
 			return nil, "", WrapError(err)
 		}

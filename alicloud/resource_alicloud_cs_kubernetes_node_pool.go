@@ -477,8 +477,12 @@ func resourceAliCloudAckNodepoolDelete(d *schema.ResourceData, meta interface{})
 		return WrapErrorf(err, DefaultErrorMsg, resourceAliCloudCSKubernetesNodePoolName, "DeleteClusterNodepool", err)
 	}
 
+	// Empty target is the fork's absence-wait idiom (see
+	// resourceAliCloudFlinkNamespaceDelete): once the pool is gone the
+	// refresh returns nil and WaitForState succeeds, instead of counting
+	// NotFoundChecks retries and failing the destroy (B1).
 	stateConf := buildAckStateConf(
-		nil, []string{ackClusterStateDeleted},
+		nil, []string{},
 		d.Timeout(schema.TimeoutDelete), 5*time.Second, 5*time.Second,
 		ackService.AckNodePoolDeleteStateRefreshFunc(d.Id()))
 	if _, err := stateConf.WaitForState(); err != nil {
