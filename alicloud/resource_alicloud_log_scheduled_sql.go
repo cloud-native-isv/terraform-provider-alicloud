@@ -10,6 +10,7 @@ import (
 	"github.com/aliyun/terraform-provider-alicloud/alicloud/connectivity"
 	aliyunSlsAPI "github.com/cloud-native-tools/cws-lib-go/lib/cloud/aliyun/api/sls"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceAliCloudLogScheduledSQL() *schema.Resource {
@@ -43,7 +44,6 @@ func resourceAliCloudLogScheduledSQL() *schema.Resource {
 			"schedule": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -77,12 +77,24 @@ func resourceAliCloudLogScheduledSQL() *schema.Resource {
 			"scheduled_sql_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"max_retries": {
 							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"max_concurrency": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 3),
+						},
+						"force_complete": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"using_exactly_once": {
+							Type:     schema.TypeBool,
 							Optional: true,
 						},
 						"script": {
@@ -160,6 +172,12 @@ func resourceAliCloudLogScheduledSQL() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+			"status": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice([]string{"ENABLED", "DISABLED"}, false),
 			},
 		},
 	}
@@ -254,6 +272,17 @@ func resourceAliCloudLogScheduledSQLCreate(d *schema.ResourceData, meta interfac
 		if v, ok := configData["max_retries"]; ok {
 			scheduledSQL.Configuration.MaxRetries = int64(v.(int))
 		}
+		if v, ok := configData["max_concurrency"]; ok {
+			scheduledSQL.Configuration.MaxConcurrency = int64(v.(int))
+		}
+		if v, ok := d.GetOkExists("scheduled_sql_configuration.0.force_complete"); ok {
+			forceComplete := v.(bool)
+			scheduledSQL.Configuration.ForceComplete = &forceComplete
+		}
+		if v, ok := d.GetOkExists("scheduled_sql_configuration.0.using_exactly_once"); ok {
+			usingExactlyOnce := v.(bool)
+			scheduledSQL.Configuration.UsingExactlyOnce = &usingExactlyOnce
+		}
 		if v, ok := configData["max_run_time_in_seconds"]; ok {
 			scheduledSQL.Configuration.MaxRunTimeInSeconds = int64(v.(int))
 		}
@@ -312,6 +341,7 @@ func resourceAliCloudLogScheduledSQLRead(d *schema.ResourceData, meta interface{
 	// Set basic attributes
 	d.Set("description", scheduledSQL.Description)
 	d.Set("display_name", scheduledSQL.DisplayName)
+	d.Set("status", scheduledSQL.Status)
 
 	// Set schedule configuration
 	if scheduledSQL.Schedule != nil {
@@ -343,10 +373,17 @@ func resourceAliCloudLogScheduledSQLRead(d *schema.ResourceData, meta interface{
 			"data_format":             config.DataFormat,
 			"resource_pool":           config.ResourcePool,
 			"max_retries":             config.MaxRetries,
+			"max_concurrency":         config.MaxConcurrency,
 			"max_run_time_in_seconds": config.MaxRunTimeInSeconds,
 			"from_time":               config.FromTime,
 			"to_time":                 config.ToTime,
 			"parameters":              config.Parameters,
+		}
+		if config.ForceComplete != nil {
+			configMap["force_complete"] = *config.ForceComplete
+		}
+		if config.UsingExactlyOnce != nil {
+			configMap["using_exactly_once"] = *config.UsingExactlyOnce
 		}
 		d.Set("scheduled_sql_configuration", []map[string]interface{}{configMap})
 	}
@@ -465,6 +502,17 @@ func resourceAliCloudLogScheduledSQLUpdate(d *schema.ResourceData, meta interfac
 			}
 			if v, ok := configData["max_retries"]; ok {
 				scheduledSQL.Configuration.MaxRetries = int64(v.(int))
+			}
+			if v, ok := configData["max_concurrency"]; ok {
+				scheduledSQL.Configuration.MaxConcurrency = int64(v.(int))
+			}
+			if v, ok := d.GetOkExists("scheduled_sql_configuration.0.force_complete"); ok {
+				forceComplete := v.(bool)
+				scheduledSQL.Configuration.ForceComplete = &forceComplete
+			}
+			if v, ok := d.GetOkExists("scheduled_sql_configuration.0.using_exactly_once"); ok {
+				usingExactlyOnce := v.(bool)
+				scheduledSQL.Configuration.UsingExactlyOnce = &usingExactlyOnce
 			}
 			if v, ok := configData["max_run_time_in_seconds"]; ok {
 				scheduledSQL.Configuration.MaxRunTimeInSeconds = int64(v.(int))
