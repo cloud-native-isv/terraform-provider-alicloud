@@ -282,12 +282,21 @@ func (s *OtsService) WaitForOtsInstanceCreating(instanceName string, timeout tim
 }
 
 func (s *OtsService) WaitForOtsInstanceDeleting(instanceName string, timeout time.Duration) error {
+	return waitForOtsInstanceDeleting(instanceName, timeout,
+		s.OtsInstanceStateRefreshFunc(instanceName, []string{tablestoreAPI.InstanceStatusFailed.String()}))
+}
+
+func waitForOtsInstanceDeleting(instanceName string, timeout time.Duration, refresh resource.StateRefreshFunc) error {
+	// Target MUST be empty: plugin-sdk v1 matches Target only when the refresh
+	// result is non-nil, and the refresh func returns nil once the instance is
+	// gone — with a non-empty Target the waiter always ends in
+	// "couldn't find resource (21 retries)" (NotFoundChecks default 20).
 	stateConf := BuildStateConf(
-		[]string{tablestoreAPI.InstanceStatusDeleting.String()},
-		[]string{tablestoreAPI.InstanceStatusNotFound.String()},
+		[]string{tablestoreAPI.InstanceStatusDeleting.String(), tablestoreAPI.InstanceStatusRunning.String()},
+		[]string{},
 		timeout,
 		5*time.Second,
-		s.OtsInstanceStateRefreshFunc(instanceName, []string{tablestoreAPI.InstanceStatusFailed.String()}),
+		refresh,
 	)
 
 	_, err := stateConf.WaitForState()

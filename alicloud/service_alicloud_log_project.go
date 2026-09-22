@@ -156,16 +156,18 @@ func (s *SlsService) CreateProject(project *aliyunSlsAPI.LogProject) error {
 // UpdateProject updates an existing SLS project
 func (s *SlsService) UpdateProject(request map[string]interface{}) error {
 	projectName := request["projectName"].(string)
-	project := &aliyunSlsAPI.LogProject{}
+	update := &aliyunSlsAPI.LogProjectUpdate{}
 
 	if description, ok := request["description"]; ok {
-		project.Description = description.(string)
+		v := description.(string)
+		update.Description = &v
 	}
 	if recycleBinEnabled, ok := request["recycleBinEnabled"]; ok {
-		project.RecycleBinEnabled = recycleBinEnabled.(bool)
+		v := recycleBinEnabled.(bool)
+		update.RecycleBinEnabled = &v
 	}
 
-	err := s.GetAPI().UpdateLogProject(projectName, project)
+	err := s.GetAPI().UpdateLogProject(projectName, update)
 	if err != nil {
 		return WrapErrorf(err, DefaultErrorMsg, projectName, "UpdateProject", AlibabaCloudSdkGoERROR)
 	}
